@@ -1,1 +1,23 @@
 /* You can add global styles to this file, and also import other style files */
+
+a {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.fancy-button > * {
+  padding: 0.2em
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  background-color: whitesmoke;
+}
+
+h1 {
+  padding: 1.5em 0 0 0;
+  margin-bottom: 1em;
+  border-bottom: solid 0.08em lightgray;
+}

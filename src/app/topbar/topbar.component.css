@@ -1,0 +1,15 @@
+.topbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+}
+
+.topbar > * {
+  padding: 0.5em 1em;
+}
+
+.topbar > *:hover {
+  background-color: #00000011;
+  border-radius: 0.35em;
+}
