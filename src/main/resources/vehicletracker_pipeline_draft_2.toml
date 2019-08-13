@@ -1,0 +1,95 @@
+[pipeline]
+name = "Vehicle tracking on video"
+desc = "Detects all vehicles in a video and tracks them through the video"
+
+[pipeline.userInput]
+valueFor = [
+    "VIDEO_IN",
+    "DATABASE_FILE"
+]
+
+
+
+[[stage]]
+name = "car-detection"
+desc = "Detecting all vehicles on each single frame through an AI"
+
+[stage.image]
+name = "mecview.itd-services.de/detector" # ENTRYPOINT python3 detector.py
+args = ["inference", "--gpus", "0,1,2,3", "-p", "$VIDEO_IN"]
+
+[stage.requires.gpu]
+count = 4
+vendor = "nvidia"
+support = ["cuda", "vulkan"] # hmm?
+
+[stage.progress]
+from-log = '([\w]): Progress update: ([\d]+\.[\d]+)%'
+
+
+
+
+[[stage]]
+name = "confirm-detection"
+depends-on = ["car-detection"]
+
+[stage.userInput]
+confirmation = "Always" # Never|Once|Always
+value-for = ["WHATEVER_PATH",  "PATH_TO_THE_GREAT_FILE"]
+
+
+
+[[stage]]
+name = "vehicletracker-smoothing"
+depends-on = ["confirm-detection"]
+
+[stage.image]
+name = "mecview.itd-services.de/vehicletracker" # ENTRYPOINT java -Xmx40g -jar vehicletracker.jar -p cli
+args = ["-f", "$DATABASE_FILE", "-b", "ParticleTrackerIOTracks", "-b", "SmoothTracks", "-b", "LaneDetector"]
+
+[stage.requires]
+ram = 40960
+
+[stage.fail]
+if-log-contains = ["0 records detected", "bus error"]
+if-log-matches = ['[\d]+ errors']
+
+[stage.warn]
+if-log-contains = ["this should never happen"]
+
+[stage.allow]
+exit-codes = [202, 108, 105]
+
+[stage.deny]
+exit-codes = [0]
+
+
+
+
+[[stage]]
+name = "vehicletracker-movie"
+depends-on = ["vehicletracker-smoothing"]
+
+[stage.image]
+name = "mecview.itd-services.de/vehicletracker" # ENTRYPOINT java -jar vehicletracker.jar -p cli
+args = ["-f", "$DATABASE_FILE", "-b", "RenderVideo"]
+
+[stage.env]
+OUTPUT_DIR = "abc/def/"
+
+[stage.hightlight]
+resources = ["TheMovie.mp4"]
+
+
+
+[[stage]]
+name  = "export-trajectories"
+depends-on = ["vehicletracker-smoothing"]
+
+[stage.image]
+name = "mecview.itd-services.de/vehicletracker" # ENTRYPOINT java -jar vehicletracker.jar -p cli
+args = ["-f", "$DATABASE_FILE", "-b", "ExportTracjectories"]
+
+[stage.highlight]
+resources = ["trajectories/*.csv"]
+
