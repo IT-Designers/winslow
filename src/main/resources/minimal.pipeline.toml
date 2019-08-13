@@ -1,0 +1,22 @@
+[pipeline]
+name = "minimal"
+desc = "Testing a minimal set of functionality"
+
+[pipeline.userInput]
+valueFor = [
+    "VIDEO_IN",
+    "DATABASE_FILE"
+]
+
+
+
+[[stage]]
+name = "print-env-variable"
+
+[stage.image]
+name = "ubuntu" # ENTRYPOINT python3 detector.py
+args = ["echo", "winslow -> nomad -> docker -> nomad -> YOU"]
+
+[stage.requires.gpu]
+vendor = "nvidia"
+
