@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "emc-ui-ng": {
+    "winslow-ui-ng": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/emc-ui-ng",
+            "outputPath": "dist/winslow-ui-ng",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -63,18 +63,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "emc-ui-ng:build"
+            "browserTarget": "winslow-ui-ng:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "emc-ui-ng:build:production"
+              "browserTarget": "winslow-ui-ng:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "emc-ui-ng:build"
+            "browserTarget": "winslow-ui-ng:build"
           }
         },
         "test": {
@@ -111,15 +111,15 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "emc-ui-ng:serve"
+            "devServerTarget": "winslow-ui-ng:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "emc-ui-ng:serve:production"
+              "devServerTarget": "winslow-ui-ng:serve:production"
             }
           }
         }
       }
     }},
-  "defaultProject": "emc-ui-ng"
+  "defaultProject": "winslow-ui-ng"
 }
