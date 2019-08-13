@@ -77,7 +77,7 @@ args = ["-f", "$DATABASE_FILE", "-b", "RenderVideo"]
 [stage.env]
 OUTPUT_DIR = "abc/def/"
 
-[stage.hightlight]
+[stage.highlight]
 resources = ["TheMovie.mp4"]
 
 

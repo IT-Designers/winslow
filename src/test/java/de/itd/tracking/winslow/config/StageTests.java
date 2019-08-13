@@ -20,6 +20,7 @@ public class StageTests {
         assertTrue(stage.getImage().isEmpty());
         assertTrue(stage.getRequirements().isEmpty());
         assertTrue(stage.getEnvironment().isEmpty());
+        assertTrue(stage.getHighlight().isEmpty());
     }
 
     @Test
@@ -105,5 +106,25 @@ public class StageTests {
         assertTrue(stage.getRequirements().isEmpty());
         assertEquals("VALUE_1", stage.getEnvironment().get("VAR_1"));
         assertEquals("value_2", stage.getEnvironment().get("VAR_2"));
+    }
+
+    @Test
+    public void testWithHighlights() {
+        var stage = new Toml().read("[stage]\n" +
+                "name = \"The name of the stage\"\n" +
+                "\n" +
+                "[stage.highlight]\n" +
+                "resources = [\"res1\", \"RES/NUM/2\"]"
+        )
+                .getTable("stage")
+                .to(Stage.class);
+
+        assertEquals("The name of the stage", stage.getName());
+        assertTrue(stage.getDescription().isEmpty());
+        assertTrue(stage.getImage().isEmpty());
+        assertTrue(stage.getRequirements().isEmpty());
+        assertTrue(stage.getEnvironment().isEmpty());
+        assertTrue(stage.getHighlight().isPresent());
+        assertArrayEquals(new String[]{"res1", "RES/NUM/2"}, stage.getHighlight().get().getResources());
     }
 }

@@ -4,6 +4,7 @@ import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import com.hashicorp.nomad.javasdk.NomadException;
 import com.moandjiezana.toml.Toml;
+import com.moandjiezana.toml.TomlWriter;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
 

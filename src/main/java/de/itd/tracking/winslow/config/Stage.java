@@ -9,14 +9,16 @@ public class Stage {
     private final Requirements        requires;
     private final UserInput           userInput;
     private final Map<String, String> env;
+    private final Highlight           highlight;
 
-    public Stage(String name, String desc, Image image, Requirements requires, UserInput userInput, HashMap<String, String> env) {
+    public Stage(String name, String desc, Image image, Requirements requires, UserInput userInput, HashMap<String, String> env, Highlight highlight) {
         this.name = name;
         this.desc = desc;
         this.image = image;
         this.requires = requires;
         this.userInput = userInput;
         this.env = env;
+        this.highlight = highlight;
         this.check();
     }
 
@@ -46,6 +48,10 @@ public class Stage {
 
     public Map<String, String> getEnvironment() {
         return env != null ? env : Collections.emptyMap();
+    }
+
+    public Optional<Highlight> getHighlight() {
+        return Optional.ofNullable(highlight);
     }
 
     @Override
