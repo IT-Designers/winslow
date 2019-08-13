@@ -1,21 +1,22 @@
 package de.itd.tracking.winslow.config;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class Stage {
-    private final String       name;
-    private final String       desc;
-    private final Image        image;
-    private final Requirements requires;
-    private final UserInput    userInput;
+    private final String              name;
+    private final String              desc;
+    private final Image               image;
+    private final Requirements        requires;
+    private final UserInput           userInput;
+    private final Map<String, String> env;
 
-    public Stage(String name, String desc, Image image, Requirements requires, UserInput userInput) {
+    public Stage(String name, String desc, Image image, Requirements requires, UserInput userInput, HashMap<String, String> env) {
         this.name = name;
         this.desc = desc;
         this.image = image;
         this.requires = requires;
         this.userInput = userInput;
+        this.env = env;
         this.check();
     }
 
@@ -41,6 +42,10 @@ public class Stage {
 
     public Optional<UserInput> getUserInput() {
         return Optional.ofNullable(userInput);
+    }
+
+    public Map<String, String> getEnvironment() {
+        return env != null ? env : Collections.emptyMap();
     }
 
     @Override

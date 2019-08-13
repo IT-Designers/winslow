@@ -19,6 +19,7 @@ public class StageTests {
         assertTrue(stage.getDescription().isEmpty());
         assertTrue(stage.getImage().isEmpty());
         assertTrue(stage.getRequirements().isEmpty());
+        assertTrue(stage.getEnvironment().isEmpty());
     }
 
     @Test
@@ -84,5 +85,25 @@ public class StageTests {
         assertEquals(4, stage.getRequirements().get().getGpu().get().getCount());
         assertEquals("nvidia", stage.getRequirements().get().getGpu().get().getVendor().get());
         assertArrayEquals(new String[]{"cuda", "vulkan"}, stage.getRequirements().get().getGpu().get().getSupport());
+    }
+
+    @Test
+    public void testWithEnvironmentVariables() {
+        var stage = new Toml().read("[stage]\n" +
+                "name = \"The name of the stage\"\n" +
+                "\n" +
+                "[stage.env]\n" +
+                "VAR_1 = \"VALUE_1\"\n" +
+                "VAR_2 = \"value_2\""
+        )
+                .getTable("stage")
+                .to(Stage.class);
+
+        assertEquals("The name of the stage", stage.getName());
+        assertTrue(stage.getDescription().isEmpty());
+        assertTrue(stage.getImage().isEmpty());
+        assertTrue(stage.getRequirements().isEmpty());
+        assertEquals("VALUE_1", stage.getEnvironment().get("VAR_1"));
+        assertEquals("value_2", stage.getEnvironment().get("VAR_2"));
     }
 }
