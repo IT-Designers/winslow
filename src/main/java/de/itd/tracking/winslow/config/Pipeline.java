@@ -44,4 +44,19 @@ public class Pipeline {
     public String toString() {
         return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',userInput=" + this.userInput + ",stages=" + this.stages + "}#" + this.hashCode();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Pipeline pipeline = (Pipeline) o;
+        return Objects.equals(name, pipeline.name) && Objects.equals(desc, pipeline.desc) && Objects.equals(userInput, pipeline.userInput) && Objects.equals(stages, pipeline.stages);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, desc, userInput, stages);
+    }
 }

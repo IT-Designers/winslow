@@ -1,5 +1,5 @@
 [pipeline]
-name = "Vehicle tracking on video"
+name = "vehicle-tracking"
 desc = "Detects all vehicles in a video and tracks them through the video"
 
 [pipeline.userInput]

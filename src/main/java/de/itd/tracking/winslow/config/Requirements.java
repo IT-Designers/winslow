@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow.config;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 
 public class Requirements {
@@ -23,6 +24,21 @@ public class Requirements {
     @Override
     public String toString() {
         return getClass().getSimpleName()+"@{ram="+this.ram+", gpu="+this.gpu+"}#"+this.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Requirements that = (Requirements) o;
+        return ram == that.ram && Objects.equals(gpu, that.gpu);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ram, gpu);
     }
 
     public static class Gpu {
@@ -51,6 +67,23 @@ public class Requirements {
         @Override
         public String toString() {
             return getClass().getSimpleName()+"@{count="+this.count+", vendor='"+this.vendor+"', support="+ Arrays.toString(this.support) +"}#"+this.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Gpu gpu = (Gpu) o;
+            return count == gpu.count && Objects.equals(vendor, gpu.vendor) && Arrays.equals(support, gpu.support);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(count, vendor);
+            result = 31 * result + Arrays.hashCode(support);
+            return result;
         }
     }
 }

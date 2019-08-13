@@ -1,7 +1,6 @@
 package de.itd.tracking.winslow.config;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 public class Highlight {
     private final String[] resources;
@@ -17,5 +16,11 @@ public class Highlight {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "@{resources=" + Arrays.toString(this.resources) + "}#" + this.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Highlight
+                && Arrays.deepEquals(((Highlight) obj).resources, resources);
     }
 }

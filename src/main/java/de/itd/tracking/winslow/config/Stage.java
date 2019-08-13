@@ -58,4 +58,19 @@ public class Stage {
     public String toString() {
         return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + "}#" + this.hashCode();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Stage stage = (Stage) o;
+        return Objects.equals(name, stage.name) && Objects.equals(desc, stage.desc) && Objects.equals(image, stage.image) && Objects.equals(requires, stage.requires) && Objects.equals(userInput, stage.userInput) && Objects.equals(env, stage.env) && Objects.equals(highlight, stage.highlight);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, desc, image, requires, userInput, env, highlight);
+    }
 }

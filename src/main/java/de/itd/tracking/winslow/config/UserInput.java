@@ -2,6 +2,7 @@ package de.itd.tracking.winslow.config;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class UserInput {
     private final Confirmation confirmation;
@@ -23,6 +24,21 @@ public class UserInput {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "@{valueFor=" + this.valueFor + "}#" + this.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        UserInput userInput = (UserInput) o;
+        return confirmation == userInput.confirmation && Objects.equals(valueFor, userInput.valueFor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(confirmation, valueFor);
     }
 
     public enum Confirmation {
