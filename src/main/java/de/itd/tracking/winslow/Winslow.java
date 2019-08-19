@@ -47,12 +47,7 @@ public class Winslow implements Runnable {
 
         var stages = pipeline.getTables("stage").stream().map(table -> table.to(Stage.class)).collect(Collectors.toList());
 
-        System.out.println(new Pipeline(
-                pipe.getName(),
-                pipe.getDescription().orElse(null),
-                pipe.getUserInput().orElse(null),
-                stages
-        ));
+        System.out.println(new Pipeline(pipe.getName(), pipe.getDescription().orElse(null), pipe.getUserInput().orElse(null), stages));
 
 
         System.out.println(pipeline.getTables("stage").get(0).toMap());
@@ -65,9 +60,7 @@ public class Winslow implements Runnable {
             e.printStackTrace();
         }*/
 
-        var ids = stages.stream().map(stage ->
-                orchestrator.start(pipe, stage)
-        ).collect(Collectors.toList());
+        var ids = stages.stream().map(stage -> orchestrator.start(pipe, stage, new Environment())).collect(Collectors.toList());
 
         for (int i = 0; i < 3; ++i) {
             try {
