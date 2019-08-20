@@ -6,6 +6,7 @@ import com.hashicorp.nomad.javasdk.NomadException;
 import com.moandjiezana.toml.Toml;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
+import de.itd.tracking.winslow.fs.FileSystemConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 public class Winslow implements Runnable {
 
     private final Orchestrator orchestrator;
+    private final FileSystemConfiguration configuration;
 
-    public Winslow(Orchestrator orchestrator) {
+    public Winslow(Orchestrator orchestrator, FileSystemConfiguration configuration) {
         this.orchestrator = orchestrator;
+        this.configuration = configuration;
     }
 
 
@@ -60,7 +63,7 @@ public class Winslow implements Runnable {
             e.printStackTrace();
         }*/
 
-        var ids = stages.stream().map(stage -> orchestrator.start(pipe, stage, new Environment())).collect(Collectors.toList());
+        var ids = stages.stream().map(stage -> orchestrator.start(pipe, stage, new Environment(configuration))).collect(Collectors.toList());
 
         for (int i = 0; i < 3; ++i) {
             try {

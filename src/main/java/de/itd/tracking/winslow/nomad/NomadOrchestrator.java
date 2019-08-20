@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
+import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
@@ -8,6 +9,7 @@ import de.itd.tracking.winslow.Environment;
 import de.itd.tracking.winslow.Orchestrator;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
+import de.itd.tracking.winslow.fs.NfsConfiguration;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -20,6 +22,14 @@ public class NomadOrchestrator implements Orchestrator {
     public NomadOrchestrator(NomadApiClient client) {
         Objects.requireNonNull(client);
         this.client = client;
+
+        try {
+            client.getSystemApi().garbageCollect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NomadException e) {
+            e.printStackTrace();
+        }
     }
 
     private String combine(String pipelineName, String stageName) {
@@ -28,46 +38,47 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Override
     public String start(Pipeline pipeline, Stage stage, Environment environment) {
-        var uuid = UUID.randomUUID();
-        var name = combine(pipeline.getName(), stage.getName());
+        var builder = SubmissionBuilder
+                .withRandomUuid()
+                .withTaskName(combine(pipeline.getName(), stage.getName()));
 
-        var dockerConfig = new HashMap<String, Object>();
-        stage.getImage().ifPresent(image -> {
-            dockerConfig.put("image", image.getName());
-            dockerConfig.put("args", image.getArguments());
-        });
+        if (stage.getImage().isPresent()) {
+            builder = builder
+                    .withDockerImage(stage.getImage().get().getName())
+                    .withDockerImageArguments(stage.getImage().get().getArguments());
+        }
 
-
-        var dev = new HashMap<String, Object>();
-        /*
-        dev.put("Name", "nvidia/gpu");
-        dev.put("Count", 1);
-        */
-
-        var res = new Resources();
-        //res.addUnmappedProperty("Devices", Arrays.asList(dev));
+        if (environment.getConfiguration() instanceof NfsConfiguration) {
+            var config = (NfsConfiguration) environment.getConfiguration();
+            builder = builder
+                    .addNfsVolume(
+                            "winslow-resources",
+                            "/resources",
+                            true,
+                            config.getOptions(),
+                            config.getServerExport()+"/resources"
+                    )
+                    .addNfsVolume(
+                            "winslow-workspace-"+builder.getUuid(),
+                            "/workspace",
+                            false,
+                            config.getOptions(),
+                            config.getServerExport()+"/workspaces/abc-def-uui"
+                    );
+        }
 
         try {
-            client.getJobsApi().register(
-                    new Job()
-                            .setId(uuid.toString())
-                            .addDatacenters("local")
-                            .setType("batch")
-                            .addTaskGroups(
-                                    new TaskGroup()
-                                            .setName(name)
-                                            .addTasks(
-                                                    new Task()
-                                                            .setName(name)
-                                                            .setDriver("docker")
-                                                            .setConfig(dockerConfig)
-                                                            .setEnv(stage.getEnvironment())
-                                                            .setResources(
-                                                                    res
-                                                            )
-                                            )
-                            )
-            );
+
+            var submission = builder.submit(this, pipeline, stage, environment);
+            var uuid = UUID.fromString(submission.getJobId());
+            var name = submission.getTaskName();
+
+            System.out.println("beginning");
+            for (String line : submission.getStdOut()) {
+                System.out.print(line);
+            }
+            System.out.println("end");
+
             System.out.println("...");
             System.out.println(client.getJobsApi().info(uuid.toString()));
             System.out.println("---");
@@ -100,7 +111,7 @@ public class NomadOrchestrator implements Orchestrator {
             }
 
 
-            //client.getSystemApi().garbageCollect();
+
             return uuid.toString();
         } catch (IOException e) {
             e.printStackTrace();
@@ -109,6 +120,14 @@ public class NomadOrchestrator implements Orchestrator {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } return null;
+    }
+
+    public NomadApiClient getClient() {
+        return this.client;
+    }
+
+    public ClientApi getClientApi() {
+        return this.client.getClientApi(this.client.getConfig().getAddress());
     }
 
     public Optional<AllocationListStub> getJobAllocationContainingTaskState(@Nonnull String jobId, @Nonnull String taskName) throws IOException, NomadException {

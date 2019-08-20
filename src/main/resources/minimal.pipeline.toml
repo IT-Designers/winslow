@@ -15,7 +15,7 @@ name = "print-env-variable"
 
 [stage.image]
 name = "ubuntu" # ENTRYPOINT python3 detector.py
-args = ["/bin/bash", "-c", "echo 'hello from a docker image that is executed somehwere, managed by nomad and coordinated by winslow' && sleep 10 && date && echo bye"]
+args = ["/bin/bash", "-c", "echo 'hello from a docker image that is executed somehwere, managed by nomad and coordinated by winslow' && sleep 2 && date && ls -lah /resources && ls -lah /workspace && echo bye"]
 
 [stage.requires.gpu]
 vendor = "nvidia"
