@@ -3,10 +3,20 @@
   flex-direction: row;
   justify-content: start;
   align-items: center;
+  margin-left: .51em;
 }
 
 .topbar > * {
   padding: 0.5em 1em;
+}
+
+.topbar * {
+  max-height: 2.25em;
+}
+
+.topbar img {
+  /*padding: 0 1em;
+  max-height: 3em;*/
 }
 
 .topbar > *:hover {
