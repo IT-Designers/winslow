@@ -70,7 +70,8 @@ public class LogIterator implements Iterator<String> {
 
     @Override
     public boolean hasNext() {
-        return (stream == null || !taskHasEnded());
+        return (stream == null || !taskHasEnded())
+                && !(taskHasEnded() && !taskHasStarted());
     }
 
     @Override

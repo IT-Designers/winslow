@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.Job;
+import com.hashicorp.nomad.apimodel.RestartPolicy;
 import com.hashicorp.nomad.apimodel.Task;
 import com.hashicorp.nomad.apimodel.TaskGroup;
 import com.hashicorp.nomad.javasdk.JobsApi;
@@ -83,6 +84,7 @@ public class SubmissionBuilder {
                 .addTaskGroups(
                         new TaskGroup()
                                 .setName(taskName)
+                                .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                 .addTasks(
                                         new Task()
                                                 .setName(taskName)
