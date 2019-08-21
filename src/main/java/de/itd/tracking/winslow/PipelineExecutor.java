@@ -4,6 +4,9 @@ import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public class PipelineExecutor implements Poll<Boolean, OrchestratorException> {
@@ -13,7 +16,8 @@ public class PipelineExecutor implements Poll<Boolean, OrchestratorException> {
     private final Environment environment;
 
     private RunningStage runningStage;
-    private int index = 0;
+    private Path         workspaceDirectory;
+    private int          index = 0;
 
     public PipelineExecutor(Pipeline pipeline, Orchestrator orchestrator, Environment environment) {
         this.pipeline = pipeline;
@@ -61,10 +65,32 @@ public class PipelineExecutor implements Poll<Boolean, OrchestratorException> {
     private void startNextStage() throws OrchestratorException {
         if (hasStagesRemaining()) {
             Stage stage = this.pipeline.getStages().get(index);
+            var prepared = this.orchestrator.prepare(this.pipeline, stage, this.environment);
+
+            try {
+                this.prepareNextWorkspaceDirectory(prepared.getWorkspaceDirectory());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new OrchestratorException("Failed to prepare workspace directory", e);
+            }
+
+            this.runningStage = prepared.start().orElseThrow();
+            this.workspaceDirectory = prepared.getWorkspaceDirectory();
             this.index += 1;
-            this.runningStage = this.orchestrator.start(this.pipeline, stage, this.environment);
         } else {
             this.runningStage = null;
+        }
+    }
+
+    private void prepareNextWorkspaceDirectory(Path workspaceDirectory) throws IOException {
+        if (this.workspaceDirectory != null) {
+            var iterator = Files.list(this.workspaceDirectory).iterator();
+            while (iterator.hasNext()) {
+                var sourceAbsolute = iterator.next();
+                var sourceRelative = this.workspaceDirectory.relativize(sourceAbsolute);
+                var destination    = workspaceDirectory.resolve(sourceRelative);
+                Files.copy(sourceAbsolute, destination);
+            }
         }
     }
 

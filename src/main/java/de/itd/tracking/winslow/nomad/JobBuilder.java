@@ -4,7 +4,6 @@ import com.hashicorp.nomad.apimodel.Job;
 import com.hashicorp.nomad.apimodel.RestartPolicy;
 import com.hashicorp.nomad.apimodel.Task;
 import com.hashicorp.nomad.apimodel.TaskGroup;
-import com.hashicorp.nomad.javasdk.JobsApi;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.Environment;
 import de.itd.tracking.winslow.config.Pipeline;
@@ -13,7 +12,7 @@ import de.itd.tracking.winslow.config.Stage;
 import java.io.IOException;
 import java.util.*;
 
-public class SubmissionBuilder {
+public class JobBuilder {
 
     public static final String DRIVER_DOCKER = "docker";
 
@@ -22,19 +21,19 @@ public class SubmissionBuilder {
     private       String              driver;
     private       Map<String, Object> config = new HashMap<>();
 
-    private SubmissionBuilder(UUID uuid) {
+    private JobBuilder(UUID uuid) {
         this.uuid = uuid;
     }
 
-    public static SubmissionBuilder withRandomUuid() {
-        return new SubmissionBuilder(UUID.randomUUID());
+    public static JobBuilder withRandomUuid() {
+        return new JobBuilder(UUID.randomUUID());
     }
 
     public UUID getUuid() {
         return uuid;
     }
 
-    public SubmissionBuilder withTaskName(String name) {
+    public JobBuilder withTaskName(String name) {
         this.taskName = name;
         return this;
     }
@@ -43,19 +42,19 @@ public class SubmissionBuilder {
         return taskName;
     }
 
-    public SubmissionBuilder withDockerImage(String image) {
+    public JobBuilder withDockerImage(String image) {
         this.ensureDriverDocker();
         this.config.put("image", image);
         return this;
     }
 
-    public SubmissionBuilder withDockerImageArguments(String...args) {
+    public JobBuilder withDockerImageArguments(String...args) {
         this.ensureDriverDocker();
         this.config.put("args", args);
         return this;
     }
 
-    public SubmissionBuilder addNfsVolume(String volumeName, String target, boolean readonly, String options, String serverExport) {
+    public JobBuilder addNfsVolume(String volumeName, String target, boolean readonly, String options, String serverExport) {
         var list = (List<Map<String, Object>>)this.config.computeIfAbsent("mounts", (s) -> new ArrayList<Map<String, Object>>());
         list.add(Map.of(
                 "type", "volume",
@@ -93,11 +92,6 @@ public class SubmissionBuilder {
                                                 .setEnv(stage.getEnvironment())
                                 )
                 );
-    }
-
-    public Submission submit(NomadOrchestrator orchestrator, Pipeline pipeline, Stage stage, Environment environment) throws IOException, NomadException {
-        orchestrator.getClient().getJobsApi().register(buildJob(pipeline, stage, environment));
-        return new Submission(orchestrator, uuid.toString(), taskName);
     }
 
 

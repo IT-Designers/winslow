@@ -38,10 +38,18 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public RunningStage start(Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
-        var builder = SubmissionBuilder
+    public PreparedStage prepare(Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
+        var builder = JobBuilder
                 .withRandomUuid()
                 .withTaskName(combine(pipeline.getName(), stage.getName()));
+
+        var resources = environment.getResourceManager().getResourceDirectory();
+        var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
+
+        if (resources.isEmpty() || workspace.isEmpty()) {
+            workspace.map(Path::toFile).map(File::delete);
+            throw new OrchestratorException("The workspace and resources directory must exit, but at least one isn't. workspace="+workspace+",resources="+resources);
+        }
 
         if (stage.getImage().isPresent()) {
             builder = builder
@@ -51,13 +59,6 @@ public class NomadOrchestrator implements Orchestrator {
 
         if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {
             var config = (NfsWorkDirectory) environment.getWorkDirectoryConfiguration();
-            var resources = environment.getResourceManager().getResourceDirectory();
-            var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
-
-            if (resources.isEmpty() || workspace.isEmpty()) {
-                workspace.map(Path::toFile).map(File::delete);
-                throw new OrchestratorException("The workspace and resources directory must exit, but at least one isn't. workspace="+workspace+",resources="+resources);
-            }
 
             var exportedResources = resources.flatMap(config::toExportedPath);
             var exportedWorkspace = workspace.flatMap(config::toExportedPath);
@@ -91,13 +92,11 @@ public class NomadOrchestrator implements Orchestrator {
             throw new OrchestratorException("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration());
         }
 
-        try {
-            return builder.submit(this, pipeline, stage, environment);
-        } catch (IOException e) {
-            throw new OrchestratorConnectionException("Connection to nomad failed", e);
-        } catch (NomadException e) {
-            throw new OrchestratorException("Internal error", e);
-        }
+        return new PreparedSubmission(
+                builder.buildJob(pipeline, stage, environment),
+                this,
+                workspace.get()
+        );
     }
 
     public NomadApiClient getClient() {
