@@ -74,14 +74,14 @@ public class NomadOrchestrator implements Orchestrator {
 
             builder = builder
                     .addNfsVolume(
-                            "winslow-resources",
+                            "winslow-"+builder.getUuid()+"-resources",
                             "/resources",
                             true,
                             config.getOptions(),
                             exportedResources.get().toAbsolutePath().toString()
                     )
                     .addNfsVolume(
-                            "winslow-workspace-"+builder.getUuid(),
+                            "winslow-"+builder.getUuid()+"-workspace",
                             "/workspace",
                             false,
                             config.getOptions(),
