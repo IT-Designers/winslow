@@ -1,21 +1,22 @@
 package de.itd.tracking.winslow.fs;
 
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import javax.annotation.Nonnull;
+import java.io.*;
 import java.nio.file.Path;
+import java.util.Optional;
 
-public class NfsConfiguration implements FileSystemConfiguration {
+public class NfsWorkDirectory implements WorkDirectoryConfiguration {
 
     private static final String NFS_TYPE_PATTERN = " nfs";
 
+    private final Path   workDirectory;
     private final String serverAddress;
     private final String serverExport;
     private final String options;
 
-    public NfsConfiguration(String serverAddress, String serverExport, String options) {
+    public NfsWorkDirectory(Path workDirectory, String serverAddress, String serverExport, String options) {
+        this.workDirectory = workDirectory;
         this.serverAddress = serverAddress;
         this.serverExport = serverExport;
         this.options = options;
@@ -33,18 +34,18 @@ public class NfsConfiguration implements FileSystemConfiguration {
         return options;
     }
 
-    public static NfsConfiguration loadFromCurrentConfiguration(Path workDir) throws IOException {
+    public static NfsWorkDirectory loadFromCurrentConfiguration(Path workDir) throws IOException {
         String pattern = " " + workDir.toFile().getCanonicalPath() + " ";
-        String line = null;
+        String line    = null;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(openOneOf("/etc/mtab", "/proc/mounts")))) {
             while ((line = reader.readLine()) != null) {
                 if (line.contains(pattern) && line.contains(NFS_TYPE_PATTERN)) {
                     try {
-                        String[] segments = line.split(" ");
+                        String[] segments        = line.split(" ");
                         String[] serverAndExport = segments[0].split(":");
 
-                        return new NfsConfiguration(serverAndExport[0], serverAndExport[1], segments[3]);
+                        return new NfsWorkDirectory(workDir, serverAndExport[0], serverAndExport[1], segments[3]);
                     } catch (IndexOutOfBoundsException e) {
                         throw new IOException("Failed to parse mount configuration: " + line);
                     }
@@ -70,6 +71,21 @@ public class NfsConfiguration implements FileSystemConfiguration {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"@{addr="+serverAddress+",export="+serverExport+",options="+options+"}#"+hashCode();
+        return getClass().getSimpleName() + "@{addr=" + serverAddress + ",export=" + serverExport + ",options=" + options + "}#" + hashCode();
+    }
+
+    @Nonnull
+    @Override
+    public Path getPath() {
+        return workDirectory;
+    }
+
+    public Optional<Path> toExportedPath(Path workDirPath) {
+        try {
+            return Optional.of(new File(this.serverExport).toPath().resolve(this.workDirectory.relativize(workDirPath)));
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 }

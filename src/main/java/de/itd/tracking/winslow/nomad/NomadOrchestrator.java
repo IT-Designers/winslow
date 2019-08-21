@@ -2,17 +2,17 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.ClientApi;
-import com.hashicorp.nomad.javasdk.FramedStream;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
-import de.itd.tracking.winslow.Environment;
-import de.itd.tracking.winslow.Orchestrator;
+import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
-import de.itd.tracking.winslow.fs.NfsConfiguration;
+import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 public class NomadOrchestrator implements Orchestrator {
@@ -36,8 +36,9 @@ public class NomadOrchestrator implements Orchestrator {
         return String.format("%s-%s", pipelineName, stageName);
     }
 
+    @Nonnull
     @Override
-    public String start(Pipeline pipeline, Stage stage, Environment environment) {
+    public RunningStage start(Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
         var builder = SubmissionBuilder
                 .withRandomUuid()
                 .withTaskName(combine(pipeline.getName(), stage.getName()));
@@ -48,78 +49,55 @@ public class NomadOrchestrator implements Orchestrator {
                     .withDockerImageArguments(stage.getImage().get().getArguments());
         }
 
-        if (environment.getConfiguration() instanceof NfsConfiguration) {
-            var config = (NfsConfiguration) environment.getConfiguration();
+        if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {
+            var config = (NfsWorkDirectory) environment.getWorkDirectoryConfiguration();
+            var resources = environment.getResourceManager().getResourceDirectory();
+            var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
+
+            if (resources.isEmpty() || workspace.isEmpty()) {
+                workspace.map(Path::toFile).map(File::delete);
+                throw new OrchestratorException("The workspace and resources directory must exit, but at least one isn't. workspace="+workspace+",resources="+resources);
+            }
+
+            var exportedResources = resources.flatMap(config::toExportedPath);
+            var exportedWorkspace = workspace.flatMap(config::toExportedPath);
+
+            if (exportedResources.isEmpty() || exportedWorkspace.isEmpty()) {
+                workspace.map(Path::toFile).map(File::delete);
+                throw new OrchestratorException("The workspace and resource path must be exported, but at least one isn't. workspace="+exportedWorkspace+",resources="+exportedResources);
+            }
+
+            System.out.println(resources);
+            System.out.println(workspace);
+            System.out.println(exportedResources);
+            System.out.println(exportedWorkspace);
+
             builder = builder
                     .addNfsVolume(
                             "winslow-resources",
                             "/resources",
                             true,
                             config.getOptions(),
-                            config.getServerExport()+"/resources"
+                            exportedResources.get().toAbsolutePath().toString()
                     )
                     .addNfsVolume(
                             "winslow-workspace-"+builder.getUuid(),
                             "/workspace",
                             false,
                             config.getOptions(),
-                            config.getServerExport()+"/workspaces/abc-def-uui"
+                            exportedWorkspace.get().toAbsolutePath().toString()
                     );
+        } else {
+            throw new OrchestratorException("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration());
         }
 
         try {
-
-            var submission = builder.submit(this, pipeline, stage, environment);
-            var uuid = UUID.fromString(submission.getJobId());
-            var name = submission.getTaskName();
-
-            System.out.println("beginning");
-            for (String line : submission.getStdOut()) {
-                System.out.print(line);
-            }
-            System.out.println("end");
-
-            System.out.println("...");
-            System.out.println(client.getJobsApi().info(uuid.toString()));
-            System.out.println("---");
-            FramedStream input = null;
-            outer: while (true) {
-                var allocation = getJobAllocationContainingTaskState(uuid.toString(), name);
-                if (allocation.isPresent()) {
-                    var a = allocation.get();
-                    if (a.getTaskStates().get(name).getStartedAt().after(new Date(1))) {
-                        if (input == null) {
-                            input = client.getClientApi(client.getConfig().getAddress()).logsAsFrames(a.getId(), name, true, "stdout");
-                        }
-                        var frame = input.nextFrame();
-                        if (frame != null && frame.getData() != null) {
-                            System.out.write(frame.getData());
-                        }
-                    }
-                    if (a.getTaskStates().get(name).getFinishedAt().after(new Date(1))) {
-                        System.out.println("-- done");
-                        a.getTaskStates().get(name).getEvents().forEach(System.out::println);
-                        break;
-                    } else {
-                        var stats = client.getClientApi(client.getConfig().getAddress()).stats(a.getId()).getValue();
-                        if (stats != null && stats.getResourceUsage() != null && stats.getResourceUsage().getMemoryStats() != null && stats.getResourceUsage().getMemoryStats().getMeasured() != null) {
-                            //System.out.println(stats.getResourceUsage().getMemoryStats().getMaxUsage());
-                        }
-                    }
-                }
-                Thread.sleep(100);
-            }
-
-
-
-            return uuid.toString();
+            return builder.submit(this, pipeline, stage, environment);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new OrchestratorConnectionException("Connection to nomad failed", e);
         } catch (NomadException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } return null;
+            throw new OrchestratorException("Internal error", e);
+        }
     }
 
     public NomadApiClient getClient() {

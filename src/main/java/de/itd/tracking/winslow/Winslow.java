@@ -6,18 +6,22 @@ import com.hashicorp.nomad.javasdk.NomadException;
 import com.moandjiezana.toml.Toml;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
-import de.itd.tracking.winslow.fs.FileSystemConfiguration;
+import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
+import de.itd.tracking.winslow.resource.PathConfiguration;
+import de.itd.tracking.winslow.resource.ResourceManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
 
-    private final Orchestrator orchestrator;
-    private final FileSystemConfiguration configuration;
+    private final Orchestrator               orchestrator;
+    private final WorkDirectoryConfiguration configuration;
 
-    public Winslow(Orchestrator orchestrator, FileSystemConfiguration configuration) {
+    public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration) {
         this.orchestrator = orchestrator;
         this.configuration = configuration;
     }
@@ -63,33 +67,15 @@ public class Winslow implements Runnable {
             e.printStackTrace();
         }*/
 
-        var ids = stages.stream().map(stage -> orchestrator.start(pipe, stage, new Environment(configuration))).collect(Collectors.toList());
+        var resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
 
-        for (int i = 0; i < 3; ++i) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        stages.stream().map(stage -> orchestrator.startOrNone(pipe, stage, new Environment(configuration, resourceManager))).flatMap(Optional::stream).forEach(stage -> {
+            System.out.println("  ## >>>> RunningStage start >>> ##");
+            for (String line : stage.getStdOut()) {
+                System.out.print(line);
             }
-            for (String id : ids) {
-                try {
-                    System.out.println(client.getJobsApi().info(id).getValue());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (NomadException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+            System.out.println("  ## <<<< RunningStage end <<<<< ##");
+        });
 
-        try {
-            for (var job : client.getJobsApi().list().getValue()) {
-                //client.getJobsApi().deregister(job.getId());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NomadException e) {
-            e.printStackTrace();
-        }
     }
 }
