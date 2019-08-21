@@ -1,9 +1,18 @@
 package de.itd.tracking.winslow;
 
-import de.itd.tracking.winslow.config.Pipeline;
-import de.itd.tracking.winslow.config.Stage;
+import javax.annotation.Nonnull;
 
 public interface RunningStage {
+
+    enum State {
+        Preparing,
+        Running,
+        Succeeded,
+        Failed
+    }
+
+    @Nonnull
+    State getState() throws OrchestratorConnectionException;
 
     default Iterable<String> getStdOut() {
         return getStdOut(Integer.MAX_VALUE);

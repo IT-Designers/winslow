@@ -54,28 +54,30 @@ public class Winslow implements Runnable {
 
         var stages = pipeline.getTables("stage").stream().map(table -> table.to(Stage.class)).collect(Collectors.toList());
 
-        System.out.println(new Pipeline(pipe.getName(), pipe.getDescription().orElse(null), pipe.getUserInput().orElse(null), stages));
-
-
-        System.out.println(pipeline.getTables("stage").get(0).toMap());
-
-
-        /*
-        try {
-            Thread.sleep(100_000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
+        pipe = new Pipeline(pipe.getName(), pipe.getDescription().orElse(null), pipe.getUserInput().orElse(null), stages);
+        System.out.println(pipe);
 
         var resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
 
-        stages.stream().map(stage -> orchestrator.startOrNone(pipe, stage, new Environment(configuration, resourceManager))).flatMap(Optional::stream).forEach(stage -> {
-            System.out.println("  ## >>>> RunningStage start >>> ##");
-            for (String line : stage.getStdOut()) {
-                System.out.print(line);
-            }
-            System.out.println("  ## <<<< RunningStage end <<<<< ##");
-        });
+        var executor = new PipelineExecutor(pipe, orchestrator, new Environment(configuration, resourceManager));
 
+        try {
+            while (executor.poll().isEmpty()) {
+                var stage = executor.getCurrentStage();
+                if (stage.isPresent()) {
+                    for (String string : stage.get().getStdOut()) {
+                        System.out.print(string);
+                    }
+                } else {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (OrchestratorException e) {
+            e.printStackTrace();
+        }
     }
 }

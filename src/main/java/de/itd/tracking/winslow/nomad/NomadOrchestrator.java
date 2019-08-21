@@ -118,4 +118,36 @@ public class NomadOrchestrator implements Orchestrator {
         }
         return Optional.empty();
     }
+
+    public static Optional<Boolean> hasTaskStarted(AllocationListStub allocation, String taskName) {
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(state -> state.getStartedAt().after(new Date(1)));
+    }
+
+    public static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(state -> state.getFinishedAt().after(new Date(1)));
+    }
+
+    public static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(TaskState::getFailed);
+    }
+
+    public static Optional<RunningStage.State> toRunningStageState(AllocationListStub allocation, String taskName) {
+        var failed = hasTaskFailed(allocation, taskName);
+        var started = hasTaskStarted(allocation, taskName);
+        var finished = hasTaskFinished(allocation, taskName);
+
+        if (failed.isPresent() && failed.get()) {
+            return Optional.of(RunningStage.State.Failed);
+        } else if (started.isPresent() && !started.get()) {
+            return Optional.of(RunningStage.State.Preparing);
+        } else if (started.isPresent() && finished.isPresent() && !finished.get()) {
+            return Optional.of(RunningStage.State.Running);
+        } else if (finished.isPresent() && finished.get()) {
+            return Optional.of(RunningStage.State.Succeeded);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+
 }

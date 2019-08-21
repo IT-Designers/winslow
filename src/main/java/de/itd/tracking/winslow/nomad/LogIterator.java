@@ -5,12 +5,11 @@ import com.hashicorp.nomad.apimodel.StreamFrame;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
 import com.hashicorp.nomad.javasdk.NomadException;
+import de.itd.tracking.winslow.RunningStage;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public class LogIterator implements Iterator<String> {
@@ -32,26 +31,14 @@ public class LogIterator implements Iterator<String> {
         this.tryEnsureStream();
     }
 
-    private boolean taskHasEnded() {
-        return state.get().map(this::hasEnded).orElse(false);
-    }
-
-    private boolean hasEnded(AllocationListStub allocation) {
-        return allocation.getTaskStates().get(taskName).getFinishedAt().after(new Date(1));
-    }
-
-    private boolean taskHasStarted() {
-        return state.get().map(this::hasStarted).orElse(false);
-    }
-
-    private boolean hasStarted(AllocationListStub allocation) {
-        return allocation.getTaskStates().get(taskName).getStartedAt().after(new Date(1));
+    private boolean hasTaskStarted(AllocationListStub allocation) {
+        return NomadOrchestrator.hasTaskStarted(allocation, taskName).orElse(false);
     }
 
     private boolean tryEnsureStream() {
         if (stream == null) {
             return state.get().map(allocation -> {
-                if (hasStarted(allocation)) {
+                if (hasTaskStarted(allocation)) {
                     try {
                         stream = clientApi.logsAsFrames(allocation.getId(), taskName, true, logType);
                         return true;
@@ -70,8 +57,19 @@ public class LogIterator implements Iterator<String> {
 
     @Override
     public boolean hasNext() {
-        return (stream == null || !taskHasEnded())
-                && !(taskHasEnded() && !taskHasStarted());
+        boolean hasNext = state.get()
+                .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, taskName))
+                .map(state -> state == RunningStage.State.Running || state == RunningStage.State.Preparing)
+                .orElse(false);
+        if (!hasNext && stream != null) {
+            try {
+                this.stream.close();
+                this.stream = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return hasNext;
     }
 
     @Override
@@ -83,6 +81,10 @@ public class LogIterator implements Iterator<String> {
             StreamFrame next = stream.nextFrame();
             if (next != null && next.getData() != null) {
                 return new String(next.getData());
+            }
+            if (!hasNext() && stream != null) {
+                stream.close();
+                stream = null;
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to read next StreamFrame for id=" + this.id + ",taskName=" + this.taskName, e);
