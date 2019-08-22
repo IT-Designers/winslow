@@ -23,10 +23,6 @@ public class Winslow implements Runnable {
         this.resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
     }
 
-    public Iterable<Path> listPipelines() {
-        return resourceManager.getPipelineFiles();
-    }
-
     public ResourceManager getResourceManager() {
         return resourceManager;
     }

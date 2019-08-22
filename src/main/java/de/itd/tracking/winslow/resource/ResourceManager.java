@@ -64,7 +64,7 @@ public class ResourceManager {
                 .filter(p -> p.toFile().exists() || p.toFile().mkdirs());
     }
 
-    public Iterable<Path> getPipelineFiles() {
+    public Iterable<String> getPipelineIdentifiers() {
         String ENDING = ".toml";
         return getPipelinesDirectory()
                 .stream()
@@ -72,13 +72,15 @@ public class ResourceManager {
                     var files = p.toFile().listFiles((file, name) -> name.endsWith(ENDING));
                     return files != null ? Arrays.stream(files) : Stream.empty();
                 })
-                .map(File::toPath)
+                .map(File::getName)
+                .map(name -> name.substring(0, name.length() - ENDING.length()))
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public Optional<Pipeline> loadPipeline(Path pipeline) {
+    public Optional<Pipeline> loadPipeline(String id) {
+        String ENDING = ".toml";
         return getPipelinesDirectory()
-                .map(p -> p.resolve(pipeline))
+                .map(p -> p.resolve(Path.of(id + ENDING).getFileName()))
                 .map(p -> {
                     var toml = new Toml().read(p.toFile());
                     var stages = toml.getTables("stage").stream().map(table -> table.to(Stage.class)).collect(Collectors.toList());
