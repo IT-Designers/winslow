@@ -1,0 +1,22 @@
+.pipelines-container {
+  margin: 1em 0;
+  padding: 0.25em;
+}
+
+.pipelines-container .pipeline {
+  border: 1px solid silver;
+  padding: 0 2em;
+}
+
+.pipeline h4 {
+  cursor: pointer;
+}
+
+.pipelines-container .pipeline:hover {
+  background-color: aliceblue;
+}
+
+.pipelines-container .pipeline:not(:first-child) {
+  border-top-color: transparent;
+  border-top-width: 1px;
+}
