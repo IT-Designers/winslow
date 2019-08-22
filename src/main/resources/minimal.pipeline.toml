@@ -3,6 +3,7 @@ name = "minimal"
 desc = "Testing a minimal set of functionality"
 
 [pipeline.userInput]
+#default values!
 valueFor = [
     "VIDEO_IN",
     "DATABASE_FILE"

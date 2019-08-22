@@ -1,8 +1,18 @@
 package de.itd.tracking.winslow.resource;
 
+import com.moandjiezana.toml.Toml;
+import de.itd.tracking.winslow.config.Pipeline;
+import de.itd.tracking.winslow.config.Stage;
+
+import java.io.File;
+import java.io.FilenameFilter;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ResourceManager {
 
@@ -47,6 +57,39 @@ public class ResourceManager {
     public Optional<Path> getResourceDirectory() {
         return Optional.of(configuration.resolvePathOfResources(workDirectory))
                 .filter(p -> p.toFile().exists() || p.toFile().mkdirs());
+    }
 
+    public Optional<Path> getPipelinesDirectory() {
+        return Optional.of(configuration.resolvePathOfPipelines(workDirectory))
+                .filter(p -> p.toFile().exists() || p.toFile().mkdirs());
+    }
+
+    public Iterable<Path> getPipelineFiles() {
+        String ENDING = ".toml";
+        return getPipelinesDirectory()
+                .stream()
+                .flatMap(p -> {
+                    var files = p.toFile().listFiles((file, name) -> name.endsWith(ENDING));
+                    return files != null ? Arrays.stream(files) : Stream.empty();
+                })
+                .map(File::toPath)
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    public Optional<Pipeline> loadPipeline(Path pipeline) {
+        return getPipelinesDirectory()
+                .map(p -> p.resolve(pipeline))
+                .map(p -> {
+                    var toml = new Toml().read(p.toFile());
+                    var stages = toml.getTables("stage").stream().map(table -> table.to(Stage.class)).collect(Collectors.toList());
+                    var pipe = toml.getTable("pipeline").to(Pipeline.class);
+
+                    return new Pipeline(
+                            pipe.getName(),
+                            pipe.getDescription().orElse(null),
+                            pipe.getUserInput().orElse(null),
+                            stages
+                    );
+                });
     }
 }
