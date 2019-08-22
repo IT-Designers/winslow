@@ -26,6 +26,11 @@ export class ApiService {
         return names;
       }));
   }
+
+  listResources(path: string) {
+    return this.client
+      .get<FileInfo[]>(environment.apiLocation + '/files/' + path);
+  }
 }
 
 export class PipelineInfo {
@@ -42,4 +47,10 @@ export class Pipeline {
 
 export class Stage {
   name: string;
+}
+
+export class FileInfo {
+  name: string;
+  directory: boolean;
+  path: string;
 }

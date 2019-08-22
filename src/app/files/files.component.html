@@ -1,0 +1,24 @@
+<div>
+  <h1>Files Browser</h1>
+
+  <div class="files-browser">
+    <ul class="files-browser-navigation">
+      <ng-template #fileTree let-ctx>
+        <li *ngFor="let file of ctx.this.directories(ctx.path)">
+          <p class="directory" (click)="ctx.this.toggleLoadDirectory(file.path)">
+            <i class="material-icons">{{ctx.this.directories(file.path).length > 0 ? 'arrow_drop_down' : 'arrow_right'}}</i>
+            <i class="material-icons">folder_open</i>
+            {{ file.name }}
+          </p>
+          <ul>
+            <ng-container *ngTemplateOutlet="fileTree; context:{ $implicit: {this: ctx.this, path: file.path} }"></ng-container>
+          </ul>
+        </li>
+      </ng-template>
+      <ng-container *ngTemplateOutlet="fileTree; context:{ $implicit: {this: this, path: '/'}}"></ng-container>
+    </ul>
+    <ul class="files-browser-view">
+      <li>empty</li>
+    </ul>
+  </div>
+</div>
