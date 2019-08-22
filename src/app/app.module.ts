@@ -7,20 +7,23 @@ import {RouterModule} from '@angular/router';
 import {SystemOverviewComponent} from './system-overview/system-overview.component';
 import {PipelinesComponent} from './pipelines/pipelines.component';
 import {HttpClientModule} from '@angular/common/http';
+import { FilesComponent } from './files/files.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     TopbarComponent,
     SystemOverviewComponent,
-    PipelinesComponent
+    PipelinesComponent,
+    FilesComponent
   ],
   imports: [
     HttpClientModule,
     BrowserModule,
     RouterModule.forRoot([
       { path: '', component: SystemOverviewComponent},
-      { path: 'pipelines', component: PipelinesComponent }
+      { path: 'pipelines', component: PipelinesComponent },
+      { path: 'files', component: FilesComponent }
     ])
   ],
   providers: [],
