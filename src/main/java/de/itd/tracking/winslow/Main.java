@@ -45,7 +45,7 @@ public class Main {
 
         try {
             LOG.info("Loading NFS configuration for work-directory");
-            NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of("/", "tmp", "local-nfs-mount-test"));
+            NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of("/home/mi7wa6/mec-view/winslow/nfs-mount"));
 
             LOG.info("Assembling Winslow");
             var winslow = new Winslow(new NomadOrchestrator(new NomadApiClient(new NomadApiConfiguration.Builder().setAddress("http://localhost:4646").build())), config);
