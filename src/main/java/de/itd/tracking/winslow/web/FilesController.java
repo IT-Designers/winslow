@@ -2,9 +2,7 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,28 +22,44 @@ public class FilesController {
         this.winslow = winslow;
     }
 
+    @PutMapping(value = {"/files/resources/**"})
+    public void createDirectory(HttpServletRequest request) {
+        normalizedPath(request).ifPresent(path -> {
+            System.out.println(path);
+        });
+    }
+
     @GetMapping(value = {"/files/resources/**"})
     public Iterable<FileInfo> getResourceInfo(HttpServletRequest request) {
-        String pathWithinHandler = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-        String bestMatch = (String)request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-        var path = Path.of(new AntPathMatcher().extractPathWithinPattern(bestMatch, pathWithinHandler));
+        return normalizedPath(request).flatMap(path -> {
+            var resourceDir = winslow.getResourceManager().getResourceDirectory();
+            return resourceDir.map(resDir ->
+                    Optional.ofNullable(resDir.resolve(path.normalize()).toFile().listFiles())
+                            .stream()
+                            .flatMap(Arrays::stream)
+                            .map(file -> new FileInfo(
+                                    file.getName(),
+                                    file.isDirectory(),
+                                    Path.of("resources").resolve(resDir.relativize(file.toPath())).toString()
+                            ))
+                            .collect(Collectors.toUnmodifiableList())
+            );
+        }).orElse(Collections.emptyList());
+    }
+
+    private static Optional<Path> normalizedPath(HttpServletRequest request) {
+        var  pathWithinHandler = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        var bestMatch = (String)request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+        var path = Path.of(new AntPathMatcher().extractPathWithinPattern(bestMatch, pathWithinHandler)).normalize();
+
+        System.out.println(path);
 
         // for se security
-        if (path.normalize().isAbsolute()) {
-            return Collections.emptyList();
+        if (path.isAbsolute()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(path);
         }
-        var resourceDir = winslow.getResourceManager().getResourceDirectory();
-        return resourceDir.map(resDir ->
-            Optional.ofNullable(resDir.resolve(path.normalize()).toFile().listFiles())
-                    .stream()
-                    .flatMap(Arrays::stream)
-                    .map(file -> new FileInfo(
-                            file.getName(),
-                            file.isDirectory(),
-                            Path.of("resources").resolve(resDir.relativize(file.toPath())).toString()
-                    ))
-                    .collect(Collectors.toUnmodifiableList())
-        ).orElse(Collections.emptyList());
     }
 
     public static class FileInfo {
