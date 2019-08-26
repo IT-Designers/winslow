@@ -1,7 +1,24 @@
+.container {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+.files-browser-path {
+  flex-grow: 1;
+  margin: 2em 0 0 0;
+  padding: 0.5em 1em;
+  border: 1px solid silver;
+  border-bottom: none;
+}
+.files-browser-path:disabled {
+  background-color: black;
+}
+
 .files-browser {
   border: 1px solid silver;
   min-height: 40em;
-  margin: 2em 0;
+  margin: 0 0 2em 0;
 
   display: flex;
   flex-grow: 1;
@@ -37,7 +54,7 @@
   padding-left: 1.25em;
 }
 
-.files-browser-navigation i {
+.files-browser i {
   vertical-align: bottom;
 }
 
@@ -65,4 +82,34 @@ ul.files-browser-navigation > li > p {
   background-color: rgba(2, 0, 250, 0.01);
   flex-grow: 1;
   border-left: 1px dotted silver;
+}
+
+.files-browser-view .file:not(:last-child) {
+  border-bottom: 1px solid silver;
+}
+.files-browser-view .file:hover {
+  background-color: rgba(0, 50, 250, 0.1);
+}
+
+.context-menu {
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  border: 1px solid silver;
+  border-radius: 0.2em;
+  box-shadow: 0.1em 0.1em gray;
+}
+
+.context-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.context-menu li {
+  padding: 0.2em 1em;
+  cursor: pointer;
+}
+.context-menu li:hover {
+  background-color: rgba(0, 0, 0, 0.08);
 }

@@ -19,7 +19,7 @@ export class PipelinesComponent implements OnInit {
   }
 
   loadStages($event: MouseEvent, pipeline: PipelineInfo) {
-    if ($event.target.dataset.showStages === 'true') {
+    if (($event.target as HTMLElement).dataset.showStages === 'true') {
       this.api.listStages(pipeline).toPromise().then(s => {
         this.stages.set(pipeline.id, s);
         console.log(JSON.stringify(s));
