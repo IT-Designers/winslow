@@ -1,5 +1,6 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {Component, Inject, OnInit} from '@angular/core';
 import {ApiService, FileInfo} from '../api.service';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 
 @Component({
   selector: 'app-files',
@@ -14,19 +15,25 @@ export class FilesComponent implements OnInit {
   contextMenuY = 0;
   contextMenuVisible = false;
 
-  constructor(private api: ApiService, private changeDetector: ChangeDetectorRef) {
+  constructor(
+    private api: ApiService,
+    private createDialog: MatDialog
+  ) {
     this.files.set('/', []);
   }
 
   ngOnInit() {
-    this.api.listResources('/resources/').toPromise().then(res => this.files.get('/').push((() => {
-      const info = new FileInfo();
-      info.directory = true;
-      info.name = 'resources';
-      info.path = 'resources/';
-      this.files.set('/resources/', res);
-      return info;
-    })()));
+    this.api.listResources('resources/').toPromise().then(res => {
+      this.files.get('/').push((() => {
+        const info = new FileInfo();
+        info.directory = true;
+        info.name = 'resources';
+        info.path = 'resources/';
+        this.files.set('/resources/', res);
+        return info;
+      })());
+      this.loadDirectory(this.latestPath);
+    });
   }
 
   directories(path: string) {
@@ -131,10 +138,46 @@ export class FilesComponent implements OnInit {
   }
 
   createDirectory() {
-    console.log('clicked');
+    this.createDialog.open(CreateDirectoryDialog, {
+      width: '20em',
+      data: {  }
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        this.api.createDirectory(this.latestPath + result + '/');
+      }
+    });
   }
 
   uploadFile($event) {
     console.log('upload');
+  }
+}
+
+export interface CreateDirectoryData {
+  name: string;
+}
+
+@Component({
+  selector: 'dialog-directory-create',
+  template: `
+      <h1 mat-dialog-title>Creating a new directory</h1>
+      <div mat-dialog-content>
+          <mat-form-field>
+              <input cdkFocusInitial
+                      matInput [(ngModel)]="data.name" placeholder="Name of the new directory"
+                      (keyup.enter)="dialogRef.close(data.name)"
+                      (keydown.escape)="dialogRef.close()"
+              >
+          </mat-form-field>
+      </div>
+      <div mat-dialog-actions>
+        <button mat-button (click)="dialogRef.close()">Cancel</button>
+        <button mat-button (click)="dialogRef.close(data.name)">Submit</button>
+      </div>`
+})
+export class CreateDirectoryDialog {
+  constructor(
+    public dialogRef: MatDialogRef<CreateDirectoryDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: CreateDirectoryData) {
   }
 }
