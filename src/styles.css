@@ -21,3 +21,6 @@ h1 {
   margin-bottom: 1em;
   border-bottom: solid 0.08em lightgray;
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
