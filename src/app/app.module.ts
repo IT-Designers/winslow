@@ -7,7 +7,11 @@ import {RouterModule} from '@angular/router';
 import {SystemOverviewComponent} from './system-overview/system-overview.component';
 import {PipelinesComponent} from './pipelines/pipelines.component';
 import {HttpClientModule} from '@angular/common/http';
-import { FilesComponent } from './files/files.component';
+import {CreateDirectoryDialog, FilesComponent} from './files/files.component';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MatButtonModule, MatInputModule} from '@angular/material';
+import {FormsModule} from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -15,18 +19,31 @@ import { FilesComponent } from './files/files.component';
     TopbarComponent,
     SystemOverviewComponent,
     PipelinesComponent,
+    CreateDirectoryDialog,
     FilesComponent
   ],
   imports: [
     HttpClientModule,
+
     BrowserModule,
     RouterModule.forRoot([
-      { path: '', component: SystemOverviewComponent},
-      { path: 'pipelines', component: PipelinesComponent },
-      { path: 'files', component: FilesComponent }
-    ])
+      {path: '', component: SystemOverviewComponent},
+      {path: 'pipelines', component: PipelinesComponent},
+      {path: 'files', component: FilesComponent}
+    ]),
+
+    BrowserAnimationsModule,
+
+    MatDialogModule,
+    MatInputModule,
+    FormsModule,
+    MatButtonModule,
+
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [
+    {provide: MatDialogRef, useValue: {}},
+  ],
+  bootstrap: [AppComponent],
+  entryComponents: [CreateDirectoryDialog]
 })
 export class AppModule { }

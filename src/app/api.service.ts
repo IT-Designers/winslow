@@ -14,12 +14,12 @@ export class ApiService {
   }
 
   listPipelines() {
-    return this.client.get<PipelineInfo[]>(environment.apiLocation + '/pipelines');
+    return this.client.get<PipelineInfo[]>(environment.apiLocation + 'pipelines');
   }
 
   listStages(pipeline: PipelineInfo) {
     return this.client
-      .get<Pipeline[]>(environment.apiLocation + '/stages/' + pipeline.id)
+      .get<Pipeline[]>(environment.apiLocation + 'stages/' + pipeline.id)
       .pipe(map(p => {
         const names: string[] = [];
         p.forEach(s => names.push(s.name));
@@ -29,7 +29,18 @@ export class ApiService {
 
   listResources(path: string) {
     return this.client
-      .get<FileInfo[]>(environment.apiLocation + '/files/' + path);
+      .get<FileInfo[]>(environment.apiLocation + 'files/' + path);
+  }
+
+  createDirectory(path: string) {
+    if (path.startsWith('/')) {
+      path = path.substr(1);
+    }
+    this
+      .client
+      .put(environment.apiLocation + 'files/' + path, null)
+      .toPromise()
+      .then(console.log);
   }
 }
 
