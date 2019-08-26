@@ -1,14 +1,17 @@
-<div>
+<div class="container">
   <h1>Files Browser</h1>
 
+  <input type="text" class="files-browser-path" value="/{{this.latestPath}}" (keydown.enter)="updateCurrentDirectory($event.target.value)">
   <div class="files-browser">
+
     <ul class="files-browser-navigation">
       <ng-template #fileTree let-ctx>
         <li *ngFor="let file of ctx.this.directories(ctx.path)">
-          <p class="directory" (click)="ctx.this.toggleLoadDirectory(file.path)">
-            <i class="material-icons">{{ctx.this.directories(file.path).length > 0 ? 'arrow_drop_down' : 'arrow_right'}}</i>
+          <p class="directory">
+            <i class="material-icons" (click)="ctx.this.toggleLoadDirectory(file.path)">{{ctx.this.directories(file.path).length > 0 ? 'arrow_drop_down' : 'arrow_right'}}</i>
             <i class="material-icons">folder_open</i>
-            {{ file.name }}
+            <label (click)="ctx.this.viewDirectory(file.path)">{{ file.name }}</label>
+
           </p>
           <ul>
             <ng-container *ngTemplateOutlet="fileTree; context:{ $implicit: {this: ctx.this, path: file.path} }"></ng-container>
@@ -17,8 +20,24 @@
       </ng-template>
       <ng-container *ngTemplateOutlet="fileTree; context:{ $implicit: {this: this, path: '/'}}"></ng-container>
     </ul>
-    <ul class="files-browser-view">
-      <li>empty</li>
+
+
+
+    <ul class="files-browser-view"
+        (contextmenu)="viewContextMenu($event)"
+        (click)="contextMenuVisible = false"
+    >
+      <input hidden type="file" #fileInput (change)="uploadFile($event)">
+      <li class="file" *ngFor="let file of this.currentDirectoryFilesOnly()">
+        <i class="material-icons-outlined">description</i>
+        {{ file.name }}
+      </li>
     </ul>
   </div>
 </div>
+<div *ngIf="contextMenuVisible" class="context-menu" [ngStyle]="{'left.px': contextMenuX, 'top.px': contextMenuY}">
+  <ul>
+    <li (click)="createDirectory(); contextMenuVisible = false">New Directory</li>
+  </ul>
+</div>
+
