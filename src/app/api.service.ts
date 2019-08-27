@@ -32,15 +32,14 @@ export class ApiService {
       .get<FileInfo[]>(environment.apiLocation + 'files/' + path);
   }
 
-  createDirectory(path: string) {
+  createDirectory(path: string): Promise<any> {
     if (path.startsWith('/')) {
       path = path.substr(1);
     }
-    this
+    return this
       .client
       .put(environment.apiLocation + 'files/' + path, null)
-      .toPromise()
-      .then(console.log);
+      .toPromise();
   }
 }
 

@@ -41,11 +41,11 @@ export class FilesComponent implements OnInit {
     return files != null ? files.filter(f => f.directory) : [];
   }
 
-  private deleteRecursively(path: string) {
+  private removeCachedRecursively(path: string) {
     const info = this.files.get(path);
     if (info != null) {
       for (const i of info) {
-        this.deleteRecursively(i.path);
+        this.removeCachedRecursively(i.path);
       }
     }
     this.files.delete(path);
@@ -55,7 +55,7 @@ export class FilesComponent implements OnInit {
     path = this.absoluteDirectoryPath(path);
     this.latestPath = path;
     if (this.files.has(path)) {
-      this.deleteRecursively(path);
+      this.removeCachedRecursively(path);
     } else {
       this.loadDirectory(path);
     }
@@ -101,10 +101,10 @@ export class FilesComponent implements OnInit {
   }
 
   private recursivelyLoadDirectoriesOfPath(pathSplit: string[], currentIndex = 0, combined = '') {
-    if (currentIndex < pathSplit.length - 1) {
+    if (currentIndex < pathSplit.length) {
       combined += pathSplit[currentIndex] + '/';
       this.api.listResources(combined).toPromise().then(res => {
-        if (res != null && res.length > 0) {
+        if (res != null) {
 
           this.insertListResourceResult(combined, res);
           this.latestPath = combined;
@@ -143,7 +143,16 @@ export class FilesComponent implements OnInit {
       data: {  }
     }).afterClosed().subscribe(result => {
       if (result) {
-        this.api.createDirectory(this.latestPath + result + '/');
+        const path = this.absoluteDirectoryPath(this.latestPath + result);
+        this
+          .api
+          .createDirectory(path)
+          .then(_ => {
+            const dir = [];
+            path.split('/').filter(d => d.length > 0).forEach(d => dir.push(d));
+            result.split('/').filter(d => d.length > 0).forEach(d => dir.push(d));
+            this.recursivelyLoadDirectoriesOfPath(dir);
+          });
       }
     });
   }
