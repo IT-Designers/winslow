@@ -7,7 +7,7 @@ import {RouterModule} from '@angular/router';
 import {SystemOverviewComponent} from './system-overview/system-overview.component';
 import {PipelinesComponent} from './pipelines/pipelines.component';
 import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
-import {CreateDirectoryDialog, FilesComponent, UploadFilesProgressDialog} from './files/files.component';
+import {CreateDirectoryDialog, DeleteAreYouSureDialog, FilesComponent, UploadFilesProgressDialog} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule, MatInputModule, MatListModule, MatProgressBarModule} from '@angular/material';
@@ -22,6 +22,7 @@ import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
     PipelinesComponent,
     CreateDirectoryDialog,
     UploadFilesProgressDialog,
+    DeleteAreYouSureDialog,
     FilesComponent,
     DragDropDirectiveDirective
   ],
@@ -53,6 +54,10 @@ import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
     {provide: MatDialogRef, useValue: {}},
   ],
   bootstrap: [AppComponent],
-  entryComponents: [CreateDirectoryDialog, UploadFilesProgressDialog]
+  entryComponents: [
+    CreateDirectoryDialog,
+    UploadFilesProgressDialog,
+    DeleteAreYouSureDialog
+  ]
 })
 export class AppModule { }
