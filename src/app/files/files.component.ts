@@ -78,7 +78,8 @@ export class FilesComponent implements OnInit {
   }
 
   currentDirectory(): FileInfo[] {
-    return this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [];
+    return (this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [])
+      .sort((a, b) => a.directory < b.directory ? 1 : -1);
   }
 
   viewDirectory(path: string) {
@@ -213,7 +214,9 @@ export class FilesComponent implements OnInit {
       .afterClosed()
       .subscribe(result => {
         if (result) {
-          this.api.delete(file.path).toPromise().finally(() => this.loadDirectory(this.latestPath));
+          console.log(file.path);
+          this.api.delete(file.path)
+            .toPromise().finally(() => this.loadDirectory(this.latestPath));
         }
       });
   }
