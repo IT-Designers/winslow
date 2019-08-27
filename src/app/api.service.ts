@@ -66,6 +66,14 @@ export class ApiService {
     window.open(environment.apiLocation + 'files/' + pathToFile);
   }
 
+  delete(path: string) {
+    if (path.startsWith('/')) {
+      path = path.substr(1);
+    }
+    return this
+      .client
+      .delete(environment.apiLocation + 'files/' + path);
+  }
 
 }
 
