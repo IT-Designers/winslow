@@ -1,12 +1,18 @@
 package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -61,7 +67,35 @@ public class FilesController {
                 .orElse(false);
     }
 
-    @GetMapping(value = {"/files/resources/**"})
+    @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
+    public ResponseEntity<InputStreamResource> downloadFile(HttpServletRequest request) {
+        return normalizedPath(request).flatMap(path -> {
+            var resourceDir = winslow.getResourceManager().getResourceDirectory();
+            return resourceDir.flatMap(resDir -> {
+                try {
+                    var       file  = resDir.resolve(path.normalize()).toFile();
+                    var       is    = new FileInputStream(file);
+                    MediaType media = null;
+
+                    try {
+                        media = MediaType.parseMediaType(file.getName());
+                    } catch (Throwable t) {
+                        media = MediaType.APPLICATION_OCTET_STREAM;
+                    }
+
+                    return Optional.of(ResponseEntity.ok()
+                            .contentLength(file.length())
+                            .contentType(media)
+                            .body(new InputStreamResource(is, file.getName())));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    return Optional.empty();
+                }
+            });
+        }).orElse(null);
+    }
+
+    @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.OPTIONS)
     public Iterable<FileInfo> getResourceInfo(HttpServletRequest request) {
         return normalizedPath(request).flatMap(path -> {
             var resourceDir = winslow.getResourceManager().getResourceDirectory();
