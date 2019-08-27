@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,9 +37,20 @@ public class FilesController {
                 .flatMap(path -> winslow
                         .getResourceManager()
                         .getResourceDirectory()
-                        .map(dir -> dir.resolve(path))
+                        .flatMap(dir -> {
+                            // prevent deletion of '/resources/'
+                            return Optional.of(dir.resolve(path))
+                                    .filter(resolved -> !resolved.equals(dir));
+                        })
                 )
-                .map(path -> !path.toFile().exists() || path.toFile().delete())
+                .map(path -> {
+                    try {
+                        FileUtils.forceDelete(path.toFile());
+                        return true;
+                    } catch (IOException e) {
+                        return false;
+                    }
+                })
                 .orElse(false);
     }
 
