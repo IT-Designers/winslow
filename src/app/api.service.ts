@@ -27,7 +27,10 @@ export class ApiService {
       }));
   }
 
-  listResources(path: string) {
+  listFiles(path: string) {
+    if (path.startsWith('/')) {
+      path = path.substr(1);
+    }
     return this.client
       .get<FileInfo[]>(environment.apiLocation + 'files/' + path);
   }
