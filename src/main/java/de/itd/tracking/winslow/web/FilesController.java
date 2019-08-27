@@ -29,6 +29,19 @@ public class FilesController {
         this.winslow = winslow;
     }
 
+    @DeleteMapping(value = {"/files/resources/**"})
+    public boolean delete(HttpServletRequest request) {
+        return normalizedPath(request)
+                .flatMap(path -> winslow
+                        .getResourceManager()
+                        .getResourceDirectory()
+                        .map(dir -> dir.resolve(path))
+                )
+                .map(path -> !path.toFile().exists() || path.toFile().delete())
+                .orElse(false);
+    }
+
+
     @PutMapping(value = {"/files/resources/**"})
     public boolean createDirectory(HttpServletRequest request) {
         return normalizedPath(request)
