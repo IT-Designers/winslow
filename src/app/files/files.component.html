@@ -2,6 +2,9 @@
   <h1>Files Browser</h1>
 
   <input type="text" class="files-browser-path" value="{{this.latestPath}}" (keydown.enter)="updateCurrentDirectory($event.target.value)">
+  <i class="material-icons-outlined">cloud_upload</i>
+  <i class="material-icons-outlined">create_new_folder</i>
+
   <div class="files-browser">
 
     <ul class="files-browser-navigation">
@@ -9,7 +12,7 @@
         <li *ngFor="let file of ctx.this.directories(ctx.path)">
           <p class="directory" [attr.data-path]="file.path">
             <i class="material-icons directory-toggle directory-{{ctx.this.directories(file.path) != null ? 'close' : 'open'}}" (click)="ctx.this.toggleLoadDirectory(file.path)">{{ctx.this.directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right'}}</i>
-            <i class="material-icons directory-toggle directory-{{ctx.this.directories(file.path) != null ? 'close' : 'open'}}" (click)="ctx.this.toggleLoadDirectory(file.path)">folder_open</i>
+            <i class="material-icons-outlined directory-toggle directory-{{ctx.this.directories(file.path) != null ? 'close' : 'open'}}" (click)="ctx.this.toggleLoadDirectory(file.path)">{{ctx.this.directories(file.path) != null ? 'folder_open' : 'folder'}}</i>
             <label (click)="ctx.this.viewDirectory(file.path)">{{ file.name }}</label>
 
           </p>
@@ -31,7 +34,9 @@
     >
       <li class="file" *ngFor="let file of this.currentDirectoryFilesOnly()">
         <i class="material-icons-outlined">description</i>
-        {{ file.name }}
+        <label>{{ file.name }}</label>
+        <i class="material-icons-outlined action-area" (click)="download(file)">cloud_download</i>
+        <i class="material-icons-outlined action-area">delete</i>
       </li>
     </ul>
   </div>

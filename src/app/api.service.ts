@@ -29,7 +29,7 @@ export class ApiService {
       path = path.substr(1);
     }
     return this.client
-      .get<FileInfo[]>(environment.apiLocation + 'files/' + path);
+      .options<FileInfo[]>(environment.apiLocation + 'files/' + path);
   }
 
   createDirectory(path: string): Promise<any> {
@@ -60,6 +60,10 @@ export class ApiService {
         form,
         { reportProgress: true, observe: 'events' }
       );
+  }
+
+  downloadFile(pathToFile: string) {
+    window.open(environment.apiLocation + 'files/' + pathToFile);
   }
 
 

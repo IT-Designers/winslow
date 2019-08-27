@@ -202,6 +202,10 @@ export class FilesComponent implements OnInit {
       }, 5000);
     }
   }
+
+  download(file: FileInfo) {
+    this.api.downloadFile(file.path);
+  }
 }
 
 export interface CreateDirectoryData {
