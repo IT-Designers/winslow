@@ -46,7 +46,7 @@ public class FilesController {
                             .map(file -> new FileInfo(
                                     file.getName(),
                                     file.isDirectory(),
-                                    Path.of("resources").resolve(resDir.relativize(file.toPath())).toString()
+                                    Path.of("/", "resources").resolve(resDir.relativize(file.toPath())).toString()
                             ))
                             .collect(Collectors.toUnmodifiableList())
             );
