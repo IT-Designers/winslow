@@ -3,7 +3,6 @@ package de.itd.tracking.winslow.web;
 import de.itd.tracking.winslow.Winslow;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
@@ -15,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,15 +54,18 @@ public class FilesController {
 
 
     @PutMapping(value = {"/files/resources/**"})
-    public boolean createDirectory(HttpServletRequest request) {
+    public Optional<String> createDirectory(HttpServletRequest request) {
         return normalizedPath(request)
                 .flatMap(path -> winslow
                         .getResourceManager()
                         .getResourceDirectory()
-                        .map(dir -> dir.resolve(path))
-                )
-                .map(path -> path.toFile().exists() || path.toFile().mkdirs())
-                .orElse(false);
+                        .flatMap(dir -> {
+                            var resolved = dir.resolve(path);
+                            return Optional.of(resolved)
+                                    .filter(p -> p.toFile().exists() || p.toFile().mkdirs())
+                                    .map(p -> Path.of("/resources/").resolve(path).toString());
+                        })
+                );
     }
 
     @PostMapping(value = {"/files/resources/**"})
