@@ -106,6 +106,16 @@ ul.files-browser-navigation > li > p {
   background-color: rgba(0, 50, 250, 0.1);
 }
 
+.files-browser-view .file {
+  display: flex;
+}
+
+.files-browser-view .file > label {
+  padding: 0 0.5em;
+  flex-grow: 1;
+}
+
+
 .context-menu {
   position: fixed;
   padding: 0.5em 0.2em;
@@ -131,4 +141,8 @@ ul.files-browser-navigation > li > p {
 }
 .context-menu li:hover, .dragover {
   background-color: rgba(0, 0, 0, 0.08);
+}
+
+.action-area {
+  cursor: pointer;
 }
