@@ -10,7 +10,7 @@ import {HttpEventType} from '@angular/common/http';
 })
 export class FilesComponent implements OnInit {
   files: Map<string, FileInfo[]> = new Map();
-  latestPath = '/resources/';
+  latestPath = '/resources'; // IMPORTANT: starts with a slash, but never ends with one: '/resources/ab/cd/ef'
 
   contextMenuX = 0;
   contextMenuY = 0;
@@ -24,13 +24,13 @@ export class FilesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.api.listFiles('/resources/').toPromise().then(res => {
+    this.api.listFiles('/resources').toPromise().then(res => {
       this.files.set('/', (() => {
         const info = new FileInfo();
         info.directory = true;
         info.name = 'resources';
-        info.path = '/resources/';
-        this.files.set('/resources/', res);
+        info.path = '/resources';
+        this.files.set('/resources', res);
         return [info];
       })());
       this.loadDirectory(this.latestPath);
@@ -63,7 +63,9 @@ export class FilesComponent implements OnInit {
   private insertListResourceResult(path: string, res: FileInfo[]) {
     this.files.set(
       path,
-      res.sort((a, b) => a.name > b.name ? 1 : -1)
+      res
+        .sort((a, b) => a.name > b.name ? 1 : -1) // sort by name
+        .sort((a, b) => a.directory < b.directory ? 1 : -1) // directories first
     );
   }
 
@@ -78,8 +80,7 @@ export class FilesComponent implements OnInit {
   }
 
   currentDirectory(): FileInfo[] {
-    return (this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [])
-      .sort((a, b) => a.directory < b.directory ? 1 : -1);
+    return this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [];
   }
 
   viewDirectory(path: string) {
@@ -89,17 +90,34 @@ export class FilesComponent implements OnInit {
     });
   }
 
-  updateCurrentDirectory(value: string) {
-    value = this.absoluteDirectoryPath(value);
-    if (this.latestPath !== value) {
-      this.recursivelyLoadDirectoriesOfPath(value.split('/'));
+  navigateDirectlyTo(path: string) {
+    const current = this.latestPath.split('/').filter(d => d.length > 0);
+    const split = path.split('/').filter(d => d.length > 0);
+    let index = 0;
+    let combined = '';
+
+    for (let i = 0; i < current.length && i < split.length; ++i) {
+      if (current[i] === split[i]) {
+        if (i > 0) {
+          index = i;
+          combined += '/' + current[i - 1];
+        }
+      } else {
+        break;
+      }
     }
+
+    this.recursivelyLoadDirectoriesOfPath(split, index, combined).then(path => {
+      this.latestPath = path;
+      this.updateSelection();
+    });
   }
 
-  private recursivelyLoadDirectoriesOfPath(pathSplit: string[], currentIndex = 0, combined = '/') {
+  private recursivelyLoadDirectoriesOfPath(pathSplit: string[], currentIndex = 0, combined = ''): Promise<string> {
     if (currentIndex < pathSplit.length) {
-      combined += pathSplit[currentIndex] + '/';
-      this.api.listFiles(combined).toPromise().then(res => {
+      const before = combined;
+      combined += '/' + pathSplit[currentIndex];
+      return this.api.listFiles(combined).toPromise().then(res => {
         if (res != null) {
 
           this.insertListResourceResult(combined, res);
@@ -107,12 +125,15 @@ export class FilesComponent implements OnInit {
 
           for (const r of res) {
             if (r.name === pathSplit[currentIndex + 1]) {
-              this.recursivelyLoadDirectoriesOfPath(pathSplit, currentIndex + 1, combined);
-              break;
+              return this.recursivelyLoadDirectoriesOfPath(pathSplit, currentIndex + 1, combined);
             }
           }
+          return Promise.resolve(combined);
         }
+        return Promise.resolve(before);
       });
+    } else {
+      return Promise.resolve(combined);
     }
   }
 
@@ -139,16 +160,11 @@ export class FilesComponent implements OnInit {
       data: {  }
     }).afterClosed().subscribe(result => {
       if (result) {
-        const path = this.absoluteDirectoryPath(this.latestPath + result);
+        const path = this.absoluteDirectoryPath(this.latestPath + '/' + result);
         this
           .api
           .createDirectory(path)
-          .then(_ => {
-            const dir = [];
-            path.split('/').filter(d => d.length > 0).forEach(d => dir.push(d));
-            result.split('/').filter(d => d.length > 0).forEach(d => dir.push(d));
-            this.recursivelyLoadDirectoriesOfPath(dir);
-          });
+          .then(p => this.navigateDirectlyTo(p));
       }
     });
   }
@@ -164,7 +180,8 @@ export class FilesComponent implements OnInit {
     }
     const directories = document.getElementsByClassName(CLASS_NAME);
     for (let i = 0; i < directories.length; ++i) {
-      if (directories.item(i).attributes.getNamedItem(DATA_ATTRIBUTE).value === this.latestPath) {
+      const value = directories.item(i).attributes.getNamedItem(DATA_ATTRIBUTE).value;
+      if (value === this.latestPath) {
         directories.item(i).classList.add(CLASS_NAME_SELECTED);
         break;
       }
@@ -203,7 +220,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  download(file: FileInfo) {
+  downloadFile(file: FileInfo) {
     this.api.downloadFile(file.path);
   }
 
@@ -214,7 +231,6 @@ export class FilesComponent implements OnInit {
       .afterClosed()
       .subscribe(result => {
         if (result) {
-          console.log(file.path);
           this.api.delete(file.path)
             .toPromise().finally(() => this.loadDirectory(this.latestPath));
         }
