@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../environments/environment';
 import {map} from 'rxjs/operators';
@@ -8,10 +8,7 @@ import {map} from 'rxjs/operators';
 })
 export class ApiService {
 
-
-  constructor(private client: HttpClient) {
-
-  }
+  constructor(private client: HttpClient) {}
 
   listPipelines() {
     return this.client.get<PipelineInfo[]>(environment.apiLocation + 'pipelines');
@@ -44,6 +41,28 @@ export class ApiService {
       .put(environment.apiLocation + 'files/' + path, null)
       .toPromise();
   }
+
+  uploadFile(pathToDirectory: string, file: File) {
+    if (!pathToDirectory.endsWith('/')) {
+      pathToDirectory += '/';
+    }
+    if (pathToDirectory.startsWith('/')) {
+      pathToDirectory = pathToDirectory.substr(1);
+    }
+
+    const form = new FormData();
+    form.append('file', file);
+
+    return this
+      .client
+      .post(
+        environment.apiLocation + 'files/' + pathToDirectory + file.name,
+        form,
+        { reportProgress: true, observe: 'events' }
+      );
+  }
+
+
 }
 
 export class PipelineInfo {

@@ -129,6 +129,6 @@ ul.files-browser-navigation > li > p {
 .context-menu li:not(:last-child) {
   border-bottom: 1px solid silver;
 }
-.context-menu li:hover {
+.context-menu li:hover, .dragover {
   background-color: rgba(0, 0, 0, 0.08);
 }

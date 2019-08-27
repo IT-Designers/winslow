@@ -7,11 +7,12 @@ import {RouterModule} from '@angular/router';
 import {SystemOverviewComponent} from './system-overview/system-overview.component';
 import {PipelinesComponent} from './pipelines/pipelines.component';
 import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
-import {CreateDirectoryDialog, FilesComponent} from './files/files.component';
+import {CreateDirectoryDialog, FilesComponent, UploadFilesProgressDialog} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
-import {MatButtonModule, MatInputModule} from '@angular/material';
+import {MatButtonModule, MatInputModule, MatListModule, MatProgressBarModule} from '@angular/material';
 import {FormsModule} from '@angular/forms';
+import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,9 @@ import {FormsModule} from '@angular/forms';
     SystemOverviewComponent,
     PipelinesComponent,
     CreateDirectoryDialog,
-    FilesComponent
+    UploadFilesProgressDialog,
+    FilesComponent,
+    DragDropDirectiveDirective
   ],
   imports: [
     HttpClientModule,
@@ -42,12 +45,14 @@ import {FormsModule} from '@angular/forms';
     MatInputModule,
     FormsModule,
     MatButtonModule,
+    MatListModule,
+    MatProgressBarModule,
 
   ],
   providers: [
     {provide: MatDialogRef, useValue: {}},
   ],
   bootstrap: [AppComponent],
-  entryComponents: [CreateDirectoryDialog]
+  entryComponents: [CreateDirectoryDialog, UploadFilesProgressDialog]
 })
 export class AppModule { }
