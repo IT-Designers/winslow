@@ -1,15 +1,15 @@
 <div class="container">
   <h1>Files Browser</h1>
 
-  <input type="text" class="files-browser-path" value="/{{this.latestPath}}" (keydown.enter)="updateCurrentDirectory($event.target.value)">
+  <input type="text" class="files-browser-path" value="{{this.latestPath}}" (keydown.enter)="updateCurrentDirectory($event.target.value)">
   <div class="files-browser">
 
     <ul class="files-browser-navigation">
       <ng-template #fileTree let-ctx>
         <li *ngFor="let file of ctx.this.directories(ctx.path)">
-          <p class="directory">
-            <i class="material-icons" (click)="ctx.this.toggleLoadDirectory(file.path)">{{ctx.this.directories(file.path).length > 0 ? 'arrow_drop_down' : 'arrow_right'}}</i>
-            <i class="material-icons">folder_open</i>
+          <p class="directory" [attr.data-path]="file.path">
+            <i class="material-icons directory-toggle directory-{{ctx.this.directories(file.path) != null ? 'close' : 'open'}}" (click)="ctx.this.toggleLoadDirectory(file.path)">{{ctx.this.directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right'}}</i>
+            <i class="material-icons directory-toggle directory-{{ctx.this.directories(file.path) != null ? 'close' : 'open'}}" (click)="ctx.this.toggleLoadDirectory(file.path)">folder_open</i>
             <label (click)="ctx.this.viewDirectory(file.path)">{{ file.name }}</label>
 
           </p>

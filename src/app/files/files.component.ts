@@ -9,7 +9,7 @@ import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 })
 export class FilesComponent implements OnInit {
   files: Map<string, FileInfo[]> = new Map();
-  latestPath = 'resources/';
+  latestPath = '/resources/';
 
   contextMenuX = 0;
   contextMenuY = 0;
@@ -23,14 +23,14 @@ export class FilesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.api.listResources('resources/').toPromise().then(res => {
-      this.files.get('/').push((() => {
+    this.api.listFiles('/resources/').toPromise().then(res => {
+      this.files.set('/', (() => {
         const info = new FileInfo();
         info.directory = true;
         info.name = 'resources';
-        info.path = 'resources/';
+        info.path = '/resources/';
         this.files.set('/resources/', res);
-        return info;
+        return [info];
       })());
       this.loadDirectory(this.latestPath);
     });
@@ -38,7 +38,7 @@ export class FilesComponent implements OnInit {
 
   directories(path: string) {
     const files = this.files.get(path);
-    return files != null ? files.filter(f => f.directory) : [];
+    return files != null ? files.filter(f => f.directory) : null;
   }
 
   private removeCachedRecursively(path: string) {
@@ -52,32 +52,24 @@ export class FilesComponent implements OnInit {
   }
 
   toggleLoadDirectory(path: string) {
-    path = this.absoluteDirectoryPath(path);
-    this.latestPath = path;
     if (this.files.has(path)) {
       this.removeCachedRecursively(path);
     } else {
-      this.loadDirectory(path);
+      this.loadDirectory(path).finally(() => {});
     }
   }
 
   private insertListResourceResult(path: string, res: FileInfo[]) {
     this.files.set(
-      this.absoluteDirectoryPath(path),
-      res
-        .sort((a, b) => a.name > b.name ? 1 : -1)
-        .map(file => {
-          file.path = this.absoluteDirectoryPath(file.path, file.directory);
-          return file;
-        })
+      path,
+      res.sort((a, b) => a.name > b.name ? 1 : -1)
     );
   }
 
   private loadDirectory(path: string) {
-    this.api.listResources(path).toPromise().then(res => {
+    return this.api.listFiles(path).toPromise().then(res => {
       this.insertListResourceResult(path, res);
     });
-    this.latestPath = path;
   }
 
   currentDirectoryFilesOnly(): FileInfo[] {
@@ -89,8 +81,10 @@ export class FilesComponent implements OnInit {
   }
 
   viewDirectory(path: string) {
-    this.latestPath = this.absoluteDirectoryPath(path);
-    this.loadDirectory(this.latestPath);
+    this.loadDirectory(path).then(_ => {
+      this.latestPath = path;
+      this.updateSelection();
+    });
   }
 
   updateCurrentDirectory(value: string) {
@@ -100,10 +94,10 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  private recursivelyLoadDirectoriesOfPath(pathSplit: string[], currentIndex = 0, combined = '') {
+  private recursivelyLoadDirectoriesOfPath(pathSplit: string[], currentIndex = 0, combined = '/') {
     if (currentIndex < pathSplit.length) {
       combined += pathSplit[currentIndex] + '/';
-      this.api.listResources(combined).toPromise().then(res => {
+      this.api.listFiles(combined).toPromise().then(res => {
         if (res != null) {
 
           this.insertListResourceResult(combined, res);
@@ -124,8 +118,8 @@ export class FilesComponent implements OnInit {
     if (!path.endsWith('/') && directory) {
       path += '/';
     }
-    if (path.startsWith('/')) {
-      path = path.substr(1);
+    if (!path.startsWith('/')) {
+      path = '/' + path;
     }
     return path;
   }
@@ -155,6 +149,24 @@ export class FilesComponent implements OnInit {
           });
       }
     });
+  }
+
+  updateSelection() {
+    const CLASS_NAME = 'directory';
+    const CLASS_NAME_SELECTED = 'directory-selected';
+    const DATA_ATTRIBUTE = 'data-path';
+
+    const elements = document.getElementsByClassName(CLASS_NAME_SELECTED);
+    for (let i = 0; i < elements.length; ++i) {
+      elements.item(i).classList.remove(CLASS_NAME_SELECTED);
+    }
+    const directories = document.getElementsByClassName(CLASS_NAME);
+    for (let i = 0; i < directories.length; ++i) {
+      if (directories.item(i).attributes.getNamedItem(DATA_ATTRIBUTE).value === this.latestPath) {
+        directories.item(i).classList.add(CLASS_NAME_SELECTED);
+        break;
+      }
+    }
   }
 
   uploadFile($event) {

@@ -50,21 +50,36 @@
 }
 
 .files-browser-navigation ul {
-  margin-left: 0.5em;
-  padding-left: 1.25em;
+  margin-left: 0.8em;
 }
 
 .files-browser i {
   vertical-align: bottom;
 }
+.files-browser-navigation .directory-open {
+  cursor: zoom-in;
+}
+
+.files-browser-navigation .directory-close {
+  cursor: zoom-out;
+}
 
 .files-browser-navigation .directory {
-  padding: 0.1em 1em;
+  display: flex;
+}
+
+.files-browser-navigation .directory label {
+  flex-grow: 1;
+  cursor: pointer;
+  padding: 0.1em 0.2em;
 }
 
 .files-browser-navigation .directory:hover {
-  cursor: pointer;
   background-color: rgba(110, 120, 255, 0.1);
+}
+.files-browser-navigation .directory-selected {
+  cursor: pointer;
+  background-color: rgba(110, 120, 255, 0.15) !important;
 }
 
 ul.files-browser-navigation {
@@ -93,11 +108,12 @@ ul.files-browser-navigation > li > p {
 
 .context-menu {
   position: fixed;
-  padding: 0;
+  padding: 0.5em 0.2em;
   margin: 0;
   border: 1px solid silver;
   border-radius: 0.2em;
   box-shadow: 0.1em 0.1em gray;
+  background-color: white;
 }
 
 .context-menu ul {
@@ -107,8 +123,11 @@ ul.files-browser-navigation > li > p {
 }
 
 .context-menu li {
-  padding: 0.2em 1em;
+  padding: 0.5em 1em;
   cursor: pointer;
+}
+.context-menu li:not(:last-child) {
+  border-bottom: 1px solid silver;
 }
 .context-menu li:hover {
   background-color: rgba(0, 0, 0, 0.08);
