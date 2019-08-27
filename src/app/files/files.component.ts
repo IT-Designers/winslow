@@ -205,6 +205,18 @@ export class FilesComponent implements OnInit {
   download(file: FileInfo) {
     this.api.downloadFile(file.path);
   }
+
+  delete(file: FileInfo) {
+    this
+      .createDialog
+      .open(DeleteAreYouSureDialog, {width: '40em', data: file})
+      .afterClosed()
+      .subscribe(result => {
+        if (result) {
+          this.api.delete(file.path).toPromise().finally(() => this.loadDirectory(this.latestPath));
+        }
+      });
+  }
 }
 
 export interface CreateDirectoryData {
@@ -224,9 +236,9 @@ export interface CreateDirectoryData {
               >
           </mat-form-field>
       </div>
-      <div mat-dialog-actions>
-        <button mat-button (click)="dialogRef.close()">Cancel</button>
-        <button mat-button (click)="dialogRef.close(data.name)">Submit</button>
+      <div mat-dialog-actions align="end">
+          <button mat-button (click)="dialogRef.close(data.name)">Submit</button>
+          <button mat-button (click)="dialogRef.close()">Cancel</button>
       </div>`
 })
 export class CreateDirectoryDialog {
@@ -251,7 +263,7 @@ export interface UploadFilesProgress {
               <mat-progress-bar mode="determinate" value="{{ upload[1] / upload[2] * 100 }}"></mat-progress-bar>
           </mat-list>
       </div>
-      <div mat-dialog-actions>
+      <div mat-dialog-actions align="end">
           <button [disabled]="!data.closable" mat-button (click)="dialogRef.close()">Close</button>
       </div>
   `
@@ -260,5 +272,24 @@ export class UploadFilesProgressDialog {
   constructor(
     public dialogRef: MatDialogRef<UploadFilesProgressDialog>,
     @Inject(MAT_DIALOG_DATA) public data: UploadFilesProgress) {
+  }
+}
+
+@Component({
+  selector: 'dialog-delete-are-you-sure',
+  template: `
+      <h1 mat-dialog-title>Are you sure you want to delete this file?</h1>
+      <div mat-dialog-content>
+          <p>{{file.name}}</p>
+      </div>
+      <div mat-dialog-actions align="end">
+          <button mat-button (click)="dialogRef.close(true)">Delete</button>
+          <button mat-button (click)="dialogRef.close(false)">Cancel</button>
+      </div>`
+})
+export class DeleteAreYouSureDialog {
+  constructor(
+    public dialogRef: MatDialogRef<DeleteAreYouSureDialog>,
+    @Inject(MAT_DIALOG_DATA) public file: FileInfo) {
   }
 }
