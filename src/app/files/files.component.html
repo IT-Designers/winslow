@@ -1,9 +1,13 @@
 <div class="container">
   <h1>Files Browser</h1>
 
-  <input type="text" class="files-browser-path" value="{{this.latestPath}}" (keydown.enter)="updateCurrentDirectory($event.target.value)">
-  <i class="material-icons-outlined">cloud_upload</i>
-  <i class="material-icons-outlined">create_new_folder</i>
+  <div class="files-browser-path">
+    <input type="text" class="files-browser-path" value="{{this.latestPath}}" (keydown.enter)="updateCurrentDirectory($event.target.value)">
+    <i class="material-icons-outlined action-area" (click)="fileInput.click()">cloud_upload</i>
+    <i class="material-icons-outlined action-area" (click)="createDirectory()">create_new_folder</i>
+    <input hidden #fileInput accept="*/*" type="file" (change)="uploadFile($event.target.files)">
+  </div>
+
 
   <div class="files-browser">
 
@@ -44,6 +48,7 @@
 <div *ngIf="contextMenuVisible" class="context-menu" [ngStyle]="{'left.px': contextMenuX, 'top.px': contextMenuY}">
   <ul>
     <li (click)="createDirectory(); contextMenuVisible = false">New Directory</li>
+    <li (click)="fileInput.click(); contextMenuVisible = false">Upload a file</li>
   </ul>
 </div>
 
