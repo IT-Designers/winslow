@@ -6,10 +6,10 @@ import {TopbarComponent} from './topbar/topbar.component';
 import {RouterModule} from '@angular/router';
 import {SystemOverviewComponent} from './system-overview/system-overview.component';
 import {PipelinesComponent} from './pipelines/pipelines.component';
-import {HttpClientModule} from '@angular/common/http';
+import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {CreateDirectoryDialog, FilesComponent} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule, MatInputModule} from '@angular/material';
 import {FormsModule} from '@angular/forms';
 
@@ -24,6 +24,10 @@ import {FormsModule} from '@angular/forms';
   ],
   imports: [
     HttpClientModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'XSRF-TOKEN',
+      headerName: 'X-XSRF-TOKEN'
+    }),
 
     BrowserModule,
     RouterModule.forRoot([
