@@ -2,12 +2,12 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,6 +32,32 @@ public class FilesController {
                         .map(dir -> dir.resolve(path))
                 )
                 .map(path -> path.toFile().exists() || path.toFile().mkdirs())
+                .orElse(false);
+    }
+
+    @PostMapping(value = {"/files/resources/**"})
+    public boolean uploadFile(HttpServletRequest request, @RequestParam("file")MultipartFile file) {
+        return normalizedPath(request)
+                .flatMap(path -> winslow
+                        .getResourceManager()
+                        .getResourceDirectory()
+                        .map(dir -> dir.resolve(path))
+                )
+                .map(path -> {
+                    var parent = path.getParent();
+                    System.out.println(path);
+                    if (parent.toFile().exists() && parent.toFile().isDirectory()) {
+                        try {
+                            file.transferTo(path);
+                            return true;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                })
                 .orElse(false);
     }
 
