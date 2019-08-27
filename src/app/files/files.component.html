@@ -26,8 +26,9 @@
     <ul class="files-browser-view"
         (contextmenu)="viewContextMenu($event)"
         (click)="contextMenuVisible = false"
+        appDragDrop=""
+        (onFileDropped)="uploadFile($event)"
     >
-      <input hidden type="file" #fileInput (change)="uploadFile($event)">
       <li class="file" *ngFor="let file of this.currentDirectoryFilesOnly()">
         <i class="material-icons-outlined">description</i>
         {{ file.name }}

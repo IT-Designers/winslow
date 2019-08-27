@@ -1,6 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {ApiService, FileInfo} from '../api.service';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
+import {HttpEventType} from '@angular/common/http';
 
 @Component({
   selector: 'app-files',
@@ -169,8 +170,37 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  uploadFile($event) {
-    console.log('upload');
+  uploadFile(files: FileList, currentItem = 0, data: UploadFilesProgress = null, dialog: MatDialogRef<UploadFilesProgressDialog> = null) {
+    if (data == null || dialog == null) {
+      data = {
+        uploads: [],
+        closable: false,
+      };
+      for (let i = 0; i < files.length; ++i) {
+        data.uploads.push([files.item(i).name, 0, 100]);
+      }
+      dialog = this.createDialog.open(UploadFilesProgressDialog, {
+        width: '60%',
+        data,
+      });
+    }
+    if (currentItem < files.length) {
+      this.api.uploadFile(this.latestPath, files.item(currentItem)).subscribe(event => {
+        if (event.type == HttpEventType.UploadProgress) {
+          console.log(event.loaded + ' / ' + event.total);
+          data.uploads[currentItem][1] = event.loaded;
+          data.uploads[currentItem][2] = event.total;
+        }
+      }).add(() => {
+        this.loadDirectory(this.latestPath);
+        this.uploadFile(files, currentItem + 1, data, dialog);
+      });
+    } else {
+      data.closable = true;
+      setTimeout(() => {
+        dialog.close();
+      }, 5000);
+    }
   }
 }
 
@@ -200,5 +230,32 @@ export class CreateDirectoryDialog {
   constructor(
     public dialogRef: MatDialogRef<CreateDirectoryDialog>,
     @Inject(MAT_DIALOG_DATA) public data: CreateDirectoryData) {
+  }
+}
+
+export interface UploadFilesProgress {
+  uploads: [[string, number, number]];
+  closable: boolean;
+}
+
+@Component({
+  selector: 'dialog-upload-files-progress',
+  template: `
+      <h1 mat-dialog-title>Uploading your files</h1>
+      <div mat-dialog-content>
+          <mat-list *ngFor="let upload of data.uploads">
+              <p>{{upload[0]}}</p>
+              <mat-progress-bar mode="determinate" value="{{ upload[1] / upload[2] * 100 }}"></mat-progress-bar>
+          </mat-list>
+      </div>
+      <div mat-dialog-actions>
+          <button [disabled]="!data.closable" mat-button (click)="dialogRef.close()">Close</button>
+      </div>
+  `
+})
+export class UploadFilesProgressDialog {
+  constructor(
+    public dialogRef: MatDialogRef<UploadFilesProgressDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: UploadFilesProgress) {
   }
 }
