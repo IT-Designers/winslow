@@ -2,7 +2,9 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +13,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 public class FilesController {
@@ -23,10 +24,15 @@ public class FilesController {
     }
 
     @PutMapping(value = {"/files/resources/**"})
-    public void createDirectory(HttpServletRequest request) {
-        normalizedPath(request).ifPresent(path -> {
-            System.out.println(path);
-        });
+    public boolean createDirectory(HttpServletRequest request) {
+        return normalizedPath(request)
+                .flatMap(path -> winslow
+                        .getResourceManager()
+                        .getResourceDirectory()
+                        .map(dir -> dir.resolve(path))
+                )
+                .map(path -> path.toFile().exists() || path.toFile().mkdirs())
+                .orElse(false);
     }
 
     @GetMapping(value = {"/files/resources/**"})
@@ -51,8 +57,6 @@ public class FilesController {
         var  pathWithinHandler = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         var bestMatch = (String)request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         var path = Path.of(new AntPathMatcher().extractPathWithinPattern(bestMatch, pathWithinHandler)).normalize();
-
-        System.out.println(path);
 
         // for se security
         if (path.isAbsolute()) {

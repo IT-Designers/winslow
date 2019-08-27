@@ -8,7 +8,6 @@ import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
