@@ -268,7 +268,7 @@ export class CreateDirectoryDialog {
 }
 
 export interface UploadFilesProgress {
-  uploads: [[string, number, number]];
+  uploads: [string, number, number][];
   closable: boolean;
 }
 
