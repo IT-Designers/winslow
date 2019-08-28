@@ -64,13 +64,10 @@ public class FilesController {
                 .flatMap(path -> winslow
                         .getResourceManager()
                         .getResourceDirectory()
-                        .flatMap(dir -> {
-                            var resolved = dir.resolve(path);
-                            return Optional.of(resolved)
-                                    .filter(p -> canAccess(user, dir, p))
-                                    .filter(p -> p.toFile().exists() || p.toFile().mkdirs())
-                                    .map(p -> Path.of("/resources/").resolve(path).toString());
-                        })
+                        .flatMap(dir -> Optional.of(dir.resolve(path))
+                                .filter(p -> canAccessOrCreateDirectory(user, dir, p, true))
+                                .filter(p -> p.toFile().exists() || p.toFile().mkdirs())
+                                .map(p -> Path.of("/resources/").resolve(path).toString()))
                 );
     }
 
@@ -160,10 +157,14 @@ public class FilesController {
     }
 
     private static boolean canAccess(@Nullable User user, Path workDir, Path path) {
+        return canAccessOrCreateDirectory(user, workDir, path, false);
+    }
+
+    private static boolean canAccessOrCreateDirectory(@Nullable User user, Path workDir, Path path, boolean wantsCreateDirectory) {
         var p = workDir.relativize(path);
         return user != null
                 && p.getNameCount() > 0
-                && workDir.resolve(p.getName(0)).toFile().isDirectory()
+                && (workDir.resolve(p.getName(0)).toFile().exists() ? workDir.resolve(p.getName(0)).toFile().isDirectory() : wantsCreateDirectory)
                 && user.canAccessGroup(p.getName(0).toString());
     }
 
