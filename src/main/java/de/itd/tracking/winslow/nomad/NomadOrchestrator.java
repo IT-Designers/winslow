@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow.nomad;
 
-import com.hashicorp.nomad.apimodel.*;
+import com.hashicorp.nomad.apimodel.AllocationListStub;
+import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
@@ -12,8 +13,14 @@ import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
 
 public class NomadOrchestrator implements Orchestrator {
 
@@ -23,7 +30,35 @@ public class NomadOrchestrator implements Orchestrator {
         Objects.requireNonNull(client);
         this.client = client;
 
+
         try {
+            client.getNodesApi().list().getValue().forEach(node -> {
+                System.out.println(node.getAddress());
+                try {
+                    NetworkInterface.networkInterfaces().forEach(nic -> {
+                        try {
+                            var nodeAddress = InetAddress.getByName(node.getAddress());
+                            var enumeration = nic.getInetAddresses();
+
+                            while (enumeration.hasMoreElements()) {
+                                var inet = enumeration.nextElement();
+                                if (inet.equals(nodeAddress)) {
+                                    System.out.println("nic:" + nic.getName());
+                                    System.out.println("    " + inet);
+                                    nic.getInterfaceAddresses().forEach(inter -> System.out.println("      : " + inter));
+                                }
+                            }
+                        } catch (UnknownHostException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (SocketException e) {
+                    e.printStackTrace();
+                }
+            });
+
+
+
             client.getSystemApi().garbageCollect();
         } catch (IOException e) {
             e.printStackTrace();

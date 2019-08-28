@@ -1,6 +1,8 @@
 package de.itd.tracking.winslow;
 
 import com.moandjiezana.toml.Toml;
+import de.itd.tracking.winslow.auth.GroupRepository;
+import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
@@ -8,6 +10,7 @@ import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
@@ -15,11 +18,15 @@ public class Winslow implements Runnable {
     private final Orchestrator               orchestrator;
     private final WorkDirectoryConfiguration configuration;
     private final ResourceManager            resourceManager;
+    private final GroupRepository            groupRepository;
+    private final UserRepository             userRepository;
 
     public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration) {
         this.orchestrator = orchestrator;
         this.configuration = configuration;
         this.resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
+        this.groupRepository = new GroupRepository();
+        this.userRepository = new UserRepository(groupRepository);
     }
 
     public ResourceManager getResourceManager() {
@@ -42,6 +49,10 @@ public class Winslow implements Runnable {
         pipe = new Pipeline(pipe.getName(), pipe.getDescription().orElse(null), pipe.getUserInput().orElse(null), stages);
         System.out.println(pipe);
 
+        resourceManager.getResourceDirectory().ifPresent(dir -> {
+
+        });
+
 
         var executor = new PipelineExecutor(pipe, orchestrator, new Environment(configuration, resourceManager));
 
@@ -63,5 +74,13 @@ public class Winslow implements Runnable {
         } catch (OrchestratorException e) {
             e.printStackTrace();
         }
+    }
+
+    public UserRepository getUserRepository() {
+        return this.userRepository;
+    }
+
+    public GroupRepository getGroupRepository() {
+        return groupRepository;
     }
 }

@@ -1,15 +1,19 @@
 package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
+import de.itd.tracking.winslow.auth.User;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,7 +34,7 @@ public class FilesController {
     }
 
     @DeleteMapping(value = {"/files/resources/**"})
-    public boolean delete(HttpServletRequest request) {
+    public boolean delete(HttpServletRequest request, User user) {
         return normalizedPath(request)
                 .flatMap(path -> winslow
                         .getResourceManager()
@@ -38,7 +42,8 @@ public class FilesController {
                         .flatMap(dir -> {
                             // prevent deletion of '/resources/'
                             return Optional.of(dir.resolve(path))
-                                    .filter(resolved -> !resolved.equals(dir));
+                                    .filter(resolved -> !resolved.equals(dir))
+                                    .filter(resolved -> canAccess(user, dir, resolved));
                         })
                 )
                 .map(path -> {
@@ -54,7 +59,7 @@ public class FilesController {
 
 
     @PutMapping(value = {"/files/resources/**"})
-    public Optional<String> createDirectory(HttpServletRequest request) {
+    public Optional<String> createDirectory(HttpServletRequest request, User user) {
         return normalizedPath(request)
                 .flatMap(path -> winslow
                         .getResourceManager()
@@ -62,6 +67,7 @@ public class FilesController {
                         .flatMap(dir -> {
                             var resolved = dir.resolve(path);
                             return Optional.of(resolved)
+                                    .filter(p -> canAccess(user, dir, p))
                                     .filter(p -> p.toFile().exists() || p.toFile().mkdirs())
                                     .map(p -> Path.of("/resources/").resolve(path).toString());
                         })
@@ -69,17 +75,23 @@ public class FilesController {
     }
 
     @PostMapping(value = {"/files/resources/**"})
-    public boolean uploadFile(HttpServletRequest request, @RequestParam("file")MultipartFile file) {
-        return normalizedPath(request)
+    public void uploadFile(HttpServletRequest request, User user, @RequestParam("file")MultipartFile file) {
+        normalizedPath(request)
                 .flatMap(path -> winslow
                         .getResourceManager()
                         .getResourceDirectory()
-                        .map(dir -> dir.resolve(path))
+                        .flatMap(dir -> {
+                            var resolved = dir.resolve(path);
+                            if (canAccess(user, dir, resolved)) {
+                                return Optional.of(resolved);
+                            } else {
+                                return Optional.empty();
+                            }
+                        })
                 )
                 .map(path -> {
                     var parent = path.getParent();
-                    System.out.println(path);
-                    if (parent.toFile().exists() && parent.toFile().isDirectory()) {
+                    if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
                         try {
                             file.transferTo(path);
                             return true;
@@ -91,18 +103,24 @@ public class FilesController {
                         return false;
                     }
                 })
-                .orElse(false);
+                .map(result -> result ? Optional.of(true) : Optional.empty())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
-    public ResponseEntity<InputStreamResource> downloadFile(HttpServletRequest request) {
+    public ResponseEntity<InputStreamResource> downloadFile(HttpServletRequest request, User user) {
         return normalizedPath(request).flatMap(path -> {
             var resourceDir = winslow.getResourceManager().getResourceDirectory();
             return resourceDir.flatMap(resDir -> {
                 try {
-                    var       file  = resDir.resolve(path.normalize()).toFile();
+                    var file = resDir.resolve(path.normalize()).toFile();
+
+                    if (!canAccess(user, resDir, file.toPath())) {
+                        return Optional.empty();
+                    }
+
                     var       is    = new FileInputStream(file);
-                    MediaType media = null;
+                    MediaType media;
 
                     try {
                         media = MediaType.parseMediaType(file.getName());
@@ -123,13 +141,14 @@ public class FilesController {
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.OPTIONS)
-    public Iterable<FileInfo> getResourceInfo(HttpServletRequest request) {
+    public Iterable<FileInfo> listDirectory(HttpServletRequest request, User user) {
         return normalizedPath(request).flatMap(path -> {
             var resourceDir = winslow.getResourceManager().getResourceDirectory();
             return resourceDir.map(resDir ->
                     Optional.ofNullable(resDir.resolve(path.normalize()).toFile().listFiles())
                             .stream()
                             .flatMap(Arrays::stream)
+                            .filter(file -> canAccess(user, resDir, file.toPath()))
                             .map(file -> new FileInfo(
                                     file.getName(),
                                     file.isDirectory(),
@@ -138,6 +157,14 @@ public class FilesController {
                             .collect(Collectors.toUnmodifiableList())
             );
         }).orElse(Collections.emptyList());
+    }
+
+    private static boolean canAccess(@Nullable User user, Path workDir, Path path) {
+        var p = workDir.relativize(path);
+        return user != null
+                && p.getNameCount() > 0
+                && workDir.resolve(p.getName(0)).toFile().isDirectory()
+                && user.canAccessGroup(p.getName(0).toString());
     }
 
     private static Optional<Path> normalizedPath(HttpServletRequest request) {
