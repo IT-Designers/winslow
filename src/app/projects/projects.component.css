@@ -1,0 +1,13 @@
+.flex-grow-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.create-button {
+  flex-grow: 0;
+  margin-right: 0;
+}
