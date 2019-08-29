@@ -17,6 +17,10 @@ export class ApiService {
     return this.client.post<any>(environment.apiLocation + 'projects', form);
   }
 
+  listProjects() {
+    return this.client.get<Project[]>(environment.apiLocation + 'projects');
+  }
+
   listPipelines() {
     return this.client.get<PipelineInfo[]>(environment.apiLocation + 'pipelines');
   }
@@ -104,4 +108,14 @@ export class FileInfo {
   name: string;
   directory: boolean;
   path: string;
+}
+
+export class Project {
+  id: string;
+  name: string;
+  pipeline: any;
+  owner: string;
+  groups: string[];
+  stages: string[];
+  nextStage: number;
 }
