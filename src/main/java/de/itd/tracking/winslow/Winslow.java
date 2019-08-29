@@ -5,12 +5,15 @@ import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
-import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
+import de.itd.tracking.winslow.fs.*;
+import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
 import java.io.File;
-import java.nio.file.Files;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
@@ -20,6 +23,7 @@ public class Winslow implements Runnable {
     private final ResourceManager            resourceManager;
     private final GroupRepository            groupRepository;
     private final UserRepository             userRepository;
+    private final ProjectRepository          projectRepository;
 
     public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration) {
         this.orchestrator = orchestrator;
@@ -27,6 +31,27 @@ public class Winslow implements Runnable {
         this.resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
         this.groupRepository = new GroupRepository();
         this.userRepository = new UserRepository(groupRepository);
+        this.projectRepository = new ProjectRepository();
+
+        try {
+            LockBus lockBus = new LockBus(configuration.getPath().resolve("events"));
+            var path = resourceManager.getResourceDirectory().get().resolve("test.txt");
+            var subject = configuration.getPath().relativize(path).toString();
+
+            try (Lock lock = new Lock(lockBus, subject, 2_000)) {
+                try (FileInputStream fis = new FileInputStream(path.toFile())) {
+                    try (LockedInputStream lis = new LockedInputStream(fis, lock)) {
+                        try (Scanner scanner = new Scanner(lis)) {
+                            System.out.println(scanner.nextLine());
+                        }
+                    }
+                }
+            }
+        } catch (IOException | LockException e) {
+            e.printStackTrace();
+        }
+
+        Runtime.getRuntime().exit(0);
     }
 
     public ResourceManager getResourceManager() {

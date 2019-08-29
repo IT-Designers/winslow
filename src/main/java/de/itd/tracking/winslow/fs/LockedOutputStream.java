@@ -1,0 +1,53 @@
+package de.itd.tracking.winslow.fs;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+public class LockedOutputStream extends OutputStream {
+
+    private final OutputStream outputStream;
+    private final Lock lock;
+
+    public LockedOutputStream(OutputStream outputStream, Lock lock) {
+        this.outputStream = outputStream;
+        this.lock = lock;
+    }
+
+    private void lockHeartbeat() throws IOException {
+        try {
+            this.lock.heartbeat();
+        } catch (LockException e) {
+            throw new IOException("Heartbeat on the lock failed", e);
+        }
+    }
+
+    @Override
+    public void write(int i) throws IOException {
+        this.lockHeartbeat();
+        this.outputStream.write(i);
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+        this.lockHeartbeat();
+        this.outputStream.write(b);;
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        this.lockHeartbeat();
+        this.outputStream.write(b, off, len);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        this.lockHeartbeat();
+        this.outputStream.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.lockHeartbeat();
+        this.outputStream.close();
+    }
+}
