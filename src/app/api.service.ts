@@ -10,6 +10,13 @@ export class ApiService {
 
   constructor(private client: HttpClient) {}
 
+  createProject(name: string, pipeline: PipelineInfo) {
+    const form = new FormData();
+    form.append('name', name);
+    form.append('pipeline', pipeline.id);
+    return this.client.post<any>(environment.apiLocation + 'projects', form);
+  }
+
   listPipelines() {
     return this.client.get<PipelineInfo[]>(environment.apiLocation + 'pipelines');
   }

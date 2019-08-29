@@ -10,9 +10,18 @@ import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {CreateDirectoryDialog, DeleteAreYouSureDialog, FilesComponent, UploadFilesProgressDialog} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
-import {MatButtonModule, MatInputModule, MatListModule, MatProgressBarModule} from '@angular/material';
-import {FormsModule} from '@angular/forms';
+import {
+  MatButtonModule,
+  MatButtonToggleModule,
+  MatExpansionModule, MatGridListModule,
+  MatInputModule,
+  MatListModule,
+  MatProgressBarModule, MatSelectModule, MatSnackBarModule, MatStepperModule, MatTableModule
+} from '@angular/material';
+import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
+import { ProjectsComponent } from './projects/projects.component';
+import { ProjectsCreateDialog } from './projects-create/projects-create-dialog.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +33,9 @@ import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
     UploadFilesProgressDialog,
     DeleteAreYouSureDialog,
     FilesComponent,
-    DragDropDirectiveDirective
+    DragDropDirectiveDirective,
+    ProjectsComponent,
+    ProjectsCreateDialog
   ],
   imports: [
     HttpClientModule,
@@ -33,21 +44,31 @@ import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
       headerName: 'X-XSRF-TOKEN'
     }),
 
-    BrowserModule,
     RouterModule.forRoot([
       {path: '', component: SystemOverviewComponent},
       {path: 'pipelines', component: PipelinesComponent},
-      {path: 'files', component: FilesComponent}
+      {path: 'files', component: FilesComponent},
+      {path: 'projects', component: ProjectsComponent}
     ]),
 
+    BrowserModule,
     BrowserAnimationsModule,
+
+    FormsModule,
+    ReactiveFormsModule,
 
     MatDialogModule,
     MatInputModule,
-    FormsModule,
     MatButtonModule,
     MatListModule,
     MatProgressBarModule,
+    MatButtonToggleModule,
+    MatExpansionModule,
+    MatStepperModule,
+    MatSelectModule,
+    MatTableModule,
+    MatGridListModule,
+    MatSnackBarModule
 
   ],
   providers: [
@@ -57,7 +78,8 @@ import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
   entryComponents: [
     CreateDirectoryDialog,
     UploadFilesProgressDialog,
-    DeleteAreYouSureDialog
+    DeleteAreYouSureDialog,
+    ProjectsCreateDialog
   ]
 })
 export class AppModule { }
