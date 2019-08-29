@@ -56,40 +56,4 @@ public class ResourceManager {
         return Optional.of(configuration.resolvePathOfResources(workDirectory))
                 .filter(p -> p.toFile().exists() || p.toFile().mkdirs());
     }
-
-    public Optional<Path> getPipelinesDirectory() {
-        return Optional.of(configuration.resolvePathOfPipelines(workDirectory))
-                .filter(p -> p.toFile().exists() || p.toFile().mkdirs());
-    }
-
-    public Iterable<String> getPipelineIdentifiers() {
-        String ENDING = ".toml";
-        return getPipelinesDirectory()
-                .stream()
-                .flatMap(p -> {
-                    var files = p.toFile().listFiles((file, name) -> name.endsWith(ENDING));
-                    return files != null ? Arrays.stream(files) : Stream.empty();
-                })
-                .map(File::getName)
-                .map(name -> name.substring(0, name.length() - ENDING.length()))
-                .collect(Collectors.toUnmodifiableList());
-    }
-
-    public Optional<Pipeline> loadPipeline(String id) {
-        String ENDING = ".toml";
-        return getPipelinesDirectory()
-                .map(p -> p.resolve(Path.of(id + ENDING).getFileName()))
-                .map(p -> {
-                    var toml = new Toml().read(p.toFile());
-                    var stages = toml.getTables("stage").stream().map(table -> table.to(Stage.class)).collect(Collectors.toList());
-                    var pipe = toml.getTable("pipeline").to(Pipeline.class);
-
-                    return new Pipeline(
-                            pipe.getName(),
-                            pipe.getDescription().orElse(null),
-                            pipe.getUserInput().orElse(null),
-                            stages
-                    );
-                });
-    }
 }

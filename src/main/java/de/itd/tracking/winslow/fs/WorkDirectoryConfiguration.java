@@ -17,4 +17,9 @@ public interface WorkDirectoryConfiguration {
     default Path getEventsDirectory() {
         return getPath().resolve("events");
     }
+
+    @Nonnull
+    default Path getPipelinesDirectory() {
+        return getPath().resolve("pipelines");
+    }
 }

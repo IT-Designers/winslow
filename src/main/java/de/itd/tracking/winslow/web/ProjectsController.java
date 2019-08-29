@@ -24,7 +24,7 @@ public class ProjectsController {
     public Stream<Project> listProjects(User user) {
         return winslow
                 .getProjectRepository()
-                .listProjectsUnsafe()
+                .getProjectsUnsafe()
                 .filter(project -> canUserAccessProject(user, project));
     }
 

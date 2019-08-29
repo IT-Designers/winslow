@@ -4,7 +4,7 @@ import de.itd.tracking.winslow.Winslow;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
+import java.util.stream.Stream;
 
 @RestController
 public class PipelinesController {
@@ -16,17 +16,20 @@ public class PipelinesController {
     }
 
     @GetMapping("/pipelines")
-    public Iterable<PipelineInfo> getAllPipelines() {
-        var pipelines = new ArrayList<PipelineInfo>();
-        for (var id : winslow.getResourceManager().getPipelineIdentifiers()) {
-            var pipeline = winslow.getResourceManager().loadPipeline(id);
-            pipeline.map(p -> new PipelineInfo(
-                    id,
-                    p.getName(),
-                    p.getDescription().orElse(null)
-            )).ifPresent(pipelines::add);
-        }
-        return pipelines;
+    public Stream<PipelineInfo> getAllPipelines() {
+        return winslow
+                .getPipelineRepository()
+                .getPipelineIdentifiers()
+                .flatMap(identifier -> winslow
+                        .getPipelineRepository()
+                        .getPipelineUnsafe(identifier)
+                        .stream()
+                        .map(p -> new PipelineInfo(
+                                identifier,
+                                p.getName(),
+                                p.getDescription().orElse(null)
+                        ))
+                );
     }
 
     public static class PipelineInfo {

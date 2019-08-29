@@ -5,15 +5,14 @@ import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
-import de.itd.tracking.winslow.fs.*;
+import de.itd.tracking.winslow.fs.LockBus;
+import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
@@ -24,6 +23,7 @@ public class Winslow implements Runnable {
     private final ResourceManager            resourceManager;
     private final GroupRepository            groupRepository;
     private final UserRepository             userRepository;
+    private final PipelineRepository         pipelineRepository;
     private final ProjectRepository          projectRepository;
 
     public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration) throws IOException {
@@ -33,6 +33,7 @@ public class Winslow implements Runnable {
         this.resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
         this.groupRepository = new GroupRepository();
         this.userRepository = new UserRepository(groupRepository);
+        this.pipelineRepository = new PipelineRepository(lockBus, configuration);
         this.projectRepository = new ProjectRepository(lockBus, configuration);
     }
 
@@ -93,5 +94,9 @@ public class Winslow implements Runnable {
 
     public GroupRepository getGroupRepository() {
         return groupRepository;
+    }
+
+    public PipelineRepository getPipelineRepository() {
+        return pipelineRepository;
     }
 }

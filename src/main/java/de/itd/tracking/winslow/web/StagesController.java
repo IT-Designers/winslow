@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 public class StagesController {
@@ -17,14 +17,13 @@ public class StagesController {
     }
 
     @GetMapping("/stages/{pipeline}")
-    public Iterable<StageInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
+    public Stream<StageInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
         return winslow
-                .getResourceManager()
-                .loadPipeline(pipeline)
+                .getPipelineRepository()
+                .getPipelineUnsafe(pipeline)
                 .stream()
                 .flatMap(p -> p.getStages().stream())
-                .map(s -> new StageInfo(s.getName()))
-                .collect(Collectors.toUnmodifiableList());
+                .map(s -> new StageInfo(s.getName()));
     }
 
     public static class StageInfo {

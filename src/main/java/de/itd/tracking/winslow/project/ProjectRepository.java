@@ -1,33 +1,26 @@
 package de.itd.tracking.winslow.project;
 
-import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
+import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.fs.*;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public class ProjectRepository {
+public class ProjectRepository extends BaseRepository {
 
     private static final Logger LOG = Logger.getLogger(ProjectRepository.class.getSimpleName());
     private static final String FILE_SUFFIX = ".toml";
 
-    private final LockBus lockBus;
-    private final WorkDirectoryConfiguration workDirectoryConfiguration;
-
     public ProjectRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
-        this.lockBus = lockBus;
-        this.workDirectoryConfiguration = workDirectoryConfiguration;
+        super(lockBus, workDirectoryConfiguration);
 
         var dir = workDirectoryConfiguration.getProjectsDirectory().toFile();
         if (!dir.isDirectory() || (!dir.exists() && !dir.mkdirs())) {
@@ -58,42 +51,17 @@ public class ProjectRepository {
         }
     }
 
-    public Stream<Project> listProjectsUnsafe() {
-        try {
-            return Files
-                    .list(workDirectoryConfiguration.getProjectsDirectory())
-                    .flatMap(path -> {
-                        try (InputStream inputStream = new FileInputStream(path.toFile())) {
-                            return Stream.of(new Toml().read(inputStream).to(Project.class));
-                        } catch (IOException e) {
-                            LOG.log(Level.SEVERE, "Failed to load project", e);
-                            return Stream.empty();
-                        }
-                    });
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to list projects", e);
-            return Stream.empty();
-        }
+    public Stream<Project> getProjectsUnsafe() {
+        return getAllInDirectoryUnsafe(
+                workDirectoryConfiguration.getProjectsDirectory(),
+                Project.class
+        );
     }
 
-    public Stream<Project> listProjects() {
-        try {
-            return Files
-                    .list(workDirectoryConfiguration.getProjectsDirectory())
-                    .flatMap(path -> {
-                        var subject = workDirectoryConfiguration.getPath().relativize(path.toAbsolutePath()).toString();
-                        try (Lock lock = new Lock(lockBus, subject)) {
-                            try (InputStream inputStream = new LockedInputStream(path.toFile(), lock)) {
-                                return Stream.of(new Toml().read(inputStream).to(Project.class));
-                            }
-                        } catch (LockException | IOException e) {
-                            LOG.log(Level.SEVERE, "Failed to load project", e);
-                            return Stream.empty();
-                        }
-                    });
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to list projects", e);
-            return Stream.empty();
-        }
+    public Stream<Project> getProjects() {
+        return getAllInDirectory(
+                workDirectoryConfiguration.getProjectsDirectory(),
+                Project.class
+        );
     }
 }
