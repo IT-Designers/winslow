@@ -7,4 +7,14 @@ public interface WorkDirectoryConfiguration {
 
     @Nonnull
     Path getPath();
+
+    @Nonnull
+    default Path getProjectsDirectory() {
+        return getPath().resolve("projects");
+    }
+
+    @Nonnull
+    default Path getEventsDirectory() {
+        return getPath().resolve("events");
+    }
 }

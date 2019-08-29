@@ -1,12 +1,15 @@
 package de.itd.tracking.winslow.fs;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 public class LockedOutputStream extends OutputStream {
 
     private final OutputStream outputStream;
     private final Lock lock;
+
+    public LockedOutputStream(File file, Lock lock) throws FileNotFoundException {
+        this(new FileOutputStream(file), lock);
+    }
 
     public LockedOutputStream(OutputStream outputStream, Lock lock) {
         this.outputStream = outputStream;

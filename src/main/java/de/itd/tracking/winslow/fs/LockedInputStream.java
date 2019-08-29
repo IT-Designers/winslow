@@ -1,6 +1,8 @@
 package de.itd.tracking.winslow.fs;
 
 import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -8,6 +10,10 @@ public class LockedInputStream extends InputStream {
 
     private final InputStream inputStream;
     private final Lock        lock;
+
+    public LockedInputStream(File file, Lock lock) throws IOException {
+        this(new FileInputStream(file), lock);
+    }
 
     public LockedInputStream(InputStream fis, Lock lock) throws IOException {
         this.inputStream = fis;

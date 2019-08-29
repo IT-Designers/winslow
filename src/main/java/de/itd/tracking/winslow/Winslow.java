@@ -20,42 +20,28 @@ public class Winslow implements Runnable {
 
     private final Orchestrator               orchestrator;
     private final WorkDirectoryConfiguration configuration;
+    private final LockBus                    lockBus;
     private final ResourceManager            resourceManager;
     private final GroupRepository            groupRepository;
     private final UserRepository             userRepository;
     private final ProjectRepository          projectRepository;
 
-    public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration) {
+    public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration) throws IOException {
         this.orchestrator = orchestrator;
         this.configuration = configuration;
+        this.lockBus = new LockBus(configuration.getEventsDirectory());
         this.resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
         this.groupRepository = new GroupRepository();
         this.userRepository = new UserRepository(groupRepository);
-        this.projectRepository = new ProjectRepository();
-
-        try {
-            LockBus lockBus = new LockBus(configuration.getPath().resolve("events"));
-            var path = resourceManager.getResourceDirectory().get().resolve("test.txt");
-            var subject = configuration.getPath().relativize(path).toString();
-
-            try (Lock lock = new Lock(lockBus, subject, 2_000)) {
-                try (FileInputStream fis = new FileInputStream(path.toFile())) {
-                    try (LockedInputStream lis = new LockedInputStream(fis, lock)) {
-                        try (Scanner scanner = new Scanner(lis)) {
-                            System.out.println(scanner.nextLine());
-                        }
-                    }
-                }
-            }
-        } catch (IOException | LockException e) {
-            e.printStackTrace();
-        }
-
-        Runtime.getRuntime().exit(0);
+        this.projectRepository = new ProjectRepository(lockBus, configuration);
     }
 
     public ResourceManager getResourceManager() {
         return resourceManager;
+    }
+
+    public ProjectRepository getProjectRepository() {
+        return projectRepository;
     }
 
     public void run() {
