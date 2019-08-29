@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -29,6 +30,10 @@ public class ProjectRepository extends BaseRepository {
     }
 
     public Optional<Project> createProject(Pipeline pipeline, User owner) {
+        return this.createProject(pipeline, owner, project -> {});
+    }
+
+    public Optional<Project> createProject(Pipeline pipeline, User owner, Consumer<Project> customizer) {
         var id = UUID.randomUUID().toString();
         var path = workDirectoryConfiguration.getProjectsDirectory().resolve(id + FILE_SUFFIX);
         var subject = workDirectoryConfiguration.getPath().relativize(path).toString();
@@ -39,6 +44,7 @@ public class ProjectRepository extends BaseRepository {
             }
             try (OutputStream os = new LockedOutputStream(path.toFile(), lock)) {
                 var project = new Project(id, pipeline, owner.getName());
+                customizer.accept(project);
                 new TomlWriter().write(project, os);
                 return Optional.of(project);
             } catch (IOException e) {

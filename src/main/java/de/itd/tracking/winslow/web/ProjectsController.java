@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @RestController
@@ -29,8 +30,14 @@ public class ProjectsController {
     }
 
     @PostMapping("/projects")
-    public Project createProject(User user, @RequestParam("name") String name, @RequestParam("pipeline") String pipelineId) {
-        return null;
+    public Optional<Project> createProject(User user, @RequestParam("name") String name, @RequestParam("pipeline") String pipelineId) {
+        return winslow
+                .getPipelineRepository()
+                .getPipelineUnsafe(pipelineId)
+                .flatMap(pipeline -> winslow
+                        .getProjectRepository()
+                        .createProject(pipeline, user, project -> project.setName(name))
+                );
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
