@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ProjectsCreateDialog} from '../projects-create/projects-create-dialog.component';
 import {MatDialog, MatSnackBar} from '@angular/material';
-import {ApiService} from '../api.service';
+import {ApiService, Project} from '../api.service';
 
 @Component({
   selector: 'app-projects',
@@ -9,10 +9,12 @@ import {ApiService} from '../api.service';
   styleUrls: ['./projects.component.css']
 })
 export class ProjectsComponent implements OnInit {
+  projects: Project[];
 
   constructor(private api: ApiService, private createDialog: MatDialog, private snack: MatSnackBar) { }
 
   ngOnInit() {
+    this.api.listProjects().toPromise().then(projects => this.projects = projects);
   }
 
   create() {
