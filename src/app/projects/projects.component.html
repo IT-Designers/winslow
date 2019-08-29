@@ -8,10 +8,11 @@
     >Create Project</button>
   </div>
 
-  <mat-expansion-panel>
+  <mat-expansion-panel *ngFor="let project of projects">
     <mat-expansion-panel-header>
-      header
-    </mat-expansion-panel-header>dd
+      {{project.name}}
+    </mat-expansion-panel-header>
+    {{project.id}}
   </mat-expansion-panel>
 
 
