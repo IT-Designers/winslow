@@ -5,8 +5,10 @@ import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itd.tracking.winslow.com.AutoMesh;
 import de.itd.tracking.winslow.com.AutoMeshBuilder;
+import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.nomad.NomadOrchestrator;
+import de.itd.tracking.winslow.nomad.NomadRepository;
 import de.itd.tracking.winslow.web.WebApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,14 @@ public class Main {
             NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of("/home/mi7wa6/mec-view/winslow/nfs-mount"));
 
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(new NomadOrchestrator(new NomadApiClient(new NomadApiConfiguration.Builder().setAddress("http://localhost:4646").build())), config);
+            var winslow = new Winslow(new NomadOrchestrator(
+                    new NomadApiClient(new NomadApiConfiguration.Builder().setAddress("http://localhost:4646").build()),
+                    new NomadRepository(
+                            // TODO
+                            new LockBus(config.getEventsDirectory()),
+                            config
+                    )
+            ), config);
 
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);

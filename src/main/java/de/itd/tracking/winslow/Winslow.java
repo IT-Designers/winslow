@@ -12,7 +12,9 @@ import de.itd.tracking.winslow.project.Project;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
+import org.bouncycastle.cert.ocsp.OCSPException;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -72,8 +74,14 @@ public class Winslow implements Runnable {
         }
     }
 
-    protected boolean canMakeProgress(Project project) {
-        return true;
+    protected boolean canMakeProgress(@Nonnull Project project) {
+        var running = orchestrator.getCurrentlyRunningStage(project);
+        try {
+            return running.isEmpty() || running.get().hasCompleted();
+        } catch (OrchestratorConnectionException e) {
+            e.printStackTrace(); // TODO
+            return false;
+        }
     }
 
     protected void tryMakeProgress(LockedContainer<Project> container) {
@@ -81,7 +89,7 @@ public class Winslow implements Runnable {
             var containerProject = container.get();
             if (containerProject.isPresent() && canMakeProgress(containerProject.get())) {
                 var project = containerProject.get();
-                project.setName(project.getName() + "|");
+                orchestrator.startNextStage(project, new Environment(configuration, resourceManager));
                 container.update(project);
             }
         } catch (LockException | IOException e) {

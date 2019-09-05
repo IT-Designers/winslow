@@ -24,18 +24,18 @@ public class PipelineRepository extends BaseRepository {
 
     public PipelineRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
+    }
 
-        var dir = workDirectoryConfiguration.getPipelinesDirectory().toFile();
-        if (!dir.isDirectory() || (!dir.exists() && !dir.mkdirs())) {
-            throw new IOException("Pipelines directory is not valid: " + dir);
-        }
+    @Nonnull
+    @Override
+    protected Path getRepositoryDirectory() {
+        return workDirectoryConfiguration.getPipelinesDirectory();
     }
 
     @Nonnull
     @Override
     public Stream<Path> listAll() {
-        return listAllInDirectory(workDirectoryConfiguration.getPipelinesDirectory())
-                .filter(path -> path.getFileName().toString().endsWith(SUFFIX));
+        return super.listAll().filter(path -> path.getFileName().toString().endsWith(SUFFIX));
     }
 
     public Stream<String> getPipelineIdentifiers() {

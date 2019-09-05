@@ -25,4 +25,8 @@ public interface RunningStage {
     }
 
     Iterable<String> getStdErr(int lastNLines);
+
+    default boolean hasCompleted() throws OrchestratorConnectionException {
+        return getState() == State.Failed || getState() == State.Succeeded;
+    }
 }

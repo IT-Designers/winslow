@@ -3,6 +3,7 @@ package de.itd.tracking.winslow.project;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,7 @@ public class Project {
     private final List<String> groups = new ArrayList<>();
 
     private String name;
+    private String orchestratorToken;
     private int nextStage = 0;
 
     public Project(String id, Pipeline pipeline, String owner) {
@@ -72,5 +74,14 @@ public class Project {
                 .stream()
                 .map(Stage::getName)
                 .collect(Collectors.toUnmodifiableList());
+    }
+
+    @Nullable
+    public String getOrchestratorToken() {
+        return orchestratorToken;
+    }
+
+    public void setOrchestratorToken(@Nullable String orchestratorToken) {
+        this.orchestratorToken = orchestratorToken;
     }
 }

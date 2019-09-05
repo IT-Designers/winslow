@@ -3,11 +3,7 @@ package de.itd.tracking.winslow;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class Environment {
-    private final Map<String, String>        variables = new HashMap<>();
     private final WorkDirectoryConfiguration configuration;
     private final ResourceManager            resourceManager;
 

@@ -5,10 +5,15 @@ import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
-import de.itd.tracking.winslow.*;
+import de.itd.tracking.winslow.Environment;
+import de.itd.tracking.winslow.Orchestrator;
+import de.itd.tracking.winslow.OrchestratorException;
+import de.itd.tracking.winslow.RunningStage;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
+import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
+import de.itd.tracking.winslow.project.Project;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -19,16 +24,20 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NomadOrchestrator implements Orchestrator {
 
-    private final NomadApiClient client;
+    private static final Logger LOG = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
 
-    public NomadOrchestrator(NomadApiClient client) {
-        Objects.requireNonNull(client);
+    @Nonnull private final NomadApiClient client;
+    @Nonnull private final NomadRepository repository;
+
+    public NomadOrchestrator(@Nonnull NomadApiClient client, @Nonnull NomadRepository repository) {
         this.client = client;
+        this.repository = repository;
 
 
         try {
@@ -73,10 +82,55 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public PreparedStage prepare(Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
+    public Optional<RunningStage> getCurrentlyRunningStage(@Nonnull Project project) {
+        return repository
+                .getNomadProject(project.getId())
+                .locked()
+                .flatMap(locked -> {
+                    try (locked) {
+                        return locked.get().map(nomadProject -> nomadProject.toSubmission(this));
+                    } catch (LockException e) {
+                        LOG.log(Level.SEVERE, "Failed to lock nomad project file", e);
+                        return Optional.empty();
+                    }
+                });
+    }
+
+    @Nonnull
+    @Override
+    public Optional<RunningStage> startNextStage(@Nonnull Project project, @Nonnull Environment environment) {
+        var index = project.getNextStageIndex();
+        var stages = project.getPipeline().getStages();
+
+        if (index >= 0 && index < stages.size()) {
+            try {
+                return prepare(project.getPipeline(), stages.get(index), environment).start().flatMap(s -> repository.getNomadProject(project.getId()).locked().flatMap(locked -> {
+                    if (s instanceof Submission) {
+                        try (locked) {
+                            var nomadProject = new NomadProject(((Submission) s).getJobId(), ((Submission) s).getTaskName());
+                            locked.update(nomadProject);
+                            project.setNextStageIndex(index + 1);
+                            return Optional.of(nomadProject.toSubmission(this));
+                        } catch (IOException e) {
+                            LOG.log(Level.SEVERE, "Failed to update nomad project file", e);
+                        }
+                    }
+                    return Optional.empty();
+                }));
+
+            } catch (OrchestratorException e) {
+                e.printStackTrace(); // TODO
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Nonnull
+    @Override
+    public PreparedSubmission prepare(Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
         var builder = JobBuilder
                 .withRandomUuid()
-                .withTaskName(combine(pipeline.getName(), stage.getName()));
+                .withTaskName(replaceInvalidCharactersInJobName(combine(pipeline.getName(), stage.getName())));
 
         var resources = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
@@ -183,5 +237,9 @@ public class NomadOrchestrator implements Orchestrator {
         }
     }
 
+
+    public static String replaceInvalidCharactersInJobName(String jobName) {
+        return jobName.replaceAll("^[a-zA-Z0-9]", "-");
+    }
 
 }

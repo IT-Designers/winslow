@@ -24,17 +24,12 @@ public class ProjectRepository extends BaseRepository {
 
     public ProjectRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
-
-        var dir = workDirectoryConfiguration.getProjectsDirectory().toFile();
-        if (!dir.isDirectory() || (!dir.exists() && !dir.mkdirs())) {
-            throw new IOException("Projects directory is not valid: " + dir);
-        }
     }
 
     @Nonnull
     @Override
-    public Stream<Path> listAll() {
-        return listAllInDirectory(workDirectoryConfiguration.getProjectsDirectory());
+    protected Path getRepositoryDirectory() {
+        return workDirectoryConfiguration.getProjectsDirectory();
     }
 
     public Optional<Project> createProject(Pipeline pipeline, User owner) {
@@ -73,7 +68,7 @@ public class ProjectRepository extends BaseRepository {
         return listAll().map(this::getProject);
     }
 
-    public Handle<Project> getProject(Path path) {
+    private Handle<Project> getProject(Path path) {
         return createHandle(path, Project.class);
     }
 }

@@ -20,13 +20,28 @@ public abstract class BaseRepository {
     protected final LockBus                    lockBus;
     protected final WorkDirectoryConfiguration workDirectoryConfiguration;
 
-    public BaseRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) {
+    public BaseRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         this.lockBus = lockBus;
         this.workDirectoryConfiguration = workDirectoryConfiguration;
+
+        var dir = getRepositoryDirectory().toFile();
+        if ((dir.exists() && !dir.isDirectory()) || (!dir.exists() && !dir.mkdirs())) {
+            throw new IOException("Repository directory is not valid: " + dir);
+        }
     }
 
     @Nonnull
-    public abstract Stream<Path> listAll();
+    protected abstract Path getRepositoryDirectory();
+
+    @Nonnull
+    protected Path getRepositoryFile(String name) {
+        return getRepositoryDirectory().resolve(Path.of(name).getFileName());
+    }
+
+    @Nonnull
+    public Stream<Path> listAll() {
+        return listAllInDirectory(getRepositoryDirectory());
+    }
 
     @Nonnull
     protected Stream<Path> listAllInDirectory(Path directory) {
