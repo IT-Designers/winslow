@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.web;
 
+import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.project.Project;
@@ -25,7 +26,8 @@ public class ProjectsController {
     public Stream<Project> listProjects(User user) {
         return winslow
                 .getProjectRepository()
-                .getProjectsUnsafe()
+                .getProjects()
+                .flatMap(handle -> handle.unsafe().stream())
                 .filter(project -> canUserAccessProject(user, project));
     }
 
@@ -33,7 +35,8 @@ public class ProjectsController {
     public Optional<Project> createProject(User user, @RequestParam("name") String name, @RequestParam("pipeline") String pipelineId) {
         return winslow
                 .getPipelineRepository()
-                .getPipelineUnsafe(pipelineId)
+                .getPipeline(pipelineId)
+                .unsafe()
                 .flatMap(pipeline -> winslow
                         .getProjectRepository()
                         .createProject(pipeline, user, project -> project.setName(name))

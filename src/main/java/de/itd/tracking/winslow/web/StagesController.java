@@ -20,7 +20,8 @@ public class StagesController {
     public Stream<StageInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
         return winslow
                 .getPipelineRepository()
-                .getPipelineUnsafe(pipeline)
+                .getPipeline(pipeline)
+                .unsafe()
                 .stream()
                 .flatMap(p -> p.getStages().stream())
                 .map(s -> new StageInfo(s.getName()));

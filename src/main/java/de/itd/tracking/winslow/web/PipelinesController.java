@@ -22,7 +22,8 @@ public class PipelinesController {
                 .getPipelineIdentifiers()
                 .flatMap(identifier -> winslow
                         .getPipelineRepository()
-                        .getPipelineUnsafe(identifier)
+                        .getPipeline(identifier)
+                        .unsafe()
                         .stream()
                         .map(p -> new PipelineInfo(
                                 identifier,

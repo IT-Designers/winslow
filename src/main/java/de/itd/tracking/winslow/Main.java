@@ -62,7 +62,7 @@ public class Main {
             e.printStackTrace();
         } finally {
             if (webApi != null) {
-                //webApi.stop();
+                webApi.stop();
             }
         }
 

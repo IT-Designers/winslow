@@ -1,10 +1,12 @@
 package de.itd.tracking.winslow.project;
 
 import de.itd.tracking.winslow.config.Pipeline;
+import de.itd.tracking.winslow.config.Stage;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Project {
 
@@ -12,7 +14,6 @@ public class Project {
     private final Pipeline pipeline;
     private final String   owner;
     private final List<String> groups = new ArrayList<>();
-    private final List<String> stages = new ArrayList<>();
 
     private String name;
     private int nextStage = 0;
@@ -33,6 +34,14 @@ public class Project {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getNextStageIndex() {
+        return nextStage;
+    }
+
+    public void setNextStageIndex(int index) {
+        this.nextStage = index;
     }
 
     public Pipeline getPipeline() {
@@ -58,6 +67,10 @@ public class Project {
     }
 
     public Iterable<String> getStages() {
-        return Collections.unmodifiableList(this.stages);
+        return getPipeline()
+                .getStages()
+                .stream()
+                .map(Stage::getName)
+                .collect(Collectors.toUnmodifiableList());
     }
 }

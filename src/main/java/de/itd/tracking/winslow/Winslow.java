@@ -6,13 +6,16 @@ import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
 import de.itd.tracking.winslow.fs.LockBus;
+import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
+import de.itd.tracking.winslow.project.Project;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
@@ -46,6 +49,47 @@ public class Winslow implements Runnable {
     }
 
     public void run() {
+        try {
+
+
+            while (true) {
+                getProjectRepository()
+                        .getProjects()
+                        .filter(handle -> {
+                            var loaded = handle.unsafe();
+                            return loaded.isPresent() && canMakeProgress(loaded.get());
+                        })
+                        .flatMap(handle -> handle.locked().stream())
+                        .peek(this::tryMakeProgress)
+                        .forEach(LockedContainer::close);
+
+                synchronized (this) {
+                    this.wait(10_000);
+                }
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted unexpectedly", e);
+        }
+    }
+
+    protected boolean canMakeProgress(Project project) {
+        return true;
+    }
+
+    protected void tryMakeProgress(LockedContainer<Project> container) {
+        try {
+            var containerProject = container.get();
+            if (containerProject.isPresent() && canMakeProgress(containerProject.get())) {
+                var project = containerProject.get();
+                project.setName(project.getName() + "|");
+                container.update(project);
+            }
+        } catch (LockException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void _run() {
         // vehicletracker_pipeline_draft_2.toml
         var pipeline = new Toml().read(new File("minimal.pipeline.toml"));
         pipeline.getTables("stage").stream().map(Toml::toMap).forEach(System.out::println);
