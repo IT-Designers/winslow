@@ -13,10 +13,10 @@ import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material
 import {
   MatButtonModule,
   MatButtonToggleModule,
-  MatExpansionModule, MatGridListModule,
+  MatExpansionModule, MatGridListModule, MatIconModule,
   MatInputModule,
   MatListModule,
-  MatProgressBarModule, MatSelectModule, MatSnackBarModule, MatStepperModule, MatTableModule
+  MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSnackBarModule, MatStepperModule, MatTableModule, MatTooltipModule
 } from '@angular/material';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
@@ -68,7 +68,10 @@ import { ProjectsCreateDialog } from './projects-create/projects-create-dialog.c
     MatSelectModule,
     MatTableModule,
     MatGridListModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule
 
   ],
   providers: [

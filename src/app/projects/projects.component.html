@@ -1,18 +1,42 @@
 <div>
   <h1>Projects</h1>
 
-  <div class="flex-grow-row">
+  <div class="flex-grow-row control-button-row">
     <div class="flex-grow"></div>
     <button class="create-button" mat-raised-button color="primary"
             (click)="create()"
-    >Create Project</button>
+    >Create Project
+    </button>
   </div>
 
-  <mat-expansion-panel *ngFor="let project of projects">
+  <div class="project-list-replacement">
+    <i *ngIf="projects == null">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </i>
+    <i *ngIf="projects != null && projects.length == 0">There are no projects yet yet</i>
+  </div>
+  <mat-expansion-panel *ngFor="let project of projects" (expandedChange)="loadHistory(project, $event)">
     <mat-expansion-panel-header>
       {{project.name}}
     </mat-expansion-panel-header>
-    {{project.id}}
+    <mat-list>
+      <i *ngIf="project.history == null">
+        <mat-progress-bar mode="buffer"></mat-progress-bar>
+      </i>
+      <i *ngIf="project.history != null && project.history.length == 0">This project has no history yet</i>
+      <mat-list-item *ngFor="let entry of project.history" class="history-list-item">
+        <div ngSwitch="{{entry.state.toLocaleLowerCase()}}">
+          <mat-icon *ngSwitchCase="'preparing'" matTooltip="Preparing" fontSet="material-icons-outlined" class="history-icon-preparing">hourglass_empty</mat-icon>
+          <mat-icon *ngSwitchCase="'running'" matTooltip="Running" fontSet="material-icons-outlined" class="history-icon-running">update</mat-icon>
+          <mat-icon *ngSwitchCase="'succeeded'" matTooltip="Success" fontSet="material-icons-outlined" class="history-icon-success">offline_pin</mat-icon>
+          <mat-icon *ngSwitchCase="'failed'" matTooltip="Failure" fontSet="material-icons-outlined" class="history-icon-failure">highlight_off</mat-icon>
+          <p *ngSwitchDefault>{{entry.state}}</p>
+        </div>
+
+        <p>{{toDate(entry.time)}}</p>
+        <p>{{project.pipeline.stages[entry.stageIndex].name}}</p>
+      </mat-list-item>
+    </mat-list>
   </mat-expansion-panel>
 
 

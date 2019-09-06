@@ -1,7 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {ApiService, FileInfo} from '../api.service';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {HttpEventType} from '@angular/common/http';
+import {FileInfo, FilesApiService} from '../files-api.service';
 
 @Component({
   selector: 'app-files',
@@ -17,7 +17,7 @@ export class FilesComponent implements OnInit {
   contextMenuVisible = false;
 
   constructor(
-    private api: ApiService,
+    private api: FilesApiService,
     private createDialog: MatDialog
   ) {
     this.files.set('/', []);
@@ -56,7 +56,8 @@ export class FilesComponent implements OnInit {
     if (this.files.has(path)) {
       this.removeCachedRecursively(path);
     } else {
-      this.loadDirectory(path).finally(() => {});
+      this.loadDirectory(path).finally(() => {
+      });
     }
   }
 
@@ -157,7 +158,7 @@ export class FilesComponent implements OnInit {
   createDirectory() {
     this.createDialog.open(CreateDirectoryDialog, {
       width: '20em',
-      data: {  }
+      data: {}
     }).afterClosed().subscribe(result => {
       if (result) {
         const path = this.absoluteDirectoryPath(this.latestPath + '/' + result);
@@ -249,9 +250,9 @@ export interface CreateDirectoryData {
       <div mat-dialog-content>
           <mat-form-field>
               <input cdkFocusInitial
-                      matInput [(ngModel)]="data.name" placeholder="Name of the new directory"
-                      (keyup.enter)="dialogRef.close(data.name)"
-                      (keydown.escape)="dialogRef.close()"
+                     matInput [(ngModel)]="data.name" placeholder="Name of the new directory"
+                     (keyup.enter)="dialogRef.close(data.name)"
+                     (keydown.escape)="dialogRef.close()"
               >
           </mat-form-field>
       </div>
