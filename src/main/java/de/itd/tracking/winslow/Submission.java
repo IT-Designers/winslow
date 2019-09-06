@@ -2,6 +2,7 @@ package de.itd.tracking.winslow;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface Submission {
 
@@ -43,5 +44,15 @@ public interface Submission {
 
     default boolean hasCompletedSuccessfully() throws OrchestratorConnectionException {
         return getState() == State.Succeeded;
+    }
+
+    Stream<HistoryEntry> getHistory();
+
+    interface HistoryEntry {
+        long getTime();
+        int getStageIndex();
+        @Nonnull State getState();
+        @Nonnull Optional<String> getDescription();
+
     }
 }

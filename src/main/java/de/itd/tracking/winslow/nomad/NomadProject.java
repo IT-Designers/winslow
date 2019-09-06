@@ -1,12 +1,14 @@
 package de.itd.tracking.winslow.nomad;
 
-import com.google.common.collect.Iterables;
 import de.itd.tracking.winslow.Submission;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class NomadProject {
 
@@ -14,16 +16,11 @@ public class NomadProject {
     @Nullable private      Entry       current = null;
 
     @Nonnull
-    public Iterable<Entry> getHistory() {
-        return Iterables.concat(Collections.unmodifiableList(history), getCurrent()
-                .stream()
-                .collect(Collectors.toUnmodifiableList()));
+    public Stream<Entry> getHistory() {
+        return Stream.concat(history.stream(), getCurrent().stream());
     }
 
     public void newCurrent(int stageIndex, @Nonnull String jobId, @Nonnull String taskName) {
-        if (this.current != null) {
-            this.history.add(this.current);
-        }
         this.current = new Entry(stageIndex, jobId, taskName, Submission.State.Preparing);
     }
 
@@ -51,7 +48,31 @@ public class NomadProject {
 
     @Nonnull
     public Optional<AllocatedJob> getCurrentAllocation(@Nonnull NomadOrchestrator orchestrator) {
-        return Optional.ofNullable(current).map(c -> new AllocatedJob(orchestrator, c.getJobId(), c.getTaskName()));
+        return Optional
+                .ofNullable(current)
+                .map(c -> new AllocatedJob(orchestrator, c.getJobId(), c.getTaskName(), () -> getHistory().map(entry -> new Submission.HistoryEntry() {
+                    @Override
+                    public long getTime() {
+                        return entry.getTime();
+                    }
+
+                    @Override
+                    public int getStageIndex() {
+                        return entry.getStageIndex();
+                    }
+
+                    @Nonnull
+                    @Override
+                    public Submission.State getState() {
+                        return entry.getResult();
+                    }
+
+                    @Nonnull
+                    @Override
+                    public Optional<String> getDescription() {
+                        return Optional.of(String.format("JobId=%s, TaskName=%s", entry.getJobId(), entry.getTaskName()));
+                    }
+                })));
     }
 
     public static class Entry {

@@ -36,6 +36,9 @@ public class Winslow implements Runnable {
         this.projectRepository  = new ProjectRepository(lockBus, configuration);
     }
 
+    public Orchestrator getOrchestrator() {
+        return orchestrator;
+    }
 
     public ResourceManager getResourceManager() {
         return resourceManager;

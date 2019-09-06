@@ -7,17 +7,25 @@ import de.itd.tracking.winslow.Submission;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class AllocatedJob implements Submission {
 
-    private final NomadOrchestrator orchestrator;
-    private final String            jobId;
-    private final String            taskName;
+    private final NomadOrchestrator              orchestrator;
+    private final String                         jobId;
+    private final String                         taskName;
+    private final Supplier<Stream<HistoryEntry>> eventSupplier;
 
     public AllocatedJob(NomadOrchestrator orchestrator, String jobId, String taskName) {
-        this.orchestrator = orchestrator;
-        this.jobId = jobId;
-        this.taskName = taskName;
+        this(orchestrator, jobId, taskName, Stream::empty);
+    }
+
+    public AllocatedJob(NomadOrchestrator orchestrator, String jobId, String taskName, Supplier<Stream<HistoryEntry>> eventSupplier) {
+        this.orchestrator  = orchestrator;
+        this.jobId         = jobId;
+        this.taskName      = taskName;
+        this.eventSupplier = eventSupplier;
     }
 
     public String getJobId() {
@@ -64,5 +72,10 @@ public class AllocatedJob implements Submission {
                 return Optional.empty();
             }
         });
+    }
+
+    @Override
+    public Stream<HistoryEntry> getHistory() {
+        return eventSupplier.get();
     }
 }

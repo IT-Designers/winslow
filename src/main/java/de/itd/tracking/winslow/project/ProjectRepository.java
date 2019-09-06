@@ -64,6 +64,12 @@ public class ProjectRepository extends BaseRepository {
 
     }
 
+    @Nonnull
+    public Handle<Project> getProject(String id) {
+        return getProject(getRepositoryDirectory().resolve(Path.of(id).getFileName() + FILE_SUFFIX));
+    }
+
+    @Nonnull
     public Stream<Handle<Project>> getProjects() {
         return listAll().map(this::getProject);
     }
