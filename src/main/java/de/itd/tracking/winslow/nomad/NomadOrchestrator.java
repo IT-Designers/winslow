@@ -33,8 +33,8 @@ public class NomadOrchestrator implements Orchestrator {
         this.repository = repository;
     }
 
-    private String combine(String pipelineName, String stageName) {
-        return String.format("%s-%s", pipelineName, stageName);
+    private String combine(String... names) {
+        return String.join("-", names);
     }
 
     @Nonnull
@@ -100,7 +100,7 @@ public class NomadOrchestrator implements Orchestrator {
                 }
 
                 var stage    = stages.get(index);
-                var prepared = prepare(project.getPipeline(), stage, environment);
+                var prepared = prepare(project.getId(), project.getPipeline(), stage, environment);
                 var running  = prepared.start();
 
                 if (running.isPresent()) {
@@ -121,10 +121,10 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     @Nonnull
-    private PreparedJob prepare(Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
+    private PreparedJob prepare(String projectId, Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
         var builder = JobBuilder
                 .withRandomUuid()
-                .withTaskName(replaceInvalidCharactersInJobName(combine(pipeline.getName(), stage.getName())));
+                .withTaskName(replaceInvalidCharactersInJobName(combine(projectId, pipeline.getName(), stage.getName())));
 
         var resources = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
@@ -229,7 +229,7 @@ public class NomadOrchestrator implements Orchestrator {
 
 
     public static String replaceInvalidCharactersInJobName(String jobName) {
-        return jobName.replaceAll("[^a-zA-Z0-9]", "_");
+        return jobName.toLowerCase().replaceAll("[^a-zA-Z0-9\\-_]", "_").replaceAll("__", "_");
     }
 
 }
