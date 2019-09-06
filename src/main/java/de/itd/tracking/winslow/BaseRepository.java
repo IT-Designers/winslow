@@ -71,7 +71,6 @@ public abstract class BaseRepository {
         try (InputStream inputStream = new FileInputStream(path.toFile())) {
             return Optional.of(reader.load(inputStream));
         } catch (IOException e) {
-            e.printStackTrace();
             return Optional.empty();
         }
     }
@@ -91,8 +90,12 @@ public abstract class BaseRepository {
 
     private <T> LockedContainer.Writer<T> lockedWriter(Path path, Writer<T> writer) {
         return (l, value) -> {
-            try (OutputStream outputStream = new LockedOutputStream(path.toFile(), l)) {
-                writer.store(outputStream, value);
+            if (value != null) {
+                try (OutputStream outputStream = new LockedOutputStream(path.toFile(), l)) {
+                    writer.store(outputStream, value);
+                }
+            } else if (Files.isRegularFile(path)) {
+                Files.delete(path);
             }
         };
     }

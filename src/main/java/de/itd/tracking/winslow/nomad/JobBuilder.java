@@ -4,12 +4,10 @@ import com.hashicorp.nomad.apimodel.Job;
 import com.hashicorp.nomad.apimodel.RestartPolicy;
 import com.hashicorp.nomad.apimodel.Task;
 import com.hashicorp.nomad.apimodel.TaskGroup;
-import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.Environment;
 import de.itd.tracking.winslow.config.Pipeline;
 import de.itd.tracking.winslow.config.Stage;
 
-import java.io.IOException;
 import java.util.*;
 
 public class JobBuilder {

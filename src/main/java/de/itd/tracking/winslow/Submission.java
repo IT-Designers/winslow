@@ -2,7 +2,7 @@ package de.itd.tracking.winslow;
 
 import javax.annotation.Nonnull;
 
-public interface RunningStage {
+public interface Submission {
 
     enum State {
         Preparing,
@@ -28,5 +28,9 @@ public interface RunningStage {
 
     default boolean hasCompleted() throws OrchestratorConnectionException {
         return getState() == State.Failed || getState() == State.Succeeded;
+    }
+
+    default boolean hasCompletedSuccessfully() throws OrchestratorConnectionException {
+        return getState() == State.Succeeded;
     }
 }

@@ -22,7 +22,7 @@ public class NomadProject {
     }
 
     @Nonnull
-    public Submission toSubmission(@Nonnull NomadOrchestrator orchestrator) {
-        return new Submission(orchestrator, jobId, taskName);
+    public AllocatedJob getAllocation(@Nonnull NomadOrchestrator orchestrator) {
+        return new AllocatedJob(orchestrator, jobId, taskName);
     }
 }

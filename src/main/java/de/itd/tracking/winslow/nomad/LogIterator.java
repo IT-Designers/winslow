@@ -5,7 +5,7 @@ import com.hashicorp.nomad.apimodel.StreamFrame;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
 import com.hashicorp.nomad.javasdk.NomadException;
-import de.itd.tracking.winslow.RunningStage;
+import de.itd.tracking.winslow.Submission;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -59,7 +59,7 @@ public class LogIterator implements Iterator<String> {
     public boolean hasNext() {
         boolean hasNext = state.get()
                 .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, taskName))
-                .map(state -> state == RunningStage.State.Running || state == RunningStage.State.Preparing)
+                .map(state -> state == Submission.State.Running || state == Submission.State.Preparing)
                 .orElse(false);
         if (!hasNext && stream != null) {
             try {

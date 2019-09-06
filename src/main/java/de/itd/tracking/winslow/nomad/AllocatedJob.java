@@ -2,19 +2,19 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.OrchestratorConnectionException;
-import de.itd.tracking.winslow.RunningStage;
+import de.itd.tracking.winslow.Submission;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Optional;
 
-public class Submission implements RunningStage {
+public class AllocatedJob implements Submission {
 
     private final NomadOrchestrator orchestrator;
     private final String            jobId;
     private final String            taskName;
 
-    public Submission(NomadOrchestrator orchestrator, String jobId, String taskName) {
+    public AllocatedJob(NomadOrchestrator orchestrator, String jobId, String taskName) {
         this.orchestrator = orchestrator;
         this.jobId = jobId;
         this.taskName = taskName;

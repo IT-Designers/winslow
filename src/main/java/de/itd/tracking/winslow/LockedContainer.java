@@ -4,6 +4,7 @@ import de.itd.tracking.winslow.fs.Lock;
 import de.itd.tracking.winslow.fs.LockException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
@@ -41,6 +42,11 @@ public class LockedContainer<T> implements Closeable {
         this.value = value;
     }
 
+    public void delete() throws IOException {
+        this.writer.write(this.lock, null);
+        this.value = null;
+    }
+
     @Nonnull
     public Lock getLock() {
         return lock;
@@ -58,7 +64,7 @@ public class LockedContainer<T> implements Closeable {
     }
 
     public interface Writer<T> {
-        void write(@Nonnull Lock lock, @Nonnull T value) throws IOException;
+        void write(@Nonnull Lock lock, @Nullable T value) throws IOException;
     }
 
 }
