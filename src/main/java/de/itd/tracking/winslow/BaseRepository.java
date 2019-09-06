@@ -54,7 +54,13 @@ public abstract class BaseRepository {
     }
 
     protected <T> Reader<T> defaultReader(Class<T> clazz) {
-        return inputStream -> new Toml().read(inputStream).to(clazz);
+        return inputStream -> {
+            try {
+                return new Toml().read(inputStream).to(clazz);
+            } catch (Throwable t) {
+                throw new IOException("Failed to parse TOML", t);
+            }
+        };
     }
 
     protected <T> Writer<T> defaultWriter() {
