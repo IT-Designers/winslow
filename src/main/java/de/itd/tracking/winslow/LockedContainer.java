@@ -32,6 +32,16 @@ public class LockedContainer<T> implements Closeable {
     }
 
     @Nonnull
+    public Optional<T> getNoThrow() {
+        try {
+            return get();
+        } catch (LockException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
+    @Nonnull
     public T reload() throws IOException {
         this.value = this.reader.read(this.lock);
         return this.value;

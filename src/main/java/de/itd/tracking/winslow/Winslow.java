@@ -58,6 +58,15 @@ public class Winslow implements Runnable {
                         .peek(this::tryMakeProgress)
                         .forEach(LockedContainer::close);
 
+                getProjectRepository()
+                        .getProjects()
+                        .filter(handle -> {
+                            var loaded = handle.unsafe();
+                            return loaded.isPresent() && orchestrator.hasPendingChanges(loaded.get());
+                        })
+                        .flatMap(handle -> handle.unsafe().stream())
+                        .forEach(orchestrator::updateInternalState);
+
                 synchronized (this) {
                     this.wait(10_000);
                 }

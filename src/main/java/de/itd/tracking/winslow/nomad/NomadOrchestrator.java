@@ -46,7 +46,16 @@ public class NomadOrchestrator implements Orchestrator {
     @Override
     public boolean canProgress(@Nonnull Project project) {
         var job = getCurrentAllocation(project);
-        return canProgressAutomatically(project, job);
+        return canProgress(project, job);
+    }
+
+    private boolean hasCompleted(@Nonnull AllocatedJob job) {
+        try {
+            return job.hasCompleted();
+        } catch (OrchestratorConnectionException e) {
+            LOG.log(Level.SEVERE, "Failed to check if job completed: " + job.getJobId(), e);
+            return false;
+        }
     }
 
     private boolean hasCompletedSuccessfully(@Nonnull AllocatedJob job) {
@@ -60,22 +69,51 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Override
     public boolean canProgressLockFree(@Nonnull Project project) {
-        var job = repository.getNomadProject(project.getId()).unsafe().map(j -> j.getAllocation(this));
-        return canProgressAutomatically(project, job);
+        var job = repository.getNomadProject(project.getId()).unsafe().flatMap(j -> j.getCurrentAllocation(this));
+        return canProgress(project, job);
     }
 
-    private boolean canProgressAutomatically(@Nonnull Project project, @Nonnull Optional<AllocatedJob> job) {
-        return (job.isEmpty() || hasCompletedSuccessfully(job.get())) && project.getNextStageIndex() < project
-                .getPipeline()
-                .getStages()
-                .size();
+    @Override
+    public boolean hasPendingChanges(@Nonnull Project project) {
+        var nomadProject = repository.getNomadProject(project.getId()).unsafe();
+        var job          = nomadProject.flatMap(j -> j.getCurrentAllocation(this));
+        return job.isPresent() && !job.get().getStateOptional().equals(nomadProject.get().getCurrentState());
+    }
+
+    @Override
+    public void updateInternalState(@Nonnull Project project) {
+        repository.getNomadProject(project.getId()).locked().ifPresent(lock -> {
+            try (lock) {
+                var inner = lock.get();
+                inner
+                        .flatMap(j -> j.getCurrentAllocation(this))
+                        .flatMap(Submission::getStateOptional)
+                        .ifPresent(state -> {
+                            try {
+                                var p = inner.get();
+                                p.updateCurrent(state);
+                                lock.update(p);
+                            } catch (IOException e) {
+                                LOG.log(Level.SEVERE, "Failed to update nomad project " + project.getId(), e);
+                            }
+                        });
+
+            } catch (LockException e) {
+                LOG.log(Level.SEVERE, "Failed to update project", e);
+            }
+        });
+    }
+
+    private boolean canProgress(@Nonnull Project project, @Nonnull Optional<AllocatedJob> job) {
+        return (job.isEmpty() || hasCompletedSuccessfully(job.get()) || (project.isForceProgressOnce() && hasCompleted(job
+                .get()))) && project.getNextStageIndex() < project.getPipeline().getStages().size();
     }
 
     @Nonnull
     public Optional<AllocatedJob> getCurrentAllocation(@Nonnull Project project) {
         return repository.getNomadProject(project.getId()).locked().flatMap(locked -> {
             try (locked) {
-                return locked.get().map(nomadProject -> nomadProject.getAllocation(this));
+                return locked.get().flatMap(nomadProject -> nomadProject.getCurrentAllocation(this));
             } catch (LockException e) {
                 LOG.log(Level.SEVERE, "Failed to lock nomad project file", e);
                 return Optional.empty();
@@ -95,9 +133,17 @@ public class NomadOrchestrator implements Orchestrator {
 
         return repository.getNomadProject(project.getId()).locked().flatMap(locked -> {
             try (locked) {
-                if (!canProgressAutomatically(project, locked.get().map(p -> p.getAllocation(this)))) {
+                if (!canProgress(project, locked.get().flatMap(p -> p.getCurrentAllocation(this)))) {
                     return Optional.empty();
                 }
+
+                locked.get().ifPresent(p -> p.getCurrentAllocation(this).ifPresent(allocatedJob -> {
+                    try {
+                        p.updateCurrent(allocatedJob.getState());
+                    } catch (OrchestratorConnectionException e) {
+                        LOG.log(Level.SEVERE, "Failed to update state of project " + p.getCurrentJobId(), e);
+                    }
+                }));
 
                 var stage    = stages.get(index);
                 var prepared = prepare(project.getId(), project.getPipeline(), stage, environment);
@@ -106,12 +152,15 @@ public class NomadOrchestrator implements Orchestrator {
                 if (running.isPresent()) {
                     var jobId    = running.get().getJobId();
                     var taskName = running.get().getTaskName();
-                    var nomad    = new NomadProject(jobId, taskName);
+                    var nomad    = locked.get().orElseGet(NomadProject::new);
 
-                    project.setNextStageIndex(index + 1);
+                    nomad.newCurrent(index, jobId, taskName);
                     locked.update(nomad);
 
-                    return Optional.of(nomad.getAllocation(this));
+                    project.setNextStageIndex(index + 1);
+                    project.setForceProgressOnce(false);
+
+                    return nomad.getCurrentAllocation(this);
                 }
             } catch (OrchestratorException | IOException | LockException e) {
                 LOG.log(Level.SEVERE, "Failed to start next stage for project " + project.getId(), e);

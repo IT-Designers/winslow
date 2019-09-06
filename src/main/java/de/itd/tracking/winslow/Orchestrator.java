@@ -22,6 +22,10 @@ public interface Orchestrator {
      */
     boolean canProgressLockFree(@Nonnull Project project);
 
+    boolean hasPendingChanges(@Nonnull Project project);
+
+    void updateInternalState(@Nonnull Project project);
+
     @Nonnull
     Optional<Submission> startNext(@Nonnull Project project, @Nonnull Environment environment);
 

@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 public interface Submission {
 
@@ -13,6 +14,16 @@ public interface Submission {
 
     @Nonnull
     State getState() throws OrchestratorConnectionException;
+
+    @Nonnull
+    default Optional<State> getStateOptional() {
+        try {
+            return Optional.of(getState());
+        } catch (OrchestratorConnectionException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
 
     default Iterable<String> getStdOut() {
         return getStdOut(Integer.MAX_VALUE);

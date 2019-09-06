@@ -15,13 +15,14 @@ public class Project {
     private final String       owner;
     private final List<String> groups = new ArrayList<>();
 
-    private String name;
-    private int    nextStage = 0;
+    private String  name;
+    private int     nextStage         = 0;
+    private boolean forceProgressOnce = false;
 
     public Project(String id, Pipeline pipeline, String owner) {
-        this.id = id;
+        this.id       = id;
         this.pipeline = pipeline;
-        this.owner = owner;
+        this.owner    = owner;
     }
 
     public String getId() {
@@ -42,6 +43,14 @@ public class Project {
 
     public void setNextStageIndex(int index) {
         this.nextStage = index;
+    }
+
+    public boolean isForceProgressOnce() {
+        return forceProgressOnce;
+    }
+
+    public void setForceProgressOnce(boolean forceProgressOnce) {
+        this.forceProgressOnce = forceProgressOnce;
     }
 
     public Pipeline getPipeline() {
@@ -67,10 +76,6 @@ public class Project {
     }
 
     public Iterable<String> getStages() {
-        return getPipeline()
-                .getStages()
-                .stream()
-                .map(Stage::getName)
-                .collect(Collectors.toUnmodifiableList());
+        return getPipeline().getStages().stream().map(Stage::getName).collect(Collectors.toUnmodifiableList());
     }
 }
