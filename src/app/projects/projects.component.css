@@ -11,3 +11,34 @@
   flex-grow: 0;
   margin-right: 0;
 }
+
+.control-button-row {
+  padding-bottom: 2em;
+}
+
+.project-list-replacement:not(:empty) {
+  padding-top: 3em;
+}
+
+.project-header {
+
+}
+
+.history-list-item p {
+  padding-left: 1em;
+}
+
+.history-icon-preparing {
+  color: lightblue;
+}
+
+.history-icon-running {
+  color: lightblue;
+}
+
+.history-icon-success {
+  color: green;
+}
+.history-icon-failure {
+  color: red;
+}

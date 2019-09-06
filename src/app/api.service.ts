@@ -2,23 +2,23 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../environments/environment';
 import {map} from 'rxjs/operators';
+import {ProjectApiService} from './project-api.service';
+import {FilesApiService} from './files-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
 
-  constructor(private client: HttpClient) {}
-
-  createProject(name: string, pipeline: PipelineInfo) {
-    const form = new FormData();
-    form.append('name', name);
-    form.append('pipeline', pipeline.id);
-    return this.client.post<any>(environment.apiLocation + 'projects', form);
+  constructor(private client: HttpClient, private projectApi: ProjectApiService, private filesApi: FilesApiService) {
   }
 
-  listProjects() {
-    return this.client.get<Project[]>(environment.apiLocation + 'projects');
+  getProjectApi(): ProjectApiService {
+    return this.projectApi;
+  }
+
+  getFilesApi(): FilesApiService {
+    return this.filesApi;
   }
 
   listPipelines() {
@@ -33,57 +33,6 @@ export class ApiService {
         p.forEach(s => names.push(s.name));
         return names;
       }));
-  }
-
-  listFiles(path: string) {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
-    return this.client
-      .options<FileInfo[]>(environment.apiLocation + 'files/' + path);
-  }
-
-  createDirectory(path: string): Promise<any> {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
-    return this
-      .client
-      .put(environment.apiLocation + 'files/' + path, null)
-      .toPromise();
-  }
-
-  uploadFile(pathToDirectory: string, file: File) {
-    if (!pathToDirectory.endsWith('/')) {
-      pathToDirectory += '/';
-    }
-    if (pathToDirectory.startsWith('/')) {
-      pathToDirectory = pathToDirectory.substr(1);
-    }
-
-    const form = new FormData();
-    form.append('file', file);
-
-    return this
-      .client
-      .post(
-        environment.apiLocation + 'files/' + pathToDirectory + file.name,
-        form,
-        { reportProgress: true, observe: 'events' }
-      );
-  }
-
-  downloadFile(pathToFile: string) {
-    window.open(environment.apiLocation + 'files/' + pathToFile);
-  }
-
-  delete(path: string) {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
-    return this
-      .client
-      .delete(environment.apiLocation + 'files/' + path);
   }
 
 }
@@ -102,20 +51,4 @@ export class Pipeline {
 
 export class Stage {
   name: string;
-}
-
-export class FileInfo {
-  name: string;
-  directory: boolean;
-  path: string;
-}
-
-export class Project {
-  id: string;
-  name: string;
-  pipeline: any;
-  owner: string;
-  groups: string[];
-  stages: string[];
-  nextStage: number;
 }
