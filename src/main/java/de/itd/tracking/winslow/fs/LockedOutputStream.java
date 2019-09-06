@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.fs;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 
 public class LockedOutputStream extends OutputStream {
@@ -31,13 +32,13 @@ public class LockedOutputStream extends OutputStream {
     }
 
     @Override
-    public void write(byte[] b) throws IOException {
+    public void write(@Nonnull byte[] b) throws IOException {
         this.lockHeartbeat();
         this.outputStream.write(b);;
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(@Nonnull byte[] b, int off, int len) throws IOException {
         this.lockHeartbeat();
         this.outputStream.write(b, off, len);
     }
