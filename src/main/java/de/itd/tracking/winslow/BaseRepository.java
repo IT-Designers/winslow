@@ -48,7 +48,7 @@ public abstract class BaseRepository {
         try {
             return Files.list(directory);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to list all entries in directory: "+directory, e);
+            LOG.log(Level.SEVERE, "Failed to list all entries in directory: " + directory, e);
             return Stream.empty();
         }
     }
@@ -80,29 +80,31 @@ public abstract class BaseRepository {
         Lock lock = null;
         try {
             lock = getLockForPath(path);
-            return Optional.of(
-                    new LockedContainer<>(
-                            lock,
-                            l -> {
-                                try (InputStream inputStream = new LockedInputStream(path.toFile(), l)) {
-                                    return reader.load(inputStream);
-                                } catch (FileNotFoundException e) {
-                                    return null;
-                                }
-                            },
-                            (l, value) -> {
-                                try (OutputStream outputStream = new LockedOutputStream(path.toFile(), l)) {
-                                    writer.store(outputStream, value);
-                                }
-                            }
-                    )
-            );
+            return Optional.of(new LockedContainer<>(lock, lockedReader(path, reader), lockedWriter(path, writer)));
         } catch (LockException | IOException e) {
             if (lock != null) {
-                lock.release();
+                lock.release(); // only release on error, otherwise the returned value will hold the lock
             }
             return Optional.empty();
         }
+    }
+
+    private <T> LockedContainer.Writer<T> lockedWriter(Path path, Writer<T> writer) {
+        return (l, value) -> {
+            try (OutputStream outputStream = new LockedOutputStream(path.toFile(), l)) {
+                writer.store(outputStream, value);
+            }
+        };
+    }
+
+    private <T> LockedContainer.Reader<T> lockedReader(Path path, Reader<T> reader) {
+        return lock -> {
+            try (InputStream inputStream = new LockedInputStream(path.toFile(), lock)) {
+                return reader.load(inputStream);
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+        };
     }
 
     protected Lock getLockForPath(Path path) throws LockException {
@@ -127,7 +129,7 @@ public abstract class BaseRepository {
     }
 
     public class Handle<T> {
-        @Nonnull private final Path path;
+        @Nonnull private final Path      path;
         @Nonnull private final Reader<T> reader;
         @Nonnull private final Writer<T> writer;
 
