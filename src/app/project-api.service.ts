@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../environments/environment';
 import {PipelineInfo} from './api.service';
+import {map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -22,10 +23,20 @@ export class ProjectApiService {
     return this.client.get<Project[]>(environment.apiLocation + 'projects');
   }
 
+  getProjectState(projectId: string) {
+    return this.client.get<State>(environment.apiLocation + `projects/${projectId}/state`);
+  }
+
   getProjectHistory(projectId: string) {
     return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history');
   }
 
+}
+export enum State {
+  Preparing,
+  Running,
+  Succeeded,
+  Failed
 }
 
 export class Project {
@@ -36,12 +47,14 @@ export class Project {
   name: string;
   nextStage: number;
   forceProgressOnce: boolean;
-  history: HistoryEntry[];
+  // loaded lazy
+  history?: HistoryEntry[];
+  state?: State;
 }
 
 export class HistoryEntry {
   time: number;
-  state: string;
+  state: State;
   stageIndex: number;
   description: string;
 }

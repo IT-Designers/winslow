@@ -22,6 +22,7 @@ import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
 import { ProjectsComponent } from './projects/projects.component';
 import { ProjectsCreateDialog } from './projects-create/projects-create-dialog.component';
+import { StateIconComponent } from './state-icon/state-icon.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { ProjectsCreateDialog } from './projects-create/projects-create-dialog.c
     FilesComponent,
     DragDropDirectiveDirective,
     ProjectsComponent,
-    ProjectsCreateDialog
+    ProjectsCreateDialog,
+    StateIconComponent
   ],
   imports: [
     HttpClientModule,
