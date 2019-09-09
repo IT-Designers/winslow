@@ -2,7 +2,7 @@ package de.itd.tracking.winslow.project;
 
 import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.auth.User;
-import de.itd.tracking.winslow.config.Pipeline;
+import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
@@ -32,12 +32,12 @@ public class ProjectRepository extends BaseRepository {
         return workDirectoryConfiguration.getProjectsDirectory();
     }
 
-    public Optional<Project> createProject(Pipeline pipeline, User owner) {
-        return this.createProject(pipeline, owner, project -> {});
+    public Optional<Project> createProject(PipelineDefinition pipelineDefinition, User owner) {
+        return this.createProject(pipelineDefinition, owner, project -> {});
     }
 
     // TODO ProjectBuilder
-    public Optional<Project> createProject(Pipeline pipeline, User owner, Consumer<Project> customizer) {
+    public Optional<Project> createProject(PipelineDefinition pipelineDefinition, User owner, Consumer<Project> customizer) {
         var id = UUID.randomUUID().toString();
         var path = workDirectoryConfiguration.getProjectsDirectory().resolve(id + FILE_SUFFIX);
         return getProject(path).locked().flatMap(storable -> {
@@ -45,10 +45,10 @@ public class ProjectRepository extends BaseRepository {
                 // it should not yet exist, otherwise the UUID has clashed o.O
                 if (storable.get().isPresent()) {
                     storable.close(); // early close so there wont be locks while recursively trying to find an unused UUID
-                    return this.createProject(pipeline, owner);
+                    return this.createProject(pipelineDefinition, owner);
                 }
 
-                var project = new Project(id, pipeline, owner.getName());
+                var project = new Project(id, pipelineDefinition, owner.getName());
                 customizer.accept(project);
                 storable.update(project);
                 return Optional.of(project);

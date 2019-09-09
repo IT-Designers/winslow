@@ -6,8 +6,8 @@ import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.*;
-import de.itd.tracking.winslow.config.Pipeline;
-import de.itd.tracking.winslow.config.Stage;
+import de.itd.tracking.winslow.config.PipelineDefinition;
+import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.project.Project;
@@ -117,7 +117,7 @@ public class NomadOrchestrator implements Orchestrator {
 
     private boolean canProgress(@Nonnull Project project, @Nonnull Optional<AllocatedJob> job) {
         return (job.isEmpty() || hasCompletedSuccessfully(job.get()) || (project.isForceProgressOnce() && hasCompleted(job
-                .get()))) && project.getNextStageIndex() < project.getPipeline().getStages().size();
+                .get()))) && project.getNextStageIndex() < project.getPipeline().getStageDefinitions().size();
     }
 
     @Nonnull
@@ -136,7 +136,7 @@ public class NomadOrchestrator implements Orchestrator {
     @Override
     public Optional<Submission> startNext(@Nonnull Project project, @Nonnull Environment environment) {
         var index  = project.getNextStageIndex();
-        var stages = project.getPipeline().getStages();
+        var stages = project.getPipeline().getStageDefinitions();
 
         if (index < 0 || index >= stages.size()) {
             return Optional.empty();
@@ -175,10 +175,11 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     @Nonnull
-    private PreparedJob prepare(String projectId, Pipeline pipeline, Stage stage, Environment environment) throws OrchestratorException {
+    private PreparedJob prepare(String projectId, PipelineDefinition pipelineDefinition, StageDefinition stageDefinition, Environment environment) throws OrchestratorException {
         var builder = JobBuilder
                 .withRandomUuid()
-                .withTaskName(replaceInvalidCharactersInJobName(combine(projectId, pipeline.getName(), stage.getName())));
+                .withTaskName(replaceInvalidCharactersInJobName(combine(projectId, pipelineDefinition.getName(), stageDefinition
+                        .getName())));
 
         var resources = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
@@ -188,10 +189,10 @@ public class NomadOrchestrator implements Orchestrator {
             throw new OrchestratorException("The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources);
         }
 
-        if (stage.getImage().isPresent()) {
+        if (stageDefinition.getImage().isPresent()) {
             builder = builder
-                    .withDockerImage(stage.getImage().get().getName())
-                    .withDockerImageArguments(stage.getImage().get().getArguments());
+                    .withDockerImage(stageDefinition.getImage().get().getName())
+                    .withDockerImageArguments(stageDefinition.getImage().get().getArguments());
         }
 
         if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {
@@ -223,7 +224,7 @@ public class NomadOrchestrator implements Orchestrator {
             throw new OrchestratorException("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration());
         }
 
-        return new PreparedJob(builder.buildJob(pipeline, stage, environment), this);
+        return new PreparedJob(builder.buildJob(pipelineDefinition, stageDefinition, environment), this);
     }
 
     public NomadApiClient getClient() {

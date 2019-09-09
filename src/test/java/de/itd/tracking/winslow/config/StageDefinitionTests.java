@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class StageTests {
+public class StageDefinitionTests {
 
     @Test
     public void testMostBasicPipeline() {
@@ -13,7 +13,7 @@ public class StageTests {
                 "name = \"The name of the stage\""
         )
                 .getTable("stage")
-                .to(Stage.class);
+                .to(StageDefinition.class);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -34,7 +34,7 @@ public class StageTests {
                 "args = [\"arg1\", \"arg2\"]"
         )
                 .getTable("stage")
-                .to(Stage.class);
+                .to(StageDefinition.class);
 
         assertEquals("The name of the stage", stage.getName());
         assertEquals("The description of the stage", stage.getDescription().get());
@@ -52,7 +52,7 @@ public class StageTests {
                 "ram = 4096"
         )
                 .getTable("stage")
-                .to(Stage.class);
+                .to(StageDefinition.class);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -75,7 +75,7 @@ public class StageTests {
                 "support = [\"cuda\", \"vulkan\"]"
         )
                 .getTable("stage")
-                .to(Stage.class);
+                .to(StageDefinition.class);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -98,7 +98,7 @@ public class StageTests {
                 "VAR_2 = \"value_2\""
         )
                 .getTable("stage")
-                .to(Stage.class);
+                .to(StageDefinition.class);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -117,7 +117,7 @@ public class StageTests {
                 "resources = [\"res1\", \"RES/NUM/2\"]"
         )
                 .getTable("stage")
-                .to(Stage.class);
+                .to(StageDefinition.class);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());

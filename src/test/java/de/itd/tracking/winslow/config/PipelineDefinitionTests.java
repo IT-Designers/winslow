@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
-public class PipelineTests {
+public class PipelineDefinitionTests {
 
     @Test
     public void testMostBasicPipeline() {
@@ -16,12 +16,12 @@ public class PipelineTests {
                 "desc = \"Description of the pipeline\"\n"
         )
                 .getTable("pipeline")
-                .to(Pipeline.class);
+                .to(PipelineDefinition.class);
 
         assertEquals("Name of the pipeline", pipeline.getName());
         assertEquals("Description of the pipeline", pipeline.getDescription().get());
         assertTrue(pipeline.getUserInput().isEmpty());
-        assertTrue(pipeline.getStages().isEmpty());
+        assertTrue(pipeline.getStageDefinitions().isEmpty());
     }
 
     @Test
@@ -30,12 +30,12 @@ public class PipelineTests {
                 "valueFor = [\"KEY_A\", \"KEY_B\"]\n"
         )
                 .getTable("pipeline")
-                .to(Pipeline.class);
+                .to(PipelineDefinition.class);
 
         assertNull(pipeline.getName());
         assertTrue(pipeline.getDescription().isEmpty());
         assertTrue(pipeline.getUserInput().isPresent());
         assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getUserInput().get().getValueFor());
-        assertTrue(pipeline.getStages().isEmpty());
+        assertTrue(pipeline.getStageDefinitions().isEmpty());
     }
 }

@@ -2,7 +2,7 @@ package de.itd.tracking.winslow.config;
 
 import java.util.*;
 
-public class Stage {
+public class StageDefinition {
     private final String              name;
     private final String              desc;
     private final Image               image;
@@ -11,7 +11,7 @@ public class Stage {
     private final Map<String, String> env;
     private final Highlight           highlight;
 
-    public Stage(String name, String desc, Image image, Requirements requires, UserInput userInput, HashMap<String, String> env, Highlight highlight) {
+    public StageDefinition(String name, String desc, Image image, Requirements requires, UserInput userInput, HashMap<String, String> env, Highlight highlight) {
         this.name = name;
         this.desc = desc;
         this.image = image;
@@ -65,8 +65,8 @@ public class Stage {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        Stage stage = (Stage) o;
-        return Objects.equals(name, stage.name) && Objects.equals(desc, stage.desc) && Objects.equals(image, stage.image) && Objects.equals(requires, stage.requires) && Objects.equals(userInput, stage.userInput) && Objects.equals(env, stage.env) && Objects.equals(highlight, stage.highlight);
+        StageDefinition stageDefinition = (StageDefinition) o;
+        return Objects.equals(name, stageDefinition.name) && Objects.equals(desc, stageDefinition.desc) && Objects.equals(image, stageDefinition.image) && Objects.equals(requires, stageDefinition.requires) && Objects.equals(userInput, stageDefinition.userInput) && Objects.equals(env, stageDefinition.env) && Objects.equals(highlight, stageDefinition.highlight);
     }
 
     @Override

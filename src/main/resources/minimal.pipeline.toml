@@ -1,8 +1,8 @@
-[pipeline]
+[pipelineDefinition]
 name = "minimal"
 desc = "Testing a minimal set of functionality"
 
-[pipeline.userInput]
+[pipelineDefinition.userInput]
 #default values!
 valueFor = [
     "VIDEO_IN",
@@ -11,29 +11,29 @@ valueFor = [
 
 
 
-[[stage]]
+[[stageDefinition]]
 name = "hello-world"
 
-[stage.image]
+[stageDefinition.image]
 name = "ubuntu" # ENTRYPOINT python3 detector.py
 args = ["/bin/bash", "-c", "echo 'hello from a docker image that is executed somehwere, managed by nomad and coordinated by winslow' && sleep 1 && date; touch /resources/abc; touch /workspace/def ; ls -lah /resources && ls -lah /workspace && echo bye"]
 
-[stage.requires.gpu]
+[stageDefinition.requires.gpu]
 vendor = "nvidia"
 
 
-[[stage]]
+[[stageDefinition]]
 name = "write-to-workspace-file"
 
-[stage.image]
+[stageDefinition.image]
 name = "ubuntu"
 args = ["/bin/bash", "-c", "date | tee /workspace/date; sleep 2; date; sleep 2"]
 
 
 
-[[stage]]
+[[stageDefinition]]
 name = "print-env-variable"
 
-[stage.image]
+[stageDefinition.image]
 name = "ubuntu"
 args = ["/bin/bash", "-c", "echo \"VIDEO_IN=$VIDEO_IN\"; echo \"DATABASE_FILE=$DATABASE_FILE\";sleep 3"]

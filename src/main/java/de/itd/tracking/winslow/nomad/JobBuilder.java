@@ -5,8 +5,8 @@ import com.hashicorp.nomad.apimodel.RestartPolicy;
 import com.hashicorp.nomad.apimodel.Task;
 import com.hashicorp.nomad.apimodel.TaskGroup;
 import de.itd.tracking.winslow.Environment;
-import de.itd.tracking.winslow.config.Pipeline;
-import de.itd.tracking.winslow.config.Stage;
+import de.itd.tracking.winslow.config.PipelineDefinition;
+import de.itd.tracking.winslow.config.StageDefinition;
 
 import java.util.*;
 
@@ -73,7 +73,7 @@ public class JobBuilder {
         return this;
     }
 
-    public Job buildJob(Pipeline pipeline, Stage stage, Environment env) {
+    public Job buildJob(PipelineDefinition pipelineDefinition, StageDefinition stageDefinition, Environment env) {
         return new Job()
                 .setId(this.uuid.toString())
                 .addDatacenters("local")
@@ -87,7 +87,7 @@ public class JobBuilder {
                                                 .setName(taskName)
                                                 .setDriver(driver)
                                                 .setConfig(config)
-                                                .setEnv(stage.getEnvironment())
+                                                .setEnv(stageDefinition.getEnvironment())
                                 )
                 );
     }

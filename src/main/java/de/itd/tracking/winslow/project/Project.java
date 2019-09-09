@@ -1,7 +1,7 @@
 package de.itd.tracking.winslow.project;
 
-import de.itd.tracking.winslow.config.Pipeline;
-import de.itd.tracking.winslow.config.Stage;
+import de.itd.tracking.winslow.config.PipelineDefinition;
+import de.itd.tracking.winslow.config.StageDefinition;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,16 +10,16 @@ import java.util.stream.Collectors;
 
 public class Project {
 
-    private final String       id;
-    private final Pipeline     pipeline;
-    private final String       owner;
-    private final List<String> groups = new ArrayList<>();
+    private final String             id;
+    private final PipelineDefinition pipeline;
+    private final String             owner;
+    private final List<String>       groups = new ArrayList<>();
 
     private String  name;
     private int     nextStage         = 0;
     private boolean forceProgressOnce = false;
 
-    public Project(String id, Pipeline pipeline, String owner) {
+    public Project(String id, PipelineDefinition pipeline, String owner) {
         this.id       = id;
         this.pipeline = pipeline;
         this.owner    = owner;
@@ -53,7 +53,7 @@ public class Project {
         this.forceProgressOnce = forceProgressOnce;
     }
 
-    public Pipeline getPipeline() {
+    public PipelineDefinition getPipeline() {
         return pipeline;
     }
 
@@ -76,6 +76,6 @@ public class Project {
     }
 
     public Iterable<String> getStages() {
-        return getPipeline().getStages().stream().map(Stage::getName).collect(Collectors.toUnmodifiableList());
+        return getPipeline().getStageDefinitions().stream().map(StageDefinition::getName).collect(Collectors.toUnmodifiableList());
     }
 }

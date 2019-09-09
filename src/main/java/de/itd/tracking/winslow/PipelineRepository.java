@@ -2,8 +2,8 @@ package de.itd.tracking.winslow;
 
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
-import de.itd.tracking.winslow.config.Pipeline;
-import de.itd.tracking.winslow.config.Stage;
+import de.itd.tracking.winslow.config.PipelineDefinition;
+import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 
@@ -50,13 +50,13 @@ public class PipelineRepository extends BaseRepository {
         }
     }
 
-    private Reader<Pipeline> pipelineLoader() {
+    private Reader<PipelineDefinition> pipelineLoader() {
         return inputStream -> {
             var toml = new Toml().read(inputStream);
-            var stages = toml.getTables("stage").stream().map(table -> table.to(Stage.class)).collect(Collectors.toList());
-            var pipe = toml.getTable("pipeline").to(Pipeline.class);
+            var stages = toml.getTables("stage").stream().map(table -> table.to(StageDefinition.class)).collect(Collectors.toList());
+            var pipe = toml.getTable("pipeline").to(PipelineDefinition.class);
 
-            return new Pipeline(
+            return new PipelineDefinition(
                     pipe.getName(),
                     pipe.getDescription().orElse(null),
                     pipe.getUserInput().orElse(null),
@@ -65,11 +65,11 @@ public class PipelineRepository extends BaseRepository {
         };
     }
 
-    private Writer<Pipeline> pipelineWriter() {
+    private Writer<PipelineDefinition> pipelineWriter() {
         return (outputStream, pipeline) -> {
             var toml = new HashMap<String, Object>();
-            toml.put("stage", pipeline.getStages());
-            toml.put("pipeline", new Pipeline(
+            toml.put("stage", pipeline.getStageDefinitions());
+            toml.put("pipeline", new PipelineDefinition(
                     pipeline.getName(),
                     pipeline.getDescription().orElse(null),
                     pipeline.getUserInput().orElse(null),
@@ -80,12 +80,12 @@ public class PipelineRepository extends BaseRepository {
         };
     }
 
-    public Stream<Handle<Pipeline>> getPipelines() {
+    public Stream<Handle<PipelineDefinition>> getPipelines() {
         return listAll().map(path -> createHandle(path, pipelineLoader(), pipelineWriter()));
     }
 
 
-    public Handle<Pipeline> getPipeline(String id) {
+    public Handle<PipelineDefinition> getPipeline(String id) {
         var name = Path.of(id + SUFFIX).getFileName();
         return createHandle(
                 workDirectoryConfiguration.getPipelinesDirectory().resolve(name),

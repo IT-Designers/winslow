@@ -23,7 +23,7 @@ public class StagesController {
                 .getPipeline(pipeline)
                 .unsafe()
                 .stream()
-                .flatMap(p -> p.getStages().stream())
+                .flatMap(p -> p.getStageDefinitions().stream())
                 .map(s -> new StageInfo(s.getName()));
     }
 

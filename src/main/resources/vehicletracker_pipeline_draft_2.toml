@@ -1,8 +1,8 @@
-[pipeline]
+[pipelineDefinition]
 name = "vehicle-tracking"
 desc = "Detects all vehicles in a video and tracks them through the video"
 
-[pipeline.userInput]
+[pipelineDefinition.userInput]
 valueFor = [
     "VIDEO_IN",
     "DATABASE_FILE"
@@ -10,86 +10,86 @@ valueFor = [
 
 
 
-[[stage]]
+[[stageDefinition]]
 name = "car-detection"
 desc = "Detecting all vehicles on each single frame through an AI"
 
-[stage.image]
+[stageDefinition.image]
 name = "mecview.itd-services.de/detector" # ENTRYPOINT python3 detector.py
 args = ["inference", "--gpus", "0,1,2,3", "-p", "$VIDEO_IN"]
 
-[stage.requires.gpu]
+[stageDefinition.requires.gpu]
 count = 4
 vendor = "nvidia"
 support = ["cuda", "vulkan"] # hmm?
 
-[stage.progress]
+[stageDefinition.progress]
 from-log = '([\w]): Progress update: ([\d]+\.[\d]+)%'
 
 
 
 
-[[stage]]
+[[stageDefinition]]
 name = "confirm-detection"
 depends-on = ["car-detection"]
 
-[stage.userInput]
+[stageDefinition.userInput]
 confirmation = "Always" # Never|Once|Always
 value-for = ["WHATEVER_PATH",  "PATH_TO_THE_GREAT_FILE"]
 
 
 
-[[stage]]
+[[stageDefinition]]
 name = "vehicletracker-smoothing"
 depends-on = ["confirm-detection"]
 
-[stage.image]
+[stageDefinition.image]
 name = "mecview.itd-services.de/vehicletracker" # ENTRYPOINT java -Xmx40g -jar vehicletracker.jar -p cli
 args = ["-f", "$DATABASE_FILE", "-b", "ParticleTrackerIOTracks", "-b", "SmoothTracks", "-b", "LaneDetector"]
 
-[stage.requires]
+[stageDefinition.requires]
 ram = 40960
 
-[stage.fail]
+[stageDefinition.fail]
 if-log-contains = ["0 records detected", "bus error"]
 if-log-matches = ['[\d]+ errors']
 
-[stage.warn]
+[stageDefinition.warn]
 if-log-contains = ["this should never happen"]
 
-[stage.allow]
+[stageDefinition.allow]
 exit-codes = [202, 108, 105]
 
-[stage.deny]
+[stageDefinition.deny]
 exit-codes = [0]
 
 
 
 
-[[stage]]
+[[stageDefinition]]
 name = "vehicletracker-movie"
 depends-on = ["vehicletracker-smoothing"]
 
-[stage.image]
+[stageDefinition.image]
 name = "mecview.itd-services.de/vehicletracker" # ENTRYPOINT java -jar vehicletracker.jar -p cli
 args = ["-f", "$DATABASE_FILE", "-b", "RenderVideo"]
 
-[stage.env]
+[stageDefinition.env]
 OUTPUT_DIR = "abc/def/"
 
-[stage.highlight]
+[stageDefinition.highlight]
 resources = ["TheMovie.mp4"]
 
 
 
-[[stage]]
+[[stageDefinition]]
 name  = "export-trajectories"
 depends-on = ["vehicletracker-smoothing"]
 
-[stage.image]
+[stageDefinition.image]
 name = "mecview.itd-services.de/vehicletracker" # ENTRYPOINT java -jar vehicletracker.jar -p cli
 args = ["-f", "$DATABASE_FILE", "-b", "ExportTracjectories"]
 
-[stage.highlight]
+[stageDefinition.highlight]
 resources = ["trajectories/*.csv"]
 
