@@ -71,6 +71,9 @@ public abstract class BaseRepository {
         try (InputStream inputStream = new FileInputStream(path.toFile())) {
             return Optional.of(reader.load(inputStream));
         } catch (IOException e) {
+            if (!(e instanceof FileNotFoundException)) {
+                LOG.log(Level.SEVERE, "Failed to load file", e);
+            }
             return Optional.empty();
         }
     }
@@ -83,6 +86,9 @@ public abstract class BaseRepository {
         } catch (LockException | IOException e) {
             if (lock != null) {
                 lock.release(); // only release on error, otherwise the returned value will hold the lock
+            }
+            if (!(e instanceof FileNotFoundException)) {
+                LOG.log(Level.SEVERE, "Failed to load file", e);
             }
             return Optional.empty();
         }
