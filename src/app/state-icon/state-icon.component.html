@@ -1,0 +1,10 @@
+<div class="state-icon" ngSwitch="{{(state+'').toLocaleLowerCase()}}">
+  <mat-icon *ngSwitchCase="'preparing'" matTooltip="Preparing" fontSet="material-icons-outlined" class="state-icon-preparing">hourglass_empty</mat-icon>
+  <ng-container *ngSwitchCase="'running'" >
+    <mat-icon *ngIf="!animation" matTooltip="Running" fontSet="material-icons-outlined" class="state-icon-running">network_check</mat-icon>
+    <mat-progress-spinner *ngIf="animation" matTooltip="Running" diameter="20" mode="indeterminate"></mat-progress-spinner>
+  </ng-container>
+  <mat-icon *ngSwitchCase="'succeeded'" matTooltip="Success" fontSet="material-icons-outlined" class="state-icon-success">offline_pin</mat-icon>
+  <mat-icon *ngSwitchCase="'failed'" matTooltip="Failure" fontSet="material-icons-outlined" class="state-icon-failure">highlight_off</mat-icon>
+  <mat-icon *ngSwitchDefault matTooltip="Unknown" fontSet="material-icons-outlined" class="state-icon-unknown">help_outline</mat-icon>
+</div>
