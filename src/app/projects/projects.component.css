@@ -27,3 +27,13 @@
 .history-list-item p {
   padding-left: 1em;
 }
+
+.stage-control-item {
+  padding: 2em;
+  border: 1px solid silver;
+  border-radius: .5em;
+}
+
+.stage-control-item > *:not(:first-child) {
+  margin-left: 3em;
+}

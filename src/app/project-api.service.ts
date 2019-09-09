@@ -31,6 +31,10 @@ export class ProjectApiService {
     return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history');
   }
 
+  setProjectNextStage(projectId: string, nextStageIndex: number) {
+    return this.client.post(`${environment.apiLocation}/projects/${projectId}/nextStage/${nextStageIndex}`, new FormData());
+  }
+
 }
 export enum State {
   Preparing,
