@@ -4,41 +4,41 @@ import com.hashicorp.nomad.apimodel.Job;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.OrchestratorConnectionException;
 import de.itd.tracking.winslow.OrchestratorException;
+import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Optional;
 
 public class PreparedJob {
 
     private Job               job;
     private NomadOrchestrator orchestrator;
+    private NomadStage        stage;
 
 
-    public PreparedJob(Job job, NomadOrchestrator orchestrator) {
-        this.job = job;
+    public PreparedJob(@Nonnull Job job, @Nonnull NomadOrchestrator orchestrator) {
+        this.job          = job;
         this.orchestrator = orchestrator;
     }
 
     @Nonnull
-    public Optional<AllocatedJob> start() throws OrchestratorException {
+    public NomadStage start(StageDefinition definition) throws OrchestratorException {
         try {
             if (orchestrator != null && job != null) {
-                var jobId      = job.getId();
-                var taskName   = job.getTaskGroups().get(0).getName();
-                var submission = new AllocatedJob(orchestrator, jobId, taskName);
+                var jobId    = job.getId();
+                var taskName = job.getTaskGroups().get(0).getName();
+                var stage    = new NomadStage(orchestrator, jobId, taskName, definition);
 
                 // this one could fail
                 orchestrator.getClient().getJobsApi().register(job);
 
                 // therefore reset those once passed
                 this.orchestrator = null;
-                this.job = null;
+                this.job          = null;
 
-                return Optional.of(submission);
-            } else {
-                return Optional.empty();
+                this.stage = stage;
             }
+            return this.stage;
         } catch (NomadException e) {
             throw new OrchestratorException("Failed to register job, invalid?", e);
         } catch (IOException e) {

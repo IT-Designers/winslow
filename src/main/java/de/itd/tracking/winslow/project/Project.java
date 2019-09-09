@@ -1,29 +1,35 @@
 package de.itd.tracking.winslow.project;
 
-import de.itd.tracking.winslow.config.PipelineDefinition;
-import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.Orchestrator;
+import de.itd.tracking.winslow.Pipeline;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class Project {
 
-    private final String             id;
-    private final PipelineDefinition pipeline;
-    private final String             owner;
-    private final List<String>       groups = new ArrayList<>();
+    private final Orchestrator orchestrator;
+    private final String       id;
+    private final String       owner;
+    private final List<String> groups = new ArrayList<>();
 
-    private String  name;
-    private int     nextStage         = 0;
-    private boolean forceProgressOnce = false;
+    private String name;
 
-    public Project(String id, PipelineDefinition pipeline, String owner) {
-        this.id       = id;
-        this.pipeline = pipeline;
-        this.owner    = owner;
+    public Project(Orchestrator orchestrator, String id, String owner) {
+        this(orchestrator, id, owner, "");
     }
+
+    public Project(Orchestrator orchestrator, String id, String owner, String name) {
+        this.orchestrator = orchestrator;
+        this.id           = id;
+        this.owner        = owner;
+        this.name         = name;
+    }
+
 
     public String getId() {
         return id;
@@ -35,26 +41,6 @@ public class Project {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public int getNextStageIndex() {
-        return nextStage;
-    }
-
-    public void setNextStageIndex(int index) {
-        this.nextStage = index;
-    }
-
-    public boolean isForceProgressOnce() {
-        return forceProgressOnce;
-    }
-
-    public void setForceProgressOnce(boolean forceProgressOnce) {
-        this.forceProgressOnce = forceProgressOnce;
-    }
-
-    public PipelineDefinition getPipeline() {
-        return pipeline;
     }
 
     public String getOwner() {
@@ -75,7 +61,13 @@ public class Project {
         return this.groups.remove(group);
     }
 
-    public Iterable<String> getStages() {
-        return getPipeline().getStageDefinitions().stream().map(StageDefinition::getName).collect(Collectors.toUnmodifiableList());
+    @Nonnull
+    public Optional<Pipeline> getPipeline() {
+        return this.orchestrator.getPipeline(this);
+    }
+
+    @Nonnull
+    public <T> Optional<T> updatePipeline(@Nonnull Function<Pipeline, T> updater) {
+        return this.orchestrator.updatePipeline(this, updater);
     }
 }

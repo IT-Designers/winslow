@@ -57,7 +57,7 @@ public class Winslow implements Runnable {
                             var loaded = handle.unsafe();
                             return loaded.isPresent() && orchestrator.canProgressLockFree(loaded.get());
                         })
-                        .flatMap(handle -> handle.locked().stream())
+                        .flatMap(handle -> handle.exclusive().stream())
                         .peek(this::tryMakeProgress)
                         .forEach(LockedContainer::close);
 

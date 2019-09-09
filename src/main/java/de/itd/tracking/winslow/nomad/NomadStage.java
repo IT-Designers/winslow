@@ -2,38 +2,54 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.OrchestratorConnectionException;
-import de.itd.tracking.winslow.Submission;
+import de.itd.tracking.winslow.Stage;
+import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
-public class AllocatedJob implements Submission {
+public class NomadStage implements Stage {
 
-    private final NomadOrchestrator              orchestrator;
-    private final String                         jobId;
-    private final String                         taskName;
-    private final Supplier<Stream<HistoryEntry>> eventSupplier;
+    @Nonnull private final NomadOrchestrator orchestrator;
+    @Nonnull private final String            jobId;
+    @Nonnull private final String            taskName;
+    @Nonnull private final StageDefinition   definition;
+    @Nonnull private final Date              startTime;
 
-    public AllocatedJob(NomadOrchestrator orchestrator, String jobId, String taskName) {
-        this(orchestrator, jobId, taskName, Stream::empty);
+    @Nullable private Date finishTime;
+
+    public NomadStage(@Nonnull NomadOrchestrator orchestrator, @Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition) {
+        this.orchestrator = orchestrator;
+        this.jobId        = jobId;
+        this.taskName     = taskName;
+        this.definition   = definition;
+
+        this.startTime = new Date();
     }
 
-    public AllocatedJob(NomadOrchestrator orchestrator, String jobId, String taskName, Supplier<Stream<HistoryEntry>> eventSupplier) {
-        this.orchestrator  = orchestrator;
-        this.jobId         = jobId;
-        this.taskName      = taskName;
-        this.eventSupplier = eventSupplier;
+    @Nonnull
+    @Override
+    public StageDefinition getDefinition() {
+        return this.definition;
     }
 
-    public String getJobId() {
-        return jobId;
+    @Nonnull
+    @Override
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public String getTaskName() {
-        return taskName;
+    @Nullable
+    @Override
+    public Date getFinishTime() {
+        return this.finishTime;
+    }
+
+    public void finishNow() {
+        this.finishTime = new Date();
     }
 
     @Nonnull
@@ -43,12 +59,9 @@ public class AllocatedJob implements Submission {
             return orchestrator
                     .getJobAllocationContainingTaskState(jobId, taskName)
                     .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, taskName))
-                    .orElse(State.Preparing);
-        } catch (NomadException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new OrchestratorConnectionException("Failed to connect to nomad", e);
+                    .orElse(State.Running);
+        } catch (IOException | NomadException e) {
+            throw new OrchestratorConnectionException("Failed to retrieve state information", e);
         }
     }
 
@@ -72,10 +85,5 @@ public class AllocatedJob implements Submission {
                 return Optional.empty();
             }
         });
-    }
-
-    @Override
-    public Stream<HistoryEntry> getHistory() {
-        return eventSupplier.get();
     }
 }

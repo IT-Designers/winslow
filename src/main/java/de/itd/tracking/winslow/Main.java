@@ -1,6 +1,5 @@
 package de.itd.tracking.winslow;
 
-import ch.qos.logback.classic.Level;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itd.tracking.winslow.com.AutoMesh;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Main {
@@ -51,8 +49,7 @@ public class Main {
             NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of("/home/mi7wa6/mec-view/winslow/nfs-mount"));
 
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(new NomadOrchestrator(
-                    new NomadApiClient(new NomadApiConfiguration.Builder().setAddress("http://localhost:4646").build()),
+            var winslow = new Winslow(new NomadOrchestrator(environment, new NomadApiClient(new NomadApiConfiguration.Builder().setAddress("http://localhost:4646").build()),
                     new NomadRepository(
                             // TODO
                             new LockBus(config.getEventsDirectory()),

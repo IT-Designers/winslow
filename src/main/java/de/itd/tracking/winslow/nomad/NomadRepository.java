@@ -22,7 +22,7 @@ public class NomadRepository extends BaseRepository {
     }
 
 
-    public Handle<NomadProject> getNomadProject(@Nonnull String projectId) {
-        return createHandle(getRepositoryFile(projectId), NomadProject.class);
+    public Handle<NomadPipeline> getNomadPipeline(@Nonnull String projectId) {
+        return createHandle(getRepositoryFile(projectId), NomadPipeline.class);
     }
 }

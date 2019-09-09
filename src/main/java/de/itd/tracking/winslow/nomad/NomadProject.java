@@ -1,6 +1,6 @@
 package de.itd.tracking.winslow.nomad;
 
-import de.itd.tracking.winslow.Submission;
+import de.itd.tracking.winslow.Stage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,10 +24,10 @@ public class NomadProject {
         if (this.current != null) {
             this.history.add(this.current);
         }
-        this.current = new Entry(stageIndex, jobId, taskName, Submission.State.Preparing);
+        this.current = new Entry(stageIndex, jobId, taskName, Stage.State.Preparing);
     }
 
-    public void updateCurrent(@Nonnull Submission.State state) {
+    public void updateCurrent(@Nonnull Stage.State state) {
         Objects.requireNonNull(this.current);
         this.history.add(this.current);
         this.current = new Entry(this.current.getStageIndex(), this.current.getJobId(), this.current.getTaskName(), state);
@@ -45,7 +45,7 @@ public class NomadProject {
         return Optional.ofNullable(this.current).map(Entry::getTaskName);
     }
 
-    public Optional<Submission.State> getCurrentState() {
+    public Optional<Stage.State> getCurrentState() {
         return Optional.ofNullable(this.current).map(Entry::getResult);
     }
 
@@ -53,7 +53,7 @@ public class NomadProject {
     public Optional<AllocatedJob> getCurrentAllocation(@Nonnull NomadOrchestrator orchestrator) {
         return Optional
                 .ofNullable(current)
-                .map(c -> new AllocatedJob(orchestrator, c.getJobId(), c.getTaskName(), () -> getHistory().map(entry -> new Submission.HistoryEntry() {
+                .map(c -> new AllocatedJob(orchestrator, c.getJobId(), c.getTaskName(), () -> getHistory().map(entry -> new Stage.HistoryEntry() {
                     @Override
                     public long getTime() {
                         return entry.getTime();
@@ -66,7 +66,7 @@ public class NomadProject {
 
                     @Nonnull
                     @Override
-                    public Submission.State getState() {
+                    public Stage.State getState() {
                         return entry.getResult();
                     }
 
@@ -79,13 +79,13 @@ public class NomadProject {
     }
 
     public static class Entry {
-        private final          long             time;
-        private final          int              stageIndex;
-        @Nonnull private final String           jobId;
-        @Nonnull private final String           taskName;
-        @Nonnull private final Submission.State result;
+        private final          long        time;
+        private final          int         stageIndex;
+        @Nonnull private final String      jobId;
+        @Nonnull private final String      taskName;
+        @Nonnull private final Stage.State result;
 
-        public Entry(int stageIndex, @Nonnull String jobId, @Nonnull String taskName, @Nonnull Submission.State result) {
+        public Entry(int stageIndex, @Nonnull String jobId, @Nonnull String taskName, @Nonnull Stage.State result) {
             this.stageIndex = stageIndex;
             this.time       = System.currentTimeMillis();
             this.jobId      = jobId;
@@ -112,7 +112,7 @@ public class NomadProject {
         }
 
         @Nonnull
-        public Submission.State getResult() {
+        public Stage.State getResult() {
             return result;
         }
     }

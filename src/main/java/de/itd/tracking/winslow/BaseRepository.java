@@ -155,7 +155,7 @@ public abstract class BaseRepository {
         }
 
         @Nonnull
-        public Optional<LockedContainer<T>> locked() {
+        public Optional<LockedContainer<T>> exclusive() {
             return BaseRepository.this.getLocked(path, reader, writer);
         }
     }

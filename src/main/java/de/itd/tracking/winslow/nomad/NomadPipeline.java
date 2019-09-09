@@ -1,0 +1,112 @@
+package de.itd.tracking.winslow.nomad;
+
+import de.itd.tracking.winslow.Pipeline;
+import de.itd.tracking.winslow.Stage;
+import de.itd.tracking.winslow.config.PipelineDefinition;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+public class NomadPipeline implements Pipeline {
+
+    @Nonnull private final NomadOrchestrator orchestrator;
+
+    @Nonnull private final String             projectId;
+    @Nonnull private final PipelineDefinition pipelineDefinition;
+    @Nonnull private final List<NomadStage>   stages = new ArrayList<>();
+
+    @Nonnull private  State            state;
+    private           boolean          pauseRequested = false;
+    private           int              nextStage      = 0;
+    @Nonnull private  PipelineStrategy strategy;
+    @Nullable private Stage            stage;
+
+    public NomadPipeline(@Nonnull NomadOrchestrator orchestrator, @Nonnull String projectId, @Nonnull PipelineDefinition pipelineDefinition) {
+        this.orchestrator       = orchestrator;
+        this.projectId          = projectId;
+        this.pipelineDefinition = pipelineDefinition;
+
+        this.state    = State.Running;
+        this.strategy = PipelineStrategy.MoveForwardUntilEnd;
+    }
+
+    @Nonnull
+    public String getProjectId() {
+        return projectId;
+    }
+
+    @Nonnull
+    @Override
+    public PipelineDefinition getDefinition() {
+        return pipelineDefinition;
+    }
+
+    @Nonnull
+    @Override
+    public State getState() {
+        return state;
+    }
+
+    public void pushStage(NomadStage stage) {
+        if (this.stage != null) {
+            this.stages.add(stage);
+        }
+        this.stage = stage;
+    }
+
+    @Nonnull
+    @Override
+    public Optional<Stage> getRunningStage() {
+        return Optional.ofNullable(this.stage);
+    }
+
+    @Nonnull
+    @Override
+    public Stream<Stage> getCompletedStages() {
+        return stages.stream().map(stage -> stage);
+    }
+
+    @Override
+    public void requestPause() {
+        this.pauseRequested = true;
+    }
+
+    @Override
+    public boolean isPauseRequested() {
+        return this.pauseRequested;
+    }
+
+    @Override
+    public void resume() {
+        this.pauseRequested = false;
+    }
+
+    @Override
+    public int getNextStageIndex() {
+        return nextStage;
+    }
+
+    @Override
+    public void setNextStageIndex(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= pipelineDefinition.getStageDefinitions().size()) {
+            throw new IndexOutOfBoundsException(index);
+        } else {
+            this.nextStage = index;
+        }
+    }
+
+    @Override
+    @Nonnull
+    public PipelineStrategy getStrategy() {
+        return this.strategy;
+    }
+
+    @Override
+    public void setStrategy(@Nonnull PipelineStrategy strategy) {
+        this.strategy = strategy;
+    }
+}

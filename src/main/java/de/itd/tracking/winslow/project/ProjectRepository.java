@@ -40,7 +40,7 @@ public class ProjectRepository extends BaseRepository {
     public Optional<Project> createProject(PipelineDefinition pipelineDefinition, User owner, Consumer<Project> customizer) {
         var id = UUID.randomUUID().toString();
         var path = workDirectoryConfiguration.getProjectsDirectory().resolve(id + FILE_SUFFIX);
-        return getProject(path).locked().flatMap(storable -> {
+        return getProject(path).exclusive().flatMap(storable -> {
             try (storable) {
                 // it should not yet exist, otherwise the UUID has clashed o.O
                 if (storable.get().isPresent()) {

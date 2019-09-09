@@ -1,6 +1,6 @@
 package de.itd.tracking.winslow.web;
 
-import de.itd.tracking.winslow.Submission;
+import de.itd.tracking.winslow.Stage;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.fs.LockException;
@@ -42,7 +42,7 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/history")
-    public Stream<Submission.HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
+    public Stream<Stage.HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -53,11 +53,11 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getSubmissionUnsafe(project)
                         .stream()
-                        .flatMap(Submission::getHistory));
+                        .flatMap(Stage::getHistory));
     }
 
     @GetMapping("/projects/{projectId}/state")
-    public Optional<Submission.State> getProjectState(User user, @PathVariable("projectId") String projectId) {
+    public Optional<Stage.State> getProjectState(User user, @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -66,14 +66,14 @@ public class ProjectsController {
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getSubmissionUnsafe(project)
-                        .flatMap(Submission::getStateOptional));
+                        .flatMap(Stage::getStateOmitExceptions));
     }
 
     @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
     public void setProjectNextStage(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int index) {
         var project = winslow.getProjectRepository().getProject(projectId);
         if (project.unsafe().map(p -> canUserAccessProject(user, p)).orElse(false)) {
-            project.locked().ifPresent(p -> {
+            project.exclusive().ifPresent(p -> {
                 try {
                     var updated = p.get().map(pget -> {
                         pget.setNextStageIndex(index);

@@ -1,23 +1,34 @@
 package de.itd.tracking.winslow;
 
-import javax.annotation.Nonnull;
-import java.util.Optional;
-import java.util.stream.Stream;
+import de.itd.tracking.winslow.config.StageDefinition;
 
-public interface Submission {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Date;
+import java.util.Optional;
+
+public interface Stage {
 
     enum State {
-        Preparing,
         Running,
         Succeeded,
         Failed
     }
 
     @Nonnull
+    StageDefinition getDefinition();
+
+    @Nonnull
+    Date getStartTime();
+
+    @Nullable
+    Date getFinishTime();
+
+    @Nonnull
     State getState() throws OrchestratorConnectionException;
 
     @Nonnull
-    default Optional<State> getStateOptional() {
+    default Optional<State> getStateOmitExceptions() {
         try {
             return Optional.of(getState());
         } catch (OrchestratorConnectionException e) {
@@ -44,15 +55,5 @@ public interface Submission {
 
     default boolean hasCompletedSuccessfully() throws OrchestratorConnectionException {
         return getState() == State.Succeeded;
-    }
-
-    Stream<HistoryEntry> getHistory();
-
-    interface HistoryEntry {
-        long getTime();
-        int getStageIndex();
-        @Nonnull State getState();
-        @Nonnull Optional<String> getDescription();
-
     }
 }

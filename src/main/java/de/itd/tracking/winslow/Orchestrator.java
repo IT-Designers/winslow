@@ -1,35 +1,21 @@
 package de.itd.tracking.winslow;
 
+import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.project.Project;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
+import java.util.function.Function;
 
 public interface Orchestrator {
 
+    @Nonnull
+    Pipeline createPipeline(@Nonnull Project project, @Nonnull PipelineDefinition pipelineDefinition) throws OrchestratorException;
 
     @Nonnull
-    Optional<Submission> getSubmission(@Nonnull Project project);
+    Optional<Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException;
 
     @Nonnull
-    Optional<Submission> getSubmissionUnsafe(@Nonnull Project project);
-
-    boolean canProgress(@Nonnull Project project);
-
-    /**
-     * Potentially faster implementation of {@link this#canProgress(Project)}
-     * which in return might return true wrongfully.
-     *
-     * @param project
-     * @return
-     */
-    boolean canProgressLockFree(@Nonnull Project project);
-
-    boolean hasPendingChanges(@Nonnull Project project);
-
-    void updateInternalState(@Nonnull Project project);
-
-    @Nonnull
-    Optional<Submission> startNext(@Nonnull Project project, @Nonnull Environment environment);
+    <T> Optional<T> updatePipeline(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) throws OrchestratorException;
 
 }
