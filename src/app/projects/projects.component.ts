@@ -10,16 +10,23 @@ import {Project, ProjectApiService} from '../project-api.service';
 })
 export class ProjectsComponent implements OnInit, OnDestroy {
   projects: Project[];
+  interval;
 
   constructor(private api: ProjectApiService, private createDialog: MatDialog, private snack: MatSnackBar) { }
 
   ngOnInit() {
     this.projects = null;
     this.api.listProjects().toPromise().then(projects => this.projects = projects);
+    this.interval = setInterval(() => {
+      this.projects.forEach(project => {
+        this.api.getProjectState(project.id).toPromise().then(state => project.state = state);
+      });
+    }, 9000);
   }
 
   ngOnDestroy() {
     this.projects = null;
+    clearInterval(this.interval);
   }
 
 
