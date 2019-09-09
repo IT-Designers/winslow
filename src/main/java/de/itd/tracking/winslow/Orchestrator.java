@@ -9,7 +9,10 @@ public interface Orchestrator {
 
 
     @Nonnull
-    Optional<Submission> getCurrent(@Nonnull Project project);
+    Optional<Submission> getSubmission(@Nonnull Project project);
+
+    @Nonnull
+    Optional<Submission> getSubmissionUnsafe(@Nonnull Project project);
 
     boolean canProgress(@Nonnull Project project);
 

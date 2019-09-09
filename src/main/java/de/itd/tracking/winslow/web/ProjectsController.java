@@ -3,10 +3,12 @@ package de.itd.tracking.winslow.web;
 import de.itd.tracking.winslow.Submission;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
+import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -21,11 +23,6 @@ public class ProjectsController {
 
     @GetMapping("/projects")
     public Stream<Project> listProjects(User user) {
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return winslow
                 .getProjectRepository()
                 .getProjects()
@@ -46,11 +43,6 @@ public class ProjectsController {
 
     @GetMapping("/projects/{projectId}/history")
     public Stream<Submission.HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -59,9 +51,43 @@ public class ProjectsController {
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
-                        .getCurrent(project)
+                        .getSubmissionUnsafe(project)
                         .stream()
                         .flatMap(Submission::getHistory));
+    }
+
+    @GetMapping("/projects/{projectId}/state")
+    public Optional<Submission.State> getProjectState(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow
+                        .getOrchestrator()
+                        .getSubmissionUnsafe(project)
+                        .flatMap(Submission::getStateOptional));
+    }
+
+    @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
+    public void setProjectNextStage(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int index) {
+        var project = winslow.getProjectRepository().getProject(projectId);
+        if (project.unsafe().map(p -> canUserAccessProject(user, p)).orElse(false)) {
+            project.locked().ifPresent(p -> {
+                try {
+                    var updated = p.get().map(pget -> {
+                        pget.setNextStageIndex(index);
+                        pget.setForceProgressOnce(true);
+                        return pget;
+                    });
+                    if (updated.isPresent()) {
+                        p.update(updated.get());
+                    }
+                } catch (LockException | IOException e) {
+                    throw new RuntimeException("Failed to set next stage index", e);
+                }
+            });
+        }
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {

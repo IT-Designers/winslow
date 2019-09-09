@@ -21,6 +21,9 @@ public class NomadProject {
     }
 
     public void newCurrent(int stageIndex, @Nonnull String jobId, @Nonnull String taskName) {
+        if (this.current != null) {
+            this.history.add(this.current);
+        }
         this.current = new Entry(stageIndex, jobId, taskName, Submission.State.Preparing);
     }
 
