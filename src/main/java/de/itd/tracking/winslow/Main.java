@@ -8,6 +8,8 @@ import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.nomad.NomadOrchestrator;
 import de.itd.tracking.winslow.nomad.NomadRepository;
+import de.itd.tracking.winslow.resource.PathConfiguration;
+import de.itd.tracking.winslow.resource.ResourceManager;
 import de.itd.tracking.winslow.web.WebApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,21 +43,28 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        WebApi.Context webApi = null;
-        AutoMesh       mesh   = new AutoMeshBuilder().build();
+        WebApi.Context    webApi       = null;
+        NomadOrchestrator orchestrator = null;
+        AutoMesh          mesh         = new AutoMeshBuilder().build();
 
         try {
             LOG.info("Loading NFS configuration for work-directory");
             NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of("/home/mi7wa6/mec-view/winslow/nfs-mount"));
 
+            LOG.info("Preparing environment");
+            var lockBus         = new LockBus(config.getEventsDirectory());
+            var resourceManager = new ResourceManager(config.getPath(), new PathConfiguration());
+            var environment     = new Environment(config, resourceManager);
+
+            LOG.info("Preparing the orchestrator");
+            var nomadRepository = new NomadRepository(lockBus, config);
+            var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder()
+                    .setAddress("http://localhost:4646")
+                    .build());
+            orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository);
+
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(new NomadOrchestrator(environment, new NomadApiClient(new NomadApiConfiguration.Builder().setAddress("http://localhost:4646").build()),
-                    new NomadRepository(
-                            // TODO
-                            new LockBus(config.getEventsDirectory()),
-                            config
-                    )
-            ), config);
+            var winslow = new Winslow(orchestrator, config, lockBus, resourceManager);
 
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);
@@ -69,6 +78,9 @@ public class Main {
         } finally {
             if (webApi != null) {
                 webApi.stop();
+            }
+            if (orchestrator != null) {
+                orchestrator.stop();
             }
         }
 

@@ -8,8 +8,12 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LockedContainer<T> implements Closeable {
+
+    private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
     @Nonnull private final Lock lock;
     @Nonnull private final Reader<T> reader;
@@ -55,6 +59,16 @@ public class LockedContainer<T> implements Closeable {
     public void delete() throws IOException {
         this.writer.write(this.lock, null);
         this.value = null;
+    }
+
+    public boolean deleteOmitExceptions() {
+        try {
+            this.delete();
+            return true;
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to delete", e);
+            return false;
+        }
     }
 
     @Nonnull

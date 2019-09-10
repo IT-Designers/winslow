@@ -27,10 +27,10 @@ public interface Pipeline {
     State getState();
 
     @Nonnull
-    Optional<Stage> getRunningStage();
+    Optional<? extends Stage> getRunningStage();
 
     @Nonnull
-    Stream<Stage> getCompletedStages();
+    Stream<? extends Stage> getCompletedStages();
 
     void requestPause();
 

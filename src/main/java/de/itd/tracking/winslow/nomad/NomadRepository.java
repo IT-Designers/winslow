@@ -7,6 +7,7 @@ import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 public class NomadRepository extends BaseRepository {
 
@@ -21,6 +22,9 @@ public class NomadRepository extends BaseRepository {
         return workDirectoryConfiguration.getPath().resolve("nomad");
     }
 
+    public Stream<Handle<NomadPipeline>> getAllPipelines() {
+        return listAll().map(path -> createHandle(path, NomadPipeline.class));
+    }
 
     public Handle<NomadPipeline> getNomadPipeline(@Nonnull String projectId) {
         return createHandle(getRepositoryFile(projectId), NomadPipeline.class);

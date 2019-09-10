@@ -19,7 +19,8 @@ public class NomadStage implements Stage {
     @Nonnull private final StageDefinition   definition;
     @Nonnull private final Date              startTime;
 
-    @Nullable private Date finishTime;
+    @Nullable private Date  finishTime;
+    @Nullable private State finishState;
 
     public NomadStage(@Nonnull NomadOrchestrator orchestrator, @Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition) {
         this.orchestrator = orchestrator;
@@ -27,7 +28,9 @@ public class NomadStage implements Stage {
         this.taskName     = taskName;
         this.definition   = definition;
 
-        this.startTime = new Date();
+        this.startTime   = new Date();
+        this.finishTime  = null;
+        this.finishState = null;
     }
 
     @Nonnull
@@ -48,13 +51,17 @@ public class NomadStage implements Stage {
         return this.finishTime;
     }
 
-    public void finishNow() {
-        this.finishTime = new Date();
+    public void finishNow(@Nonnull State finishState) {
+        this.finishTime  = new Date();
+        this.finishState = finishState;
     }
 
     @Nonnull
     @Override
     public State getState() throws OrchestratorConnectionException {
+        if (this.finishState != null) {
+            return this.finishState;
+        }
         try {
             return orchestrator
                     .getJobAllocationContainingTaskState(jobId, taskName)

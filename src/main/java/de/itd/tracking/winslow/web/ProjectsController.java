@@ -1,19 +1,24 @@
 package de.itd.tracking.winslow.web;
 
+import de.itd.tracking.winslow.OrchestratorException;
+import de.itd.tracking.winslow.Pipeline;
 import de.itd.tracking.winslow.Stage;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
-import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
+import java.util.Date;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 @RestController
 public class ProjectsController {
+
+    private static final Logger LOG = Logger.getLogger(ProjectsController.class.getSimpleName());
 
     private final Winslow winslow;
 
@@ -38,11 +43,23 @@ public class ProjectsController {
                 .unsafe()
                 .flatMap(pipeline -> winslow
                         .getProjectRepository()
-                        .createProject(pipeline, user, project -> project.setName(name)));
+                        .createProject(user, project -> project.setName(name))
+                        .filter(project -> {
+                            try {
+                                winslow.getOrchestrator().createPipeline(project, pipeline);
+                                return true;
+                            } catch (OrchestratorException e) {
+                                LOG.log(Level.WARNING, "Failed to create pipeline for project", e);
+                                if (!winslow.getProjectRepository().deleteProject(project.getId())) {
+                                    LOG.severe("Failed to delete project for which no pipeline could be created, this leads to inconsistency!");
+                                }
+                                return false;
+                            }
+                        }));
     }
 
     @GetMapping("/projects/{projectId}/history")
-    public Stream<Stage.HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
+    public Stream<HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -51,9 +68,12 @@ public class ProjectsController {
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
-                        .getSubmissionUnsafe(project)
+                        .getPipelineOmitExceptions(project)
                         .stream()
-                        .flatMap(Stage::getHistory));
+                        .flatMap(pipeline -> Stream.concat(pipeline.getCompletedStages(), pipeline
+                                .getRunningStage()
+                                .stream()))
+                        .map(HistoryEntry::new));
     }
 
     @GetMapping("/projects/{projectId}/state")
@@ -65,29 +85,22 @@ public class ProjectsController {
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow
                         .getOrchestrator()
-                        .getSubmissionUnsafe(project)
+                        .getPipelineOmitExceptions(project)
+                        .flatMap(Pipeline::getRunningStage)
                         .flatMap(Stage::getStateOmitExceptions));
     }
 
     @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
-    public void setProjectNextStage(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int index) {
-        var project = winslow.getProjectRepository().getProject(projectId);
-        if (project.unsafe().map(p -> canUserAccessProject(user, p)).orElse(false)) {
-            project.exclusive().ifPresent(p -> {
-                try {
-                    var updated = p.get().map(pget -> {
-                        pget.setNextStageIndex(index);
-                        pget.setForceProgressOnce(true);
-                        return pget;
-                    });
-                    if (updated.isPresent()) {
-                        p.update(updated.get());
-                    }
-                } catch (LockException | IOException e) {
-                    throw new RuntimeException("Failed to set next stage index", e);
-                }
-            });
-        }
+    public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int index) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
+                    pipeline.setNextStageIndex(index);
+                    return true;
+                }))
+                .orElse(false);
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
@@ -99,5 +112,19 @@ public class ProjectsController {
             }
             return false;
         });
+    }
+
+    static class HistoryEntry {
+        public final Date        startTime;
+        public final Date        finishTime;
+        public final Stage.State state;
+        public final String      stageName;
+
+        public HistoryEntry(Stage stage) {
+            this.startTime  = stage.getStartTime();
+            this.finishTime = stage.getFinishTime();
+            this.state      = stage.getStateOmitExceptions().orElse(null);
+            this.stageName  = stage.getDefinition().getName();
+        }
     }
 }

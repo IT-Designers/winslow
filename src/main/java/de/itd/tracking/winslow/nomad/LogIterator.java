@@ -23,11 +23,11 @@ public class LogIterator implements Iterator<String> {
     private FramedStream stream = null;
 
     public LogIterator(String id, String taskName, String logType, ClientApi clientApi, Supplier<Optional<AllocationListStub>> state) {
-        this.id = id;
-        this.taskName = taskName;
-        this.logType = logType;
+        this.id        = id;
+        this.taskName  = taskName;
+        this.logType   = logType;
         this.clientApi = clientApi;
-        this.state = state;
+        this.state     = state;
         this.tryEnsureStream();
     }
 
@@ -57,9 +57,10 @@ public class LogIterator implements Iterator<String> {
 
     @Override
     public boolean hasNext() {
-        boolean hasNext = state.get()
+        boolean hasNext = state
+                .get()
                 .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, taskName))
-                .map(state -> state == Stage.State.Running || state == Stage.State.Preparing)
+                .map(state -> state == Stage.State.Running)
                 .orElse(false);
         if (!hasNext && stream != null) {
             try {

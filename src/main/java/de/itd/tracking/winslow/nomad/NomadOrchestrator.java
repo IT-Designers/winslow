@@ -44,10 +44,22 @@ public class NomadOrchestrator implements Orchestrator {
         thread.start();
     }
 
+    public synchronized void stop() {
+        this.shouldRun = false;
+    }
+
+    public synchronized boolean isGoingToStop() {
+        return !this.shouldRun;
+    }
+
+    public synchronized boolean isRunning() {
+        return this.isRunning;
+    }
+
     private void pipelineUpdaterLoop() {
         this.isRunning = true;
         try {
-            while (shouldRun) {
+            while (!isGoingToStop()) {
                 pollForPipelineUpdates();
                 try {
                     // TODO
@@ -62,7 +74,80 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private void pollForPipelineUpdates() {
-        // TODO
+        repository
+                .getAllPipelines()
+                .filter(handle -> handle.unsafe().map(this::hasUpdateAvailable).orElse(false))
+                .map(BaseRepository.Handle::exclusive)
+                .flatMap(Optional::stream)
+                .forEach(this::updatePipeline);
+    }
+
+    private void updatePipeline(LockedContainer<NomadPipeline> container) {
+        try (container) {
+            var pipelineOpt = container.get();
+            if (pipelineOpt.isPresent()) {
+                var pipeline = pipelineOpt.get();
+
+                updateRunningStage(pipeline);
+                maybeStartNextStage(pipeline);
+
+                container.update(pipeline);
+            }
+        } catch (LockException | IOException e) {
+            LOG.log(Level.SEVERE, "Failed to update pipeline", e);
+        }
+    }
+
+    private void maybeStartNextStage(NomadPipeline pipeline) {
+        if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested()) {
+            switch (pipeline.getStrategy()) {
+                case MoveForwardOnce:
+                    pipeline.requestPause();
+                case MoveForwardUntilEnd:
+                    try {
+                        var stage = startNextPipelineStage(pipeline);
+                        pipeline.pushStage(stage);
+                    } catch (OrchestratorException e) {
+                        LOG.log(Level.SEVERE, "Failed to start next pipeline stage", e);
+                        pipeline.requestPause();
+                    }
+            }
+        }
+    }
+
+    private void updateRunningStage(NomadPipeline pipeline) {
+        pipeline.getRunningStage().ifPresent(stage -> {
+            stage.getStateOmitExceptions().ifPresent(state -> {
+                switch (state) {
+                    default:
+                    case Running:
+                        break;
+                    case Failed:
+                        pipeline.requestPause();
+                    case Succeeded:
+                        stage.finishNow(state);
+                        pipeline.pushStage(null);
+                        break;
+                }
+            });
+        });
+    }
+
+    private boolean hasUpdateAvailable(NomadPipeline pipeline) {
+        return isStageStateUpdateAvailable(pipeline);
+    }
+
+    private boolean isStageStateUpdateAvailable(NomadPipeline pipeline) {
+        return pipeline.getRunningStage().flatMap(Stage::getStateOmitExceptions).map(state -> {
+            switch (state) {
+                default:
+                case Running:
+                    return false;
+                case Succeeded:
+                case Failed:
+                    return true;
+            }
+        }).orElse(false);
     }
 
     private String combine(String... names) {
@@ -78,7 +163,7 @@ public class NomadOrchestrator implements Orchestrator {
 
         try (var container = exclusivePipelineContainer(project)) {
             var pipeline = new NomadPipeline(this, project.getId(), pipelineDefinition);
-            var stage    = this.setupPipeline(pipeline);
+            var stage    = this.startNextPipelineStage(pipeline);
 
             pipeline.pushStage(stage);
             container.update(pipeline);
@@ -96,7 +181,7 @@ public class NomadOrchestrator implements Orchestrator {
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
     }
 
-    private NomadStage setupPipeline(NomadPipeline pipeline) throws OrchestratorException {
+    private NomadStage startNextPipelineStage(NomadPipeline pipeline) throws OrchestratorException {
         var stageDefinition = pipeline
                 .getNextStage()
                 .orElseThrow(() -> new OrchestratorException("A pipeline requires at least one stage"));
@@ -145,7 +230,10 @@ public class NomadOrchestrator implements Orchestrator {
             throw new OrchestratorException("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration());
         }
 
-        return new PreparedJob(builder.buildJob(pipeline.getDefinition(), stageDefinition, environment), this).start(stageDefinition);
+        var job   = builder.buildJob(pipeline.getDefinition(), stageDefinition, environment);
+        var stage = new PreparedJob(job, this).start(stageDefinition);
+        pipeline.incrementNextStageIndex(); // at this point, the start was successful
+        return stage;
     }
 
     private String getTaskName(NomadPipeline pipeline, StageDefinition stage) throws OrchestratorException {
@@ -165,195 +253,6 @@ public class NomadOrchestrator implements Orchestrator {
         return Optional.empty();
     }
 
-    @Nonnull
-    @Override
-    public Optional<Stage> getSubmission(@Nonnull Project project) {
-        return getCurrentAllocation(project).map(allocatedJob -> allocatedJob);
-    }
-
-    @Nonnull
-    @Override
-    public Optional<Stage> getSubmissionUnsafe(@Nonnull Project project) {
-        return repository
-                .getNomadPipeline(project.getId())
-                .unsafe()
-                .flatMap(nomadProject -> nomadProject.getCurrentAllocation(this));
-    }
-
-    @Override
-    public boolean canProgress(@Nonnull Project project) {
-        var job = getCurrentAllocation(project);
-        return canProgress(project, job);
-    }
-
-    private boolean hasCompleted(@Nonnull AllocatedJob job) {
-        try {
-            return job.hasCompleted();
-        } catch (OrchestratorConnectionException e) {
-            LOG.log(Level.SEVERE, "Failed to check if job completed: " + job.getJobId(), e);
-            return false;
-        }
-    }
-
-    private boolean hasCompletedSuccessfully(@Nonnull AllocatedJob job) {
-        try {
-            return job.hasCompletedSuccessfully();
-        } catch (OrchestratorConnectionException e) {
-            LOG.log(Level.SEVERE, "Failed to check if job completed: " + job.getJobId(), e);
-            return false;
-        }
-    }
-
-    @Override
-    public boolean canProgressLockFree(@Nonnull Project project) {
-        var job = repository.getNomadPipeline(project.getId()).unsafe().flatMap(j -> j.getCurrentAllocation(this));
-        return canProgress(project, job);
-    }
-
-    @Override
-    public boolean hasPendingChanges(@Nonnull Project project) {
-        var nomadProject = repository.getNomadPipeline(project.getId()).unsafe();
-        var job          = nomadProject.flatMap(j -> j.getCurrentAllocation(this));
-        return job.isPresent() && !job.get().getStateOmitExceptions().equals(nomadProject.get().getCurrentState());
-    }
-
-    @Override
-    public void updateInternalState(@Nonnull Project project) {
-        repository.getNomadPipeline(project.getId()).exclusive().ifPresent(lock -> {
-            try (lock) {
-                updateProjectState(project, lock);
-            } catch (LockException e) {
-                LOG.log(Level.SEVERE, "Failed to update project", e);
-            }
-        });
-    }
-
-    private void updateProjectState(@Nonnull Project project, LockedContainer<NomadProject> lock) throws LockException {
-        var inner = lock.get();
-        inner.flatMap(j -> j.getCurrentAllocation(this)).flatMap(Stage::getStateOmitExceptions).ifPresent(state -> {
-            try {
-                var p = inner.get();
-                if (p.getCurrentState().map(s -> s != state).orElse(true)) {
-                    p.updateCurrent(state);
-                    lock.update(p);
-                }
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Failed to update nomad project " + project.getId(), e);
-            }
-        });
-    }
-
-    private boolean canProgress(@Nonnull Project project, @Nonnull Optional<AllocatedJob> job) {
-        return (job.isEmpty() || hasCompletedSuccessfully(job.get()) || (project.isForceProgressOnce() && hasCompleted(job
-                .get()))) && project.getNextStageIndex() < project.getPipeline().getStageDefinitions().size();
-    }
-
-    @Nonnull
-    public Optional<AllocatedJob> getCurrentAllocation(@Nonnull Project project) {
-        return repository.getNomadPipeline(project.getId()).exclusive().flatMap(locked -> {
-            try (locked) {
-                return locked.get().flatMap(nomadProject -> nomadProject.getCurrentAllocation(this));
-            } catch (LockException e) {
-                LOG.log(Level.SEVERE, "Failed to lock nomad project file", e);
-                return Optional.empty();
-            }
-        });
-    }
-
-    @Nonnull
-    @Override
-    public Optional<Stage> startNext(@Nonnull Project project, @Nonnull Environment environment) {
-        var index  = project.getNextStageIndex();
-        var stages = project.getPipeline().getStageDefinitions();
-
-        if (index < 0 || index >= stages.size()) {
-            return Optional.empty();
-        }
-
-        return repository.getNomadPipeline(project.getId()).exclusive().flatMap(locked -> {
-            try (locked) {
-                if (!canProgress(project, locked.get().flatMap(p -> p.getCurrentAllocation(this)))) {
-                    return Optional.empty();
-                }
-
-                updateProjectState(project, locked);
-
-                var stage    = stages.get(index);
-                var prepared = prepare(project.getId(), project.getPipeline(), stage, environment);
-                var running  = prepared.start();
-
-                if (running.isPresent()) {
-                    var jobId    = running.get().getJobId();
-                    var taskName = running.get().getTaskName();
-                    var nomad    = locked.get().orElseGet(NomadProject::new);
-
-                    nomad.newCurrent(index, jobId, taskName);
-                    locked.update(nomad);
-
-                    project.setNextStageIndex(index + 1);
-                    project.setForceProgressOnce(false);
-
-                    return nomad.getCurrentAllocation(this);
-                }
-            } catch (OrchestratorException | IOException | LockException e) {
-                LOG.log(Level.SEVERE, "Failed to start next stage for project " + project.getId(), e);
-            }
-            return Optional.empty();
-        });
-    }
-
-    @Nonnull
-    private PreparedJob prepare(String projectId, PipelineDefinition pipelineDefinition, StageDefinition stageDefinition, Environment environment) throws OrchestratorException {
-        var builder = JobBuilder
-                .withRandomUuid()
-                .withTaskName(replaceInvalidCharactersInJobName(combine(projectId, pipelineDefinition.getName(), stageDefinition
-                        .getName())));
-
-        var resources = environment.getResourceManager().getResourceDirectory();
-        var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
-
-        if (resources.isEmpty() || workspace.isEmpty()) {
-            workspace.map(Path::toFile).map(File::delete);
-            throw new OrchestratorException("The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources);
-        }
-
-        if (stageDefinition.getImage().isPresent()) {
-            builder = builder
-                    .withDockerImage(stageDefinition.getImage().get().getName())
-                    .withDockerImageArguments(stageDefinition.getImage().get().getArguments());
-        }
-
-        if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {
-            var config = (NfsWorkDirectory) environment.getWorkDirectoryConfiguration();
-
-            var exportedResources = resources.flatMap(config::toExportedPath);
-            var exportedWorkspace = workspace.flatMap(config::toExportedPath);
-
-            if (exportedResources.isEmpty() || exportedWorkspace.isEmpty()) {
-                workspace.map(Path::toFile).map(File::delete);
-                throw new OrchestratorException("The workspace and resource path must be exported, but at least one isn't. workspace=" + exportedWorkspace + ",resources=" + exportedResources);
-            }
-
-            System.out.println(resources);
-            System.out.println(workspace);
-            System.out.println(exportedResources);
-            System.out.println(exportedWorkspace);
-
-            builder = builder
-                    .addNfsVolume("winslow-" + builder.getUuid() + "-resources", "/resources", true, config.getOptions(), exportedResources
-                            .get()
-                            .toAbsolutePath()
-                            .toString())
-                    .addNfsVolume("winslow-" + builder.getUuid() + "-workspace", "/workspace", false, config.getOptions(), exportedWorkspace
-                            .get()
-                            .toAbsolutePath()
-                            .toString());
-        } else {
-            throw new OrchestratorException("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration());
-        }
-
-        return new PreparedJob(builder.buildJob(pipelineDefinition, stageDefinition, environment), this);
-    }
 
     public NomadApiClient getClient() {
         return this.client;
@@ -400,7 +299,7 @@ public class NomadOrchestrator implements Orchestrator {
         if (failed.isPresent() && failed.get()) {
             return Optional.of(Stage.State.Failed);
         } else if (started.isPresent() && !started.get()) {
-            return Optional.of(Stage.State.Preparing);
+            return Optional.of(Stage.State.Running);
         } else if (started.isPresent() && finished.isPresent() && !finished.get()) {
             return Optional.of(Stage.State.Running);
         } else if (finished.isPresent() && finished.get()) {

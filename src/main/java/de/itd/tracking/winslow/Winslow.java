@@ -3,14 +3,12 @@ package de.itd.tracking.winslow;
 import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.fs.LockBus;
-import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
-import de.itd.tracking.winslow.project.Project;
 import de.itd.tracking.winslow.project.ProjectRepository;
-import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Winslow implements Runnable {
 
@@ -23,12 +21,11 @@ public class Winslow implements Runnable {
     private final PipelineRepository         pipelineRepository;
     private final ProjectRepository          projectRepository;
 
-    public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration) throws IOException {
-        this.orchestrator  = orchestrator;
-        this.configuration = configuration;
-
-        this.lockBus         = new LockBus(configuration.getEventsDirectory());
-        this.resourceManager = new ResourceManager(configuration.getPath(), new PathConfiguration());
+    public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
+        this.orchestrator    = orchestrator;
+        this.configuration   = configuration;
+        this.lockBus         = lockBus;
+        this.resourceManager = resourceManager;
 
         this.groupRepository    = new GroupRepository();
         this.userRepository     = new UserRepository(groupRepository);
@@ -49,46 +46,15 @@ public class Winslow implements Runnable {
     }
 
     public void run() {
-        try {
-            while (true) {
-                getProjectRepository()
-                        .getProjects()
-                        .filter(handle -> {
-                            var loaded = handle.unsafe();
-                            return loaded.isPresent() && orchestrator.canProgressLockFree(loaded.get());
-                        })
-                        .flatMap(handle -> handle.exclusive().stream())
-                        .peek(this::tryMakeProgress)
-                        .forEach(LockedContainer::close);
-
-                getProjectRepository()
-                        .getProjects()
-                        .filter(handle -> {
-                            var loaded = handle.unsafe();
-                            return loaded.isPresent() && orchestrator.hasPendingChanges(loaded.get());
-                        })
-                        .flatMap(handle -> handle.unsafe().stream())
-                        .forEach(orchestrator::updateInternalState);
-
-                synchronized (this) {
-                    this.wait(10_000);
+        try (Scanner scanner = new Scanner(System.in)) {
+            String line;
+            while ((line = scanner.nextLine()) != null) {
+                if ("exit".equals(line) || "stop".equals(line)) {
+                    break;
+                } else if (!line.isEmpty()) {
+                    System.out.println("Unknown command");
                 }
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Interrupted unexpectedly", e);
-        }
-    }
-
-    protected void tryMakeProgress(LockedContainer<Project> container) {
-        try {
-            var containerProject = container.get();
-            if (containerProject.isPresent()) {
-                var project = containerProject.get();
-                orchestrator.startNext(project, new Environment(configuration, resourceManager));
-                container.update(project);
-            }
-        } catch (LockException | IOException e) {
-            e.printStackTrace();
         }
     }
 

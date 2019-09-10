@@ -1,7 +1,6 @@
 package de.itd.tracking.winslow.nomad;
 
 import de.itd.tracking.winslow.Pipeline;
-import de.itd.tracking.winslow.Stage;
 import de.itd.tracking.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
@@ -23,7 +22,7 @@ public class NomadPipeline implements Pipeline {
     private           boolean          pauseRequested = false;
     private           int              nextStage      = 0;
     @Nonnull private  PipelineStrategy strategy;
-    @Nullable private Stage            stage;
+    @Nullable private NomadStage       stage;
 
     public NomadPipeline(@Nonnull NomadOrchestrator orchestrator, @Nonnull String projectId, @Nonnull PipelineDefinition pipelineDefinition) {
         this.orchestrator       = orchestrator;
@@ -51,7 +50,7 @@ public class NomadPipeline implements Pipeline {
         return state;
     }
 
-    public void pushStage(NomadStage stage) {
+    public void pushStage(@Nullable NomadStage stage) {
         if (this.stage != null) {
             this.stages.add(stage);
         }
@@ -60,14 +59,14 @@ public class NomadPipeline implements Pipeline {
 
     @Nonnull
     @Override
-    public Optional<Stage> getRunningStage() {
+    public Optional<NomadStage> getRunningStage() {
         return Optional.ofNullable(this.stage);
     }
 
     @Nonnull
     @Override
-    public Stream<Stage> getCompletedStages() {
-        return stages.stream().map(stage -> stage);
+    public Stream<NomadStage> getCompletedStages() {
+        return stages.stream();
     }
 
     @Override
@@ -96,6 +95,13 @@ public class NomadPipeline implements Pipeline {
             throw new IndexOutOfBoundsException(index);
         } else {
             this.nextStage = index;
+        }
+    }
+
+    public void incrementNextStageIndex() {
+        // index == size indicates there is no further stage to execute
+        if (nextStage < pipelineDefinition.getStageDefinitions().size()) {
+            nextStage += 1;
         }
     }
 

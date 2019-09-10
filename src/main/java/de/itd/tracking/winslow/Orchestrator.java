@@ -15,7 +15,25 @@ public interface Orchestrator {
     @Nonnull
     Optional<Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException;
 
+    default Optional<Pipeline> getPipelineOmitExceptions(@Nonnull Project project) {
+        try {
+            return getPipeline(project);
+        } catch (OrchestratorException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
     @Nonnull
     <T> Optional<T> updatePipeline(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) throws OrchestratorException;
+
+    default <T> Optional<T> updatePipelineOmitExceptions(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) {
+        try {
+            return updatePipeline(project, updater);
+        } catch (OrchestratorException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
 
 }
