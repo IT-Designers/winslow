@@ -36,7 +36,7 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
 
     public static NfsWorkDirectory loadFromCurrentConfiguration(Path workDir) throws IOException {
         String pattern = " " + workDir.toFile().getCanonicalPath() + " ";
-        String line    = null;
+        String line;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(openOneOf("/etc/mtab", "/proc/mounts")))) {
             while ((line = reader.readLine()) != null) {
