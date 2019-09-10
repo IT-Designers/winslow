@@ -1,7 +1,9 @@
 package de.itd.tracking.winslow.auth;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class UserRepository implements GroupAssignmentResolver {

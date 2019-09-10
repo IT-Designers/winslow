@@ -2,8 +2,6 @@ package de.itd.tracking.winslow;
 
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
-import de.itd.tracking.winslow.com.AutoMesh;
-import de.itd.tracking.winslow.com.AutoMeshBuilder;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.nomad.NomadOrchestrator;
@@ -45,7 +43,6 @@ public class Main {
 
         WebApi.Context    webApi       = null;
         NomadOrchestrator orchestrator = null;
-        AutoMesh          mesh         = new AutoMeshBuilder().build();
 
         try {
             LOG.info("Loading NFS configuration for work-directory");

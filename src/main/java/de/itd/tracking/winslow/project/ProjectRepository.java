@@ -8,7 +8,6 @@ import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;

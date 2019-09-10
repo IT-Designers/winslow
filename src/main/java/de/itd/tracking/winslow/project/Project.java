@@ -1,7 +1,5 @@
 package de.itd.tracking.winslow.project;
 
-import de.itd.tracking.winslow.Orchestrator;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
