@@ -98,7 +98,7 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private void maybeStartNextStage(NomadPipeline pipeline) {
-        if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested()) {
+        if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested() && pipeline.getNextStage().isPresent()) {
             switch (pipeline.getStrategy()) {
                 case MoveForwardOnce:
                     pipeline.requestPause();
