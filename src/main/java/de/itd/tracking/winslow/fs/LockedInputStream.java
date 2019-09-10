@@ -15,7 +15,7 @@ public class LockedInputStream extends InputStream {
         this(new FileInputStream(file), lock);
     }
 
-    public LockedInputStream(InputStream fis, Lock lock) throws IOException {
+    public LockedInputStream(InputStream fis, Lock lock) {
         this.inputStream = fis;
         this.lock = lock;
     }
