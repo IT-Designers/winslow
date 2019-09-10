@@ -1,10 +1,10 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {ApiService, PipelineInfo} from '../api.service';
+import {ApiService, PipelineDefinition} from '../api.service';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 
 interface CreateProjectData {
   name: string;
-  pipeline: PipelineInfo;
+  pipeline: PipelineDefinition;
 }
 
 @Component({
@@ -14,7 +14,7 @@ interface CreateProjectData {
 })
 export class ProjectsCreateDialog implements OnInit {
 
-  pipelines: PipelineInfo[];
+  pipelines: PipelineDefinition[];
 
   constructor(
     public dialogRef: MatDialogRef<ProjectsCreateDialog>,
@@ -23,6 +23,6 @@ export class ProjectsCreateDialog implements OnInit {
   }
 
   ngOnInit() {
-    this.api.listPipelines().toPromise().then(pipelines => this.pipelines = pipelines);
+    this.api.getPipelineDefinitions().toPromise().then(pipelines => this.pipelines = pipelines);
   }
 }

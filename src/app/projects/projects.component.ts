@@ -28,8 +28,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     if (this.projects != null) {
       this.projects.forEach(project => {
         this.api.getProjectState(project.id).toPromise().then(state => {
-          if (project.state !== state) {
-            project.state = state;
+          project.state = state;
+          if (project.history != null) {
             this.loadHistory(project);
           }
         });
@@ -61,6 +61,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         project.history = null;
       }
       this.loadHistory(project);
+    } else {
+      project.history = null;
     }
   }
 
@@ -75,8 +77,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   setNextStage(project: Project, value: string) {
     this.api.setProjectNextStage(project.id, Number(value)).toPromise().then(result => {
       this.snack.open('Request has been accepted', 'OK');
-      project.nextStage = Number(value);
-      project.forceProgressOnce = true;
       this.intervalUpdateProjects();
     }).catch(error => {
       this.snack.open('Request failed: ' + error);

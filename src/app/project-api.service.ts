@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../environments/environment';
-import {PipelineInfo} from './api.service';
+import {PipelineDefinition} from './api.service';
 import {map} from 'rxjs/operators';
 
 @Injectable({
@@ -12,7 +12,7 @@ export class ProjectApiService {
   constructor(private client: HttpClient) {
   }
 
-  createProject(name: string, pipeline: PipelineInfo) {
+  createProject(name: string, pipeline: PipelineDefinition) {
     const form = new FormData();
     form.append('name', name);
     form.append('pipeline', pipeline.id);
@@ -37,7 +37,6 @@ export class ProjectApiService {
 
 }
 export enum State {
-  Preparing,
   Running,
   Succeeded,
   Failed
@@ -45,21 +44,19 @@ export enum State {
 
 export class Project {
   id: string;
-  pipeline: any;
   owner: string;
   groups: string[];
   name: string;
-  nextStage: number;
-  forceProgressOnce: boolean;
-  // loaded lazy
+  pipelineDefinition: PipelineDefinition;
+  // local only
   history?: HistoryEntry[];
   state?: State;
 }
 
 export class HistoryEntry {
-  time: number;
-  state: State;
-  stageIndex: number;
-  description: string;
+  startTime: number;
+  finishTime?: number;
+  state?: State;
+  stageName?: string;
 }
 
