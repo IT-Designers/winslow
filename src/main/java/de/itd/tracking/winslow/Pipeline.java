@@ -10,21 +10,15 @@ import java.util.stream.Stream;
 public interface Pipeline {
 
     enum State {
-        Running,
-        Paused,
-        AwaitingUserInput
+        Running, Paused, AwaitingUserInput
     }
 
     enum PipelineStrategy {
-        MoveForwardUntilEnd,
-        MoveForwardOnce,
+        MoveForwardUntilEnd, MoveForwardOnce,
     }
 
     @Nonnull
     PipelineDefinition getDefinition();
-
-    @Nonnull
-    State getState();
 
     @Nonnull
     Optional<? extends Stage> getRunningStage();

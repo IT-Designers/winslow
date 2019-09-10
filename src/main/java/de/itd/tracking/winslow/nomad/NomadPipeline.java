@@ -16,7 +16,6 @@ public class NomadPipeline implements Pipeline {
     @Nonnull private final PipelineDefinition pipelineDefinition;
     @Nonnull private final List<NomadStage>   stages = new ArrayList<>();
 
-    @Nonnull private  State            state;
     private           boolean          pauseRequested = false;
     private           int              nextStage      = 0;
     @Nonnull private  PipelineStrategy strategy;
@@ -25,9 +24,7 @@ public class NomadPipeline implements Pipeline {
     public NomadPipeline(@Nonnull String projectId, @Nonnull PipelineDefinition pipelineDefinition) {
         this.projectId          = projectId;
         this.pipelineDefinition = pipelineDefinition;
-
-        this.state    = State.Running;
-        this.strategy = PipelineStrategy.MoveForwardUntilEnd;
+        this.strategy           = PipelineStrategy.MoveForwardUntilEnd;
     }
 
     @Nonnull
@@ -39,12 +36,6 @@ public class NomadPipeline implements Pipeline {
     @Override
     public PipelineDefinition getDefinition() {
         return pipelineDefinition;
-    }
-
-    @Nonnull
-    @Override
-    public State getState() {
-        return state;
     }
 
     public void pushStage(@Nullable NomadStage stage) {
