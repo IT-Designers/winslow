@@ -17,7 +17,7 @@ public class JobBuilder {
     private final UUID                uuid;
     private       String              taskName;
     private       String              driver;
-    private       Map<String, Object> config = new HashMap<>();
+    private final Map<String, Object> config = new HashMap<>();
 
     private JobBuilder(UUID uuid) {
         this.uuid = uuid;
