@@ -37,7 +37,7 @@
         <span>Next Stage to execute</span>
         <mat-form-field>
           <mat-select #stageSelection placeholder="Stage selection">
-            <mat-option *ngFor="let stage of project.pipeline.stages; index as i" value="{{i}}">{{stage.name}}</mat-option>
+            <mat-option *ngFor="let stage of project.pipelineDefinition.stageDefinitions; index as i" value="{{i}}">{{stage.name}}</mat-option>
           </mat-select>
         </mat-form-field>
         <button mat-raised-button (click)="setNextStage(project, stageSelection.value)" color="primary">Execute</button>
@@ -50,8 +50,8 @@
 
           <app-state-icon [state]="entry.state"></app-state-icon>
 
-          <p>{{toDate(entry.time)}}</p>
-          <p>{{project.pipeline.stages[entry.stageIndex].name}}</p>
+          <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
+          <p>{{entry.stageName}}</p>
         </mat-list-item>
       </mat-list>
     </ng-container>

@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {ApiService, PipelineInfo} from '../api.service';
+import {ApiService, PipelineDefinition} from '../api.service';
 
 @Component({
   selector: 'app-pipelines',
@@ -7,7 +7,7 @@ import {ApiService, PipelineInfo} from '../api.service';
   styleUrls: ['./pipelines.component.css']
 })
 export class PipelinesComponent implements OnInit {
-  private pipelines: PipelineInfo[] = [];
+  private pipelines: PipelineDefinition[] = [];
   private stages: Map<string, string[]> = new Map();
 
   constructor(private api: ApiService) {
@@ -15,12 +15,12 @@ export class PipelinesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.api.listPipelines().toPromise().then(r => this.pipelines = r);
+    this.api.getPipelineDefinitions().toPromise().then(r => this.pipelines = r);
   }
 
-  loadStages($event: MouseEvent, pipeline: PipelineInfo) {
+  loadStages($event: MouseEvent, pipeline: PipelineDefinition) {
     if (($event.target as HTMLElement).dataset.showStages === 'true') {
-      this.api.listStages(pipeline).toPromise().then(s => {
+      this.api.getStageDefinitions(pipeline).toPromise().then(s => {
         this.stages.set(pipeline.id, s);
         console.log(JSON.stringify(s));
       });
