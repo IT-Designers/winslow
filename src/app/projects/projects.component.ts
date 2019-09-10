@@ -30,7 +30,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         this.api.getProjectState(project.id).toPromise().then(state => {
           project.state = state;
           if (project.history != null) {
-            this.loadHistory(project);
+            this.loadHistory(project, true);
           }
         });
       });
@@ -66,8 +66,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadHistory(project: Project) {
-    this.api.getProjectHistory(project.id).toPromise().then(history => project.history = history.reverse());
+  loadHistory(project: Project, onlyIfNotNull = false) {
+    this.api.getProjectHistory(project.id).toPromise().then(history => {
+      if (!onlyIfNotNull || project.history == null) {
+        project.history = history.reverse();
+      }
+    });
   }
 
   toDate(time: number) {
