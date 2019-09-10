@@ -86,7 +86,7 @@ public class ProjectsController {
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipelineOmitExceptions(project)
-                        .flatMap(Pipeline::getRunningStage)
+                        .flatMap(Pipeline::getMostRecentStage)
                         .map(Stage::getState));
     }
 

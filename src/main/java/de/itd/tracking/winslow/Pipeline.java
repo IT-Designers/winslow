@@ -23,6 +23,12 @@ public interface Pipeline {
     @Nonnull
     Optional<? extends Stage> getRunningStage();
 
+    /**
+     * @return Either the currently running stage or the last completed one
+     */
+    @Nonnull
+    Optional<? extends Stage> getMostRecentStage();
+
     @Nonnull
     Stream<? extends Stage> getCompletedStages();
 
