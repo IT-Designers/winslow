@@ -34,7 +34,7 @@ public class LockedOutputStream extends OutputStream {
     @Override
     public void write(@Nonnull byte[] b) throws IOException {
         this.lockHeartbeat();
-        this.outputStream.write(b);;
+        this.outputStream.write(b);
     }
 
     @Override
