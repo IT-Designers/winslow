@@ -243,14 +243,27 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public Optional<Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException {
-        return Optional.empty();
+    public Optional<NomadPipeline> getPipeline(@Nonnull Project project) throws OrchestratorException {
+        return repository.getNomadPipeline(project.getId()).unsafe();
     }
 
     @Nonnull
     @Override
     public <T> Optional<T> updatePipeline(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) throws OrchestratorException {
-        return Optional.empty();
+        return repository.getNomadPipeline(project.getId()).exclusive().flatMap(container -> {
+            try (container) {
+                var result   = Optional.<T>empty();
+                var pipeline = container.get();
+                if (pipeline.isPresent()) {
+                    result = Optional.ofNullable(updater.apply(pipeline.get()));
+                    container.update(pipeline.get());
+                }
+                return result;
+            } catch (LockException | IOException e) {
+                LOG.log(Level.SEVERE, "Failed to update pipeline", e);
+                return Optional.empty();
+            }
+        });
     }
 
 

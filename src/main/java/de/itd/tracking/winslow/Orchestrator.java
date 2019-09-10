@@ -13,9 +13,9 @@ public interface Orchestrator {
     Pipeline createPipeline(@Nonnull Project project, @Nonnull PipelineDefinition pipelineDefinition) throws OrchestratorException;
 
     @Nonnull
-    Optional<Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException;
+    Optional<?  extends Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException;
 
-    default Optional<Pipeline> getPipelineOmitExceptions(@Nonnull Project project) {
+    default Optional<?  extends Pipeline> getPipelineOmitExceptions(@Nonnull Project project) {
         try {
             return getPipeline(project);
         } catch (OrchestratorException e) {
