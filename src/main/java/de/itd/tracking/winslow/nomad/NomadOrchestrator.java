@@ -163,7 +163,7 @@ public class NomadOrchestrator implements Orchestrator {
                 case Failed:
                     return true;
             }
-        }).orElse(false);
+        }).orElseGet(() -> pipeline.getNextStage().isPresent() && !pipeline.isPauseRequested());
     }
 
     private String combine(String... names) {

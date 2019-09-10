@@ -98,6 +98,7 @@ public class ProjectsController {
                 .unsafe()
                 .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
                     pipeline.setNextStageIndex(index);
+                    pipeline.resume();
                     return true;
                 }))
                 .orElse(false);
