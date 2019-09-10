@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
+import de.itd.tracking.winslow.config.StageDefinition;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,14 +25,14 @@ public class StagesController {
                 .unsafe()
                 .stream()
                 .flatMap(p -> p.getStageDefinitions().stream())
-                .map(s -> new StageInfo(s.getName()));
+                .map(StageInfo::new);
     }
 
     public static class StageInfo {
         private final String name;
 
-        public StageInfo(String name) {
-            this.name = name;
+        StageInfo(StageDefinition definition) {
+            this.name = definition.getName();
         }
 
         public String getName() {
