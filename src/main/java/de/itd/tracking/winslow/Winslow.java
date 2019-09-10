@@ -13,8 +13,6 @@ import java.util.Scanner;
 public class Winslow implements Runnable {
 
     private final Orchestrator               orchestrator;
-    private final WorkDirectoryConfiguration configuration;
-    private final LockBus                    lockBus;
     private final ResourceManager            resourceManager;
     private final GroupRepository            groupRepository;
     private final UserRepository             userRepository;
@@ -23,8 +21,6 @@ public class Winslow implements Runnable {
 
     public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
         this.orchestrator    = orchestrator;
-        this.configuration   = configuration;
-        this.lockBus         = lockBus;
         this.resourceManager = resourceManager;
 
         this.groupRepository    = new GroupRepository();
