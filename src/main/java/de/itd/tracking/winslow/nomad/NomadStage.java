@@ -1,19 +1,15 @@
 package de.itd.tracking.winslow.nomad;
 
-import com.hashicorp.nomad.javasdk.NomadException;
-import de.itd.tracking.winslow.OrchestratorConnectionException;
 import de.itd.tracking.winslow.Stage;
 import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Optional;
 
 public class NomadStage implements Stage {
 
-    @Nonnull private final NomadOrchestrator orchestrator;
     @Nonnull private final String            jobId;
     @Nonnull private final String            taskName;
     @Nonnull private final StageDefinition   definition;
@@ -22,8 +18,7 @@ public class NomadStage implements Stage {
     @Nullable private Date  finishTime;
     @Nullable private State finishState;
 
-    public NomadStage(@Nonnull NomadOrchestrator orchestrator, @Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition) {
-        this.orchestrator = orchestrator;
+    public NomadStage(@Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition) {
         this.jobId        = jobId;
         this.taskName     = taskName;
         this.definition   = definition;
@@ -31,6 +26,21 @@ public class NomadStage implements Stage {
         this.startTime   = new Date();
         this.finishTime  = null;
         this.finishState = null;
+    }
+
+    @Nonnull
+    String getJobId() {
+        return this.jobId;
+    }
+
+    @Nonnull
+    String getTaskName() {
+        return this.taskName;
+    }
+
+    void finishNow(@Nonnull State finishState) {
+        this.finishTime  = new Date();
+        this.finishState = finishState;
     }
 
     @Nonnull
@@ -51,46 +61,9 @@ public class NomadStage implements Stage {
         return this.finishTime;
     }
 
-    public void finishNow(@Nonnull State finishState) {
-        this.finishTime  = new Date();
-        this.finishState = finishState;
-    }
-
     @Nonnull
     @Override
-    public State getState() throws OrchestratorConnectionException {
-        if (this.finishState != null) {
-            return this.finishState;
-        }
-        try {
-            return orchestrator
-                    .getJobAllocationContainingTaskState(jobId, taskName)
-                    .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, taskName))
-                    .orElse(State.Running);
-        } catch (IOException | NomadException e) {
-            throw new OrchestratorConnectionException("Failed to retrieve state information", e);
-        }
-    }
-
-    @Override
-    public Iterable<String> getStdOut(int lastNLines) {
-        return () -> new LogIterator(jobId, taskName, "stdout", orchestrator.getClientApi(), () -> {
-            try {
-                return orchestrator.getJobAllocationContainingTaskState(jobId, taskName);
-            } catch (IOException | NomadException e) {
-                return Optional.empty();
-            }
-        });
-    }
-
-    @Override
-    public Iterable<String> getStdErr(int lastNLines) {
-        return () -> new LogIterator(jobId, taskName, "stderr", orchestrator.getClientApi(), () -> {
-            try {
-                return orchestrator.getJobAllocationContainingTaskState(jobId, taskName);
-            } catch (IOException | NomadException e) {
-                return Optional.empty();
-            }
-        });
+    public State getState() {
+        return Optional.ofNullable(finishState).orElse(State.Running);
     }
 }

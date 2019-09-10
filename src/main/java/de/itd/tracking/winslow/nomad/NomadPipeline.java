@@ -40,7 +40,7 @@ public class NomadPipeline implements Pipeline {
 
     public void pushStage(@Nullable NomadStage stage) {
         if (this.stage != null) {
-            this.stages.add(stage);
+            this.stages.add(this.stage);
         }
         this.stage = stage;
     }

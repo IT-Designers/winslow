@@ -17,12 +17,12 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PipelineRepository extends BaseRepository {
+public class PipelineDefinitionRepository extends BaseRepository {
 
-    public static final Logger LOG = Logger.getLogger(PipelineRepository.class.getSimpleName());
+    public static final Logger LOG = Logger.getLogger(PipelineDefinitionRepository.class.getSimpleName());
     public static final String SUFFIX = ".toml";
 
-    public PipelineRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public PipelineDefinitionRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 

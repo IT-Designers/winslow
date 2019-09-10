@@ -65,7 +65,6 @@ public class Main {
 
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);
-            System.out.println(LoggerFactory.getLogger("global").getClass());
 
             LOG.info("Letting Winslow run freely");
             winslow.run();

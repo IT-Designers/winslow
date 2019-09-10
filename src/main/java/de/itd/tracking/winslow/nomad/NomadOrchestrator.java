@@ -6,7 +6,6 @@ import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.*;
-import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
@@ -117,7 +116,7 @@ public class NomadOrchestrator implements Orchestrator {
 
     private void updateRunningStage(NomadPipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
-            stage.getStateOmitExceptions().ifPresent(state -> {
+            getStateOmitExceptions(stage).ifPresent(state -> {
                 switch (state) {
                     default:
                     case Running:
@@ -133,12 +132,29 @@ public class NomadOrchestrator implements Orchestrator {
         });
     }
 
+    @Nonnull
+    private Optional<Stage.State> getState(NomadStage stage) throws IOException, NomadException {
+        return this
+                .getJobAllocationContainingTaskState(stage.getJobId(), stage.getTaskName())
+                .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, stage.getTaskName()));
+    }
+
+    @Nonnull
+    private Optional<Stage.State> getStateOmitExceptions(NomadStage stage) {
+        try {
+            return getState(stage);
+        } catch (NomadException | IOException e) {
+            LOG.log(Level.SEVERE, "Failed to retrieve stage state", e);
+            return Optional.empty();
+        }
+    }
+
     private boolean hasUpdateAvailable(NomadPipeline pipeline) {
         return isStageStateUpdateAvailable(pipeline);
     }
 
     private boolean isStageStateUpdateAvailable(NomadPipeline pipeline) {
-        return pipeline.getRunningStage().flatMap(Stage::getStateOmitExceptions).map(state -> {
+        return pipeline.getRunningStage().flatMap(this::getStateOmitExceptions).map(state -> {
             switch (state) {
                 default:
                 case Running:
@@ -156,13 +172,13 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public Pipeline createPipeline(@Nonnull Project project, @Nonnull PipelineDefinition pipelineDefinition) throws OrchestratorException {
+    public Pipeline createPipeline(@Nonnull Project project) throws OrchestratorException {
         if (this.repository.getNomadPipeline(project.getId()).unsafe().isPresent()) {
             throw new PipelineAlreadyExistsException(project);
         }
 
         try (var container = exclusivePipelineContainer(project)) {
-            var pipeline = new NomadPipeline(project.getId(), pipelineDefinition);
+            var pipeline = new NomadPipeline(project.getId(), project.getPipelineDefinition());
             var stage    = this.startNextPipelineStage(pipeline);
 
             pipeline.pushStage(stage);
@@ -273,6 +289,24 @@ public class NomadOrchestrator implements Orchestrator {
 
     public ClientApi getClientApi() {
         return this.client.getClientApi(this.client.getConfig().getAddress());
+    }
+
+    public LogIterator getLogIteratorStdOut(NomadStage stage, int lastNLines) {
+        return getLogIterator(stage, lastNLines, "stdout");
+    }
+
+    public LogIterator getLogIteratorStdErr(NomadStage stage, int lastNLines) {
+        return getLogIterator(stage, lastNLines, "stderr");
+    }
+
+    public LogIterator getLogIterator(NomadStage stage, int lastNLines, String logType) {
+        return new LogIterator(stage.getJobId(), stage.getTaskName(), logType, getClientApi(), () -> {
+            try {
+                return getJobAllocationContainingTaskState(stage.getJobId(), stage.getTaskName());
+            } catch (IOException | NomadException e) {
+                return Optional.empty();
+            }
+        });
     }
 
     public Optional<AllocationListStub> getJobAllocationContainingTaskState(@Nonnull String jobId, @Nonnull String taskName) throws IOException, NomadException {

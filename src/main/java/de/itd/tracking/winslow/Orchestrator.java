@@ -10,7 +10,7 @@ import java.util.function.Function;
 public interface Orchestrator {
 
     @Nonnull
-    Pipeline createPipeline(@Nonnull Project project, @Nonnull PipelineDefinition pipelineDefinition) throws OrchestratorException;
+    Pipeline createPipeline(@Nonnull Project project) throws OrchestratorException;
 
     @Nonnull
     Optional<?  extends Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException;

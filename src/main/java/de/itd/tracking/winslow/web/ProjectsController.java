@@ -41,12 +41,12 @@ public class ProjectsController {
                 .getPipelineRepository()
                 .getPipeline(pipelineId)
                 .unsafe()
-                .flatMap(pipeline -> winslow
+                .flatMap(pipelineDefinition -> winslow
                         .getProjectRepository()
-                        .createProject(user, project -> project.setName(name))
+                        .createProject(user, pipelineDefinition, project -> project.setName(name))
                         .filter(project -> {
                             try {
-                                winslow.getOrchestrator().createPipeline(project, pipeline);
+                                winslow.getOrchestrator().createPipeline(project);
                                 return true;
                             } catch (OrchestratorException e) {
                                 LOG.log(Level.WARNING, "Failed to create pipeline for project", e);
@@ -87,7 +87,7 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipelineOmitExceptions(project)
                         .flatMap(Pipeline::getRunningStage)
-                        .flatMap(Stage::getStateOmitExceptions));
+                        .map(Stage::getState));
     }
 
     @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
@@ -123,7 +123,7 @@ public class ProjectsController {
         public HistoryEntry(Stage stage) {
             this.startTime  = stage.getStartTime();
             this.finishTime = stage.getFinishTime();
-            this.state      = stage.getStateOmitExceptions().orElse(null);
+            this.state      = stage.getState();
             this.stageName  = stage.getDefinition().getName();
         }
     }

@@ -9,19 +9,19 @@ public class PipelineDefinition {
     private final String                name;
     private final String                desc;
     private final UserInput             userInput;
-    private final List<StageDefinition> stageDefinitions;
+    private final List<StageDefinition> stages;
 
-    public PipelineDefinition(String name, String desc, UserInput userInput, List<StageDefinition> stageDefinitions) {
-        this.name             = name;
-        this.desc             = desc;
-        this.userInput        = userInput;
-        this.stageDefinitions = stageDefinitions;
+    public PipelineDefinition(String name, String desc, UserInput userInput, List<StageDefinition> stages) {
+        this.name      = name;
+        this.desc      = desc;
+        this.userInput = userInput;
+        this.stages    = stages;
         this.check();
     }
 
     public void check() {
         Objects.requireNonNull(name, "The name of a pipeline must be set");
-        this.stageDefinitions.forEach(StageDefinition::check);
+        this.stages.forEach(StageDefinition::check);
     }
 
     public String getName() {
@@ -37,12 +37,12 @@ public class PipelineDefinition {
     }
 
     public List<StageDefinition> getStageDefinitions() {
-        return stageDefinitions != null ? Collections.unmodifiableList(stageDefinitions) : Collections.emptyList();
+        return stages != null ? Collections.unmodifiableList(stages) : Collections.emptyList();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',userInput=" + this.userInput + ",stages=" + this.stageDefinitions + "}#" + this.hashCode();
+        return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',userInput=" + this.userInput + ",stages=" + this.stages + "}#" + this.hashCode();
     }
 
     @Override
@@ -52,11 +52,11 @@ public class PipelineDefinition {
         if (o == null || getClass() != o.getClass())
             return false;
         PipelineDefinition pipelineDefinition = (PipelineDefinition) o;
-        return Objects.equals(name, pipelineDefinition.name) && Objects.equals(desc, pipelineDefinition.desc) && Objects.equals(userInput, pipelineDefinition.userInput) && Objects.equals(stageDefinitions, pipelineDefinition.stageDefinitions);
+        return Objects.equals(name, pipelineDefinition.name) && Objects.equals(desc, pipelineDefinition.desc) && Objects.equals(userInput, pipelineDefinition.userInput) && Objects.equals(stages, pipelineDefinition.stages);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, desc, userInput, stageDefinitions);
+        return Objects.hash(name, desc, userInput, stages);
     }
 }
