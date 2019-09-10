@@ -5,6 +5,7 @@ import de.itd.tracking.winslow.fs.LockException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
@@ -15,14 +16,14 @@ public class LockedContainer<T> implements Closeable {
 
     private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
-    @Nonnull private final Lock lock;
+    @Nonnull private final Lock      lock;
     @Nonnull private final Reader<T> reader;
     @Nonnull private final Writer<T> writer;
 
     private T value;
 
     public LockedContainer(@Nonnull Lock lock, @Nonnull Reader<T> reader, @Nonnull Writer<T> writer) throws IOException {
-        this.lock = lock;
+        this.lock   = lock;
         this.reader = reader;
         this.writer = writer;
 
@@ -45,7 +46,7 @@ public class LockedContainer<T> implements Closeable {
         }
     }
 
-    @Nonnull
+    @Nullable
     public T reload() throws IOException {
         this.value = this.reader.read(this.lock);
         return this.value;
@@ -83,7 +84,7 @@ public class LockedContainer<T> implements Closeable {
 
 
     public interface Reader<T> {
-        @Nonnull
+        @Nullable
         T read(@Nonnull Lock lock) throws IOException;
     }
 
