@@ -21,13 +21,13 @@ export class ApiService {
     return this.filesApi;
   }
 
-  listPipelines() {
-    return this.client.get<PipelineInfo[]>(environment.apiLocation + 'pipelines');
+  getPipelineDefinitions() {
+    return this.client.get<PipelineDefinition[]>(environment.apiLocation + 'pipelines');
   }
 
-  listStages(pipeline: PipelineInfo) {
+  getStageDefinitions(pipeline: PipelineDefinition) {
     return this.client
-      .get<Pipeline[]>(environment.apiLocation + 'stages/' + pipeline.id)
+      .get<StageInfo[]>(environment.apiLocation + 'stages/' + pipeline.id)
       .pipe(map(p => {
         const names: string[] = [];
         p.forEach(s => names.push(s.name));
@@ -37,18 +37,14 @@ export class ApiService {
 
 }
 
-export class PipelineInfo {
+export class PipelineDefinition {
   id: string;
   name: string;
   desc: string;
+  stageDefinitions: StageInfo[];
 }
 
-export class Pipeline {
+export class StageInfo {
   name: string;
-  desc: string;
-  stages: Stage[];
 }
 
-export class Stage {
-  name: string;
-}
