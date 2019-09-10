@@ -162,7 +162,7 @@ public class NomadOrchestrator implements Orchestrator {
         }
 
         try (var container = exclusivePipelineContainer(project)) {
-            var pipeline = new NomadPipeline(this, project.getId(), pipelineDefinition);
+            var pipeline = new NomadPipeline(project.getId(), pipelineDefinition);
             var stage    = this.startNextPipelineStage(pipeline);
 
             pipeline.pushStage(stage);

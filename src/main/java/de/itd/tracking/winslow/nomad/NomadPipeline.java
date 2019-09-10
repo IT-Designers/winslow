@@ -12,8 +12,6 @@ import java.util.stream.Stream;
 
 public class NomadPipeline implements Pipeline {
 
-    @Nonnull private final NomadOrchestrator orchestrator;
-
     @Nonnull private final String             projectId;
     @Nonnull private final PipelineDefinition pipelineDefinition;
     @Nonnull private final List<NomadStage>   stages = new ArrayList<>();
@@ -24,8 +22,7 @@ public class NomadPipeline implements Pipeline {
     @Nonnull private  PipelineStrategy strategy;
     @Nullable private NomadStage       stage;
 
-    public NomadPipeline(@Nonnull NomadOrchestrator orchestrator, @Nonnull String projectId, @Nonnull PipelineDefinition pipelineDefinition) {
-        this.orchestrator       = orchestrator;
+    public NomadPipeline(@Nonnull String projectId, @Nonnull PipelineDefinition pipelineDefinition) {
         this.projectId          = projectId;
         this.pipelineDefinition = pipelineDefinition;
 
