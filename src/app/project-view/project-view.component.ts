@@ -39,11 +39,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   pollForChanges(): void {
     this.longLoading.increase();
-    this.api.getProjectState(this.project.id).toPromise().then(state => {
-      this.longLoading.decrease();
-      this.stateEmitter.emit(this.state = state);
-      this.pollWatched();
-    });
+    this.api.getProjectState(this.project.id).toPromise()
+      .finally(() => this.longLoading.decrease())
+      .then(state => {
+        this.stateEmitter.emit(this.state = state);
+        this.pollWatched();
+      })
+      .catch(err => this.notification.error('Failed to update state' + JSON.stringify(err)));
   }
 
   pollWatched(): void {
@@ -76,9 +78,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     return new Date(time).toLocaleString();
   }
 
-  setNextStage(nextStageIndex: any) {
+  setNextStage(nextStageIndex: string, singleStageOnly = false) {
     this.longLoading.increase();
-    this.api.setProjectNextStage(this.project.id, Number(nextStageIndex)).toPromise().then(result => {
+    this.api.setProjectNextStage(this.project.id, Number(nextStageIndex), singleStageOnly).toPromise().then(result => {
       this.notification.info('Request has been accepted');
       this.pollForChanges();
     }).catch(error => {

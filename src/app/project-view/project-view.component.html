@@ -12,8 +12,12 @@
         <mat-option *ngFor="let stage of project.pipelineDefinition.stageDefinitions; index as i"
                     value="{{i}}">{{stage.name}}</mat-option>
       </mat-select>
-      <button mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">Set Next
-      </button>
+      <div style="display: flex; flex-direction: column">
+        <button style="width: 100%" mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">Start Pipeline
+        </button>
+        <button style="width: 100%" mat-raised-button (click)="setNextStage(stageSelection.value, true)" color="accent">Run Stage Only
+        </button>
+      </div>
     </div>
     <mat-divider></mat-divider>
     <div class="stage-control-item">

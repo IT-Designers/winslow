@@ -10,10 +10,10 @@ export class NotificationService {
   }
 
   info(message: string) {
-    this.snack.open(message, 'OK', {duration: 3000});
+    this.snack.open(message, 'OK', {duration: 2_500});
   }
 
   error(message: string) {
-    this.snack.open(message, 'OK');
+    this.snack.open(message, 'OK', {duration: 10_000});
   }
 }
