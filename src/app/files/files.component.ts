@@ -1,4 +1,4 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject, Input, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {HttpEventType} from '@angular/common/http';
 import {FileInfo, FilesApiService} from '../files-api.service';
@@ -9,6 +9,8 @@ import {FileInfo, FilesApiService} from '../files-api.service';
   styleUrls: ['./files.component.css']
 })
 export class FilesComponent implements OnInit {
+  @Input() additionalRoot?: string;
+
   files: Map<string, FileInfo[]> = new Map();
   latestPath = '/resources'; // IMPORTANT: starts with a slash, but never ends with one: '/resources/ab/cd/ef'
 
@@ -26,15 +28,48 @@ export class FilesComponent implements OnInit {
   ngOnInit() {
     this.api.listFiles('/resources').toPromise().then(res => {
       this.files.set('/', (() => {
+        const root = [];
         const info = new FileInfo();
         info.directory = true;
         info.name = 'resources';
         info.path = '/resources';
         this.files.set('/resources', res);
-        return [info];
+        root.push(info);
+
+        if (this.additionalRoot != null) {
+          root.push((() => {
+            const additional = new FileInfo();
+            additional.directory = true;
+            additional.name = this.additionalRoot.split(';')[0];
+            additional.path = `/${this.additionalRoot.split(';')[1]}`;
+            this.files.set(additional.path, []);
+            return additional;
+          })());
+        }
+
+
+        return root;
       })());
       this.loadDirectory(this.latestPath);
     });
+  }
+
+  updateAdditionalRoot(root: string, view: boolean) {
+    this.additionalRoot = root;
+    const files = this.files.get('/');
+    if (files.length < 2) {
+      files.push(null);
+    } else {
+      this.files.delete(files[0].path);
+    }
+    files[1] = new FileInfo();
+    files[1].directory = true;
+    files[1].name = this.additionalRoot.split(';')[0];
+    files[1].path = `/${this.additionalRoot.split(';')[1]}`;
+    this.files.set(files[1].path, []);
+    if (view) {
+      this.loadDirectory(files[1].path);
+    }
   }
 
   directories(path: string) {
