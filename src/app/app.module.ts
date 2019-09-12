@@ -13,10 +13,19 @@ import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material
 import {
   MatButtonModule,
   MatButtonToggleModule,
-  MatExpansionModule, MatGridListModule, MatIconModule,
+  MatExpansionModule,
+  MatGridListModule,
+  MatIconModule,
   MatInputModule,
   MatListModule,
-  MatProgressBarModule, MatProgressSpinnerModule, MatSelectModule, MatSnackBarModule, MatStepperModule, MatTableModule, MatTooltipModule
+  MatProgressBarModule,
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatSlideToggleModule,
+  MatSnackBarModule,
+  MatStepperModule,
+  MatTableModule, MatTabsModule,
+  MatTooltipModule
 } from '@angular/material';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
@@ -73,7 +82,9 @@ import { StateIconComponent } from './state-icon/state-icon.component';
     MatSnackBarModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSlideToggleModule,
+    MatTabsModule
 
   ],
   providers: [

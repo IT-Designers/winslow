@@ -4,7 +4,7 @@
   <div class="flex-grow-row control-button-row">
     <div class="flex-grow"></div>
     <button class="create-button" mat-raised-button color="primary"
-            (click)="create()">Create Project
+            (click)="createNewProject()">Create Project
     </button>
   </div>
 
@@ -16,45 +16,63 @@
   </div>
 
 
-  <mat-expansion-panel *ngFor="let project of projects" (expandedChange)="maybeLoadHistory(project, $event)">
-
+  <mat-expansion-panel *ngFor="let view of projects" (afterCollapse)="stopLoading(view)" (afterExpand)="startLoading(view)">
 
     <mat-expansion-panel-header>
       <span style="display: flex; align-items: center">
-        <app-state-icon [state]="project.state" animation="true"></app-state-icon>
-        {{project.name}}
+        <app-state-icon [state]="view.state" animation="true"></app-state-icon>
+        {{view.project.name}}
       </span>
     </mat-expansion-panel-header>
 
 
-    <i *ngIf="project.history == null">
-      <mat-progress-bar mode="buffer"></mat-progress-bar>
-    </i>
+      <mat-tab-group #tabs (focusChange)="focusChange($event, view)">
 
-    <ng-container *ngIf="project.history != null">
-      <h2>Control</h2>
-      <form class="stage-control-item">
-        <span>Next Stage to execute</span>
-        <mat-form-field>
-          <mat-select #stageSelection placeholder="Stage selection">
-            <mat-option *ngFor="let stage of project.pipelineDefinition.stageDefinitions; index as i" value="{{i}}">{{stage.name}}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-raised-button (click)="setNextStage(project, stageSelection.value)" color="primary">Execute</button>
-      </form>
+        <mat-tab label="Control">
+          <div class="stage-control-item">
+            <p>Overwrite stage execution order</p>
+            <mat-select #stageSelection placeholder="Stage selection">
 
-      <h2>History</h2>
-      <i *ngIf="project.history.length == 0">This project has no history yet</i>
-      <mat-list>
-        <mat-list-item *ngFor="let entry of project.history" class="history-list-item">
+              <mat-option *ngFor="let stage of view.project.pipelineDefinition.stageDefinitions; index as i" value="{{i}}">{{stage.name}}</mat-option>
+            </mat-select>
+            <button mat-raised-button (click)="setNextStage(view.project, stageSelection.value)" color="primary">Set Next</button>
+          </div>
+          <mat-divider></mat-divider>
+          <div  class="stage-control-item">
+            <span>Pause further stage execution</span>
+            <mat-slide-toggle [checked]="view.paused" (change)="updateRequestPause(view.project, $event.checked)"></mat-slide-toggle>
+          </div>
+        </mat-tab>
 
-          <app-state-icon [state]="entry.state"></app-state-icon>
+        <mat-tab label="History">
 
-          <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
-          <p>{{entry.stageName}}</p>
-        </mat-list-item>
-      </mat-list>
-    </ng-container>
+          <i *ngIf="view.history == null">
+            <mat-progress-bar mode="buffer"></mat-progress-bar>
+          </i>
+
+          <ng-container *ngIf="view.history != null">
+            <i *ngIf="view.history.length == 0">This project has no history yet</i>
+            <mat-list>
+              <mat-list-item *ngFor="let entry of view.history" class="history-list-item">
+
+                <app-state-icon [state]="entry.state"></app-state-icon>
+
+                <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
+                <p>{{entry.stageName}}</p>
+              </mat-list-item>
+            </mat-list>
+          </ng-container>
+        </mat-tab>
+
+        <mat-tab label="Files">
+
+        </mat-tab>
+
+        <mat-tab label="Logs">
+
+        </mat-tab>
+      </mat-tab-group>
+
   </mat-expansion-panel>
 
 
