@@ -3,6 +3,7 @@ import {HistoryEntry, Project, ProjectApiService, State} from '../project-api.se
 import {NotificationService} from '../notification.service';
 import {MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
+import {FilesComponent} from '../files/files.component';
 
 @Component({
   selector: 'app-project-view',
@@ -12,6 +13,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
 export class ProjectViewComponent implements OnInit, OnDestroy {
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
+  @ViewChild('files', {static: false}) files: FilesComponent;
 
   @Input() project: Project;
   @Output('state') stateEmitter = new EventEmitter<State>();
@@ -119,5 +121,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   isLongLoading() {
     return this.longLoading.isLongLoading();
+  }
+
+  openFolder(project: Project, entry: HistoryEntry) {
+    this.tabs.selectedIndex = 2;
+    this.files.updateAdditionalRoot(`${project.name};workspaces/${project.id}`, true);
+    this.files.navigateDirectlyTo(`/workspaces/${project.id}/${entry.workspace}/`);
   }
 }
