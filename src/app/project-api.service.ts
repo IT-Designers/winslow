@@ -31,13 +31,22 @@ export class ProjectApiService {
     return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history');
   }
 
+  getProjectPaused(projectId: string) {
+    return this.client.get<boolean>(`${environment.apiLocation}/projects/${projectId}/paused`).toPromise();
+  }
+
   setProjectNextStage(projectId: string, nextStageIndex: number) {
     return this.client.post(`${environment.apiLocation}/projects/${projectId}/nextStage/${nextStageIndex}`, new FormData());
+  }
+
+  setProjectPaused(projectId: string, paused: boolean) {
+    return this.client.post(`${environment.apiLocation}/projects/${projectId}/paused/${paused}`, new FormData());
   }
 
 }
 export enum State {
   Running,
+  Paused,
   Succeeded,
   Failed
 }
@@ -51,6 +60,7 @@ export class Project {
   // local only
   history?: HistoryEntry[];
   state?: State;
+  paused?: boolean;
 }
 
 export class HistoryEntry {

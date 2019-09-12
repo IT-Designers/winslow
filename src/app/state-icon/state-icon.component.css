@@ -18,6 +18,10 @@
   color: red;
 }
 
+.state-icon-paused {
+  color: orange;
+}
+
 .state-icon-unknown {
   color: silver;;
 }
