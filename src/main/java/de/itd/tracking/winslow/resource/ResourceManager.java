@@ -24,28 +24,28 @@ public class ResourceManager {
     }
 
     /**
-     * @param jobId The id of the job to retrieve the workspace for
+     * @param path Path within the directory to resolve
      * @return The {@link Path} to the workspace for the given job id if it exists
      */
-    public Optional<Path> getWorkspace(UUID jobId) {
-        return getWorkspacesDirectory()
-                .map(p -> p.resolve(jobId.toString()))
-                .filter(p -> p.toFile().exists());
+    public Optional<Path> getWorkspace(Path path) {
+        return getWorkspacesDirectory().map(p -> p.resolve(path)).filter(p -> p.toFile().exists());
     }
 
     /**
-     * @param jobId The id of the job to create the workspace for
+     * @param path                The path to the directory to create
      * @param failIfAlreadyExists Whether to return false if the directory already exists
      * @return Whether the create operation was successful
      */
-    public Optional<Path> createWorkspace(UUID jobId, boolean failIfAlreadyExists) {
+    public Optional<Path> createWorkspace(Path path, boolean failIfAlreadyExists) {
+
         return getWorkspacesDirectory()
-                .map(p -> p.resolve(jobId.toString()))
+                .map(p -> p.resolve(path))
                 .filter(p -> p.toFile().mkdirs() == failIfAlreadyExists);
     }
 
     public Optional<Path> getResourceDirectory() {
-        return Optional.of(configuration.resolvePathOfResources(workDirectory))
+        return Optional
+                .of(configuration.resolvePathOfResources(workDirectory))
                 .filter(p -> p.toFile().exists() || p.toFile().mkdirs());
     }
 }

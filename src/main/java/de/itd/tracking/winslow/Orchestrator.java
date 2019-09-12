@@ -1,6 +1,5 @@
 package de.itd.tracking.winslow;
 
-import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.project.Project;
 
 import javax.annotation.Nonnull;
@@ -36,4 +35,10 @@ public interface Orchestrator {
         }
     }
 
+
+    @Nonnull
+    Optional<? extends Pipeline> getPipelineForStageId(@Nonnull String stageId);
+
+    @Nonnull
+    Optional<String> getProjectIdForPipeline(@Nonnull Pipeline pipeline);
 }

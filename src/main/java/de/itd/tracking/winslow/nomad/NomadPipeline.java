@@ -54,7 +54,7 @@ public class NomadPipeline implements Pipeline {
 
     @Nonnull
     @Override
-    public Optional<? extends Stage> getMostRecentStage() {
+    public Optional<NomadStage> getMostRecentStage() {
         return getRunningStage().or(() -> {
             if (stages.isEmpty()) {
                 return Optional.empty();
@@ -62,6 +62,13 @@ public class NomadPipeline implements Pipeline {
                 return Optional.of(stages.get(stages.size() - 1));
             }
         });
+    }
+
+
+    @Nonnull
+    @Override
+    public Stream<NomadStage> getAllStages() {
+        return Stream.concat(getCompletedStages(), getMostRecentStage().stream());
     }
 
     @Nonnull

@@ -10,18 +10,20 @@ import java.util.Optional;
 
 public class NomadStage implements Stage {
 
-    @Nonnull private final String            jobId;
-    @Nonnull private final String            taskName;
-    @Nonnull private final StageDefinition   definition;
-    @Nonnull private final Date              startTime;
+    @Nonnull private final String          jobId;
+    @Nonnull private final String          taskName;
+    @Nonnull private final StageDefinition definition;
+    @Nonnull private final Date            startTime;
+    @Nonnull private final String          workspace;
 
     @Nullable private Date  finishTime;
     @Nullable private State finishState;
 
-    public NomadStage(@Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition) {
-        this.jobId        = jobId;
-        this.taskName     = taskName;
-        this.definition   = definition;
+    public NomadStage(@Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition, @Nonnull String workspace) {
+        this.jobId      = jobId;
+        this.taskName   = taskName;
+        this.definition = definition;
+        this.workspace  = workspace;
 
         this.startTime   = new Date();
         this.finishTime  = null;
@@ -65,5 +67,11 @@ public class NomadStage implements Stage {
     @Override
     public State getState() {
         return Optional.ofNullable(finishState).orElse(State.Running);
+    }
+
+    @Override
+    @Nonnull
+    public String getWorkspace() {
+        return workspace;
     }
 }

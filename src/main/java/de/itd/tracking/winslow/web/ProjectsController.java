@@ -155,12 +155,14 @@ public class ProjectsController {
         public final Date        finishTime;
         public final Stage.State state;
         public final String      stageName;
+        public final String      workspace;
 
         public HistoryEntry(Stage stage) {
             this.startTime  = stage.getStartTime();
             this.finishTime = stage.getFinishTime();
             this.state      = stage.getState();
             this.stageName  = stage.getDefinition().getName();
+            this.workspace  = stage.getWorkspace();
         }
     }
 }

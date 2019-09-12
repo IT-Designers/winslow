@@ -98,7 +98,9 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private void maybeStartNextStage(NomadPipeline pipeline) {
-        if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested() && pipeline.getNextStage().isPresent()) {
+        if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested() && pipeline
+                .getNextStage()
+                .isPresent()) {
             switch (pipeline.getStrategy()) {
                 case MoveForwardOnce:
                     pipeline.requestPause();
@@ -204,7 +206,9 @@ public class NomadOrchestrator implements Orchestrator {
         var builder = JobBuilder.withRandomUuid().withTaskName(getTaskName(pipeline, stageDefinition));
 
         var resources = environment.getResourceManager().getResourceDirectory();
-        var workspace = environment.getResourceManager().createWorkspace(builder.getUuid(), true);
+        var workspace = environment
+                .getResourceManager()
+                .createWorkspace(Path.of(pipeline.getProjectId(), builder.getUuid().toString()), true);
 
         if (resources.isEmpty() || workspace.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
@@ -280,6 +284,25 @@ public class NomadOrchestrator implements Orchestrator {
                 return Optional.empty();
             }
         });
+    }
+
+    @Nonnull
+    @Override
+    public Optional<NomadPipeline> getPipelineForStageId(@Nonnull String stageId) {
+        return repository
+                .getAllPipelines()
+                .flatMap(pipeline -> pipeline.unsafe().stream())
+                .filter(pipeline -> pipeline.getAllStages().anyMatch(stage -> stage.getJobId().equals(stageId)))
+                .findFirst();
+    }
+
+    @Nonnull
+    @Override
+    public Optional<String> getProjectIdForPipeline(@Nonnull Pipeline pipeline) {
+        if (pipeline instanceof NomadPipeline) {
+            return Optional.of(((NomadPipeline) pipeline).getProjectId());
+        }
+        return Optional.empty();
     }
 
 

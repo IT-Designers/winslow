@@ -26,4 +26,7 @@ public interface Stage {
 
     @Nonnull
     State getState();
+
+    @Nonnull
+    String getWorkspace();
 }

@@ -27,7 +27,7 @@ public class PreparedJob {
             if (orchestrator != null && job != null) {
                 var jobId    = job.getId();
                 var taskName = job.getTaskGroups().get(0).getName();
-                var stage    = new NomadStage(jobId, taskName, definition);
+                var stage    = new NomadStage(jobId, taskName, definition, jobId);
 
                 // this one could fail
                 orchestrator.getClient().getJobsApi().register(job);

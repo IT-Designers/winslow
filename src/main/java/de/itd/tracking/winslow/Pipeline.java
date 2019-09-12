@@ -32,6 +32,9 @@ public interface Pipeline {
     @Nonnull
     Stream<? extends Stage> getCompletedStages();
 
+    @Nonnull
+    Stream<? extends Stage> getAllStages();
+
     void requestPause();
 
     boolean isPauseRequested();
