@@ -9,6 +9,7 @@ import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -96,14 +97,19 @@ public class ProjectsController {
     }
 
     @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
-    public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int index) {
+    public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int index, @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
                 .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
                     pipeline.setNextStageIndex(index);
-                    //pipeline.resume();
+                    pipeline.setStrategy(Optional
+                            .ofNullable(strategy)
+                            .filter(str -> "once".equals(str.toLowerCase()))
+                            .map(str -> Pipeline.PipelineStrategy.MoveForwardOnce)
+                            .orElse(Pipeline.PipelineStrategy.MoveForwardUntilEnd));
+                    pipeline.resume();
                     return true;
                 }))
                 .orElse(false);
