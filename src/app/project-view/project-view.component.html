@@ -1,0 +1,52 @@
+<mat-tab-group #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)">
+
+  <mat-tab label="Control">
+    <div class="loading-bar-container">
+      <mat-progress-bar *ngIf="state == null || isLongLoading()" mode="buffer"></mat-progress-bar>
+    </div>
+
+    <div class="stage-control-item">
+      <p>Overwrite stage execution order</p>
+      <mat-select #stageSelection placeholder="Stage selection">
+
+        <mat-option *ngFor="let stage of project.pipelineDefinition.stageDefinitions; index as i"
+                    value="{{i}}">{{stage.name}}</mat-option>
+      </mat-select>
+      <button mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">Set Next
+      </button>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="stage-control-item">
+      <span>Pause further stage execution</span>
+      <mat-slide-toggle [checked]="paused"
+                        (change)="updateRequestPause($event.checked)"></mat-slide-toggle>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="History">
+    <div class="loading-bar-container">
+      <mat-progress-bar *ngIf="history == null || isLongLoading()" mode="buffer"></mat-progress-bar>
+    </div>
+
+    <ng-container *ngIf="history != null">
+      <i *ngIf="history.length == 0">This project has no history yet</i>
+      <mat-list>
+        <mat-list-item *ngFor="let entry of history" class="history-list-item">
+
+          <app-state-icon [state]="entry.state"></app-state-icon>
+
+          <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
+          <p>{{entry.stageName}}</p>
+        </mat-list-item>
+      </mat-list>
+    </ng-container>
+  </mat-tab>
+
+  <mat-tab label="Files">
+
+  </mat-tab>
+
+  <mat-tab label="Logs">
+
+  </mat-tab>
+</mat-tab-group>

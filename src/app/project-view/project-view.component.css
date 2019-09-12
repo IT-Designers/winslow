@@ -1,0 +1,36 @@
+.loading-bar-container {
+  height: 0.2em;
+}
+
+.history-list-item p {
+  padding-left: 1em;
+}
+
+.stage-control {
+  padding: 2em;
+  border: 1px solid silver;
+  border-radius: .5em;
+}
+
+.stage-control-item {
+  display: flex;
+  margin: 2em 2em;
+  align-items: center;
+}
+
+.stage-control-item *:first-child {
+  width: 45%;
+}
+
+.stage-control-item *:last-child {
+  width: 25%;
+}
+
+.stage-control-item > *:not(:first-child) {
+  margin-left: 1em;
+}
+
+.stage-control-item .mat-form-field-wrapper {
+  display: inline-flex;
+  flex-grow: 1;
+}
