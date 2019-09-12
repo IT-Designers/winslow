@@ -32,7 +32,7 @@ export class ProjectApiService {
   }
 
   getProjectPaused(projectId: string) {
-    return this.client.get<boolean>(`${environment.apiLocation}/projects/${projectId}/paused`).toPromise();
+    return this.client.get<boolean>(`${environment.apiLocation}/projects/${projectId}/paused`);
   }
 
   setProjectNextStage(projectId: string, nextStageIndex: number) {

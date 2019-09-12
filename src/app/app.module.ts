@@ -32,6 +32,7 @@ import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
 import { ProjectsComponent } from './projects/projects.component';
 import { ProjectsCreateDialog } from './projects-create/projects-create-dialog.component';
 import { StateIconComponent } from './state-icon/state-icon.component';
+import { ProjectViewComponent } from './project-view/project-view.component';
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { StateIconComponent } from './state-icon/state-icon.component';
     DragDropDirectiveDirective,
     ProjectsComponent,
     ProjectsCreateDialog,
-    StateIconComponent
+    StateIconComponent,
+    ProjectViewComponent
   ],
   imports: [
     HttpClientModule,
