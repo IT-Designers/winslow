@@ -35,8 +35,8 @@ export class ProjectApiService {
     return this.client.get<boolean>(`${environment.apiLocation}/projects/${projectId}/paused`);
   }
 
-  setProjectNextStage(projectId: string, nextStageIndex: number) {
-    return this.client.post(`${environment.apiLocation}/projects/${projectId}/nextStage/${nextStageIndex}`, new FormData());
+  setProjectNextStage(projectId: string, nextStageIndex: number, singleStageOnly = false) {
+    return this.client.post(`${environment.apiLocation}/projects/${projectId}/nextStage/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`, new FormData());
   }
 
   setProjectPaused(projectId: string, paused: boolean) {
