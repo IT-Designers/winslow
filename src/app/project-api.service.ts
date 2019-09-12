@@ -68,5 +68,6 @@ export class HistoryEntry {
   finishTime?: number;
   state?: State;
   stageName?: string;
+  workspace?: string;
 }
 
