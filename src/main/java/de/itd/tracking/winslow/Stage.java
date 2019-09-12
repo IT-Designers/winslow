@@ -10,6 +10,7 @@ public interface Stage {
 
     enum State {
         Running,
+        Paused,
         Succeeded,
         Failed
     }

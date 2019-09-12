@@ -86,8 +86,13 @@ public class ProjectsController {
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipelineOmitExceptions(project)
-                        .flatMap(Pipeline::getMostRecentStage)
-                        .map(Stage::getState));
+                        .flatMap(pipeline -> pipeline.getMostRecentStage().map(Stage::getState).map(state -> {
+                            if (state != Stage.State.Running && pipeline.isPauseRequested()) {
+                                return Stage.State.Paused;
+                            } else {
+                                return state;
+                            }
+                        })));
     }
 
     @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
@@ -98,9 +103,39 @@ public class ProjectsController {
                 .unsafe()
                 .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
                     pipeline.setNextStageIndex(index);
-                    pipeline.resume();
+                    //pipeline.resume();
                     return true;
                 }))
+                .orElse(false);
+    }
+
+    @PostMapping("projects/{projectId}/paused/{paused}")
+    public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId, @PathVariable("paused") boolean paused) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
+                    if (paused) {
+                        pipeline.requestPause();
+                    } else {
+                        pipeline.resume();
+                    }
+                    return true;
+                }))
+                .orElse(false);
+    }
+
+    @GetMapping("projects/{projectId}/paused")
+    public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .flatMap(project -> winslow
+                        .getOrchestrator()
+                        .getPipelineOmitExceptions(project)
+                        .map(Pipeline::isPauseRequested))
                 .orElse(false);
     }
 
