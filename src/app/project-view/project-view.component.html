@@ -42,7 +42,7 @@
           <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
           <p>{{entry.stageName}}</p>
           <p class="history-list-item-grow">
-            <mat-icon class="clickable" (click)="openFolder(project, entry)">folder_open</mat-icon>
+            <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open</mat-icon>
           </p>
         </mat-list-item>
       </mat-list>
