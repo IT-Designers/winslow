@@ -31,6 +31,12 @@ public class NomadStage implements Stage {
     }
 
     @Nonnull
+    @Override
+    public String getId() {
+        return getJobId();
+    }
+
+    @Nonnull
     String getJobId() {
         return this.jobId;
     }

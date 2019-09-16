@@ -16,6 +16,9 @@ public interface Stage {
     }
 
     @Nonnull
+    String getId();
+
+    @Nonnull
     StageDefinition getDefinition();
 
     @Nonnull

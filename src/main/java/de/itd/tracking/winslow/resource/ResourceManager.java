@@ -2,7 +2,6 @@ package de.itd.tracking.winslow.resource;
 
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.UUID;
 
 public class ResourceManager {
 

@@ -17,9 +17,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class NomadOrchestrator implements Orchestrator {
 
@@ -263,7 +267,7 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public Optional<NomadPipeline> getPipeline(@Nonnull Project project) throws OrchestratorException {
+    public Optional<NomadPipeline> getPipeline(@Nonnull Project project) {
         return repository.getNomadPipeline(project.getId()).unsafe();
     }
 
@@ -303,6 +307,19 @@ public class NomadOrchestrator implements Orchestrator {
             return Optional.of(((NomadPipeline) pipeline).getProjectId());
         }
         return Optional.empty();
+    }
+
+    @Nonnull
+    @Override
+    public Stream<String> getStdout(@Nonnull Project project, @Nonnull String stageId) {
+        return getPipeline(project).flatMap(pipeline -> pipeline.getStage(stageId)).stream().flatMap(stage -> {
+            var iterator = getLogIteratorStdOut(stage, 0);
+            if (iterator.hasNext()) {
+                return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
+            } else {
+                return Stream.empty();
+            }
+        });
     }
 
 

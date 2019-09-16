@@ -102,6 +102,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
                     pipeline.setNextStageIndex(index);
                     pipeline.setStrategy(Optional
@@ -121,6 +122,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
                     if (paused) {
                         pipeline.requestPause();
@@ -138,11 +140,41 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipelineOmitExceptions(project)
                         .map(Pipeline::isPauseRequested))
                 .orElse(false);
+    }
+
+    @GetMapping("projects/{projectId}/logs/latest")
+    public Stream<String> getProjectStageLogsLatest(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .stream()
+                .flatMap(project -> winslow
+                        .getOrchestrator()
+                        .getPipelineOmitExceptions(project)
+                        .flatMap(Pipeline::getMostRecentStage)
+                        .stream()
+                        .flatMap(stage -> winslow.getOrchestrator().getStdout(project, stage.getId())))
+                .flatMap(String::lines);
+    }
+
+    @GetMapping("projects/{projectId}/logs/{stageId}")
+    public Stream<String> getProjectStageLogs(User user, @PathVariable("projectId") String projectId, @PathVariable("stageId") String stageId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .stream()
+                .flatMap(project -> winslow.getOrchestrator().getStdout(project, stageId))
+                .flatMap(String::lines);
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
@@ -157,6 +189,7 @@ public class ProjectsController {
     }
 
     static class HistoryEntry {
+        public final String      stageId;
         public final Date        startTime;
         public final Date        finishTime;
         public final Stage.State state;
@@ -164,6 +197,7 @@ public class ProjectsController {
         public final String      workspace;
 
         public HistoryEntry(Stage stage) {
+            this.stageId    = stage.getId();
             this.startTime  = stage.getStartTime();
             this.finishTime = stage.getFinishTime();
             this.state      = stage.getState();

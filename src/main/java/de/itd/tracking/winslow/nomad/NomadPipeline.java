@@ -1,7 +1,6 @@
 package de.itd.tracking.winslow.nomad;
 
 import de.itd.tracking.winslow.Pipeline;
-import de.itd.tracking.winslow.Stage;
 import de.itd.tracking.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
@@ -69,6 +68,12 @@ public class NomadPipeline implements Pipeline {
     @Override
     public Stream<NomadStage> getAllStages() {
         return Stream.concat(getCompletedStages(), getMostRecentStage().stream());
+    }
+
+    @Nonnull
+    @Override
+    public Optional<NomadStage> getStage(@Nonnull String id) {
+        return getAllStages().filter(s -> s.getId().equals(id)).findFirst();
     }
 
     @Nonnull

@@ -5,6 +5,7 @@ import de.itd.tracking.winslow.project.Project;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public interface Orchestrator {
 
@@ -12,9 +13,9 @@ public interface Orchestrator {
     Pipeline createPipeline(@Nonnull Project project) throws OrchestratorException;
 
     @Nonnull
-    Optional<?  extends Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException;
+    Optional<? extends Pipeline> getPipeline(@Nonnull Project project) throws OrchestratorException;
 
-    default Optional<?  extends Pipeline> getPipelineOmitExceptions(@Nonnull Project project) {
+    default Optional<? extends Pipeline> getPipelineOmitExceptions(@Nonnull Project project) {
         try {
             return getPipeline(project);
         } catch (OrchestratorException e) {
@@ -41,4 +42,9 @@ public interface Orchestrator {
 
     @Nonnull
     Optional<String> getProjectIdForPipeline(@Nonnull Pipeline pipeline);
+
+
+    @Nonnull
+    Stream<? extends String> getStdout(@Nonnull Project projectId, @Nonnull String stageId);
+
 }

@@ -5,7 +5,6 @@ import de.itd.tracking.winslow.fs.LockException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.validation.constraints.Null;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;

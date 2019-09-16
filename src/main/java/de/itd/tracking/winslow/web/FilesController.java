@@ -2,7 +2,6 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
-import de.itd.tracking.winslow.project.ProjectRepository;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
