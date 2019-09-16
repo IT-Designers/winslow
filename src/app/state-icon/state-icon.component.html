@@ -1,4 +1,4 @@
-<div class="state-icon" ngSwitch="{{(state+'').toLocaleLowerCase()}}">
+<div class="state-icon" ngSwitch="{{stateString()}}">
   <mat-icon *ngSwitchCase="'preparing'" matTooltip="Preparing" fontSet="material-icons-outlined" class="state-icon-preparing">hourglass_empty</mat-icon>
   <ng-container *ngSwitchCase="'running'" >
     <mat-icon *ngIf="!animation" matTooltip="Running" fontSet="material-icons-outlined" class="state-icon-running">network_check</mat-icon>

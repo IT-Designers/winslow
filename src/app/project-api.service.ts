@@ -24,11 +24,16 @@ export class ProjectApiService {
   }
 
   getProjectState(projectId: string) {
-    return this.client.get<State>(environment.apiLocation + `projects/${projectId}/state`);
+    return this.client.get<string>(environment.apiLocation + `projects/${projectId}/state`)
+      .pipe(map(state => State[state]));
   }
 
   getProjectHistory(projectId: string) {
-    return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history');
+    return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history')
+      .pipe(map(history => history.map(h => {
+        h.state = State[h.state];
+        return h;
+      })));
   }
 
   getProjectPaused(projectId: string) {
@@ -43,7 +48,12 @@ export class ProjectApiService {
     return this.client.post(`${environment.apiLocation}/projects/${projectId}/paused/${paused}`, new FormData());
   }
 
+  getLog(projectId: string, stageId: string) {
+    return this.client.get<string[]>(`${environment.apiLocation}/projects/${projectId}/logs/${stageId}`);
+  }
+
 }
+
 export enum State {
   Running,
   Paused,
@@ -64,6 +74,7 @@ export class Project {
 }
 
 export class HistoryEntry {
+  stageId: string;
   startTime: number;
   finishTime?: number;
   state?: State;

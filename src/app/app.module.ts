@@ -12,7 +12,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {
   MatButtonModule,
-  MatButtonToggleModule,
+  MatButtonToggleModule, MatCheckboxModule,
   MatExpansionModule,
   MatGridListModule,
   MatIconModule,
@@ -86,7 +86,8 @@ import { ProjectViewComponent } from './project-view/project-view.component';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatSlideToggleModule,
-    MatTabsModule
+    MatTabsModule,
+    MatCheckboxModule
 
   ],
   providers: [

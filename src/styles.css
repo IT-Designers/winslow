@@ -32,3 +32,46 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .mat-highlight-hover:hover {
   background-color: rgba(0,0,0,.04);
 }
+
+.console-container {
+  display: flex;
+  flex-grow: 1;
+}
+
+.console {
+  flex-grow: 1;
+  min-height: 10em;
+  width: auto;
+  font-weight: bold;
+  padding: 1em;
+}
+
+.console span {
+  word-break: normal;
+  white-space: pre-wrap;
+  padding: 0;
+  margin: 0;
+}
+
+.console > * {
+  display: flex;
+  padding: 0 1em;
+  margin: 0;
+}
+.console > *:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.console .line-number {
+  display: inline-block;
+  color: darkgray;
+  width: 3em;
+  padding: 0 2em 0 0;
+  text-align: end;
+  user-select: none;
+}
+
+.dark-console {
+  background-color: black;
+  color: lightgrey;
+}

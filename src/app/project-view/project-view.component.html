@@ -2,7 +2,7 @@
 
   <mat-tab label="Control">
     <div class="loading-bar-container">
-      <mat-progress-bar *ngIf="state == null || isLongLoading()" mode="buffer"></mat-progress-bar>
+      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
 
     <div class="stage-control-item">
@@ -29,7 +29,7 @@
 
   <mat-tab label="History">
     <div class="loading-bar-container">
-      <mat-progress-bar *ngIf="history == null || isLongLoading()" mode="buffer"></mat-progress-bar>
+      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
 
     <ng-container *ngIf="history != null">
@@ -42,6 +42,7 @@
           <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
           <p>{{entry.stageName}}</p>
           <p class="history-list-item-grow">
+            <mat-icon matTooltip="Open Logs" class="clickable" (click)="openLogs(project, entry)">list_alt</mat-icon>
             <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open</mat-icon>
           </p>
         </mat-list-item>
@@ -54,6 +55,26 @@
   </mat-tab>
 
   <mat-tab label="Logs">
-
+    <div class="loading-bar-container">
+      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
+    </div>
+    <div style="text-align: center">
+      <button mat-raised-button color="accent" [disabled]="watchLatestLogs" (click)="showLatestLogs()">Show log of most recent Stage</button>
+    </div>
+    <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
+    <div class="logs-container" *ngIf="logs != null">
+      <div class="console-container">
+        <pre class="console-container">
+          <code *ngIf="logs != null" #console class="console dark-console"
+            ><ng-container *ngFor="let log of logs; index as i"
+              ><span
+                ><span class="line-number">{{i}}</span
+                ><span>{{log}}</span
+                ></span
+              ></ng-container>
+          </code>
+        </pre>
+      </div>
+    </div>
   </mat-tab>
 </mat-tab-group>
