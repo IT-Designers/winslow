@@ -28,3 +28,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .clickable {
   cursor: pointer;
 }
+
+.mat-highlight-hover:hover {
+  background-color: rgba(0,0,0,.04);
+}
