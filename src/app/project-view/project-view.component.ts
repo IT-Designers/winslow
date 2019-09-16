@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, Project, ProjectApiService, State} from '../project-api.service';
 import {NotificationService} from '../notification.service';
-import {MatTabGroup} from '@angular/material';
+import {MatSlideToggleChange, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FilesComponent} from '../files/files.component';
 
@@ -14,16 +14,22 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
   @ViewChild('files', {static: false}) files: FilesComponent;
+  @ViewChild('console', {static: false}) console: HTMLElement;
 
   @Input() project: Project;
   @Output('state') stateEmitter = new EventEmitter<State>();
 
   state?: State = null;
   history?: HistoryEntry[] = null;
+  logs?: string[] = null;
   paused: boolean = null;
 
   watchHistory = false;
   watchPaused = false;
+  watchLogs = false;
+  watchLatestLogs = true;
+
+  watchLogsId?: string = null;
 
   longLoading = new LongLoadingDetector();
 
@@ -48,18 +54,34 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .catch(err => this.notification.error('Failed to update state' + JSON.stringify(err)));
   }
 
+  isRunning(): boolean {
+    return State.Running === this.state;
+  }
+
   pollWatched(): void {
-    if (this.watchHistory) {
+    if (this.watchHistory && (this.isRunning() || this.history == null)) {
       this.loadHistory();
     }
     if (this.watchPaused) {
       this.loadPaused();
     }
+    if (this.watchLogs && (this.isRunning() || this.logs == null)) {
+      this.loadLogs();
+    }
   }
 
-  loadHistory(): void {
+  loadLogs() {
     this.longLoading.increase();
-    this.api.getProjectHistory(this.project.id)
+    const stage = this.watchLatestLogs ? 'latest' : this.watchLogsId;
+    return this.api.getLog(this.project.id, stage)
+      .toPromise()
+      .then(logs => this.logs = logs)
+      .finally(() => this.longLoading.decrease());
+  }
+
+  loadHistory() {
+    this.longLoading.increase();
+    return this.api.getProjectHistory(this.project.id)
       .toPromise()
       .then(history => {
         history = history.reverse();
@@ -121,6 +143,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     let update = false;
     update = update || (this.watchPaused = 0 === index);
     update = update || (this.watchHistory = 1 === index);
+    update = update || (this.watchLogs = 3 === index);
+
     if (update) {
       this.pollWatched();
     }
@@ -134,5 +158,24 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.tabs.selectedIndex = 2;
     this.files.updateAdditionalRoot(`${project.name};workspaces/${project.id}`, true);
     this.files.navigateDirectlyTo(`/workspaces/${project.id}/${entry.workspace}/`);
+  }
+
+
+  openLogs(project: Project, entry: HistoryEntry) {
+    this.tabs.selectedIndex = 3;
+    this.logs = null;
+    this.watchLogs = true;
+    this.watchLogsId = entry.stageId;
+    this.watchLatestLogs = false;
+  }
+
+  showLatestLogs() {
+    if (!this.watchLatestLogs) {
+      this.logs = null;
+      this.watchLogs = true;
+      this.watchLogsId = null;
+      this.watchLatestLogs = true;
+      this.loadLogs();
+    }
   }
 }
