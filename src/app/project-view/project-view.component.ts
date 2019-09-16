@@ -61,7 +61,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.longLoading.increase();
     this.api.getProjectHistory(this.project.id)
       .toPromise()
-      .then(history => this.history = history.reverse())
+      .then(history => {
+        history = history.reverse();
+        if (this.history === null || this.history.length !== history.length || JSON.stringify(this.history) !== JSON.stringify(history)) {
+          this.history = history;
+        }
+      })
       .finally(() => this.longLoading.decrease());
   }
 
