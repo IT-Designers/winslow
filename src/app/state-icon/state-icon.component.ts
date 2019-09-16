@@ -16,4 +16,8 @@ export class StateIconComponent implements OnInit {
   ngOnInit() {
   }
 
+  stateString() {
+    return this.state != null ? (State[this.state] + '').toLowerCase() : null;
+  }
+
 }
