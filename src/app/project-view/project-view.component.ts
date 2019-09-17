@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {HistoryEntry, Project, ProjectApiService, State} from '../project-api.service';
+import {HistoryEntry, LogEntry, Project, ProjectApiService, State} from '../project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatSlideToggleChange, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
@@ -21,7 +21,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   state?: State = null;
   history?: HistoryEntry[] = null;
-  logs?: string[] = null;
+  logs?: LogEntry[] = null;
   paused: boolean = null;
 
   watchHistory = false;

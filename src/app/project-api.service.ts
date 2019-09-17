@@ -49,7 +49,7 @@ export class ProjectApiService {
   }
 
   getLog(projectId: string, stageId: string) {
-    return this.client.get<string[]>(`${environment.apiLocation}/projects/${projectId}/logs/${stageId}`);
+    return this.client.get<LogEntry[]>(`${environment.apiLocation}/projects/${projectId}/logs/${stageId}`);
   }
 
 }
@@ -82,3 +82,9 @@ export class HistoryEntry {
   workspace?: string;
 }
 
+
+export class LogEntry {
+  time: number;
+  error: boolean;
+  message: string;
+}
