@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.nomad;
 
+
 import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
 public class NomadRepository extends BaseRepository {
 
 
-    public NomadRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public NomadRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 
@@ -22,11 +23,11 @@ public class NomadRepository extends BaseRepository {
         return workDirectoryConfiguration.getPath().resolve("nomad");
     }
 
-    public Stream<Handle<NomadPipeline>> getAllPipelines() {
+    Stream<Handle<NomadPipeline>> getAllPipelines() {
         return listAll().map(path -> createHandle(path, NomadPipeline.class));
     }
 
-    public Handle<NomadPipeline> getNomadPipeline(@Nonnull String projectId) {
+    Handle<NomadPipeline> getNomadPipeline(@Nonnull String projectId) {
         return createHandle(getRepositoryFile(projectId), NomadPipeline.class);
     }
 }

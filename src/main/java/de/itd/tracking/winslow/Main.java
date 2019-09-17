@@ -6,6 +6,7 @@ import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.nomad.NomadOrchestrator;
 import de.itd.tracking.winslow.nomad.NomadRepository;
+import de.itd.tracking.winslow.project.LogRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 import de.itd.tracking.winslow.web.WebApi;
@@ -52,13 +53,14 @@ public class Main {
             var lockBus         = new LockBus(config.getEventsDirectory());
             var resourceManager = new ResourceManager(config.getPath(), new PathConfiguration());
             var environment     = new Environment(config, resourceManager);
+            var logs            = new LogRepository(lockBus, config);
 
             LOG.info("Preparing the orchestrator");
             var nomadRepository = new NomadRepository(lockBus, config);
             var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder()
                     .setAddress("http://localhost:4646")
                     .build());
-            orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository);
+            orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository, logs);
 
             LOG.info("Assembling Winslow");
             var winslow = new Winslow(orchestrator, config, lockBus, resourceManager);

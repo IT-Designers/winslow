@@ -22,4 +22,9 @@ public interface WorkDirectoryConfiguration {
     default Path getPipelinesDirectory() {
         return getPath().resolve("pipelines");
     }
+
+    @Nonnull
+    default Path getLogsDirectory() {
+        return getPath().resolve("logs");
+    }
 }

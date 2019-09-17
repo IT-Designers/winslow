@@ -8,15 +8,20 @@ import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.fs.LockException;
+import de.itd.tracking.winslow.fs.LockedOutputStream;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
+import de.itd.tracking.winslow.project.LogRepository;
 import de.itd.tracking.winslow.project.Project;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,21 +30,23 @@ import java.util.stream.Stream;
 
 public class NomadOrchestrator implements Orchestrator {
 
-    private static final Logger LOG = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
+    private static final Logger  LOG                     = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
     private static final Pattern INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
-    private static final Pattern MULTI_UNDERSCORE = Pattern.compile("_[_]+");
+    private static final Pattern MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
 
     @Nonnull private final Environment     environment;
     @Nonnull private final NomadApiClient  client;
     @Nonnull private final NomadRepository repository;
+    @Nonnull private final LogRepository   logs;
 
     private boolean isRunning = false;
     private boolean shouldRun = true;
 
-    public NomadOrchestrator(@Nonnull Environment environment, @Nonnull NomadApiClient client, @Nonnull NomadRepository repository) {
+    public NomadOrchestrator(@Nonnull Environment environment, @Nonnull NomadApiClient client, @Nonnull NomadRepository repository, @Nonnull LogRepository logs) {
         this.environment = environment;
         this.client      = client;
         this.repository  = repository;
+        this.logs        = logs;
 
         var thread = new Thread(this::pipelineUpdaterLoop);
         thread.setDaemon(true);
@@ -77,12 +84,14 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private void pollForPipelineUpdates() {
-        repository
-                .getAllPipelines()
-                .filter(handle -> handle.unsafe().map(this::hasUpdateAvailable).orElse(false))
-                .map(BaseRepository.Handle::exclusive)
-                .flatMap(Optional::stream)
-                .forEach(this::updatePipeline);
+        repository.getAllPipelines().filter(handle -> {
+            try {
+                return handle.unsafe().map(this::hasUpdateAvailable).orElse(false);
+            } catch (Throwable t) {
+                LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(NomadPipeline::getProjectId), t);
+                return false;
+            }
+        }).map(BaseRepository.Handle::exclusive).flatMap(Optional::stream).forEach(this::updatePipeline);
     }
 
     private void updatePipeline(LockedContainer<NomadPipeline> container) {
@@ -257,6 +266,7 @@ public class NomadOrchestrator implements Orchestrator {
         var job   = builder.buildJob(pipeline.getDefinition(), stageDefinition, environment);
         var stage = new PreparedJob(job, this).start(stageDefinition);
         pipeline.incrementNextStageIndex(); // at this point, the start was successful
+        redirectLogs(pipeline, stage);
         return stage;
     }
 
@@ -347,6 +357,68 @@ public class NomadOrchestrator implements Orchestrator {
         return getClient().getClientApi(this.client.getConfig().getAddress());
     }
 
+    private void redirectLogs(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage) {
+        new Thread(() -> {
+            try (LockedOutputStream os = logs.getRawOutputStream(pipeline.getProjectId(), stage.getId())) {
+                var stdout = LogStream.stdOut(getClientApi(), stage.getTaskName(), () -> getJobAllocationContainingTaskStateLogErrors(stage
+                        .getJobId(), stage.getTaskName()));
+                var stderr = LogStream.stdErr(getClientApi(), stage.getTaskName(), () -> getJobAllocationContainingTaskStateLogErrors(stage
+                        .getJobId(), stage.getTaskName()));
+
+                var queue = new LinkedList<LogEntry>();
+
+                var threadStdOut = new Thread(() -> {
+                    stdout.forEach(bytes -> {
+                        synchronized (queue) {
+                            queue.add(bytes);
+                        }
+                    });
+                });
+                threadStdOut.setName(stage.getJobId() + ".stdout");
+                threadStdOut.setDaemon(true);
+                threadStdOut.start();
+
+                var threadStdErr = new Thread(() -> {
+                    stderr.forEach(bytes -> {
+                        synchronized (queue) {
+                            queue.add(bytes);
+                        }
+                    });
+                });
+                threadStdErr.setName(stage.getJobId() + ".stderr");
+                threadStdErr.setDaemon(true);
+                threadStdErr.start();
+
+
+                PrintStream ps = new PrintStream(os);
+                while (threadStdErr.isAlive() || threadStdOut.isAlive() || !queue.isEmpty()) {
+                    LogEntry element;
+                    synchronized (queue) {
+                        element = queue.poll();
+                    }
+                    if (element == null) {
+                        try {
+                            threadStdOut.join(100);
+                            threadStdErr.join(100);
+                        } catch (InterruptedException e) {
+                            LOG.log(Level.WARNING, "Got interrupted on join, will try again", e);
+                        }
+                    } else {
+                        System.out.println("writing " + element);
+                        ps.printf("%s;%s;%s%n", element.getTime(), element.isError(), element.getMessage());
+                        ps.flush();
+                    }
+                    os.flush();
+                }
+                ps.flush();
+                os.flush();
+            } catch (LockException | IOException e) {
+                LOG.log(Level.SEVERE, "Log writer failed", e);
+            }
+        }).start();
+    }
+
+
     @Nonnull
     private LogIterator getLogIteratorStdOut(NomadStage stage, int lastNLines) {
         return getLogIterator(stage, lastNLines, "stdout");
@@ -359,18 +431,22 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     private LogIterator getLogIterator(@Nonnull NomadStage stage, int lastNLines, String logType) {
-        return new LogIterator(stage.getJobId(), stage.getTaskName(), logType, getClientApi(), () -> {
-            try {
-                return getJobAllocationContainingTaskState(stage.getJobId(), stage.getTaskName());
-            } catch (IOException | NomadException e) {
-                return Optional.empty();
-            }
-        });
+        return new LogIterator(stage.getJobId(), stage.getTaskName(), logType, getClientApi(), () -> getJobAllocationContainingTaskStateLogErrors(stage
+                .getJobId(), stage.getTaskName()));
     }
 
     @Nonnull
+    private Optional<AllocationListStub> getJobAllocationContainingTaskStateLogErrors(@Nonnull String jobId, @Nonnull String taskName) {
+        try {
+            return getJobAllocationContainingTaskState(jobId, taskName);
+        } catch (NomadException | IOException e) {
+            LOG.log(Level.WARNING, "Failed to get job allocation");
+            return Optional.empty();
+        }
+    }
+
     private Optional<AllocationListStub> getJobAllocationContainingTaskState(@Nonnull String jobId, @Nonnull String taskName) throws IOException, NomadException {
-        for (AllocationListStub allocationListStub : client.getAllocationsApi().list().getValue()) {
+        for (AllocationListStub allocationListStub : getClient().getAllocationsApi().list().getValue()) {
             if (jobId.equals(allocationListStub.getJobId())) {
                 if (allocationListStub.getTaskStates() != null && allocationListStub
                         .getTaskStates()
@@ -390,19 +466,19 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     @Nonnull
-    private static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
+    public static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
         return Optional
                 .ofNullable(allocation.getTaskStates().get(taskName))
                 .map(state -> state.getFinishedAt().after(new Date(1)));
     }
 
     @Nonnull
-    private static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
+    public static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
         return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(TaskState::getFailed);
     }
 
     @Nonnull
-    private static Optional<Stage.State> toRunningStageState(@Nonnull AllocationListStub allocation, @Nonnull String taskName) {
+    public static Optional<Stage.State> toRunningStageState(@Nonnull AllocationListStub allocation, @Nonnull String taskName) {
         var failed   = hasTaskFailed(allocation, taskName);
         var started  = hasTaskStarted(allocation, taskName);
         var finished = hasTaskFinished(allocation, taskName);
@@ -422,6 +498,8 @@ public class NomadOrchestrator implements Orchestrator {
 
 
     private static String replaceInvalidCharactersInJobName(@Nonnull String jobName) {
-        return MULTI_UNDERSCORE.matcher(INVALID_NOMAD_CHARACTER.matcher(jobName.toLowerCase()).replaceAll("_")).replaceAll("_");
+        return MULTI_UNDERSCORE
+                .matcher(INVALID_NOMAD_CHARACTER.matcher(jobName.toLowerCase()).replaceAll("_"))
+                .replaceAll("_");
     }
 }

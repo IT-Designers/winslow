@@ -4,7 +4,7 @@ import java.io.Closeable;
 
 public class Lock implements Closeable {
 
-    public static final int LOCK_DURATION_MS = 5_000;
+    public static final int DEFAULT_LOCK_DURATION_MS = 5_000;
 
     private final LockBus lockBus;
     private final long    durationMs;
@@ -12,7 +12,7 @@ public class Lock implements Closeable {
     private Token token;
 
     public Lock(LockBus lockBus, String subject) throws LockException {
-        this(lockBus, subject, LOCK_DURATION_MS);
+        this(lockBus, subject, DEFAULT_LOCK_DURATION_MS);
     }
 
     public Lock(LockBus lockBus, String subject, long durationMs) throws LockException {

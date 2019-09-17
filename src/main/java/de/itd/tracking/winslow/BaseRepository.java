@@ -21,7 +21,7 @@ public abstract class BaseRepository {
     protected final WorkDirectoryConfiguration workDirectoryConfiguration;
 
     public BaseRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
-        this.lockBus = lockBus;
+        this.lockBus                    = lockBus;
         this.workDirectoryConfiguration = workDirectoryConfiguration;
 
         var dir = getRepositoryDirectory().toFile();
@@ -72,7 +72,7 @@ public abstract class BaseRepository {
             return Optional.of(reader.load(inputStream));
         } catch (IOException e) {
             if (!(e instanceof FileNotFoundException)) {
-                LOG.log(Level.SEVERE, "Failed to load file", e);
+                LOG.log(Level.SEVERE, "Failed to load file " + path, e);
             }
             return Optional.empty();
         }
@@ -117,8 +117,12 @@ public abstract class BaseRepository {
     }
 
     protected Lock getLockForPath(Path path) throws LockException {
+        return getLockForPath(path, Lock.DEFAULT_LOCK_DURATION_MS);
+    }
+
+    protected Lock getLockForPath(Path path, int durationMs) throws LockException {
         var subject = workDirectoryConfiguration.getPath().relativize(path).toString();
-        return new Lock(lockBus, subject);
+        return new Lock(lockBus, subject, durationMs);
     }
 
     protected interface Reader<T> {
@@ -144,7 +148,7 @@ public abstract class BaseRepository {
 
 
         private Handle(@Nonnull Path path, @Nonnull Reader<T> reader, @Nonnull Writer<T> writer) {
-            this.path = path;
+            this.path   = path;
             this.reader = reader;
             this.writer = writer;
         }
