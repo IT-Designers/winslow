@@ -12,6 +12,7 @@ import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.project.Project;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,11 +20,14 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class NomadOrchestrator implements Orchestrator {
 
     private static final Logger LOG = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
+    private static final Pattern INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
+    private static final Pattern MULTI_UNDERSCORE = Pattern.compile("_[_]+");
 
     @Nonnull private final Environment     environment;
     @Nonnull private final NomadApiClient  client;
@@ -333,23 +337,28 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
 
-    public NomadApiClient getClient() {
+    @Nonnull
+    NomadApiClient getClient() {
         return new NomadApiClient(this.client.getConfig());
     }
 
-    public ClientApi getClientApi() {
+    @Nonnull
+    private ClientApi getClientApi() {
         return getClient().getClientApi(this.client.getConfig().getAddress());
     }
 
-    public LogIterator getLogIteratorStdOut(NomadStage stage, int lastNLines) {
+    @Nonnull
+    private LogIterator getLogIteratorStdOut(NomadStage stage, int lastNLines) {
         return getLogIterator(stage, lastNLines, "stdout");
     }
 
-    public LogIterator getLogIteratorStdErr(NomadStage stage, int lastNLines) {
+    @Nonnull
+    private LogIterator getLogIteratorStdErr(NomadStage stage, int lastNLines) {
         return getLogIterator(stage, lastNLines, "stderr");
     }
 
-    public LogIterator getLogIterator(NomadStage stage, int lastNLines, String logType) {
+    @Nonnull
+    private LogIterator getLogIterator(@Nonnull NomadStage stage, int lastNLines, String logType) {
         return new LogIterator(stage.getJobId(), stage.getTaskName(), logType, getClientApi(), () -> {
             try {
                 return getJobAllocationContainingTaskState(stage.getJobId(), stage.getTaskName());
@@ -359,7 +368,8 @@ public class NomadOrchestrator implements Orchestrator {
         });
     }
 
-    public Optional<AllocationListStub> getJobAllocationContainingTaskState(@Nonnull String jobId, @Nonnull String taskName) throws IOException, NomadException {
+    @Nonnull
+    private Optional<AllocationListStub> getJobAllocationContainingTaskState(@Nonnull String jobId, @Nonnull String taskName) throws IOException, NomadException {
         for (AllocationListStub allocationListStub : client.getAllocationsApi().list().getValue()) {
             if (jobId.equals(allocationListStub.getJobId())) {
                 if (allocationListStub.getTaskStates() != null && allocationListStub
@@ -372,23 +382,27 @@ public class NomadOrchestrator implements Orchestrator {
         return Optional.empty();
     }
 
-    public static Optional<Boolean> hasTaskStarted(AllocationListStub allocation, String taskName) {
+    @Nonnull
+    static Optional<Boolean> hasTaskStarted(AllocationListStub allocation, String taskName) {
         return Optional
                 .ofNullable(allocation.getTaskStates().get(taskName))
                 .map(state -> state.getStartedAt().after(new Date(1)));
     }
 
-    public static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
+    @Nonnull
+    private static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
         return Optional
                 .ofNullable(allocation.getTaskStates().get(taskName))
                 .map(state -> state.getFinishedAt().after(new Date(1)));
     }
 
-    public static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
+    @Nonnull
+    private static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
         return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(TaskState::getFailed);
     }
 
-    public static Optional<Stage.State> toRunningStageState(AllocationListStub allocation, String taskName) {
+    @Nonnull
+    private static Optional<Stage.State> toRunningStageState(@Nonnull AllocationListStub allocation, @Nonnull String taskName) {
         var failed   = hasTaskFailed(allocation, taskName);
         var started  = hasTaskStarted(allocation, taskName);
         var finished = hasTaskFinished(allocation, taskName);
@@ -407,7 +421,7 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
 
-    public static String replaceInvalidCharactersInJobName(String jobName) {
-        return jobName.toLowerCase().replaceAll("[^a-zA-Z0-9\\-_]", "_").replaceAll("__", "_");
+    private static String replaceInvalidCharactersInJobName(@Nonnull String jobName) {
+        return MULTI_UNDERSCORE.matcher(INVALID_NOMAD_CHARACTER.matcher(jobName.toLowerCase()).replaceAll("_")).replaceAll("_");
     }
 }
