@@ -20,6 +20,7 @@ public class LogIterator implements Iterator<String> {
     private final Supplier<Optional<AllocationListStub>> state;
 
     private FramedStream stream = null;
+    private Iterator<String> next = null;
 
     public LogIterator(String id, String taskName, String logType, ClientApi clientApi, Supplier<Optional<AllocationListStub>> state) {
         this.id        = id;
@@ -27,7 +28,7 @@ public class LogIterator implements Iterator<String> {
         this.logType   = logType;
         this.clientApi = clientApi;
         this.state     = state;
-        this.tryEnsureStream();
+        this.tryReadNext();
     }
 
     private boolean hasTaskStarted(AllocationListStub allocation) {
@@ -54,39 +55,41 @@ public class LogIterator implements Iterator<String> {
         }
     }
 
-    @Override
-    public boolean hasNext() {
-        try {
-            return this.stream != null && this.stream.hasNextFrame();
-        } catch (IOException e) {
-            e.printStackTrace();
-            try {
-                this.stream.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            this.stream = null;
-            return false;
-        }
-    }
+    private void tryReadNext() {
+        this.next = null;
 
-    @Override
-    public String next() {
         if (!this.tryEnsureStream()) {
-            return "";
+            return;
         }
         try {
             StreamFrame next = stream.nextFrame();
             if (next != null && next.getData() != null) {
-                return new String(next.getData());
+                this.next = new String(next.getData()).lines().iterator();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
             if (!hasNext() && stream != null) {
                 stream.close();
                 stream = null;
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read next StreamFrame for id=" + this.id + ",taskName=" + this.taskName, e);
+            e.printStackTrace();
         }
-        return "";
+    }
+
+    @Override
+    public boolean hasNext() {
+        return this.next != null && this.next.hasNext();
+    }
+
+    @Override
+    public String next() {
+        var result = this.next.next();
+        if (!this.next.hasNext()) {
+            this.tryReadNext();
+        }
+        return result;
     }
 }

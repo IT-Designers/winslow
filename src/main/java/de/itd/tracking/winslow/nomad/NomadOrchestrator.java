@@ -15,15 +15,11 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class NomadOrchestrator implements Orchestrator {
 
@@ -311,24 +307,38 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public Stream<String> getStdout(@Nonnull Project project, @Nonnull String stageId) {
+    public Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull String stageId) {
         return getPipeline(project).flatMap(pipeline -> pipeline.getStage(stageId)).stream().flatMap(stage -> {
-            var iterator = getLogIteratorStdOut(stage, 0);
-            if (iterator.hasNext()) {
-                return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
-            } else {
-                return Stream.empty();
-            }
+            var stdout = getLogIteratorStdOut(stage, 0);
+            var stderr = getLogIteratorStdErr(stage, 0);
+            return Stream.<LogEntry>iterate(new LogEntry(0, false, ""), Objects::nonNull, prev -> {
+
+                if (stderr.hasNext()) {
+                    var err = stderr.next();
+                    if (err != null && !err.isEmpty()) {
+                        return LogEntry.nowErr(err);
+                    }
+                }
+
+                if (stdout.hasNext()) {
+                    var out = stdout.next();
+                    if (out != null && !out.isEmpty()) {
+                        return LogEntry.nowOut(out);
+                    }
+                }
+
+                return null;
+            }).skip(1);
         });
     }
 
 
     public NomadApiClient getClient() {
-        return this.client;
+        return new NomadApiClient(this.client.getConfig());
     }
 
     public ClientApi getClientApi() {
-        return this.client.getClientApi(this.client.getConfig().getAddress());
+        return getClient().getClientApi(this.client.getConfig().getAddress());
     }
 
     public LogIterator getLogIteratorStdOut(NomadStage stage, int lastNLines) {

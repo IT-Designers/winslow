@@ -45,6 +45,6 @@ public interface Orchestrator {
 
 
     @Nonnull
-    Stream<? extends String> getStdout(@Nonnull Project projectId, @Nonnull String stageId);
+    Stream<LogEntry> getLogs(@Nonnull Project projectId, @Nonnull String stageId);
 
 }

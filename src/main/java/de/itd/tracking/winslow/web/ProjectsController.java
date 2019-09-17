@@ -1,9 +1,6 @@
 package de.itd.tracking.winslow.web;
 
-import de.itd.tracking.winslow.OrchestratorException;
-import de.itd.tracking.winslow.Pipeline;
-import de.itd.tracking.winslow.Stage;
-import de.itd.tracking.winslow.Winslow;
+import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
@@ -149,7 +146,7 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/logs/latest")
-    public Stream<String> getProjectStageLogsLatest(User user, @PathVariable("projectId") String projectId) {
+    public Stream<LogEntry> getProjectStageLogsLatest(User user, @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -161,20 +158,18 @@ public class ProjectsController {
                         .getPipelineOmitExceptions(project)
                         .flatMap(Pipeline::getMostRecentStage)
                         .stream()
-                        .flatMap(stage -> winslow.getOrchestrator().getStdout(project, stage.getId())))
-                .flatMap(String::lines);
+                        .flatMap(stage -> winslow.getOrchestrator().getLogs(project, stage.getId())));
     }
 
     @GetMapping("projects/{projectId}/logs/{stageId}")
-    public Stream<String> getProjectStageLogs(User user, @PathVariable("projectId") String projectId, @PathVariable("stageId") String stageId) {
+    public Stream<LogEntry> getProjectStageLogs(User user, @PathVariable("projectId") String projectId, @PathVariable("stageId") String stageId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
                 .stream()
-                .flatMap(project -> winslow.getOrchestrator().getStdout(project, stageId))
-                .flatMap(String::lines);
+                .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId));
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
