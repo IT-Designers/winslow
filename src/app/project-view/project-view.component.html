@@ -68,8 +68,8 @@
           <code *ngIf="logs != null" #console class="console dark-console"
             ><ng-container *ngFor="let log of logs; index as i"
               ><span
-                ><span class="line-number">{{i}}</span
-                ><span>{{log}}</span
+                ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i}}</span
+                ><span [class.console-err]="log.error">{{log.message}}</span
                 ></span
               ></ng-container>
           </code>
