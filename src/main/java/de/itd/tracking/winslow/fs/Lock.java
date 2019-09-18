@@ -9,7 +9,8 @@ public class Lock implements Closeable {
     private final LockBus lockBus;
     private final long    durationMs;
 
-    private Token token;
+    private Token   token;
+    private boolean released = false;
 
     public Lock(LockBus lockBus, String subject) throws LockException {
         this(lockBus, subject, DEFAULT_LOCK_DURATION_MS);
@@ -20,9 +21,28 @@ public class Lock implements Closeable {
     }
 
     public Lock(LockBus lockBus, Token token, long durationMs) {
-        this.lockBus = lockBus;
-        this.token = token;
+        this.lockBus    = lockBus;
+        this.token      = token;
         this.durationMs = durationMs;
+    }
+
+    public long getDurationMs() {
+        return durationMs;
+    }
+
+    public long getTimeMsUntilInvalid() {
+        return durationMs - (System.currentTimeMillis() - this.token.getTime());
+    }
+
+    public long getTimeUntilRenewalOnHeartbeat() {
+        return durationMs / 2 - (System.currentTimeMillis() - this.token.getTime());
+    }
+
+    public synchronized boolean heartbeatIfNotReleased() throws LockException {
+        if (!this.isReleased()) {
+            this.heartbeat();;
+        }
+        return this.isReleased();
     }
 
     public synchronized void heartbeat() throws LockException {
@@ -35,11 +55,21 @@ public class Lock implements Closeable {
     }
 
     public synchronized void release() {
+        this.released = true;
         this.lockBus.release(this.token);
+    }
+
+    public boolean isReleased() {
+        return this.released;
     }
 
     @Override
     public void close() {
         this.release();
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "@{token=" + this.token + "}#" + hashCode();
     }
 }

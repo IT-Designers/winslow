@@ -36,7 +36,6 @@ public class ResourceManager {
      * @return Whether the create operation was successful
      */
     public Optional<Path> createWorkspace(Path path, boolean failIfAlreadyExists) {
-
         return getWorkspacesDirectory()
                 .map(p -> p.resolve(path))
                 .filter(p -> p.toFile().mkdirs() == failIfAlreadyExists);

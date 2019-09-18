@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.LinkedList;
@@ -71,7 +72,7 @@ public class NomadOrchestrator implements Orchestrator {
         this.isRunning = true;
         try {
             while (!isGoingToStop()) {
-                pollForPipelineUpdates();
+                pollAllPipelinesForUpdate();
                 try {
                     // TODO
                     Thread.sleep(1000);
@@ -84,7 +85,7 @@ public class NomadOrchestrator implements Orchestrator {
         }
     }
 
-    private void pollForPipelineUpdates() {
+    private void pollAllPipelinesForUpdate() {
         repository.getAllPipelines().filter(handle -> {
             try {
                 return handle.unsafe().map(this::hasUpdateAvailable).orElse(false);
@@ -92,26 +93,81 @@ public class NomadOrchestrator implements Orchestrator {
                 LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(NomadPipeline::getProjectId), t);
                 return false;
             }
-        }).map(BaseRepository.Handle::exclusive).flatMap(Optional::stream).forEach(this::updatePipeline);
+        }).map(BaseRepository.Handle::exclusive).flatMap(Optional::stream).forEach(container -> {
+            try {
+                updatePipeline(container);
+            } catch (OrchestratorException e) {
+                LOG.log(Level.SEVERE, "Failed to update pipeline " + container
+                        .getNoThrow()
+                        .map(NomadPipeline::getProjectId), e);
+            }
+        });
     }
 
-    private void updatePipeline(LockedContainer<NomadPipeline> container) {
-        try (container) {
+    private void updatePipeline(LockedContainer<NomadPipeline> container) throws OrchestratorException {
+        try (container; var heart = new LockHeart(container.getLock())) {
             var pipelineOpt = container.get();
             if (pipelineOpt.isPresent()) {
-                var pipeline = pipelineOpt.get();
+                var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
+                var stage    = maybeStartNextStage(pipeline);
 
-                updateRunningStage(pipeline);
-                maybeStartNextStage(pipeline);
-
-                container.update(pipeline);
+                if (stage.isPresent()) {
+                    tryUpdateContainer(container, pipeline, stage.get());
+                }
             }
-        } catch (LockException | IOException e) {
-            LOG.log(Level.SEVERE, "Failed to update pipeline", e);
+        } catch (LockException e) {
+            LOG.log(Level.SEVERE, "Failed to get pipeline for update", e);
         }
     }
 
-    private void maybeStartNextStage(NomadPipeline pipeline) {
+    private void handleIncompleteStageException(NomadPipeline pipeline, IncompleteStageException e) {
+        LOG.log(Level.SEVERE, "Failed to start new stage", e);
+        e.getStage().ifPresent(s -> this.forcePurgeJob(pipeline, s));
+        e.getWorkspace().ifPresent(NomadOrchestrator::forcePurgeWorkspace);
+    }
+
+    private void forcePurgeStage(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage) {
+        forcePurgeJob(pipeline, stage);
+        forcePurgeWorkspace(pipeline, stage);
+    }
+
+    private void forcePurgeWorkspace(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage) {
+        environment
+                .getResourceManager()
+                .getWorkspace(getWorkspacePathForStage(pipeline, stage.getTaskName()))
+                .ifPresent(NomadOrchestrator::forcePurgeWorkspace);
+    }
+
+    private static void forcePurgeWorkspace(@Nonnull Path workspace) {
+        try {
+            for (int i = 0; i < 3; ++i) {
+                try (var stream = Files.walk(workspace)) {
+                    stream.forEach(entry -> {
+                        try {
+                            Files.deleteIfExists(entry);
+                        } catch (IOException e) {
+                            LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
+                        }
+                    });
+                }
+            }
+            Files.deleteIfExists(workspace);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to get rid of worksapce directory " + workspace, e);
+        }
+    }
+
+    private void forcePurgeJob(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage) {
+        try {
+            this.client.getJobsApi().deregister(stage.getJobId());
+        } catch (IOException | NomadException e) {
+            LOG.log(Level.SEVERE, "Failed to deregister job " + pipeline.getProjectId() + "." + stage.getJobId() + "/" + stage
+                    .getTaskName(), e);
+        }
+    }
+
+    @Nonnull
+    private Optional<NomadStage> maybeStartNextStage(NomadPipeline pipeline) throws OrchestratorException {
         if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested() && pipeline
                 .getNextStage()
                 .isPresent()) {
@@ -119,18 +175,16 @@ public class NomadOrchestrator implements Orchestrator {
                 case MoveForwardOnce:
                     pipeline.requestPause();
                 case MoveForwardUntilEnd:
-                    try {
-                        var stage = startNextPipelineStage(pipeline);
-                        pipeline.pushStage(stage);
-                    } catch (OrchestratorException e) {
-                        LOG.log(Level.SEVERE, "Failed to start next pipeline stage", e);
-                        pipeline.requestPause();
-                    }
+                    var stage = tryStartNextPipelineStage(pipeline);
+                    pipeline.pushStage(stage);
+                    return Optional.of(stage);
             }
         }
+        return Optional.empty();
     }
 
-    private void updateRunningStage(NomadPipeline pipeline) {
+    @Nonnull
+    private NomadPipeline updateRunningStage(@Nonnull NomadPipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
             getStateOmitExceptions(stage).ifPresent(state -> {
                 switch (state) {
@@ -146,6 +200,7 @@ public class NomadOrchestrator implements Orchestrator {
                 }
             });
         });
+        return pipeline;
     }
 
     @Nonnull
@@ -193,16 +248,40 @@ public class NomadOrchestrator implements Orchestrator {
             throw new PipelineAlreadyExistsException(project);
         }
 
-        try (var container = exclusivePipelineContainer(project)) {
-            var pipeline = new NomadPipeline(project.getId(), project.getPipelineDefinition());
-            var stage    = this.startNextPipelineStage(pipeline);
+        try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
+            NomadPipeline pipeline = new NomadPipeline(project.getId(), project.getPipelineDefinition());
+            NomadStage    stage    = tryStartNextPipelineStage(pipeline);
 
             pipeline.pushStage(stage);
-            container.update(pipeline);
+            return tryUpdateContainer(container, pipeline, stage);
+        }
+    }
 
+    private NomadPipeline tryUpdateContainer(LockedContainer<NomadPipeline> container, NomadPipeline pipeline) throws OrchestratorException {
+        try {
+            container.update(pipeline);
             return pipeline;
         } catch (IOException e) {
-            throw new OrchestratorException("Failed to create pipeline for project " + project.getId(), e);
+            throw new OrchestratorException("Failed to update pipeline", e);
+        }
+    }
+
+    private NomadPipeline tryUpdateContainer(LockedContainer<NomadPipeline> container, NomadPipeline pipeline, NomadStage stage) throws OrchestratorException {
+        try {
+            container.update(pipeline);
+            return pipeline;
+        } catch (IOException e) {
+            this.forcePurgeStage(pipeline, stage);
+            throw new OrchestratorException("Failed to update pipeline", e);
+        }
+    }
+
+    private NomadStage tryStartNextPipelineStage(NomadPipeline pipeline) throws OrchestratorException {
+        try {
+            return this.startNextPipelineStage(pipeline);
+        } catch (IncompleteStageException e) {
+            handleIncompleteStageException(pipeline, e);
+            throw new OrchestratorException("Failed to start new stage", e.getCause());
         }
     }
 
@@ -213,21 +292,27 @@ public class NomadOrchestrator implements Orchestrator {
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
     }
 
-    private NomadStage startNextPipelineStage(NomadPipeline pipeline) throws OrchestratorException {
+    private NomadStage startNextPipelineStage(NomadPipeline pipeline) throws IncompleteStageException {
         var stageDefinition = pipeline
                 .getNextStage()
-                .orElseThrow(() -> new OrchestratorException("A pipeline requires at least one stage"));
-        var builder = JobBuilder.withRandomUuid().withTaskName(getTaskName(pipeline, stageDefinition));
+                .orElseThrow(() -> new IncompleteStageException(null, null, "A pipeline requires at least one stage"));
+
+        var taskName      = getTaskName(pipeline, stageDefinition);
+        var workspacePath = getWorkspacePathForStage(pipeline, taskName);
+        var builder       = JobBuilder.withRandomUuid().withTaskName(taskName);
 
         var resources = environment.getResourceManager().getResourceDirectory();
-        var workspace = environment
-                .getResourceManager()
-                .createWorkspace(Path.of(pipeline.getProjectId(), builder.getTaskName()), true);
+        var workspace = environment.getResourceManager().createWorkspace(workspacePath, true);
 
         if (resources.isEmpty() || workspace.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
-            throw new OrchestratorException("The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources);
+            throw new IncompleteStageException(null, environment
+                    .getResourceManager()
+                    .getWorkspace(workspacePath)
+                    .orElse(null), "The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources);
         }
+
+        copyContentOfMostRecentStageTo(pipeline, workspace.get());
 
         if (stageDefinition.getImage().isPresent()) {
             builder = builder
@@ -243,7 +328,7 @@ public class NomadOrchestrator implements Orchestrator {
 
             if (exportedResources.isEmpty() || exportedWorkspace.isEmpty()) {
                 workspace.map(Path::toFile).map(File::delete);
-                throw new OrchestratorException("The workspace and resource path must be exported, but at least one isn't. workspace=" + exportedWorkspace + ",resources=" + exportedResources);
+                throw new IncompleteStageException(null, workspace.get(), "The workspace and resource path must be exported, but at least one isn't. workspace=" + exportedWorkspace + ",resources=" + exportedResources);
             }
 
             System.out.println(resources);
@@ -261,17 +346,66 @@ public class NomadOrchestrator implements Orchestrator {
                             .toAbsolutePath()
                             .toString());
         } else {
-            throw new OrchestratorException("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration());
+            throw new IncompleteStageException(null, workspace.get(), "Unknown WorkDirectoryConfiguration: " + environment
+                    .getWorkDirectoryConfiguration());
         }
 
-        var job   = builder.buildJob(pipeline.getDefinition(), stageDefinition, environment);
-        var stage = new PreparedJob(job, this).start(stageDefinition);
+
+        NomadStage stage;
+
+        try {
+            var job = builder.buildJob(pipeline.getDefinition(), stageDefinition, environment);
+            stage = new PreparedJob(job, this).start(stageDefinition);
+        } catch (OrchestratorException e) {
+            throw new IncompleteStageException(null, workspace.get(), "Failed to start stage", e);
+        }
+
         pipeline.incrementNextStageIndex(); // at this point, the start was successful
         redirectLogs(pipeline, stage);
         return stage;
     }
 
-    private static String getTaskName(NomadPipeline pipeline, StageDefinition stage) throws OrchestratorException {
+    private static Path getWorkspacePathForStage(NomadPipeline pipeline, String taskName) {
+        return Path.of(pipeline.getProjectId(), taskName);
+    }
+
+    private void copyContentOfMostRecentStageTo(NomadPipeline pipeline, Path workspace) throws IncompleteStageException {
+        var workDirBefore = pipeline
+                .getMostRecentStage()
+                .flatMap(stageBefore -> environment
+                        .getResourceManager()
+                        .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore.getTaskName())));
+
+        if (workDirBefore.isPresent()) {
+            var dirBefore = workDirBefore.get();
+            var failure   = Optional.<IOException>empty();
+
+            try {
+                failure = Files.walk(workDirBefore.get()).flatMap(path -> {
+                    try {
+                        var file = path.toFile();
+                        var dst  = workspace.resolve(dirBefore.relativize(path));
+                        if (file.isDirectory()) {
+                            Files.createDirectories(dst);
+                        } else {
+                            Files.copy(path, dst);
+                        }
+                        return Stream.empty();
+                    } catch (IOException e) {
+                        return Stream.of(e);
+                    }
+                }).findFirst();
+            } catch (IOException e) {
+                failure = Optional.of(e);
+            }
+
+            if (failure.isPresent()) {
+                throw new IncompleteStageException(null, workspace, "Failed to prepare workspace", failure.get());
+            }
+        }
+    }
+
+    private static String getTaskName(NomadPipeline pipeline, StageDefinition stage) {
         return String.format("%04d_%s", pipeline.getStageCount(), stage.getName());
     }
 
