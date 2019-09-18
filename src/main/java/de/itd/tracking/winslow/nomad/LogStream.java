@@ -8,7 +8,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -22,37 +25,32 @@ public class LogStream {
 
     private BufferedReader reader;
 
-    private LogStream(@Nonnull LogInputStream inputStream) {
-        this.reader = new BufferedReader(new InputStreamReader(inputStream));
+    private LogStream(@Nonnull InputStream inputStream) {
+        this(inputStream, StandardCharsets.UTF_8);
+    }
+
+    private LogStream(@Nonnull InputStream inputStream, Charset charset) {
+        this.reader = new BufferedReader(new InputStreamReader(inputStream, charset));
     }
 
     @Nullable
-    public String getNextLine() {
+    private String getNextLineOmitExceptions() {
         try {
-            var line = this.reader.readLine();
-            if (line == null) {
-                try {
-                    this.reader.close();
-                } finally {
-                    this.reader = null;
-                }
-            }
-            return line;
+            return getNextLine();
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to read further", e);
-            try {
-                if (this.reader != null) {
-                    this.reader.close();
-                }
-            } catch (IOException ee) {
-                LOG.log(Level.SEVERE, "Failed to close after error", ee);
-            } finally {
-                this.reader = null;
-            }
+            LOG.log(Level.SEVERE, "Failed to read line", e);
             return null;
         }
     }
 
+    @Nullable
+    private String getNextLine() throws IOException {
+        String line = this.reader.readLine();
+        if (line == null) {
+            this.reader = null;
+        }
+        return line;
+    }
 
     public static Stream<LogEntry> stdOut(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
         return stream(api, taskName, stateSupplier, "stdout").map(LogEntry::nowOut);
@@ -64,6 +62,6 @@ public class LogStream {
 
     private static Stream<String> stream(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier, @Nonnull String logType) throws IOException {
         var stream = new LogStream(new LogInputStream(api, taskName, stateSupplier, logType, true));
-        return Stream.<String>iterate(null, v -> stream.reader != null, v -> stream.getNextLine()).filter(Objects::nonNull);
+        return Stream.<String>iterate(null, v -> stream.reader != null, v -> stream.getNextLineOmitExceptions()).filter(Objects::nonNull);
     }
 }
