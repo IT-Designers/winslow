@@ -5,14 +5,14 @@ import java.util.Date;
 
 public class LogEntry {
 
-    private final long    timeMsSinceEpoch;
+    private final long    time;
     private final boolean error;
     private final String  message;
 
-    public LogEntry(long timeMsSinceEpoch, boolean error, @Nonnull String message) {
-        this.timeMsSinceEpoch = timeMsSinceEpoch;
-        this.error            = error;
-        this.message          = message;
+    public LogEntry(long timeMs, boolean error, @Nonnull String message) {
+        this.time    = timeMs;
+        this.error   = error;
+        this.message = message;
     }
 
     @Nonnull
@@ -26,7 +26,7 @@ public class LogEntry {
     }
 
     public long getTime() {
-        return timeMsSinceEpoch;
+        return time;
     }
 
     public boolean isError() {
