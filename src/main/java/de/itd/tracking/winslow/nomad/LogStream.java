@@ -62,6 +62,12 @@ public class LogStream {
 
     private static Stream<String> stream(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier, @Nonnull String logType) throws IOException {
         var stream = new LogStream(new LogInputStream(api, taskName, stateSupplier, logType, true));
-        return Stream.<String>iterate(null, v -> stream.reader != null, v -> stream.getNextLineOmitExceptions()).filter(Objects::nonNull);
+        return Stream.<String>iterate(null, v -> stream.reader != null || v != null, v -> {
+            if (stream.reader != null) {
+                return stream.getNextLineOmitExceptions();
+            } else {
+                return null;
+            }
+        }).filter(Objects::nonNull);
     }
 }

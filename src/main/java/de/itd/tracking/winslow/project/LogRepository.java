@@ -7,8 +7,10 @@ import de.itd.tracking.winslow.fs.LockedOutputStream;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 
 import javax.annotation.Nonnull;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 public class LogRepository extends BaseRepository {
@@ -27,8 +29,18 @@ public class LogRepository extends BaseRepository {
 
     @Nonnull
     public LockedOutputStream getRawOutputStream(@Nonnull String projectId, @Nonnull String stageId) throws LockException, FileNotFoundException {
-        var path = getRepositoryFile(projectId + "." + stageId);
+        var path = getLogFile(projectId, stageId);
         var lock = getLockForPath(path, LOCK_DURATION_MS);
         return new LockedOutputStream(path.toFile(), lock);
+    }
+
+    @Nonnull
+    public InputStream getRawInputStreamNonExclusive(@Nonnull String projectId, @Nonnull String stageId) throws FileNotFoundException {
+        var path = getLogFile(projectId, stageId);
+        return new FileInputStream(path.toFile());
+    }
+
+    private Path getLogFile(@Nonnull String projectId, @Nonnull String stageId) {
+        return getRepositoryFile(projectId + "." + stageId);
     }
 }
