@@ -28,6 +28,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private FramedStream         framedStream;
     private ByteArrayInputStream currentFrame;
     private boolean              closed;
+    private long                 lastSuccess = 0;
 
     public LogInputStream(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier, @Nonnull String logType, boolean follow) throws IOException {
         this.api           = api;
@@ -76,9 +77,17 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         }
     }
 
-    @Nonnull
-    private Optional<Boolean> isAlive() {
-        return this.stateSupplier.get().flatMap(allocation -> NomadOrchestrator.hasTaskFinished(allocation, taskName));
+    private boolean isAlive() {
+        return this.stateSupplier.get().flatMap(allocation -> {
+            return NomadOrchestrator.hasTaskFinished(allocation, taskName);
+        }).map(v -> {
+            if (v) {
+                return Boolean.FALSE;
+            } else {
+                lastSuccess = System.currentTimeMillis();
+                return Boolean.TRUE;
+            }
+        }).orElse(Boolean.TRUE) || (System.currentTimeMillis() - lastSuccess) < 5_000;
     }
 
     private boolean hasCompleted() {
@@ -97,46 +106,49 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private int polled(@Nonnull CallableIOException callable) throws IOException {
-        var timeout = System.currentTimeMillis();
-        for (int i = 0; ; ++i) {
+        for (int i = 0; isAlive(); ++i) {
             var value = callable.call();
             if (value >= -1) {
-                timeout = System.currentTimeMillis();
                 return value;
-            } else if ((available() == 0 && hasCompleted() && timeout + 1_000 < System.currentTimeMillis()) || closed) {
-                return -1;
             } else {
                 try {
-                    Thread.sleep((long) Math.min(2_000, 50 * Math.pow(1.5, i)));
+                    Thread.sleep((long) Math.min(1_000, 50 * Math.pow(1.5, i)));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }
+        return -1;
     }
 
     private boolean ensureHasData() throws IOException {
-        if (this.currentFrame != null && this.currentFrame.available() == 0) {
-            this.currentFrame.close();
-            this.currentFrame = null;
-        }
-        if (framedStream != null) {
-            if (framedStream.hasNextFrame()) {
-                StreamFrame frame = framedStream.nextFrame();
-                if (frame != null && frame.getData() != null) { // seems like there is an EOF frame?
-                    this.offset += frame.getData().length;
-                    this.file         = frame.getFile();
-                    this.currentFrame = new ByteArrayInputStream(frame.getData());
-                }
-                return currentFrame != null;
+        if (this.currentFrame != null) {
+            if (this.currentFrame.available() > 0) {
+                this.lastSuccess = System.currentTimeMillis();
+                return true;
             } else {
-                framedStream.close();
-                framedStream = null;
-                return ensureHasData();
+                this.currentFrame.close();
+                this.currentFrame = null;
+            }
+        }
+
+        if (framedStream == null && !tryOpenIfNotOpened()) {
+            return false;
+        }
+
+        if (framedStream.hasNextFrame()) {
+            StreamFrame frame = framedStream.nextFrame();
+            if (frame != null && frame.getData() != null && frame.getData().length > 0) {
+                this.offset       += frame.getData().length;
+                this.file         = frame.getFile();
+                this.currentFrame = new ByteArrayInputStream(frame.getData());
+                this.lastSuccess  = System.currentTimeMillis();
+                return true;
             }
         } else {
-            return tryOpenIfNotOpened() && ensureHasData();
+            framedStream = null;
         }
+        return false;
     }
 
     @Override
