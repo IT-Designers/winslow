@@ -35,7 +35,7 @@ public class NomadOrchestrator implements Orchestrator {
     private static final Logger           LOG                     = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
     private static final Pattern          INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
     private static final Pattern          MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
-    private static final String           CSVISH_SEPARATOR        = " ";
+    private static final String           LOG_SEPARATOR           = " ";
 
     @Nonnull private final Environment     environment;
     @Nonnull private final NomadApiClient  client;
@@ -403,7 +403,7 @@ public class NomadOrchestrator implements Orchestrator {
                     if (element != null) {
                         var stream   = element.isError() ? "stderr" : "stdout";
                         var dateTime = DATE_FORMAT.format(new Date(element.getTime()));
-                        ps.println(String.join(CSVISH_SEPARATOR, dateTime, stream, element.getMessage()));
+                        ps.println(String.join(LOG_SEPARATOR, dateTime, stream, element.getMessage()));
                         ps.flush();
                     }
                     os.flush();
