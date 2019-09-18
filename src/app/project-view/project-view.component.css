@@ -15,6 +15,11 @@
   padding-left: 1em;
 }
 
+.history-item-no {
+  text-align: end;
+  min-width: 2em;
+}
+
 .stage-control {
   padding: 2em;
   border: 1px solid silver;
