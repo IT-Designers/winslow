@@ -5,6 +5,7 @@ import com.hashicorp.nomad.apimodel.StreamFrame;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
 import com.hashicorp.nomad.javasdk.NomadException;
+import de.itd.tracking.winslow.Backoff;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -106,16 +107,13 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private int polled(@Nonnull CallableIOException callable) throws IOException {
+        var backoff = new Backoff(50, 1_000, 1.5f);
         for (int i = 0; isAlive(); ++i) {
             var value = callable.call();
             if (value >= -1) {
                 return value;
             } else {
-                try {
-                    Thread.sleep((long) Math.min(1_000, 50 * Math.pow(1.5, i)));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                backoff.sleep();
             }
         }
         return -1;
