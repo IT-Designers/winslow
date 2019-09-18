@@ -24,16 +24,11 @@ export class ProjectApiService {
   }
 
   getProjectState(projectId: string) {
-    return this.client.get<string>(environment.apiLocation + `projects/${projectId}/state`)
-      .pipe(map(state => State[state]));
+    return this.client.get<State>(environment.apiLocation + `projects/${projectId}/state`);
   }
 
   getProjectHistory(projectId: string) {
-    return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history')
-      .pipe(map(history => history.map(h => {
-        h.state = State[h.state];
-        return h;
-      })));
+    return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history');
   }
 
   getProjectPaused(projectId: string) {
@@ -51,14 +46,13 @@ export class ProjectApiService {
   getLog(projectId: string, stageId: string) {
     return this.client.get<LogEntry[]>(`${environment.apiLocation}/projects/${projectId}/logs/${stageId}`);
   }
-
 }
 
 export enum State {
-  Running,
-  Paused,
-  Succeeded,
-  Failed
+  Running = 'Running',
+  Paused = 'Paused',
+  Succeeded = 'Succeeded',
+  Failed = 'Failed'
 }
 
 export class Project {
