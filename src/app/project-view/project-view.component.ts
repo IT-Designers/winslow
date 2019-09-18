@@ -1,7 +1,7 @@
-import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, LogEntry, Project, ProjectApiService, State} from '../project-api.service';
 import {NotificationService} from '../notification.service';
-import {MatSlideToggleChange, MatTabGroup} from '@angular/material';
+import {MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FilesComponent} from '../files/files.component';
 
