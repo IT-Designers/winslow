@@ -3,6 +3,8 @@ export class LongLoadingDetector {
   loadingSince: number = null;
   longLoadingMs: number = null;
 
+  longLoading = false;
+
   constructor(msForCategorizationAsLongLoading = 100) {
     this.loadingCount = 0;
     this.longLoadingMs = msForCategorizationAsLongLoading;
@@ -12,6 +14,7 @@ export class LongLoadingDetector {
     this.loadingCount += 1;
     if (this.loadingSince == null) {
       this.loadingSince = new Date().getTime();
+      setTimeout(() => this.checkLongLoading(), this.longLoadingMs + 5);
     }
   }
 
@@ -19,10 +22,15 @@ export class LongLoadingDetector {
     this.loadingCount -= 1;
     if (this.loadingCount <= 0) {
       this.loadingSince = null;
+      this.checkLongLoading();
     }
   }
 
+  checkLongLoading() {
+    this.longLoading = this.loadingSince != null && this.loadingSince + this.longLoadingMs <= new Date().getTime();
+  }
+
   isLongLoading() {
-    return this.loadingSince != null && this.loadingSince + this.longLoadingMs <= new Date().getTime();
+    return this.longLoading;
   }
 }
