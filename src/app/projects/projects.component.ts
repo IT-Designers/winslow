@@ -3,6 +3,7 @@ import {ProjectsCreateDialog} from '../projects-create/projects-create-dialog.co
 import {MatDialog, MatSnackBar} from '@angular/material';
 import {Project, ProjectApiService} from '../project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
+import {NotificationService} from '../notification.service';
 
 @Component({
   selector: 'app-projects',
@@ -16,7 +17,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   projects: Project[];
   interval;
 
-  constructor(private api: ProjectApiService, private createDialog: MatDialog, private snack: MatSnackBar) {
+  constructor(private api: ProjectApiService, private createDialog: MatDialog, private notification: NotificationService) {
   }
 
   ngOnInit() {
@@ -46,7 +47,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }).afterClosed().subscribe(result => {
       console.log(JSON.stringify(result));
       this.api.createProject(result.name, result.pipeline).toPromise().then(r => {
-        this.snack.open('Project created successfully', 'Great!');
+        this.notification.info('Project created successfully');
+        this.projects.push(r);
       });
     });
   }
