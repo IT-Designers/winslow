@@ -239,7 +239,7 @@ export class FilesComponent implements OnInit {
     }
     if (currentItem < files.length) {
       this.api.uploadFile(this.latestPath, files.item(currentItem)).subscribe(event => {
-        if (event.type == HttpEventType.UploadProgress) {
+        if (event.type === HttpEventType.UploadProgress) {
           data.uploads[currentItem][1] = event.loaded;
           data.uploads[currentItem][2] = event.total;
         }
