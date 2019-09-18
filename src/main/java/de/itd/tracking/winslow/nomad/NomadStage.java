@@ -33,7 +33,7 @@ public class NomadStage implements Stage {
     @Nonnull
     @Override
     public String getId() {
-        return getJobId();
+        return getTaskName();
     }
 
     @Nonnull

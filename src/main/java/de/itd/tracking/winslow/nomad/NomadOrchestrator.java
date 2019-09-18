@@ -182,7 +182,7 @@ public class NomadOrchestrator implements Orchestrator {
         }).orElseGet(() -> pipeline.getNextStage().isPresent() && !pipeline.isPauseRequested());
     }
 
-    private String combine(String... names) {
+    private static String combine(String... names) {
         return String.join("-", names);
     }
 
@@ -222,7 +222,7 @@ public class NomadOrchestrator implements Orchestrator {
         var resources = environment.getResourceManager().getResourceDirectory();
         var workspace = environment
                 .getResourceManager()
-                .createWorkspace(Path.of(pipeline.getProjectId(), builder.getUuid().toString()), true);
+                .createWorkspace(Path.of(pipeline.getProjectId(), builder.getTaskName()), true);
 
         if (resources.isEmpty() || workspace.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
@@ -252,11 +252,11 @@ public class NomadOrchestrator implements Orchestrator {
             System.out.println(exportedWorkspace);
 
             builder = builder
-                    .addNfsVolume("winslow-" + builder.getUuid() + "-resources", "/resources", true, config.getOptions(), exportedResources
+                    .addNfsVolume("winslow-" + builder.getId() + "-resources", "/resources", true, config.getOptions(), exportedResources
                             .get()
                             .toAbsolutePath()
                             .toString())
-                    .addNfsVolume("winslow-" + builder.getUuid() + "-workspace", "/workspace", false, config.getOptions(), exportedWorkspace
+                    .addNfsVolume("winslow-" + builder.getId() + "-workspace", "/workspace", false, config.getOptions(), exportedWorkspace
                             .get()
                             .toAbsolutePath()
                             .toString());
@@ -271,8 +271,8 @@ public class NomadOrchestrator implements Orchestrator {
         return stage;
     }
 
-    private String getTaskName(NomadPipeline pipeline, StageDefinition stage) throws OrchestratorException {
-        return replaceInvalidCharactersInJobName(combine(pipeline.getProjectId(), stage.getName()));
+    private static String getTaskName(NomadPipeline pipeline, StageDefinition stage) throws OrchestratorException {
+        return String.format("%04d_%s", pipeline.getStageCount(), stage.getName());
     }
 
 

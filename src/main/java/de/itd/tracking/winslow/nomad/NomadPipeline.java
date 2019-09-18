@@ -63,11 +63,15 @@ public class NomadPipeline implements Pipeline {
         });
     }
 
+    public int getStageCount() {
+        return this.stages.size() + (getRunningStage().isPresent() ? 1 : 0);
+    }
+
 
     @Nonnull
     @Override
     public Stream<NomadStage> getAllStages() {
-        return Stream.concat(getCompletedStages(), getMostRecentStage().stream());
+        return Stream.concat(getCompletedStages(), getRunningStage().stream());
     }
 
     @Nonnull
