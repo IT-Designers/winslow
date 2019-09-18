@@ -79,3 +79,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .console-err {
   color: red;
 }
+
+.material-icons, .material-icons-outlined {
+  user-select: none;
+}
