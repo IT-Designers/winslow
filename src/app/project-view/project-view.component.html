@@ -35,10 +35,10 @@
     <ng-container *ngIf="history != null">
       <i *ngIf="history.length == 0">This project has no history yet</i>
       <mat-list>
-        <mat-list-item *ngFor="let entry of history" class="history-list-item mat-highlight-hover">
+        <mat-list-item *ngFor="let entry of history; index as i" class="history-list-item mat-highlight-hover">
 
           <app-state-icon [state]="entry.state"></app-state-icon>
-
+          <p class="history-item-no">{{history.length - i}}</p>
           <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
           <p>{{entry.stageName}}</p>
           <p class="history-list-item-grow">
