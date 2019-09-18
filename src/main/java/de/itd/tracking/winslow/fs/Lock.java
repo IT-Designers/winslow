@@ -40,7 +40,7 @@ public class Lock implements Closeable {
 
     public synchronized boolean heartbeatIfNotReleased() throws LockException {
         if (!this.isReleased()) {
-            this.heartbeat();;
+            this.heartbeat();
         }
         return this.isReleased();
     }
