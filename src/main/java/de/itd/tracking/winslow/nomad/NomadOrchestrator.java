@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -30,9 +31,11 @@ import java.util.stream.Stream;
 
 public class NomadOrchestrator implements Orchestrator {
 
-    private static final Logger  LOG                     = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
-    private static final Pattern INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
-    private static final Pattern MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
+    private static final SimpleDateFormat DATE_FORMAT             = new SimpleDateFormat("yyy-MM-dd_HH:mm:ss.SSS");
+    private static final Logger           LOG                     = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
+    private static final Pattern          INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
+    private static final Pattern          MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
+    private static final String           CSVISH_SEPARATOR        = " ";
 
     @Nonnull private final Environment     environment;
     @Nonnull private final NomadApiClient  client;
@@ -367,6 +370,7 @@ public class NomadOrchestrator implements Orchestrator {
 
                 var queue = new LinkedList<LogEntry>();
 
+
                 var threadStdOut = new Thread(() -> {
                     stdout.forEach(bytes -> {
                         synchronized (queue) {
@@ -396,16 +400,10 @@ public class NomadOrchestrator implements Orchestrator {
                     synchronized (queue) {
                         element = queue.poll();
                     }
-                    if (element == null) {
-                        try {
-                            threadStdOut.join(100);
-                            threadStdErr.join(100);
-                        } catch (InterruptedException e) {
-                            LOG.log(Level.WARNING, "Got interrupted on join, will try again", e);
-                        }
-                    } else {
-                        System.out.println("writing " + element);
-                        ps.printf("%s;%s;%s%n", element.getTime(), element.isError(), element.getMessage());
+                    if (element != null) {
+                        var stream   = element.isError() ? "stderr" : "stdout";
+                        var dateTime = DATE_FORMAT.format(new Date(element.getTime()));
+                        ps.println(String.join(CSVISH_SEPARATOR, dateTime, stream, element.getMessage()));
                         ps.flush();
                     }
                     os.flush();
