@@ -37,14 +37,13 @@ export class FilesComponent implements OnInit {
         root.push(info);
 
         if (this.additionalRoot != null) {
-          root.push((() => {
-            const additional = new FileInfo();
-            additional.directory = true;
-            additional.name = this.additionalRoot.split(';')[0];
-            additional.path = `/${this.additionalRoot.split(';')[1]}`;
-            this.files.set(additional.path, []);
-            return additional;
-          })());
+          const additional = new FileInfo();
+          additional.directory = true;
+          additional.name = this.additionalRoot.split(';')[0];
+          additional.path = `/${this.additionalRoot.split(';')[1]}`;
+          this.files.set(additional.path, []);
+          root.push(additional);
+          this.navigateDirectlyTo(additional.path);
         }
 
 
