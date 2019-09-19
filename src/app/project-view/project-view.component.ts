@@ -4,6 +4,8 @@ import {NotificationService} from '../notification.service';
 import {MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FilesComponent} from '../files/files.component';
+import {map} from 'rxjs/operators';
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-project-view',
@@ -46,12 +48,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   pollForChanges(): void {
     this.longLoading.increase();
     this.api.getProjectState(this.project.id).toPromise()
-      .finally(() => this.longLoading.decrease())
+      .then(state => {
+        if (state === State.Paused) {
+          return this.api.getPauseReason(this.project.id)
+            .pipe(map(reason => reason !== null ? State.Warning : state))
+            .toPromise();
+        } else {
+          return Promise.resolve(state);
+        }
+      })
       .then(state => {
         this.stateEmitter.emit(this.state = state);
         this.pollWatched();
       })
-      .catch(err => this.notification.error('Failed to update state' + JSON.stringify(err)));
+      .catch(err => this.notification.error('Failed to update state' + JSON.stringify(err)))
+      .finally(() => this.longLoading.decrease());
   }
 
   isRunning(): boolean {
@@ -120,10 +131,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   setNextStage(nextStageIndex: string, singleStageOnly = false) {
     this.longLoading.increase();
-    this.api.setProjectNextStage(this.project.id, Number(nextStageIndex), singleStageOnly).toPromise().then(result => {
-      this.notification.info('Request has been accepted');
-      this.pollForChanges();
-    }).catch(error => {
+    this.api.resume(this.project.id, Number(nextStageIndex), singleStageOnly, this.project.environment)
+      .toPromise()
+      .then(result => {
+        this.notification.info('Request has been accepted');
+        this.pollForChanges();
+      }).catch(error => {
       this.notification.error('Request failed: ' + JSON.stringify(error));
     }).finally(() => this.longLoading.decrease());
   }
@@ -190,5 +203,29 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.watchLatestLogs = true;
       this.loadLogs();
     }
+  }
+
+  onOverwriteStageSelectionChanged(index: number) {
+    this.longLoading.increase();
+    this.api
+      .getRequiredUserInput(this.project.id, index)
+      .toPromise()
+      .then(required => {
+        this.project.userInput = required;
+        this.notification.info(JSON.stringify(required));
+        return this.api
+          .getEnvironment(this.project.id, index)
+          .toPromise()
+          .then(env => {
+            for (const req of required) {
+              if (!env.has(req)) {
+                env.set(req, null);
+              }
+            }
+            this.project.environment = env;
+          });
+      })
+      .catch(err => this.notification.error('Failed to retrieve environment: ' + err))
+      .finally(() => this.longLoading.decrease());
   }
 }
