@@ -7,6 +7,7 @@ import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.config.UserInput;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.LockedOutputStream;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
@@ -20,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.LinkedList;
@@ -109,18 +111,36 @@ public class NomadOrchestrator implements Orchestrator {
             var pipelineOpt = container.get();
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
-                var stage    = maybeStartNextStage(pipeline);
-
-                if (stage.isPresent()) {
-                    tryUpdateContainer(container, pipeline, stage.get());
-                }
+                tryStartNextPipelineStage(container, pipeline);
             }
         } catch (LockException e) {
             LOG.log(Level.SEVERE, "Failed to get pipeline for update", e);
         }
     }
 
-    private void handleIncompleteStageException(NomadPipeline pipeline, IncompleteStageException e) {
+    private void tryStartNextPipelineStage(LockedContainer<NomadPipeline> container, NomadPipeline pipeline) throws OrchestratorException {
+        try {
+            var stage = maybeStartNextStage(pipeline);
+
+            if (stage.isPresent()) {
+                tryUpdateContainer(container, pipeline, stage.get());
+            }
+        } catch (IncompleteStageException e) {
+            if (e.isConfirmationRequired()) {
+                pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+            }
+            if (e.isMissingEnvVariables()) {
+                pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
+            }
+            if (e.isConfirmationRequired() || e.isMissingEnvVariables()) {
+                tryUpdateContainer(container, pipeline);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private void cleanupIncompleteStage(NomadPipeline pipeline, IncompleteStageException e) {
         LOG.log(Level.SEVERE, "Failed to start new stage", e);
         e.getStage().ifPresent(s -> this.forcePurgeJob(pipeline, s));
         e.getWorkspace().ifPresent(NomadOrchestrator::forcePurgeWorkspace);
@@ -145,6 +165,7 @@ public class NomadOrchestrator implements Orchestrator {
                     stream.forEach(entry -> {
                         try {
                             Files.deleteIfExists(entry);
+                        } catch (NoSuchFileException ignored) {
                         } catch (IOException e) {
                             LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
                         }
@@ -250,10 +271,8 @@ public class NomadOrchestrator implements Orchestrator {
 
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             NomadPipeline pipeline = new NomadPipeline(project.getId(), project.getPipelineDefinition());
-            NomadStage    stage    = tryStartNextPipelineStage(pipeline);
-
-            pipeline.pushStage(stage);
-            return tryUpdateContainer(container, pipeline, stage);
+            tryStartNextPipelineStage(container, pipeline);
+            return pipeline;
         }
     }
 
@@ -280,8 +299,8 @@ public class NomadOrchestrator implements Orchestrator {
         try {
             return this.startNextPipelineStage(pipeline);
         } catch (IncompleteStageException e) {
-            handleIncompleteStageException(pipeline, e);
-            throw new OrchestratorException("Failed to start new stage", e.getCause());
+            cleanupIncompleteStage(pipeline, e);
+            throw e;
         }
     }
 
@@ -292,10 +311,12 @@ public class NomadOrchestrator implements Orchestrator {
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
     }
 
-    private NomadStage startNextPipelineStage(NomadPipeline pipeline) throws IncompleteStageException {
+    private NomadStage startNextPipelineStage(@Nonnull NomadPipeline pipeline) throws IncompleteStageException {
         var stageDefinition = pipeline
                 .getNextStage()
-                .orElseThrow(() -> new IncompleteStageException(null, null, "A pipeline requires at least one stage"));
+                .orElseThrow(() -> IncompleteStageException.Builder
+                        .create("A pipeline requires at least one stage")
+                        .build());
 
         var taskName      = getTaskName(pipeline, stageDefinition);
         var workspacePath = getWorkspacePathForStage(pipeline, taskName);
@@ -306,13 +327,13 @@ public class NomadOrchestrator implements Orchestrator {
 
         if (resources.isEmpty() || workspace.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
-            throw new IncompleteStageException(null, environment
-                    .getResourceManager()
-                    .getWorkspace(workspacePath)
-                    .orElse(null), "The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources);
+            throw IncompleteStageException.Builder
+                    .create("The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources)
+                    .withWorkspace(workspace
+                            .or(() -> environment.getResourceManager().getWorkspace(workspacePath))
+                            .orElse(null))
+                    .build();
         }
-
-        copyContentOfMostRecentStageTo(pipeline, workspace.get());
 
         if (stageDefinition.getImage().isPresent()) {
             builder = builder
@@ -328,13 +349,11 @@ public class NomadOrchestrator implements Orchestrator {
 
             if (exportedResources.isEmpty() || exportedWorkspace.isEmpty()) {
                 workspace.map(Path::toFile).map(File::delete);
-                throw new IncompleteStageException(null, workspace.get(), "The workspace and resource path must be exported, but at least one isn't. workspace=" + exportedWorkspace + ",resources=" + exportedResources);
+                throw IncompleteStageException.Builder
+                        .create("The workspace and resource path must be exported, but at least one isn't. workspace=" + exportedWorkspace + ",resources=" + exportedResources)
+                        .withWorkspace(workspace.get())
+                        .build();
             }
-
-            System.out.println(resources);
-            System.out.println(workspace);
-            System.out.println(exportedResources);
-            System.out.println(exportedWorkspace);
 
             builder = builder
                     .addNfsVolume("winslow-" + builder.getId() + "-resources", "/resources", true, config.getOptions(), exportedResources
@@ -346,23 +365,78 @@ public class NomadOrchestrator implements Orchestrator {
                             .toAbsolutePath()
                             .toString());
         } else {
-            throw new IncompleteStageException(null, workspace.get(), "Unknown WorkDirectoryConfiguration: " + environment
-                    .getWorkDirectoryConfiguration());
+            throw IncompleteStageException.Builder
+                    .create("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration())
+                    .withWorkspace(workspace.get())
+                    .build();
         }
 
 
+        builder = builder
+                .withEnvVariablesSet(stageDefinition.getEnvironment())
+                .withEnvVariablesSet(pipeline.getEnvironment())
+                .withEnvVariableSet("WINSLOW_SETUP_TIME", new Date().toString());
+
+
+        boolean requiresConfirmation = isConfirmationRequiredForNextStage(pipeline, stageDefinition);
+        boolean hasMissingUserInput  = hasMissingUserInput(pipeline, stageDefinition, builder);
+
+        if (requiresConfirmation && isConfirmed(pipeline)) {
+            requiresConfirmation = false;
+        }
+
+        if (requiresConfirmation || hasMissingUserInput) {
+            throw IncompleteStageException.Builder
+                    .create("Stage requires further user input")
+                    .withWorkspace(workspace.get())
+                    .maybeMissingEnvVariables(hasMissingUserInput)
+                    .maybeRequiresConfirmation(requiresConfirmation)
+                    .build();
+        }
+
+        copyContentOfMostRecentStageTo(pipeline, workspace.get());
         NomadStage stage;
 
         try {
-            var job = builder.buildJob(pipeline.getDefinition(), stageDefinition, environment);
-            stage = new PreparedJob(job, this).start(stageDefinition);
+            stage = new PreparedJob(builder.buildJob(), this).start(stageDefinition);
         } catch (OrchestratorException e) {
-            throw new IncompleteStageException(null, workspace.get(), "Failed to start stage", e);
+            throw IncompleteStageException.Builder
+                    .create("Failed to start stage")
+                    .withCause(e)
+                    .withWorkspace(workspace.get())
+                    .build();
         }
 
+        pipeline.resetResumeNotification();
         pipeline.incrementNextStageIndex(); // at this point, the start was successful
         redirectLogs(pipeline, stage);
         return stage;
+    }
+
+    private boolean isConfirmed(@Nonnull NomadPipeline pipeline) {
+        return Pipeline.ResumeNotification.Confirmation == pipeline.getResumeNotification().orElse(null);
+    }
+
+    private static boolean hasMissingUserInput(@Nonnull NomadPipeline pipeline, StageDefinition stageDefinition, JobBuilder builder) {
+        return Stream
+                .concat(pipeline
+                        .getDefinition()
+                        .getUserInput()
+                        .stream()
+                        .flatMap(u -> u.getValueFor().stream()), stageDefinition
+                        .getUserInput()
+                        .stream()
+                        .flatMap(u -> u.getValueFor().stream()))
+                .anyMatch(k -> builder.getEnvVariable(k).isEmpty());
+    }
+
+    private static boolean isConfirmationRequiredForNextStage(@Nonnull NomadPipeline pipeline, StageDefinition stageDefinition) {
+        return Stream
+                .concat(stageDefinition.getUserInput().stream(), pipeline.getDefinition().getUserInput().stream())
+                .filter(u -> u.requiresConfirmation() != UserInput.Confirmation.Never)
+                .anyMatch(u -> !(u.requiresConfirmation() == UserInput.Confirmation.Once && pipeline
+                        .getAllStages()
+                        .anyMatch(s -> s.getDefinition().equals(stageDefinition))));
     }
 
     private static Path getWorkspacePathForStage(NomadPipeline pipeline, String taskName) {
@@ -400,7 +474,11 @@ public class NomadOrchestrator implements Orchestrator {
             }
 
             if (failure.isPresent()) {
-                throw new IncompleteStageException(null, workspace, "Failed to prepare workspace", failure.get());
+                throw IncompleteStageException.Builder
+                        .create("Failed to prepare workspace")
+                        .withWorkspace(workspace)
+                        .withCause(failure.get())
+                        .build();
             }
         }
     }

@@ -4,11 +4,9 @@ import com.hashicorp.nomad.apimodel.Job;
 import com.hashicorp.nomad.apimodel.RestartPolicy;
 import com.hashicorp.nomad.apimodel.Task;
 import com.hashicorp.nomad.apimodel.TaskGroup;
-import de.itd.tracking.winslow.Environment;
-import de.itd.tracking.winslow.config.PipelineDefinition;
-import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class JobBuilder {
@@ -16,7 +14,8 @@ public class JobBuilder {
     @Nonnull private static final String DRIVER_DOCKER = "docker";
 
     @Nonnull private final String              id;
-    @Nonnull private final Map<String, Object> config = new HashMap<>();
+    @Nonnull private final Map<String, Object> config  = new HashMap<>(10);
+    @Nonnull private final Map<String, String> envVars = new HashMap<>(10);
     private                String              taskName;
     private                String              driver;
 
@@ -67,7 +66,30 @@ public class JobBuilder {
     }
 
     @Nonnull
-    public Job buildJob(PipelineDefinition pipelineDefinition, StageDefinition stageDefinition, Environment env) {
+    public Optional<String> getEnvVariable(@Nonnull String key) {
+        return Optional.ofNullable(this.envVars.get(key));
+    }
+
+    @Nonnull
+    public JobBuilder withEnvVariableUnset(@Nonnull String key) {
+        this.envVars.remove(key);
+        return this;
+    }
+
+    @Nonnull
+    public JobBuilder withEnvVariableSet(@Nonnull String key, @Nonnull String value) {
+        this.envVars.put(key, value);
+        return this;
+    }
+
+    @Nonnull
+    public JobBuilder withEnvVariablesSet(@Nonnull Map<? extends String, ? extends String> variables) {
+        this.envVars.putAll(variables);
+        return this;
+    }
+
+    @Nonnull
+    public Job buildJob() {
         return new Job()
                 .setId(this.id)
                 .addDatacenters("local")
@@ -79,7 +101,7 @@ public class JobBuilder {
                                 .setName(taskName)
                                 .setDriver(driver)
                                 .setConfig(config)
-                                .setEnv(stageDefinition.getEnvironment())));
+                                .setEnv(this.envVars)));
     }
 
 

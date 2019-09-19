@@ -4,17 +4,23 @@ import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface Pipeline {
 
-    enum State {
-        Running, Paused, AwaitingUserInput
-    }
-
     enum PipelineStrategy {
         MoveForwardUntilEnd, MoveForwardOnce,
+    }
+
+    enum PauseReason {
+        ConfirmationRequired, FurtherInputRequired,
+    }
+
+    enum ResumeNotification {
+        Confirmation
     }
 
     @Nonnull
@@ -38,11 +44,22 @@ public interface Pipeline {
     @Nonnull
     Optional<? extends Stage> getStage(@Nonnull String id);
 
-    void requestPause();
+    default void requestPause() {
+        requestPause(null);
+    }
+
+    void requestPause(@Nullable PauseReason reason);
 
     boolean isPauseRequested();
 
-    void resume();
+    @Nonnull
+    Optional<PauseReason> getPauseReason();
+
+    default void resume() {
+        resume(null);
+    }
+
+    void resume(@Nullable ResumeNotification notification);
 
     int getNextStageIndex();
 
@@ -50,7 +67,7 @@ public interface Pipeline {
 
     default Optional<StageDefinition> getNextStage() {
         try {
-            return Optional.of(getDefinition().getStageDefinitions().get(getNextStageIndex()));
+            return Optional.ofNullable(getDefinition().getStageDefinitions().get(getNextStageIndex()));
         } catch (IndexOutOfBoundsException e) {
             return Optional.empty();
         }
@@ -64,4 +81,7 @@ public interface Pipeline {
     PipelineStrategy getStrategy();
 
     void setStrategy(PipelineStrategy strategy);
+
+    @Nonnull
+    Map<String, String> getEnvironment();
 }

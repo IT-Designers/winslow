@@ -5,18 +5,20 @@ import de.itd.tracking.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class NomadPipeline implements Pipeline {
 
-    @Nonnull private final String             projectId;
-    @Nonnull private final PipelineDefinition definition;
-    @Nonnull private final List<NomadStage>   stages = new ArrayList<>();
+    @Nonnull private final String              projectId;
+    @Nonnull private final PipelineDefinition  definition;
+    @Nonnull private final List<NomadStage>    stages = new ArrayList<>();
+    @Nonnull private final Map<String, String> env    = new HashMap<>();
 
-    private           boolean          pauseRequested = false;
+    private           boolean            pauseRequested     = false;
+    @Nullable private PauseReason        pauseReason        = null;
+    @Nullable private ResumeNotification resumeNotification = null;
+
     private           int              nextStageIndex = 0;
     @Nonnull private  PipelineStrategy strategy;
     @Nullable private NomadStage       stage;
@@ -87,7 +89,8 @@ public class NomadPipeline implements Pipeline {
     }
 
     @Override
-    public void requestPause() {
+    public void requestPause(@Nullable PauseReason reason) {
+        this.pauseReason    = reason;
         this.pauseRequested = true;
     }
 
@@ -96,9 +99,25 @@ public class NomadPipeline implements Pipeline {
         return this.pauseRequested;
     }
 
+    @Nonnull
     @Override
-    public void resume() {
-        this.pauseRequested = false;
+    public Optional<PauseReason> getPauseReason() {
+        return Optional.ofNullable(this.pauseReason);
+    }
+
+    @Override
+    public void resume(@Nullable ResumeNotification notification) {
+        this.pauseRequested     = false;
+        this.resumeNotification = notification;
+    }
+
+    @Nonnull
+    public Optional<ResumeNotification> getResumeNotification() {
+        return Optional.ofNullable(resumeNotification);
+    }
+
+    public void resetResumeNotification() {
+        this.resumeNotification = null;
     }
 
     @Override
@@ -131,5 +150,12 @@ public class NomadPipeline implements Pipeline {
     @Override
     public void setStrategy(@Nonnull PipelineStrategy strategy) {
         this.strategy = strategy;
+    }
+
+    @Nonnull
+    @Override
+    public Map<String, String> getEnvironment() {
+        // for backwards compatibility
+        return this.env == null ? Collections.emptyMap() : this.env;
     }
 }
