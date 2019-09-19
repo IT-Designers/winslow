@@ -2,13 +2,14 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
+import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.config.UserInput;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -126,9 +127,9 @@ public class ProjectsController {
                     } else {
                         pipeline.resume();
                     }
-                    return true;
+                    return Boolean.TRUE;
                 }))
-                .orElse(false);
+                .orElse(Boolean.FALSE);
     }
 
     @GetMapping("projects/{projectId}/paused")
@@ -170,6 +171,86 @@ public class ProjectsController {
                 .filter(project -> canUserAccessProject(user, project))
                 .stream()
                 .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId));
+    }
+
+    @GetMapping("projects/{projectId}/pause-reason")
+    public Optional<Pipeline.PauseReason> getPauseReason(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().getPipelineOmitExceptions(project))
+                .flatMap(Pipeline::getPauseReason);
+    }
+
+    @GetMapping("projects/{projectId}/{stageIndex}/environment")
+    public Map<String, String> getLatestEnvironment(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int stageIndex) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().getPipelineOmitExceptions(project))
+                .map(pipeline -> {
+                    Map<String, String> map = new HashMap<>();
+                    pipeline
+                            .getDefinition()
+                            .getStageDefinitions()
+                            .stream()
+                            .skip(stageIndex)
+                            .map(StageDefinition::getEnvironment)
+                            .forEach(map::putAll);
+                    pipeline.getEnvironment().putAll(map);
+                    map.put("abc", "def");
+                    return map;
+                })
+                .orElseGet(Collections::emptyMap);
+    }
+
+    @GetMapping("projects/{projectId}/{stageIndex}/required-user-input")
+    public Stream<String> getLatestRequiredUserInput(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int stageIndex) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().getPipelineOmitExceptions(project))
+                .stream()
+                .flatMap(pipeline -> Stream.concat(pipeline
+                        .getDefinition()
+                        .getUserInput()
+                        .stream()
+                        .flatMap(u -> u.getValueFor().stream()), pipeline
+                        .getDefinition()
+                        .getStageDefinitions()
+                        .stream()
+                        .skip(stageIndex)
+                        .flatMap(s -> s.getUserInput().stream())
+                        .flatMap(u -> u.getValueFor().stream())));
+    }
+
+    @PostMapping("projects/{projectId}/resume/{stageIndex}")
+    public void resumePipeline(User user, @PathVariable("projectId") String projectId,
+            @RequestParam("env") Map<String, String> env,
+            @PathVariable("stageIndex") int index,
+            @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
+        winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .ifPresent(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
+                    pipeline.setNextStageIndex(index);
+                    pipeline.setStrategy(Optional
+                            .ofNullable(strategy)
+                            .filter(str -> "once".equals(str.toLowerCase()))
+                            .map(str -> Pipeline.PipelineStrategy.MoveForwardOnce)
+                            .orElse(Pipeline.PipelineStrategy.MoveForwardUntilEnd));
+                    pipeline.getEnvironment().putAll(env);
+                    pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+                    return null;
+                }));
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
