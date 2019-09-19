@@ -83,3 +83,21 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .material-icons, .material-icons-outlined {
   user-select: none;
 }
+
+.flex-grow-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.create-button {
+  flex-grow: 0;
+  margin-right: 0;
+}
+
+.control-button-row {
+  padding-bottom: 2em;
+}
