@@ -13,18 +13,18 @@ import java.util.stream.Stream;
 public class NomadPipeline implements Pipeline {
 
     @Nonnull private final String             projectId;
-    @Nonnull private final PipelineDefinition pipelineDefinition;
+    @Nonnull private final PipelineDefinition definition;
     @Nonnull private final List<NomadStage>   stages = new ArrayList<>();
 
     private           boolean          pauseRequested = false;
-    private           int              nextStage      = 0;
+    private           int              nextStageIndex = 0;
     @Nonnull private  PipelineStrategy strategy;
     @Nullable private NomadStage       stage;
 
-    public NomadPipeline(@Nonnull String projectId, @Nonnull PipelineDefinition pipelineDefinition) {
-        this.projectId          = projectId;
-        this.pipelineDefinition = pipelineDefinition;
-        this.strategy           = PipelineStrategy.MoveForwardUntilEnd;
+    public NomadPipeline(@Nonnull String projectId, @Nonnull PipelineDefinition definition) {
+        this.projectId  = projectId;
+        this.definition = definition;
+        this.strategy   = PipelineStrategy.MoveForwardUntilEnd;
     }
 
     @Nonnull
@@ -35,7 +35,7 @@ public class NomadPipeline implements Pipeline {
     @Nonnull
     @Override
     public PipelineDefinition getDefinition() {
-        return pipelineDefinition;
+        return definition;
     }
 
     public void pushStage(@Nullable NomadStage stage) {
@@ -103,22 +103,22 @@ public class NomadPipeline implements Pipeline {
 
     @Override
     public int getNextStageIndex() {
-        return nextStage;
+        return nextStageIndex;
     }
 
     @Override
     public void setNextStageIndex(int index) throws IndexOutOfBoundsException {
-        if (index < 0 || index >= pipelineDefinition.getStageDefinitions().size()) {
+        if (index < 0 || index >= definition.getStageDefinitions().size()) {
             throw new IndexOutOfBoundsException(index);
         } else {
-            this.nextStage = index;
+            this.nextStageIndex = index;
         }
     }
 
     public void incrementNextStageIndex() {
         // index == size indicates there is no further stage to execute
-        if (nextStage < pipelineDefinition.getStageDefinitions().size()) {
-            nextStage += 1;
+        if (nextStageIndex < definition.getStageDefinitions().size()) {
+            nextStageIndex += 1;
         }
     }
 
