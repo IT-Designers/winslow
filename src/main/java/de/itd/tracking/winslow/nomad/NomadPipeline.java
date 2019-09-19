@@ -155,7 +155,6 @@ public class NomadPipeline implements Pipeline {
     @Nonnull
     @Override
     public Map<String, String> getEnvironment() {
-        // for backwards compatibility
-        return this.env == null ? Collections.emptyMap() : this.env;
+        return this.env;
     }
 }
