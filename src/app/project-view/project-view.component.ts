@@ -59,7 +59,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   pollWatched(): void {
-    if (this.watchHistory && (this.isRunning() || this.history == null)) {
+    if (this.watchHistory && (this.isRunning() || this.historySeemsIncomplete())) {
       this.loadHistory();
     }
     if (this.watchPaused) {
@@ -67,6 +67,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
     if (this.watchLogs && (this.isRunning() || this.logs == null)) {
       this.loadLogs();
+    }
+  }
+
+  historySeemsIncomplete() {
+    if (this.history != null) {
+      for (const h of this.history) {
+        if (h.state === State.Running || h.state === State.Paused) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return true;
     }
   }
 
