@@ -34,7 +34,7 @@
         appDragDrop=""
         (onFileDropped)="uploadFile($event)"
     >
-      <li class="file" *ngFor="let file of this.currentDirectory()">
+      <li class="file" *ngFor="let file of this.currentDirectory()" (click)="onItemSelected(file)">
         <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}</i>
         <label>{{ file.name }}</label>
         <i *ngIf="!file.directory" class="material-icons-outlined action-area" (click)="downloadFile(file)">cloud_download</i>

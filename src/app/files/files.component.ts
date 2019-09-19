@@ -1,4 +1,4 @@
-import {Component, Inject, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Inject, Input, OnInit, Output} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {HttpEventType} from '@angular/common/http';
 import {FileInfo, FilesApiService} from '../files-api.service';
@@ -10,9 +10,12 @@ import {FileInfo, FilesApiService} from '../files-api.service';
 })
 export class FilesComponent implements OnInit {
   @Input() additionalRoot?: string;
+  @Input() navigateToAdditionalRoot = true;
 
   files: Map<string, FileInfo[]> = new Map();
+
   latestPath = '/resources'; // IMPORTANT: starts with a slash, but never ends with one: '/resources/ab/cd/ef'
+  @Output('selection') selectedPath = new EventEmitter<string>();
 
   contextMenuX = 0;
   contextMenuY = 0;
@@ -43,7 +46,9 @@ export class FilesComponent implements OnInit {
           additional.path = `/${this.additionalRoot.split(';')[1]}`;
           this.files.set(additional.path, []);
           root.push(additional);
-          this.navigateDirectlyTo(additional.path);
+          if (this.navigateToAdditionalRoot) {
+            this.navigateDirectlyTo(additional.path);
+          }
         }
 
 
@@ -120,7 +125,7 @@ export class FilesComponent implements OnInit {
 
   viewDirectory(path: string) {
     this.loadDirectory(path).then(_ => {
-      this.latestPath = path;
+      this.selectedPath.emit(this.latestPath = path);
       this.updateSelection();
     });
   }
@@ -143,7 +148,7 @@ export class FilesComponent implements OnInit {
     }
 
     this.recursivelyLoadDirectoriesOfPath(split, index, combined).then(path => {
-      this.latestPath = path;
+      this.selectedPath.emit(this.latestPath = path);
       this.updateSelection();
     });
   }
@@ -156,7 +161,7 @@ export class FilesComponent implements OnInit {
         if (res != null) {
 
           this.insertListResourceResult(combined, res);
-          this.latestPath = combined;
+          this.selectedPath.emit(this.latestPath = combined);
 
           for (const r of res) {
             if (r.name === pathSplit[currentIndex + 1]) {
@@ -270,6 +275,10 @@ export class FilesComponent implements OnInit {
             .toPromise().finally(() => this.loadDirectory(this.latestPath));
         }
       });
+  }
+
+  onItemSelected(file: FileInfo) {
+    this.selectedPath.emit(file.path);
   }
 }
 

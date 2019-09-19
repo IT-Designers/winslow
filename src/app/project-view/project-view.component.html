@@ -15,7 +15,7 @@
                    [value]="entry.value"
                    (change)="project.environment.set(entry.key, $event.target.value)">
           </mat-form-field>
-          <button mat-raised-button>Browse Files</button>
+          <button (click)="openFileBrowseDialog(entry.key)" mat-raised-button>Browse Files</button>
         </div>
       </div>
       <div class="stage-control-item">
