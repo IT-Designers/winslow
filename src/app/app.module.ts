@@ -9,10 +9,11 @@ import {PipelinesComponent} from './pipelines/pipelines.component';
 import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {CreateDirectoryDialog, DeleteAreYouSureDialog, FilesComponent, UploadFilesProgressDialog} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatDialogContent, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {
   MatButtonModule,
-  MatButtonToggleModule, MatCheckboxModule,
+  MatButtonToggleModule,
+  MatCheckboxModule,
   MatExpansionModule,
   MatGridListModule,
   MatIconModule,
@@ -24,15 +25,16 @@ import {
   MatSlideToggleModule,
   MatSnackBarModule,
   MatStepperModule,
-  MatTableModule, MatTabsModule,
+  MatTableModule,
+  MatTabsModule,
   MatTooltipModule
 } from '@angular/material';
-import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import { DragDropDirectiveDirective } from './drag-drop-directive.directive';
-import { ProjectsComponent } from './projects/projects.component';
-import { ProjectsCreateDialog } from './projects-create/projects-create-dialog.component';
-import { StateIconComponent } from './state-icon/state-icon.component';
-import { ProjectViewComponent } from './project-view/project-view.component';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
+import {ProjectsComponent} from './projects/projects.component';
+import {ProjectsCreateDialog} from './projects-create/projects-create-dialog.component';
+import {StateIconComponent} from './state-icon/state-icon.component';
+import {ProjectViewComponent} from './project-view/project-view.component';
 
 @NgModule({
   declarations: [

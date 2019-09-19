@@ -35,8 +35,15 @@ export class ProjectApiService {
     return this.client.get<boolean>(`${environment.apiLocation}/projects/${projectId}/paused`);
   }
 
-  setProjectNextStage(projectId: string, nextStageIndex: number, singleStageOnly = false) {
-    return this.client.post(`${environment.apiLocation}/projects/${projectId}/nextStage/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`, new FormData());
+  resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: Map<string, string>) {
+    const form = new FormData();
+    const obj = {};
+    env.forEach((value, key) => obj[key] = value);
+    form.set('env', JSON.stringify(obj));
+    return this.client.post(
+      `${environment.apiLocation}/projects/${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`,
+      form
+    );
   }
 
   setProjectPaused(projectId: string, paused: boolean) {
@@ -46,13 +53,29 @@ export class ProjectApiService {
   getLog(projectId: string, stageId: string) {
     return this.client.get<LogEntry[]>(`${environment.apiLocation}/projects/${projectId}/logs/${stageId}`);
   }
+
+  getPauseReason(projectId: string) {
+    return this.client.get<string>(`${environment.apiLocation}/projects/${projectId}/pause-reason`);
+  }
+
+  getEnvironment(projectId: string, stageIndex: number) {
+    return this.client
+      .get<object>(`${environment.apiLocation}/projects/${projectId}/${stageIndex}/environment`)
+      .pipe(map(response => new Map(Object.entries(response))));
+  }
+
+  getRequiredUserInput(projectId: string, stageIndex: number) {
+    return this.client.get<string[]>(`${environment.apiLocation}/projects/${projectId}/${stageIndex}/required-user-input`);
+  }
 }
 
 export enum State {
   Running = 'Running',
   Paused = 'Paused',
   Succeeded = 'Succeeded',
-  Failed = 'Failed'
+  Failed = 'Failed',
+  // local only
+  Warning = 'Warning'
 }
 
 export class Project {
@@ -61,10 +84,10 @@ export class Project {
   groups: string[];
   name: string;
   pipelineDefinition: PipelineDefinition;
+  environment: Map<string, string>;
+  userInput: string[];
   // local only
-  history?: HistoryEntry[];
-  state?: State;
-  paused?: boolean;
+
 }
 
 export class HistoryEntry {
