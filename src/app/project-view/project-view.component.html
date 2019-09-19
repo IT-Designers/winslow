@@ -5,20 +5,39 @@
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
 
-    <div class="stage-control-item">
-      <p>Overwrite stage execution order</p>
-      <mat-select #stageSelection placeholder="Stage selection">
-
-        <mat-option *ngFor="let stage of project.pipelineDefinition.stageDefinitions; index as i"
-                    value="{{i}}">{{stage.name}}</mat-option>
-      </mat-select>
-      <div style="display: flex; flex-direction: column">
-        <button style="width: 100%" mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">Start Pipeline
-        </button>
-        <button style="width: 100%" mat-raised-button (click)="setNextStage(stageSelection.value, true)" color="accent">Run Stage Only
-        </button>
+    <form #form>
+      <div *ngIf="project.environment != null" style="padding: 0 5em">
+        <div *ngFor="let entry of project.environment | keyvalue" class="stage-control-item">
+          <p>{{entry.key}}</p>
+          <mat-form-field>
+            <input matInput placeholder="{{entry.key}}"
+                   [required]="project.userInput.indexOf(entry.key) >= 0"
+                   [value]="entry.value"
+                   (change)="project.environment.set(entry.key, $event.target.value)">
+          </mat-form-field>
+          <button mat-raised-button>Browse Files</button>
+        </div>
       </div>
-    </div>
+      <div class="stage-control-item">
+        <p>Overwrite stage execution order</p>
+        <mat-select #stageSelection placeholder="Stage selection"
+                    (valueChange)="onOverwriteStageSelectionChanged($event)">
+
+          <mat-option *ngFor="let stage of project.pipelineDefinition.stageDefinitions; index as i"
+                      value="{{i}}">{{stage.name}}</mat-option>
+        </mat-select>
+        <div>
+          <button style="width: 100%" mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">
+            Start Pipeline
+          </button>
+          <button style="width: 100%" mat-raised-button (click)="setNextStage(stageSelection.value, true)"
+                  color="accent">Run Stage Only
+          </button>
+        </div>
+      </div>
+    </form>
+
+
     <mat-divider></mat-divider>
     <div class="stage-control-item">
       <span>Pause further stage execution</span>
@@ -43,7 +62,8 @@
           <p>{{entry.stageName}}</p>
           <p class="history-list-item-grow">
             <mat-icon matTooltip="Open Logs" class="clickable" (click)="openLogs(project, entry)">list_alt</mat-icon>
-            <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open</mat-icon>
+            <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open
+            </mat-icon>
           </p>
         </mat-list-item>
       </mat-list>
@@ -59,19 +79,21 @@
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
     <div style="text-align: center">
-      <button mat-raised-button color="accent" [disabled]="watchLatestLogs" (click)="showLatestLogs()">Show log of most recent Stage</button>
+      <button mat-raised-button color="accent" [disabled]="watchLatestLogs" (click)="showLatestLogs()">Show log of most
+        recent Stage
+      </button>
     </div>
     <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
     <div class="logs-container" *ngIf="logs != null">
       <div class="console-container">
         <pre class="console-container">
           <code *ngIf="logs != null" #console class="console dark-console"
-            ><ng-container *ngFor="let log of logs; index as i"
-              ><span
-                ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i}}</span
-                ><span [class.console-err]="log.error">{{log.message}}</span
-                ></span
-              ></ng-container>
+          ><ng-container *ngFor="let log of logs; index as i"
+          ><span
+          ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i}}</span
+          ><span [class.console-err]="log.error">{{log.message}}</span
+          ></span
+          ></ng-container>
           </code>
         </pre>
       </div>

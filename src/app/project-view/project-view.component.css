@@ -32,16 +32,17 @@
   align-items: center;
 }
 
-.stage-control-item *:first-child {
-  width: 45%;
+.stage-control-item > *:first-child {
+  flex: 1;
 }
 
-.stage-control-item *:last-child {
-  width: 25%;
+.stage-control-item > *:last-child {
+  flex: 1;
 }
 
-.stage-control-item > *:not(:first-child) {
+.stage-control-item > *:not(:first-child):not(:last-child) {
   margin-left: 1em;
+  flex: 3;
 }
 
 .stage-control-item .mat-form-field-wrapper {
