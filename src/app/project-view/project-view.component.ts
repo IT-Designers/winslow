@@ -1,11 +1,11 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, LogEntry, Project, ProjectApiService, State} from '../project-api.service';
 import {NotificationService} from '../notification.service';
-import {MatTabGroup} from '@angular/material';
+import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FilesComponent} from '../files/files.component';
 import {map} from 'rxjs/operators';
-import {Observable} from 'rxjs';
+import {FileBrowseDialog} from '../file-browse/file-browse-dialog.component';
 
 @Component({
   selector: 'app-project-view',
@@ -35,7 +35,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   longLoading = new LongLoadingDetector();
 
-  constructor(private api: ProjectApiService, private notification: NotificationService) {
+  constructor(private api: ProjectApiService, private notification: NotificationService,
+              private createDialog: MatDialog) {
   }
 
   ngOnInit(): void {
@@ -227,5 +228,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       })
       .catch(err => this.notification.error('Failed to retrieve environment: ' + err))
       .finally(() => this.longLoading.decrease());
+  }
+
+  openFileBrowseDialog(key: string) {
+    this.createDialog.open(FileBrowseDialog, {
+      width: '60%',
+      data: {
+        additionalRoot: `${this.project.name};workspaces/${this.project.id}`,
+        preselectedPath: this.project.environment.get(key) || '/resources/',
+      },
+    }).afterClosed().toPromise().then(result => {
+      if (result != null) {
+        this.project.environment.set(key, result);
+      }
+    });
   }
 }

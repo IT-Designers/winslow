@@ -35,6 +35,7 @@ import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
 import {ProjectViewComponent} from './project-view/project-view.component';
+import { FileBrowseDialog } from './file-browse/file-browse-dialog.component';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,8 @@ import {ProjectViewComponent} from './project-view/project-view.component';
     ProjectsComponent,
     ProjectsCreateDialog,
     StateIconComponent,
-    ProjectViewComponent
+    ProjectViewComponent,
+    FileBrowseDialog
   ],
   imports: [
     HttpClientModule,
@@ -100,7 +102,8 @@ import {ProjectViewComponent} from './project-view/project-view.component';
     CreateDirectoryDialog,
     UploadFilesProgressDialog,
     DeleteAreYouSureDialog,
-    ProjectsCreateDialog
+    ProjectsCreateDialog,
+    FileBrowseDialog,
   ]
 })
 export class AppModule { }

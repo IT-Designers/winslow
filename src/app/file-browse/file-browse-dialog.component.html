@@ -1,0 +1,11 @@
+<div>
+  <div class="files-browser">
+    <app-files (selection)="path.value = $event" #files></app-files>
+  </div>
+
+  <div class="flex-grow-row control-button-row">
+    <input #path matInput placeholder="Selected path">
+    <button class="create-button" mat-raised-button (click)="onOk(path.value)" color="primary">OK</button>
+    <button class="create-button" mat-raised-button (click)="onCancel()">Cancel</button>
+  </div>
+</div>
