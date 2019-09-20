@@ -164,7 +164,7 @@ export class FilesComponent implements OnInit {
           this.selectedPath.emit(this.latestPath = combined);
 
           for (const r of res) {
-            if (r.name === pathSplit[currentIndex + 1]) {
+            if (r.name === pathSplit[currentIndex + 1] && r.directory) {
               return this.recursivelyLoadDirectoriesOfPath(pathSplit, currentIndex + 1, combined);
             }
           }
