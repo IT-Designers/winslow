@@ -213,7 +213,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(required => {
         this.project.userInput = required;
-        this.notification.info(JSON.stringify(required));
         return this.api
           .getEnvironment(this.project.id, index)
           .toPromise()
