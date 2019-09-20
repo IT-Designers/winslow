@@ -201,7 +201,7 @@ public class ProjectsController {
                             .skip(stageIndex)
                             .map(StageDefinition::getEnvironment)
                             .forEach(map::putAll);
-                    pipeline.getEnvironment().putAll(map);
+                    map.putAll(pipeline.getEnvironment());
                     return map;
                 })
                 .orElseGet(Collections::emptyMap);
