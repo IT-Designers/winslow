@@ -10,14 +10,15 @@ import java.util.stream.Stream;
 
 public class NomadPipeline implements Pipeline {
 
-    @Nonnull private final String              projectId;
-    @Nonnull private final PipelineDefinition  definition;
-    @Nonnull private final List<NomadStage>    stages = new ArrayList<>();
-    @Nonnull private final Map<String, String> env    = new HashMap<>();
+    @Nonnull private final String             projectId;
+    @Nonnull private final PipelineDefinition definition;
+    @Nonnull private final List<NomadStage>   stages = new ArrayList<>();
 
-    private           boolean            pauseRequested     = false;
-    @Nullable private PauseReason        pauseReason        = null;
-    @Nullable private ResumeNotification resumeNotification = null;
+
+    private           boolean             pauseRequested     = false;
+    @Nullable private PauseReason         pauseReason        = null;
+    @Nullable private ResumeNotification  resumeNotification = null;
+    @Nullable private Map<String, String> env                = new HashMap<>();
 
     private           int              nextStageIndex = 0;
     @Nonnull private  PipelineStrategy strategy;
@@ -155,6 +156,9 @@ public class NomadPipeline implements Pipeline {
     @Nonnull
     @Override
     public Map<String, String> getEnvironment() {
+        if (this.env == null) {
+            this.env = new HashMap<>();
+        }
         return this.env;
     }
 }
