@@ -60,3 +60,7 @@
   border-bottom: none;
   border-radius: 0.25em;
 }
+
+.files-tab-content {
+  height: 40em;
+}
