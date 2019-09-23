@@ -128,14 +128,11 @@ public class NomadOrchestrator implements Orchestrator {
         } catch (IncompleteStageException e) {
             if (e.isConfirmationRequired()) {
                 pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                tryUpdateContainer(container, pipeline);
             }
             if (e.isMissingEnvVariables()) {
                 pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
-            }
-            if (e.isConfirmationRequired() || e.isMissingEnvVariables()) {
                 tryUpdateContainer(container, pipeline);
-            } else {
-                throw e;
             }
         }
     }
@@ -271,6 +268,7 @@ public class NomadOrchestrator implements Orchestrator {
 
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             NomadPipeline pipeline = new NomadPipeline(project.getId(), project.getPipelineDefinition());
+            tryUpdateContainer(container, pipeline);
             tryStartNextPipelineStage(container, pipeline);
             return pipeline;
         }
