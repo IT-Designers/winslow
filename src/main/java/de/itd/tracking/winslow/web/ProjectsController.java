@@ -199,8 +199,9 @@ public class ProjectsController {
                             .getStageDefinitions()
                             .stream()
                             .skip(stageIndex)
+                            .findFirst()
                             .map(StageDefinition::getEnvironment)
-                            .forEach(map::putAll);
+                            .ifPresent(map::putAll);
                     map.putAll(pipeline.getEnvironment());
                     return map;
                 })
@@ -225,7 +226,9 @@ public class ProjectsController {
                         .getStageDefinitions()
                         .stream()
                         .skip(stageIndex)
-                        .flatMap(s -> s.getUserInput().stream())
+                        .findFirst()
+                        .flatMap(StageDefinition::getUserInput)
+                        .stream()
                         .flatMap(u -> u.getValueFor().stream())));
     }
 
