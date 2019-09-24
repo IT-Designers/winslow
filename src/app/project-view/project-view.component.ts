@@ -31,9 +31,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   watchHistory = false;
   watchPaused = false;
   watchLogs = false;
-  watchLatestLogs = true;
-
+  watchLogsInterval: any = null;
   watchLogsId?: string = null;
+  watchLatestLogs = true;
+  watchVersion: number = null;
+
 
   longLoading = new LongLoadingDetector();
   formGroupControl = new FormGroup({}, [Validators.required]);
@@ -65,27 +67,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   pollWatched(): void {
-    if (this.watchHistory && (this.isRunning() || this.historySeemsIncomplete())) {
+    const changed = this.watchVersion !== this.project.version;
+    this.watchVersion = this.project.version;
+
+    if (this.watchHistory && (this.isRunning() || changed)) {
       this.loadHistory();
     }
-    if (this.watchPaused) {
+    if (this.watchPaused && (this.isRunning() || changed)) {
       this.loadPaused();
     }
-    if (this.watchLogs && (this.isRunning() || this.logs == null)) {
-      this.loadLogs();
-    }
-  }
-
-  historySeemsIncomplete() {
-    if (this.history != null) {
-      for (const h of this.history) {
-        if (h.state === State.Running || h.state === State.Paused) {
-          return true;
-        }
+    if (this.watchLogs && (this.isRunning() || changed)) {
+      if (!this.watchLogsInterval) {
+        this.watchLogsInterval = setInterval(() => this.loadLogs(), 1000);
       }
-      return false;
-    } else {
-      return true;
+      this.loadLogs();
+    } else if (this.watchLogsInterval) {
+      clearInterval(this.watchLogsInterval);
+      this.watchLogsInterval = null;
     }
   }
 
@@ -167,14 +165,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   onSelectedTabChanged(index: number) {
-    let update = false;
-    update = update || (this.watchPaused = 0 === index);
-    update = update || (this.watchHistory = 1 === index);
-    update = update || (this.watchLogs = 3 === index);
+    this.watchPaused = this.conditionally(0 === index, () => this.loadPaused());
+    this.watchHistory = this.conditionally(1 === index, () => this.loadHistory());
+    this.watchLogs = this.conditionally(3 === index, () => this.loadLogs());
+  }
 
-    if (update) {
-      this.pollWatched();
+  conditionally(condition: boolean, fn): boolean {
+    if (condition) {
+      fn();
     }
+    return condition;
   }
 
   isLongLoading() {
