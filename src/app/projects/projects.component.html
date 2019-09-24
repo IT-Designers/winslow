@@ -27,7 +27,7 @@
       </mat-panel-title>
       <mat-panel-description style="flex-grow: 0">
         {{view.pauseReason}}
-        <mat-progress-bar *ngIf="view.isRunning()" value="20" style="width: 10em; margin: auto 1em"></mat-progress-bar>
+        <mat-progress-bar *ngIf="view.progress != null" [value]="view.progress" style="width: 10em; margin: auto 1em"></mat-progress-bar>
       </mat-panel-description>
     </mat-expansion-panel-header>
 
