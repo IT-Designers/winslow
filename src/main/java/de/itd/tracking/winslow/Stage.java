@@ -5,6 +5,7 @@ import de.itd.tracking.winslow.config.StageDefinition;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Date;
+import java.util.Optional;
 
 public interface Stage {
 
@@ -32,4 +33,10 @@ public interface Stage {
 
     @Nonnull
     String getWorkspace();
+
+    /**
+     * @return Maybe the progress in the range of 0..=100
+     */
+    @Nonnull
+    Optional<Integer> getProgressHint();
 }

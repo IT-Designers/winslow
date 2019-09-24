@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -109,7 +110,7 @@ public class ProjectsController {
                         .map(pipeline -> new StateInfo(getPipelineState(pipeline).orElse(null), pipeline
                                 .getPauseReason()
                                 .map(Pipeline.PauseReason::toString)
-                                .orElse(null)))
+                                .orElse(null), pipeline.getRunningStage().flatMap(Stage::getProgressHint).orElse(null)))
                         .orElse(null));
     }
 
@@ -303,10 +304,12 @@ public class ProjectsController {
     static class StateInfo {
         @Nullable public final Stage.State state;
         @Nullable public final String      pauseReason;
+        @Nullable public final Integer     stageProgress;
 
-        StateInfo(@Nullable Stage.State state, @Nullable String pauseReason) {
-            this.state       = state;
-            this.pauseReason = pauseReason;
+        StateInfo(@Nullable Stage.State state, @Nullable String pauseReason, @Nullable Integer stageProgress) {
+            this.state         = state;
+            this.pauseReason   = pauseReason;
+            this.stageProgress = stageProgress;
         }
     }
 }

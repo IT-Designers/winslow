@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -407,7 +408,30 @@ public class NomadOrchestrator implements Orchestrator {
 
         pipeline.resetResumeNotification();
         pipeline.incrementNextStageIndex(); // at this point, the start was successful
-        redirectLogs(pipeline, stage);
+        redirectLogs(pipeline, stage, entry -> {
+            var pattern = Pattern.compile("([\\d]*[.]?[\\d]+)[ ]*%");
+            var matcher = pattern.matcher(entry.getMessage());
+            if (matcher.matches()) {
+                this.repository.getNomadPipeline(pipeline.getProjectId())
+                        .exclusive()
+                        .ifPresent(container -> {
+                            try (container) {
+                                var pipeOpt = container.get();
+                                if (pipeOpt.isPresent()) {
+                                    var pipe = pipeOpt.get();
+                                    pipe.getRunningStage().ifPresent(s -> {
+                                        s.updateProgress((int) Float.parseFloat(matcher.group(1)));
+                                    });
+                                    container.update(pipe);
+                                }
+                            } catch (IOException | LockException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                System.out.println("matches! " + matcher.group(1));
+            }
+
+        });
         return stage;
     }
 
@@ -551,7 +575,7 @@ public class NomadOrchestrator implements Orchestrator {
         return getClient().getClientApi(this.client.getConfig().getAddress());
     }
 
-    private void redirectLogs(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage) {
+    private void redirectLogs(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage, @Nonnull Consumer<LogEntry> consumer) {
         new Thread(() -> {
             try (LockedOutputStream os = logs.getRawOutputStream(pipeline.getProjectId(), stage.getId())) {
                 var stdout = LogStream.stdOut(getClientApi(), stage.getTaskName(), () -> getJobAllocationContainingTaskStateLogErrors(stage
@@ -584,15 +608,15 @@ public class NomadOrchestrator implements Orchestrator {
                 threadStdErr.setDaemon(true);
                 threadStdErr.start();
 
-                LogWriter.foreground(os, prev -> {
+                LogWriter.writeTo(os).writeWhile(prev -> {
                     synchronized (queue) {
                         return threadStdErr.isAlive() || threadStdOut.isAlive() || !queue.isEmpty();
                     }
-                }, () -> {
+                }).fromSupplier(() -> {
                     synchronized (queue) {
                         return queue.poll();
                     }
-                });
+                }).addConsumer(consumer).runInForeground();
 
                 os.flush();
             } catch (LockException | IOException e) {
