@@ -177,7 +177,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     @Override
     public int available() throws IOException {
         if (this.currentFrame != null) {
-            return currentFrame.available() + (this.framedStream != null && this.framedStream.hasNextFrame() ? 1 : 0);
+            return currentFrame.available();
         } else {
             return 0;
         }
