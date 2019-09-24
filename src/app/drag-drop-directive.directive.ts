@@ -7,7 +7,7 @@ export class DragDropDirectiveDirective {
 
   @Output() onFileDropped = new EventEmitter<any>();
 
-  @HostBinding('class.dragover') private dragover = false;
+  @HostBinding('class.dragover') dragover = false;
 
   @HostListener('dragover', ['$event'])
   onDragOver(event) {
