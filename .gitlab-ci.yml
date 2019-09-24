@@ -1,8 +1,10 @@
 build_and_deploy:
   image: maven
   script:
-    - mvn package
+    - mvn clean test verify package
     - mv target/winslow*.jar .
+    - awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' target/site/jacoco/jacoco.csv
+  coverage: '/([\d]+\.[\d]+) % covered/'
   artifacts:
     name: winslow-$CI_COMMIT_SHORT_SHA
     paths:
