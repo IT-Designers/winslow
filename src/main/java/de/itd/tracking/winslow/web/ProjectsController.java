@@ -3,7 +3,6 @@ package de.itd.tracking.winslow.web;
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.StageDefinition;
-import de.itd.tracking.winslow.config.UserInput;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
 
@@ -85,13 +84,33 @@ public class ProjectsController {
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipelineOmitExceptions(project)
-                        .flatMap(pipeline -> pipeline.getMostRecentStage().map(Stage::getState).map(state -> {
-                            if (state != Stage.State.Running && pipeline.isPauseRequested()) {
-                                return Stage.State.Paused;
-                            } else {
-                                return state;
-                            }
-                        })));
+                        .flatMap(this::getPipelineState));
+    }
+
+    private Optional<Stage.State> getPipelineState(Pipeline pipeline) {
+        return pipeline.getMostRecentStage().map(Stage::getState).map(state -> {
+            if (state != Stage.State.Running && pipeline.isPauseRequested()) {
+                return Stage.State.Paused;
+            } else {
+                return state;
+            }
+        });
+    }
+
+    @GetMapping("/projects/states")
+    public Stream<StateInfo> getProjectComplexStates(User user, @RequestParam("projectIds") String[] projectIds) {
+        return Stream
+                .of(projectIds)
+                .map(winslow.getProjectRepository()::getProject)
+                .map(BaseRepository.Handle::unsafe)
+                .map(p -> p
+                        .filter(project -> canUserAccessProject(user, project))
+                        .flatMap(project -> winslow.getOrchestrator().getPipelineOmitExceptions(project))
+                        .map(pipeline -> new StateInfo(getPipelineState(pipeline).orElse(null), pipeline
+                                .getPauseReason()
+                                .map(Pipeline.PauseReason::toString)
+                                .orElse(null)))
+                        .orElse(null));
     }
 
     @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
@@ -233,10 +252,7 @@ public class ProjectsController {
     }
 
     @PostMapping("projects/{projectId}/resume/{stageIndex}")
-    public void resumePipeline(User user, @PathVariable("projectId") String projectId,
-            @RequestParam("env") Map<String, String> env,
-            @PathVariable("stageIndex") int index,
-            @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
+    public void resumePipeline(User user, @PathVariable("projectId") String projectId, @RequestParam("env") Map<String, String> env, @PathVariable("stageIndex") int index, @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
         winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -281,6 +297,16 @@ public class ProjectsController {
             this.state      = stage.getState();
             this.stageName  = stage.getDefinition().getName();
             this.workspace  = stage.getWorkspace();
+        }
+    }
+
+    static class StateInfo {
+        @Nullable public final Stage.State state;
+        @Nullable public final String      pauseReason;
+
+        StateInfo(@Nullable Stage.State state, @Nullable String pauseReason) {
+            this.state       = state;
+            this.pauseReason = pauseReason;
         }
     }
 }
