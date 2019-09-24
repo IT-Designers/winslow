@@ -7,8 +7,8 @@ import {ApiService, PipelineDefinition} from '../api.service';
   styleUrls: ['./pipelines.component.css']
 })
 export class PipelinesComponent implements OnInit {
-  private pipelines: PipelineDefinition[] = [];
-  private stages: Map<string, string[]> = new Map();
+  pipelines: PipelineDefinition[] = [];
+  stages: Map<string, string[]> = new Map();
 
   constructor(private api: ApiService) {
 
