@@ -1,0 +1,11 @@
+build_and_deploy:
+  image: node
+  script:
+#    - npm install -g -ng
+    - npm install
+    - npm run build -- --prod --configuration=production --baseHref=./ --deployUrl=./
+    - mv dist/winslow-ui-ng winslow-ui-ng
+  artifacts:
+    name: winslow-ui-ng_$CI_COMMIT_SHORT_SHA
+    paths:
+     - winslow-ui-ng
