@@ -27,6 +27,10 @@ export class ProjectApiService {
     return this.client.get<State>(environment.apiLocation + `projects/${projectId}/state`);
   }
 
+  getProjectStates(projectIds: string[]) {
+    return this.client.get<StateInfo[]>(`${environment.apiLocation}/projects/states?projectIds=${projectIds.join(',')}`);
+  }
+
   getProjectHistory(projectId: string) {
     return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history');
   }
@@ -104,4 +108,9 @@ export class LogEntry {
   time: number;
   error: boolean;
   message: string;
+}
+
+export class StateInfo {
+  state: State;
+  pauseReason?: string;
 }

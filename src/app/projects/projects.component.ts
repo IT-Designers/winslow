@@ -24,9 +24,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.projects = null;
     this.api.listProjects().toPromise().then(projects => {
       this.projects = projects;
-      this.pollAllProjectsForChanges();
+      setTimeout(() => this.pollAllProjectsForChanges(), 10);
     });
-    this.interval = setInterval(() => this.pollAllProjectsForChanges(), 2000);
+    this.interval = setInterval(() => this.pollAllProjectsForChanges(), 3000);
   }
 
   ngOnDestroy() {
@@ -35,9 +35,22 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   pollAllProjectsForChanges() {
-    this.views.forEach(view => {
-      view.pollForChanges();
+    const projectIds = this.views.map(view => {
+      view.longLoading.increase();
+      return view.project.id;
     });
+    if (projectIds != null && projectIds.length > 0) {
+      this.api.getProjectStates(projectIds).toPromise()
+        .then(result => {
+          let index = 0;
+          this.views.forEach(view => {
+            view.update(result[index++]);
+          });
+        })
+        .finally(() => {
+          this.views.forEach(view => view.longLoading.decrease());
+        });
+    }
   }
 
   createNewProject() {
