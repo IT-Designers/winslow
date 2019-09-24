@@ -1,6 +1,6 @@
 #main {
   min-width: 50em;
-  min-height: 150vh;
+  padding-bottom: 75vh;
 }
 
 #main > .top-menu {
