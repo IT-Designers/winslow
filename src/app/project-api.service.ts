@@ -39,11 +39,9 @@ export class ProjectApiService {
     return this.client.get<boolean>(`${environment.apiLocation}/projects/${projectId}/paused`);
   }
 
-  resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: Map<string, string>) {
+  resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: any) {
     const form = new FormData();
-    const obj = {};
-    env.forEach((value, key) => obj[key] = value);
-    form.set('env', JSON.stringify(obj));
+    form.set('env', JSON.stringify(env));
     return this.client.post(
       `${environment.apiLocation}/projects/${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`,
       form
