@@ -22,15 +22,16 @@
     (afterExpand)="startLoading(project)">
 
     <mat-expansion-panel-header>
-      <span style="display: flex; align-items: center">
+      <mat-panel-title>
         <app-state-icon #icon animation="true"></app-state-icon>
         {{project.name}}
-      </span>
+      </mat-panel-title>
+      <mat-panel-description style="flex-grow: 0">
+        {{view.pauseReason}}
+      </mat-panel-description>
     </mat-expansion-panel-header>
 
-    <app-project-view (state)="icon.state = $event"  [project]="project">
-
-    </app-project-view>
+    <app-project-view #view (state)="icon.state = $event" [project]="project"></app-project-view>
 
   </mat-expansion-panel>
 
