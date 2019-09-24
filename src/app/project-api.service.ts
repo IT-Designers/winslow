@@ -89,7 +89,7 @@ export class Project {
   environment: Map<string, string>;
   userInput: string[];
   // local only
-
+  version: number;
 }
 
 export class HistoryEntry {
@@ -111,4 +111,5 @@ export class LogEntry {
 export class StateInfo {
   state: State;
   pauseReason?: string;
+  version: number;
 }
