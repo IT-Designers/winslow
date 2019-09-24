@@ -25,6 +25,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   history?: HistoryEntry[] = null;
   logs?: LogEntry[] = null;
   paused: boolean = null;
+  pauseReason?: string = null;
 
   watchHistory = false;
   watchPaused = false;
@@ -50,8 +51,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.longLoading.increase();
     this.api.getProjectState(this.project.id).toPromise()
       .then(state => {
-        if (state === State.Paused) {
+        if (state === State.Paused || state === null) {
           return this.api.getPauseReason(this.project.id)
+            .pipe(map(reason => this.pauseReason = reason))
             .pipe(map(reason => reason !== null ? State.Warning : state))
             .toPromise();
         } else {
