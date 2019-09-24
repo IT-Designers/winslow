@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {HistoryEntry, LogEntry, Project, ProjectApiService, State} from '../project-api.service';
+import {StateInfo, HistoryEntry, LogEntry, Project, ProjectApiService, State} from '../project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
@@ -41,31 +41,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.pollForChanges();
   }
 
   ngOnDestroy(): void {
   }
 
-  pollForChanges(): void {
-    this.longLoading.increase();
-    this.api.getProjectState(this.project.id).toPromise()
-      .then(state => {
-        if (state === State.Paused || state === null) {
-          return this.api.getPauseReason(this.project.id)
-            .pipe(map(reason => this.pauseReason = reason))
-            .pipe(map(reason => reason !== null ? State.Warning : state))
-            .toPromise();
-        } else {
-          return Promise.resolve(state);
-        }
-      })
-      .then(state => {
-        this.stateEmitter.emit(this.state = state);
-        this.pollWatched();
-      })
-      .catch(err => this.notification.error('Failed to update state' + JSON.stringify(err)))
-      .finally(() => this.longLoading.decrease());
+  update(complex: StateInfo) {
+    this.state = complex.state;
+    this.pauseReason = complex.pauseReason;
+
+    if (this.pauseReason !== null) {
+      this.state = State.Warning;
+    }
+
+    this.stateEmitter.emit(this.state);
   }
 
   isRunning(): boolean {
