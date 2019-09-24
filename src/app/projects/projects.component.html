@@ -1,13 +1,6 @@
 <div>
   <h1>Projects</h1>
 
-  <div class="flex-grow-row control-button-row">
-    <div class="flex-grow"></div>
-    <button class="create-button" mat-raised-button color="primary"
-            (click)="createNewProject()">Create Project
-    </button>
-  </div>
-
   <div class="project-list-replacement">
     <i *ngIf="projects == null">
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -15,6 +8,12 @@
     <i *ngIf="projects != null && projects.length == 0">There are no projects yet yet</i>
   </div>
 
+  <div *ngIf="this.projects != null" class="flex-grow-row control-button-row">
+    <div class="flex-grow"></div>
+    <button class="create-button" mat-raised-button color="primary"
+            (click)="createNewProject()">Create Project
+    </button>
+  </div>
 
   <mat-expansion-panel
     *ngFor="let project of projects"
@@ -28,6 +27,7 @@
       </mat-panel-title>
       <mat-panel-description style="flex-grow: 0">
         {{view.pauseReason}}
+        <mat-progress-bar *ngIf="view.isRunning()" value="20" style="width: 10em; margin: auto 1em"></mat-progress-bar>
       </mat-panel-description>
     </mat-expansion-panel-header>
 
