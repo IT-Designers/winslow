@@ -127,7 +127,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(result => {
         this.notification.info('Request has been accepted');
-        this.pollForChanges();
       }).catch(error => {
       this.notification.error('Request failed: ' + JSON.stringify(error));
     }).finally(() => this.longLoading.decrease());
