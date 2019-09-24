@@ -5,11 +5,8 @@
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
 
-    <ng-container *ngIf="pauseReason != null">
-      {{pauseReason}}
-    </ng-container>
 
-    <form>
+    <form [formGroup]="formGroupControl">
       <div class="stage-control-item">
         <p>Overwrite stage execution order</p>
         <mat-form-field>
@@ -29,6 +26,8 @@
           <p>{{entry.key}}</p>
           <mat-form-field>
             <input matInput placeholder="{{entry.key}}"
+                   formControlName="{{entry.key}}"
+                   [formGroup]="formGroupControl"
                    [required]="project.userInput.indexOf(entry.key) >= 0"
                    [value]="entry.value"
                    (change)="project.environment.set(entry.key, $event.target.value)">
@@ -58,10 +57,10 @@
           </div>
         </div>
         <div class="stage-control-item-controls" *ngIf="stageSelection.value != null">
-          <button mat-stroked-button (click)="setNextStage(stageSelection.value, true)" color="primary">
+          <button [disabled]="!formGroupControl.valid" mat-stroked-button (click)="setNextStage(stageSelection.value, true)" color="primary">
             Run Single Stage
           </button>
-          <button mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">
+          <button [disabled]="!formGroupControl.valid" mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">
             Resume Pipeline
           </button>
         </div>
