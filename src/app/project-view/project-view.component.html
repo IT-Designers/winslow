@@ -35,7 +35,8 @@
           <div>
             <button mat-raised-button (click)="openFileBrowseDialog(entry.key)">Browse Files</button>
             <button mat-button color="warn" [disabled]="project.userInput.indexOf(entry.key) >= 0"
-                    [matTooltip]="project.userInput.indexOf(entry.key) >= 0 ? 'This value is required' : null">
+                    [matTooltip]="project.userInput.indexOf(entry.key) >= 0 ? 'This value is required' : null"
+                    (click)="project.environment.delete(entry.key)">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
@@ -48,10 +49,11 @@
             <input #value required matInput placeholder="Value">
           </mat-form-field>
           <div>
-            <button mat-raised-button [disabled]="key.value.length == 0 || value.value.length == 0" color="primary">
+            <button mat-raised-button [disabled]="key.value.length == 0 || value.value.length == 0"
+                    color="primary" (click)="addEnvironment(key.value, value.value); key.value = ''; value.value = '';">
               Add
             </button>
-            <button mat-button color="primary" [disabled]="key.value.length == 0 || value.value.length == 0"
+            <button mat-button color="primary" [disabled]="key.value.length == 0 && value.value.length == 0"
                     color="primary" (click)="key.value = ''; value.value = '';">Reset
             </button>
           </div>

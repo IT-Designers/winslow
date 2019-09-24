@@ -126,7 +126,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   setNextStage(nextStageIndex: string, singleStageOnly = false) {
     this.longLoading.increase();
-    this.api.resume(this.project.id, Number(nextStageIndex), singleStageOnly, this.project.environment)
+    this.api.resume(this.project.id, Number(nextStageIndex), singleStageOnly, this.formGroupControl.value)
       .toPromise()
       .then(result => {
         this.notification.info('Request has been accepted');
@@ -224,6 +224,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
               }
             }
             this.project.environment = env;
+            this.recreateFormGroup([...this.project.environment.keys()]);
           });
       })
       .catch(err => this.notification.error('Failed to retrieve environment: ' + err))
@@ -233,7 +234,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   private recreateFormGroup(required: string[]) {
     const fg = {};
     for (const req of required) {
-      fg[req] = new FormControl(null, Validators.required);
+      fg[req] = new FormControl(this.project && this.project.environment && this.project.environment.get(req));
     }
     this.formGroupControl = new FormGroup(fg, Validators.required);
     this.formGroupControl.markAllAsTouched();
@@ -251,5 +252,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         this.formGroupControl.get(key).setValue(result);
       }
     });
+  }
+
+  addEnvironment(key: string, value: string) {
+    this.project.environment.set(key, value);
+    this.formGroupControl.addControl(key, new FormControl(value));
   }
 }
