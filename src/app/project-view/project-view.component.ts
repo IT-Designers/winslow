@@ -27,6 +27,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   logs?: LogEntry[] = null;
   paused: boolean = null;
   pauseReason?: string = null;
+  progress?: number;
 
   watchHistory = false;
   watchPaused = false;
@@ -53,6 +54,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   update(complex: StateInfo) {
     this.state = complex.state;
     this.pauseReason = complex.pauseReason;
+    this.progress = complex.stageProgress;
 
     if (this.pauseReason !== null) {
       this.state = State.Warning;

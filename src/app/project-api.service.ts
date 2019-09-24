@@ -111,5 +111,5 @@ export class LogEntry {
 export class StateInfo {
   state: State;
   pauseReason?: string;
-  version: number;
+  stageProgress?: number;
 }
