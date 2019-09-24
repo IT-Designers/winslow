@@ -45,7 +45,7 @@
 
 .stage-control-item-controls {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
 }
 
 .stage-control-item button:not(:first-child), .stage-control-item-controls button:not(:first-child) {
