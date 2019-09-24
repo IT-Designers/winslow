@@ -1,11 +1,12 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {StateInfo, HistoryEntry, LogEntry, Project, ProjectApiService, State} from '../project-api.service';
+import {HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo} from '../project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FilesComponent} from '../files/files.component';
-import {map} from 'rxjs/operators';
 import {FileBrowseDialog} from '../file-browse/file-browse-dialog.component';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
+
 
 @Component({
   selector: 'app-project-view',
@@ -35,6 +36,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   watchLogsId?: string = null;
 
   longLoading = new LongLoadingDetector();
+  formGroupControl = new FormGroup({}, [Validators.required]);
 
   constructor(private api: ProjectApiService, private notification: NotificationService,
               private createDialog: MatDialog) {
@@ -55,6 +57,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
 
     this.stateEmitter.emit(this.state);
+    this.pollWatched();
   }
 
   isRunning(): boolean {
@@ -127,6 +130,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(result => {
         this.notification.info('Request has been accepted');
+        this.paused = false;
+        this.stateEmitter.emit(this.state = State.Running);
+        this.pauseReason = null;
       }).catch(error => {
       this.notification.error('Request failed: ' + JSON.stringify(error));
     }).finally(() => this.longLoading.decrease());
@@ -140,6 +146,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(result => {
         this.notification.info('Project updated');
+        if (!this.paused) {
+          this.stateEmitter.emit(this.state = State.Running);
+          this.pauseReason = null;
+        }
       })
       .catch(err => {
         this.paused = before;
@@ -202,6 +212,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .getRequiredUserInput(this.project.id, index)
       .toPromise()
       .then(required => {
+        this.recreateFormGroup(required);
         this.project.userInput = required;
         return this.api
           .getEnvironment(this.project.id, index)
@@ -219,6 +230,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .finally(() => this.longLoading.decrease());
   }
 
+  private recreateFormGroup(required: string[]) {
+    const fg = {};
+    for (const req of required) {
+      fg[req] = new FormControl(null, Validators.required);
+    }
+    this.formGroupControl = new FormGroup(fg, Validators.required);
+    this.formGroupControl.markAllAsTouched();
+  }
+
   openFileBrowseDialog(key: string) {
     this.createDialog.open(FileBrowseDialog, {
       width: '75%',
@@ -228,7 +248,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       },
     }).afterClosed().toPromise().then(result => {
       if (result != null) {
-        this.project.environment.set(key, result);
+        this.formGroupControl.get(key).setValue(result);
       }
     });
   }
