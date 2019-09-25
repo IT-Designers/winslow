@@ -78,7 +78,8 @@ public class LockBus {
                     }
                 }
                 try {
-                    this.tryDeleteOldEvents();
+                    this.deleteOldLocks();
+                    this.tryDeleteOldFiles();
                 } catch (IOException e) {
                     LOG.log(Level.WARNING, "Failed to delete old events", e);
                 }
@@ -88,6 +89,16 @@ public class LockBus {
                 break;
             }
         }
+    }
+
+    private synchronized void deleteOldLocks() {
+        var toDelete = this.locks
+                .values()
+                .stream()
+                .filter(e -> e.getTime() + e.getDuration() + LOCK_DURATION_OFFSET < System.currentTimeMillis())
+                .map(Event::getSubject)
+                .collect(Collectors.toUnmodifiableList());
+        toDelete.forEach(this.locks::remove);
     }
 
     public boolean release(Token token) {
@@ -205,7 +216,7 @@ public class LockBus {
         }
     }
 
-    private void tryDeleteOldEvents() throws IOException {
+    private void tryDeleteOldFiles() throws IOException {
         var list = Files
                 .list(eventDirectory)
                 .sorted(Comparator.comparing(Path::getFileName))
