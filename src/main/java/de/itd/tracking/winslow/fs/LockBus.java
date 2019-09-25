@@ -7,14 +7,16 @@ import org.springframework.security.authentication.LockedException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.nio.file.StandardWatchEventKinds.*;
 
 public class LockBus {
 
@@ -42,6 +44,50 @@ public class LockBus {
             });
         } catch (NumberFormatException e) {
             throw new IOException("Invalid name of event file", e);
+        }
+
+
+        startEventDirWatchService(eventDirectory);
+    }
+
+    private void startEventDirWatchService(Path eventDirectory) throws IOException {
+        var fs = eventDirectory.getFileSystem();
+        var ws = fs.newWatchService();
+        eventDirectory.register(ws, ENTRY_MODIFY);
+
+        var thread = new Thread(() -> this.watchForNewEvents(ws));
+        thread.setName(getClass().getSimpleName() + ".WatchService");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void watchForNewEvents(WatchService ws) {
+        while (true) {
+            try {
+                var key = ws.poll(1, TimeUnit.MINUTES);
+                if (key != null) {
+                    key.reset();
+                    for (var event : key.pollEvents()) {
+                        try {
+                            var path = (Path) event.context();
+                            int id   = Integer.parseInt(path.getFileName().toString());
+
+                            while (id > eventCounter) {
+                                if (!loadNextEvent()) {
+                                    break;
+                                }
+                            }
+
+                        } catch (RuntimeException | LockException e) {
+                            LOG.log(Level.WARNING, "Failed to react on watch event", e);
+                        }
+                    }
+                }
+            } catch (InterruptedException ignored) {
+            } catch (ClosedWatchServiceException e) {
+                LOG.log(Level.SEVERE, "Watch service closed", e);
+                break;
+            }
         }
     }
 
