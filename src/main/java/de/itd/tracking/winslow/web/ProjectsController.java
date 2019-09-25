@@ -266,6 +266,7 @@ public class ProjectsController {
                             .filter(str -> "once".equals(str.toLowerCase()))
                             .map(str -> Pipeline.PipelineStrategy.MoveForwardOnce)
                             .orElse(Pipeline.PipelineStrategy.MoveForwardUntilEnd));
+                    pipeline.getEnvironment().clear();
                     pipeline.getEnvironment().putAll(env);
                     pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     return null;
