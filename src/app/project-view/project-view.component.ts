@@ -260,4 +260,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.project.environment.set(key, value);
     this.formGroupControl.addControl(key, new FormControl(value));
   }
+
+  deleteEnvironment(key: string) {
+    this.project.environment.delete(key);
+    this.formGroupControl.removeControl(key);
+  }
 }
