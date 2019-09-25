@@ -126,8 +126,12 @@ public abstract class BaseRepository {
     }
 
     protected Lock getLockForPath(Path path, int durationMs) throws LockException {
-        var subject = workDirectoryConfiguration.getPath().relativize(path).toString();
+        String subject = getLockSubjectForPath(path);
         return new Lock(lockBus, subject, durationMs);
+    }
+
+    protected String getLockSubjectForPath(Path path) {
+        return workDirectoryConfiguration.getPath().relativize(path).toString();
     }
 
     protected interface Reader<T> {
