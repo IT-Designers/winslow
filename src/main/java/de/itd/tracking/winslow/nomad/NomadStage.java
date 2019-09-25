@@ -16,9 +16,8 @@ public class NomadStage implements Stage {
     @Nonnull private final Date            startTime;
     @Nonnull private final String          workspace;
 
-    @Nullable private Date    finishTime;
-    @Nullable private State   finishState;
-    @Nullable private Integer progress;
+    @Nullable private Date  finishTime;
+    @Nullable private State finishState;
 
     public NomadStage(@Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition, @Nonnull String workspace) {
         this.jobId      = jobId;
@@ -80,15 +79,5 @@ public class NomadStage implements Stage {
     @Nonnull
     public String getWorkspace() {
         return workspace;
-    }
-
-    @Nonnull
-    @Override
-    public Optional<Integer> getProgressHint() {
-        return Optional.ofNullable(this.progress);
-    }
-
-    public void updateProgress(int progress) {
-        this.progress = progress;
     }
 }

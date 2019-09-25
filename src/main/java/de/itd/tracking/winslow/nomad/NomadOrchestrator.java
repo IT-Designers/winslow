@@ -41,16 +41,18 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull private final Environment     environment;
     @Nonnull private final NomadApiClient  client;
-    @Nonnull private final NomadRepository repository;
+    @Nonnull private final NomadRepository pipelines;
+    @Nonnull private final HintsRepository hints;
     @Nonnull private final LogRepository   logs;
 
     private boolean isRunning = false;
     private boolean shouldRun = true;
 
-    public NomadOrchestrator(@Nonnull Environment environment, @Nonnull NomadApiClient client, @Nonnull NomadRepository repository, @Nonnull LogRepository logs) {
+    public NomadOrchestrator(@Nonnull Environment environment, @Nonnull NomadApiClient client, @Nonnull NomadRepository pipelines, @Nonnull HintsRepository hints, @Nonnull LogRepository logs) {
         this.environment = environment;
         this.client      = client;
-        this.repository  = repository;
+        this.pipelines   = pipelines;
+        this.hints       = hints;
         this.logs        = logs;
 
         var thread = new Thread(this::pipelineUpdaterLoop);
@@ -89,7 +91,7 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private void pollAllPipelinesForUpdate() {
-        repository.getAllPipelines().filter(handle -> {
+        pipelines.getAllPipelines().filter(handle -> {
             try {
                 return handle.unsafe().map(this::hasUpdateAvailable).orElse(false);
             } catch (Throwable t) {
@@ -263,7 +265,7 @@ public class NomadOrchestrator implements Orchestrator {
     @Nonnull
     @Override
     public Pipeline createPipeline(@Nonnull Project project) throws OrchestratorException {
-        if (this.repository.getNomadPipeline(project.getId()).unsafe().isPresent()) {
+        if (this.pipelines.getNomadPipeline(project.getId()).unsafe().isPresent()) {
             throw new PipelineAlreadyExistsException(project);
         }
 
@@ -304,7 +306,7 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private LockedContainer<NomadPipeline> exclusivePipelineContainer(@Nonnull Project project) throws OrchestratorException {
-        return this.repository
+        return this.pipelines
                 .getNomadPipeline(project.getId())
                 .exclusive()
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
@@ -412,22 +414,7 @@ public class NomadOrchestrator implements Orchestrator {
             var pattern = Pattern.compile("([\\d]*[.]?[\\d]+)[ ]*%");
             var matcher = pattern.matcher(entry.getMessage());
             if (matcher.matches()) {
-                this.repository.getNomadPipeline(pipeline.getProjectId())
-                        .exclusive()
-                        .ifPresent(container -> {
-                            try (container) {
-                                var pipeOpt = container.get();
-                                if (pipeOpt.isPresent()) {
-                                    var pipe = pipeOpt.get();
-                                    pipe.getRunningStage().ifPresent(s -> {
-                                        s.updateProgress((int) Float.parseFloat(matcher.group(1)));
-                                    });
-                                    container.update(pipe);
-                                }
-                            } catch (IOException | LockException e) {
-                                e.printStackTrace();
-                            }
-                        });
+                this.hints.setProgressHint(pipeline.getProjectId(), Math.round(Float.parseFloat(matcher.group(1))));
                 System.out.println("matches! " + matcher.group(1));
             }
 
@@ -506,20 +493,20 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private static String getTaskName(NomadPipeline pipeline, StageDefinition stage) {
-        return String.format("%04d_%s", pipeline.getStageCount(), stage.getName());
+        return replaceInvalidCharactersInJobName(String.format("%04d_%s", pipeline.getStageCount(), stage.getName()));
     }
 
 
     @Nonnull
     @Override
     public Optional<NomadPipeline> getPipeline(@Nonnull Project project) {
-        return repository.getNomadPipeline(project.getId()).unsafe();
+        return pipelines.getNomadPipeline(project.getId()).unsafe();
     }
 
     @Nonnull
     @Override
     public <T> Optional<T> updatePipeline(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) throws OrchestratorException {
-        return repository.getNomadPipeline(project.getId()).exclusive().flatMap(container -> {
+        return pipelines.getNomadPipeline(project.getId()).exclusive().flatMap(container -> {
             try (container) {
                 var result   = Optional.<T>empty();
                 var pipeline = container.get();
@@ -537,31 +524,18 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public Optional<NomadPipeline> getPipelineForStageId(@Nonnull String stageId) {
-        return repository
-                .getAllPipelines()
-                .flatMap(pipeline -> pipeline.unsafe().stream())
-                .filter(pipeline -> pipeline.getAllStages().anyMatch(stage -> stage.getJobId().equals(stageId)))
-                .findFirst();
-    }
-
-    @Nonnull
-    @Override
-    public Optional<String> getProjectIdForPipeline(@Nonnull Pipeline pipeline) {
-        if (pipeline instanceof NomadPipeline) {
-            return Optional.of(((NomadPipeline) pipeline).getProjectId());
-        }
-        return Optional.empty();
-    }
-
-    @Nonnull
-    @Override
     public Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull String stageId) {
         try {
             return LogReader.stream(logs.getRawInputStreamNonExclusive(project.getId(), stageId));
         } catch (FileNotFoundException e) {
             return Stream.empty();
         }
+    }
+
+    @Nonnull
+    @Override
+    public Optional<Integer> getProgressHint(@Nonnull Project project) {
+        return hints.getProgressHint(project.getId());
     }
 
 
@@ -623,23 +597,6 @@ public class NomadOrchestrator implements Orchestrator {
                 LOG.log(Level.SEVERE, "Log writer failed", e);
             }
         }).start();
-    }
-
-
-    @Nonnull
-    private LogIterator getLogIteratorStdOut(NomadStage stage, int lastNLines) {
-        return getLogIterator(stage, lastNLines, "stdout");
-    }
-
-    @Nonnull
-    private LogIterator getLogIteratorStdErr(NomadStage stage, int lastNLines) {
-        return getLogIterator(stage, lastNLines, "stderr");
-    }
-
-    @Nonnull
-    private LogIterator getLogIterator(@Nonnull NomadStage stage, int lastNLines, String logType) {
-        return new LogIterator(stage.getJobId(), stage.getTaskName(), logType, getClientApi(), () -> getJobAllocationContainingTaskStateLogErrors(stage
-                .getJobId(), stage.getTaskName()));
     }
 
     @Nonnull

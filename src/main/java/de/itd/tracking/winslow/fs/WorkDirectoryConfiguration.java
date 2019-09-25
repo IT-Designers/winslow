@@ -27,4 +27,9 @@ public interface WorkDirectoryConfiguration {
     default Path getLogsDirectory() {
         return getPath().resolve("logs");
     }
+
+    @Nonnull
+    default Path getTemporaryDirectory() {
+        return getPath().resolve("tmp");
+    }
 }

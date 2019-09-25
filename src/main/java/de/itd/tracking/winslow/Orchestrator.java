@@ -36,15 +36,10 @@ public interface Orchestrator {
         }
     }
 
+    @Nonnull
+    Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull String stageId);
 
     @Nonnull
-    Optional<? extends Pipeline> getPipelineForStageId(@Nonnull String stageId);
-
-    @Nonnull
-    Optional<String> getProjectIdForPipeline(@Nonnull Pipeline pipeline);
-
-
-    @Nonnull
-    Stream<LogEntry> getLogs(@Nonnull Project projectId, @Nonnull String stageId);
+    Optional<Integer> getProgressHint(@Nonnull Project project);
 
 }

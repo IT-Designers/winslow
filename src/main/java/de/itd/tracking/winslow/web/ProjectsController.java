@@ -110,7 +110,7 @@ public class ProjectsController {
                         .map(pipeline -> new StateInfo(getPipelineState(pipeline).orElse(null), pipeline
                                 .getPauseReason()
                                 .map(Pipeline.PauseReason::toString)
-                                .orElse(null), pipeline.getRunningStage().flatMap(Stage::getProgressHint).orElse(null)))
+                                .orElse(null), winslow.getOrchestrator().getProgressHint(p.get()).orElse(null)))
                         .orElse(null));
     }
 
