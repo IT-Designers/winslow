@@ -15,7 +15,7 @@ import java.nio.file.Path;
 
 public class LogRepository extends BaseRepository {
 
-    private static final int LOCK_DURATION_MS = 20_000;
+    private static final int LOCK_DURATION_MS = 10_000;
 
     public LogRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
@@ -25,6 +25,12 @@ public class LogRepository extends BaseRepository {
     @Override
     protected Path getRepositoryDirectory() {
         return workDirectoryConfiguration.getLogsDirectory();
+    }
+
+    public boolean isLocked(@Nonnull String projectId, @Nonnull String stageId) {
+        var path    = getLogFile(projectId, stageId);
+        var subject = getLockSubjectForPath(path);
+        return lockBus.isLocked(subject);
     }
 
     @Nonnull
