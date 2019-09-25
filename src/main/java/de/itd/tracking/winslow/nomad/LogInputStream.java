@@ -108,7 +108,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
 
     private int polled(@Nonnull CallableIOException callable) throws IOException {
         var backoff = new Backoff(50, 1_000, 1.5f);
-        for (int i = 0; isAlive(); ++i) {
+        for (int i = 0; i == 0 || isAlive(); ++i) {
             var value = callable.call();
             if (value >= -1) {
                 return value;
