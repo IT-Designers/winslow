@@ -4,17 +4,17 @@ import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
 import org.springframework.security.authentication.LockedException;
 
+import javax.annotation.Nonnull;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -22,14 +22,16 @@ public class LockBus {
 
     private static final Logger LOG = Logger.getLogger(LockBus.class.getSimpleName());
 
-    public static final int LOCK_DURATION_OFFSET = 1_000;
+    public static final int LOCK_DURATION_OFFSET          = 1_000;
+    public static final int DURATION_SURELY_OUT_OF_DATE   = 5_000;
+    public static final int DURATION_FOR_UNREADABLE_FILES = 25_000;
 
     private final Path               eventDirectory;
     private final Map<String, Event> locks = new HashMap<>();
 
     private int eventCounter = 0;
 
-    public LockBus(Path eventDirectory) throws IOException {
+    public LockBus(Path eventDirectory) throws IOException, LockException {
         this.eventDirectory = eventDirectory;
         if (!eventDirectory.toFile().exists() && !eventDirectory.toFile().mkdirs()) {
             throw new IOException("Failed to create event directory at: " + eventDirectory);
@@ -38,16 +40,8 @@ public class LockBus {
             throw new IOException("Path to event directory is not a directory: " + eventDirectory);
         }
 
-        try {
-            Files.list(eventDirectory).sorted().findFirst().ifPresent(file -> {
-                this.eventCounter = Integer.parseInt(file.getFileName().toString());
-            });
-        } catch (NumberFormatException e) {
-            throw new IOException("Invalid name of event file", e);
-        }
-
-
-        startEventDirWatchService(eventDirectory);
+        this.loadNextEvent();
+        this.startEventDirWatchService(eventDirectory);
     }
 
     private void startEventDirWatchService(Path eventDirectory) throws IOException {
@@ -73,7 +67,7 @@ public class LockBus {
                             int id   = Integer.parseInt(path.getFileName().toString());
 
                             while (id > eventCounter) {
-                                if (!loadNextEvent()) {
+                                if (!loadNextEvent(0)) {
                                     break;
                                 }
                             }
@@ -82,6 +76,11 @@ public class LockBus {
                             LOG.log(Level.WARNING, "Failed to react on watch event", e);
                         }
                     }
+                }
+                try {
+                    this.tryDeleteOldEvents();
+                } catch (IOException e) {
+                    LOG.log(Level.WARNING, "Failed to delete old events", e);
                 }
             } catch (InterruptedException ignored) {
             } catch (ClosedWatchServiceException e) {
@@ -137,14 +136,14 @@ public class LockBus {
         }
     }
 
-    private synchronized Token publishEvent(EventSupplier supplier) throws LockException {
-        var path  = this.nextEventPath();
-        var event = supplier.getCheckedEvent(UUID.randomUUID().toString());
-        var token = new Token(event.getId(), path, event.getSubject(), event.getTime());
-
-        System.out.println(new TomlWriter().write(event));
-
+    private synchronized Token publishEvent(@Nonnull EventSupplier supplier) throws LockException {
         try {
+            var path  = this.nextEventPath();
+            var event = supplier.getCheckedEvent(UUID.randomUUID().toString());
+            var token = new Token(event.getId(), path, event.getSubject(), event.getTime());
+
+            System.out.println(new TomlWriter().write(event));
+
             Files.write(path, Collections.singleton(new TomlWriter().write(event)), StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
             this.processEvent(event);
             this.eventCounter += 1;
@@ -158,11 +157,20 @@ public class LockBus {
         }
     }
 
-    private Path nextEventPath() {
-        return this.eventDirectory.resolve(this.nextEventFilename());
+    private Path nextEventPath() throws IOException {
+        Files.list(eventDirectory).flatMap(p -> {
+            try {
+                return Stream.of(Integer.parseInt(p.getFileName().toString()));
+            } catch (NumberFormatException ee) {
+                return Stream.empty();
+            }
+        }).filter(a -> a >= this.eventCounter).min(Comparator.comparingInt(a -> a)).ifPresent(next -> {
+            this.eventCounter = next;
+        });
+        return this.eventDirectory.resolve(this.getEventFileNameForCurrentCounter());
     }
 
-    private String nextEventFilename() {
+    private String getEventFileNameForCurrentCounter() {
         return String.format("%08d", eventCounter);
     }
 
@@ -171,27 +179,19 @@ public class LockBus {
     }
 
     private synchronized boolean loadNextEvent(int retryCount) throws LockException {
-        var path = this.nextEventPath();
+        Path path = null;
         try {
-            var content = Files.readString(path);
-            var event   = new Toml().read(content).to(Event.class);
+            path = this.nextEventPath();
 
-            if (event.getTime() + event.getDuration() + 10 * LOCK_DURATION_OFFSET < System.currentTimeMillis()) {
-                if (Files.list(path.getParent()).count() > 10) {
-                    if (!path.toFile().delete()) {
-                        LOG.warning("Failed to delete old event file: " + event);
-                    }
-                }
-            } else {
-                this.processEvent(event);
-            }
+            this.processEvent(loadEvent(path));
 
             this.eventCounter += 1;
             return true;
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException | FileNotFoundException e) {
+            LOG.log(Level.WARNING, "Failed to read event");
             return false;
         } catch (IOException e) {
-            if (retryCount > 0 && path.toFile().lastModified() - System.currentTimeMillis() < 1000) {
+            if (retryCount > 0 && path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000) {
                 e.printStackTrace();
                 try {
                     Thread.sleep(100);
@@ -203,6 +203,46 @@ public class LockBus {
                 throw new LockException("Failed to parse event file", e);
             }
         }
+    }
+
+    private void tryDeleteOldEvents() throws IOException {
+        var list = Files
+                .list(eventDirectory)
+                .sorted(Comparator.comparing(Path::getFileName))
+                .collect(Collectors.toUnmodifiableList());
+        var diff = list.size() - 10;
+
+        for (int i = 0; i < diff; ++i) {
+            Path  path  = list.get(i);
+            Event event = null;
+
+            try {
+                event = loadEvent(path);
+            } catch (IOException e) {
+                // probably corrupt file
+                LOG.log(Level.WARNING, "Failed to load file to check for last usage", e);
+                if (path.toFile().lastModified() + DURATION_FOR_UNREADABLE_FILES < System.currentTimeMillis()) {
+                    Files.deleteIfExists(path);
+                }
+                continue;
+            }
+
+            if (isSurelyOutOfDate(event)) {
+                Files.deleteIfExists(path);
+            } else {
+                break;
+            }
+        }
+    }
+
+    private boolean isSurelyOutOfDate(@Nonnull Event event) {
+        return event.getTime() + event.getDuration() + LOCK_DURATION_OFFSET + DURATION_SURELY_OUT_OF_DATE < System.currentTimeMillis();
+    }
+
+    private Event loadEvent(@Nonnull Path path) throws IOException {
+        var content = Files.readString(path);
+        var event   = new Toml().read(content).to(Event.class);
+        return event;
     }
 
     private synchronized void processEvent(Event event) {

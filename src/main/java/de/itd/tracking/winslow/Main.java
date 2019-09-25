@@ -3,6 +3,7 @@ package de.itd.tracking.winslow;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itd.tracking.winslow.fs.LockBus;
+import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.nomad.HintsRepository;
 import de.itd.tracking.winslow.nomad.NomadOrchestrator;
@@ -73,7 +74,7 @@ public class Main {
             LOG.info("Letting Winslow run freely");
             winslow.run();
 
-        } catch (IOException e) {
+        } catch (IOException | LockException e) {
             e.printStackTrace();
         } finally {
             if (webApi != null) {
