@@ -130,6 +130,11 @@ public class LockBus {
         }
     }
 
+    public synchronized boolean isLocked(String subject) {
+        var lock = this.locks.get(subject);
+        return lock != null && lock.getTime() + lock.getDuration() + LOCK_DURATION_OFFSET >= System.currentTimeMillis();
+    }
+
     public Token lock(String subject, long duration) throws LockException {
         return this.publishEvent(id -> {
             this.ensureSubjectLockUnknown(subject);
