@@ -38,6 +38,7 @@ public class NomadOrchestrator implements Orchestrator {
     private static final Logger  LOG                     = Logger.getLogger(NomadOrchestrator.class.getSimpleName());
     private static final Pattern INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
     private static final Pattern MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
+    public static final  Pattern PROGRESS_HINT_PATTERN   = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
 
     @Nonnull private final Environment     environment;
     @Nonnull private final NomadApiClient  client;
@@ -258,20 +259,22 @@ public class NomadOrchestrator implements Orchestrator {
                 return true;
             } else if (!logs.isLocked(projectId, stageId)) {
                 LOG.warning("Detected log redirect which has been aborted! " + stageId + "@" + projectId);
-                // TODO coopy&paste code
-                redirectLogs(pipeline, stage, entry -> {
-                    var pattern = Pattern.compile("([\\d]*[.]?[\\d]+)[ ]*%");
-                    var matcher = pattern.matcher(entry.getMessage());
-                    if (matcher.matches()) {
-                        this.hints.setProgressHint(pipeline.getProjectId(), Math.round(Float.parseFloat(matcher.group(1))));
-                        System.out.println("matches! " + matcher.group(1));
-                    }
-                });
+                redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
                 return false; // now locked again
             } else {
                 return false; // still locked
             }
         }
+    }
+
+    private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String projectId) {
+        return entry -> {
+            var matcher = PROGRESS_HINT_PATTERN.matcher(entry.getMessage());
+            if (matcher.find()) {
+                this.hints.setProgressHint(projectId, Math.round(Float.parseFloat(matcher.group(1))));
+                LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
+            }
+        };
     }
 
     private boolean isStageStateUpdateAvailable(NomadPipeline pipeline) {
@@ -439,15 +442,7 @@ public class NomadOrchestrator implements Orchestrator {
 
         pipeline.resetResumeNotification();
         pipeline.incrementNextStageIndex(); // at this point, the start was successful
-        redirectLogs(pipeline, stage, entry -> {
-            var pattern = Pattern.compile("([\\d]*[.]?[\\d]+)[ ]*%");
-            var matcher = pattern.matcher(entry.getMessage());
-            if (matcher.matches()) {
-                this.hints.setProgressHint(pipeline.getProjectId(), Math.round(Float.parseFloat(matcher.group(1))));
-                System.out.println("matches! " + matcher.group(1));
-            }
-
-        });
+        redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
         return stage;
     }
 
