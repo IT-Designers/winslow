@@ -59,10 +59,12 @@
           </div>
         </div>
         <div class="stage-control-item-controls" *ngIf="stageSelection.value != null">
-          <button [disabled]="!formGroupControl.valid" mat-stroked-button (click)="setNextStage(stageSelection.value, true)" color="primary">
+          <button [disabled]="!formGroupControl.valid" mat-stroked-button
+                  (click)="setNextStage(stageSelection.value, true)" color="primary">
             Run Single Stage
           </button>
-          <button [disabled]="!formGroupControl.valid" mat-raised-button (click)="setNextStage(stageSelection.value)" color="primary">
+          <button [disabled]="!formGroupControl.valid" mat-raised-button (click)="setNextStage(stageSelection.value)"
+                  color="primary">
             Resume Pipeline
           </button>
         </div>
@@ -122,7 +124,7 @@
           <code *ngIf="logs != null" #console class="console dark-console"
           ><ng-container *ngFor="let log of logs; index as i"
           ><span
-          ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i}}</span
+          ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
           ><span [class.console-err]="log.error">{{log.message}}</span
           ></span
           ></ng-container>
