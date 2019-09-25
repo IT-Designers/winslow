@@ -388,15 +388,20 @@ public class NomadOrchestrator implements Orchestrator {
                         .build();
             }
 
+            var targetDirResources = "/resources";
+            var targetDirWorkspace = "/workspace";
+
             builder = builder
-                    .addNfsVolume("winslow-" + builder.getId() + "-resources", "/resources", true, config.getOptions(), exportedResources
+                    .addNfsVolume("winslow-" + builder.getId() + "-resources", targetDirResources, true, config.getOptions(), exportedResources
                             .get()
                             .toAbsolutePath()
                             .toString())
-                    .addNfsVolume("winslow-" + builder.getId() + "-workspace", "/workspace", false, config.getOptions(), exportedWorkspace
+                    .addNfsVolume("winslow-" + builder.getId() + "-workspace", targetDirWorkspace, false, config.getOptions(), exportedWorkspace
                             .get()
                             .toAbsolutePath()
-                            .toString());
+                            .toString())
+                    .withEnvVariableSet("WINSLOW_DIR_RESOURCES", targetDirResources)
+                    .withEnvVariableSet("WINSLOW_DIR_WORKSPACE", targetDirWorkspace);
         } else {
             throw IncompleteStageException.Builder
                     .create("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration())
@@ -405,10 +410,20 @@ public class NomadOrchestrator implements Orchestrator {
         }
 
 
+        var timeMs = System.currentTimeMillis();
+        var timeS  = timeMs / 1_000;
         builder = builder
                 .withEnvVariablesSet(stageDefinition.getEnvironment())
                 .withEnvVariablesSet(pipeline.getEnvironment())
-                .withEnvVariableSet("WINSLOW_SETUP_TIME", new Date().toString());
+                .withEnvVariableSet("WINSLOW_PROJECT_ID", pipeline.getProjectId())
+                .withEnvVariableSet("WINSLOW_PIPELINE_ID", pipeline.getProjectId())
+                .withEnvVariableSet("WINSLOW_PIPELINE_NAME", pipeline.getDefinition().getName())
+                .withEnvVariableSet("WINSLOW_STAGE_ID", builder.getId())
+                .withEnvVariableSet("WINSLOW_STAGE_NAME", stageDefinition.getName())
+                .withEnvVariableSet("WINSLOW_STAGE_NUMBER", Integer.toString(pipeline.getStageCount()))
+                .withEnvVariableSet("WINSLOW_SETUP_DATE_TIME", new Date(timeS).toString())
+                .withEnvVariableSet("WINSLOW_SETUP_EPOCH_TIME", Long.toString(timeS))
+                .withEnvVariableSet("WINSLOW_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
 
 
         boolean requiresConfirmation = isConfirmationRequiredForNextStage(pipeline, stageDefinition);
