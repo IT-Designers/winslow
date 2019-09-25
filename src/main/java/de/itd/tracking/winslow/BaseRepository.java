@@ -39,6 +39,11 @@ public abstract class BaseRepository {
     }
 
     @Nonnull
+    protected Path getRepositoryFile(String name, String suffix) {
+        return getRepositoryFile(name + suffix);
+    }
+
+    @Nonnull
     public Stream<Path> listAll() {
         return listAllInDirectory(getRepositoryDirectory());
     }

@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 
 public class NomadRepository extends BaseRepository {
 
+    private static final String SUFFIX_PIPELINE = ".pipeline.toml";
+
 
     public NomadRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
@@ -24,10 +26,12 @@ public class NomadRepository extends BaseRepository {
     }
 
     Stream<Handle<NomadPipeline>> getAllPipelines() {
-        return listAll().map(path -> createHandle(path, NomadPipeline.class));
+        return listAll()
+                .filter(path -> path.toString().endsWith(SUFFIX_PIPELINE))
+                .map(path -> createHandle(path, NomadPipeline.class));
     }
 
     Handle<NomadPipeline> getNomadPipeline(@Nonnull String projectId) {
-        return createHandle(getRepositoryFile(projectId), NomadPipeline.class);
+        return createHandle(getRepositoryFile(projectId, SUFFIX_PIPELINE), NomadPipeline.class);
     }
 }
