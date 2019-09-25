@@ -242,7 +242,36 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private boolean hasUpdateAvailable(NomadPipeline pipeline) {
-        return isStageStateUpdateAvailable(pipeline);
+        return isStageStateUpdateAvailable(pipeline) && logRedirectionCompleted(pipeline);
+    }
+
+    private boolean logRedirectionCompleted(NomadPipeline pipeline) {
+        var running = pipeline.getRunningStage();
+        if (running.isEmpty()) {
+            return true;
+        } else {
+            var stage     = running.get();
+            var projectId = pipeline.getProjectId();
+            var stageId   = stage.getId();
+
+            if (hints.hasLogRedirectionCompletedSuccessfullyHint(projectId, stageId)) {
+                return true;
+            } else if (!logs.isLocked(projectId, stageId)) {
+                LOG.warning("Detected log redirect which has been aborted! " + stageId + "@" + projectId);
+                // TODO coopy&paste code
+                redirectLogs(pipeline, stage, entry -> {
+                    var pattern = Pattern.compile("([\\d]*[.]?[\\d]+)[ ]*%");
+                    var matcher = pattern.matcher(entry.getMessage());
+                    if (matcher.matches()) {
+                        this.hints.setProgressHint(pipeline.getProjectId(), Math.round(Float.parseFloat(matcher.group(1))));
+                        System.out.println("matches! " + matcher.group(1));
+                    }
+                });
+                return false; // now locked again
+            } else {
+                return false; // still locked
+            }
+        }
     }
 
     private boolean isStageStateUpdateAvailable(NomadPipeline pipeline) {
@@ -593,6 +622,7 @@ public class NomadOrchestrator implements Orchestrator {
                 }).addConsumer(consumer).runInForeground();
 
                 os.flush();
+                hints.setLogRedirectionCompletedSuccessfullyHint(pipeline.getProjectId(), stage.getId());
             } catch (LockException | IOException e) {
                 LOG.log(Level.SEVERE, "Log writer failed", e);
             }

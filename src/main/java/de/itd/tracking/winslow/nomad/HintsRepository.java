@@ -17,8 +17,9 @@ import java.util.logging.Logger;
 
 public class HintsRepository extends BaseRepository {
 
-    private static final Logger LOG             = Logger.getLogger(HintsRepository.class.getSimpleName());
-    private static final String SUFFIX_PROGRESS = ".progress";
+    private static final Logger LOG                  = Logger.getLogger(HintsRepository.class.getSimpleName());
+    private static final String SUFFIX_PROGRESS      = ".progress";
+    private static final String SUFFIX_LOG_COMPLETED = ".log-completed-successfully";
 
     public HintsRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
@@ -43,7 +44,9 @@ public class HintsRepository extends BaseRepository {
 
     Optional<Integer> getProgressHint(@Nonnull String projectId) {
         try {
-            return Optional.of(Integer.parseInt(Files.readString(getRepositoryFile(projectId, SUFFIX_PROGRESS)).trim()));
+            return Optional.of(Integer.parseInt(Files
+                    .readString(getRepositoryFile(projectId, SUFFIX_PROGRESS))
+                    .trim()));
         } catch (NoSuchFileException | FileNotFoundException e) {
             LOG.log(Level.FINER, "There is no progress for the project " + projectId, e);
             return Optional.empty();
@@ -51,5 +54,21 @@ public class HintsRepository extends BaseRepository {
             LOG.log(Level.WARNING, "Failed to read progress hint for " + projectId, e);
             return Optional.empty();
         }
+    }
+
+    void setLogRedirectionCompletedSuccessfullyHint(@Nonnull String projectId, @Nonnull String stageId) {
+        try {
+            Files.write(getLogRedirectionCompletedSuccessfullyPath(projectId, stageId), Collections.emptyList());
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to set hint for log redirect having completed", e);
+        }
+    }
+
+    boolean hasLogRedirectionCompletedSuccessfullyHint(@Nonnull String projectId, @Nonnull String stageId) {
+        return Files.exists(getLogRedirectionCompletedSuccessfullyPath(projectId, stageId));
+    }
+
+    private Path getLogRedirectionCompletedSuccessfullyPath(@Nonnull String projectId, @Nonnull String stageId) {
+        return getRepositoryFile(projectId + "." + stageId, SUFFIX_LOG_COMPLETED);
     }
 }
