@@ -32,4 +32,9 @@ public interface WorkDirectoryConfiguration {
     default Path getTemporaryDirectory() {
         return getPath().resolve("tmp");
     }
+
+    @Nonnull
+    default Path getNodesDirectory() {
+        return getPath().resolve("nodes");
+    }
 }

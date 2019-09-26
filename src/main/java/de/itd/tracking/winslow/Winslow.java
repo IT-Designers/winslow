@@ -4,23 +4,27 @@ import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
+import de.itd.tracking.winslow.node.NodeParser;
+import de.itd.tracking.winslow.node.UnixNodeInfoUpdater;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Scanner;
 
 public class Winslow implements Runnable {
 
-    private final Orchestrator                 orchestrator;
-    private final ResourceManager              resourceManager;
-    private final GroupRepository              groupRepository;
-    private final UserRepository               userRepository;
-    private final PipelineDefinitionRepository pipelineRepository;
-    private final ProjectRepository            projectRepository;
+    @Nonnull private final Orchestrator                 orchestrator;
+    @Nonnull private final ResourceManager              resourceManager;
+    @Nonnull private final GroupRepository              groupRepository;
+    @Nonnull private final UserRepository               userRepository;
+    @Nonnull private final PipelineDefinitionRepository pipelineRepository;
+    @Nonnull private final ProjectRepository            projectRepository;
+    @Nonnull private final NodeParser                   nodeParser;
 
-    public Winslow(Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
+    public Winslow(@Nonnull Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
         this.orchestrator    = orchestrator;
         this.resourceManager = resourceManager;
 
@@ -28,18 +32,30 @@ public class Winslow implements Runnable {
         this.userRepository     = new UserRepository(groupRepository);
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = new ProjectRepository(lockBus, configuration);
+        this.nodeParser         = new NodeParser(configuration.getNodesDirectory());
+
+        // TODO
+        UnixNodeInfoUpdater.spawn("node0", configuration.getNodesDirectory());
     }
 
+    @Nonnull
     public Orchestrator getOrchestrator() {
         return orchestrator;
     }
 
+    @Nonnull
     public ResourceManager getResourceManager() {
         return resourceManager;
     }
 
+    @Nonnull
     public ProjectRepository getProjectRepository() {
         return projectRepository;
+    }
+
+    @Nonnull
+    public NodeParser getNodeParser() {
+        return nodeParser;
     }
 
     public void run() {
