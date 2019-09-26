@@ -36,6 +36,7 @@ import {ProjectsCreateDialog} from './projects-create/projects-create-dialog.com
 import {StateIconComponent} from './state-icon/state-icon.component';
 import {ProjectViewComponent} from './project-view/project-view.component';
 import { FileBrowseDialog } from './file-browse/file-browse-dialog.component';
+import {NgxChartsModule} from '@swimlane/ngx-charts';
 
 @NgModule({
   declarations: [
@@ -91,7 +92,9 @@ import { FileBrowseDialog } from './file-browse/file-browse-dialog.component';
     MatTooltipModule,
     MatSlideToggleModule,
     MatTabsModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+
+    NgxChartsModule
 
   ],
   providers: [
