@@ -37,6 +37,7 @@ import {StateIconComponent} from './state-icon/state-icon.component';
 import {ProjectViewComponent} from './project-view/project-view.component';
 import { FileBrowseDialog } from './file-browse/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
+import { ServerOverviewComponent } from './server-overview/server-overview.component';
 
 @NgModule({
   declarations: [
@@ -53,7 +54,8 @@ import {NgxChartsModule} from '@swimlane/ngx-charts';
     ProjectsCreateDialog,
     StateIconComponent,
     ProjectViewComponent,
-    FileBrowseDialog
+    FileBrowseDialog,
+    ServerOverviewComponent
   ],
   imports: [
     HttpClientModule,
