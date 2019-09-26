@@ -1,5 +1,4 @@
 #main {
-  min-width: 50em;
   padding-bottom: 75vh;
 }
 
@@ -13,11 +12,16 @@
   display: flex;
   flex-direction: column;
   min-height: 70vh;
-  margin-left: 5em;
-  margin-right: 5em;
   padding: 0 2em 2em 2em;
   border: solid 0.05em lightgray;
   border-bottom-left-radius: 0.25em;
   border-bottom-right-radius: 0.25em;
   background-color: white;
+}
+
+@media (min-width: 60em) {
+  #main > .container {
+    margin-left: 5em;
+    margin-right: 5em;
+  }
 }
