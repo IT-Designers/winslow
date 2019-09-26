@@ -1,7 +1,11 @@
 <div class="servers">
   <h1>Servers</h1>
 
-  <app-server-overview class="server">
+  <app-server-overview [node]="{name: 'node0', cpuInfo: {modelName: 'Potatoe p7 0123-4k'}}" class="server">
+
+  </app-server-overview>
+
+  <app-server-overview [node]="node0">
 
   </app-server-overview>
 </div>
