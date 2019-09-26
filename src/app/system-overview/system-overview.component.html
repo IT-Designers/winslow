@@ -9,6 +9,91 @@
 
   <div>
     <h2>Connected Servers</h2>
+
+    <div class="server">
+
+      <div class="server-overview" >
+        <h2 class="server-name">SeServerName</h2>
+        <div class="ngx-graph-wrapper">
+          <ngx-charts-gauge class="cpu-usage"
+                            [scheme]="colorScheme"
+                            [results]="single"
+                            [legend]="false"
+                            [showText]="false"
+                            [tooltipDisabled]="true">
+          </ngx-charts-gauge>
+        </div>
+        <div class="server-details">
+          <span><strong>CPU</strong> Potatoe p7 0123-4k</span>
+          <span><strong>MEM</strong> 1/2 MiByte</span>
+          <span><strong>GPU</strong> 4x ToasterX</span>
+        </div>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="graph-container">
+        <div class="graph-container-item">
+          <h3>Memory usage</h3>
+          <div class="graph">
+            <div class="ngx-graph-wrapper">
+              <ngx-charts-area-chart-stacked
+                [scheme]="{domain: ['#00FF00', '#FF0000']}"
+                [results]="memory"
+                [legend]="true"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showYAxisLabel]="true"
+                [yAxisLabel]="'Gigabyte'"
+                [tooltipDisabled]="true"
+              ></ngx-charts-area-chart-stacked>
+            </div>
+          </div>
+        </div>
+        <div class="graph-container-item">
+          <h3>Network IO</h3>
+          <div class="graph">
+            <div class="ngx-graph-wrapper">
+              <ngx-charts-area-chart
+                [scheme]="{domain: ['#FF0000', '#00FF00']}"
+                [results]="series"
+                [legend]="true"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showYAxisLabel]="true"
+                [yAxisLabel]="'MiBytes/s'"
+                [tooltipDisabled]="true"
+              ></ngx-charts-area-chart>
+            </div>
+          </div>
+        </div>
+        <div class="graph-container-item">
+          <h3>Disk Utilization</h3>
+          <div class="graph">
+            <div class="ngx-graph-wrapper">
+              <ngx-charts-area-chart
+                [scheme]="{domain: ['#FF0000', '#00FF00']}"
+                [results]="series"
+                [legend]="true"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showYAxisLabel]="true"
+                [yAxisLabel]="'MiBytes/s'"
+                [tooltipDisabled]="true"
+              ></ngx-charts-area-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Server 2</h3>
+      <span>Chart CPUs</span>
+      <span>Chart Mem</span>
+      <span>Chart Net IO</span>
+      <span>Chart Disk IO</span>
+    </div>
   </div>
 
   <div>

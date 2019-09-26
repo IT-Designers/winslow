@@ -1,0 +1,86 @@
+.server {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid silver;
+  border-radius: 1em;
+  padding: 1em;
+}
+
+.server-overview {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 1%;
+  overflow: hidden;
+  text-align: center;
+  padding: 3em 0;
+}
+
+.server-details > * {
+  display: block;
+}
+
+.server-overview .ngx-graph-wrapper {
+  flex-grow: 1 !important;
+  flex-shrink: 2 !important;
+  max-height: 20em;
+}
+
+.separator {
+  flex-grow: 0;
+  border-bottom: 1px solid silver;
+}
+
+@media (min-width: 60em) {
+  .server {
+    flex-direction: row !important;
+  }
+
+  .separator {
+    flex-grow: 0;
+    border-left: 1px solid silver;
+  }
+
+
+  .server-overview {
+    flex-basis: 0 !important;
+    max-width: 30em;
+  }
+
+  .server .graph-container {
+    flex-basis: 0 !important;
+  }
+}
+
+.server .graph-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 2;
+  overflow: auto;
+}
+
+.graph-container-item {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 1em;
+}
+
+
+
+.graph-container .graph-container-item:not(:last-child) {
+  border-bottom: 1px solid silver;
+}
+
+.graph {
+  display: flex;
+  padding-left: 2em;
+  overflow: hidden;
+}
+
+.ngx-graph-wrapper {
+  overflow: hidden;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
