@@ -6,7 +6,6 @@ import de.itd.tracking.winslow.node.Node;
 import de.itd.tracking.winslow.node.NodeInfo;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,12 +19,12 @@ public class UnixNode implements Node {
     public static final  String CPU_INFO_MODEL_PREFIX = "model name";
     public static final  String CPU_INFO_SEPARATOR    = ":";
 
-    @Nonnull private final String name;
+    @Nonnull private final String                            name;
+    @Nonnull private       List<UnixProcStatParser.CpuTimes> prevCpuTimes;
 
-    @Nullable private List<UnixProcStatParser.CpuTimes> prevCpuTimes = null;
-
-    public UnixNode(@Nonnull String name) {
-        this.name = name;
+    public UnixNode(@Nonnull String name) throws IOException {
+        this.name         = name;
+        this.prevCpuTimes = getCpuTimes(resolveStat());
     }
 
     private static Path resolveCpuInfo() {
@@ -74,7 +73,7 @@ public class UnixNode implements Node {
     @Nonnull
     private List<Float> loadCpuUtilization() throws IOException {
         var current  = getCpuTimes(resolveStat());
-        var previous = this.prevCpuTimes != null ? this.prevCpuTimes : current;
+        var previous = this.prevCpuTimes;
 
 
         var entries = Math.min(current.size(), previous.size());
