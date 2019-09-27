@@ -45,12 +45,12 @@
         <div class="ngx-graph-wrapper">
           <ngx-charts-area-chart
             [scheme]="{domain: ['#FF0000', '#00FF00']}"
-            [results]="series"
+            [results]="network"
             [legend]="true"
             [xAxis]="true"
             [yAxis]="true"
             [showYAxisLabel]="true"
-            [yAxisLabel]="'MiBytes/s'"
+            [yAxisLabel]="'Bytes/s'"
             [tooltipDisabled]="true"
           ></ngx-charts-area-chart>
         </div>
@@ -67,7 +67,7 @@
             [xAxis]="true"
             [yAxis]="true"
             [showYAxisLabel]="true"
-            [yAxisLabel]="'MiBytes/s'"
+            [yAxisLabel]="'Bytes/s'"
             [tooltipDisabled]="true"
           ></ngx-charts-area-chart>
         </div>
