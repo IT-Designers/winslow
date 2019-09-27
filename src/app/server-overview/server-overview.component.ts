@@ -126,7 +126,6 @@ export class ServerOverviewComponent implements OnInit {
         }
 
 
-
         this.nodes.getNodeInfo(this.node.name).toPromise().then(result => this.node = result);
         const cpus = this.node.cpuInfo.utilization;
         if (cpus) {
@@ -181,7 +180,7 @@ export class ServerOverviewComponent implements OnInit {
     this.memory = [this.memory[0], this.memory[1], this.memory[2]];
     for (const entry of this.memory) {
       if (entry.series.length > 120) {
-        entry.series.splice(0, 120 - entry.series.length);
+        entry.series.splice(0, entry.series.length - 120);
       }
     }
   }
