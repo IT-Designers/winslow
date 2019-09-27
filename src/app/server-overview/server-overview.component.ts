@@ -62,8 +62,8 @@ export class ServerOverviewComponent implements OnInit {
   ngOnInit() {
     for (let i = 0; i < 8; ++i) {
       this.single.push({
-        'name': 'CPU' + i,
-        'value': Math.random() * 100,
+        name: 'CPU' + i,
+        value: Math.random() * 100,
       });
     }
 
@@ -73,8 +73,8 @@ export class ServerOverviewComponent implements OnInit {
       this.single = [];
       for (let i = 0; i < count; ++i) {
         this.single.push({
-          'name': 'CPU' + i,
-          'value': Math.random() * 100
+          name: 'CPU' + i,
+          value: Math.random() * 100
         });
       }
 
@@ -93,12 +93,12 @@ export class ServerOverviewComponent implements OnInit {
         });
       }
       this.series.push({
-        'name': 'Tx',
-        'series': series1
+        name: 'Tx',
+        series: series1
       });
       this.series.push({
-        'name': 'Rx',
-        'series': series2
+        name: 'Rx',
+        series: series2
       });
 
       if (this.node == null) {
@@ -116,12 +116,12 @@ export class ServerOverviewComponent implements OnInit {
           });
         }
         this.memory.push({
-          'name': 'Heap',
-          'series': mem1
+          name: 'Heap',
+          series: mem1
         });
         this.memory.push({
-          'name': 'SWAP',
-          'series': mem2
+          name: 'SWAP',
+          series: mem2
         });
 
         this.cpus = this.series;
@@ -264,5 +264,13 @@ export class ServerOverviewComponent implements OnInit {
         entry.series.splice(0, entry.series.length - 120);
       }
     }
+  }
+
+  getTotalMemoryFormatted() {
+    let gigabytes = 0;
+    if (this.node !== null) {
+      gigabytes = this.bytesToGigabyte(this.node.memInfo.memoryTotal);
+    }
+    return gigabytes.toFixed(1) + ' GiB';
   }
 }
