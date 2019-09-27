@@ -14,6 +14,7 @@ export class ServerOverviewComponent implements OnInit {
   series: any[] = [];
   memory: any[] = [];
   network: any[] = [];
+  disk: any[] = [];
 
   cpus: any[] = [];
 
@@ -133,6 +134,13 @@ export class ServerOverviewComponent implements OnInit {
           this.updateNetworkSeries();
         }
 
+        if (this.disk.length === 0) {
+          this.initDiskSeries();
+        }
+        if (this.node.diskInfo) {
+          this.updateDiskSeries();
+        }
+
 
         this.nodes.getNodeInfo(this.node.name).toPromise().then(result => this.node = result);
         const cpus = this.node.cpuInfo.utilization;
@@ -216,6 +224,35 @@ export class ServerOverviewComponent implements OnInit {
     });
     this.network = [this.network[0], this.network[1]];
     for (const entry of this.network) {
+      if (entry.series.length > 120) {
+        entry.series.splice(0, entry.series.length - 120);
+      }
+    }
+  }
+
+
+  private initDiskSeries() {
+    this.disk.push({
+      name: 'Reading',
+      series: []
+    });
+    this.disk.push({
+      name: 'Writing',
+      series: []
+    });
+  }
+
+  private updateDiskSeries() {
+    this.disk[0].series.push({
+      name: new Date(),
+      value: this.node.diskInfo.reading,
+    });
+    this.disk[1].series.push({
+      name: new Date(),
+      value: this.node.diskInfo.writing,
+    });
+    this.disk = [this.disk[0], this.disk[1]];
+    for (const entry of this.disk) {
       if (entry.series.length > 120) {
         entry.series.splice(0, entry.series.length - 120);
       }

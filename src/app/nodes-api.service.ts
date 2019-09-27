@@ -20,6 +20,7 @@ export class NodeInfo {
   cpuInfo: CpuInfo;
   memInfo: MemInfo;
   netInfo: NetInfo;
+  diskInfo: DiskInfo;
 }
 
 export class CpuInfo {
@@ -38,4 +39,9 @@ export class MemInfo {
 export class NetInfo {
   transmitting: number;
   receiving: number;
+}
+
+export class DiskInfo {
+  reading: number;
+  writing: number;
 }

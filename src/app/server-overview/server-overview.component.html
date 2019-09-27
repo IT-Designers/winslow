@@ -2,12 +2,14 @@
   <div class="server-overview">
     <h2 class="server-name">{{node.name}}</h2>
     <div class="ngx-graph-wrapper">
-      <ngx-charts-gauge class="cpu-usage"
-                        [scheme]="colorScheme"
-                        [results]="cpus"
-                        [legend]="false"
-                        [showText]="false"
-                        [tooltipDisabled]="true">
+      <ngx-charts-gauge
+        class="cpu-usage"
+        [animations]="true"
+        [scheme]="colorScheme"
+        [results]="cpus"
+        [legend]="false"
+        [showText]="false"
+        [tooltipDisabled]="true">
       </ngx-charts-gauge>
     </div>
     <div class="server-details">
@@ -25,6 +27,7 @@
       <div class="graph">
         <div class="ngx-graph-wrapper">
           <ngx-charts-area-chart-stacked
+            [animations]="false"
             [scheme]="schemeMemory"
             [results]="memory"
             [legend]="true"
@@ -44,6 +47,7 @@
       <div class="graph">
         <div class="ngx-graph-wrapper">
           <ngx-charts-area-chart
+            [animations]="false"
             [scheme]="{domain: ['#FF0000', '#00FF00']}"
             [results]="network"
             [legend]="true"
@@ -61,8 +65,9 @@
       <div class="graph">
         <div class="ngx-graph-wrapper">
           <ngx-charts-area-chart
-            [scheme]="{domain: ['#FF0000', '#00FF00']}"
-            [results]="series"
+            [animations]="false"
+            [scheme]="{domain: ['#00FF00', '#FF0000']}"
+            [results]="disk"
             [legend]="true"
             [xAxis]="true"
             [yAxis]="true"
