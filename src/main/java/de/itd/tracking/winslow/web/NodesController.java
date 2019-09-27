@@ -19,6 +19,6 @@ public class NodesController {
 
     @GetMapping("/nodes/{name}")
     public Optional<NodeInfo> getNodeInfo(@PathVariable("name") String name) {
-        return winslow.getNodeParser().getNode(name);
+        return winslow.getNodeRepository().getNodeInfo(name);
     }
 }

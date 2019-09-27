@@ -1,4 +1,4 @@
-package de.itd.tracking.winslow.node;
+package de.itd.tracking.winslow.node.unix;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -119,7 +119,12 @@ public class UnixProcStatParser {
         }
 
         public float getUtilization() {
-            return Math.min(1, Math.max(0, (float) getTimeUnitsNotIdle() / (float) getTimeUnitsSum()));
+            var result = Math.min(1, Math.max(0, (float) getTimeUnitsNotIdle() / (float) getTimeUnitsSum()));
+            if (Float.isNaN(result)) {
+                return 0f;
+            } else {
+                return result;
+            }
         }
 
         @Nonnull

@@ -4,14 +4,14 @@ import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
-import de.itd.tracking.winslow.node.NodeParser;
-import de.itd.tracking.winslow.node.UnixNodeInfoUpdater;
+import de.itd.tracking.winslow.node.NodeInfoUpdater;
+import de.itd.tracking.winslow.node.NodeRepository;
+import de.itd.tracking.winslow.node.unix.UnixNode;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -23,7 +23,7 @@ public class Winslow implements Runnable {
     @Nonnull private final UserRepository               userRepository;
     @Nonnull private final PipelineDefinitionRepository pipelineRepository;
     @Nonnull private final ProjectRepository            projectRepository;
-    @Nonnull private final NodeParser                   nodeParser;
+    @Nonnull private final NodeRepository               nodeRepository;
 
     public Winslow(@Nonnull Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
         this.orchestrator    = orchestrator;
@@ -33,12 +33,11 @@ public class Winslow implements Runnable {
         this.userRepository     = new UserRepository(groupRepository);
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = new ProjectRepository(lockBus, configuration);
-        this.nodeParser         = new NodeParser(configuration.getNodesDirectory());
+        this.nodeRepository     = new NodeRepository(lockBus, configuration);
 
-        Files.createDirectories(configuration.getNodesDirectory());
 
         // TODO
-        UnixNodeInfoUpdater.spawn("node0", configuration.getNodesDirectory());
+        NodeInfoUpdater.spawn(configuration.getNodesDirectory(), new UnixNode("node0"));
     }
 
     @Nonnull
@@ -57,8 +56,8 @@ public class Winslow implements Runnable {
     }
 
     @Nonnull
-    public NodeParser getNodeParser() {
-        return nodeParser;
+    public NodeRepository getNodeRepository() {
+        return nodeRepository;
     }
 
     public void run() {

@@ -1,15 +1,17 @@
-package de.itd.tracking.winslow.node;
+package de.itd.tracking.winslow.node.unix;
+
+import de.itd.tracking.winslow.node.MemInfo;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Stream;
 
 public class UnixMemInfoParser {
 
-    public static final Long   DEFAULT_VALUE   = 0L;
-    public static final String SEPARATOR       = ":";
-    public static final String SEPARATOR_VALUE = " ";
+    public static final Long   DEFAULT_VALUE      = 0L;
+    public static final String SEPARATOR          = ":";
+    public static final String SEPARATOR_VALUE    = " ";
+    public static final int    MEMINFO_LINE_COUNT = 51;
 
     @Nonnull private final Stream<String> lines;
 
@@ -19,11 +21,18 @@ public class UnixMemInfoParser {
 
     @Nonnull
     public MemInfo parseMemInfo() {
-        var info = new UnixMemInfo();
+        var info = new HashMap<String, Long>(MEMINFO_LINE_COUNT);
         lines.map(l -> l.split(SEPARATOR)).forEach(l -> {
-            info.insert(l[0].trim(), parseValueAsNumberOfBytes(l[1]));
+            info.put(l[0].trim(), parseValueAsNumberOfBytes(l[1]));
         });
-        return info;
+
+        var systemCache = info.getOrDefault("Cached", DEFAULT_VALUE);
+        var memTotal    = info.getOrDefault("MemTotal", DEFAULT_VALUE);
+        var memFree     = info.getOrDefault("MemFree", DEFAULT_VALUE) + systemCache;
+        var swapTotal   = info.getOrDefault("SwapTotal", DEFAULT_VALUE);
+        var swapFree    = info.getOrDefault("SwapFree", DEFAULT_VALUE);
+
+        return new MemInfo(memTotal, memFree, systemCache, swapTotal, swapFree);
     }
 
     private static long parseValueAsNumberOfBytes(String s) {
@@ -53,38 +62,5 @@ public class UnixMemInfoParser {
             default:
         }
         return multiplier;
-    }
-
-    private static class UnixMemInfo implements MemInfo {
-        private final Map<String, Long> info = new HashMap<>();
-
-        void insert(String key, Long value) {
-            this.info.put(key, value);
-        }
-
-        @Override
-        public long getMemoryTotal() {
-            return info.getOrDefault("MemTotal", DEFAULT_VALUE);
-        }
-
-        @Override
-        public long getMemoryFree() {
-            return info.getOrDefault("MemFree", DEFAULT_VALUE) + getSystemCache();
-        }
-
-        @Override
-        public long getSystemCache() {
-            return info.getOrDefault("Cached", DEFAULT_VALUE);
-        }
-
-        @Override
-        public long getSwapTotal() {
-            return info.getOrDefault("SwapTotal", DEFAULT_VALUE);
-        }
-
-        @Override
-        public long getSwapFree() {
-            return info.getOrDefault("SwapFree", DEFAULT_VALUE);
-        }
     }
 }

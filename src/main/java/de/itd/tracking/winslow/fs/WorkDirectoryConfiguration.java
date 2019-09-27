@@ -15,7 +15,7 @@ public interface WorkDirectoryConfiguration {
 
     @Nonnull
     default Path getEventsDirectory() {
-        return getPath().resolve("events");
+        return getRunDirectory().resolve("events");
     }
 
     @Nonnull
