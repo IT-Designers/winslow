@@ -1,9 +1,6 @@
 package de.itd.tracking.winslow.node.unix;
 
-import de.itd.tracking.winslow.node.CpuInfo;
-import de.itd.tracking.winslow.node.MemInfo;
-import de.itd.tracking.winslow.node.Node;
-import de.itd.tracking.winslow.node.NodeInfo;
+import de.itd.tracking.winslow.node.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -19,12 +16,14 @@ public class UnixNode implements Node {
     public static final  String CPU_INFO_MODEL_PREFIX = "model name";
     public static final  String CPU_INFO_SEPARATOR    = ":";
 
-    @Nonnull private final String                            name;
-    @Nonnull private       List<UnixProcStatParser.CpuTimes> prevCpuTimes;
+    @Nonnull private final String                              name;
+    @Nonnull private       List<UnixProcStatParser.CpuTimes>   prevCpuTimes;
+    @Nonnull private       List<UnixNetIoParser.InterfaceInfo> prevNetBytes;
 
     public UnixNode(@Nonnull String name) throws IOException {
         this.name         = name;
         this.prevCpuTimes = getCpuTimes(resolveStat());
+        this.prevNetBytes = getInterfaceInfo(resolveNetDev());
     }
 
     private static Path resolveCpuInfo() {
@@ -39,6 +38,10 @@ public class UnixNode implements Node {
         return PROC.resolve("meminfo");
     }
 
+    private static Path resolveNetDev() {
+        return PROC.resolve("net").resolve("dev");
+    }
+
     @Nonnull
     @Override
     public String getName() {
@@ -50,7 +53,8 @@ public class UnixNode implements Node {
     public NodeInfo loadInfo() throws IOException {
         var cpuInfo = loadCpuInfo();
         var memInfo = loadMemInfo();
-        return new NodeInfo(name, cpuInfo, memInfo);
+        var netInfo = loadNetInfo();
+        return new NodeInfo(name, cpuInfo, memInfo, netInfo);
     }
 
     @Nonnull
@@ -90,6 +94,29 @@ public class UnixNode implements Node {
         List<String> lines      = Files.lines(path).collect(Collectors.toUnmodifiableList());
         String[]     linesArray = new String[lines.size()];
         return new UnixProcStatParser(lines.toArray(linesArray)).getCpuTimes();
+    }
+
+    private NetInfo loadNetInfo() throws IOException {
+        var current  = getInterfaceInfo(resolveNetDev());
+        var previous = this.prevNetBytes;
+
+        var receiving    = 0;
+        var transmitting = 0;
+        var entries      = Math.min(current.size(), previous.size());
+        for (int i = 0; i < entries; ++i) {
+            var diff = current.get(i).getChangeSince(previous.get(i));
+            receiving += diff.getReceived();
+            transmitting += diff.getTransmitted();
+        }
+
+        this.prevNetBytes = current;
+        return new NetInfo(receiving, transmitting);
+    }
+
+    private static List<UnixNetIoParser.InterfaceInfo> getInterfaceInfo(@Nonnull Path path) throws IOException {
+        return UnixNetIoParser
+                .getNetInfoConsiderOnlyPhysicalInterfaces(Files.lines(path))
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @Nonnull
