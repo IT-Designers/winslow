@@ -17,29 +17,40 @@ public class UnixNode implements Node {
     public static final  String CPU_INFO_SEPARATOR    = ":";
 
     @Nonnull private final String                              name;
-    @Nonnull private       List<UnixProcStatParser.CpuTimes>   prevCpuTimes;
+    @Nonnull private       List<UnixCpuInfoParser.CpuTimes>    prevCpuTimes;
     @Nonnull private       List<UnixNetIoParser.InterfaceInfo> prevNetBytes;
+    @Nonnull private       List<UnixDiskIoParser.DiskInfo>     prevDiskInfo;
 
     public UnixNode(@Nonnull String name) throws IOException {
         this.name         = name;
         this.prevCpuTimes = getCpuTimes(resolveStat());
         this.prevNetBytes = getInterfaceInfo(resolveNetDev());
+        this.prevDiskInfo = getDiskInfo(resolveDiskstats());
     }
 
+    @Nonnull
     private static Path resolveCpuInfo() {
         return PROC.resolve("cpuinfo");
     }
 
+    @Nonnull
     private static Path resolveStat() {
         return PROC.resolve("stat");
     }
 
+    @Nonnull
     private static Path resolveMemInfo() {
         return PROC.resolve("meminfo");
     }
 
+    @Nonnull
     private static Path resolveNetDev() {
         return PROC.resolve("net").resolve("dev");
+    }
+
+    @Nonnull
+    private static Path resolveDiskstats() {
+        return PROC.resolve("diskstats");
     }
 
     @Nonnull
@@ -51,10 +62,11 @@ public class UnixNode implements Node {
     @Nonnull
     @Override
     public NodeInfo loadInfo() throws IOException {
-        var cpuInfo = loadCpuInfo();
-        var memInfo = loadMemInfo();
-        var netInfo = loadNetInfo();
-        return new NodeInfo(name, cpuInfo, memInfo, netInfo);
+        var cpuInfo  = loadCpuInfo();
+        var memInfo  = loadMemInfo();
+        var netInfo  = loadNetInfo();
+        var diskInfo = loadDiskInfo();
+        return new NodeInfo(name, cpuInfo, memInfo, netInfo, diskInfo);
     }
 
     @Nonnull
@@ -90,10 +102,15 @@ public class UnixNode implements Node {
         return result;
     }
 
-    private static List<UnixProcStatParser.CpuTimes> getCpuTimes(@Nonnull Path path) throws IOException {
+    private static List<UnixCpuInfoParser.CpuTimes> getCpuTimes(@Nonnull Path path) throws IOException {
         List<String> lines      = Files.lines(path).collect(Collectors.toUnmodifiableList());
         String[]     linesArray = new String[lines.size()];
-        return new UnixProcStatParser(lines.toArray(linesArray)).getCpuTimes();
+        return new UnixCpuInfoParser(lines.toArray(linesArray)).getCpuTimes();
+    }
+
+    @Nonnull
+    private static MemInfo loadMemInfo() throws IOException {
+        return new UnixMemInfoParser(Files.lines(resolveMemInfo())).parseMemInfo();
     }
 
     private NetInfo loadNetInfo() throws IOException {
@@ -119,8 +136,26 @@ public class UnixNode implements Node {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    @Nonnull
-    private static MemInfo loadMemInfo() throws IOException {
-        return new UnixMemInfoParser(Files.lines(resolveMemInfo())).parseMemInfo();
+    private DiskInfo loadDiskInfo() throws IOException {
+        var current  = getDiskInfo(resolveDiskstats());
+        var previous = this.prevDiskInfo;
+
+        var reading = 0;
+        var writing = 0;
+        var entries = Math.min(current.size(), previous.size());
+        for (int i = 0; i < entries; ++i) {
+            var diff = current.get(i).getChangeSince(previous.get(i));
+            reading += diff.getBytesRead();
+            writing += diff.getBytesWritten();
+        }
+
+        this.prevDiskInfo = current;
+        return new DiskInfo(reading, writing);
+    }
+
+    private static List<UnixDiskIoParser.DiskInfo> getDiskInfo(@Nonnull Path path) throws IOException {
+        return UnixDiskIoParser
+                .getDiskInfoConsiderOnlyPhysicalInterfaces(Files.lines(path))
+                .collect(Collectors.toUnmodifiableList());
     }
 }

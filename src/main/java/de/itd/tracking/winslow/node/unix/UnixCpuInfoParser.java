@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class UnixProcStatParser {
+public class UnixCpuInfoParser {
 
     public static final String SEPARATOR = " ";
 
@@ -13,7 +13,7 @@ public class UnixProcStatParser {
 
     private int cpuCount;
 
-    public UnixProcStatParser(@Nonnull String[] lines) {
+    public UnixCpuInfoParser(@Nonnull String[] lines) {
         this.lines    = lines;
         this.cpuCount = parseCpuCount();
     }
