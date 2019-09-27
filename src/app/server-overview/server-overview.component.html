@@ -25,11 +25,13 @@
       <div class="graph">
         <div class="ngx-graph-wrapper">
           <ngx-charts-area-chart-stacked
-            [scheme]="{domain: ['#00FF00', '#FF0000']}"
+            [scheme]="schemeMemory"
             [results]="memory"
             [legend]="true"
             [xAxis]="true"
             [yAxis]="true"
+            [yScaleMax]="totalMemoryAllPools()"
+            [yScaleMin]="0"
             [showYAxisLabel]="true"
             [yAxisLabel]="'Gigabyte'"
             [tooltipDisabled]="true"
