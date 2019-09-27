@@ -19,6 +19,7 @@ export class NodeInfo {
   name: string;
   cpuInfo: CpuInfo;
   memInfo: MemInfo;
+  netInfo: NetInfo;
 }
 
 export class CpuInfo {
@@ -32,4 +33,9 @@ export class MemInfo {
   systemCache: number;
   swapTotal: number;
   swapFree: number;
+}
+
+export class NetInfo {
+  transmitting: number;
+  receiving: number;
 }

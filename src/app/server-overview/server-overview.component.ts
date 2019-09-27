@@ -13,6 +13,7 @@ export class ServerOverviewComponent implements OnInit {
   single: any[] = [];
   series: any[] = [];
   memory: any[] = [];
+  network: any[] = [];
 
   cpus: any[] = [];
 
@@ -125,6 +126,13 @@ export class ServerOverviewComponent implements OnInit {
           this.updateMemorySeries();
         }
 
+        if (this.network.length === 0) {
+          this.initNetworkSeries();
+        }
+        if (this.node.netInfo) {
+          this.updateNetworkSeries();
+        }
+
 
         this.nodes.getNodeInfo(this.node.name).toPromise().then(result => this.node = result);
         const cpus = this.node.cpuInfo.utilization;
@@ -179,6 +187,35 @@ export class ServerOverviewComponent implements OnInit {
     });
     this.memory = [this.memory[0], this.memory[1], this.memory[2]];
     for (const entry of this.memory) {
+      if (entry.series.length > 120) {
+        entry.series.splice(0, entry.series.length - 120);
+      }
+    }
+  }
+
+
+  private initNetworkSeries() {
+    this.network.push({
+      name: 'Tx',
+      series: []
+    });
+    this.network.push({
+      name: 'Rx',
+      series: []
+    });
+  }
+
+  private updateNetworkSeries() {
+    this.network[0].series.push({
+      name: new Date(),
+      value: this.node.netInfo.transmitting,
+    });
+    this.network[1].series.push({
+      name: new Date(),
+      value: this.node.netInfo.receiving,
+    });
+    this.network = [this.network[0], this.network[1]];
+    for (const entry of this.network) {
       if (entry.series.length > 120) {
         entry.series.splice(0, entry.series.length - 120);
       }
