@@ -40,16 +40,16 @@ public class NomadOrchestrator implements Orchestrator {
     private static final Pattern MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
     public static final  Pattern PROGRESS_HINT_PATTERN   = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
 
-    @Nonnull private final Environment     environment;
-    @Nonnull private final NomadApiClient  client;
-    @Nonnull private final NomadRepository pipelines;
-    @Nonnull private final HintsRepository hints;
-    @Nonnull private final LogRepository   logs;
+    @Nonnull private final Environment       environment;
+    @Nonnull private final NomadApiClient    client;
+    @Nonnull private final NomadRepository   pipelines;
+    @Nonnull private final RunInfoRepository hints;
+    @Nonnull private final LogRepository     logs;
 
     private boolean isRunning = false;
     private boolean shouldRun = true;
 
-    public NomadOrchestrator(@Nonnull Environment environment, @Nonnull NomadApiClient client, @Nonnull NomadRepository pipelines, @Nonnull HintsRepository hints, @Nonnull LogRepository logs) {
+    public NomadOrchestrator(@Nonnull Environment environment, @Nonnull NomadApiClient client, @Nonnull NomadRepository pipelines, @Nonnull RunInfoRepository hints, @Nonnull LogRepository logs) {
         this.environment = environment;
         this.client      = client;
         this.pipelines   = pipelines;

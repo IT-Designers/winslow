@@ -5,7 +5,7 @@ import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
-import de.itd.tracking.winslow.nomad.HintsRepository;
+import de.itd.tracking.winslow.nomad.RunInfoRepository;
 import de.itd.tracking.winslow.nomad.NomadOrchestrator;
 import de.itd.tracking.winslow.nomad.NomadRepository;
 import de.itd.tracking.winslow.project.LogRepository;
@@ -59,7 +59,7 @@ public class Main {
 
             LOG.info("Preparing the orchestrator");
             var nomadRepository = new NomadRepository(lockBus, config);
-            var attributes      = new HintsRepository(lockBus, config);
+            var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder()
                     .setAddress("http://localhost:4646")
                     .build());

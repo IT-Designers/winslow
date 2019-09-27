@@ -15,20 +15,20 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class HintsRepository extends BaseRepository {
+public class RunInfoRepository extends BaseRepository {
 
-    private static final Logger LOG                  = Logger.getLogger(HintsRepository.class.getSimpleName());
+    private static final Logger LOG                  = Logger.getLogger(RunInfoRepository.class.getSimpleName());
     private static final String SUFFIX_PROGRESS      = ".progress";
     private static final String SUFFIX_LOG_COMPLETED = ".log-completed-successfully";
 
-    public HintsRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public RunInfoRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 
     @Nonnull
     @Override
     protected Path getRepositoryDirectory() {
-        return workDirectoryConfiguration.getTemporaryDirectory().resolve("nomad");
+        return workDirectoryConfiguration.getRunDirectory().resolve("nomad");
     }
 
     boolean setProgressHint(@Nonnull String projectId, int progress) {

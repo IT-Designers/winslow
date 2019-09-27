@@ -24,7 +24,8 @@ public class NodeParser {
     public Optional<NodeInfo> getNode(@Nonnull String name) {
         try {
             var cpuInfo = loadCpuInfo(name);
-            return Optional.of(new NodeInfo(name, cpuInfo));
+            var memInfo = loadMemInfo(name);
+            return Optional.of(new NodeInfo(name, cpuInfo, memInfo));
         } catch (IOException e) {
             e.printStackTrace();
             return Optional.empty();
@@ -45,6 +46,10 @@ public class NodeParser {
 
     private Path resolveCpuStat1(@Nonnull String name) {
         return resolve(name, "stat.1");
+    }
+
+    private Path resolveMemInfo(@Nonnull String name) {
+        return resolve(name, "meminfo");
     }
 
     @Nonnull
@@ -80,5 +85,10 @@ public class NodeParser {
             result.add(times1.get(i).getChangeSince(times0.get(i)).getUtilization());
         }
         return result;
+    }
+
+    @Nonnull
+    private MemInfo loadMemInfo(@Nonnull String name) throws IOException {
+        return new UnixMemInfoParser(Files.lines(resolveMemInfo(name))).parseMemInfo();
     }
 }

@@ -11,6 +11,7 @@ import de.itd.tracking.winslow.resource.ResourceManager;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -33,6 +34,8 @@ public class Winslow implements Runnable {
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = new ProjectRepository(lockBus, configuration);
         this.nodeParser         = new NodeParser(configuration.getNodesDirectory());
+
+        Files.createDirectories(configuration.getNodesDirectory());
 
         // TODO
         UnixNodeInfoUpdater.spawn("node0", configuration.getNodesDirectory());

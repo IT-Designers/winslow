@@ -6,15 +6,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.util.stream.Collectors;
 
 public class UnixNodeInfoUpdater implements Runnable {
 
     @Nonnull private final String name;
     @Nonnull private final Path   directory;
 
-    @Nullable private UnixProcStatParser.CpuTimes before = null;
+    public static final Path PROC = Path.of("/", "proc");
 
     private UnixNodeInfoUpdater(@Nonnull String name, @Nonnull Path directory) {
         this.name      = name;
@@ -29,14 +27,31 @@ public class UnixNodeInfoUpdater implements Runnable {
         thread.start();
     }
 
+    private Path resolve(String name) {
+        return directory.resolve(this.name + "." + name);
+    }
+
+    private void oneTimeCopies() {
+        try {
+            Files.copy(PROC.resolve("cpuinfo"), directory.resolve(name + ".cpuinfo"), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void run() {
+        oneTimeCopies();
         while (true) {
             try {
                 Thread.sleep(1_000);
-                var path = Path.of("/", "proc", "stat");
-                Files.copy(directory.resolve(name + ".stat.1"), directory.resolve(name + ".stat.0"), StandardCopyOption.REPLACE_EXISTING);
-                Files.copy(path, directory.resolve(name + ".stat.1"), StandardCopyOption.REPLACE_EXISTING);
+                var stat = PROC.resolve("stat");
+                var memi = PROC.resolve("meminfo");
+                if (Files.exists(resolve("stat.1"))) {
+                    Files.copy(resolve("stat.1"), resolve("stat.0"), StandardCopyOption.REPLACE_EXISTING);
+                }
+                Files.copy(stat, resolve("stat.1"), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(memi, resolve("meminfo"), StandardCopyOption.REPLACE_EXISTING);
             } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
             }

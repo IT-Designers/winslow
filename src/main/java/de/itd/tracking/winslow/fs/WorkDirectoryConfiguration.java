@@ -28,13 +28,24 @@ public interface WorkDirectoryConfiguration {
         return getPath().resolve("logs");
     }
 
+    /**
+     * See Unix '/run':
+     *  - (early) directory in which process and runtime info is stored,
+     *    which should not be deleted periodically, but does not contain
+     *    data that needs to persist (through a whole system reboot/restart)
+     *
+     * The content of this directory changes a lot (many writes), therefore
+     * it is not recommended to have it located on a SSD drive. Consider tmpfs.
+     *
+     * @return The absolute {@link Path} to it
+     */
     @Nonnull
-    default Path getTemporaryDirectory() {
-        return getPath().resolve("tmp");
+    default Path getRunDirectory() {
+        return getPath().resolve("run");
     }
 
     @Nonnull
     default Path getNodesDirectory() {
-        return getPath().resolve("nodes");
+        return getRunDirectory().resolve("nodes");
     }
 }
