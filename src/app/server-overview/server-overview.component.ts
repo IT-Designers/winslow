@@ -27,7 +27,27 @@ export class ServerOverviewComponent implements OnInit {
     ]
   };
 
+  schemeMemory = {
+    domain: [
+      '#00FF00', // heap
+      '#F0FF00', // system cache
+      '#FF0000', // swap
+    ]
+  };
+
   constructor(private nodes: NodesApiService) {
+  }
+
+  bytesToGigabyte(bytes: number) {
+    return bytes / (1024 * 1024 * 1024);
+  }
+
+  totalMemoryAllPools() {
+    if (this.node.memInfo) {
+      return this.bytesToGigabyte(this.node.memInfo.memoryTotal + this.node.memInfo.swapTotal);
+    } else {
+      return 0;
+    }
   }
 
   ngOnInit() {
@@ -72,50 +92,97 @@ export class ServerOverviewComponent implements OnInit {
         'series': series2
       });
 
-
-      this.memory = [];
-      const mem1 = [];
-      const mem2 = [];
-      for (let i = 0; i < 120; ++i) {
-        mem1.push({
-          name: new Date(new Date().getTime() + i * 10_000),
-          value: 4 * 1024 * 1024 + Math.random() * 124 * 1024,
-        });
-        mem2.push({
-          name: new Date(new Date().getTime() + i * 10000),
-          value: 1024 * 1024 + Math.random() * 1024 * 1024,
-        });
-      }
-      this.memory.push({
-        'name': 'Heap',
-        'series': mem1
-      });
-      this.memory.push({
-        'name': 'SWAP',
-        'series': mem2
-      });
-
       if (this.node == null) {
+        this.memory = [];
+        const mem1 = [];
+        const mem2 = [];
+        for (let i = 0; i < 120; ++i) {
+          mem1.push({
+            name: new Date(new Date().getTime() + i * 10_000),
+            value: 4 * 1024 * 1024 + Math.random() * 124 * 1024,
+          });
+          mem2.push({
+            name: new Date(new Date().getTime() + i * 10000),
+            value: 1024 * 1024 + Math.random() * 1024 * 1024,
+          });
+        }
+        this.memory.push({
+          'name': 'Heap',
+          'series': mem1
+        });
+        this.memory.push({
+          'name': 'SWAP',
+          'series': mem2
+        });
+
         this.cpus = this.series;
       } else {
+        if (this.memory.length === 0) {
+          this.initMemorySeries();
+        }
+
+        if (this.node.memInfo) {
+          this.updateMemorySeries();
+        }
+
+
+
         this.nodes.getNodeInfo(this.node.name).toPromise().then(result => this.node = result);
         const cpus = this.node.cpuInfo.utilization;
-        const cpusReplacement = [];
-        for (let i = 0; i < cpus.length; ++i) {
-          const value = Number(Math.max(0, Math.min(100, cpus[i] * 100)));
-          cpusReplacement.push({
-            name: i,
-            value
-          });
-          if (Number.isNaN(value)) {
+        if (cpus) {
+          const cpusReplacement = [];
+          for (let i = 0; i < cpus.length; ++i) {
+            const value = Number(Math.max(0, Math.min(100, cpus[i] * 100)));
+            cpusReplacement.push({
+              name: i,
+              value
+            });
+            if (Number.isNaN(value)) {
+              return; // nope out of it
+            }
+          }
+          if (cpusReplacement.length === 0) {
             return;
           }
+          this.cpus = cpusReplacement;
         }
-        if (cpusReplacement.length === 0) {
-          return;
-        }
-        this.cpus = cpusReplacement;
       }
     }, 1000);
+  }
+
+  private initMemorySeries() {
+    this.memory.push({
+      name: 'Heap',
+      series: []
+    });
+    this.memory.push({
+      name: 'Cache',
+      series: []
+    });
+    this.memory.push({
+      name: 'Swap',
+      series: []
+    });
+  }
+
+  private updateMemorySeries() {
+    this.memory[0].series.push({
+      name: new Date(),
+      value: this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree),
+    });
+    this.memory[1].series.push({
+      name: new Date(),
+      value: this.bytesToGigabyte(this.node.memInfo.systemCache),
+    });
+    this.memory[2].series.push({
+      name: new Date(),
+      value: this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree),
+    });
+    this.memory = [this.memory[0], this.memory[1], this.memory[2]];
+    for (const entry of this.memory) {
+      if (entry.series.length > 120) {
+        entry.series.splice(0, 120 - entry.series.length);
+      }
+    }
   }
 }

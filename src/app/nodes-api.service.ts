@@ -18,9 +18,18 @@ export class NodesApiService {
 export class NodeInfo {
   name: string;
   cpuInfo: CpuInfo;
+  memInfo: MemInfo;
 }
 
 export class CpuInfo {
   modelName: string;
   utilization: number[];
+}
+
+export class MemInfo {
+  memoryTotal: number;
+  memoryFree: number;
+  systemCache: number;
+  swapTotal: number;
+  swapFree: number;
 }
