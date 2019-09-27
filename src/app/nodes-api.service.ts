@@ -10,6 +10,9 @@ export class NodesApiService {
   constructor(private client: HttpClient) {
   }
 
+  getAllNodeInfo() {
+    return this.client.get<NodeInfo[]>(`${environment.apiLocation}/nodes`);
+  }
   getNodeInfo(node: string) {
     return this.client.get<NodeInfo>(`${environment.apiLocation}/nodes/${node}`);
   }
