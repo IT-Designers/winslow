@@ -1,5 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {NodeInfo, NodesApiService} from '../nodes-api.service';
+import {NotificationService} from '../notification.service';
 
 @Component({
   selector: 'app-system-overview',
@@ -8,12 +9,14 @@ import {NodeInfo, NodesApiService} from '../nodes-api.service';
 })
 export class SystemOverviewComponent implements OnInit {
 
-  node0: NodeInfo = null;
+  nodes: NodeInfo[] = null;
 
-  constructor(private nodes: NodesApiService) {
+  constructor(private api: NodesApiService, private notification: NotificationService) {
   }
 
   ngOnInit() {
-    this.nodes.getNodeInfo('node0').toPromise().then(result => this.node0 = result);
+    this.api.getAllNodeInfo().toPromise()
+      .then(result => this.nodes = result)
+      .catch(error => this.notification.error(error));
   }
 }

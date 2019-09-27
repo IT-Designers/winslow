@@ -37,6 +37,13 @@ export class ServerOverviewComponent implements OnInit {
     ]
   };
 
+  schemeWriteRead = {
+    domain: [
+      '#FF0000',
+      '#00FF00',
+    ]
+  };
+
   constructor(private nodes: NodesApiService) {
   }
 
@@ -233,11 +240,11 @@ export class ServerOverviewComponent implements OnInit {
 
   private initDiskSeries() {
     this.disk.push({
-      name: 'Reading',
+      name: 'Write',
       series: []
     });
     this.disk.push({
-      name: 'Writing',
+      name: 'Read',
       series: []
     });
   }
@@ -245,11 +252,11 @@ export class ServerOverviewComponent implements OnInit {
   private updateDiskSeries() {
     this.disk[0].series.push({
       name: new Date(),
-      value: this.node.diskInfo.reading,
+      value: this.node.diskInfo.writing,
     });
     this.disk[1].series.push({
       name: new Date(),
-      value: this.node.diskInfo.writing,
+      value: this.node.diskInfo.reading,
     });
     this.disk = [this.disk[0], this.disk[1]];
     for (const entry of this.disk) {
