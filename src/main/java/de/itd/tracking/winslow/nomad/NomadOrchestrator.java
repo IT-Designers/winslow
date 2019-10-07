@@ -199,6 +199,7 @@ public class NomadOrchestrator implements Orchestrator {
                 case MoveForwardUntilEnd:
                     var stage = tryStartNextPipelineStage(pipeline);
                     pipeline.pushStage(stage);
+                    pipeline.clearPauseReason();
                     return Optional.of(stage);
             }
         }

@@ -95,6 +95,10 @@ public class NomadPipeline implements Pipeline {
         this.pauseRequested = true;
     }
 
+    public void clearPauseReason() {
+        this.pauseReason = null;
+    }
+
     @Override
     public boolean isPauseRequested() {
         return this.pauseRequested;
