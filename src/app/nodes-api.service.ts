@@ -11,10 +11,10 @@ export class NodesApiService {
   }
 
   getAllNodeInfo() {
-    return this.client.get<NodeInfo[]>(`${environment.apiLocation}/nodes`);
+    return this.client.get<NodeInfo[]>(`${environment.apiLocation}nodes`);
   }
   getNodeInfo(node: string) {
-    return this.client.get<NodeInfo>(`${environment.apiLocation}/nodes/${node}`);
+    return this.client.get<NodeInfo>(`${environment.apiLocation}nodes/${node}`);
   }
 }
 
