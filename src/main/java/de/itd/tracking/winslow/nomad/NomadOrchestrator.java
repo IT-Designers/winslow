@@ -208,19 +208,22 @@ public class NomadOrchestrator implements Orchestrator {
     @Nonnull
     private NomadPipeline updateRunningStage(@Nonnull NomadPipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
-            getStateOmitExceptions(stage).ifPresent(state -> {
-                switch (state) {
-                    default:
-                    case Running:
+            switch (getStateOmitExceptions(stage).orElse(Stage.State.Running)) {
+                default:
+                case Running:
+                    if (getLogRedirectionState(pipeline) != SimpleState.Failed) {
                         break;
-                    case Failed:
-                        pipeline.requestPause();
-                    case Succeeded:
-                        stage.finishNow(state);
-                        pipeline.pushStage(null);
-                        break;
-                }
-            });
+                    }
+                case Failed:
+                    stage.finishNow(Stage.State.Failed);
+                    pipeline.pushStage(null);
+                    pipeline.requestPause(Pipeline.PauseReason.StageFailure);
+                    break;
+                case Succeeded:
+                    stage.finishNow(Stage.State.Succeeded);
+                    pipeline.pushStage(null);
+                    break;
+            }
         });
         return pipeline;
     }
@@ -243,26 +246,26 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private boolean hasUpdateAvailable(NomadPipeline pipeline) {
-        return isStageStateUpdateAvailable(pipeline) && logRedirectionCompleted(pipeline);
+        return isStageStateUpdateAvailable(pipeline) || getLogRedirectionState(pipeline) == SimpleState.Failed;
     }
 
-    private boolean logRedirectionCompleted(NomadPipeline pipeline) {
+    private SimpleState getLogRedirectionState(NomadPipeline pipeline) {
         var running = pipeline.getRunningStage();
         if (running.isEmpty()) {
-            return true;
+            return SimpleState.Succeeded;
         } else {
             var stage     = running.get();
             var projectId = pipeline.getProjectId();
             var stageId   = stage.getId();
 
             if (hints.hasLogRedirectionCompletedSuccessfullyHint(projectId, stageId)) {
-                return true;
+                return SimpleState.Succeeded;
             } else if (!logs.isLocked(projectId, stageId)) {
                 LOG.warning("Detected log redirect which has been aborted! " + stageId + "@" + projectId);
-                redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
-                return false; // now locked again
+                // redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
+                return SimpleState.Failed;
             } else {
-                return false; // still locked
+                return SimpleState.Running;
             }
         }
     }
@@ -705,5 +708,9 @@ public class NomadOrchestrator implements Orchestrator {
         return MULTI_UNDERSCORE
                 .matcher(INVALID_NOMAD_CHARACTER.matcher(jobName.toLowerCase()).replaceAll("_"))
                 .replaceAll("_");
+    }
+
+    private static enum SimpleState {
+        Running, Failed, Succeeded,
     }
 }

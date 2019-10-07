@@ -16,7 +16,7 @@ public interface Pipeline {
     }
 
     enum PauseReason {
-        ConfirmationRequired, FurtherInputRequired,
+        ConfirmationRequired, FurtherInputRequired, StageFailure
     }
 
     enum ResumeNotification {
