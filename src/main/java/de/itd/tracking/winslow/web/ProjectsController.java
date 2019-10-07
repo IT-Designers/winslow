@@ -89,10 +89,16 @@ public class ProjectsController {
 
     private Optional<Stage.State> getPipelineState(Pipeline pipeline) {
         return pipeline.getMostRecentStage().map(Stage::getState).map(state -> {
-            if (state != Stage.State.Running && pipeline.isPauseRequested()) {
-                return Stage.State.Paused;
-            } else {
-                return state;
+            switch (state) {
+                case Running:
+                case Failed:
+                    return state;
+                default:
+                    if (pipeline.isPauseRequested()) {
+                        return Stage.State.Paused;
+                    } else {
+                        return state;
+                    }
             }
         });
     }
