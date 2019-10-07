@@ -51,12 +51,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
   }
 
-  update(complex: StateInfo) {
-    this.state = complex.state;
-    this.pauseReason = complex.pauseReason;
-    this.progress = complex.stageProgress;
+  update(info: StateInfo) {
+    this.state = info.state;
+    this.pauseReason = info.pauseReason;
+    this.progress = info.stageProgress;
 
-    if (this.pauseReason !== null) {
+    if (this.state !== State.Failed && this.pauseReason != null) {
       this.state = State.Warning;
     }
 
