@@ -28,7 +28,7 @@ export class ProjectApiService {
   }
 
   getProjectStates(projectIds: string[]) {
-    return this.client.get<StateInfo[]>(`${environment.apiLocation}/projects/states?projectIds=${projectIds.join(',')}`);
+    return this.client.get<StateInfo[]>(`${environment.apiLocation}projects/states?projectIds=${projectIds.join(',')}`);
   }
 
   getProjectHistory(projectId: string) {
@@ -36,38 +36,38 @@ export class ProjectApiService {
   }
 
   getProjectPaused(projectId: string) {
-    return this.client.get<boolean>(`${environment.apiLocation}/projects/${projectId}/paused`);
+    return this.client.get<boolean>(`${environment.apiLocation}projects/${projectId}/paused`);
   }
 
   resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: any) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
     return this.client.post(
-      `${environment.apiLocation}/projects/${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`,
+      `${environment.apiLocation}projects/${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`,
       form
     );
   }
 
   setProjectPaused(projectId: string, paused: boolean) {
-    return this.client.post(`${environment.apiLocation}/projects/${projectId}/paused/${paused}`, new FormData());
+    return this.client.post(`${environment.apiLocation}projects/${projectId}/paused/${paused}`, new FormData());
   }
 
   getLog(projectId: string, stageId: string) {
-    return this.client.get<LogEntry[]>(`${environment.apiLocation}/projects/${projectId}/logs/${stageId}`);
+    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/${stageId}`);
   }
 
   getPauseReason(projectId: string) {
-    return this.client.get<string>(`${environment.apiLocation}/projects/${projectId}/pause-reason`);
+    return this.client.get<string>(`${environment.apiLocation}projects/${projectId}/pause-reason`);
   }
 
   getEnvironment(projectId: string, stageIndex: number) {
     return this.client
-      .get<object>(`${environment.apiLocation}/projects/${projectId}/${stageIndex}/environment`)
+      .get<object>(`${environment.apiLocation}projects/${projectId}/${stageIndex}/environment`)
       .pipe(map(response => new Map(Object.entries(response))));
   }
 
   getRequiredUserInput(projectId: string, stageIndex: number) {
-    return this.client.get<string[]>(`${environment.apiLocation}/projects/${projectId}/${stageIndex}/required-user-input`);
+    return this.client.get<string[]>(`${environment.apiLocation}projects/${projectId}/${stageIndex}/required-user-input`);
   }
 }
 
