@@ -146,16 +146,17 @@ export class ServerOverviewComponent implements OnInit, OnDestroy {
   }
 
   private updateMemorySeries() {
+    const date = new Date();
     this.memory[0].series.push({
-      name: new Date(),
+      name: date,
       value: this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree),
     });
     this.memory[1].series.push({
-      name: new Date(),
+      name: date,
       value: this.bytesToGigabyte(this.node.memInfo.systemCache),
     });
     this.memory[2].series.push({
-      name: new Date(),
+      name: date,
       value: this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree),
     });
     this.memory = [this.memory[0], this.memory[1], this.memory[2]];
@@ -164,6 +165,7 @@ export class ServerOverviewComponent implements OnInit, OnDestroy {
         entry.series.splice(0, entry.series.length - 120);
       }
     }
+    this.memory = [this.memory[0], this.memory[1], this.memory[2]];
   }
 
 
