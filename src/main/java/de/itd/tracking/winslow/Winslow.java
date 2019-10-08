@@ -12,12 +12,14 @@ import de.itd.tracking.winslow.resource.ResourceManager;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Optional;
 import java.util.Scanner;
 
 public class Winslow implements Runnable {
 
     @Nonnull private final Orchestrator                 orchestrator;
+    @Nonnull private final WorkDirectoryConfiguration   configuration;
     @Nonnull private final ResourceManager              resourceManager;
     @Nonnull private final GroupRepository              groupRepository;
     @Nonnull private final UserRepository               userRepository;
@@ -27,6 +29,7 @@ public class Winslow implements Runnable {
 
     public Winslow(@Nonnull Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
         this.orchestrator    = orchestrator;
+        this.configuration   = configuration;
         this.resourceManager = resourceManager;
 
         this.groupRepository    = new GroupRepository();
@@ -37,12 +40,19 @@ public class Winslow implements Runnable {
 
 
         // TODO
-        NodeInfoUpdater.spawn(configuration.getNodesDirectory(), new UnixNode("node0"));
+        NodeInfoUpdater.spawn(configuration.getNodesDirectory(), new UnixNode(InetAddress
+                .getLocalHost()
+                .getHostName()));
     }
 
     @Nonnull
     public Orchestrator getOrchestrator() {
         return orchestrator;
+    }
+
+    @Nonnull
+    public WorkDirectoryConfiguration getWorkDirectoryConfiguration() {
+        return configuration;
     }
 
     @Nonnull
