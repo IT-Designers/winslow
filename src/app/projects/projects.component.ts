@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {ProjectsCreateDialog} from '../projects-create/projects-create-dialog.component';
+import {ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog, MatSnackBar} from '@angular/material';
 import {Project, ProjectApiService} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
