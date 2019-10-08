@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {NodeInfo, NodesApiService} from '../nodes-api.service';
 
 @Component({
@@ -6,7 +6,7 @@ import {NodeInfo, NodesApiService} from '../nodes-api.service';
   templateUrl: './server-overview.component.html',
   styleUrls: ['./server-overview.component.css']
 })
-export class ServerOverviewComponent implements OnInit {
+export class ServerOverviewComponent implements OnInit, OnDestroy {
 
   @Input('node') node: NodeInfo;
 
@@ -44,6 +44,8 @@ export class ServerOverviewComponent implements OnInit {
     ]
   };
 
+  interval = null;
+
   constructor(private nodes: NodesApiService) {
   }
 
@@ -59,6 +61,13 @@ export class ServerOverviewComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+  }
+
   ngOnInit() {
     for (let i = 0; i < 8; ++i) {
       this.single.push({
@@ -67,65 +76,15 @@ export class ServerOverviewComponent implements OnInit {
       });
     }
 
-    setInterval(() => {
+    this.update();
+    this.interval = setInterval(() => this.update(), 1_000);
+  }
 
-      const count = this.single.length;
-      this.single = [];
-      for (let i = 0; i < count; ++i) {
-        this.single.push({
-          name: 'CPU' + i,
-          value: Math.random() * 100
-        });
-      }
+  update() {
+    if (this.node != null) {
+      this.nodes.getNodeInfo(this.node.name).toPromise().then(result => {
+        this.node = result;
 
-
-      this.series = [];
-      const series1 = [];
-      const series2 = [];
-      for (let i = 0; i < 120; ++i) {
-        series1.push({
-          name: new Date(new Date().getTime() + i * 10_000),
-          value: Math.random() * 128 * 1024,
-        });
-        series2.push({
-          name: new Date(new Date().getTime() + i * 10000),
-          value: Math.random() * 128 * 1024,
-        });
-      }
-      this.series.push({
-        name: 'Tx',
-        series: series1
-      });
-      this.series.push({
-        name: 'Rx',
-        series: series2
-      });
-
-      if (this.node == null) {
-        this.memory = [];
-        const mem1 = [];
-        const mem2 = [];
-        for (let i = 0; i < 120; ++i) {
-          mem1.push({
-            name: new Date(new Date().getTime() + i * 10_000),
-            value: 4 * 1024 * 1024 + Math.random() * 124 * 1024,
-          });
-          mem2.push({
-            name: new Date(new Date().getTime() + i * 10000),
-            value: 1024 * 1024 + Math.random() * 1024 * 1024,
-          });
-        }
-        this.memory.push({
-          name: 'Heap',
-          series: mem1
-        });
-        this.memory.push({
-          name: 'SWAP',
-          series: mem2
-        });
-
-        this.cpus = this.series;
-      } else {
         if (this.memory.length === 0) {
           this.initMemorySeries();
         }
@@ -148,28 +107,30 @@ export class ServerOverviewComponent implements OnInit {
           this.updateDiskSeries();
         }
 
-
-        this.nodes.getNodeInfo(this.node.name).toPromise().then(result => this.node = result);
-        const cpus = this.node.cpuInfo.utilization;
-        if (cpus) {
-          const cpusReplacement = [];
-          for (let i = 0; i < cpus.length; ++i) {
-            const value = Number(Math.max(0, Math.min(100, cpus[i] * 100)));
-            cpusReplacement.push({
-              name: i,
-              value
-            });
-            if (Number.isNaN(value)) {
-              return; // nope out of it
-            }
-          }
-          if (cpusReplacement.length === 0) {
-            return;
-          }
-          this.cpus = cpusReplacement;
+        if (this.node.cpuInfo && this.node.cpuInfo.utilization) {
+          this.updateCpuSeries();
         }
+      });
+    }
+  }
+
+  private updateCpuSeries() {
+    const cpus = this.node.cpuInfo.utilization;
+    const cpusReplacement = [];
+    for (let i = 0; i < cpus.length; ++i) {
+      const value = Number(Math.max(0, Math.min(100, cpus[i] * 100)));
+      cpusReplacement.push({
+        name: i,
+        value
+      });
+      if (Number.isNaN(value)) {
+        return; // nope out of it
       }
-    }, 1000);
+    }
+    if (cpusReplacement.length === 0) {
+      return;
+    }
+    this.cpus = cpusReplacement;
   }
 
   private initMemorySeries() {
