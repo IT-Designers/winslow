@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {ApiService, PipelineDefinition} from '../api.service';
+import {ApiService, PipelineDefinition} from '../api/api.service';
 
 @Component({
   selector: 'app-pipelines',

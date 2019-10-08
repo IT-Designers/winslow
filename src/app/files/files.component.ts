@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Inject, Input, OnInit, Output} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {HttpEventType} from '@angular/common/http';
-import {FileInfo, FilesApiService} from '../files-api.service';
+import {FileInfo, FilesApiService} from '../api/files-api.service';
 
 @Component({
   selector: 'app-files',

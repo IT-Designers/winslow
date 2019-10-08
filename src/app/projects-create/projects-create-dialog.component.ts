@@ -1,5 +1,5 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {ApiService, PipelineDefinition} from '../api.service';
+import {ApiService, PipelineDefinition} from '../api/api.service';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 
 interface CreateProjectData {

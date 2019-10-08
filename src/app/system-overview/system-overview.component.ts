@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {NodeInfo, NodesApiService} from '../nodes-api.service';
+import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
 import {NotificationService} from '../notification.service';
-import {StorageApiService} from '../storage-api.service';
+import {StorageApiService} from '../api/storage-api.service';
 
 @Component({
   selector: 'app-system-overview',

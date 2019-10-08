@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo} from '../project-api.service';
+import {HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
