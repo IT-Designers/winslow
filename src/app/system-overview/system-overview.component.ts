@@ -10,7 +10,6 @@ import {StorageApiService} from '../api/storage-api.service';
 })
 export class SystemOverviewComponent implements OnInit, OnDestroy {
 
-  nodes: NodeInfo[] = null;
   storages: any[] = [];
   interval = null;
 
@@ -18,9 +17,6 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.api.getAllNodeInfo().toPromise()
-      .then(result => this.nodes = result)
-      .catch(error => this.notification.error(error));
     this.updateStorages();
     this.interval = setInterval(() => this.updateStorages(), 10_000);
   }
