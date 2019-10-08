@@ -101,3 +101,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .control-button-row {
   padding-bottom: 2em;
 }
+
+.overview-element {
+  display: flex;
+  border: 1px solid silver;
+  border-radius: 1em;
+  padding: 1em;
+  margin: 1em 0;
+}

@@ -38,6 +38,7 @@ import {ProjectViewComponent} from './project-view/project-view.component';
 import { FileBrowseDialog } from './file-browse/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
 import { ServerOverviewComponent } from './server-overview/server-overview.component';
+import { ServersComponent } from './server/servers.component';
 
 @NgModule({
   declarations: [
@@ -55,7 +56,8 @@ import { ServerOverviewComponent } from './server-overview/server-overview.compo
     StateIconComponent,
     ProjectViewComponent,
     FileBrowseDialog,
-    ServerOverviewComponent
+    ServerOverviewComponent,
+    ServersComponent
   ],
   imports: [
     HttpClientModule,
@@ -68,7 +70,8 @@ import { ServerOverviewComponent } from './server-overview/server-overview.compo
       {path: '', component: SystemOverviewComponent},
       {path: 'pipelines', component: PipelinesComponent},
       {path: 'files', component: FilesComponent},
-      {path: 'projects', component: ProjectsComponent}
+      {path: 'projects', component: ProjectsComponent},
+      {path: 'servers', component: ServersComponent}
     ]),
 
     BrowserModule,

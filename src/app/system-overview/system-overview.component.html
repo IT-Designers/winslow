@@ -2,7 +2,7 @@
   <h1>Servers</h1>
 
   <ng-container *ngFor="let node of nodes">
-    <app-server-overview [node]="node" class="server">
+    <app-server-overview [node]="node" class="overview-element">
 
     </app-server-overview>
   </ng-container>
@@ -10,7 +10,7 @@
 
 <div>
   <h1>Storage</h1>
-  <div class="server">
+  <div class="overview-element">
     <div>
       <ngx-charts-bar-horizontal-normalized
         [legend]="true"
