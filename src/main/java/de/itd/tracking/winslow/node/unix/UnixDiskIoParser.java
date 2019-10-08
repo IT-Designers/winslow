@@ -21,11 +21,13 @@ public class UnixDiskIoParser {
     }
 
     private static Stream<Map.Entry<String, DiskInfo>> parseDisks(Stream<String> lines) {
-        return lines.map(WHITESPACE_SEPARATOR::split).map(columns -> {
-            // https://www.kernel.org/doc/Documentation/block/stat.txt
+        return lines.map(String::trim).map(WHITESPACE_SEPARATOR::split).map(columns -> {
+            // https://www.kernel.org/doc/Documentation/ABI/testing/procfs-diskstats
+            //  ~ https://www.kernel.org/doc/Documentation/block/stat.txt
+            //  ~ https://www.kernel.org/doc/Documentation/iostats.txt
             var name           = columns[2];
-            var sectorsRead    = Long.parseLong(columns[2 + 2]);
-            var sectorsWritten = Long.parseLong(columns[2 + 6]);
+            var sectorsRead    = Long.parseLong(columns[2 + 3]);
+            var sectorsWritten = Long.parseLong(columns[2 + 7]);
             var bytesRead      = UNIX_SECTOR_SIZE * sectorsRead;
             var bytesWritten   = UNIX_SECTOR_SIZE * sectorsWritten;
             return new AbstractMap.SimpleEntry<>(name, new DiskInfo(bytesRead, bytesWritten));
