@@ -10,6 +10,14 @@
 
 <div>
   <h1>Storage</h1>
-  <h2>Resources</h2>
-  <h2>Workspaces</h2>
+  <div class="server">
+    <div>
+      <ngx-charts-bar-horizontal-normalized
+        [legend]="true"
+        [yAxis]="true"
+        [showYAxisLabel]="true"
+        [results]="this.storages"
+      ></ngx-charts-bar-horizontal-normalized>
+    </div>
+  </div>
 </div>
