@@ -2,11 +2,11 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
 
 @Component({
-  selector: 'app-server-overview',
-  templateUrl: './server-overview.component.html',
-  styleUrls: ['./server-overview.component.css']
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.css']
 })
-export class ServerOverviewComponent implements OnInit, OnDestroy {
+export class ServerComponent implements OnInit {
 
   @Input('node') node: NodeInfo;
 
@@ -46,8 +46,6 @@ export class ServerOverviewComponent implements OnInit, OnDestroy {
     ]
   };
 
-  interval = null;
-
   constructor(private nodes: NodesApiService) {
   }
 
@@ -63,51 +61,43 @@ export class ServerOverviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-  }
-
   ngOnInit() {
-    this.update();
-    this.interval = setInterval(() => this.update(), 1_000);
+    this.node.update = (node) => {
+      // load all the new goodies without replacing the object
+      Object.keys(node).forEach(key => {
+        this.node[key] = node[key];
+      });
+      this.update();
+    };
   }
 
   update() {
-    if (this.node != null) {
-      this.nodes.getNodeInfo(this.node.name).toPromise().then(result => {
-        this.node = result;
+    if (this.memory.length === 0) {
+      this.initMemorySeries();
+    }
 
-        if (this.memory.length === 0) {
-          this.initMemorySeries();
-        }
+    if (this.node.memInfo) {
+      this.updateMemorySeries();
+    }
 
-        if (this.node.memInfo) {
-          this.updateMemorySeries();
-        }
+    if (this.network.length === 0) {
+      this.initNetworkSeries();
+    }
+    if (this.node.netInfo) {
+      this.updateNetworkSeries();
+      this.scaleNetwork();
+    }
 
-        if (this.network.length === 0) {
-          this.initNetworkSeries();
-        }
-        if (this.node.netInfo) {
-          this.updateNetworkSeries();
-          this.scaleNetwork();
-        }
+    if (this.disk.length === 0) {
+      this.initDiskSeries();
+    }
+    if (this.node.diskInfo) {
+      this.updateDiskSeries();
+      this.scaleDisk();
+    }
 
-        if (this.disk.length === 0) {
-          this.initDiskSeries();
-        }
-        if (this.node.diskInfo) {
-          this.updateDiskSeries();
-          this.scaleDisk();
-        }
-
-        if (this.node.cpuInfo && this.node.cpuInfo.utilization) {
-          this.updateCpuSeries();
-        }
-      });
+    if (this.node.cpuInfo && this.node.cpuInfo.utilization) {
+      this.updateCpuSeries();
     }
   }
 

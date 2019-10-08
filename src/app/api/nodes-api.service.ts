@@ -24,6 +24,9 @@ export class NodeInfo {
   memInfo: MemInfo;
   netInfo: NetInfo;
   diskInfo: DiskInfo;
+
+  // local only
+  update: (node: NodeInfo) => void;
 }
 
 export class CpuInfo {
