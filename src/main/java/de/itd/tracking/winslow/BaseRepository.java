@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,8 +45,8 @@ public abstract class BaseRepository {
     }
 
     @Nonnull
-    public Stream<Path> listAll() {
-        return listAllInDirectory(getRepositoryDirectory());
+    protected Stream<Path> listAll(@Nonnull String suffix) {
+        return listAllInDirectory(getRepositoryDirectory()).filter(path -> !path.toString().endsWith(suffix));
     }
 
     @Nonnull
@@ -102,9 +103,15 @@ public abstract class BaseRepository {
     private <T> LockedContainer.Writer<T> lockedWriter(Path path, Writer<T> writer) {
         return (l, value) -> {
             if (value != null) {
-                try (OutputStream outputStream = new LockedOutputStream(path.toFile(), l)) {
+                var tmp = path.resolveSibling("." + path.getFileName().toString() + ".new");
+                try (OutputStream outputStream = new LockedOutputStream(tmp.toFile(), l)) {
                     writer.store(outputStream, value);
+                } catch (IOException e) {
+                    Files.deleteIfExists(tmp);
+                    throw e;
                 }
+                // move after the file has been closed and therefore after it has been flushed
+                Files.move(tmp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             } else if (Files.isRegularFile(path)) {
                 Files.delete(path);
             }

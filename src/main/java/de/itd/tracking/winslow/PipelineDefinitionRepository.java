@@ -33,9 +33,8 @@ public class PipelineDefinitionRepository extends BaseRepository {
     }
 
     @Nonnull
-    @Override
     public Stream<Path> listAll() {
-        return super.listAll().filter(path -> path.getFileName().toString().endsWith(SUFFIX));
+        return super.listAll(SUFFIX);
     }
 
     public Stream<String> getPipelineIdentifiers() {

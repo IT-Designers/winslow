@@ -12,6 +12,8 @@ import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 
 public class NodeInfoUpdater implements Runnable {
 
+    public static final String TMP_FILE_SUFFIX = ".tmp";
+
     @Nonnull private final Path directory;
     @Nonnull private final Node node;
 
@@ -31,7 +33,7 @@ public class NodeInfoUpdater implements Runnable {
 
     private Path getTmpPath() {
         var file = getFilePath();
-        return file.getParent().resolve(file.getFileName() + ".tmp");
+        return file.resolveSibling(file.getFileName() + TMP_FILE_SUFFIX);
     }
 
     private Path getFilePath() {

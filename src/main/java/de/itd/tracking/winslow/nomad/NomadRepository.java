@@ -25,12 +25,14 @@ public class NomadRepository extends BaseRepository {
         return workDirectoryConfiguration.getPath().resolve("nomad");
     }
 
+    @Nonnull
     Stream<Handle<NomadPipeline>> getAllPipelines() {
-        return listAll()
+        return listAll(SUFFIX_PIPELINE)
                 .filter(path -> path.toString().endsWith(SUFFIX_PIPELINE))
                 .map(path -> createHandle(path, NomadPipeline.class));
     }
 
+    @Nonnull
     Handle<NomadPipeline> getNomadPipeline(@Nonnull String projectId) {
         return createHandle(getRepositoryFile(projectId, SUFFIX_PIPELINE), NomadPipeline.class);
     }

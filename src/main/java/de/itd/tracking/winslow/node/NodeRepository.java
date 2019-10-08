@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static de.itd.tracking.winslow.node.NodeInfoUpdater.TMP_FILE_SUFFIX;
+
 public class NodeRepository extends BaseRepository {
 
     private static final Logger  LOG                = Logger.getLogger(NodeRepository.class.getSimpleName());
@@ -34,6 +36,7 @@ public class NodeRepository extends BaseRepository {
         try {
             return Files
                     .list(getRepositoryDirectory())
+                    .filter(p -> !p.toString().endsWith(TMP_FILE_SUFFIX))
                     .filter(p -> System.currentTimeMillis() - p.toFile().lastModified() < ACTIVE_MAX_MS_DIFF);
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to list nodes", e);
@@ -43,13 +46,7 @@ public class NodeRepository extends BaseRepository {
 
     @Nonnull
     public Stream<String> listActiveNodes() {
-        return listActiveNodePaths().map(Path::getFileName).map(Path::toString).map(name -> {
-            if (name.contains(".")) {
-                return COMPILE.split(name)[0].trim();
-            } else {
-                return name;
-            }
-        });
+        return listActiveNodePaths().map(Path::getFileName).map(Path::toString);
     }
 
     @Nonnull

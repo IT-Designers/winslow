@@ -20,11 +20,16 @@ public class NodesController {
 
     @GetMapping("/nodes")
     public Stream<NodeInfo> getAllNodeInfo() {
-        return winslow
-                .getNodeRepository()
-                .listActiveNodes()
-                .map(winslow.getNodeRepository()::getNodeInfo)
-                .flatMap(Optional::stream);
+        try {
+            return winslow
+                    .getNodeRepository()
+                    .listActiveNodes()
+                    .map(winslow.getNodeRepository()::getNodeInfo)
+                    .flatMap(Optional::stream);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return Stream.empty();
+        }
     }
 
     @GetMapping("/nodes/{name}")
