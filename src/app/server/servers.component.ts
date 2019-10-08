@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import {NodeInfo, NodesApiService} from '../nodes-api.service';
-import {StorageApiService} from '../storage-api.service';
+import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
+import {StorageApiService} from '../api/storage-api.service';
 import {NotificationService} from '../notification.service';
 
 @Component({

@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Inject, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../api.service';
+import {ApiService} from '../api/api.service';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 import {FilesComponent} from '../files/files.component';
 
