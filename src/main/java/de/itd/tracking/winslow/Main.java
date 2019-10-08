@@ -16,13 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.nio.file.Path;
 
 public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws SocketException {
+    public static void main(String[] args) {
         LOG.trace("program start at first line within main");
         System.out.println();
         System.out.println("           ____               ");
