@@ -16,12 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
 
 public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnknownHostException {
+        final String workDirectory = System.getenv().getOrDefault(Env.WORK_DIRECTORY, "/winslow/");
+        final String nodeName = System.getenv().getOrDefault(Env.NODE_NAME, InetAddress.getLocalHost().getHostName());
+
         LOG.trace("program start at first line within main");
         System.out.println();
         System.out.println("           ____               ");
@@ -37,7 +42,8 @@ public class Main {
         System.out.println("                                                     v0.0.0                  ");
         System.out.println();
         System.out.println();
-        System.out.println("         work-director = /tmp/workdir");
+        System.out.println("             node name = " + nodeName);
+        System.out.println("        work-directory = " + workDirectory);
         System.out.println("             log-level = INFO");
         System.out.println("                  mode = STANDALONE");
         System.out.println();
@@ -48,7 +54,7 @@ public class Main {
 
         try {
             LOG.info("Loading NFS configuration for work-directory");
-            NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of("/home/mi7wa6/mec-view/winslow/nfs-mount"));
+            NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of(workDirectory));
 
             LOG.info("Preparing environment");
             var lockBus         = new LockBus(config.getEventsDirectory());
@@ -65,7 +71,7 @@ public class Main {
             orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository, attributes, logs);
 
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(orchestrator, config, lockBus, resourceManager);
+            var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager);
 
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);

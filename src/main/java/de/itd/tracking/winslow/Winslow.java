@@ -12,7 +12,6 @@ import de.itd.tracking.winslow.resource.ResourceManager;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -27,7 +26,7 @@ public class Winslow implements Runnable {
     @Nonnull private final ProjectRepository            projectRepository;
     @Nonnull private final NodeRepository               nodeRepository;
 
-    public Winslow(@Nonnull Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
+    public Winslow(@Nonnull String nodeName, @Nonnull Orchestrator orchestrator, WorkDirectoryConfiguration configuration, LockBus lockBus, ResourceManager resourceManager) throws IOException {
         this.orchestrator    = orchestrator;
         this.configuration   = configuration;
         this.resourceManager = resourceManager;
@@ -40,9 +39,7 @@ public class Winslow implements Runnable {
 
 
         // TODO
-        NodeInfoUpdater.spawn(configuration.getNodesDirectory(), new UnixNode(InetAddress
-                .getLocalHost()
-                .getHostName()));
+        NodeInfoUpdater.spawn(configuration.getNodesDirectory(), new UnixNode(nodeName));
     }
 
     @Nonnull

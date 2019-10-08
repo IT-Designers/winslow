@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.web;
 
+import de.itd.tracking.winslow.Env;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.auth.UserRepository;
@@ -41,8 +42,8 @@ public class UserResolver implements HandlerMethodArgumentResolver, WebMvcConfig
     public User resolveArgument(MethodParameter methodParameter, ModelAndViewContainer modelAndViewContainer, NativeWebRequest nativeWebRequest, WebDataBinderFactory webDataBinderFactory) throws Exception {
         return Optional.ofNullable(nativeWebRequest.getRemoteUser())
                 .or(() -> {
-                    if (Boolean.parseBoolean(System.getenv("DEV_ENV"))) {
-                        return Optional.ofNullable(System.getenv("DEV_REMOTE_USER"));
+                    if (Boolean.parseBoolean(System.getenv(Env.DEV_ENV))) {
+                        return Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER));
                     } else {
                         return Optional.empty();
                     }
