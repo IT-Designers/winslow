@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {NodeInfo, NodesApiService} from '../nodes-api.service';
+import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
 
 @Component({
   selector: 'app-server-overview',

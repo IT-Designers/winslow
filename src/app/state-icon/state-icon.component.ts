@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {State} from '../project-api.service';
+import {State} from '../api/project-api.service';
 
 @Component({
   selector: 'app-state-icon',
