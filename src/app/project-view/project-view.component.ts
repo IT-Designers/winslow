@@ -4,7 +4,7 @@ import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FilesComponent} from '../files/files.component';
-import {FileBrowseDialog} from '../file-browse/file-browse-dialog.component';
+import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 
 
