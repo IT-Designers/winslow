@@ -40,6 +40,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   watchLatestLogs = true;
   watchVersion: number = null;
 
+  loadLogsOnceAnyway = false;
 
   longLoading = new LongLoadingDetector();
   formGroupControl = new FormGroup({}, [Validators.required]);
@@ -85,7 +86,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     if (this.watchPaused && (this.isRunning() || changed)) {
       this.loadPaused();
     }
-    if (this.watchLogs && (this.isRunning() || changed)) {
+    if (this.watchLogs && (this.isRunning() || changed || this.loadLogsOnceAnyway)) {
       if (!this.watchLogsInterval) {
         this.watchLogsInterval = setInterval(() => this.loadLogs(), 1000);
       }
@@ -99,9 +100,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   loadLogs() {
     this.longLoading.increase();
     const stage = this.watchLatestLogs ? 'latest' : this.watchLogsId;
-    return this.api.getLog(this.project.id, stage)
+    return this.api.getLog(this.project.id, stage, this.logs != null ? this.logs.length : 0)
       .toPromise()
-      .then(logs => this.logs = logs)
+      .then(logs => {
+        if (this.logs == null) {
+          this.logs = [];
+        }
+        logs.forEach(entry => this.logs.push(entry));
+        this.loadLogsOnceAnyway = this.isRunning();
+      })
       .finally(() => this.longLoading.decrease());
   }
 
@@ -212,6 +219,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.watchLogs = true;
       this.watchLogsId = null;
       this.watchLatestLogs = true;
+      this.loadLogsOnceAnyway = true;
       this.loadLogs();
     }
   }
