@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
+import {ImageInfo, HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
@@ -40,6 +40,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   longLoading = new LongLoadingDetector();
   formGroupControl = new FormGroup({}, [Validators.required]);
+
+  image: ImageInfo = null;
+  imageOriginal: ImageInfo = null;
 
   constructor(private api: ProjectApiService, private notification: NotificationService,
               private createDialog: MatDialog) {
@@ -126,13 +129,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   setNextStage(nextStageIndex: string, singleStageOnly = false) {
     this.longLoading.increase();
-    this.api.resume(this.project.id, Number(nextStageIndex), singleStageOnly, this.formGroupControl.value)
+    this.api.resume(this.project.id, Number(nextStageIndex), singleStageOnly, this.formGroupControl.value, this.image)
       .toPromise()
       .then(result => {
         this.notification.info('Request has been accepted');
         this.paused = false;
         this.stateEmitter.emit(this.state = State.Running);
         this.pauseReason = null;
+        this.imageOriginal = this.image;
       }).catch(error => {
       this.notification.error('Request failed: ' + JSON.stringify(error));
     }).finally(() => this.longLoading.decrease());
@@ -227,6 +231,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             }
             this.project.environment = env;
             this.recreateFormGroup([...this.project.environment.keys()]);
+
+            return this.api
+              .getImage(this.project.id, index)
+              .toPromise()
+              .then(image => {
+                if (image != null) {
+                  this.imageOriginal = this.image = image;
+                }
+              });
           });
       })
       .catch(err => this.notification.error('Failed to retrieve environment: ' + err))
@@ -264,5 +277,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   deleteEnvironment(key: string) {
     this.project.environment.delete(key);
     this.formGroupControl.removeControl(key);
+  }
+
+  stringify(args: string[]) {
+    return JSON.stringify(args);
+  }
+
+  parse(args: string) {
+    return JSON.parse(args);
   }
 }

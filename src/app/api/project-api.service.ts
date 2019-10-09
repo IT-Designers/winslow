@@ -39,9 +39,13 @@ export class ProjectApiService {
     return this.client.get<boolean>(`${environment.apiLocation}projects/${projectId}/paused`);
   }
 
-  resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: any) {
+  resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: any, image: ImageInfo = null) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
+    if (image != null) {
+      form.set('imageName', image.name);
+      form.set('imageArgs', JSON.stringify(image.args));
+    }
     return this.client.post(
       `${environment.apiLocation}projects/${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`,
       form
@@ -69,6 +73,12 @@ export class ProjectApiService {
   getRequiredUserInput(projectId: string, stageIndex: number) {
     return this.client.get<string[]>(`${environment.apiLocation}projects/${projectId}/${stageIndex}/required-user-input`);
   }
+
+  getImage(projectId: string, stageIndex: number) {
+    return this.client.get<ImageInfo>(`${environment.apiLocation}projects/${projectId}/${stageIndex}/image`);
+  }
+
+
 }
 
 export enum State {
@@ -112,4 +122,9 @@ export class StateInfo {
   state: State;
   pauseReason?: string;
   stageProgress?: number;
+}
+
+export class ImageInfo {
+  name?: string;
+  args?: string[];
 }
