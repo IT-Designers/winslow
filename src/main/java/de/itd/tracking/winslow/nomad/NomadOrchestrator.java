@@ -6,6 +6,7 @@ import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.*;
+import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.config.UserInput;
 import de.itd.tracking.winslow.fs.LockException;
@@ -413,6 +414,13 @@ public class NomadOrchestrator implements Orchestrator {
                     .build();
         }
 
+        if (stageDefinition.getRequirements().isPresent()) {
+            var requirements = stageDefinition.getRequirements().get();
+
+            if (requirements.getGpu().isPresent()) {
+                builder = addGpuRequirement(builder, requirements.getGpu().get());
+            }
+        }
 
         var timeMs = System.currentTimeMillis();
         var timeS  = timeMs / 1_000;
@@ -465,7 +473,17 @@ public class NomadOrchestrator implements Orchestrator {
         return stage;
     }
 
-    private boolean isConfirmed(@Nonnull NomadPipeline pipeline) {
+    @Nonnull
+    private static JobBuilder addGpuRequirement(JobBuilder builder, Requirements.Gpu gpu) {
+        builder = builder.withGpuCount(gpu.getCount());
+
+        if (gpu.getVendor().isPresent()) {
+            builder = builder.withGpuVendor(gpu.getVendor().get());
+        }
+        return builder;
+    }
+
+    private static boolean isConfirmed(@Nonnull NomadPipeline pipeline) {
         return Pipeline.ResumeNotification.Confirmation == pipeline.getResumeNotification().orElse(null);
     }
 

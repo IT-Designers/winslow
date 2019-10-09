@@ -1,9 +1,6 @@
 package de.itd.tracking.winslow.nomad;
 
-import com.hashicorp.nomad.apimodel.Job;
-import com.hashicorp.nomad.apimodel.RestartPolicy;
-import com.hashicorp.nomad.apimodel.Task;
-import com.hashicorp.nomad.apimodel.TaskGroup;
+import com.hashicorp.nomad.apimodel.*;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -12,11 +9,13 @@ public class JobBuilder {
 
     @Nonnull private static final String DRIVER_DOCKER = "docker";
 
-    @Nonnull private final String              id;
-    @Nonnull private final Map<String, Object> config  = new HashMap<>(10);
-    @Nonnull private final Map<String, String> envVars = new HashMap<>(10);
-    private                String              taskName;
-    private                String              driver;
+    @Nonnull private final String                  id;
+    @Nonnull private final Map<String, Object>     config    = new HashMap<>(10);
+    @Nonnull private final Map<String, String>     envVars   = new HashMap<>(10);
+    private                String                  taskName;
+    private                String                  driver;
+    private final          Resources               resources = new Resources();
+    private                HashMap<String, Object> deviceGpu = null;
 
     private JobBuilder(@Nonnull String id) {
         this.id = id;
@@ -88,6 +87,38 @@ public class JobBuilder {
     }
 
     @Nonnull
+    public JobBuilder withGpuCount(int count) {
+        this.ensureGpuDeviceAdded();
+        if (count > 0) {
+            this.deviceGpu.put("Count", count);
+            this.deviceGpu.putIfAbsent("Name", "gpu");
+        } else {
+            this.deviceGpu.remove("Count");
+        }
+        return this;
+    }
+
+    @Nonnull
+    public JobBuilder withGpuVendor(@Nonnull String vendor) {
+        ensureGpuDeviceAdded();
+        this.deviceGpu.put("Name", vendor + "/gpu");
+        return this;
+    }
+
+    private void ensureGpuDeviceAdded() {
+        if (this.deviceGpu == null) {
+            this.deviceGpu = new HashMap<>();
+            if (this.resources.getUnmappedProperties() != null) {
+                ((List<Object>) this.resources.getUnmappedProperties().computeIfAbsent("Devices", key -> new ArrayList<>())).add(deviceGpu);
+            } else {
+                var list = new ArrayList<>();
+                list.add(deviceGpu);
+                this.resources.addUnmappedProperty("Devices", list);
+            }
+        }
+    }
+
+    @Nonnull
     public Job buildJob() {
         return new Job()
                 .setId(this.id)
@@ -100,6 +131,7 @@ public class JobBuilder {
                                 .setName(taskName)
                                 .setDriver(driver)
                                 .setConfig(config)
+                                .setResources(resources)
                                 .setEnv(this.envVars)));
     }
 
