@@ -56,8 +56,12 @@ export class ProjectApiService {
     return this.client.post(`${environment.apiLocation}projects/${projectId}/paused/${paused}`, new FormData());
   }
 
-  getLog(projectId: string, stageId: string, skipLines = 0) {
-    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/${stageId}?skipLines=${skipLines}`);
+  getLog(projectId: string, stageId: string) {
+    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/${stageId}`);
+  }
+
+  getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
+    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`);
   }
 
   getPauseReason(projectId: string) {
@@ -121,6 +125,7 @@ export class LogEntry {
   source: LogSource;
   error: boolean;
   message: string;
+  stageId?: string; // LogEntryInfo
 }
 
 export class StateInfo {
