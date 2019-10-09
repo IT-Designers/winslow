@@ -111,9 +111,14 @@ export class HistoryEntry {
   workspace?: string;
 }
 
+export enum LogSource {
+  STANDARD_IO = 'STANDARD_IO',
+  MANAGEMENT_EVENT = 'MANAGEMENT_EVENT'
+}
 
 export class LogEntry {
   time: number;
+  source: LogSource;
   error: boolean;
   message: string;
 }

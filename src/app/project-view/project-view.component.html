@@ -164,7 +164,7 @@
           ><ng-container *ngFor="let log of logs; index as i"
           ><span
           ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
-          ><span [class.console-err]="log.error">{{log.message}}</span
+          ><span [class.console-err]="log.error" [class.console-mgmt]="sourceIsManagement(log.source)">{{log.message}}</span
           ></span
           ></ng-container>
           </code>
