@@ -56,8 +56,8 @@ export class ProjectApiService {
     return this.client.post(`${environment.apiLocation}projects/${projectId}/paused/${paused}`, new FormData());
   }
 
-  getLog(projectId: string, stageId: string) {
-    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/${stageId}`);
+  getLog(projectId: string, stageId: string, skipLines = 0) {
+    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/${stageId}?skipLines=${skipLines}`);
   }
 
   getPauseReason(projectId: string) {
