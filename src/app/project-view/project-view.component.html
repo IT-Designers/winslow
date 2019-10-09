@@ -16,7 +16,9 @@
                         value="{{i}}">{{stage.name}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button mat-stroked-button color="primary">
+        <button mat-stroked-button color="primary"
+                [disabled]="stageSelection.value == null"
+                (click)="onOverwriteStageSelectionChanged(stageSelection.value)">
           <mat-icon>loop</mat-icon>
         </button>
       </div>
@@ -127,7 +129,7 @@
           <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
           <p>{{entry.stageName}}</p>
           <p class="history-list-item-grow">
-            <mat-icon matTooltip="Open Logs" class="clickable" (click)="openLogs(project, entry)">list_alt</mat-icon>
+            <mat-icon matTooltip="Open Logs" class="clickable" (click)="openLogs(entry)">list_alt</mat-icon>
             <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open
             </mat-icon>
           </p>
@@ -152,8 +154,9 @@
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
     <div style="text-align: center">
-      <button mat-raised-button color="accent" [disabled]="watchLatestLogs" (click)="showLatestLogs()">Show log of most
-        recent Stage
+      <button mat-raised-button color="accent"
+              [disabled]="watchLatestLogs"
+              (click)="showLatestLogs(null)">Show log of most recent Stage
       </button>
     </div>
     <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
@@ -164,7 +167,8 @@
           ><ng-container *ngFor="let log of logs; index as i"
           ><span
           ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
-          ><span [class.console-err]="log.error" [class.console-mgmt]="sourceIsManagement(log.source)">{{log.message}}</span
+          ><span [class.console-err]="log.error"
+                 [class.console-mgmt]="sourceIsManagement(log.source)">{{log.message}}</span
           ></span
           ></ng-container>
           </code>

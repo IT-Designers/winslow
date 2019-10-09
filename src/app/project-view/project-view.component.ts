@@ -99,17 +99,31 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   loadLogs() {
     this.longLoading.increase();
-    const stage = this.watchLatestLogs ? 'latest' : this.watchLogsId;
-    return this.api.getLog(this.project.id, stage, this.logs != null ? this.logs.length : 0)
-      .toPromise()
+    return this.requestLogs()
       .then(logs => {
         if (this.logs == null) {
           this.logs = [];
         }
-        logs.forEach(entry => this.logs.push(entry));
         this.loadLogsOnceAnyway = this.isRunning();
+        if (logs.length > 0 && this.logs.length > 0 && logs[0].stageId !== this.logs[0].stageId) {
+          this.logs = null;
+          return this.loadLogs();
+        } else {
+          logs.forEach(entry => this.logs.push(entry));
+        }
       })
       .finally(() => this.longLoading.decrease());
+  }
+
+  requestLogs() {
+    if (this.watchLatestLogs) {
+      const skipLines = this.logs != null ? this.logs.length : 0;
+      const expectingStageId = this.logs != null ? this.logs[0].stageId: null;
+      return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId).toPromise();
+    } else {
+      this.logs = [];
+      return this.api.getLog(this.project.id, this.watchLogsId).toPromise();
+    }
   }
 
   loadHistory() {
@@ -148,6 +162,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         this.stateEmitter.emit(this.state = State.Running);
         this.pauseReason = null;
         this.imageOriginal = this.image;
+        this.openLogs(null, true);
       }).catch(error => {
       this.notification.error('Request failed: ' + JSON.stringify(error));
     }).finally(() => this.longLoading.decrease());
@@ -205,16 +220,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
 
-  openLogs(project: Project, entry: HistoryEntry) {
+  openLogs(entry?: HistoryEntry, watchLatestLogs = false) {
     this.tabs.selectedIndex = 3;
     this.logs = null;
     this.watchLogs = true;
-    this.watchLogsId = entry.stageId;
-    this.watchLatestLogs = false;
+    if (entry != null) {
+      this.watchLogsId = entry.stageId;
+      this.watchLatestLogs = false;
+    }
+    if (watchLatestLogs) {
+      this.watchLatestLogs = true;
+    }
   }
 
-  showLatestLogs() {
-    if (!this.watchLatestLogs) {
+  showLatestLogs(force: boolean) {
+    if (!this.watchLatestLogs || force) {
       this.logs = null;
       this.watchLogs = true;
       this.watchLogsId = null;
