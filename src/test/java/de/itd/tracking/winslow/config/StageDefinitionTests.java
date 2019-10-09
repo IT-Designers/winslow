@@ -40,7 +40,7 @@ public class StageDefinitionTests {
         assertEquals("The description of the stage", stage.getDescription().get());
         assertTrue(stage.getImage().isPresent());
         assertEquals("image-origin/image-name", stage.getImage().get().getName());
-        assertArrayEquals(new String[]{"arg1", "arg2"}, stage.getImage().get().getArguments());
+        assertArrayEquals(new String[]{"arg1", "arg2"}, stage.getImage().get().getArgs());
     }
 
     @Test

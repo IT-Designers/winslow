@@ -2,6 +2,7 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
+import de.itd.tracking.winslow.config.Image;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
@@ -257,8 +258,33 @@ public class ProjectsController {
                         .flatMap(u -> u.getValueFor().stream())));
     }
 
+    @GetMapping("projects/{projectId}/{stageIndex}/image")
+    public Optional<ImageInfo> getImage(User user, @PathVariable("projectId") String projectId, @PathVariable("stageIndex") int stageIndex) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().getPipelineOmitExceptions(project))
+                .flatMap(pipeline -> pipeline
+                        .getDefinition()
+                        .getStageDefinitions()
+                        .stream()
+                        .skip(stageIndex)
+                        .findFirst()
+                        .flatMap(StageDefinition::getImage)
+                        .map(ImageInfo::new)
+                );
+    }
+
     @PostMapping("projects/{projectId}/resume/{stageIndex}")
-    public void resumePipeline(User user, @PathVariable("projectId") String projectId, @RequestParam("env") Map<String, String> env, @PathVariable("stageIndex") int index, @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
+    public void resumePipeline(User user, @PathVariable("projectId") String projectId,
+            @RequestParam("env") Map<String, String> env,
+            @PathVariable("stageIndex") int index,
+            @RequestParam(value = "strategy", required = false) @Nullable String strategy,
+            @RequestParam(value = "imageName", required = false) @Nullable String imageName,
+            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs
+            ) {
         winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -273,6 +299,19 @@ public class ProjectsController {
                             .orElse(Pipeline.PipelineStrategy.MoveForwardUntilEnd));
                     pipeline.getEnvironment().clear();
                     pipeline.getEnvironment().putAll(env);
+
+                    if ((imageName != null || imageArgs != null) && pipeline.getDefinition().getStageDefinitions().size() > index) {
+                        pipeline.getDefinition().getStageDefinitions().get(index).getImage().ifPresent(image -> {
+                            if (imageName != null) {
+                                image.setName(imageName);
+                            }
+                            if (imageArgs != null) {
+                                image.setArgs(imageArgs);
+                            }
+                        });
+
+                    }
+
                     pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     return null;
                 }));
@@ -316,6 +355,16 @@ public class ProjectsController {
             this.state         = state;
             this.pauseReason   = pauseReason;
             this.stageProgress = stageProgress;
+        }
+    }
+
+    static class ImageInfo {
+        @Nullable public final String name;
+        @Nullable public final String[] args;
+
+        public ImageInfo(@Nonnull Image image) {
+            this.name = image.getName();
+            this.args = image.getArgs();
         }
     }
 }

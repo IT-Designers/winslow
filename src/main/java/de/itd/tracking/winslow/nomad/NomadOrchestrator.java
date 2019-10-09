@@ -376,7 +376,7 @@ public class NomadOrchestrator implements Orchestrator {
         if (stageDefinition.getImage().isPresent()) {
             builder = builder
                     .withDockerImage(stageDefinition.getImage().get().getName())
-                    .withDockerImageArguments(stageDefinition.getImage().get().getArguments());
+                    .withDockerImageArguments(stageDefinition.getImage().get().getArgs());
         }
 
         if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {

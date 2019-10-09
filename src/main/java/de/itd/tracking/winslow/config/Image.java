@@ -1,24 +1,36 @@
 package de.itd.tracking.winslow.config;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 
 public class Image {
-    private final String   name;
-    private final String[] args;
+    @Nonnull private  String   name;
+    @Nullable private String[] args;
 
-    public Image(String name, String[] args) {
+    public Image(@Nonnull String name, @Nonnull String[] args) {
         Objects.requireNonNull(name, "The name of an image must be set");
         this.name = name;
         this.args = args;
     }
 
+    @Nonnull
     public String getName() {
         return name;
     }
 
-    public String[] getArguments() {
+    public void setName(@Nonnull String name) {
+        this.name = name;
+    }
+
+    @Nonnull
+    public String[] getArgs() {
         return args != null ? args : new String[0];
+    }
+
+    public void setArgs(@Nullable String[] args) {
+        this.args = args;
     }
 
     @Override
