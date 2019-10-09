@@ -74,7 +74,7 @@ public class EventStream {
 
     private void parseNextLogEntries() {
         var next = state.getEvents().get(previousIndex++);
-        var time = next.getTime();
+        var time = next.getTime() / 1_000_000;
         boolean err = next.getFailsTask()
                 || next.getDownloadError().length() > 0
                 || next.getDriverError().length() > 0
