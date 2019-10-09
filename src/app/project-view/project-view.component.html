@@ -8,7 +8,7 @@
 
     <form [formGroup]="formGroupControl">
       <div class="stage-control-item">
-        <p>Overwrite stage execution order</p>
+        <p>Stage to execute</p>
         <mat-form-field>
           <mat-select #stageSelection placeholder="Stage selection"
                       (valueChange)="onOverwriteStageSelectionChanged($event)">
@@ -55,6 +55,38 @@
             </button>
             <button mat-button color="primary" [disabled]="key.value.length == 0 && value.value.length == 0"
                     color="primary" (click)="key.value = ''; value.value = '';">Reset
+            </button>
+          </div>
+        </div>
+        <div class="stage-control-item" *ngIf="image">
+          <label>Image</label>
+          <mat-form-field>
+            <input #value required matInput placeholder="Docker Image"
+                   [required]="image.name != null && image.name.length > 0"
+                   [formGroup]="formGroupControl"
+                   [value]="image.name"
+                   (change)="image.name = $event.target.value"
+            >
+          </mat-form-field>
+          <div>
+            <button mat-button color="primary" [disabled]="value.value == imageOriginal.name"
+                    color="primary" (click)="value.value = imageOriginal.name;">Reset
+            </button>
+          </div>
+        </div>
+        <div class="stage-control-item" *ngIf="image">
+          <label>Start Parameters</label>
+          <mat-form-field>
+            <input #value matInput placeholder="Parameters"
+                   [required]="image.args != null && image.args.length > 0"
+                   [formGroup]="formGroupControl"
+                   [value]="stringify(image.args)"
+                   (change)="image.args = parse($event.target.value)"
+            >
+          </mat-form-field>
+          <div>
+            <button mat-button color="primary" [disabled]="value.value == stringify(imageOriginal.args)"
+                    color="primary" (click)="value.value = stringify(imageOriginal.args);">Reset
             </button>
           </div>
         </div>
