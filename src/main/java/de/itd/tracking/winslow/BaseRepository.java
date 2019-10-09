@@ -46,7 +46,7 @@ public abstract class BaseRepository {
 
     @Nonnull
     protected Stream<Path> listAll(@Nonnull String suffix) {
-        return listAllInDirectory(getRepositoryDirectory()).filter(path -> !path.toString().endsWith(suffix));
+        return listAllInDirectory(getRepositoryDirectory()).filter(path -> path.toString().endsWith(suffix));
     }
 
     @Nonnull
