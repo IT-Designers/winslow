@@ -2,6 +2,7 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
+import com.hashicorp.nomad.javasdk.AllocationsApi;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
@@ -610,6 +611,11 @@ public class NomadOrchestrator implements Orchestrator {
         return getClient().getClientApi(this.client.getConfig().getAddress());
     }
 
+    @Nonnull
+    private AllocationsApi getAllocationsApi() {
+        return getClient().getAllocationsApi();
+    }
+
     private void redirectLogs(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage, @Nonnull Consumer<LogEntry> consumer) {
         new Thread(() -> {
             try (LockedOutputStream os = logs.getRawOutputStream(pipeline.getProjectId(), stage.getId())) {
@@ -617,6 +623,7 @@ public class NomadOrchestrator implements Orchestrator {
                         .getJobId(), stage.getTaskName()));
                 var stderr = LogStream.stdErr(getClientApi(), stage.getTaskName(), () -> getJobAllocationContainingTaskStateLogErrors(stage
                         .getJobId(), stage.getTaskName()));
+                var events = EventStream.stream(getAllocationsApi(), stage.getJobId(), stage.getTaskName());
 
                 var queue = new LinkedList<LogEntry>();
 
@@ -643,9 +650,20 @@ public class NomadOrchestrator implements Orchestrator {
                 threadStdErr.setDaemon(true);
                 threadStdErr.start();
 
+                var threadEvents = new Thread(() -> {
+                    events.forEach(entry -> {
+                        synchronized (queue) {
+                            queue.add(entry);
+                        }
+                    });
+                });
+                threadEvents.setName(stage.getJobId() + ".events");
+                threadEvents.setDaemon(true);
+                threadEvents.start();
+
                 LogWriter.writeTo(os).writeWhile(prev -> {
                     synchronized (queue) {
-                        return threadStdErr.isAlive() || threadStdOut.isAlive() || !queue.isEmpty();
+                        return threadStdErr.isAlive() || threadStdOut.isAlive() || threadEvents.isAlive() || !queue.isEmpty();
                     }
                 }).fromSupplier(() -> {
                     synchronized (queue) {

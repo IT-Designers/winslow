@@ -50,9 +50,20 @@ public class LogWriter implements Runnable {
             while (predicate.test(element)) {
                 element = supplier.get();
                 if (element != null) {
-                    var stream   = element.isError() ? "stderr" : "stdout";
+                    var stream   = element.isError() ? "err" : "out";
                     var dateTime = dateFormat.format(new Date(element.getTime()));
-                    ps.println(String.join(LOG_SEPARATOR, dateTime, stream, element.getMessage()));
+                    var source   = "std";
+
+                    switch (element.getSource()) {
+                        case STANDARD_IO:
+                            source = "std";
+                            break;
+                        case MANAGEMENT_EVENT:
+                            source = "evt";
+                            break;
+                    }
+
+                    ps.println(String.join(LOG_SEPARATOR, dateTime, source + stream, element.getMessage()));
                     notifyConsumers(element);
                     backoff.reset();
                 } else {

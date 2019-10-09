@@ -53,11 +53,11 @@ public class LogStream {
     }
 
     public static Stream<LogEntry> stdOut(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
-        return stream(api, taskName, stateSupplier, "stdout").map(LogEntry::nowOut);
+        return stream(api, taskName, stateSupplier, "stdout").map(LogEntry::stdout);
     }
 
     public static Stream<LogEntry> stdErr(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
-        return stream(api, taskName, stateSupplier, "stderr").map(LogEntry::nowErr);
+        return stream(api, taskName, stateSupplier, "stderr").map(LogEntry::stderr);
     }
 
     private static Stream<String> stream(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier, @Nonnull String logType) throws IOException {

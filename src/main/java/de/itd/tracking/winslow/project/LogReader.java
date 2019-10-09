@@ -43,7 +43,7 @@ public class LogReader implements Iterator<LogEntry> {
     public synchronized LogEntry next() {
         var split = currentLine.split(LogWriter.LOG_SEPARATOR, 3);
         try {
-            var entry = new LogEntry(dateFormat.parse(split[0]).getTime(), "stderr".equals(split[1]), split[2]);
+            var entry = new LogEntry(dateFormat.parse(split[0]).getTime(), split[1].contains("std") ? LogEntry.Source.STANDARD_IO : LogEntry.Source.MANAGEMENT_EVENT, split[1].contains("err"), split[2]);
             this.currentLine = null;
             return entry;
         } catch (ParseException e) {
