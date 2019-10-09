@@ -173,7 +173,7 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/logs/latest")
-    public Stream<LogEntry> getProjectStageLogsLatest(User user, @PathVariable("projectId") String projectId) {
+    public Stream<LogEntry> getProjectStageLogsLatest(User user, @PathVariable("projectId") String projectId, @RequestParam(value = "skipLines", defaultValue = "0") long skipLines) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -185,7 +185,8 @@ public class ProjectsController {
                         .getPipelineOmitExceptions(project)
                         .flatMap(Pipeline::getMostRecentStage)
                         .stream()
-                        .flatMap(stage -> winslow.getOrchestrator().getLogs(project, stage.getId())));
+                        .flatMap(stage -> winslow.getOrchestrator().getLogs(project, stage.getId())))
+                .skip(skipLines);
     }
 
     @GetMapping("projects/{projectId}/logs/{stageId}")
