@@ -19,10 +19,12 @@ import java.util.stream.Stream;
 
 public class PipelineDefinitionRepository extends BaseRepository {
 
-    public static final Logger LOG = Logger.getLogger(PipelineDefinitionRepository.class.getSimpleName());
+    public static final Logger LOG    = Logger.getLogger(PipelineDefinitionRepository.class.getSimpleName());
     public static final String SUFFIX = ".toml";
 
-    public PipelineDefinitionRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public PipelineDefinitionRepository(
+            LockBus lockBus,
+            WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 
@@ -39,11 +41,12 @@ public class PipelineDefinitionRepository extends BaseRepository {
 
     public Stream<String> getPipelineIdentifiers() {
         try {
-            return Files
-                    .list(workDirectoryConfiguration.getPipelinesDirectory())
-                    .map(path -> path.getFileName().toString())
-                    .filter(name -> name.endsWith(SUFFIX))
-                    .map(name -> name.substring(0, name.length() - SUFFIX.length()));
+            return Files.list(workDirectoryConfiguration.getPipelinesDirectory()).map(path -> path
+                    .getFileName()
+                    .toString()).filter(name -> name.endsWith(SUFFIX)).map(name -> name.substring(0,
+                                                                                                  name.length() - SUFFIX
+                                                                                                          .length()
+                                                                                                 ));
         } catch (IOException e) {
             return Stream.empty();
         }
@@ -51,15 +54,15 @@ public class PipelineDefinitionRepository extends BaseRepository {
 
     private Reader<PipelineDefinition> pipelineLoader() {
         return inputStream -> {
-            var toml = new Toml().read(inputStream);
-            var stages = toml.getTables("stage").stream().map(table -> table.to(StageDefinition.class)).collect(Collectors.toList());
-            var pipe = toml.getTable("pipeline").to(PipelineDefinition.class);
+            var toml   = new Toml().read(inputStream);
+            var stages = toml.getTables("stage").stream().map(table -> table.to(StageDefinition.class)).collect(
+                    Collectors.toList());
+            var pipe   = toml.getTable("pipeline").to(PipelineDefinition.class);
 
-            return new PipelineDefinition(
-                    pipe.getName(),
-                    pipe.getDescription().orElse(null),
-                    pipe.getUserInput().orElse(null),
-                    stages
+            return new PipelineDefinition(pipe.getName(),
+                                          pipe.getDescription().orElse(null),
+                                          pipe.getUserInput().orElse(null),
+                                          stages
             );
         };
     }
@@ -68,12 +71,13 @@ public class PipelineDefinitionRepository extends BaseRepository {
         return (outputStream, pipeline) -> {
             var toml = new HashMap<String, Object>();
             toml.put("stage", pipeline.getStageDefinitions());
-            toml.put("pipeline", new PipelineDefinition(
-                    pipeline.getName(),
-                    pipeline.getDescription().orElse(null),
-                    pipeline.getUserInput().orElse(null),
-                    Collections.emptyList()
-            ));
+            toml.put("pipeline",
+                     new PipelineDefinition(pipeline.getName(),
+                                            pipeline.getDescription().orElse(null),
+                                            pipeline.getUserInput().orElse(null),
+                                            Collections.emptyList()
+                     )
+                    );
 
             new TomlWriter().write(toml, outputStream);
         };
@@ -86,10 +90,9 @@ public class PipelineDefinitionRepository extends BaseRepository {
 
     public Handle<PipelineDefinition> getPipeline(String id) {
         var name = Path.of(id + SUFFIX).getFileName();
-        return createHandle(
-                workDirectoryConfiguration.getPipelinesDirectory().resolve(name),
-                pipelineLoader(),
-                pipelineWriter()
-        );
+        return createHandle(workDirectoryConfiguration.getPipelinesDirectory().resolve(name),
+                            pipelineLoader(),
+                            pipelineWriter()
+                           );
     }
 }

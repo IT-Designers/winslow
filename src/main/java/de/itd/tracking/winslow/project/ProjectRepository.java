@@ -23,7 +23,9 @@ public class ProjectRepository extends BaseRepository {
     private static final Logger LOG         = Logger.getLogger(ProjectRepository.class.getSimpleName());
     private static final String FILE_SUFFIX = ".toml";
 
-    public ProjectRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public ProjectRepository(
+            LockBus lockBus,
+            WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 
@@ -40,7 +42,10 @@ public class ProjectRepository extends BaseRepository {
     }
 
     @Nonnull
-    public Optional<Project> createProject(@Nonnull User owner, @Nonnull PipelineDefinition pipeline, @Nonnull Consumer<Project> customizer) {
+    public Optional<Project> createProject(
+            @Nonnull User owner,
+            @Nonnull PipelineDefinition pipeline,
+            @Nonnull Consumer<Project> customizer) {
         var id   = UUID.randomUUID().toString();
         var path = workDirectoryConfiguration.getProjectsDirectory().resolve(id + FILE_SUFFIX);
         return getProject(path).exclusive().flatMap(storable -> {

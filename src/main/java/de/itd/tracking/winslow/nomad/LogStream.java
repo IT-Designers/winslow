@@ -52,15 +52,25 @@ public class LogStream {
         return line;
     }
 
-    public static Stream<LogEntry> stdOut(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
+    public static Stream<LogEntry> stdOut(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
         return stream(api, taskName, stateSupplier, "stdout").map(LogEntry::stdout);
     }
 
-    public static Stream<LogEntry> stdErr(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
+    public static Stream<LogEntry> stdErr(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
         return stream(api, taskName, stateSupplier, "stderr").map(LogEntry::stderr);
     }
 
-    private static Stream<String> stream(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier, @Nonnull String logType) throws IOException {
+    private static Stream<String> stream(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier,
+            @Nonnull String logType) throws IOException {
         var stream = new LogStream(new LogInputStream(api, taskName, stateSupplier, logType, true));
         return Stream.<String>iterate(null, v -> stream.reader != null || v != null, v -> {
             if (stream.reader != null) {

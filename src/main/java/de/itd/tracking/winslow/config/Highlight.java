@@ -20,7 +20,6 @@ public class Highlight {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Highlight
-                && Arrays.deepEquals(((Highlight) obj).resources, resources);
+        return obj instanceof Highlight && Arrays.deepEquals(((Highlight) obj).resources, resources);
     }
 }

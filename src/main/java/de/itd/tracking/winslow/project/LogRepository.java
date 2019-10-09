@@ -17,7 +17,9 @@ public class LogRepository extends BaseRepository {
 
     private static final int LOCK_DURATION_MS = 10_000;
 
-    public LogRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public LogRepository(
+            @Nonnull LockBus lockBus,
+            @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 
@@ -28,20 +30,24 @@ public class LogRepository extends BaseRepository {
     }
 
     public boolean isLocked(@Nonnull String projectId, @Nonnull String stageId) {
-        var path    = getLogFile(projectId, stageId);
+        var path = getLogFile(projectId, stageId);
         var subject = getLockSubjectForPath(path);
         return lockBus.isLocked(subject);
     }
 
     @Nonnull
-    public LockedOutputStream getRawOutputStream(@Nonnull String projectId, @Nonnull String stageId) throws LockException, FileNotFoundException {
+    public LockedOutputStream getRawOutputStream(
+            @Nonnull String projectId,
+            @Nonnull String stageId) throws LockException, FileNotFoundException {
         var path = getLogFile(projectId, stageId);
         var lock = getLockForPath(path, LOCK_DURATION_MS);
         return new LockedOutputStream(path.toFile(), lock);
     }
 
     @Nonnull
-    public InputStream getRawInputStreamNonExclusive(@Nonnull String projectId, @Nonnull String stageId) throws FileNotFoundException {
+    public InputStream getRawInputStreamNonExclusive(
+            @Nonnull String projectId,
+            @Nonnull String stageId) throws FileNotFoundException {
         var path = getLogFile(projectId, stageId);
         return new FileInputStream(path.toFile());
     }

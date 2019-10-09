@@ -30,34 +30,30 @@ public class StorageController {
         var dir = winslow.getWorkDirectoryConfiguration().getPath();
         try {
             var fileSys = new HashMap<FileStore, Path>(8);
-            return Stream
-                    .concat(Stream.of(dir), Files.list(dir).filter(f -> f.toFile().isDirectory()))
-                    .flatMap(f -> {
-                        try {
-                            FileStore fs = Files.getFileStore(f);
-                            var old = fileSys.get(fs);
-                            if (old == null || old.getNameCount() > f.getNameCount()) {
-                                fileSys.put(fs, f);
-                            }
-                            return Stream.of(fs);
-                        } catch (IOException e) {
-                            LOG.log(Level.WARNING, "Failed to retrieve FileStore for " + f, e);
-                            return Stream.empty();
-                        }
-                    })
-                    .distinct()
-                    .flatMap(fileStore -> {
-                        try {
-                            var total  = fileStore.getTotalSpace();
-                            var usable = fileStore.getUsableSpace();
-                            return Stream.of(new StorageInfo(Path
-                                    .of("/", dir.relativize(fileSys.get(fileStore)).toString())
-                                    .toString(), total - usable, usable));
-                        } catch (IOException e) {
-                            LOG.log(Level.WARNING, "Failed to retrieve file system information for " + fileStore, e);
-                            return Stream.empty();
-                        }
-                    });
+            return Stream.concat(Stream.of(dir), Files.list(dir).filter(f -> f.toFile().isDirectory())).flatMap(f -> {
+                try {
+                    FileStore fs  = Files.getFileStore(f);
+                    var       old = fileSys.get(fs);
+                    if (old == null || old.getNameCount() > f.getNameCount()) {
+                        fileSys.put(fs, f);
+                    }
+                    return Stream.of(fs);
+                } catch (IOException e) {
+                    LOG.log(Level.WARNING, "Failed to retrieve FileStore for " + f, e);
+                    return Stream.empty();
+                }
+            }).distinct().flatMap(fileStore -> {
+                try {
+                    var total  = fileStore.getTotalSpace();
+                    var usable = fileStore.getUsableSpace();
+                    return Stream.of(new StorageInfo(Path
+                                                             .of("/", dir.relativize(fileSys.get(fileStore)).toString())
+                                                             .toString(), total - usable, usable));
+                } catch (IOException e) {
+                    LOG.log(Level.WARNING, "Failed to retrieve file system information for " + fileStore, e);
+                    return Stream.empty();
+                }
+            });
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to list files in workd directory", e);
             return Stream.empty();
@@ -70,7 +66,7 @@ public class StorageController {
         public final          long   bytesFree;
 
         private StorageInfo(@Nonnull String name, long bytesUsed, long bytesFree) {
-            this.name      = name;
+            this.name = name;
             this.bytesUsed = bytesUsed;
             this.bytesFree = bytesFree;
         }

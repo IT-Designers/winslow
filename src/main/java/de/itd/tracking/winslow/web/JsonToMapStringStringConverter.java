@@ -20,7 +20,8 @@ public class JsonToMapStringStringConverter implements Converter<String, Map<Str
     @Override
     public Map<String, String> convert(@Nonnull String s) {
         try {
-            return new ObjectMapper().readValue(s, new TypeReference<Map<String, String>>() {});
+            return new ObjectMapper().readValue(s, new TypeReference<Map<String, String>>() {
+            });
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

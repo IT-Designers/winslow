@@ -25,7 +25,9 @@ public class Main {
 
     public static void main(String[] args) throws UnknownHostException {
         final String workDirectory = System.getenv().getOrDefault(Env.WORK_DIRECTORY, "/winslow/");
-        final String nodeName = System.getenv().getOrDefault(Env.NODE_NAME, InetAddress.getLocalHost().getHostName());
+        final String nodeName      = System.getenv().getOrDefault(Env.NODE_NAME,
+                                                                  InetAddress.getLocalHost().getHostName()
+                                                                 );
 
         LOG.trace("program start at first line within main");
         System.out.println();
@@ -66,8 +68,8 @@ public class Main {
             var nomadRepository = new NomadRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder()
-                    .setAddress("http://localhost:4646")
-                    .build());
+                                                         .setAddress("http://localhost:4646")
+                                                         .build());
             orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository, attributes, logs);
 
             LOG.info("Assembling Winslow");

@@ -9,7 +9,7 @@ public class NetInfo {
     private final long receiving;
 
     public NetInfo(long receiving, long transmitting) {
-        this.receiving    = receiving;
+        this.receiving = receiving;
         this.transmitting = transmitting;
     }
 

@@ -14,7 +14,7 @@ public class UnixCpuInfoParser {
     private int cpuCount;
 
     public UnixCpuInfoParser(@Nonnull String[] lines) {
-        this.lines    = lines;
+        this.lines = lines;
         this.cpuCount = parseCpuCount();
     }
 
@@ -57,20 +57,36 @@ public class UnixCpuInfoParser {
         private final long guest_nice;
 
         CpuTimes(@Nonnull String[] line) {
-            this(Long.parseLong(line[1]), Long.parseLong(line[2]), Long.parseLong(line[3]), Integer.parseInt(line[4]), Long
-                    .parseLong(line[5]), Long.parseLong(line[6]), Long.parseLong(line[7]), Integer.parseInt(line[8]), Long
-                    .parseLong(line[9]));
+            this(Long.parseLong(line[1]),
+                 Long.parseLong(line[2]),
+                 Long.parseLong(line[3]),
+                 Integer.parseInt(line[4]),
+                 Long.parseLong(line[5]),
+                 Long.parseLong(line[6]),
+                 Long.parseLong(line[7]),
+                 Integer.parseInt(line[8]),
+                 Long.parseLong(line[9])
+                );
         }
 
-        CpuTimes(long user, long nice, long system, long idle, long iowait, long irq, long steal, long guest, long guest_nice) {
-            this.user       = user;
-            this.nice       = nice;
-            this.system     = system;
-            this.idle       = idle;
-            this.iowait     = iowait;
-            this.irq        = irq;
-            this.steal      = steal;
-            this.guest      = guest;
+        CpuTimes(
+                long user,
+                long nice,
+                long system,
+                long idle,
+                long iowait,
+                long irq,
+                long steal,
+                long guest,
+                long guest_nice) {
+            this.user = user;
+            this.nice = nice;
+            this.system = system;
+            this.idle = idle;
+            this.iowait = iowait;
+            this.irq = irq;
+            this.steal = steal;
+            this.guest = guest;
             this.guest_nice = guest_nice;
         }
 
@@ -129,7 +145,16 @@ public class UnixCpuInfoParser {
 
         @Nonnull
         public CpuTimes getChangeSince(@Nonnull CpuTimes before) {
-            return new CpuTimes(before.user - this.user, before.nice - this.nice, before.system - this.system, before.idle - this.idle, before.iowait - this.iowait, before.irq - this.irq, before.steal - this.steal, before.guest - this.guest, before.guest_nice - this.guest_nice);
+            return new CpuTimes(before.user - this.user,
+                                before.nice - this.nice,
+                                before.system - this.system,
+                                before.idle - this.idle,
+                                before.iowait - this.iowait,
+                                before.irq - this.irq,
+                                before.steal - this.steal,
+                                before.guest - this.guest,
+                                before.guest_nice - this.guest_nice
+            );
         }
     }
 }

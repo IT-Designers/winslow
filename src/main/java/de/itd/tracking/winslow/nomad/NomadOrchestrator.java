@@ -51,12 +51,17 @@ public class NomadOrchestrator implements Orchestrator {
     private boolean isRunning = false;
     private boolean shouldRun = true;
 
-    public NomadOrchestrator(@Nonnull Environment environment, @Nonnull NomadApiClient client, @Nonnull NomadRepository pipelines, @Nonnull RunInfoRepository hints, @Nonnull LogRepository logs) {
+    public NomadOrchestrator(
+            @Nonnull Environment environment,
+            @Nonnull NomadApiClient client,
+            @Nonnull NomadRepository pipelines,
+            @Nonnull RunInfoRepository hints,
+            @Nonnull LogRepository logs) {
         this.environment = environment;
-        this.client      = client;
-        this.pipelines   = pipelines;
-        this.hints       = hints;
-        this.logs        = logs;
+        this.client = client;
+        this.pipelines = pipelines;
+        this.hints = hints;
+        this.logs = logs;
 
         var thread = new Thread(this::pipelineUpdaterLoop);
         thread.setDaemon(true);
@@ -105,9 +110,10 @@ public class NomadOrchestrator implements Orchestrator {
             try {
                 updatePipeline(container);
             } catch (OrchestratorException e) {
-                LOG.log(Level.SEVERE, "Failed to update pipeline " + container
-                        .getNoThrow()
-                        .map(NomadPipeline::getProjectId), e);
+                LOG.log(Level.SEVERE,
+                        "Failed to update pipeline " + container.getNoThrow().map(NomadPipeline::getProjectId),
+                        e
+                       );
             }
         });
     }
@@ -124,7 +130,9 @@ public class NomadOrchestrator implements Orchestrator {
         }
     }
 
-    private void tryStartNextPipelineStage(LockedContainer<NomadPipeline> container, NomadPipeline pipeline) throws OrchestratorException {
+    private void tryStartNextPipelineStage(
+            LockedContainer<NomadPipeline> container,
+            NomadPipeline pipeline) throws OrchestratorException {
         try {
             var stage = maybeStartNextStage(pipeline);
 
@@ -185,8 +193,10 @@ public class NomadOrchestrator implements Orchestrator {
         try {
             this.client.getJobsApi().deregister(stage.getJobId());
         } catch (IOException | NomadException e) {
-            LOG.log(Level.SEVERE, "Failed to deregister job " + pipeline.getProjectId() + "." + stage.getJobId() + "/" + stage
-                    .getTaskName(), e);
+            LOG.log(Level.SEVERE,
+                    "Failed to deregister job " + pipeline.getProjectId() + "." + stage.getJobId() + "/" + stage.getTaskName(),
+                    e
+                   );
         }
     }
 
@@ -315,7 +325,9 @@ public class NomadOrchestrator implements Orchestrator {
         }
     }
 
-    private NomadPipeline tryUpdateContainer(LockedContainer<NomadPipeline> container, NomadPipeline pipeline) throws OrchestratorException {
+    private NomadPipeline tryUpdateContainer(
+            LockedContainer<NomadPipeline> container,
+            NomadPipeline pipeline) throws OrchestratorException {
         try {
             container.update(pipeline);
             return pipeline;
@@ -324,7 +336,10 @@ public class NomadOrchestrator implements Orchestrator {
         }
     }
 
-    private NomadPipeline tryUpdateContainer(LockedContainer<NomadPipeline> container, NomadPipeline pipeline, NomadStage stage) throws OrchestratorException {
+    private NomadPipeline tryUpdateContainer(
+            LockedContainer<NomadPipeline> container,
+            NomadPipeline pipeline,
+            NomadStage stage) throws OrchestratorException {
         try {
             container.update(pipeline);
             return pipeline;
@@ -344,18 +359,14 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     private LockedContainer<NomadPipeline> exclusivePipelineContainer(@Nonnull Project project) throws OrchestratorException {
-        return this.pipelines
-                .getNomadPipeline(project.getId())
-                .exclusive()
-                .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
+        return this.pipelines.getNomadPipeline(project.getId()).exclusive().orElseThrow(() -> new OrchestratorException(
+                "Failed to access new pipeline exclusively"));
     }
 
     private NomadStage startNextPipelineStage(@Nonnull NomadPipeline pipeline) throws IncompleteStageException {
-        var stageDefinition = pipeline
-                .getNextStage()
-                .orElseThrow(() -> IncompleteStageException.Builder
-                        .create("A pipeline requires at least one stage")
-                        .build());
+        var stageDefinition = pipeline.getNextStage().orElseThrow(() -> IncompleteStageException.Builder
+                .create("A pipeline requires at least one stage")
+                .build());
 
         var taskName      = getTaskName(pipeline, stageDefinition);
         var workspacePath = getWorkspacePathForStage(pipeline, taskName);
@@ -369,15 +380,14 @@ public class NomadOrchestrator implements Orchestrator {
             throw IncompleteStageException.Builder
                     .create("The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources)
                     .withWorkspace(workspace
-                            .or(() -> environment.getResourceManager().getWorkspace(workspacePath))
-                            .orElse(null))
+                                           .or(() -> environment.getResourceManager().getWorkspace(workspacePath))
+                                           .orElse(null))
                     .build();
         }
 
         if (stageDefinition.getImage().isPresent()) {
-            builder = builder
-                    .withDockerImage(stageDefinition.getImage().get().getName())
-                    .withDockerImageArguments(stageDefinition.getImage().get().getArgs());
+            builder = builder.withDockerImage(stageDefinition.getImage().get().getName()).withDockerImageArguments(
+                    stageDefinition.getImage().get().getArgs());
         }
 
         if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {
@@ -398,15 +408,21 @@ public class NomadOrchestrator implements Orchestrator {
             var targetDirWorkspace = "/workspace";
 
             builder = builder
-                    .addNfsVolume("winslow-" + builder.getId() + "-resources", targetDirResources, true, config.getOptions(), exportedResources
-                            .get()
-                            .toAbsolutePath()
-                            .toString())
-                    .addNfsVolume("winslow-" + builder.getId() + "-workspace", targetDirWorkspace, false, config.getOptions(), exportedWorkspace
-                            .get()
-                            .toAbsolutePath()
-                            .toString())
-                    .withEnvVariableSet("WINSLOW_DIR_RESOURCES", targetDirResources)
+                    .addNfsVolume("winslow-" + builder.getId() + "-resources",
+                                  targetDirResources,
+                                  true,
+                                  config.getOptions(),
+                                  exportedResources.get().toAbsolutePath().toString()
+                                 )
+                    .addNfsVolume("winslow-" + builder.getId() + "-workspace",
+                                  targetDirWorkspace,
+                                  false,
+                                  config.getOptions(),
+                                  exportedWorkspace.get().toAbsolutePath().toString()
+                                 )
+                    .withEnvVariableSet("WINSLOW_DIR_RESOURCES",
+                                        targetDirResources
+                                       )
                     .withEnvVariableSet("WINSLOW_DIR_WORKSPACE", targetDirWorkspace);
         } else {
             throw IncompleteStageException.Builder
@@ -488,20 +504,18 @@ public class NomadOrchestrator implements Orchestrator {
         return Pipeline.ResumeNotification.Confirmation == pipeline.getResumeNotification().orElse(null);
     }
 
-    private static boolean hasMissingUserInput(@Nonnull NomadPipeline pipeline, StageDefinition stageDefinition, JobBuilder builder) {
-        return Stream
-                .concat(pipeline
-                        .getDefinition()
-                        .getUserInput()
-                        .stream()
-                        .flatMap(u -> u.getValueFor().stream()), stageDefinition
-                        .getUserInput()
-                        .stream()
-                        .flatMap(u -> u.getValueFor().stream()))
-                .anyMatch(k -> builder.getEnvVariable(k).isEmpty());
+    private static boolean hasMissingUserInput(
+            @Nonnull NomadPipeline pipeline,
+            StageDefinition stageDefinition,
+            JobBuilder builder) {
+        return Stream.concat(pipeline.getDefinition().getUserInput().stream().flatMap(u -> u.getValueFor().stream()),
+                             stageDefinition.getUserInput().stream().flatMap(u -> u.getValueFor().stream())
+                            ).anyMatch(k -> builder.getEnvVariable(k).isEmpty());
     }
 
-    private static boolean isConfirmationRequiredForNextStage(@Nonnull NomadPipeline pipeline, StageDefinition stageDefinition) {
+    private static boolean isConfirmationRequiredForNextStage(
+            @Nonnull NomadPipeline pipeline,
+            StageDefinition stageDefinition) {
         return Stream
                 .concat(stageDefinition.getUserInput().stream(), pipeline.getDefinition().getUserInput().stream())
                 .filter(u -> u.requiresConfirmation() != UserInput.Confirmation.Never)
@@ -514,12 +528,12 @@ public class NomadOrchestrator implements Orchestrator {
         return Path.of(pipeline.getProjectId(), taskName);
     }
 
-    private void copyContentOfMostRecentStageTo(NomadPipeline pipeline, Path workspace) throws IncompleteStageException {
-        var workDirBefore = pipeline
-                .getMostRecentStage()
-                .flatMap(stageBefore -> environment
-                        .getResourceManager()
-                        .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore.getTaskName())));
+    private void copyContentOfMostRecentStageTo(
+            NomadPipeline pipeline,
+            Path workspace) throws IncompleteStageException {
+        var workDirBefore = pipeline.getMostRecentStage().flatMap(stageBefore -> environment
+                .getResourceManager()
+                .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore.getTaskName())));
 
         if (workDirBefore.isPresent()) {
             var dirBefore = workDirBefore.get();
@@ -567,7 +581,9 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     @Override
-    public <T> Optional<T> updatePipeline(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) throws OrchestratorException {
+    public <T> Optional<T> updatePipeline(
+            @Nonnull Project project,
+            @Nonnull Function<Pipeline, T> updater) throws OrchestratorException {
         return pipelines.getNomadPipeline(project.getId()).exclusive().flatMap(container -> {
             try (container) {
                 var result   = Optional.<T>empty();
@@ -616,13 +632,24 @@ public class NomadOrchestrator implements Orchestrator {
         return getClient().getAllocationsApi();
     }
 
-    private void redirectLogs(@Nonnull NomadPipeline pipeline, @Nonnull NomadStage stage, @Nonnull Consumer<LogEntry> consumer) {
+    private void redirectLogs(
+            @Nonnull NomadPipeline pipeline,
+            @Nonnull NomadStage stage,
+            @Nonnull Consumer<LogEntry> consumer) {
         new Thread(() -> {
             try (LockedOutputStream os = logs.getRawOutputStream(pipeline.getProjectId(), stage.getId())) {
-                var stdout = LogStream.stdOut(getClientApi(), stage.getTaskName(), () -> getJobAllocationContainingTaskStateLogErrors(stage
-                        .getJobId(), stage.getTaskName()));
-                var stderr = LogStream.stdErr(getClientApi(), stage.getTaskName(), () -> getJobAllocationContainingTaskStateLogErrors(stage
-                        .getJobId(), stage.getTaskName()));
+                var stdout = LogStream.stdOut(getClientApi(),
+                                              stage.getTaskName(),
+                                              () -> getJobAllocationContainingTaskStateLogErrors(stage.getJobId(),
+                                                                                                 stage.getTaskName()
+                                                                                                )
+                                             );
+                var stderr = LogStream.stdErr(getClientApi(),
+                                              stage.getTaskName(),
+                                              () -> getJobAllocationContainingTaskStateLogErrors(stage.getJobId(),
+                                                                                                 stage.getTaskName()
+                                                                                                )
+                                             );
                 var events = EventStream.stream(getAllocationsApi(), stage.getJobId(), stage.getTaskName());
 
                 var queue = new LinkedList<LogEntry>();
@@ -680,7 +707,9 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     @Nonnull
-    private Optional<AllocationListStub> getJobAllocationContainingTaskStateLogErrors(@Nonnull String jobId, @Nonnull String taskName) {
+    private Optional<AllocationListStub> getJobAllocationContainingTaskStateLogErrors(
+            @Nonnull String jobId,
+            @Nonnull String taskName) {
         try {
             return getJobAllocationContainingTaskState(jobId, taskName);
         } catch (NomadException | IOException e) {
@@ -689,7 +718,9 @@ public class NomadOrchestrator implements Orchestrator {
         }
     }
 
-    private Optional<AllocationListStub> getJobAllocationContainingTaskState(@Nonnull String jobId, @Nonnull String taskName) throws IOException, NomadException {
+    private Optional<AllocationListStub> getJobAllocationContainingTaskState(
+            @Nonnull String jobId,
+            @Nonnull String taskName) throws IOException, NomadException {
         for (AllocationListStub allocationListStub : getClient().getAllocationsApi().list().getValue()) {
             if (jobId.equals(allocationListStub.getJobId())) {
                 if (allocationListStub.getTaskStates() != null && allocationListStub
@@ -704,16 +735,16 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     static Optional<Boolean> hasTaskStarted(AllocationListStub allocation, String taskName) {
-        return Optional
-                .ofNullable(allocation.getTaskStates().get(taskName))
-                .map(state -> state.getStartedAt().after(new Date(1)));
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(state -> state
+                .getStartedAt()
+                .after(new Date(1)));
     }
 
     @Nonnull
     public static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
-        return Optional
-                .ofNullable(allocation.getTaskStates().get(taskName))
-                .map(state -> state.getFinishedAt().after(new Date(1)));
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(state -> state
+                .getFinishedAt()
+                .after(new Date(1)));
     }
 
     @Nonnull
@@ -722,7 +753,9 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     @Nonnull
-    public static Optional<Stage.State> toRunningStageState(@Nonnull AllocationListStub allocation, @Nonnull String taskName) {
+    public static Optional<Stage.State> toRunningStageState(
+            @Nonnull AllocationListStub allocation,
+            @Nonnull String taskName) {
         var failed   = hasTaskFailed(allocation, taskName);
         var started  = hasTaskStarted(allocation, taskName);
         var finished = hasTaskFinished(allocation, taskName);

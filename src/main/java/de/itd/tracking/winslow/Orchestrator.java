@@ -25,9 +25,13 @@ public interface Orchestrator {
     }
 
     @Nonnull
-    <T> Optional<T> updatePipeline(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) throws OrchestratorException;
+    <T> Optional<T> updatePipeline(
+            @Nonnull Project project,
+            @Nonnull Function<Pipeline, T> updater) throws OrchestratorException;
 
-    default <T> Optional<T> updatePipelineOmitExceptions(@Nonnull Project project, @Nonnull Function<Pipeline, T> updater) {
+    default <T> Optional<T> updatePipelineOmitExceptions(
+            @Nonnull Project project,
+            @Nonnull Function<Pipeline, T> updater) {
         try {
             return updatePipeline(project, updater);
         } catch (OrchestratorException e) {

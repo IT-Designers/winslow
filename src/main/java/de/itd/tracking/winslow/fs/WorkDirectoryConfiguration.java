@@ -30,10 +30,10 @@ public interface WorkDirectoryConfiguration {
 
     /**
      * See Unix '/run':
-     *  - (early) directory in which process and runtime info is stored,
-     *    which should not be deleted periodically, but does not contain
-     *    data that needs to persist (through a whole system reboot/restart)
-     *
+     * - (early) directory in which process and runtime info is stored,
+     * which should not be deleted periodically, but does not contain
+     * data that needs to persist (through a whole system reboot/restart)
+     * <p>
      * The content of this directory changes a lot (many writes), therefore
      * it is not recommended to have it located on a SSD drive. Consider tmpfs.
      *

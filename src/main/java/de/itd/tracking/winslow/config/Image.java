@@ -35,7 +35,8 @@ public class Image {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"@{name='"+this.name+"',args="+ Arrays.toString(this.args) +"}#"+this.hashCode();
+        return getClass().getSimpleName() + "@{name='" + this.name + "',args=" + Arrays.toString(this.args) + "}#" + this
+                .hashCode();
     }
 
     @Override

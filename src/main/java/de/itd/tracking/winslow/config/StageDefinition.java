@@ -11,7 +11,14 @@ public class StageDefinition {
     private final Map<String, String> env;
     private final Highlight           highlight;
 
-    public StageDefinition(String name, String desc, Image image, Requirements requires, UserInput userInput, HashMap<String, String> env, Highlight highlight) {
+    public StageDefinition(
+            String name,
+            String desc,
+            Image image,
+            Requirements requires,
+            UserInput userInput,
+            HashMap<String, String> env,
+            Highlight highlight) {
         this.name = name;
         this.desc = desc;
         this.image = image;
@@ -56,7 +63,8 @@ public class StageDefinition {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + "}#" + this.hashCode();
+        return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + "}#" + this
+                .hashCode();
     }
 
     @Override
@@ -66,7 +74,19 @@ public class StageDefinition {
         if (o == null || getClass() != o.getClass())
             return false;
         StageDefinition stageDefinition = (StageDefinition) o;
-        return Objects.equals(name, stageDefinition.name) && Objects.equals(desc, stageDefinition.desc) && Objects.equals(image, stageDefinition.image) && Objects.equals(requires, stageDefinition.requires) && Objects.equals(userInput, stageDefinition.userInput) && Objects.equals(env, stageDefinition.env) && Objects.equals(highlight, stageDefinition.highlight);
+        return Objects.equals(name, stageDefinition.name) && Objects.equals(desc,
+                                                                            stageDefinition.desc
+                                                                           ) && Objects.equals(image,
+                                                                                               stageDefinition.image
+                                                                                              ) && Objects.equals(
+                requires,
+                stageDefinition.requires
+                                                                                                                 ) && Objects
+                .equals(userInput, stageDefinition.userInput) && Objects.equals(env,
+                                                                                stageDefinition.env
+                                                                               ) && Objects.equals(highlight,
+                                                                                                   stageDefinition.highlight
+                                                                                                  );
     }
 
     @Override

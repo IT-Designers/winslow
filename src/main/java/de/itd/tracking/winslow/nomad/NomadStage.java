@@ -19,14 +19,18 @@ public class NomadStage implements Stage {
     @Nullable private Date  finishTime;
     @Nullable private State finishState;
 
-    public NomadStage(@Nonnull String jobId, @Nonnull String taskName, @Nonnull StageDefinition definition, @Nonnull String workspace) {
-        this.jobId      = jobId;
-        this.taskName   = taskName;
+    public NomadStage(
+            @Nonnull String jobId,
+            @Nonnull String taskName,
+            @Nonnull StageDefinition definition,
+            @Nonnull String workspace) {
+        this.jobId = jobId;
+        this.taskName = taskName;
         this.definition = definition;
-        this.workspace  = workspace;
+        this.workspace = workspace;
 
-        this.startTime   = new Date();
-        this.finishTime  = null;
+        this.startTime = new Date();
+        this.finishTime = null;
         this.finishState = null;
     }
 
@@ -47,7 +51,7 @@ public class NomadStage implements Stage {
     }
 
     void finishNow(@Nonnull State finishState) {
-        this.finishTime  = new Date();
+        this.finishTime = new Date();
         this.finishState = finishState;
     }
 

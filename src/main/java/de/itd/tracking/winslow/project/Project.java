@@ -21,10 +21,10 @@ public class Project {
     }
 
     public Project(@Nonnull String id, String owner, @Nonnull PipelineDefinition pipeline, String name) {
-        this.id       = id;
-        this.owner    = owner;
+        this.id = id;
+        this.owner = owner;
         this.pipeline = pipeline;
-        this.name     = name;
+        this.name = name;
     }
 
     @Nonnull

@@ -38,7 +38,9 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
         String pattern = " " + workDir.toFile().getCanonicalPath() + " ";
         String line;
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(openOneOf("/etc/mtab", "/proc/mounts")))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(openOneOf("/etc/mtab",
+                                                                                        "/proc/mounts"
+                                                                                       )))) {
             while ((line = reader.readLine()) != null) {
                 if (line.contains(pattern) && line.contains(NFS_TYPE_PATTERN)) {
                     try {
@@ -82,7 +84,9 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
 
     public Optional<Path> toExportedPath(Path workDirPath) {
         try {
-            return Optional.of(new File(this.serverExport).toPath().resolve(this.workDirectory.relativize(workDirPath)));
+            return Optional.of(new File(this.serverExport)
+                                       .toPath()
+                                       .resolve(this.workDirectory.relativize(workDirPath)));
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             return Optional.empty();

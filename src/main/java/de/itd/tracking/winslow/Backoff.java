@@ -2,14 +2,14 @@ package de.itd.tracking.winslow;
 
 public class Backoff {
 
-    private final int min;
-    private final int max;
+    private final int   min;
+    private final int   max;
     private final float multiplier;
-    private float value;
+    private       float value;
 
     public Backoff(int min, int max, float multiplier) {
-        this.min        = min;
-        this.max        = max;
+        this.min = min;
+        this.max = max;
         this.multiplier = multiplier;
     }
 
@@ -22,7 +22,7 @@ public class Backoff {
     }
 
     public long getSleepMs() {
-        return (long)value;
+        return (long) value;
     }
 
     public void sleep() {

@@ -31,13 +31,18 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private boolean              closed;
     private long                 lastSuccess = 0;
 
-    public LogInputStream(@Nonnull ClientApi api, @Nonnull String taskName, @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier, @Nonnull String logType, boolean follow) throws IOException {
-        this.api           = api;
-        this.taskName      = taskName;
+    public LogInputStream(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier,
+            @Nonnull String logType,
+            boolean follow) throws IOException {
+        this.api = api;
+        this.taskName = taskName;
         this.stateSupplier = stateSupplier;
-        this.logType       = logType;
-        this.follow        = follow;
-        this.framedStream  = this.tryOpen();
+        this.logType = logType;
+        this.follow = follow;
+        this.framedStream = this.tryOpen();
     }
 
     @Nullable
@@ -46,9 +51,11 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         if (allocationBeingPresentOnlyIfHasStarted.isPresent()) {
             try {
                 if (file == null) {
-                    return api.logsAsFrames(allocationBeingPresentOnlyIfHasStarted
-                            .get()
-                            .getId(), taskName, false, logType);
+                    return api.logsAsFrames(allocationBeingPresentOnlyIfHasStarted.get().getId(),
+                                            taskName,
+                                            false,
+                                            logType
+                                           );
                 } else if (follow) {
                     return api.stream(allocationBeingPresentOnlyIfHasStarted.get().getId(), file, offset);
                 } else {
@@ -64,9 +71,9 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private Optional<AllocationListStub> getAllocationBeingPresentOnlyIfHasStarted() {
-        return this.stateSupplier
-                .get()
-                .filter(allocation -> NomadOrchestrator.hasTaskStarted(allocation, taskName).orElse(Boolean.FALSE));
+        return this.stateSupplier.get().filter(allocation -> NomadOrchestrator
+                .hasTaskStarted(allocation, taskName)
+                .orElse(Boolean.FALSE));
     }
 
     private boolean tryOpenIfNotOpened() throws IOException {
@@ -137,10 +144,10 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         if (framedStream.hasNextFrame()) {
             StreamFrame frame = framedStream.nextFrame();
             if (frame != null && frame.getData() != null && frame.getData().length > 0) {
-                this.offset       += frame.getData().length;
-                this.file         = frame.getFile();
+                this.offset += frame.getData().length;
+                this.file = frame.getFile();
                 this.currentFrame = new ByteArrayInputStream(frame.getData());
-                this.lastSuccess  = System.currentTimeMillis();
+                this.lastSuccess = System.currentTimeMillis();
                 return true;
             }
         } else {
@@ -190,7 +197,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
                 this.framedStream.close();
             }
         } finally {
-            this.closed       = true;
+            this.closed = true;
             this.framedStream = null;
         }
     }

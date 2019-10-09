@@ -19,7 +19,7 @@ public class NodeInfoUpdater implements Runnable {
 
     private NodeInfoUpdater(@Nonnull Path directory, @Nonnull Node node) {
         this.directory = directory;
-        this.node      = node;
+        this.node = node;
     }
 
     public static void spawn(@Nonnull Path directory, @Nonnull Node node) {

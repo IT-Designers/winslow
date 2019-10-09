@@ -12,10 +12,6 @@ public class CsrfSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookiePath("/");
-        http
-                .httpBasic()
-                .and()
-                .csrf()
-                .csrfTokenRepository(repo);
+        http.httpBasic().and().csrf().csrfTokenRepository(repo);
     }
 }

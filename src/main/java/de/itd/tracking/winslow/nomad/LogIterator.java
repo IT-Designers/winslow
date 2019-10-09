@@ -20,15 +20,20 @@ public class LogIterator implements Iterator<String> {
     private final ClientApi                              clientApi;
     private final Supplier<Optional<AllocationListStub>> state;
 
-    private BufferedReader reader = null;
-    private String nextLine = null;
+    private BufferedReader reader   = null;
+    private String         nextLine = null;
 
-    public LogIterator(String id, String taskName, String logType, ClientApi clientApi, Supplier<Optional<AllocationListStub>> state) {
-        this.id        = id;
-        this.taskName  = taskName;
-        this.logType   = logType;
+    public LogIterator(
+            String id,
+            String taskName,
+            String logType,
+            ClientApi clientApi,
+            Supplier<Optional<AllocationListStub>> state) {
+        this.id = id;
+        this.taskName = taskName;
+        this.logType = logType;
         this.clientApi = clientApi;
-        this.state     = state;
+        this.state = state;
     }
 
     private boolean hasTaskStarted(AllocationListStub allocation) {
@@ -40,7 +45,11 @@ public class LogIterator implements Iterator<String> {
             return state.get().map(allocation -> {
                 if (hasTaskStarted(allocation)) {
                     try {
-                        reader = new BufferedReader(new InputStreamReader(clientApi.logs(allocation.getId(), taskName, false, logType)));
+                        reader = new BufferedReader(new InputStreamReader(clientApi.logs(allocation.getId(),
+                                                                                         taskName,
+                                                                                         false,
+                                                                                         logType
+                                                                                        )));
                         return Boolean.TRUE;
                     } catch (IOException | NomadException e) {
                         e.printStackTrace();

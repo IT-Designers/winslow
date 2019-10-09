@@ -2,13 +2,19 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
-import com.hashicorp.nomad.javasdk.*;
+import com.hashicorp.nomad.javasdk.AllocationsApi;
+import com.hashicorp.nomad.javasdk.NomadException;
+import com.hashicorp.nomad.javasdk.QueryOptions;
+import com.hashicorp.nomad.javasdk.WaitStrategy;
 import de.itd.tracking.winslow.LogEntry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.stream.Stream;
 
 public class EventStream {
@@ -17,13 +23,13 @@ public class EventStream {
     private final String         jobId;
     private final String         taskName;
 
-    private TaskState       state         = null;
+    private TaskState       state = null;
     private int             previousIndex = 0;
-    private Queue<LogEntry> logs          = new ArrayDeque<>();
+    private Queue<LogEntry> logs = new ArrayDeque<>();
 
     public EventStream(AllocationsApi api, String jobId, String taskName) {
-        this.api      = api;
-        this.jobId    = jobId;
+        this.api = api;
+        this.jobId = jobId;
         this.taskName = taskName;
     }
 
@@ -75,13 +81,11 @@ public class EventStream {
     private void parseNextLogEntries() {
         var next = state.getEvents().get(previousIndex++);
         var time = next.getTime() / 1_000_000;
-        boolean err = next.getFailsTask()
-                || next.getDownloadError().length() > 0
-                || next.getDriverError().length() > 0
-                || next.getKillError().length() > 0
-                || next .getSetupError().length() > 0
-                || next.getValidationError().length() > 0
-                || next.getVaultError().length() > 0;
+        boolean err = next.getFailsTask() || next.getDownloadError().length() > 0 || next
+                .getDriverError()
+                .length() > 0 || next.getKillError().length() > 0 || next.getSetupError().length() > 0 || next
+                .getValidationError()
+                .length() > 0 || next.getVaultError().length() > 0;
 
         maybeEnqueue(time, err, next.getMessage());
         maybeEnqueue(time, err, next.getDisplayMessage());
@@ -101,9 +105,7 @@ public class EventStream {
             if (state == null) {
                 return false;
             } else {
-                boolean news = state
-                        .getEvents()
-                        .size() > previousIndex || (state.getFinishedAt() != null && state
+                boolean news = state.getEvents().size() > previousIndex || (state.getFinishedAt() != null && state
                         .getFinishedAt()
                         .getTime() > 0);
                 if (news) {
@@ -114,10 +116,14 @@ public class EventStream {
         }, WaitStrategy.WAIT_INDEFINITELY));
     }
 
-    public static Stream<LogEntry> stream(@Nonnull AllocationsApi api, @Nonnull String jobId, @Nonnull String taskName) {
+    public static Stream<LogEntry> stream(
+            @Nonnull AllocationsApi api,
+            @Nonnull String jobId,
+            @Nonnull String taskName) {
         var stream = new EventStream(api, jobId, taskName);
-        return Stream
-                .iterate(new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""), Objects::nonNull, v -> stream.next())
-                .skip(1);
+        return Stream.iterate(new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""),
+                              Objects::nonNull,
+                              v -> stream.next()
+                             ).skip(1);
     }
 }

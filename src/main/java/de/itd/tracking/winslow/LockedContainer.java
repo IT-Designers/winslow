@@ -15,14 +15,17 @@ public class LockedContainer<T> implements Closeable {
 
     private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
-    @Nonnull private final Lock      lock;
+    @Nonnull private final Lock lock;
     @Nonnull private final Reader<T> reader;
     @Nonnull private final Writer<T> writer;
 
     private T value;
 
-    public LockedContainer(@Nonnull Lock lock, @Nonnull Reader<T> reader, @Nonnull Writer<T> writer) throws IOException {
-        this.lock   = lock;
+    public LockedContainer(
+            @Nonnull Lock lock,
+            @Nonnull Reader<T> reader,
+            @Nonnull Writer<T> writer) throws IOException {
+        this.lock = lock;
         this.reader = reader;
         this.writer = writer;
 

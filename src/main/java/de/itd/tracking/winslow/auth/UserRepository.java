@@ -8,16 +8,14 @@ import java.util.stream.Stream;
 
 public class UserRepository implements GroupAssignmentResolver {
 
-    public static final String SUPERUSER  = "root";
+    public static final String SUPERUSER = "root";
 
     private final Map<String, User> users = new HashMap<>();
     private final GroupRepository   groups;
 
     public UserRepository(GroupRepository groups) {
         this.groups = groups;
-        this
-                .withUser(new User(SUPERUSER, this))
-                .withUser(new User("michael", this));
+        this.withUser(new User(SUPERUSER, this)).withUser(new User("michael", this));
 
     }
 
@@ -35,20 +33,13 @@ public class UserRepository implements GroupAssignmentResolver {
 
     @Override
     public boolean canAccessGroup(@Nonnull String user, @Nonnull String group) {
-        return SUPERUSER.equals(user)
-                || user.equals(group)
-                || groups
-                    .getGroup(group)
-                    .map(g -> g.isMember(user))
-                    .orElse(false);
+        return SUPERUSER.equals(user) || user.equals(group) || groups.getGroup(group).map(g -> g.isMember(user)).orElse(
+                false);
     }
 
     @Nonnull
     @Override
     public Stream<String> getAssignedGroups(String user) {
-        return Stream.concat(
-                Stream.of(user),
-                this.groups.getGroupsWithMember(user).map(Group::getName)
-        );
+        return Stream.concat(Stream.of(user), this.groups.getGroupsWithMember(user).map(Group::getName));
     }
 }

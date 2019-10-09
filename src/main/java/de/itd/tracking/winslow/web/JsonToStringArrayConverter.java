@@ -22,7 +22,8 @@ public class JsonToStringArrayConverter implements Converter<String, String[]> {
     @Override
     public String[] convert(@Nonnull String s) {
         try {
-            return new ObjectMapper().readValue(s, new TypeReference<String[]>() {});
+            return new ObjectMapper().readValue(s, new TypeReference<String[]>() {
+            });
         } catch (IOException e) {
             return SPLIT.split(s);
         }

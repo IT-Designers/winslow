@@ -39,17 +39,18 @@ public class UserResolver implements HandlerMethodArgumentResolver, WebMvcConfig
 
     @Nullable
     @Override
-    public User resolveArgument(MethodParameter methodParameter, ModelAndViewContainer modelAndViewContainer, NativeWebRequest nativeWebRequest, WebDataBinderFactory webDataBinderFactory) throws Exception {
-        return Optional.ofNullable(nativeWebRequest.getRemoteUser())
-                .or(() -> {
-                    if (Boolean.parseBoolean(System.getenv(Env.DEV_ENV))) {
-                        return Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER));
-                    } else {
-                        return Optional.empty();
-                    }
-                })
-                .flatMap(users::getUser)
-                .orElse(null);
+    public User resolveArgument(
+            MethodParameter methodParameter,
+            ModelAndViewContainer modelAndViewContainer,
+            NativeWebRequest nativeWebRequest,
+            WebDataBinderFactory webDataBinderFactory) throws Exception {
+        return Optional.ofNullable(nativeWebRequest.getRemoteUser()).or(() -> {
+            if (Boolean.parseBoolean(System.getenv(Env.DEV_ENV))) {
+                return Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER));
+            } else {
+                return Optional.empty();
+            }
+        }).flatMap(users::getUser).orElse(null);
     }
 }
 

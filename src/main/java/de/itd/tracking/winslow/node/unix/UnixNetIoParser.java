@@ -33,7 +33,9 @@ public class UnixNetIoParser {
         }).map(row -> {
             var name   = row[0].trim();
             var values = WHITESPACE_SEPARATOR.split(row[1].trim());
-            return new AbstractMap.SimpleEntry<>(name, new InterfaceInfo(Long.parseLong(values[0]), Long.parseLong(values[8])));
+            return new AbstractMap.SimpleEntry<>(name,
+                                                 new InterfaceInfo(Long.parseLong(values[0]), Long.parseLong(values[8]))
+            );
         });
     }
 
@@ -43,7 +45,7 @@ public class UnixNetIoParser {
 
 
         InterfaceInfo(long received, long transmitted) {
-            this.received    = received;
+            this.received = received;
             this.transmitted = transmitted;
         }
 

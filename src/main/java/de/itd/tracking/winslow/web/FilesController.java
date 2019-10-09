@@ -90,32 +90,33 @@ public class FilesController {
         uploadFile(request, user, file, winslow.getResourceManager().getWorkspacesDirectory());
     }
 
-    public void uploadFile(HttpServletRequest request, User user, @RequestParam("file") MultipartFile file, @Nonnull Optional<Path> directory) {
-        normalizedPath(request)
-                .flatMap(path -> directory.flatMap(dir -> {
-                    var resolved = dir.resolve(path);
-                    if (canAccess(winslow, user, dir, resolved)) {
-                        return Optional.of(resolved);
-                    } else {
-                        return Optional.empty();
-                    }
-                }))
-                .map(path -> {
-                    var parent = path.getParent();
-                    if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
-                        try {
-                            file.transferTo(path);
-                            return true;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                })
-                .map(result -> result ? Optional.of(true) : Optional.empty())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    public void uploadFile(
+            HttpServletRequest request,
+            User user,
+            @RequestParam("file") MultipartFile file,
+            @Nonnull Optional<Path> directory) {
+        normalizedPath(request).flatMap(path -> directory.flatMap(dir -> {
+            var resolved = dir.resolve(path);
+            if (canAccess(winslow, user, dir, resolved)) {
+                return Optional.of(resolved);
+            } else {
+                return Optional.empty();
+            }
+        })).map(path -> {
+            var parent = path.getParent();
+            if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
+                try {
+                    file.transferTo(path);
+                    return true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }).map(result -> result ? Optional.of(true) : Optional.empty()).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
@@ -128,7 +129,8 @@ public class FilesController {
         return downloadFile(request, user, winslow.getResourceManager().getWorkspacesDirectory());
     }
 
-    public ResponseEntity<InputStreamResource> downloadFile(HttpServletRequest request, User user, @Nonnull Optional<Path> directory) {
+    public ResponseEntity<InputStreamResource> downloadFile(
+            HttpServletRequest request, User user, @Nonnull Optional<Path> directory) {
         return normalizedPath(request).flatMap(path -> directory.flatMap(dir -> {
             try {
                 var file = dir.resolve(path.normalize()).toFile();
@@ -147,10 +149,10 @@ public class FilesController {
                 }
 
                 return Optional.of(ResponseEntity
-                        .ok()
-                        .contentLength(file.length())
-                        .contentType(media)
-                        .body(new InputStreamResource(is, file.getName())));
+                                           .ok()
+                                           .contentLength(file.length())
+                                           .contentType(media)
+                                           .body(new InputStreamResource(is, file.getName())));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 return Optional.empty();
@@ -169,25 +171,31 @@ public class FilesController {
     }
 
     public Iterable<FileInfo> listDirectory(HttpServletRequest request, User user, @Nonnull Optional<Path> directory) {
-        return normalizedPath(request)
-                .flatMap(path -> directory.map(dir -> Optional
-                        .ofNullable(dir.resolve(path.normalize()).toFile().listFiles())
-                        .stream()
-                        .flatMap(Arrays::stream)
-                        .filter(file -> canAccess(winslow, user, dir, file.toPath()))
-                        .map(file -> new FileInfo(file.getName(), file.isDirectory(), Path
-                                .of("/", dir.getName(dir.getNameCount() - 1).toString())
-                                .resolve(dir.relativize(file.toPath()))
-                                .toString()))
-                        .collect(Collectors.toUnmodifiableList())))
-                .orElse(Collections.emptyList());
+        return normalizedPath(request).flatMap(path -> directory.map(dir -> Optional
+                .ofNullable(dir
+                                    .resolve(path.normalize())
+                                    .toFile()
+                                    .listFiles())
+                .stream()
+                .flatMap(Arrays::stream)
+                .filter(file -> canAccess(winslow, user, dir, file.toPath()))
+                .map(file -> new FileInfo(file.getName(), file.isDirectory(), Path
+                        .of("/",
+                            dir
+                                    .getName(dir.getNameCount() - 1)
+                                    .toString()
+                           )
+                        .resolve(dir.relativize(file.toPath()))
+                        .toString()))
+                .collect(Collectors.toUnmodifiableList()))).orElse(Collections.emptyList());
     }
 
     private static boolean canAccess(@Nonnull Winslow winslow, @Nullable User user, Path workDir, Path path) {
         return canAccessOrCreateDirectory(winslow, user, workDir, path, false);
     }
 
-    private static boolean canAccessOrCreateDirectory(@Nonnull Winslow winslow, @Nullable User user, Path workDir, Path path, boolean wantsCreateDirectory) {
+    private static boolean canAccessOrCreateDirectory(
+            @Nonnull Winslow winslow, @Nullable User user, Path workDir, Path path, boolean wantsCreateDirectory) {
         var p = workDir.relativize(path);
 
         //  TODO
@@ -229,9 +237,9 @@ public class FilesController {
         private final String  path;
 
         public FileInfo(String name, boolean isDirectory, String path) {
-            this.name        = name;
+            this.name = name;
             this.isDirectory = isDirectory;
-            this.path        = path;
+            this.path = path;
         }
 
         public String getName() {

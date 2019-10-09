@@ -17,7 +17,7 @@ public class PreparedJob {
 
 
     public PreparedJob(@Nonnull Job job, @Nonnull NomadOrchestrator orchestrator) {
-        this.job          = job;
+        this.job = job;
         this.orchestrator = orchestrator;
     }
 
@@ -34,7 +34,7 @@ public class PreparedJob {
 
                 // therefore reset those once passed
                 this.orchestrator = null;
-                this.job          = null;
+                this.job = null;
 
                 this.stage = stage;
             }

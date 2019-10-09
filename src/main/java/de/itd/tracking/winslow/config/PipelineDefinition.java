@@ -12,10 +12,10 @@ public class PipelineDefinition {
     private final List<StageDefinition> stages;
 
     public PipelineDefinition(String name, String desc, UserInput userInput, List<StageDefinition> stages) {
-        this.name      = name;
-        this.desc      = desc;
+        this.name = name;
+        this.desc = desc;
         this.userInput = userInput;
-        this.stages    = stages;
+        this.stages = stages;
         this.check();
     }
 
@@ -42,7 +42,8 @@ public class PipelineDefinition {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',userInput=" + this.userInput + ",stages=" + this.stages + "}#" + this.hashCode();
+        return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',userInput=" + this.userInput + ",stages=" + this.stages + "}#" + this
+                .hashCode();
     }
 
     @Override
@@ -52,7 +53,8 @@ public class PipelineDefinition {
         if (o == null || getClass() != o.getClass())
             return false;
         PipelineDefinition pipelineDefinition = (PipelineDefinition) o;
-        return Objects.equals(name, pipelineDefinition.name) && Objects.equals(desc, pipelineDefinition.desc) && Objects.equals(userInput, pipelineDefinition.userInput) && Objects.equals(stages, pipelineDefinition.stages);
+        return Objects.equals(name, pipelineDefinition.name) && Objects.equals(desc, pipelineDefinition.desc) && Objects
+                .equals(userInput, pipelineDefinition.userInput) && Objects.equals(stages, pipelineDefinition.stages);
     }
 
     @Override

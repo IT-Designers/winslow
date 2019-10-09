@@ -23,7 +23,7 @@ public class Requirements {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"@{ram="+this.ram+", gpu="+this.gpu+"}#"+this.hashCode();
+        return getClass().getSimpleName() + "@{ram=" + this.ram + ", gpu=" + this.gpu + "}#" + this.hashCode();
     }
 
     @Override
@@ -66,7 +66,8 @@ public class Requirements {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName()+"@{count="+this.count+", vendor='"+this.vendor+"', support="+ Arrays.toString(this.support) +"}#"+this.hashCode();
+            return getClass().getSimpleName() + "@{count=" + this.count + ", vendor='" + this.vendor + "', support=" + Arrays
+                    .toString(this.support) + "}#" + this.hashCode();
         }
 
         @Override

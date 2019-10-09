@@ -17,20 +17,12 @@ public class PipelinesController {
 
     @GetMapping("/pipelines")
     public Stream<PipelineInfo> getAllPipelines() {
-        return winslow
+        return winslow.getPipelineRepository().getPipelineIdentifiers().flatMap(identifier -> winslow
                 .getPipelineRepository()
-                .getPipelineIdentifiers()
-                .flatMap(identifier -> winslow
-                        .getPipelineRepository()
-                        .getPipeline(identifier)
-                        .unsafe()
-                        .stream()
-                        .map(p -> new PipelineInfo(
-                                identifier,
-                                p.getName(),
-                                p.getDescription().orElse(null)
-                        ))
-                );
+                .getPipeline(identifier)
+                .unsafe()
+                .stream()
+                .map(p -> new PipelineInfo(identifier, p.getName(), p.getDescription().orElse(null))));
     }
 
     public static class PipelineInfo {

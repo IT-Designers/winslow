@@ -9,8 +9,13 @@ public class NodeInfo {
     @Nonnull private final NetInfo  netInfo;
     @Nonnull private final DiskInfo diskInfo;
 
-    public NodeInfo(@Nonnull String name, @Nonnull CpuInfo cpuInfo, @Nonnull MemInfo memInfo, @Nonnull NetInfo netInfo, @Nonnull DiskInfo diskInfo) {
-        this.name    = name;
+    public NodeInfo(
+            @Nonnull String name,
+            @Nonnull CpuInfo cpuInfo,
+            @Nonnull MemInfo memInfo,
+            @Nonnull NetInfo netInfo,
+            @Nonnull DiskInfo diskInfo) {
+        this.name = name;
         this.cpuInfo = cpuInfo;
         this.memInfo = memInfo;
         this.netInfo = netInfo;

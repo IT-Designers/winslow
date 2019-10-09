@@ -13,10 +13,10 @@ public class MemInfo {
 
     public MemInfo(long memoryTotal, long memoryFree, long systemCache, long swapTotal, long swapFree) {
         this.memoryTotal = memoryTotal;
-        this.memoryFree  = memoryFree;
+        this.memoryFree = memoryFree;
         this.systemCache = systemCache;
-        this.swapTotal   = swapTotal;
-        this.swapFree    = swapFree;
+        this.swapTotal = swapTotal;
+        this.swapFree = swapFree;
     }
 
     public long getMemoryTotal() {

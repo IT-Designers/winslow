@@ -42,8 +42,6 @@ public class UserInput {
     }
 
     public enum Confirmation {
-        Never,
-        Once,
-        Always
+        Never, Once, Always
     }
 }

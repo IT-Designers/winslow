@@ -15,7 +15,9 @@ public class NomadRepository extends BaseRepository {
     private static final String SUFFIX_PIPELINE = ".pipeline.toml";
 
 
-    public NomadRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public NomadRepository(
+            @Nonnull LockBus lockBus,
+            @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 

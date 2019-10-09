@@ -16,12 +16,18 @@ public class IncompleteStageException extends OrchestratorException {
     private final boolean requiresConfirmation;
     private final boolean missingEnvVariables;
 
-    private IncompleteStageException(@Nonnull String message, @Nullable Throwable cause, @Nullable NomadStage stage, @Nullable Path workspace, boolean requiresConfirmation, boolean missingEnvVariables) {
+    private IncompleteStageException(
+            @Nonnull String message,
+            @Nullable Throwable cause,
+            @Nullable NomadStage stage,
+            @Nullable Path workspace,
+            boolean requiresConfirmation,
+            boolean missingEnvVariables) {
         super(message, cause);
-        this.stage                = stage;
-        this.workspace            = workspace;
+        this.stage = stage;
+        this.workspace = workspace;
         this.requiresConfirmation = requiresConfirmation;
-        this.missingEnvVariables  = missingEnvVariables;
+        this.missingEnvVariables = missingEnvVariables;
     }
 
     @Nonnull
@@ -43,12 +49,12 @@ public class IncompleteStageException extends OrchestratorException {
     }
 
     public static class Builder {
-        @Nonnull private final String     message;
+        @Nonnull private final String message;
         private                NomadStage stage;
-        private                Path       workspace;
-        private                Throwable  cause;
-        private                boolean    requiresConfirmation;
-        private                boolean    missingEnvVariables;
+        private                Path workspace;
+        private                Throwable cause;
+        private                boolean requiresConfirmation;
+        private                boolean missingEnvVariables;
 
         private Builder(@Nonnull String message) {
             this.message = message;
@@ -113,7 +119,13 @@ public class IncompleteStageException extends OrchestratorException {
         @Nonnull
         @CheckReturnValue
         public IncompleteStageException build() {
-            return new IncompleteStageException(this.message, this.cause, this.stage, this.workspace, this.requiresConfirmation, this.missingEnvVariables);
+            return new IncompleteStageException(this.message,
+                                                this.cause,
+                                                this.stage,
+                                                this.workspace,
+                                                this.requiresConfirmation,
+                                                this.missingEnvVariables
+            );
         }
     }
 }

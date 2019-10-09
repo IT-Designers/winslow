@@ -6,8 +6,7 @@ import java.util.Date;
 public class LogEntry {
 
     public enum Source {
-        STANDARD_IO,
-        MANAGEMENT_EVENT
+        STANDARD_IO, MANAGEMENT_EVENT
     }
 
     private final long    time;
@@ -16,9 +15,9 @@ public class LogEntry {
     private final String  message;
 
     public LogEntry(long timeMs, Source source, boolean error, @Nonnull String message) {
-        this.time    = timeMs;
-        this.source  = source;
-        this.error   = error;
+        this.time = timeMs;
+        this.source = source;
+        this.error = error;
         this.message = message;
     }
 

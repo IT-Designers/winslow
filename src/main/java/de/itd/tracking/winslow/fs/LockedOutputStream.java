@@ -6,7 +6,7 @@ import java.io.*;
 public class LockedOutputStream extends OutputStream {
 
     private final OutputStream outputStream;
-    private final Lock lock;
+    private final Lock         lock;
 
     public LockedOutputStream(File file, Lock lock) throws FileNotFoundException {
         this(new FileOutputStream(file), lock);

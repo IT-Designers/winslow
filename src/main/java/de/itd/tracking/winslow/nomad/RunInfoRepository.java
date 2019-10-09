@@ -21,7 +21,9 @@ public class RunInfoRepository extends BaseRepository {
     private static final String SUFFIX_PROGRESS      = ".progress";
     private static final String SUFFIX_LOG_COMPLETED = ".log-completed-successfully";
 
-    public RunInfoRepository(@Nonnull LockBus lockBus, @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public RunInfoRepository(
+            @Nonnull LockBus lockBus,
+            @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
     }
 
@@ -33,7 +35,9 @@ public class RunInfoRepository extends BaseRepository {
 
     boolean setProgressHint(@Nonnull String projectId, int progress) {
         try {
-            Files.write(getRepositoryFile(projectId, SUFFIX_PROGRESS), Collections.singletonList(Integer.toString(progress)));
+            Files.write(getRepositoryFile(projectId, SUFFIX_PROGRESS),
+                        Collections.singletonList(Integer.toString(progress))
+                       );
             return true;
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to save progress hint [" + progress + "] for " + projectId, e);
@@ -45,8 +49,8 @@ public class RunInfoRepository extends BaseRepository {
     Optional<Integer> getProgressHint(@Nonnull String projectId) {
         try {
             return Optional.of(Integer.parseInt(Files
-                    .readString(getRepositoryFile(projectId, SUFFIX_PROGRESS))
-                    .trim()));
+                                                        .readString(getRepositoryFile(projectId, SUFFIX_PROGRESS))
+                                                        .trim()));
         } catch (NoSuchFileException | FileNotFoundException e) {
             LOG.log(Level.FINER, "There is no progress for the project " + projectId, e);
             return Optional.empty();
