@@ -22,6 +22,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   @Input() project: Project;
   @Output('state') stateEmitter = new EventEmitter<State>();
 
+  filesAdditionalRoot: string = null;
+  filesNavigationTarget: string = null;
+
   state?: State = null;
   history?: HistoryEntry[] = null;
   logs?: LogEntry[] = null;
@@ -49,6 +52,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.filesAdditionalRoot = `${this.project.name};workspaces/${this.project.id}`;
   }
 
   ngOnDestroy(): void {
@@ -189,8 +193,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   openFolder(project: Project, entry: HistoryEntry) {
     this.tabs.selectedIndex = 2;
-    this.files.updateAdditionalRoot(`${project.name};workspaces/${project.id}`, true);
-    this.files.navigateDirectlyTo(`/workspaces/${project.id}/${entry.workspace}/`);
+    this.filesAdditionalRoot = `${project.name};workspaces/${project.id}`;
+    this.filesNavigationTarget = `/workspaces/${project.id}/${entry.stageId}/`;
   }
 
 

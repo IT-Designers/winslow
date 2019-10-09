@@ -11,6 +11,7 @@ import {FileInfo, FilesApiService} from '../api/files-api.service';
 export class FilesComponent implements OnInit {
   @Input() additionalRoot?: string;
   @Input() navigateToAdditionalRoot = true;
+  @Input() navigationTarget?: string;
 
   files: Map<string, FileInfo[]> = new Map();
 
@@ -29,6 +30,8 @@ export class FilesComponent implements OnInit {
   }
 
   ngOnInit() {
+    let additionalPath: string = null;
+
     this.api.listFiles('/resources').toPromise().then(res => {
       this.files.set('/', (() => {
         const root = [];
@@ -44,17 +47,21 @@ export class FilesComponent implements OnInit {
           additional.directory = true;
           additional.name = this.additionalRoot.split(';')[0];
           additional.path = `/${this.additionalRoot.split(';')[1]}`;
+          additionalPath = additional.path;
           this.files.set(additional.path, []);
           root.push(additional);
-          if (this.navigateToAdditionalRoot) {
-            this.navigateDirectlyTo(additional.path);
-          }
         }
-
-
         return root;
       })());
-      this.loadDirectory(this.latestPath);
+      return this.loadDirectory(this.latestPath);
+    }).then(result => {
+      if (additionalPath) {
+        return this.navigateDirectlyTo(additionalPath);
+      }
+    }).then(result => {
+      if (this.navigationTarget != null) {
+        return this.navigateDirectlyTo(this.navigationTarget);
+      }
     });
   }
 
@@ -130,7 +137,7 @@ export class FilesComponent implements OnInit {
     });
   }
 
-  navigateDirectlyTo(path: string) {
+  navigateDirectlyTo(path: string): Promise<void> {
     const current = this.latestPath.split('/').filter(d => d.length > 0);
     const split = path.split('/').filter(d => d.length > 0);
     let index = 0;
@@ -147,8 +154,8 @@ export class FilesComponent implements OnInit {
       }
     }
 
-    this.recursivelyLoadDirectoriesOfPath(split, index, combined).then(path => {
-      this.selectedPath.emit(this.latestPath = path);
+    return this.recursivelyLoadDirectoriesOfPath(split, index, combined).then(p => {
+      this.selectedPath.emit(this.latestPath = p);
       this.updateSelection();
     });
   }

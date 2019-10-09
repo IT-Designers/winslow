@@ -137,7 +137,14 @@
   </mat-tab>
 
   <mat-tab label="Files">
-    <app-files #files class="files-tab-content" additionalRoot="{{project.name}};workspaces/{{project.id}}"></app-files>
+    <ng-template matTabContent>
+      <app-files #files class="files-tab-content"
+                 [additionalRoot]="filesAdditionalRoot"
+                 [navigateToAdditionalRoot]="true"
+                 [navigationTarget]="this.filesNavigationTarget"
+      ></app-files>
+
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="Logs">
