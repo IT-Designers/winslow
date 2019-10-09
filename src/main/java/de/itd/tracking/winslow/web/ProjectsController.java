@@ -173,7 +173,7 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/logs/latest")
-    public Stream<LogEntry> getProjectStageLogsLatest(User user, @PathVariable("projectId") String projectId, @RequestParam(value = "skipLines", defaultValue = "0") long skipLines) {
+    public Stream<LogEntryInfo> getProjectStageLogsLatest(User user, @PathVariable("projectId") String projectId, @RequestParam(value = "skipLines", defaultValue = "0") long skipLines, @RequestParam(value = "expectingStageId", defaultValue = "0") String stageId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -185,8 +185,17 @@ public class ProjectsController {
                         .getPipelineOmitExceptions(project)
                         .flatMap(Pipeline::getMostRecentStage)
                         .stream()
-                        .flatMap(stage -> winslow.getOrchestrator().getLogs(project, stage.getId())))
-                .skip(skipLines);
+                        .flatMap(stage -> {
+                            var skip = skipLines;
+                            if (stageId != null && !stageId.equals(stage.getId())) {
+                                skip = 0;
+                            }
+                            return winslow
+                                    .getOrchestrator()
+                                    .getLogs(project, stage.getId())
+                                    .map(entry -> new LogEntryInfo(stage.getId(), entry))
+                                    .skip(skip);
+                        }));
     }
 
     @GetMapping("projects/{projectId}/logs/{stageId}")
@@ -274,18 +283,11 @@ public class ProjectsController {
                         .skip(stageIndex)
                         .findFirst()
                         .flatMap(StageDefinition::getImage)
-                        .map(ImageInfo::new)
-                );
+                        .map(ImageInfo::new));
     }
 
     @PostMapping("projects/{projectId}/resume/{stageIndex}")
-    public void resumePipeline(User user, @PathVariable("projectId") String projectId,
-            @RequestParam("env") Map<String, String> env,
-            @PathVariable("stageIndex") int index,
-            @RequestParam(value = "strategy", required = false) @Nullable String strategy,
-            @RequestParam(value = "imageName", required = false) @Nullable String imageName,
-            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs
-            ) {
+    public void resumePipeline(User user, @PathVariable("projectId") String projectId, @RequestParam("env") Map<String, String> env, @PathVariable("stageIndex") int index, @RequestParam(value = "strategy", required = false) @Nullable String strategy, @RequestParam(value = "imageName", required = false) @Nullable String imageName, @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs) {
         winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -301,7 +303,10 @@ public class ProjectsController {
                     pipeline.getEnvironment().clear();
                     pipeline.getEnvironment().putAll(env);
 
-                    if ((imageName != null || imageArgs != null) && pipeline.getDefinition().getStageDefinitions().size() > index) {
+                    if ((imageName != null || imageArgs != null) && pipeline
+                            .getDefinition()
+                            .getStageDefinitions()
+                            .size() > index) {
                         pipeline.getDefinition().getStageDefinitions().get(index).getImage().ifPresent(image -> {
                             if (imageName != null) {
                                 image.setName(imageName);
@@ -360,12 +365,22 @@ public class ProjectsController {
     }
 
     static class ImageInfo {
-        @Nullable public final String name;
+        @Nullable public final String   name;
         @Nullable public final String[] args;
 
         public ImageInfo(@Nonnull Image image) {
             this.name = image.getName();
             this.args = image.getArgs();
+        }
+    }
+
+    static class LogEntryInfo extends LogEntry {
+
+        public final String stageId;
+
+        public LogEntryInfo(String stageId, LogEntry entry) {
+            super(entry.getTime(), entry.getSource(), entry.isError(), entry.getMessage());
+            this.stageId = stageId;
         }
     }
 }
