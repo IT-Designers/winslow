@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {ImageInfo, HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
+import {ImageInfo, HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo, LogSource} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
@@ -289,5 +289,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   parse(args: string) {
     return JSON.parse(args);
+  }
+
+  sourceIsManagement(source: LogSource) {
+    return source === LogSource.MANAGEMENT_EVENT;
   }
 }

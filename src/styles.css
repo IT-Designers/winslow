@@ -80,6 +80,13 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   color: red;
 }
 
+.console-mgmt {
+  color: dimgray;
+}
+.console-mgmt.console-err  {
+  color: darkred !important;
+}
+
 .material-icons, .material-icons-outlined {
   user-select: none;
 }
