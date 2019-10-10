@@ -1,4 +1,4 @@
-build_and_deploy:
+build:
   image: maven
   tags:
     - docker
@@ -13,3 +13,17 @@ build_and_deploy:
     paths:
      - winslow*.jar
      - coverage-report
+
+deploy:
+  image: docker:git
+  tags:
+    - docker
+  services:
+    - docker:dind
+  script:
+#    - ./build-docker-image.sh
+    - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-server
+    - docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
+    - docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-server
+  dependencies:
+    - build
