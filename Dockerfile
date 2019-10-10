@@ -4,7 +4,7 @@ FROM repo.itd-intern.de/winslow/component-html as html
 FROM openjdk:11-jre-slim-buster
 
 RUN apt update && \
-    apt install nginx iproute2 nfs-common curl gnupg -y && \
+    apt install nginx iproute2 nfs-common curl gnupg unzip -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
