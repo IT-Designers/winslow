@@ -211,7 +211,7 @@ export class FilesComponent implements OnInit {
         this
           .api
           .createDirectory(path)
-          .then(p => this.navigateDirectlyTo(p));
+          .then(p => this.navigateDirectlyTo(this.latestPath));
       }
     });
   }
