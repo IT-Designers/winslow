@@ -153,22 +153,29 @@
     <div class="loading-bar-container">
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
-    <div style="text-align: center">
+    <div class="console-controls" style="text-align: center">
       <button mat-raised-button color="accent"
               [disabled]="watchLatestLogs"
               (click)="showLatestLogs(null)">Show log of most recent Stage
       </button>
+      <button mat-stroked-button
+              (click)="forceReloadLogs()"
+      ><mat-icon>loop</mat-icon> Force Reload
+      </button>
+      <mat-slide-toggle #windowMode>Window Mode</mat-slide-toggle>
     </div>
     <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
     <div class="logs-container" *ngIf="logs != null">
-      <div class="console-container">
+      <div class="console-container dark-console" [class.window-mode]="windowMode.checked" >
         <pre class="console-container">
-          <code *ngIf="logs != null" #console class="console dark-console"
+          <code *ngIf="logs != null" #console class="console"
           ><ng-container *ngFor="let log of logs; index as i"
           ><span
           ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
           ><span [class.console-err]="log.error"
-                 [class.console-mgmt]="sourceIsManagement(log.source)">{{log.message}}</span
+                 [class.console-mgmt]="sourceIsManagement(log.source)"
+                 [class.no-word-wrap]="windowMode.checked"
+          >{{log.message}}</span
           ></span
           ></ng-container>
           </code>

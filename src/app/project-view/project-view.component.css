@@ -64,3 +64,79 @@
 .files-tab-content {
   height: 40em;
 }
+
+.console-controls {
+  text-align: center;
+  padding: 1em 5em;
+}
+
+
+.console-controls *:not(:last-child) {
+  margin-right: 2em;
+}
+
+.console-container {
+  display: flex;
+  flex-grow: 1;
+}
+
+.console {
+  flex-grow: 1;
+  min-height: 10em;
+  width: auto;
+  font-weight: bold;
+  padding: 1em;
+}
+
+.console span {
+  word-break: normal;
+  white-space: pre-wrap;
+  padding: 0;
+  margin: 0;
+}
+
+.console > * {
+  display: flex;
+  padding: 0 1em;
+  margin: 0;
+}
+.console > *:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.console .line-number {
+  display: inline-block;
+  flex-shrink: 0;
+  color: darkgray;
+  width: 3em;
+  padding: 0 2em 0 0;
+  text-align: end;
+  user-select: none;
+}
+
+.dark-console {
+  background-color: black;
+  color: lightgrey;
+}
+
+.console-err {
+  color: red;
+}
+
+.console-mgmt {
+  color: dimgray;
+}
+.console-mgmt.console-err  {
+  color: darkred !important;
+}
+
+.window-mode {
+  overflow: auto;
+  max-height: 75vh;
+  min-height: 10em !important;
+}
+
+.console .no-word-wrap {
+  word-break: unset !important;
+  white-space: pre !important;
+}
