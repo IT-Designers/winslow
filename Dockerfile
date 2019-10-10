@@ -26,7 +26,7 @@ COPY nomad.hcl /etc/nomad/nomad.hcl
 
 COPY --from html /etc/nginx/sites-available/default /etc/nginx/sites-available/default
 COPY --from html /var/www/html /usr/share/nginx/html
-COPY --from /opt/winslow/winslow.jar /usr/bin/
+COPY --from server /opt/winslow/winslow.jar /usr/bin/
 
 ENTRYPOINT /usr/bin/entry.sh
 
