@@ -2,10 +2,7 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
-import com.hashicorp.nomad.javasdk.AllocationsApi;
-import com.hashicorp.nomad.javasdk.ClientApi;
-import com.hashicorp.nomad.javasdk.NomadApiClient;
-import com.hashicorp.nomad.javasdk.NomadException;
+import com.hashicorp.nomad.javasdk.*;
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
@@ -758,15 +755,22 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     @Nonnull
-    static Optional<Boolean> hasTaskStarted(AllocationListStub allocation, String taskName) {
-        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(state -> state
-                .getStartedAt()
-                .after(new Date(1)));
+    public static Optional<TaskState> getTask(AllocationListStub allocation, String taskName) {
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName));
+    }
+
+    @Nonnull
+    public static Optional<Boolean> hasTaskStarted(AllocationListStub allocation, String taskName) {
+        return getTask(allocation, taskName).map(NomadOrchestrator::hasTaskStarted);
+    }
+
+    public static boolean hasTaskStarted(TaskState state) {
+        return state.getStartedAt().after(new Date(1));
     }
 
     @Nonnull
     public static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
-        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(NomadOrchestrator::hasTaskFinished);
+        return getTask(allocation, taskName).map(NomadOrchestrator::hasTaskFinished);
     }
 
     public static boolean hasTaskFinished(TaskState state) {
@@ -776,7 +780,7 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     public static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
-        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(NomadOrchestrator::hasTaskFailed);
+        return getTask(allocation, taskName).map(NomadOrchestrator::hasTaskFailed);
     }
 
     public static boolean hasTaskFailed(TaskState state) {
@@ -788,17 +792,18 @@ public class NomadOrchestrator implements Orchestrator {
     public static Optional<Stage.State> toRunningStageState(
             @Nonnull AllocationListStub allocation,
             @Nonnull String taskName) {
-        var failed   = hasTaskFailed(allocation, taskName);
-        var started  = hasTaskStarted(allocation, taskName);
-        var finished = hasTaskFinished(allocation, taskName);
+        var task     = getTask(allocation, taskName);
+        var failed   = task.map(NomadOrchestrator::hasTaskFailed);
+        var started  = task.map(NomadOrchestrator::hasTaskStarted);
+        var finished = task.map(NomadOrchestrator::hasTaskFinished);
 
         if (failed.isPresent() && failed.get()) {
             return Optional.of(Stage.State.Failed);
         } else if (started.isPresent() && !started.get()) {
             return Optional.of(Stage.State.Running);
-        } else if (started.isPresent() && finished.isPresent() && !finished.get()) {
+        } else if (started.isPresent() && !finished.get()) {
             return Optional.of(Stage.State.Running);
-        } else if (finished.isPresent() && finished.get()) {
+        } else if (finished.isPresent()) {
             return Optional.of(Stage.State.Succeeded);
         } else {
             return Optional.empty();
@@ -812,7 +817,7 @@ public class NomadOrchestrator implements Orchestrator {
                 .replaceAll("_");
     }
 
-    private static enum SimpleState {
+    private enum SimpleState {
         Running, Failed, Succeeded,
     }
 }
