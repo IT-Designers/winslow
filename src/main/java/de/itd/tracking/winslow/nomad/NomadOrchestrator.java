@@ -2,7 +2,10 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
-import com.hashicorp.nomad.javasdk.*;
+import com.hashicorp.nomad.javasdk.AllocationsApi;
+import com.hashicorp.nomad.javasdk.ClientApi;
+import com.hashicorp.nomad.javasdk.NomadApiClient;
+import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
@@ -534,15 +537,20 @@ public class NomadOrchestrator implements Orchestrator {
     private void copyContentOfMostRecentStageTo(
             NomadPipeline pipeline,
             Path workspace) throws IncompleteStageException {
-        var workDirBefore = pipeline.getMostRecentStage().flatMap(stageBefore -> environment
-                .getResourceManager()
-                .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore.getTaskName())));
+        var workDirBefore = pipeline
+                .getAllStages()
+                .filter(stage -> stage.getState() == Stage.State.Succeeded)
+                .reduce((first, second) -> second) // get the last successful stage
+                .flatMap(stageBefore -> environment
+                        .getResourceManager()
+                        .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore.getTaskName())));
 
         if (workDirBefore.isPresent()) {
             var dirBefore = workDirBefore.get();
             var failure   = Optional.<IOException>empty();
 
             try {
+                LOG.fine("Source workspace directory: " + workDirBefore.get());
                 failure = Files.walk(workDirBefore.get()).flatMap(path -> {
                     try {
                         var file = path.toFile();
@@ -558,6 +566,7 @@ public class NomadOrchestrator implements Orchestrator {
                     }
                 }).findFirst();
             } catch (IOException e) {
+                LOG.log(Level.SEVERE, "Failed to source workspace from " + workDirBefore.get() + ": " + e);
                 failure = Optional.of(e);
             }
 
@@ -568,6 +577,8 @@ public class NomadOrchestrator implements Orchestrator {
                         .withCause(failure.get())
                         .build();
             }
+        } else {
+            LOG.info("No previous valid workspace directory found for " + pipeline.getProjectId());
         }
     }
 
