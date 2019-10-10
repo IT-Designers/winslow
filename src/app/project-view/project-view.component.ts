@@ -322,4 +322,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   sourceIsManagement(source: LogSource) {
     return source === LogSource.MANAGEMENT_EVENT;
   }
+
+  forceReloadLogs() {
+    this.logs = null;
+    this.loadLogs();
+  }
 }
