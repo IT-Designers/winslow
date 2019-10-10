@@ -17,11 +17,8 @@ build:
 
 deploy:
   stage: deploy
-  image: docker:git
   tags:
-    - docker
-  services:
-    - docker:dind
+    - dockerbuilder
   script:
 #    - ./build-docker-image.sh
     - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-server
