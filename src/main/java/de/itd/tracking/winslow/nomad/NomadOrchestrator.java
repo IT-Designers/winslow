@@ -786,6 +786,7 @@ public class NomadOrchestrator implements Orchestrator {
 
     public static boolean hasTaskFinished(TaskState state) {
         return state.getFinishedAt().after(new Date(1))
+                || state.getState().toLowerCase().contains("dead")
                 || hasTaskFailed(state);
     }
 
@@ -795,8 +796,7 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     public static boolean hasTaskFailed(TaskState state) {
-        return state.getFailed()
-                || state.getState().toLowerCase().contains("dead");
+        return state.getFailed();
     }
 
     @Nonnull
