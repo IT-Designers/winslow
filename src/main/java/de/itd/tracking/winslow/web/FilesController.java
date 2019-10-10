@@ -196,7 +196,11 @@ public class FilesController {
     }
 
     private static boolean canAccessOrCreateDirectory(
-            @Nonnull Winslow winslow, @Nullable User user, Path workDir, Path path, boolean wantsCreateDirectory) {
+            @Nonnull Winslow winslow,
+            @Nullable User user,
+            @Nonnull Path workDir,
+            @Nonnull Path path,
+            boolean wantsCreateDirectory) {
         var p = workDir.relativize(path);
 
         //  TODO
@@ -205,16 +209,16 @@ public class FilesController {
                     .getProjectRepository()
                     .getProject(p.getName(0).toString())
                     .unsafe()
-                    .filter(project -> user != null && (user.getName().equals(project.getOwner()) || user
-                            .getGroups()
-                            .anyMatch(user::canAccessGroup)))
+                    .filter(project -> user != null && (
+                            user.getName().equals(project.getOwner())
+                                    || user.getGroups().anyMatch(user::canAccessGroup)))
                     .isPresent();
         }
 
-        return user != null && p.getNameCount() > 0 && (workDir.resolve(p.getName(0)).toFile().exists() ? workDir
-                .resolve(p.getName(0))
-                .toFile()
-                .isDirectory() : wantsCreateDirectory) && user.canAccessGroup(p.getName(0).toString());
+        return user != null
+                && p.getNameCount() > 0
+                && (workDir.resolve(p.getName(0)).toFile().exists() || wantsCreateDirectory)
+                && (workDir.resolve(p.getName(0)).toFile().isFile() || user.canAccessGroup(p.getName(0).toString()));
     }
 
     private static Optional<Path> normalizedPath(HttpServletRequest request) {
