@@ -64,6 +64,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .console .line-number {
   display: inline-block;
+  flex-shrink: 0;
   color: darkgray;
   width: 3em;
   padding: 0 2em 0 0;
