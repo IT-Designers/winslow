@@ -1,6 +1,5 @@
-FROM openjdk:17
+FROM nginx
 
-ADD winslow-application*.jar /opt/winslow/winslow.jar
+COPY nginx.default /etc/nginx/sites-available/default
+COPY winslow-ui-ng/. /var/www/html
 
-WORKDIR /opt/winslow
-ENTRYPOINT java -jar winslow.jar
