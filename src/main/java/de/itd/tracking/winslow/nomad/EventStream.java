@@ -69,7 +69,7 @@ public class EventStream {
                 if (previousIndex < state.getEvents().size()) {
                     parseNextLogEntries();
                     return logs.poll();
-                } else if (state.getFinishedAt() != null && state.getFinishedAt().getTime() > 0) {
+                } else if (NomadOrchestrator.hasTaskFinished(state)) {
                     return null;
                 } else {
                     this.state = null;
@@ -105,9 +105,7 @@ public class EventStream {
             if (state == null) {
                 return false;
             } else {
-                boolean news = state.getEvents().size() > previousIndex || (state.getFinishedAt() != null && state
-                        .getFinishedAt()
-                        .getTime() > 0);
+                boolean news = state.getEvents().size() > previousIndex || NomadOrchestrator.hasTaskFinished(state);
                 if (news) {
                     this.state = state;
                 }

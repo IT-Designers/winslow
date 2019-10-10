@@ -87,16 +87,18 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private boolean isAlive() {
-        return this.stateSupplier.get().flatMap(allocation -> {
-            return NomadOrchestrator.hasTaskFinished(allocation, taskName);
-        }).map(v -> {
-            if (v) {
-                return Boolean.FALSE;
-            } else {
-                lastSuccess = System.currentTimeMillis();
-                return Boolean.TRUE;
-            }
-        }).orElse(Boolean.TRUE) || (System.currentTimeMillis() - lastSuccess) < 5_000;
+        return this.stateSupplier
+                .get()
+                .flatMap(allocation -> NomadOrchestrator.hasTaskFinished(allocation, taskName))
+                .map(v -> {
+                    if (v) {
+                        return Boolean.FALSE;
+                    } else {
+                        lastSuccess = System.currentTimeMillis();
+                        return Boolean.TRUE;
+                    }
+                })
+                .orElse(Boolean.TRUE) || (System.currentTimeMillis() - lastSuccess) < 5_000;
     }
 
     private boolean hasCompleted() {

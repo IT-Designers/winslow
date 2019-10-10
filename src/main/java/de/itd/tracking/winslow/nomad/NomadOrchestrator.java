@@ -661,8 +661,22 @@ public class NomadOrchestrator implements Orchestrator {
                         )
                 );
                 var events = EventStream.stream(getAllocationsApi(), stage.getJobId(), stage.getTaskName());
+                var queue  = new LinkedList<LogEntry>();
 
-                var queue = new LinkedList<LogEntry>();
+                /*
+                var missing_devices = getClient()
+                        .getEvaluationsApi()
+                        .list()
+                        .getValue()
+                        .stream()
+                        .filter(e -> stage.getJobId().equals(e.getJobId()))
+                        .flatMap(e -> e.getFailedTgAllocs().values().stream())
+                        .findFirst()
+                        .stream()
+                        .flatMap(tg -> tg.getConstraintFiltered().entrySet().stream())
+                        .collect(Collectors.toUnmodifiableList());
+
+                 */
 
 
                 var threadStdOut = new Thread(() -> {
@@ -752,14 +766,22 @@ public class NomadOrchestrator implements Orchestrator {
 
     @Nonnull
     public static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
-        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(state -> state
-                .getFinishedAt()
-                .after(new Date(1)));
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(NomadOrchestrator::hasTaskFinished);
+    }
+
+    public static boolean hasTaskFinished(TaskState state) {
+        return state.getFinishedAt().after(new Date(1))
+                || hasTaskFailed(state);
     }
 
     @Nonnull
     public static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
-        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(TaskState::getFailed);
+        return Optional.ofNullable(allocation.getTaskStates().get(taskName)).map(NomadOrchestrator::hasTaskFailed);
+    }
+
+    public static boolean hasTaskFailed(TaskState state) {
+        return state.getFailed()
+                || state.getState().toLowerCase().contains("dead");
     }
 
     @Nonnull
