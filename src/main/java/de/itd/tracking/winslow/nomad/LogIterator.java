@@ -45,11 +45,12 @@ public class LogIterator implements Iterator<String> {
             return state.get().map(allocation -> {
                 if (hasTaskStarted(allocation)) {
                     try {
-                        reader = new BufferedReader(new InputStreamReader(clientApi.logs(allocation.getId(),
-                                                                                         taskName,
-                                                                                         false,
-                                                                                         logType
-                                                                                        )));
+                        reader = new BufferedReader(new InputStreamReader(clientApi.logs(
+                                allocation.getId(),
+                                taskName,
+                                false,
+                                logType
+                        )));
                         return Boolean.TRUE;
                     } catch (IOException | NomadException e) {
                         e.printStackTrace();

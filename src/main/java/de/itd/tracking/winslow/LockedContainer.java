@@ -15,7 +15,7 @@ public class LockedContainer<T> implements Closeable {
 
     private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
-    @Nonnull private final Lock lock;
+    @Nonnull private final Lock      lock;
     @Nonnull private final Reader<T> reader;
     @Nonnull private final Writer<T> writer;
 

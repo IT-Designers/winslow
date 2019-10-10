@@ -38,9 +38,10 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
         String pattern = " " + workDir.toFile().getCanonicalPath() + " ";
         String line;
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(openOneOf("/etc/mtab",
-                                                                                        "/proc/mounts"
-                                                                                       )))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(openOneOf(
+                "/etc/mtab",
+                "/proc/mounts"
+        )))) {
             while ((line = reader.readLine()) != null) {
                 if (line.contains(pattern) && line.contains(NFS_TYPE_PATTERN)) {
                     try {

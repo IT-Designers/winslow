@@ -105,11 +105,12 @@ public class LockBus {
         try {
             this.publishEvent(randomUuid -> {
                 ensureEventForTokenIsValid(token);
-                return new Event(token.getId(),
-                                 Event.Command.RELEASE,
-                                 System.currentTimeMillis(),
-                                 0,
-                                 token.getSubject()
+                return new Event(
+                        token.getId(),
+                        Event.Command.RELEASE,
+                        System.currentTimeMillis(),
+                        0,
+                        token.getSubject()
                 );
             });
             return true;
@@ -122,11 +123,12 @@ public class LockBus {
     public Token extend(Token token, long duration) throws LockException {
         return this.publishEvent(randomUuid -> {
             ensureEventForTokenIsValid(token);
-            return new Event(token.getId(),
-                             Event.Command.EXTEND,
-                             System.currentTimeMillis(),
-                             duration,
-                             token.getSubject()
+            return new Event(
+                    token.getId(),
+                    Event.Command.EXTEND,
+                    System.currentTimeMillis(),
+                    duration,
+                    token.getSubject()
             );
         });
     }
@@ -170,11 +172,12 @@ public class LockBus {
 
             System.out.println(new TomlWriter().write(event));
 
-            Files.write(path,
-                        Collections.singleton(new TomlWriter().write(event)),
-                        StandardCharsets.UTF_8,
-                        StandardOpenOption.CREATE_NEW
-                       );
+            Files.write(
+                    path,
+                    Collections.singleton(new TomlWriter().write(event)),
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE_NEW
+            );
             this.processEvent(event);
             this.eventCounter += 1;
             return token;

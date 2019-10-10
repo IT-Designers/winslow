@@ -49,12 +49,12 @@ public class IncompleteStageException extends OrchestratorException {
     }
 
     public static class Builder {
-        @Nonnull private final String message;
+        @Nonnull private final String     message;
         private                NomadStage stage;
-        private                Path workspace;
-        private                Throwable cause;
-        private                boolean requiresConfirmation;
-        private                boolean missingEnvVariables;
+        private                Path       workspace;
+        private                Throwable  cause;
+        private                boolean    requiresConfirmation;
+        private                boolean    missingEnvVariables;
 
         private Builder(@Nonnull String message) {
             this.message = message;
@@ -119,12 +119,13 @@ public class IncompleteStageException extends OrchestratorException {
         @Nonnull
         @CheckReturnValue
         public IncompleteStageException build() {
-            return new IncompleteStageException(this.message,
-                                                this.cause,
-                                                this.stage,
-                                                this.workspace,
-                                                this.requiresConfirmation,
-                                                this.missingEnvVariables
+            return new IncompleteStageException(
+                    this.message,
+                    this.cause,
+                    this.stage,
+                    this.workspace,
+                    this.requiresConfirmation,
+                    this.missingEnvVariables
             );
         }
     }

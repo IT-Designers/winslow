@@ -110,10 +110,11 @@ public class NomadOrchestrator implements Orchestrator {
             try {
                 updatePipeline(container);
             } catch (OrchestratorException e) {
-                LOG.log(Level.SEVERE,
+                LOG.log(
+                        Level.SEVERE,
                         "Failed to update pipeline " + container.getNoThrow().map(NomadPipeline::getProjectId),
                         e
-                       );
+                );
             }
         });
     }
@@ -193,10 +194,11 @@ public class NomadOrchestrator implements Orchestrator {
         try {
             this.client.getJobsApi().deregister(stage.getJobId());
         } catch (IOException | NomadException e) {
-            LOG.log(Level.SEVERE,
+            LOG.log(
+                    Level.SEVERE,
                     "Failed to deregister job " + pipeline.getProjectId() + "." + stage.getJobId() + "/" + stage.getTaskName(),
                     e
-                   );
+            );
         }
     }
 
@@ -408,21 +410,24 @@ public class NomadOrchestrator implements Orchestrator {
             var targetDirWorkspace = "/workspace";
 
             builder = builder
-                    .addNfsVolume("winslow-" + builder.getId() + "-resources",
-                                  targetDirResources,
-                                  true,
-                                  config.getOptions(),
-                                  exportedResources.get().toAbsolutePath().toString()
-                                 )
-                    .addNfsVolume("winslow-" + builder.getId() + "-workspace",
-                                  targetDirWorkspace,
-                                  false,
-                                  config.getOptions(),
-                                  exportedWorkspace.get().toAbsolutePath().toString()
-                                 )
-                    .withEnvVariableSet("WINSLOW_DIR_RESOURCES",
-                                        targetDirResources
-                                       )
+                    .addNfsVolume(
+                            "winslow-" + builder.getId() + "-resources",
+                            targetDirResources,
+                            true,
+                            config.getOptions(),
+                            exportedResources.get().toAbsolutePath().toString()
+                    )
+                    .addNfsVolume(
+                            "winslow-" + builder.getId() + "-workspace",
+                            targetDirWorkspace,
+                            false,
+                            config.getOptions(),
+                            exportedWorkspace.get().toAbsolutePath().toString()
+                    )
+                    .withEnvVariableSet(
+                            "WINSLOW_DIR_RESOURCES",
+                            targetDirResources
+                    )
                     .withEnvVariableSet("WINSLOW_DIR_WORKSPACE", targetDirWorkspace);
         } else {
             throw IncompleteStageException.Builder
@@ -508,9 +513,10 @@ public class NomadOrchestrator implements Orchestrator {
             @Nonnull NomadPipeline pipeline,
             StageDefinition stageDefinition,
             JobBuilder builder) {
-        return Stream.concat(pipeline.getDefinition().getUserInput().stream().flatMap(u -> u.getValueFor().stream()),
-                             stageDefinition.getUserInput().stream().flatMap(u -> u.getValueFor().stream())
-                            ).anyMatch(k -> builder.getEnvVariable(k).isEmpty());
+        return Stream.concat(
+                pipeline.getDefinition().getUserInput().stream().flatMap(u -> u.getValueFor().stream()),
+                stageDefinition.getUserInput().stream().flatMap(u -> u.getValueFor().stream())
+        ).anyMatch(k -> builder.getEnvVariable(k).isEmpty());
     }
 
     private static boolean isConfirmationRequiredForNextStage(
@@ -638,18 +644,22 @@ public class NomadOrchestrator implements Orchestrator {
             @Nonnull Consumer<LogEntry> consumer) {
         new Thread(() -> {
             try (LockedOutputStream os = logs.getRawOutputStream(pipeline.getProjectId(), stage.getId())) {
-                var stdout = LogStream.stdOut(getClientApi(),
-                                              stage.getTaskName(),
-                                              () -> getJobAllocationContainingTaskStateLogErrors(stage.getJobId(),
-                                                                                                 stage.getTaskName()
-                                                                                                )
-                                             );
-                var stderr = LogStream.stdErr(getClientApi(),
-                                              stage.getTaskName(),
-                                              () -> getJobAllocationContainingTaskStateLogErrors(stage.getJobId(),
-                                                                                                 stage.getTaskName()
-                                                                                                )
-                                             );
+                var stdout = LogStream.stdOut(
+                        getClientApi(),
+                        stage.getTaskName(),
+                        () -> getJobAllocationContainingTaskStateLogErrors(
+                                stage.getJobId(),
+                                stage.getTaskName()
+                        )
+                );
+                var stderr = LogStream.stdErr(
+                        getClientApi(),
+                        stage.getTaskName(),
+                        () -> getJobAllocationContainingTaskStateLogErrors(
+                                stage.getJobId(),
+                                stage.getTaskName()
+                        )
+                );
                 var events = EventStream.stream(getAllocationsApi(), stage.getJobId(), stage.getTaskName());
 
                 var queue = new LinkedList<LogEntry>();

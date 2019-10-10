@@ -62,32 +62,37 @@ public class JobBuilder {
             boolean readonly,
             String options,
             String serverExport) {
-        var list = (List<Map<String, Object>>) this.config.computeIfAbsent("mounts",
-                                                                           (s) -> new ArrayList<Map<String, Object>>()
-                                                                          );
-        list.add(Map.of("type",
-                        "volume",
-                        "target",
-                        target,
-                        "source",
-                        volumeName,
-                        "readonly",
-                        readonly,
-                        "volume_options",
-                        List.of(Map.<String, Object>of("driver_config",
-                                                       Map.of("name",
-                                                              "local",
-                                                              "options",
-                                                              List.of(Map.<String, Object>of("type",
-                                                                                             "nfs",
-                                                                                             "o",
-                                                                                             options,
-                                                                                             "device",
-                                                                                             ":" + serverExport
-                                                                                            ))
-                                                             )
-                                                      ))
-                       ));
+        var list = (List<Map<String, Object>>) this.config.computeIfAbsent(
+                "mounts",
+                (s) -> new ArrayList<Map<String, Object>>()
+        );
+        list.add(Map.of(
+                "type",
+                "volume",
+                "target",
+                target,
+                "source",
+                volumeName,
+                "readonly",
+                readonly,
+                "volume_options",
+                List.of(Map.<String, Object>of(
+                        "driver_config",
+                        Map.of(
+                                "name",
+                                "local",
+                                "options",
+                                List.of(Map.<String, Object>of(
+                                        "type",
+                                        "nfs",
+                                        "o",
+                                        options,
+                                        "device",
+                                        ":" + serverExport
+                                ))
+                        )
+                ))
+        ));
         return this;
     }
 
@@ -137,9 +142,10 @@ public class JobBuilder {
         if (this.deviceGpu == null) {
             this.deviceGpu = new HashMap<>();
             if (this.resources.getUnmappedProperties() != null) {
-                ((List<Object>) this.resources.getUnmappedProperties().computeIfAbsent("Devices",
-                                                                                       key -> new ArrayList<>()
-                                                                                      )).add(deviceGpu);
+                ((List<Object>) this.resources.getUnmappedProperties().computeIfAbsent(
+                        "Devices",
+                        key -> new ArrayList<>()
+                )).add(deviceGpu);
             } else {
                 var list = new ArrayList<>();
                 list.add(deviceGpu);

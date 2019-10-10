@@ -180,11 +180,12 @@ public class FilesController {
                 .flatMap(Arrays::stream)
                 .filter(file -> canAccess(winslow, user, dir, file.toPath()))
                 .map(file -> new FileInfo(file.getName(), file.isDirectory(), Path
-                        .of("/",
-                            dir
-                                    .getName(dir.getNameCount() - 1)
-                                    .toString()
-                           )
+                        .of(
+                                "/",
+                                dir
+                                        .getName(dir.getNameCount() - 1)
+                                        .toString()
+                        )
                         .resolve(dir.relativize(file.toPath()))
                         .toString()))
                 .collect(Collectors.toUnmodifiableList()))).orElse(Collections.emptyList());
@@ -219,7 +220,7 @@ public class FilesController {
     private static Optional<Path> normalizedPath(HttpServletRequest request) {
         var pathWithinHandler = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         var bestMatch         = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-        var path              = Path
+        var path = Path
                 .of(new AntPathMatcher().extractPathWithinPattern(bestMatch, pathWithinHandler))
                 .normalize();
 

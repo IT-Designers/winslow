@@ -74,19 +74,23 @@ public class StageDefinition {
         if (o == null || getClass() != o.getClass())
             return false;
         StageDefinition stageDefinition = (StageDefinition) o;
-        return Objects.equals(name, stageDefinition.name) && Objects.equals(desc,
-                                                                            stageDefinition.desc
-                                                                           ) && Objects.equals(image,
-                                                                                               stageDefinition.image
-                                                                                              ) && Objects.equals(
+        return Objects.equals(name, stageDefinition.name) && Objects.equals(
+                desc,
+                stageDefinition.desc
+        ) && Objects.equals(
+                image,
+                stageDefinition.image
+        ) && Objects.equals(
                 requires,
                 stageDefinition.requires
-                                                                                                                 ) && Objects
-                .equals(userInput, stageDefinition.userInput) && Objects.equals(env,
-                                                                                stageDefinition.env
-                                                                               ) && Objects.equals(highlight,
-                                                                                                   stageDefinition.highlight
-                                                                                                  );
+        ) && Objects
+                .equals(userInput, stageDefinition.userInput) && Objects.equals(
+                env,
+                stageDefinition.env
+        ) && Objects.equals(
+                highlight,
+                stageDefinition.highlight
+        );
     }
 
     @Override

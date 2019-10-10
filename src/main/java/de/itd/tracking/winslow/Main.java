@@ -25,9 +25,10 @@ public class Main {
 
     public static void main(String[] args) throws UnknownHostException {
         final String workDirectory = System.getenv().getOrDefault(Env.WORK_DIRECTORY, "/winslow/");
-        final String nodeName      = System.getenv().getOrDefault(Env.NODE_NAME,
-                                                                  InetAddress.getLocalHost().getHostName()
-                                                                 );
+        final String nodeName = System.getenv().getOrDefault(
+                Env.NODE_NAME,
+                InetAddress.getLocalHost().getHostName()
+        );
 
         LOG.trace("program start at first line within main");
         System.out.println();

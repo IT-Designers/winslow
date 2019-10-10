@@ -67,9 +67,10 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipelineOmitExceptions(project)
                         .stream()
-                        .flatMap(pipeline -> Stream.concat(pipeline.getCompletedStages(),
-                                                           pipeline.getRunningStage().stream()
-                                                          ))
+                        .flatMap(pipeline -> Stream.concat(
+                                pipeline.getCompletedStages(),
+                                pipeline.getRunningStage().stream()
+                        ))
                         .map(HistoryEntry::new));
     }
 
@@ -113,12 +114,13 @@ public class ProjectsController {
                         .flatMap(project -> winslow
                                 .getOrchestrator()
                                 .getPipelineOmitExceptions(project))
-                        .map(pipeline -> new StateInfo(getPipelineState(pipeline).orElse(null),
-                                                       pipeline
-                                                               .getPauseReason()
-                                                               .map(Pipeline.PauseReason::toString)
-                                                               .orElse(null),
-                                                       winslow.getOrchestrator().getProgressHint(p.get()).orElse(null)
+                        .map(pipeline -> new StateInfo(
+                                getPipelineState(pipeline).orElse(null),
+                                pipeline
+                                        .getPauseReason()
+                                        .map(Pipeline.PauseReason::toString)
+                                        .orElse(null),
+                                winslow.getOrchestrator().getProgressHint(p.get()).orElse(null)
                         ))
                         .orElse(null));
     }
@@ -262,21 +264,22 @@ public class ProjectsController {
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().getPipelineOmitExceptions(project))
                 .stream()
-                .flatMap(pipeline -> Stream.concat(pipeline
-                                                           .getDefinition()
-                                                           .getUserInput()
-                                                           .stream()
-                                                           .flatMap(u -> u.getValueFor().stream()),
-                                                   pipeline
-                                                           .getDefinition()
-                                                           .getStageDefinitions()
-                                                           .stream()
-                                                           .skip(stageIndex)
-                                                           .findFirst()
-                                                           .flatMap(StageDefinition::getUserInput)
-                                                           .stream()
-                                                           .flatMap(u -> u.getValueFor().stream())
-                                                  ));
+                .flatMap(pipeline -> Stream.concat(
+                        pipeline
+                                .getDefinition()
+                                .getUserInput()
+                                .stream()
+                                .flatMap(u -> u.getValueFor().stream()),
+                        pipeline
+                                .getDefinition()
+                                .getStageDefinitions()
+                                .stream()
+                                .skip(stageIndex)
+                                .findFirst()
+                                .flatMap(StageDefinition::getUserInput)
+                                .stream()
+                                .flatMap(u -> u.getValueFor().stream())
+                ));
     }
 
     @GetMapping("projects/{projectId}/{stageIndex}/image")
@@ -311,9 +314,10 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user,
-                                                        project
-                                                       ))
+                .filter(project -> canUserAccessProject(
+                        user,
+                        project
+                ))
                 .ifPresent(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
                     pipeline.setNextStageIndex(index);
                     pipeline.setStrategy(Optional

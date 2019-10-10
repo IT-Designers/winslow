@@ -51,11 +51,12 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         if (allocationBeingPresentOnlyIfHasStarted.isPresent()) {
             try {
                 if (file == null) {
-                    return api.logsAsFrames(allocationBeingPresentOnlyIfHasStarted.get().getId(),
-                                            taskName,
-                                            false,
-                                            logType
-                                           );
+                    return api.logsAsFrames(
+                            allocationBeingPresentOnlyIfHasStarted.get().getId(),
+                            taskName,
+                            false,
+                            logType
+                    );
                 } else if (follow) {
                     return api.stream(allocationBeingPresentOnlyIfHasStarted.get().getId(), file, offset);
                 } else {

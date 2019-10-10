@@ -35,9 +35,10 @@ public class RunInfoRepository extends BaseRepository {
 
     boolean setProgressHint(@Nonnull String projectId, int progress) {
         try {
-            Files.write(getRepositoryFile(projectId, SUFFIX_PROGRESS),
-                        Collections.singletonList(Integer.toString(progress))
-                       );
+            Files.write(
+                    getRepositoryFile(projectId, SUFFIX_PROGRESS),
+                    Collections.singletonList(Integer.toString(progress))
+            );
             return true;
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to save progress hint [" + progress + "] for " + projectId, e);

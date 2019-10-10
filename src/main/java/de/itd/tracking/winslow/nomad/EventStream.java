@@ -23,9 +23,9 @@ public class EventStream {
     private final String         jobId;
     private final String         taskName;
 
-    private TaskState       state = null;
+    private TaskState       state         = null;
     private int             previousIndex = 0;
-    private Queue<LogEntry> logs = new ArrayDeque<>();
+    private Queue<LogEntry> logs          = new ArrayDeque<>();
 
     public EventStream(AllocationsApi api, String jobId, String taskName) {
         this.api = api;
@@ -117,13 +117,14 @@ public class EventStream {
     }
 
     public static Stream<LogEntry> stream(
-            @Nonnull AllocationsApi api,
-            @Nonnull String jobId,
-            @Nonnull String taskName) {
+            @Nonnull AllocationsApi api, @Nonnull String jobId, @Nonnull String taskName) {
         var stream = new EventStream(api, jobId, taskName);
-        return Stream.iterate(new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""),
-                              Objects::nonNull,
-                              v -> stream.next()
-                             ).skip(1);
+        return Stream
+                .iterate(
+                        new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""),
+                        Objects::nonNull,
+                        v -> stream.next()
+                )
+                .skip(1);
     }
 }
