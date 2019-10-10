@@ -1,5 +1,7 @@
 build_and_deploy:
   image: node
+  tags:
+    - docker
   script:
 #    - npm install -g -ng
     - npm install
