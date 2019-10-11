@@ -27,6 +27,10 @@ public class PathMapping implements WebMvcConfigurer {
                     .setCachePeriod(STATIC_HTML_CACHE_PERIOD)
                     .resourceChain(true)
                     .addResolver(resolver);
+            registry.addResourceHandler("/swagger-ui.html")
+                    .addResourceLocations("/");
+            registry.addResourceHandler("/webjars/springfox-swagger-ui/**")
+                    .addResourceLocations("/webjars/springfox-swagger-ui/");
         }
     }
 

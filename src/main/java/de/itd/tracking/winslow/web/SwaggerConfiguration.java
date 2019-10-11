@@ -13,7 +13,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-@ComponentScan(basePackageClasses = PipelinesController.class)
+@ComponentScan(basePackageClasses = WebApi.class)
 public class SwaggerConfiguration {
 
     @Bean
