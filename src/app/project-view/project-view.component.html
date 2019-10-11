@@ -153,7 +153,7 @@
     <div class="loading-bar-container">
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
-    <div class="console-controls" style="text-align: center">
+    <div class="console-controls">
       <button mat-raised-button color="accent"
               [disabled]="watchLatestLogs"
               (click)="showLatestLogs(null)">Show log of most recent Stage
@@ -183,4 +183,21 @@
       </div>
     </div>
   </mat-tab>
+
+    <mat-tab label="Settings">
+        <div class="loading-bar-container">
+            <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
+        </div>
+        <div class="stage-control-item">
+            <label>Project Name</label>
+            <mat-form-field>
+                <input #name matInput name="name" [value]="project.name" (keydown.enter)="setName(name.value)">
+            </mat-form-field>
+            <button mat-stroked-button color="primary" (click)="setName(name.value)"
+            >Update</button>
+        </div>
+        <div class="stage-control-item">
+            <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
+        </div>
+    </mat-tab>
 </mat-tab-group>

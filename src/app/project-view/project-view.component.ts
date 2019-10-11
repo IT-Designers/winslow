@@ -1,11 +1,12 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {ImageInfo, HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo, LogSource} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MatDialog, MatTabGroup} from '@angular/material';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {FilesComponent} from '../files/files.component';
+import {DeleteAreYouSureDialog, FilesComponent} from '../files/files.component';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {FileInfo} from '../api/files-api.service';
 
 
 @Component({
@@ -326,5 +327,44 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   forceReloadLogs() {
     this.logs = null;
     this.loadLogs();
+  }
+
+  setName(name: string) {
+    this.longLoading.increase();
+    this.api.setName(this.project.id, name)
+        .toPromise()
+        .then(result => {
+          this.project.name = name;
+        })
+        .finally(() => this.longLoading.decrease());
+  }
+
+  delete() {
+    this.createDialog.open(DeleteProjectAreYouSureDialog, {
+      data: this.project
+    }).afterClosed().toPromise().then(result => {
+      if (!!result) {
+        alert('Not yet implemented');
+      }
+    });
+  }
+}
+
+@Component({
+  selector: 'dialog-delete-project-are-you-sure',
+  template: `
+      <h1 mat-dialog-title>Are you sure you want to delete this project?</h1>
+      <div mat-dialog-content>
+          <p>{{project.name}}</p>
+      </div>
+      <div mat-dialog-actions align="end">
+          <button mat-raised-button color="warn" (click)="dialogRef.close(true)">Delete</button>
+          <button mat-raised-button (click)="dialogRef.close(false)">Cancel</button>
+      </div>`
+})
+export class DeleteProjectAreYouSureDialog {
+  constructor(
+      public dialogRef: MatDialogRef<DeleteProjectAreYouSureDialog>,
+      @Inject(MAT_DIALOG_DATA) public project: Project) {
   }
 }
