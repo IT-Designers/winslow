@@ -1,12 +1,10 @@
-import {Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {ImageInfo, HistoryEntry, LogEntry, Project, ProjectApiService, State, StateInfo, LogSource} from '../api/project-api.service';
+import {Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {DeleteAreYouSureDialog, FilesComponent} from '../files/files.component';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {FileInfo} from '../api/files-api.service';
 
 
 @Component({
@@ -17,8 +15,7 @@ import {FileInfo} from '../api/files-api.service';
 export class ProjectViewComponent implements OnInit, OnDestroy {
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
-  @ViewChild('files', {static: false}) files: FilesComponent;
-  @ViewChild('console', {static: false}) console: HTMLElement;
+  @ViewChild('console', {static: false}) console: ElementRef<HTMLElement>;
 
   @Input() project: Project;
   @Output('state') stateEmitter = new EventEmitter<State>();
@@ -48,6 +45,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   image: ImageInfo = null;
   imageOriginal: ImageInfo = null;
+
+  stickConsole = true;
 
   constructor(private api: ProjectApiService, private notification: NotificationService,
               private createDialog: MatDialog) {
@@ -111,6 +110,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           return this.loadLogs();
         } else {
           logs.forEach(entry => this.logs.push(entry));
+          if (logs.length > 0) {
+            // execute it after the DOM update
+            setTimeout(() => this.scrollConsoleToBottom());
+          }
         }
       })
       .finally(() => this.longLoading.decrease());
@@ -119,7 +122,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   requestLogs() {
     if (this.watchLatestLogs) {
       const skipLines = this.logs != null ? this.logs.length : 0;
-      const expectingStageId = this.logs != null ? this.logs[0].stageId: null;
+      const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId: null;
       return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId).toPromise();
     } else {
       this.logs = [];
@@ -347,6 +350,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         alert('Not yet implemented');
       }
     });
+  }
+
+  onConsoleScroll($event: Event) {
+    const element = $event.target as HTMLDivElement;
+    this.stickConsole = (element.scrollHeight - element.clientHeight) <= element.scrollTop;
+  }
+
+  private scrollConsoleToBottom(overwrite = false) {
+    if (this.stickConsole || overwrite) {
+      this.console.nativeElement.scrollTop = 9_999_999_999;
+      this.stickConsole = true;
+    }
   }
 }
 
