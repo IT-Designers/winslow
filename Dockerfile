@@ -33,7 +33,7 @@ COPY nomad.hcl /etc/nomad/nomad.hcl
 COPY --from=html /var/www/html /var/www/html
 COPY --from=server /opt/winslow/winslow.jar /usr/bin/
 
-ENV WINSLOW_STATIC_HTML=/var/www/html
+ENV WINSLOW_STATIC_HTML=/var/www/html/
 
 ENTRYPOINT /usr/bin/entry.sh
 
