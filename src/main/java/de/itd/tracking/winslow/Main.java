@@ -73,6 +73,13 @@ public class Main {
                                                          .build());
             orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository, attributes, logs);
 
+            if (Env.isNoStageExecutionSet()) {
+                LOG.info("Stage execution is disabled on this node");
+            } else {
+                LOG.info("Starting stage execution service");
+                orchestrator.start();
+            }
+
             LOG.info("Assembling Winslow");
             var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager);
 

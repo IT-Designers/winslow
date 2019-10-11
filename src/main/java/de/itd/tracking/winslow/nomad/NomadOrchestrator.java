@@ -49,7 +49,7 @@ public class NomadOrchestrator implements Orchestrator {
     @Nonnull private final LogRepository     logs;
 
     private boolean isRunning = false;
-    private boolean shouldRun = true;
+    private boolean shouldRun = false;
 
     public NomadOrchestrator(
             @Nonnull Environment environment,
@@ -62,11 +62,16 @@ public class NomadOrchestrator implements Orchestrator {
         this.pipelines   = pipelines;
         this.hints       = hints;
         this.logs        = logs;
+    }
 
-        var thread = new Thread(this::pipelineUpdaterLoop);
-        thread.setDaemon(true);
-        thread.setName(getClass().getSimpleName());
-        thread.start();
+    public synchronized void start() {
+        if (!this.shouldRun) {
+            this.shouldRun = true;
+            var thread = new Thread(this::pipelineUpdaterLoop);
+            thread.setDaemon(true);
+            thread.setName(getClass().getSimpleName());
+            thread.start();
+        }
     }
 
     public synchronized void stop() {
