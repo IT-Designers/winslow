@@ -2,11 +2,13 @@ package de.itd.tracking.winslow;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Optional;
 
 public class Env {
 
-    public static final String SELF_PREFIX      = "WINSLOW";
+    public static final String SELF_PREFIX        = "WINSLOW";
     public static final String DEV_ENV            = SELF_PREFIX + "_DEV_ENV";
     public static final String DEV_REMOTE_USER    = SELF_PREFIX + "_DEV_REMOTE_USER";
     public static final String WORK_DIRECTORY     = SELF_PREFIX + "_WORK_DIRECTORY";
@@ -16,6 +18,16 @@ public class Env {
     public static final String NO_STAGE_EXECUTION = SELF_PREFIX + "_NO_STAGE_EXECUTION";
 
     private Env() {
+    }
+
+    @Nonnull
+    public static String getNodeName() throws UnknownHostException {
+        return System.getenv().getOrDefault(NODE_NAME, InetAddress.getLocalHost().getHostName());
+    }
+
+    @Nonnull
+    public static String getWorkDirectory() {
+        return System.getenv().getOrDefault(WORK_DIRECTORY, "/winslow/");
     }
 
     @Nullable

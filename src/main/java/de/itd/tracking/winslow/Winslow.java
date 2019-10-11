@@ -29,9 +29,9 @@ public class Winslow implements Runnable {
     public Winslow(
             @Nonnull String nodeName,
             @Nonnull Orchestrator orchestrator,
-            WorkDirectoryConfiguration configuration,
-            LockBus lockBus,
-            ResourceManager resourceManager) throws IOException {
+            @Nonnull WorkDirectoryConfiguration configuration,
+            @Nonnull LockBus lockBus,
+            @Nonnull ResourceManager resourceManager) throws IOException {
         this.orchestrator    = orchestrator;
         this.configuration   = configuration;
         this.resourceManager = resourceManager;

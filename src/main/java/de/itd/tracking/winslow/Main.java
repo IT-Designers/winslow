@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 
@@ -24,11 +23,8 @@ public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws UnknownHostException {
-        final String workDirectory = System.getenv().getOrDefault(Env.WORK_DIRECTORY, "/winslow/");
-        final String nodeName = System.getenv().getOrDefault(
-                Env.NODE_NAME,
-                InetAddress.getLocalHost().getHostName()
-        );
+        final String workDirectory = Env.getWorkDirectory();
+        final String nodeName      = Env.getNodeName();
 
         LOG.trace("program start at first line within main");
         System.out.println();
@@ -69,6 +65,7 @@ public class Main {
             var nomadRepository = new NomadRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
+
             orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository, attributes, logs);
 
             if (Env.isNoStageExecutionSet()) {
