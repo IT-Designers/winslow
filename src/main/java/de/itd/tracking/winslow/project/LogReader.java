@@ -25,7 +25,7 @@ public class LogReader implements Iterator<LogEntry> {
     }
 
     private LogReader(@Nonnull InputStream inputStream, Charset charset) {
-        this.reader = new BufferedReader(new InputStreamReader(inputStream, charset));
+        this.reader     = new BufferedReader(new InputStreamReader(inputStream, charset));
         this.dateFormat = new SimpleDateFormat(LogWriter.DATE_FORMAT);
     }
 

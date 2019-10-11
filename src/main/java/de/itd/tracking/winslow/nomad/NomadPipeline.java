@@ -25,9 +25,9 @@ public class NomadPipeline implements Pipeline {
     @Nullable private NomadStage       stage;
 
     public NomadPipeline(@Nonnull String projectId, @Nonnull PipelineDefinition definition) {
-        this.projectId = projectId;
+        this.projectId  = projectId;
         this.definition = definition;
-        this.strategy = PipelineStrategy.MoveForwardUntilEnd;
+        this.strategy   = PipelineStrategy.MoveForwardUntilEnd;
     }
 
     @Nonnull
@@ -91,7 +91,7 @@ public class NomadPipeline implements Pipeline {
 
     @Override
     public void requestPause(@Nullable PauseReason reason) {
-        this.pauseReason = reason;
+        this.pauseReason    = reason;
         this.pauseRequested = true;
     }
 
@@ -112,7 +112,7 @@ public class NomadPipeline implements Pipeline {
 
     @Override
     public void resume(@Nullable ResumeNotification notification) {
-        this.pauseRequested = false;
+        this.pauseRequested     = false;
         this.resumeNotification = notification;
     }
 

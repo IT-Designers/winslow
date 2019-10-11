@@ -46,7 +46,7 @@ public class UnixNetIoParser {
 
 
         InterfaceInfo(long received, long transmitted) {
-            this.received = received;
+            this.received    = received;
             this.transmitted = transmitted;
         }
 

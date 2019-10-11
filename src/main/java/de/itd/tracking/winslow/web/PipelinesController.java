@@ -31,7 +31,7 @@ public class PipelinesController {
         private final String desc;
 
         public PipelineInfo(String id, String name, String description) {
-            this.id = id;
+            this.id   = id;
             this.name = name;
             this.desc = description;
         }

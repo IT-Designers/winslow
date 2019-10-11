@@ -11,10 +11,10 @@ public class PathConfiguration {
 
 
     public PathConfiguration() {
-        internal = Path.of("winslow");
-        resources = Path.of("resources");
+        internal   = Path.of("winslow");
+        resources  = Path.of("resources");
         workspaces = Path.of("workspaces");
-        pipelines = Path.of("pipelines");
+        pipelines  = Path.of("pipelines");
     }
 
     public Path getRelativePathOfInternal() {

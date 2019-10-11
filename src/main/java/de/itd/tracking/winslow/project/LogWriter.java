@@ -33,10 +33,10 @@ public class LogWriter implements Runnable {
             @Nonnull Supplier<LogEntry> supplier,
             @Nonnull List<Consumer<LogEntry>> consumers) {
         this.outputStream = outputStream;
-        this.predicate = predicate;
-        this.supplier = supplier;
-        this.consumers = consumers;
-        this.dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        this.predicate    = predicate;
+        this.supplier     = supplier;
+        this.consumers    = consumers;
+        this.dateFormat   = new SimpleDateFormat(DATE_FORMAT);
     }
 
     public static Builder writeTo(@Nonnull LockedOutputStream outputStream) {

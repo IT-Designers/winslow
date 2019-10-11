@@ -8,7 +8,7 @@ public class CpuInfo {
     @Nonnull private final List<Float> utilization;
 
     public CpuInfo(@Nonnull String modelName, @Nonnull List<Float> utilization) {
-        this.modelName = modelName;
+        this.modelName   = modelName;
         this.utilization = utilization;
     }
 

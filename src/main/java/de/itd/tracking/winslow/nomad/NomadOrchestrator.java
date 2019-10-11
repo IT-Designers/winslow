@@ -58,10 +58,10 @@ public class NomadOrchestrator implements Orchestrator {
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs) {
         this.environment = environment;
-        this.client = client;
-        this.pipelines = pipelines;
-        this.hints = hints;
-        this.logs = logs;
+        this.client      = client;
+        this.pipelines   = pipelines;
+        this.hints       = hints;
+        this.logs        = logs;
 
         var thread = new Thread(this::pipelineUpdaterLoop);
         thread.setDaemon(true);

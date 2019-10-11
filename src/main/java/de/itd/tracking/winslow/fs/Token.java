@@ -10,10 +10,10 @@ public class Token {
     private final long   time;
 
     public Token(String id, Path eventOrigin, String subject, long time) {
-        this.id = id;
+        this.id          = id;
         this.eventOrigin = eventOrigin;
-        this.subject = subject;
-        this.time = time;
+        this.subject     = subject;
+        this.time        = time;
     }
 
     public String getId() {

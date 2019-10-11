@@ -25,7 +25,7 @@ public class LockedContainer<T> implements Closeable {
             @Nonnull Lock lock,
             @Nonnull Reader<T> reader,
             @Nonnull Writer<T> writer) throws IOException {
-        this.lock = lock;
+        this.lock   = lock;
         this.reader = reader;
         this.writer = writer;
 

@@ -9,11 +9,11 @@ public class Event {
     private final String  subject;
 
     public Event(String id, Command command, long time, long duration, String subject) {
-        this.id = id;
-        this.command = command;
-        this.time = time;
+        this.id       = id;
+        this.command  = command;
+        this.time     = time;
         this.duration = duration;
-        this.subject = subject;
+        this.subject  = subject;
     }
 
     public String getId() {

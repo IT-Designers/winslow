@@ -8,7 +8,7 @@ public class LockAlreadyExistsException extends LockException {
     public LockAlreadyExistsException(String subject, long until) {
         super("A lock for the subject '" + subject + "' does already exist");
         this.subject = subject;
-        this.until = until;
+        this.until   = until;
     }
 
     public String getSubject() {

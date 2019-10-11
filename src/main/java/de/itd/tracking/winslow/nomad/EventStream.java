@@ -28,8 +28,8 @@ public class EventStream {
     private Queue<LogEntry> logs          = new ArrayDeque<>();
 
     public EventStream(AllocationsApi api, String jobId, String taskName) {
-        this.api = api;
-        this.jobId = jobId;
+        this.api      = api;
+        this.jobId    = jobId;
         this.taskName = taskName;
     }
 

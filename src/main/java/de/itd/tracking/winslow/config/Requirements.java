@@ -47,8 +47,8 @@ public class Requirements {
         private final String[] support;
 
         public Gpu(int count, String vendor, String[] support) {
-            this.count = count;
-            this.vendor = vendor;
+            this.count   = count;
+            this.vendor  = vendor;
             this.support = support;
         }
 

@@ -15,9 +15,9 @@ public class LogEntry {
     private final String  message;
 
     public LogEntry(long timeMs, Source source, boolean error, @Nonnull String message) {
-        this.time = timeMs;
-        this.source = source;
-        this.error = error;
+        this.time    = timeMs;
+        this.source  = source;
+        this.error   = error;
         this.message = message;
     }
 

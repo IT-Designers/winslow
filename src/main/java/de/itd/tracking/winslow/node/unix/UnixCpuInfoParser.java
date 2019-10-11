@@ -14,7 +14,7 @@ public class UnixCpuInfoParser {
     private int cpuCount;
 
     public UnixCpuInfoParser(@Nonnull String[] lines) {
-        this.lines = lines;
+        this.lines    = lines;
         this.cpuCount = parseCpuCount();
     }
 
@@ -80,14 +80,14 @@ public class UnixCpuInfoParser {
                 long steal,
                 long guest,
                 long guest_nice) {
-            this.user = user;
-            this.nice = nice;
-            this.system = system;
-            this.idle = idle;
-            this.iowait = iowait;
-            this.irq = irq;
-            this.steal = steal;
-            this.guest = guest;
+            this.user       = user;
+            this.nice       = nice;
+            this.system     = system;
+            this.idle       = idle;
+            this.iowait     = iowait;
+            this.irq        = irq;
+            this.steal      = steal;
+            this.guest      = guest;
             this.guest_nice = guest_nice;
         }
 

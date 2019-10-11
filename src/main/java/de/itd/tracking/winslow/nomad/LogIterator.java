@@ -29,11 +29,11 @@ public class LogIterator implements Iterator<String> {
             String logType,
             ClientApi clientApi,
             Supplier<Optional<AllocationListStub>> state) {
-        this.id = id;
-        this.taskName = taskName;
-        this.logType = logType;
+        this.id        = id;
+        this.taskName  = taskName;
+        this.logType   = logType;
         this.clientApi = clientApi;
-        this.state = state;
+        this.state     = state;
     }
 
     private boolean hasTaskStarted(AllocationListStub allocation) {

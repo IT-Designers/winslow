@@ -22,7 +22,7 @@ public abstract class BaseRepository {
     protected final WorkDirectoryConfiguration workDirectoryConfiguration;
 
     public BaseRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
-        this.lockBus = lockBus;
+        this.lockBus                    = lockBus;
         this.workDirectoryConfiguration = workDirectoryConfiguration;
 
         var dir = getRepositoryDirectory().toFile();
@@ -164,7 +164,7 @@ public abstract class BaseRepository {
 
 
         private Handle(@Nonnull Path path, @Nonnull Reader<T> reader, @Nonnull Writer<T> writer) {
-            this.path = path;
+            this.path   = path;
             this.reader = reader;
             this.writer = writer;
         }

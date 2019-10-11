@@ -24,10 +24,10 @@ public class IncompleteStageException extends OrchestratorException {
             boolean requiresConfirmation,
             boolean missingEnvVariables) {
         super(message, cause);
-        this.stage = stage;
-        this.workspace = workspace;
+        this.stage                = stage;
+        this.workspace            = workspace;
         this.requiresConfirmation = requiresConfirmation;
-        this.missingEnvVariables = missingEnvVariables;
+        this.missingEnvVariables  = missingEnvVariables;
     }
 
     @Nonnull

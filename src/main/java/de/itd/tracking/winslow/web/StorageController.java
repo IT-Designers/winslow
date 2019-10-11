@@ -66,7 +66,7 @@ public class StorageController {
         public final          long   bytesFree;
 
         private StorageInfo(@Nonnull String name, long bytesUsed, long bytesFree) {
-            this.name = name;
+            this.name      = name;
             this.bytesUsed = bytesUsed;
             this.bytesFree = bytesFree;
         }

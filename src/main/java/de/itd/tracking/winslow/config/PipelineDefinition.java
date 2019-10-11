@@ -12,10 +12,10 @@ public class PipelineDefinition {
     private final List<StageDefinition> stages;
 
     public PipelineDefinition(String name, String desc, UserInput userInput, List<StageDefinition> stages) {
-        this.name = name;
-        this.desc = desc;
+        this.name      = name;
+        this.desc      = desc;
         this.userInput = userInput;
-        this.stages = stages;
+        this.stages    = stages;
         this.check();
     }
 

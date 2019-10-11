@@ -17,7 +17,7 @@ public class LockedInputStream extends InputStream {
 
     public LockedInputStream(InputStream fis, Lock lock) {
         this.inputStream = fis;
-        this.lock = lock;
+        this.lock        = lock;
     }
 
     private void lockHeartbeat() throws IOException {

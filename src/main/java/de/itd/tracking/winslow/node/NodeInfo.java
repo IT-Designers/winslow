@@ -15,10 +15,10 @@ public class NodeInfo {
             @Nonnull MemInfo memInfo,
             @Nonnull NetInfo netInfo,
             @Nonnull DiskInfo diskInfo) {
-        this.name = name;
-        this.cpuInfo = cpuInfo;
-        this.memInfo = memInfo;
-        this.netInfo = netInfo;
+        this.name     = name;
+        this.cpuInfo  = cpuInfo;
+        this.memInfo  = memInfo;
+        this.netInfo  = netInfo;
         this.diskInfo = diskInfo;
     }
 

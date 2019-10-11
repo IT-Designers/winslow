@@ -8,8 +8,8 @@ public class Backoff {
     private       float value;
 
     public Backoff(int min, int max, float multiplier) {
-        this.min = min;
-        this.max = max;
+        this.min        = min;
+        this.max        = max;
         this.multiplier = multiplier;
     }
 

@@ -18,7 +18,7 @@ public class LockHeart implements AutoCloseable {
     private                boolean isBeating   = true;
 
     public LockHeart(@Nonnull Lock lock) {
-        this.lock = lock;
+        this.lock   = lock;
         this.thread = new Thread(this::beatIt);
         this.thread.setDaemon(true);
         this.thread.setName(this.toString());

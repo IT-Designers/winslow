@@ -242,9 +242,9 @@ public class FilesController {
         private final String  path;
 
         public FileInfo(String name, boolean isDirectory, String path) {
-            this.name = name;
+            this.name        = name;
             this.isDirectory = isDirectory;
-            this.path = path;
+            this.path        = path;
         }
 
         public String getName() {

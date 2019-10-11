@@ -22,7 +22,7 @@ public class UnixNode implements Node {
     @Nonnull private       List<UnixDiskIoParser.DiskInfo>     prevDiskInfo;
 
     public UnixNode(@Nonnull String name) throws IOException {
-        this.name = name;
+        this.name         = name;
         this.prevCpuTimes = getCpuTimes(resolveStat());
         this.prevNetBytes = getInterfaceInfo(resolveNetDev());
         this.prevDiskInfo = getDiskInfo(resolveDiskstats());

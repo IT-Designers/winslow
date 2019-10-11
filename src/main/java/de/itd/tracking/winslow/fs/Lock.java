@@ -21,8 +21,8 @@ public class Lock implements Closeable {
     }
 
     public Lock(LockBus lockBus, Token token, long durationMs) {
-        this.lockBus = lockBus;
-        this.token = token;
+        this.lockBus    = lockBus;
+        this.token      = token;
         this.durationMs = durationMs;
     }
 

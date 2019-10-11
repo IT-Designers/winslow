@@ -19,12 +19,12 @@ public class StageDefinition {
             UserInput userInput,
             HashMap<String, String> env,
             Highlight highlight) {
-        this.name = name;
-        this.desc = desc;
-        this.image = image;
-        this.requires = requires;
+        this.name      = name;
+        this.desc      = desc;
+        this.image     = image;
+        this.requires  = requires;
         this.userInput = userInput;
-        this.env = env;
+        this.env       = env;
         this.highlight = highlight;
         this.check();
     }

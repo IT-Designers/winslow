@@ -39,7 +39,7 @@ public class UnixDiskIoParser {
         private final long bytesWritten;
 
         DiskInfo(long bytesRead, long bytesWritten) {
-            this.bytesRead = bytesRead;
+            this.bytesRead    = bytesRead;
             this.bytesWritten = bytesWritten;
         }
 

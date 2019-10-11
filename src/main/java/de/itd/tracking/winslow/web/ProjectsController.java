@@ -368,12 +368,12 @@ public class ProjectsController {
         public final String      workspace;
 
         public HistoryEntry(Stage stage) {
-            this.stageId = stage.getId();
-            this.startTime = stage.getStartTime();
+            this.stageId    = stage.getId();
+            this.startTime  = stage.getStartTime();
             this.finishTime = stage.getFinishTime();
-            this.state = stage.getState();
-            this.stageName = stage.getDefinition().getName();
-            this.workspace = stage.getWorkspace();
+            this.state      = stage.getState();
+            this.stageName  = stage.getDefinition().getName();
+            this.workspace  = stage.getWorkspace();
         }
     }
 
@@ -383,8 +383,8 @@ public class ProjectsController {
         @Nullable public final Integer     stageProgress;
 
         StateInfo(@Nullable Stage.State state, @Nullable String pauseReason, @Nullable Integer stageProgress) {
-            this.state = state;
-            this.pauseReason = pauseReason;
+            this.state         = state;
+            this.pauseReason   = pauseReason;
             this.stageProgress = stageProgress;
         }
     }

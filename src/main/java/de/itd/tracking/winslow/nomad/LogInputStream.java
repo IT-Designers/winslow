@@ -37,12 +37,12 @@ public class LogInputStream extends InputStream implements AutoCloseable {
             @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier,
             @Nonnull String logType,
             boolean follow) throws IOException {
-        this.api = api;
-        this.taskName = taskName;
+        this.api           = api;
+        this.taskName      = taskName;
         this.stateSupplier = stateSupplier;
-        this.logType = logType;
-        this.follow = follow;
-        this.framedStream = this.tryOpen();
+        this.logType       = logType;
+        this.follow        = follow;
+        this.framedStream  = this.tryOpen();
     }
 
     @Nullable
@@ -148,9 +148,9 @@ public class LogInputStream extends InputStream implements AutoCloseable {
             StreamFrame frame = framedStream.nextFrame();
             if (frame != null && frame.getData() != null && frame.getData().length > 0) {
                 this.offset += frame.getData().length;
-                this.file = frame.getFile();
+                this.file         = frame.getFile();
                 this.currentFrame = new ByteArrayInputStream(frame.getData());
-                this.lastSuccess = System.currentTimeMillis();
+                this.lastSuccess  = System.currentTimeMillis();
                 return true;
             }
         } else {
@@ -200,7 +200,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
                 this.framedStream.close();
             }
         } finally {
-            this.closed = true;
+            this.closed       = true;
             this.framedStream = null;
         }
     }

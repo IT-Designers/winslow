@@ -14,7 +14,7 @@ public class LockedOutputStream extends OutputStream {
 
     public LockedOutputStream(OutputStream outputStream, Lock lock) {
         this.outputStream = outputStream;
-        this.lock = lock;
+        this.lock         = lock;
     }
 
     private void lockHeartbeat() throws IOException {

@@ -9,7 +9,7 @@ public class User {
     private final GroupAssignmentResolver resolver;
 
     public User(String name, GroupAssignmentResolver resolver) {
-        this.name = name;
+        this.name     = name;
         this.resolver = resolver;
     }
 

@@ -10,7 +10,7 @@ public class UserInput {
 
     public UserInput(Confirmation confirmation, List<String> valueFor) {
         this.confirmation = confirmation;
-        this.valueFor = valueFor;
+        this.valueFor     = valueFor;
     }
 
     public Confirmation requiresConfirmation() {

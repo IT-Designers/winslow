@@ -18,8 +18,8 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
     public NfsWorkDirectory(Path workDirectory, String serverAddress, String serverExport, String options) {
         this.workDirectory = workDirectory;
         this.serverAddress = serverAddress;
-        this.serverExport = serverExport;
-        this.options = options;
+        this.serverExport  = serverExport;
+        this.options       = options;
     }
 
     public String getServerAddress() {

@@ -11,7 +11,7 @@ public class Environment {
     @Nonnull private final ResourceManager            resourceManager;
 
     public Environment(@Nonnull WorkDirectoryConfiguration configuration, @Nonnull ResourceManager resourceManager) {
-        this.configuration = configuration;
+        this.configuration   = configuration;
         this.resourceManager = resourceManager;
     }
 
