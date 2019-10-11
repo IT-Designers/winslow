@@ -4,6 +4,7 @@ import de.itd.tracking.winslow.Env;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.HandlerTypePredicate;
 import org.springframework.web.servlet.config.annotation.*;
@@ -37,8 +38,10 @@ public class PathMapping implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         // just show the index.html on errors
-        registry.addViewController("/error").setViewName("/index.html");
         registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registry.addViewController("/error")
+                .setStatusCode(HttpStatus.OK)
+                .setViewName("/index.html");
     }
 
     @Override
