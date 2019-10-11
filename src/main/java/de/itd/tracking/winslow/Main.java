@@ -68,9 +68,7 @@ public class Main {
             LOG.info("Preparing the orchestrator");
             var nomadRepository = new NomadRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
-            var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder()
-                                                         .setAddress("http://localhost:4646")
-                                                         .build());
+            var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
             orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository, attributes, logs);
 
             if (Env.isNoStageExecutionSet()) {
