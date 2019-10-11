@@ -13,18 +13,19 @@ export class ProjectApiService {
   }
 
   private static getUrl(more?: string) {
-    return `${environment.apiLocation}projects/${more != null ? more : ''}`;
+    return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
+
   }
 
   createProject(name: string, pipeline: PipelineDefinition) {
     const form = new FormData();
     form.append('name', name);
     form.append('pipeline', pipeline.id);
-    return this.client.post<any>(ProjectApiService.getUrl('projects'), form);
+    return this.client.post<any>(ProjectApiService.getUrl(null), form);
   }
 
   listProjects() {
-    return this.client.get<Project[]>(ProjectApiService.getUrl('projects'));
+    return this.client.get<Project[]>(ProjectApiService.getUrl(null));
   }
 
   getProjectState(projectId: string) {
