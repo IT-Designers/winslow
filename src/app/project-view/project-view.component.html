@@ -162,13 +162,14 @@
               (click)="forceReloadLogs()"
       ><mat-icon>loop</mat-icon> Force Reload
       </button>
-      <mat-slide-toggle #windowMode>Window Mode</mat-slide-toggle>
+      <mat-slide-toggle #windowMode (click)="scrollConsoleToBottom(true)">Window Mode</mat-slide-toggle>
     </div>
     <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
     <div class="logs-container" *ngIf="logs != null">
-      <div class="console-container dark-console" [class.window-mode]="windowMode.checked" >
+      <div #console class="console-container dark-console" [class.window-mode]="windowMode.checked"
+           (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
-          <code *ngIf="logs != null" #console class="console"
+          <code *ngIf="logs != null" class="console"
           ><ng-container *ngFor="let log of logs; index as i"
           ><span
           ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
