@@ -2,13 +2,11 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Env;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.HandlerTypePredicate;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 
 @Configuration
@@ -30,6 +28,13 @@ public class PathMapping implements WebMvcConfigurer {
                     .resourceChain(true)
                     .addResolver(resolver);
         }
+    }
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        // just show the index.html on errors
+        registry.addViewController("/error").setViewName("/index.html");
+        registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
     }
 
     @Override
