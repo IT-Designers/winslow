@@ -12,31 +12,35 @@ export class ProjectApiService {
   constructor(private client: HttpClient) {
   }
 
+  private static getUrl(more?: string) {
+    return `${environment.apiLocation}projects/${more != null ? more : ''}`;
+  }
+
   createProject(name: string, pipeline: PipelineDefinition) {
     const form = new FormData();
     form.append('name', name);
     form.append('pipeline', pipeline.id);
-    return this.client.post<any>(environment.apiLocation + 'projects', form);
+    return this.client.post<any>(ProjectApiService.getUrl('projects'), form);
   }
 
   listProjects() {
-    return this.client.get<Project[]>(environment.apiLocation + 'projects');
+    return this.client.get<Project[]>(ProjectApiService.getUrl('projects'));
   }
 
   getProjectState(projectId: string) {
-    return this.client.get<State>(environment.apiLocation + `projects/${projectId}/state`);
+    return this.client.get<State>(ProjectApiService.getUrl(`${projectId}/state`));
   }
 
   getProjectStates(projectIds: string[]) {
-    return this.client.get<StateInfo[]>(`${environment.apiLocation}projects/states?projectIds=${projectIds.join(',')}`);
+    return this.client.get<StateInfo[]>(ProjectApiService.getUrl(`states?projectIds=${projectIds.join(',')}`));
   }
 
   getProjectHistory(projectId: string) {
-    return this.client.get<HistoryEntry[]>(environment.apiLocation + 'projects/' + projectId + '/history');
+    return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl( `${projectId}/history`));
   }
 
   getProjectPaused(projectId: string) {
-    return this.client.get<boolean>(`${environment.apiLocation}projects/${projectId}/paused`);
+    return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`));
   }
 
   resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: any, image: ImageInfo = null) {
@@ -47,42 +51,46 @@ export class ProjectApiService {
       form.set('imageArgs', JSON.stringify(image.args));
     }
     return this.client.post(
-      `${environment.apiLocation}projects/${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`,
+      ProjectApiService.getUrl(`${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`),
       form
     );
   }
 
   setProjectPaused(projectId: string, paused: boolean) {
-    return this.client.post(`${environment.apiLocation}projects/${projectId}/paused/${paused}`, new FormData());
+    return this.client.post(ProjectApiService.getUrl(`${projectId}/paused/${paused}`), new FormData());
   }
 
   getLog(projectId: string, stageId: string) {
-    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/${stageId}`);
+    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`));
   }
 
   getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
-    return this.client.get<LogEntry[]>(`${environment.apiLocation}projects/${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`);
+    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`));
   }
 
   getPauseReason(projectId: string) {
-    return this.client.get<string>(`${environment.apiLocation}projects/${projectId}/pause-reason`);
+    return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pause-reason`));
   }
 
   getEnvironment(projectId: string, stageIndex: number) {
     return this.client
-      .get<object>(`${environment.apiLocation}projects/${projectId}/${stageIndex}/environment`)
+      .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
       .pipe(map(response => new Map(Object.entries(response))));
   }
 
   getRequiredUserInput(projectId: string, stageIndex: number) {
-    return this.client.get<string[]>(`${environment.apiLocation}projects/${projectId}/${stageIndex}/required-user-input`);
+    return this.client.get<string[]>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/required-user-input`));
   }
 
   getImage(projectId: string, stageIndex: number) {
-    return this.client.get<ImageInfo>(`${environment.apiLocation}projects/${projectId}/${stageIndex}/image`);
+    return this.client.get<ImageInfo>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/image`));
   }
 
-
+    setName(projectId: string, name: string) {
+      const form = new FormData();
+      form.set('name', name);
+      return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/name`), form);
+  }
 }
 
 export enum State {
@@ -125,7 +133,7 @@ export class LogEntry {
   source: LogSource;
   error: boolean;
   message: string;
-  stageId?: string; // LogEntryInfo
+  stageId?: string; // ProjectsController.LogEntryInfo
 }
 
 export class StateInfo {
