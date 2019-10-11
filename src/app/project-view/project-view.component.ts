@@ -357,7 +357,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.stickConsole = (element.scrollHeight - element.clientHeight) <= element.scrollTop;
   }
 
-  private scrollConsoleToBottom(overwrite = false) {
+  scrollConsoleToBottom(overwrite = false) {
     if (this.stickConsole || overwrite) {
       this.console.nativeElement.scrollTop = 9_999_999_999;
       this.stickConsole = true;
