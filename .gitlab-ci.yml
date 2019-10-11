@@ -2,6 +2,8 @@ build:
   tags:
     - dockerbuilder
   script:
+    - docker pull repo.itd-intern.de/winslow/component-html
+    - docker pull repo.itd-intern.de/winslow/component-server
     - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/node
     - docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
     - docker push $DOCKER_REGISTRY_WINSLOW/winslow/node
