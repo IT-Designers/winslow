@@ -4,7 +4,7 @@ FROM repo.itd-intern.de/winslow/component-html as html
 FROM openjdk:11-jre-slim-buster
 
 RUN apt update && \
-    apt install nginx iproute2 nfs-common curl gnupg unzip -y && \
+    apt install iproute2 nfs-common curl gnupg unzip -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
@@ -30,9 +30,10 @@ RUN chmod +x /usr/bin/entry.sh
 #COPY nomad /usr/bin/
 COPY nomad.hcl /etc/nomad/nomad.hcl
 
-COPY --from=html /etc/nginx/sites-available/default /etc/nginx/sites-available/default
-COPY --from=html /var/www/html /usr/share/nginx/html
+COPY --from=html /var/www/html /var/www/html
 COPY --from=server /opt/winslow/winslow.jar /usr/bin/
+
+ENV WINSLOW_STATIC_HTML=/var/www/html
 
 ENTRYPOINT /usr/bin/entry.sh
 
