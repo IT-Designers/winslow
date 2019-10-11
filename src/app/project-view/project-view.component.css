@@ -132,8 +132,7 @@
 
 .window-mode {
   overflow: auto;
-  max-height: 75vh;
-  min-height: 10em !important;
+  height: 75vh;
 }
 
 .console .no-word-wrap {
