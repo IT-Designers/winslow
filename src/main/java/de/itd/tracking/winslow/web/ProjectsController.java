@@ -4,11 +4,13 @@ import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.Image;
 import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,6 +74,45 @@ public class ProjectsController {
                                 pipeline.getRunningStage().stream()
                         ))
                         .map(HistoryEntry::new));
+    }
+
+    @PostMapping("/projects/{projectId}/name")
+    public void setProjectName(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam("name") String name) throws LockException, IOException {
+        var canAccess = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(p -> canUserAccessProject(user, p));
+
+        // do not try to lock expensively if the
+        // user is not allowed to access the project anyway
+        if (canAccess.isEmpty()) {
+            return;
+        }
+
+        var exclusive = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive();
+
+        if (exclusive.isPresent()) {
+            try (var project = exclusive.get()) {
+                var update = project
+                        .get()
+                        .filter(p -> canUserAccessProject(user, p))
+                        .map(p -> {
+                            p.setName(name);
+                            return p;
+                        });
+
+                if (update.isPresent()) {
+                    project.update(update.get());
+                }
+            }
+        }
     }
 
     @GetMapping("/projects/{projectId}/state")
