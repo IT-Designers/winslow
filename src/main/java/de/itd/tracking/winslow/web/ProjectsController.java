@@ -389,6 +389,11 @@ public class ProjectsController {
                 }));
     }
 
+    @PutMapping("projects/{projectId}/kill")
+    public void killCurrentStage(User user, @PathVariable("projectId") String projectId) {
+        throw new RuntimeException("Not implemented");
+    }
+
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
         return project.getOwner().equals(user.getName()) || user.getGroups().anyMatch(g -> {
             for (String group : project.getGroups()) {
