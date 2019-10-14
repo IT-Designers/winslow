@@ -186,10 +186,16 @@ public class LockBus {
             this.eventCounter += 1;
             return token;
         } catch (IOException e) {
-            if (this.loadNextEvent()) {
+            try {
+                if (this.loadNextEvent()) {
+                    return this.publishEvent(supplier);
+                } else {
+                    throw new LockedException("Internal communication error, failed to lock", e);
+                }
+            } catch (LockException loadNextFailed) {
+                LOG.log(Level.SEVERE, "Failed to load event, skipping", loadNextFailed);
+                this.eventCounter += 1;
                 return this.publishEvent(supplier);
-            } else {
-                throw new LockedException("Internal communication error, failed to lock", e);
             }
         }
     }
