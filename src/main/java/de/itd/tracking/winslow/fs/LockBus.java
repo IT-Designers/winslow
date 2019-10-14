@@ -227,7 +227,7 @@ public class LockBus {
         } catch (NoSuchFileException | FileNotFoundException e) {
             LOG.log(Level.WARNING, "Failed to read event");
             return false;
-        } catch (IOException e) {
+        } catch (Throwable e) {
             if (retryCount > 0 && path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000) {
                 e.printStackTrace();
                 try {
