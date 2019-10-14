@@ -72,8 +72,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.pollWatched();
   }
 
-  isRunning(): boolean {
-    return State.Running === this.state;
+  isRunning(state = this.state): boolean {
+    return State.Running === state;
   }
 
   pollWatched(): void {
@@ -362,6 +362,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.console.nativeElement.scrollTop = 9_999_999_999;
       this.stickConsole = true;
     }
+  }
+
+  killCurrentStage() {
+    this.longLoading.increase();
+    this.api
+        .killStage(this.project.id)
+        .toPromise()
+        .then(result => {
+          this.notification.info('Request accepted');
+        })
+        .catch(err => {
+          this.notification.error('Request failed: ' + JSON.stringify(err));
+        })
+        .finally(() => this.longLoading.decrease());
   }
 }
 
