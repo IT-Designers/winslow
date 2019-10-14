@@ -1,6 +1,5 @@
-package de.itd.tracking.winslow.nomad;
+package de.itd.tracking.winslow;
 
-import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 

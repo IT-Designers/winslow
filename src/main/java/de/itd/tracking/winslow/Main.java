@@ -5,10 +5,9 @@ import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
-import de.itd.tracking.winslow.nomad.NomadOrchestrator;
-import de.itd.tracking.winslow.nomad.NomadRepository;
-import de.itd.tracking.winslow.nomad.RunInfoRepository;
+import de.itd.tracking.winslow.nomad.NomadBackend;
 import de.itd.tracking.winslow.project.LogRepository;
+import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 import de.itd.tracking.winslow.web.WebApi;
@@ -48,8 +47,8 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        WebApi.Context    webApi       = null;
-        NomadOrchestrator orchestrator = null;
+        WebApi.Context webApi       = null;
+        Orchestrator   orchestrator = null;
 
         try {
             LOG.info("Loading NFS configuration for work-directory");
@@ -60,13 +59,15 @@ public class Main {
             var resourceManager = new ResourceManager(config.getPath(), new PathConfiguration());
             var environment     = new Environment(config, resourceManager);
             var logs            = new LogRepository(lockBus, config);
+            var projects        = new ProjectRepository(lockBus, config);
 
             LOG.info("Preparing the orchestrator");
-            var nomadRepository = new NomadRepository(lockBus, config);
+            var nomadRepository = new PipelineRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
+            var nomadBackend    = new NomadBackend(nomadClient);
 
-            orchestrator = new NomadOrchestrator(environment, nomadClient, nomadRepository, attributes, logs);
+            orchestrator = new Orchestrator(environment, nomadBackend, projects, nomadRepository, attributes, logs);
 
             if (Env.isNoStageExecutionSet()) {
                 LOG.info("Stage execution is disabled on this node");
@@ -76,7 +77,7 @@ public class Main {
             }
 
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager);
+            var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects);
 
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);

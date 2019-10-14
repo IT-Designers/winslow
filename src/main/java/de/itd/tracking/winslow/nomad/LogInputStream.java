@@ -72,7 +72,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private Optional<AllocationListStub> getAllocationBeingPresentOnlyIfHasStarted() {
-        return this.stateSupplier.get().filter(allocation -> NomadOrchestrator
+        return this.stateSupplier.get().filter(allocation -> NomadBackend
                 .hasTaskStarted(allocation, taskName)
                 .orElse(Boolean.FALSE));
     }
@@ -89,7 +89,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private boolean isAlive() {
         return this.stateSupplier
                 .get()
-                .flatMap(allocation -> NomadOrchestrator.hasTaskFinished(allocation, taskName))
+                .flatMap(allocation -> NomadBackend.hasTaskFinished(allocation, taskName))
                 .map(v -> {
                     if (v) {
                         return Boolean.FALSE;
@@ -99,13 +99,6 @@ public class LogInputStream extends InputStream implements AutoCloseable {
                     }
                 })
                 .orElse(Boolean.TRUE) || (System.currentTimeMillis() - lastSuccess) < 5_000;
-    }
-
-    private boolean hasCompleted() {
-        var alloc = getAllocationBeingPresentOnlyIfHasStarted();
-        return alloc
-                .flatMap(allocation -> NomadOrchestrator.hasTaskFinished(allocation, taskName))
-                .orElse(Boolean.FALSE);
     }
 
     interface CallableIOException {

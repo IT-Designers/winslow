@@ -5,16 +5,21 @@ import java.io.*;
 
 public class LockedOutputStream extends OutputStream {
 
-    private final OutputStream outputStream;
-    private final Lock         lock;
+    @Nonnull private final OutputStream outputStream;
+    @Nonnull private final Lock         lock;
 
-    public LockedOutputStream(File file, Lock lock) throws FileNotFoundException {
+    public LockedOutputStream(@Nonnull File file, @Nonnull Lock lock) throws FileNotFoundException {
         this(new FileOutputStream(file), lock);
     }
 
-    public LockedOutputStream(OutputStream outputStream, Lock lock) {
+    public LockedOutputStream(@Nonnull OutputStream outputStream, @Nonnull Lock lock) {
         this.outputStream = outputStream;
         this.lock         = lock;
+    }
+
+    @Nonnull
+    public Lock getLock() {
+        return lock;
     }
 
     private void lockHeartbeat() throws IOException {

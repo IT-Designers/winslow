@@ -5,28 +5,67 @@ import de.itd.tracking.winslow.config.StageDefinition;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Date;
+import java.util.Optional;
 
-public interface Stage {
+public class Stage {
 
-    enum State {
-        Running, Paused, Succeeded, Failed
+    @Nonnull private final String          id;
+    @Nonnull private final StageDefinition definition;
+    @Nonnull private final Date            startTime;
+    @Nonnull private final String          workspace;
+
+    @Nullable private Date  finishTime;
+    @Nullable private State finishState;
+
+    public Stage(
+            @Nonnull String id,
+            @Nonnull StageDefinition definition,
+            @Nonnull String workspace) {
+        this.id         = id;
+        this.definition = definition;
+        this.workspace  = workspace;
+
+        this.startTime   = new Date();
+        this.finishTime  = null;
+        this.finishState = null;
     }
 
     @Nonnull
-    String getId();
+    public String getId() {
+        return this.id;
+    }
+
+    public void finishNow(@Nonnull State finishState) {
+        this.finishTime  = new Date();
+        this.finishState = finishState;
+    }
 
     @Nonnull
-    StageDefinition getDefinition();
+    public StageDefinition getDefinition() {
+        return this.definition;
+    }
 
     @Nonnull
-    Date getStartTime();
+    public Date getStartTime() {
+        return startTime;
+    }
 
     @Nullable
-    Date getFinishTime();
+    public Date getFinishTime() {
+        return this.finishTime;
+    }
 
     @Nonnull
-    State getState();
+    public State getState() {
+        return Optional.ofNullable(finishState).orElse(State.Running);
+    }
 
     @Nonnull
-    String getWorkspace();
+    public String getWorkspace() {
+        return workspace;
+    }
+
+    public enum State {
+        Running, Paused, Succeeded, Failed
+    }
 }

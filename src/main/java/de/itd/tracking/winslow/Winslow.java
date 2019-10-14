@@ -31,7 +31,8 @@ public class Winslow implements Runnable {
             @Nonnull Orchestrator orchestrator,
             @Nonnull WorkDirectoryConfiguration configuration,
             @Nonnull LockBus lockBus,
-            @Nonnull ResourceManager resourceManager) throws IOException {
+            @Nonnull ResourceManager resourceManager,
+            @Nonnull ProjectRepository projectRepository) throws IOException {
         this.orchestrator    = orchestrator;
         this.configuration   = configuration;
         this.resourceManager = resourceManager;
@@ -39,7 +40,7 @@ public class Winslow implements Runnable {
         this.groupRepository    = new GroupRepository();
         this.userRepository     = new UserRepository(groupRepository);
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
-        this.projectRepository  = new ProjectRepository(lockBus, configuration);
+        this.projectRepository  = projectRepository;
         this.nodeRepository     = new NodeRepository(lockBus, configuration);
 
 
@@ -83,7 +84,7 @@ public class Winslow implements Runnable {
                             .getProjects()
                             .map(BaseRepository.Handle::unsafe)
                             .flatMap(Optional::stream)
-                            .filter(project -> orchestrator.getPipelineOmitExceptions(project).isEmpty())
+                            .filter(project -> orchestrator.getPipeline(project).isEmpty())
                             .forEach(project -> {
                                 try {
                                     orchestrator.createPipeline(project);

@@ -37,7 +37,7 @@ public class LogIterator implements Iterator<String> {
     }
 
     private boolean hasTaskStarted(AllocationListStub allocation) {
-        return NomadOrchestrator.hasTaskStarted(allocation, taskName).orElse(Boolean.FALSE);
+        return NomadBackend.hasTaskStarted(allocation, taskName).orElse(Boolean.FALSE);
     }
 
     private boolean tryEnsureStream() {

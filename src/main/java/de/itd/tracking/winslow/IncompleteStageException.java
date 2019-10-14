@@ -1,6 +1,4 @@
-package de.itd.tracking.winslow.nomad;
-
-import de.itd.tracking.winslow.OrchestratorException;
+package de.itd.tracking.winslow;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -10,8 +8,8 @@ import java.util.Optional;
 
 public class IncompleteStageException extends OrchestratorException {
 
-    @Nullable private final NomadStage stage;
-    @Nullable private final Path       workspace;
+    @Nullable private final Stage stage;
+    @Nullable private final Path  workspace;
 
     private final boolean requiresConfirmation;
     private final boolean missingEnvVariables;
@@ -19,7 +17,7 @@ public class IncompleteStageException extends OrchestratorException {
     private IncompleteStageException(
             @Nonnull String message,
             @Nullable Throwable cause,
-            @Nullable NomadStage stage,
+            @Nullable Stage stage,
             @Nullable Path workspace,
             boolean requiresConfirmation,
             boolean missingEnvVariables) {
@@ -31,7 +29,7 @@ public class IncompleteStageException extends OrchestratorException {
     }
 
     @Nonnull
-    public Optional<NomadStage> getStage() {
+    public Optional<Stage> getStage() {
         return Optional.ofNullable(stage);
     }
 
@@ -50,7 +48,7 @@ public class IncompleteStageException extends OrchestratorException {
 
     public static class Builder {
         @Nonnull private final String     message;
-        private                NomadStage stage;
+        private                Stage stage;
         private                Path       workspace;
         private                Throwable  cause;
         private                boolean    requiresConfirmation;
@@ -68,7 +66,7 @@ public class IncompleteStageException extends OrchestratorException {
 
         @Nonnull
         @CheckReturnValue
-        public Builder withStage(NomadStage stage) {
+        public Builder withStage(Stage stage) {
             this.stage = stage;
             return this;
         }

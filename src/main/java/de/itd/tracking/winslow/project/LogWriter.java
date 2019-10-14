@@ -1,6 +1,5 @@
 package de.itd.tracking.winslow.project;
 
-import de.itd.tracking.winslow.Backoff;
 import de.itd.tracking.winslow.LogEntry;
 import de.itd.tracking.winslow.fs.LockedOutputStream;
 
@@ -13,8 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class LogWriter implements Runnable {
 
@@ -22,19 +20,16 @@ public class LogWriter implements Runnable {
     static final String LOG_SEPARATOR = " ";
 
     @Nonnull private final SimpleDateFormat         dateFormat;
+    @Nonnull private final Stream<LogEntry>         streamSource;
     @Nonnull private final LockedOutputStream       outputStream;
-    @Nonnull private final Predicate<LogEntry>      predicate;
-    @Nonnull private final Supplier<LogEntry>       supplier;
     @Nonnull private final List<Consumer<LogEntry>> consumers;
 
     private LogWriter(
-            @Nonnull LockedOutputStream outputStream,
-            @Nonnull Predicate<LogEntry> predicate,
-            @Nonnull Supplier<LogEntry> supplier,
+            @Nonnull Stream<LogEntry> streamSource,
+            @Nonnull LockedOutputStream target,
             @Nonnull List<Consumer<LogEntry>> consumers) {
-        this.outputStream = outputStream;
-        this.predicate    = predicate;
-        this.supplier     = supplier;
+        this.streamSource = streamSource;
+        this.outputStream = target;
         this.consumers    = consumers;
         this.dateFormat   = new SimpleDateFormat(DATE_FORMAT);
     }
@@ -43,16 +38,10 @@ public class LogWriter implements Runnable {
         return new Builder(outputStream);
     }
 
-
     @Override
-
     public void run() {
-        var      backoff = new Backoff(100, 995, 2.5f);
-        LogEntry element = null;
-
         try (PrintStream ps = new PrintStream(outputStream)) {
-            while (predicate.test(element)) {
-                element = supplier.get();
+            this.streamSource.forEach(element -> {
                 if (element != null) {
                     var stream   = element.isError() ? "err" : "out";
                     var dateTime = dateFormat.format(new Date(element.getTime()));
@@ -69,12 +58,8 @@ public class LogWriter implements Runnable {
 
                     ps.println(String.join(LOG_SEPARATOR, dateTime, source + stream, element.getMessage()));
                     notifyConsumers(element);
-                    backoff.reset();
-                } else {
-                    backoff.sleep();
                 }
-                ps.flush(); // keep output stream alive even if nothing to write
-            }
+            });
         }
     }
 
@@ -85,20 +70,14 @@ public class LogWriter implements Runnable {
     public static class Builder {
         @Nonnull final List<Consumer<LogEntry>> additionalConsumer = new ArrayList<>(0);
         @Nonnull final LockedOutputStream       os;
-        @Nullable      Predicate<LogEntry>      predicate;
-        @Nullable      Supplier<LogEntry>       supplier;
+        @Nullable      Stream<LogEntry>         streamSource;
 
         private Builder(@Nonnull LockedOutputStream os) {
             this.os = os;
         }
 
-        public Builder writeWhile(@Nonnull Predicate<LogEntry> predicate) {
-            this.predicate = predicate;
-            return this;
-        }
-
-        public Builder fromSupplier(@Nonnull Supplier<LogEntry> supplier) {
-            this.supplier = supplier;
+        public Builder source(Stream<LogEntry> stream) {
+            this.streamSource = stream;
             return this;
         }
 
@@ -108,9 +87,8 @@ public class LogWriter implements Runnable {
         }
 
         public void runInForeground() {
-            Objects.requireNonNull(this.predicate);
-            Objects.requireNonNull(this.supplier);
-            new LogWriter(this.os, this.predicate, this.supplier, this.additionalConsumer).run();
+            Objects.requireNonNull(this.streamSource);
+            new LogWriter(this.streamSource, this.os, this.additionalConsumer).run();
         }
     }
 }

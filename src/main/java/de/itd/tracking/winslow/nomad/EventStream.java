@@ -2,10 +2,7 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
-import com.hashicorp.nomad.javasdk.AllocationsApi;
 import com.hashicorp.nomad.javasdk.NomadException;
-import com.hashicorp.nomad.javasdk.QueryOptions;
-import com.hashicorp.nomad.javasdk.WaitStrategy;
 import de.itd.tracking.winslow.LogEntry;
 
 import javax.annotation.Nonnull;
@@ -19,16 +16,16 @@ import java.util.stream.Stream;
 
 public class EventStream {
 
-    private final AllocationsApi api;
-    private final String         jobId;
-    private final String         taskName;
+    private final NomadBackend backend;
+    private final String       jobId;
+    private final String       taskName;
 
     private TaskState       state         = null;
     private int             previousIndex = 0;
     private Queue<LogEntry> logs          = new ArrayDeque<>();
 
-    public EventStream(AllocationsApi api, String jobId, String taskName) {
-        this.api      = api;
+    public EventStream(NomadBackend backend, String jobId, String taskName) {
+        this.backend  = backend;
         this.jobId    = jobId;
         this.taskName = taskName;
     }
@@ -69,7 +66,7 @@ public class EventStream {
                 if (previousIndex < state.getEvents().size()) {
                     parseNextLogEntries();
                     return logs.poll();
-                } else if (NomadOrchestrator.hasTaskFinished(state)) {
+                } else if (NomadBackend.hasTaskFinished(state)) {
                     return null;
                 } else {
                     this.state = null;
@@ -100,23 +97,25 @@ public class EventStream {
     }
 
     private void awaitNextEvent() throws IOException, NomadException {
-        api.list(QueryOptions.pollRepeatedlyUntil(response -> {
-            var state = getTaskState(response.getValue());
+        backend.getAllocationsPollRepeatedlyUntil(response -> {
+            var state = getTaskState(response);
             if (state == null) {
                 return false;
             } else {
-                boolean news = state.getEvents().size() > previousIndex || NomadOrchestrator.hasTaskFinished(state);
+                boolean news = state.getEvents().size() > previousIndex || NomadBackend.hasTaskFinished(state);
                 if (news) {
                     this.state = state;
                 }
                 return news;
             }
-        }, WaitStrategy.WAIT_INDEFINITELY));
+        });
     }
 
     public static Stream<LogEntry> stream(
-            @Nonnull AllocationsApi api, @Nonnull String jobId, @Nonnull String taskName) {
-        var stream = new EventStream(api, jobId, taskName);
+            @Nonnull NomadBackend backend,
+            @Nonnull String jobId,
+            @Nonnull String taskName) {
+        var stream = new EventStream(backend, jobId, taskName);
         return Stream
                 .iterate(
                         new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""),

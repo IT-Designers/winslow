@@ -1,29 +1,37 @@
 package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
+import com.hashicorp.nomad.javasdk.JobsApi;
+import de.itd.tracking.winslow.PreparedStageBuilder;
+import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
-public class JobBuilder {
+public class NomadPreparedStageBuilder implements PreparedStageBuilder {
+
 
     @Nonnull private static final String DRIVER_DOCKER = "docker";
 
     @Nonnull private final String                  id;
+    @Nonnull private final JobsApi                 jobsApi;
+    @Nonnull private final StageDefinition         stageDefinition;
     @Nonnull private final Map<String, Object>     config    = new HashMap<>(10);
     @Nonnull private final Map<String, String>     envVars   = new HashMap<>(10);
-    private                String                  taskName;
+    private                String                  stage;
     private                String                  driver;
     private final          Resources               resources = new Resources();
     private                HashMap<String, Object> deviceGpu = null;
 
-    private JobBuilder(@Nonnull String id) {
-        this.id = id;
-    }
-
-    @Nonnull
-    public static JobBuilder withRandomUuid() {
-        return new JobBuilder(UUID.randomUUID().toString());
+    public NomadPreparedStageBuilder(
+            @Nonnull String id,
+            @Nonnull String stage,
+            @Nonnull JobsApi jobsApi,
+            @Nonnull StageDefinition stageDefinition) {
+        this.id              = id;
+        this.stage           = stage;
+        this.jobsApi         = jobsApi;
+        this.stageDefinition = stageDefinition;
     }
 
     @Nonnull
@@ -32,31 +40,32 @@ public class JobBuilder {
     }
 
     @Nonnull
-    public JobBuilder withTaskName(String name) {
-        this.taskName = name;
+    public NomadPreparedStageBuilder withStage(@Nonnull String name) {
+        this.stage = name;
         return this;
     }
 
-    public String getTaskName() {
-        return taskName;
+    @Nonnull
+    public String getStage() {
+        return stage;
     }
 
     @Nonnull
-    public JobBuilder withDockerImage(String image) {
+    public NomadPreparedStageBuilder withDockerImage(String image) {
         this.ensureDriverDocker();
         this.config.put("image", image);
         return this;
     }
 
     @Nonnull
-    public JobBuilder withDockerImageArguments(String... args) {
+    public NomadPreparedStageBuilder withDockerImageArguments(String... args) {
         this.ensureDriverDocker();
         this.config.put("args", args);
         return this;
     }
 
     @Nonnull
-    public JobBuilder addNfsVolume(
+    public NomadPreparedStageBuilder addNfsVolume(
             String volumeName,
             String target,
             boolean readonly,
@@ -102,25 +111,25 @@ public class JobBuilder {
     }
 
     @Nonnull
-    public JobBuilder withEnvVariableUnset(@Nonnull String key) {
+    public NomadPreparedStageBuilder withEnvVariableUnset(@Nonnull String key) {
         this.envVars.remove(key);
         return this;
     }
 
     @Nonnull
-    public JobBuilder withEnvVariableSet(@Nonnull String key, @Nonnull String value) {
+    public NomadPreparedStageBuilder withEnvVariableSet(@Nonnull String key, @Nonnull String value) {
         this.envVars.put(key, value);
         return this;
     }
 
     @Nonnull
-    public JobBuilder withEnvVariablesSet(@Nonnull Map<? extends String, ? extends String> variables) {
+    public NomadPreparedStageBuilder withEnvVariablesSet(@Nonnull Map<? extends String, ? extends String> variables) {
         this.envVars.putAll(variables);
         return this;
     }
 
     @Nonnull
-    public JobBuilder withGpuCount(int count) {
+    public NomadPreparedStageBuilder withGpuCount(int count) {
         this.ensureGpuDeviceAdded();
         if (count > 0) {
             this.deviceGpu.put("Count", count);
@@ -132,7 +141,7 @@ public class JobBuilder {
     }
 
     @Nonnull
-    public JobBuilder withGpuVendor(@Nonnull String vendor) {
+    public NomadPreparedStageBuilder withGpuVendor(@Nonnull String vendor) {
         ensureGpuDeviceAdded();
         this.deviceGpu.put("Name", vendor + "/gpu");
         return this;
@@ -155,23 +164,26 @@ public class JobBuilder {
     }
 
     @Nonnull
-    public Job buildJob() {
-        return new Job().setId(this.id).addDatacenters("local").setType("batch").addTaskGroups(new TaskGroup()
-                                                                                                       .setName(taskName)
-                                                                                                       .setRestartPolicy(
-                                                                                                               new RestartPolicy()
-                                                                                                                       .setAttempts(
-                                                                                                                               0))
-                                                                                                       .addTasks(new Task()
-                                                                                                                         .setName(
-                                                                                                                                 taskName)
-                                                                                                                         .setDriver(
-                                                                                                                                 driver)
-                                                                                                                         .setConfig(
-                                                                                                                                 config)
-                                                                                                                         .setResources(
-                                                                                                                                 resources)
-                                                                                                                         .setEnv(this.envVars)));
+    public NomadPreparedStage build() {
+        return new NomadPreparedStage(
+                new Job()
+                        .setId(this.stage)
+                        .addDatacenters("local")
+                        .setType("batch")
+                        .addTaskGroups(
+                                new TaskGroup()
+                                        .setName(this.stage)
+                                        .setRestartPolicy(new RestartPolicy().setAttempts(0))
+                                        .addTasks(
+                                                new Task()
+                                                        .setName(this.stage)
+                                                        .setDriver(this.driver)
+                                                        .setConfig(this.config)
+                                                        .setResources(this.resources)
+                                                        .setEnv(this.envVars))),
+                jobsApi,
+                stageDefinition
+        );
     }
 
 
