@@ -229,12 +229,12 @@ public class NomadOrchestrator implements Orchestrator {
     private NomadPipeline updateRunningStage(@Nonnull NomadPipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
             LOG.info("Checking if running stage state can be updated: " + getStateOmitExceptions(stage));
-            switch (getStateOmitExceptions(stage).orElse(Stage.State.Running)) {
-                default:
+            switch (getStateOmitExceptions(stage).orElse(Stage.State.Failed)) {
                 case Running:
                     if (getLogRedirectionState(pipeline) != SimpleState.Failed) {
                         break;
                     }
+                default:
                 case Failed:
                     stage.finishNow(Stage.State.Failed);
                     pipeline.pushStage(null);
