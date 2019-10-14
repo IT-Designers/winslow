@@ -228,6 +228,7 @@ public class NomadOrchestrator implements Orchestrator {
     @Nonnull
     private NomadPipeline updateRunningStage(@Nonnull NomadPipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
+            LOG.info("Checking if running stage state can be updated: " + getStateOmitExceptions(stage));
             switch (getStateOmitExceptions(stage).orElse(Stage.State.Running)) {
                 default:
                 case Running:
@@ -249,13 +250,6 @@ public class NomadOrchestrator implements Orchestrator {
     }
 
     @Nonnull
-    private Optional<Stage.State> getState(NomadStage stage) throws IOException, NomadException {
-        return this
-                .getJobAllocationContainingTaskState(stage.getJobId(), stage.getTaskName())
-                .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, stage.getTaskName()));
-    }
-
-    @Nonnull
     private Optional<Stage.State> getStateOmitExceptions(NomadStage stage) {
         try {
             return getState(stage);
@@ -263,6 +257,13 @@ public class NomadOrchestrator implements Orchestrator {
             LOG.log(Level.SEVERE, "Failed to retrieve stage state", e);
             return Optional.empty();
         }
+    }
+
+    @Nonnull
+    private Optional<Stage.State> getState(NomadStage stage) throws IOException, NomadException {
+        return this
+                .getJobAllocationContainingTaskState(stage.getJobId(), stage.getTaskName())
+                .flatMap(alloc -> NomadOrchestrator.toRunningStageState(alloc, stage.getTaskName()));
     }
 
     private boolean hasUpdateAvailable(NomadPipeline pipeline) {
