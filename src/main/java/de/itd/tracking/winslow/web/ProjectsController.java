@@ -182,7 +182,6 @@ public class ProjectsController {
                 .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
 
 
-
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
                     var stageDef = getStageDefinitionNoClone(project, index);
@@ -371,6 +370,15 @@ public class ProjectsController {
                         .stream()
                         .skip(stageIndex)
                         .findFirst()
+                        .flatMap(def -> winslow
+                                .getOrchestrator()
+                                .getPipeline(project)
+                                .map(pipeline -> pipeline
+                                        .getAllStages()
+                                        .filter(stage -> stage.getDefinition().getName().equals(def.getName()))
+                                        .map(Stage::getDefinition)
+                                        .reduce((first, second) -> second)
+                                        .orElse(def)))
                         .flatMap(StageDefinition::getImage)
                         .map(ImageInfo::new)
                 );
@@ -398,6 +406,14 @@ public class ProjectsController {
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
                     var stageDef = getStageDefinitionNoClone(project, index);
+
+                    stageDef = stageDef.map(def -> pipeline
+                            .getAllStages()
+                            .filter(stage -> stage.getDefinition().getName().equals(def.getName()))
+                            .map(Stage::getDefinition)
+                            .reduce((first, second) -> second)
+                            .orElse(def)
+                    );
 
                     if ((imageName != null || imageArgs != null)) {
                         stageDef.flatMap(StageDefinition::getImage).ifPresent(image -> {
