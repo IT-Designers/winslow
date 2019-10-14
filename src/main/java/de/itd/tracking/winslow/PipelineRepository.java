@@ -1,8 +1,6 @@
 package de.itd.tracking.winslow;
 
 
-import de.itd.tracking.winslow.BaseRepository;
-import de.itd.tracking.winslow.Pipeline;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 
@@ -13,7 +11,7 @@ import java.util.stream.Stream;
 
 public class PipelineRepository extends BaseRepository {
 
-    private static final String SUFFIX_PIPELINE = ".pipeline.toml";
+    public static final String FILE_SUFFIX = ".pipeline.toml";
 
 
     public PipelineRepository(
@@ -30,13 +28,13 @@ public class PipelineRepository extends BaseRepository {
 
     @Nonnull
     Stream<Handle<Pipeline>> getAllPipelines() {
-        return listAll(SUFFIX_PIPELINE)
-                .filter(path -> path.toString().endsWith(SUFFIX_PIPELINE))
+        return listAll(FILE_SUFFIX)
+                .filter(path -> path.toString().endsWith(FILE_SUFFIX))
                 .map(path -> createHandle(path, Pipeline.class));
     }
 
     @Nonnull
     Handle<Pipeline> getPipeline(@Nonnull String projectId) {
-        return createHandle(getRepositoryFile(projectId, SUFFIX_PIPELINE), Pipeline.class);
+        return createHandle(getRepositoryFile(projectId, FILE_SUFFIX), Pipeline.class);
     }
 }
