@@ -178,7 +178,11 @@ public class LockBus {
                     StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE_NEW
             );
-            this.processEvent(event);
+            try {
+                this.processEvent(event);
+            } catch (Throwable t) {
+                LOG.log(Level.SEVERE, "Failed to process event, it will be ignored, source: " + path, t);
+            }
             this.eventCounter += 1;
             return token;
         } catch (IOException e) {
