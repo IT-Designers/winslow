@@ -87,10 +87,14 @@ export class ProjectApiService {
     return this.client.get<ImageInfo>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/image`));
   }
 
-    setName(projectId: string, name: string) {
+  setName(projectId: string, name: string) {
       const form = new FormData();
       form.set('name', name);
       return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/name`), form);
+  }
+
+  killStage(projectId: string) {
+    return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/kill`), new FormData());
   }
 }
 
