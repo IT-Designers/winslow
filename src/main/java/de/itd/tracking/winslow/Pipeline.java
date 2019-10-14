@@ -116,7 +116,16 @@ public class Pipeline {
     }
 
     @Nonnull
-    public Optional<StageDefinition> getNextStage() {
+    public Optional<StageDefinition> peekNextStage() {
+        if (this.enqueuedStages != null && !this.enqueuedStages.isEmpty()) {
+            return Optional.ofNullable(this.enqueuedStages.get(0));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    @Nonnull
+    public Optional<StageDefinition> popNextStage() {
         if (this.enqueuedStages != null && !this.enqueuedStages.isEmpty()) {
             return Optional.ofNullable(this.enqueuedStages.remove(0));
         } else {

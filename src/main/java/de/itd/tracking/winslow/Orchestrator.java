@@ -84,12 +84,14 @@ public class Orchestrator {
         this.isRunning = true;
         try {
             while (!isGoingToStop()) {
-                pollAllPipelinesForUpdate();
                 try {
+                    pollAllPipelinesForUpdate();
                     // TODO
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                } catch (Throwable t) {
+                    t.printStackTrace();
                 }
             }
         } finally {
@@ -122,6 +124,7 @@ public class Orchestrator {
                         e
                 );
             }
+
         });
     }
 
@@ -212,7 +215,7 @@ public class Orchestrator {
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
         if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested() && pipeline
-                .getNextStage()
+                .peekNextStage()
                 .isPresent()) {
             switch (pipeline.getStrategy()) {
                 case MoveForwardOnce:
@@ -317,7 +320,7 @@ public class Orchestrator {
                             return true;
                     }
                 })
-                .orElseGet(() -> pipeline.getNextStage().isPresent() && !pipeline.isPauseRequested());
+                .orElseGet(() -> pipeline.peekNextStage().isPresent() && !pipeline.isPauseRequested());
     }
 
     @Nonnull
@@ -379,7 +382,7 @@ public class Orchestrator {
     private Stage startNextPipelineStage(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) throws IncompleteStageException {
-        var stageDefinition = pipeline.getNextStage().orElseThrow(() -> IncompleteStageException.Builder
+        var stageDefinition = pipeline.peekNextStage().orElseThrow(() -> IncompleteStageException.Builder
                 .create("A pipeline requires at least one stage")
                 .build());
 
@@ -494,6 +497,7 @@ public class Orchestrator {
             copyContentOfMostRecentStageTo(pipeline, workspace.get());
             var stage = builder.build().start();
             pipeline.resetResumeNotification();
+            pipeline.popNextStage();
             redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
             return stage;
         } catch (OrchestratorException e) {

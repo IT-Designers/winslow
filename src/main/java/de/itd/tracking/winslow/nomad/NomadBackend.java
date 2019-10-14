@@ -199,7 +199,7 @@ public class NomadBackend implements Backend {
         return allocs
                 .stream()
                 .filter(alloc -> stage.equals(alloc.getJobId()))
-                .filter(alloc -> alloc.getTaskStates().get(stage) != null)
+                .filter(alloc -> alloc.getTaskStates() != null && alloc.getTaskStates().get(stage) != null)
                 .findFirst();
     }
 
