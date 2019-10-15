@@ -123,9 +123,11 @@ export class HistoryEntry {
   stageId: string;
   startTime: number;
   finishTime?: number;
-  state?: State;
-  stageName?: string;
-  workspace?: string;
+  state: State;
+  stageName: string;
+  workspace: string;
+  imageInfo?: ImageInfo;
+  env: Map<string, string>;
 }
 
 export enum LogSource {
