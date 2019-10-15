@@ -19,6 +19,11 @@
   text-align: end;
   min-width: 2em;
 }
+
+.history-item-date {
+  min-width: 10em;
+  text-align: end;
+}
 .stage-control-item {
   display: flex;
   margin: 2em 2em;
