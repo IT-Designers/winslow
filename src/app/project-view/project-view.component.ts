@@ -329,7 +329,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   forceReloadLogs() {
-    this.logs = null;
+    this.logs = [];
     this.loadLogs();
   }
 
