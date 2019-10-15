@@ -26,12 +26,14 @@ public class LockBus {
     public static final int DURATION_SURELY_OUT_OF_DATE   = 5_000;
     public static final int DURATION_FOR_UNREADABLE_FILES = 25_000;
 
+    private final String             name;
     private final Path               eventDirectory;
     private final Map<String, Event> locks = new HashMap<>();
 
     private int eventCounter = 0;
 
-    public LockBus(Path eventDirectory) throws IOException, LockException {
+    public LockBus(String name, Path eventDirectory) throws IOException, LockException {
+        this.name           = name;
         this.eventDirectory = eventDirectory;
         if (!eventDirectory.toFile().exists() && !eventDirectory.toFile().mkdirs()) {
             throw new IOException("Failed to create event directory at: " + eventDirectory);
@@ -110,7 +112,8 @@ public class LockBus {
                         Event.Command.RELEASE,
                         System.currentTimeMillis(),
                         0,
-                        token.getSubject()
+                        token.getSubject(),
+                        name
                 );
             });
             return true;
@@ -128,7 +131,8 @@ public class LockBus {
                     Event.Command.EXTEND,
                     System.currentTimeMillis(),
                     duration,
-                    token.getSubject()
+                    token.getSubject(),
+                    name
             );
         });
     }
@@ -150,7 +154,7 @@ public class LockBus {
     public Token lock(String subject, long duration) throws LockException {
         return this.publishEvent(id -> {
             this.ensureSubjectLockUnknown(subject);
-            return new Event(id, Event.Command.LOCK, System.currentTimeMillis(), duration, subject);
+            return new Event(id, Event.Command.LOCK, System.currentTimeMillis(), duration, subject, name);
         });
     }
 

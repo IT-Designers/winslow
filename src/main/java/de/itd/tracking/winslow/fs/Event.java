@@ -7,13 +7,15 @@ public class Event {
     private final long    time;
     private final long    duration;
     private final String  subject;
+    private final String  issuer;
 
-    public Event(String id, Command command, long time, long duration, String subject) {
+    public Event(String id, Command command, long time, long duration, String subject, String issuer) {
         this.id       = id;
         this.command  = command;
         this.time     = time;
         this.duration = duration;
         this.subject  = subject;
+        this.issuer   = issuer;
     }
 
     public String getId() {
@@ -34,6 +36,10 @@ public class Event {
 
     public String getSubject() {
         return subject;
+    }
+
+    public String getIssuer() {
+        return issuer;
     }
 
     @Override

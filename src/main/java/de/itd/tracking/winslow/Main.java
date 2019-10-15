@@ -55,7 +55,7 @@ public class Main {
             NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of(workDirectory));
 
             LOG.info("Preparing environment");
-            var lockBus         = new LockBus(config.getEventsDirectory());
+            var lockBus         = new LockBus(nodeName, config.getEventsDirectory());
             var resourceManager = new ResourceManager(config.getPath(), new PathConfiguration());
             var environment     = new Environment(config, resourceManager);
             var logs            = new LogRepository(lockBus, config);
