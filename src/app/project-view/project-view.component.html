@@ -126,7 +126,7 @@
 
           <app-state-icon [state]="entry.state"></app-state-icon>
           <p class="history-item-no">{{history.length - i}}</p>
-          <p>{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
+          <p class="history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
           <p>{{entry.stageName}}</p>
           <p class="history-list-item-grow">
             <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable" (click)="killCurrentStage()">pan_tool</mat-icon>
