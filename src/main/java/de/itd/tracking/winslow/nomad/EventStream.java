@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 
 public class EventStream {
 
+    public static final String MESSAGE_PREFIX = "[nomad] ";
+
     private final NomadBackend backend;
     private final String       stage;
 
@@ -27,7 +29,7 @@ public class EventStream {
 
     private void maybeEnqueue(long time, boolean err, @Nonnull String message) {
         if (message.length() > 0 && (logs.isEmpty() || !message.equals(logs.peek().getMessage()))) {
-            logs.add(new LogEntry(time, LogEntry.Source.MANAGEMENT_EVENT, err, message));
+            logs.add(new LogEntry(time, LogEntry.Source.MANAGEMENT_EVENT, err, MESSAGE_PREFIX + message));
         }
     }
 
