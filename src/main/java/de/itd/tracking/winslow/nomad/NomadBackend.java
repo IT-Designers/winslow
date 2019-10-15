@@ -13,10 +13,7 @@ import de.itd.tracking.winslow.config.StageDefinition;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -95,7 +92,7 @@ public class NomadBackend implements Backend {
 
     @Nonnull
     @Override
-    public Stream<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
+    public Iterator<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
         BlockingDeque<LogEntry> queue = new LinkedBlockingDeque<>();
         var                     weak  = new WeakReference<>(queue);
 
@@ -109,25 +106,21 @@ public class NomadBackend implements Backend {
             return (weakGet != null && !weakGet.isEmpty()) || stdout.isAlive() || stderr.isAlive() || events.isAlive();
         };
 
-        return Stream.iterate(
-                null,
-                predicate,
-                prev -> {
-                    while (predicate.test(null)) {
-                        try {
-                            synchronized (queue) {
-                                var result = queue.poll(1, TimeUnit.SECONDS);
-                                if (result != null) {
-                                    return result;
-                                }
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    return null;
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                var hasNext = predicate.test(null);
+                if (!hasNext) {
+                    weak.clear();
                 }
-        ).filter(Objects::nonNull);
+                return hasNext;
+            }
+
+            @Override
+            public LogEntry next() {
+                return queue.poll();
+            }
+        };
     }
 
     @Nonnull
@@ -275,7 +268,7 @@ public class NomadBackend implements Backend {
 
     @Nonnull
     public static Optional<TaskState> getTask(AllocationListStub allocation, String taskName) {
-        return Optional.ofNullable(allocation.getTaskStates().get(taskName));
+        return Optional.ofNullable(allocation.getTaskStates()).map(tasks -> tasks.get(taskName));
     }
 
     @Nonnull
@@ -286,10 +279,10 @@ public class NomadBackend implements Backend {
 
         if (failed) {
             return Stage.State.Failed;
-        } else if (!started || !finished) {
-            return Stage.State.Running;
-        } else {
+        } else if (started && finished) {
             return Stage.State.Succeeded;
+        } else {
+            return Stage.State.Running;
         }
     }
 

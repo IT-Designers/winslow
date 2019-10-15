@@ -60,6 +60,8 @@ public class LogWriter implements Runnable {
                     notifyConsumers(element);
                 }
             });
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
     }
 

@@ -4,6 +4,7 @@ import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -18,7 +19,7 @@ public interface Backend {
     void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
 
     @Nonnull
-    Stream<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
+    Iterator<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
 
     @Nonnull
     PreparedStageBuilder newStageBuilder(

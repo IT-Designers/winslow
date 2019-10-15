@@ -17,7 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -38,6 +41,9 @@ public class Orchestrator {
     @Nonnull private final PipelineRepository pipelines;
     @Nonnull private final RunInfoRepository  hints;
     @Nonnull private final LogRepository      logs;
+    @Nonnull private final String             nodeName;
+
+    @Nonnull private final Map<String, Executor> executors = new ConcurrentHashMap<>();
 
     private boolean isRunning = false;
     private boolean shouldRun = false;
@@ -49,13 +55,30 @@ public class Orchestrator {
             @Nonnull ProjectRepository projects,
             @Nonnull PipelineRepository pipelines,
             @Nonnull RunInfoRepository hints,
-            @Nonnull LogRepository logs) {
+            @Nonnull LogRepository logs,
+            @Nonnull String nodeName) {
         this.environment = environment;
         this.backend     = backend;
         this.projects    = projects;
         this.pipelines   = pipelines;
         this.hints       = hints;
         this.logs        = logs;
+        this.nodeName    = nodeName;
+    }
+
+    @Nonnull
+    public RunInfoRepository getRunInfoRepository() {
+        return hints;
+    }
+
+    @Nonnull
+    public LogRepository getLogRepository() {
+        return logs;
+    }
+
+    @Nonnull
+    public Backend getBackend() {
+        return backend;
     }
 
     public synchronized void start() {
@@ -147,7 +170,7 @@ public class Orchestrator {
             @Nonnull LockedContainer<Pipeline> container,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
         try {
-            var stage = maybeStartNextStage(definition, pipeline);
+            var stage = startNextStageIfReady(definition, pipeline);
 
             if (stage.isPresent()) {
                 tryUpdateContainer(container, pipeline, stage.get());
@@ -184,7 +207,7 @@ public class Orchestrator {
 
     private static void forcePurgeWorkspace(@Nonnull Path workspace) {
         try {
-            for (int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 3 && workspace.toFile().exists(); ++i) {
                 try (var stream = Files.walk(workspace)) {
                     stream.forEach(entry -> {
                         try {
@@ -211,7 +234,7 @@ public class Orchestrator {
     }
 
     @Nonnull
-    private Optional<Stage> maybeStartNextStage(
+    private Optional<Stage> startNextStageIfReady(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
         if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested() && pipeline
@@ -221,7 +244,7 @@ public class Orchestrator {
                 case MoveForwardOnce:
                     pipeline.requestPause();
                 case MoveForwardUntilEnd:
-                    var stage = tryStartNextPipelineStage(definition, pipeline);
+                    var stage = startNextPipelineStageAutoCleanupOnFailure(definition, pipeline);
                     pipeline.pushStage(stage);
                     pipeline.clearPauseReason();
                     return Optional.of(stage);
@@ -233,7 +256,7 @@ public class Orchestrator {
     @Nonnull
     private Pipeline updateRunningStage(@Nonnull Pipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
-            LOG.info("Checking if running stage state can be updated: " + getStateOmitExceptions(pipeline, stage));
+            LOG.info("Checking if running stage state can be updated: " + getStateOmitExceptions(pipeline, stage) + " for " + stage.getId());
             switch (getStateOmitExceptions(pipeline, stage).orElse(Stage.State.Failed)) {
                 case Running:
                     if (getLogRedirectionState(pipeline) != SimpleState.Failed) {
@@ -268,10 +291,16 @@ public class Orchestrator {
     private Optional<Stage.State> getState(
             @Nonnull Pipeline pipeline,
             @Nonnull Stage stage) throws IOException {
+        // faster & cheaper than potentially causing a REST request on a new TcpConnection
+        if (this.executors.get(stage.getId()) != null) {
+            return Optional.of(Stage.State.Running);
+        }
         return backend.getState(pipeline.getProjectId(), stage.getId());
     }
 
     private boolean hasUpdateAvailable(Pipeline pipeline) {
+        // LOG.info(pipeline.getProjectId() + ".isStageStateUpdateAvailable=" + isStageStateUpdateAvailable(pipeline));
+        // LOG.info(pipeline.getProjectId() + ".getLogRedirectionState=" + getLogRedirectionState(pipeline));
         return isStageStateUpdateAvailable(pipeline) || getLogRedirectionState(pipeline) == SimpleState.Failed;
     }
 
@@ -288,7 +317,6 @@ public class Orchestrator {
                 return SimpleState.Succeeded;
             } else if (!logs.isLocked(projectId, stageId)) {
                 LOG.warning("Detected log redirect which has been aborted! " + stageId + "@" + projectId);
-                // redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
                 return SimpleState.Failed;
             } else {
                 return SimpleState.Running;
@@ -361,7 +389,7 @@ public class Orchestrator {
         }
     }
 
-    private Stage tryStartNextPipelineStage(
+    private Stage startNextPipelineStageAutoCleanupOnFailure(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
         try {
@@ -396,7 +424,7 @@ public class Orchestrator {
         if (resources.isEmpty() || workspace.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
             throw IncompleteStageException.Builder
-                    .create("The workspace and resources directory must exit, but at least one isn't. workspace=" + workspace + ",resources=" + resources)
+                    .create("The workspace and resources directory must exit, but at least one isn't. workspacePath=" + workspacePath + ",workspace=" + workspace + ",resources=" + resources)
                     .withWorkspace(workspace
                                            .or(() -> environment.getResourceManager().getWorkspace(workspacePath))
                                            .orElse(null))
@@ -496,9 +524,17 @@ public class Orchestrator {
             var stage = builder.build().start();
             pipeline.resetResumeNotification();
             pipeline.popNextStage();
-            redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
+            // redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
+
+            var executor = startExecutor(
+                    pipeline.getProjectId(),
+                    stage.getId(),
+                    getProgressHintMatcher(pipeline.getProjectId())
+            );
+            executor.logInf("Stage execution started on " + this.nodeName);
+
             return stage;
-        } catch (OrchestratorException e) {
+        } catch (OrchestratorException | LockException | FileNotFoundException e) {
             throw IncompleteStageException.Builder
                     .create("Failed to start stage")
                     .withCause(e)
@@ -662,28 +698,14 @@ public class Orchestrator {
         return hints.getProgressHint(project.getId());
     }
 
-
-    private void redirectLogs(
-            @Nonnull Pipeline pipeline,
-            @Nonnull Stage stage,
-            @Nonnull Consumer<LogEntry> consumer) {
-        new Thread(() -> {
-            try (LockedOutputStream os = logs.getRawOutputStream(pipeline.getProjectId(), stage.getId())) {
-
-                try (var heart = new LockHeart(os.getLock())) {
-                    LogWriter
-                            .writeTo(os)
-                            .source(backend.getLogs(pipeline.getProjectId(), stage.getId()))
-                            .addConsumer(consumer)
-                            .runInForeground();
-                }
-
-                os.flush();
-                hints.setLogRedirectionCompletedSuccessfullyHint(pipeline.getProjectId(), stage.getId());
-            } catch (LockException | IOException e) {
-                LOG.log(Level.SEVERE, "Log writer failed", e);
-            }
-        }).start();
+    private Executor startExecutor(
+            @Nonnull String pipeline,
+            @Nonnull String stage,
+            @Nonnull Consumer<LogEntry> consumer) throws LockException, FileNotFoundException {
+        var executor = new Executor(pipeline, stage, this, () -> this.executors.remove(stage));
+        executor.addLogEntryConsumer(consumer);
+        this.executors.put(stage, executor);
+        return executor;
     }
 
 

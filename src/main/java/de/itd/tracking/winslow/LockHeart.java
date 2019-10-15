@@ -73,6 +73,6 @@ public class LockHeart implements AutoCloseable {
 
     @Override
     public void close() {
-        this.stop();
+        this.stopAndJoin();
     }
 }

@@ -7,6 +7,7 @@ import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 import de.itd.tracking.winslow.node.NodeInfoUpdater;
 import de.itd.tracking.winslow.node.NodeRepository;
 import de.itd.tracking.winslow.node.unix.UnixNode;
+import de.itd.tracking.winslow.project.LogRepository;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.ResourceManager;
 
@@ -71,6 +72,16 @@ public class Winslow implements Runnable {
     @Nonnull
     public NodeRepository getNodeRepository() {
         return nodeRepository;
+    }
+
+    @Nonnull
+    public RunInfoRepository getRunInfoRepository() {
+        return getOrchestrator().getRunInfoRepository();
+    }
+
+    @Nonnull
+    public LogRepository getLogRepository() {
+        return getOrchestrator().getLogRepository();
     }
 
     public void run() {

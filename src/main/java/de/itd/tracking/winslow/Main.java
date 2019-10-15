@@ -62,12 +62,12 @@ public class Main {
             var projects        = new ProjectRepository(lockBus, config);
 
             LOG.info("Preparing the orchestrator");
-            var nomadRepository = new PipelineRepository(lockBus, config);
-            var attributes      = new RunInfoRepository(lockBus, config);
-            var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
-            var nomadBackend    = new NomadBackend(nomadClient);
+            var repository  = new PipelineRepository(lockBus, config);
+            var attributes  = new RunInfoRepository(lockBus, config);
+            var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder().build());
+            var backend     = new NomadBackend(nomadClient);
 
-            orchestrator = new Orchestrator(environment, nomadBackend, projects, nomadRepository, attributes, logs);
+            orchestrator = new Orchestrator(environment, backend, projects, repository, attributes, logs, nodeName);
 
             if (Env.isNoStageExecutionSet()) {
                 LOG.info("Stage execution is disabled on this node");
