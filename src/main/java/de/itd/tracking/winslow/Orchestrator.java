@@ -464,7 +464,6 @@ public class Orchestrator {
         var timeS  = timeMs / 1_000;
         builder = builder
                 .withEnvVariablesSet(stageDefinition.getEnvironment())
-                .withEnvVariablesSet(pipeline.getEnvironment())
                 .withEnvVariableSet("WINSLOW_PROJECT_ID", pipeline.getProjectId())
                 .withEnvVariableSet("WINSLOW_PIPELINE_ID", pipeline.getProjectId())
                 .withEnvVariableSet("WINSLOW_PIPELINE_NAME", definition.getName())

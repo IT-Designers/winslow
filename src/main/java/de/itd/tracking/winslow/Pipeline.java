@@ -4,7 +4,9 @@ import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class Pipeline {
@@ -15,7 +17,6 @@ public class Pipeline {
     private           boolean               pauseRequested     = false;
     @Nullable private PauseReason           pauseReason        = null;
     @Nullable private ResumeNotification    resumeNotification = null;
-    @Nullable private Map<String, String>   env                = new HashMap<>();
     @Nullable private List<StageDefinition> enqueuedStages     = new ArrayList<>();
 
     @Nonnull private  Strategy strategy;
@@ -148,15 +149,6 @@ public class Pipeline {
     public void setStrategy(@Nonnull Strategy strategy) {
         this.strategy = strategy;
     }
-
-    @Nonnull
-    public Map<String, String> getEnvironment() {
-        if (this.env == null) {
-            this.env = new HashMap<>();
-        }
-        return this.env;
-    }
-
 
     public enum Strategy {
         MoveForwardUntilEnd, MoveForwardOnce,

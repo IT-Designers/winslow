@@ -271,7 +271,7 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/logs/{stageId}")
-    public Stream<LogEntry> getProjectStageLogs(
+    public Stream<LogEntry> getProjectStgetProjectStageLogs(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId) {
@@ -316,9 +316,16 @@ public class ProjectsController {
                                     .stream()
                                     .skip(stageIndex)
                                     .findFirst()
-                                    .map(StageDefinition::getEnvironment)
-                                    .ifPresent(map::putAll);
-                            map.putAll(pipeline.getEnvironment());
+                                    .ifPresent(stageDef -> {
+                                        map.putAll(stageDef.getEnvironment());
+                                        pipeline
+                                                .getAllStages()
+                                                .filter(stage -> stage
+                                                        .getDefinition()
+                                                        .getName()
+                                                        .equals(stageDef.getName()))
+                                                .forEach(stage -> map.putAll(stage.getEnv()));
+                                    });
                             return map;
                         })
                 )
@@ -427,10 +434,10 @@ public class ProjectsController {
                     }
 
                     if (stageDef.isPresent()) {
+                        stageDef.get().getEnvironment().clear();
+                        stageDef.get().getEnvironment().putAll(env);
                         pipeline.enqueueStage(stageDef.get());
                         pipeline.setStrategy(getPipelineStrategy(strategy));
-                        pipeline.getEnvironment().clear();
-                        pipeline.getEnvironment().putAll(env);
                         pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     }
 
@@ -463,12 +470,14 @@ public class ProjectsController {
     }
 
     static class HistoryEntry {
-        public final String      stageId;
-        public final Date        startTime;
-        public final Date        finishTime;
-        public final Stage.State state;
-        public final String      stageName;
-        public final String      workspace;
+        @Nonnull public final  String              stageId;
+        @Nonnull public final  Date                startTime;
+        @Nullable public final Date                finishTime;
+        @Nonnull public final  Stage.State         state;
+        @Nonnull public final  String              stageName;
+        @Nonnull public final  String              workspace;
+        @Nullable public final ImageInfo           imageInfo;
+        @Nonnull public final  Map<String, String> env;
 
         public HistoryEntry(Stage stage) {
             this.stageId    = stage.getId();
@@ -477,6 +486,8 @@ public class ProjectsController {
             this.state      = stage.getState();
             this.stageName  = stage.getDefinition().getName();
             this.workspace  = stage.getWorkspace();
+            this.imageInfo  = stage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
+            this.env        = new TreeMap<>(stage.getEnv());
         }
     }
 

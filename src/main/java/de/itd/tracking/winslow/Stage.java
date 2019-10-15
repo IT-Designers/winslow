@@ -5,6 +5,8 @@ import de.itd.tracking.winslow.config.StageDefinition;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class Stage {
@@ -14,8 +16,9 @@ public class Stage {
     @Nonnull private final Date            startTime;
     @Nonnull private final String          workspace;
 
-    @Nullable private Date  finishTime;
-    @Nullable private State finishState;
+    @Nullable private Date                finishTime;
+    @Nullable private State               finishState;
+    @Nullable private Map<String, String> env;
 
     public Stage(
             @Nonnull String id,
@@ -63,6 +66,14 @@ public class Stage {
     @Nonnull
     public String getWorkspace() {
         return workspace;
+    }
+
+    @Nonnull
+    public Map<String, String> getEnv() {
+        if (this.env == null) {
+            this.env = new HashMap<>();
+        }
+        return this.env;
     }
 
     public enum State {
