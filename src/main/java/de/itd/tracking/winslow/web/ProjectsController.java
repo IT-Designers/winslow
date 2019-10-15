@@ -189,7 +189,7 @@ public class ProjectsController {
                     stageDef.ifPresent(stage -> {
                         pipeline.enqueueStage(stage);
                         pipeline.setStrategy(getPipelineStrategy(strategy));
-                        pipeline.resume();
+                        pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     });
 
                     return stageDef.isPresent();
@@ -219,7 +219,7 @@ public class ProjectsController {
                     if (paused) {
                         pipeline.requestPause();
                     } else {
-                        pipeline.resume();
+                        pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     }
                     return Boolean.TRUE;
                 }))
