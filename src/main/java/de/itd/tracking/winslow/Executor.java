@@ -5,7 +5,6 @@ import de.itd.tracking.winslow.fs.LockedOutputStream;
 import de.itd.tracking.winslow.project.LogWriter;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,7 +93,7 @@ public class Executor {
     private void run() {
         try (lockHeart; logOutput) {
             var iter    = getIterator();
-            var backoff = new Backoff(100, 2_000, 1.25f);
+            var backoff = new Backoff(250, 950, 2f);
 
             LogWriter
                     .writeTo(logOutput)
@@ -122,6 +121,7 @@ public class Executor {
         } finally {
             this.logBuffer = null;
             this.onFinished.run();
+            this.logOutput.getLock().release();
         }
     }
 
