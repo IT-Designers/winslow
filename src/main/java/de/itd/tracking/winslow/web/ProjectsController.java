@@ -434,9 +434,16 @@ public class ProjectsController {
                     }
 
                     if (stageDef.isPresent()) {
-                        stageDef.get().getEnvironment().clear();
-                        stageDef.get().getEnvironment().putAll(env);
-                        pipeline.enqueueStage(stageDef.get());
+                        var definition = new StageDefinition(
+                                stageDef.get().getName(),
+                                stageDef.get().getDescription().orElse(null),
+                                stageDef.get().getImage().orElse(null),
+                                stageDef.get().getRequirements().orElse(null),
+                                stageDef.get().getUserInput().orElse(null),
+                                env,
+                                stageDef.get().getHighlight().orElse(null)
+                        );
+                        pipeline.enqueueStage(definition);
                         pipeline.setStrategy(getPipelineStrategy(strategy));
                         pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     }

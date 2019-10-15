@@ -1,6 +1,9 @@
 package de.itd.tracking.winslow.config;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 public class StageDefinition {
     private final String              name;
@@ -17,7 +20,7 @@ public class StageDefinition {
             Image image,
             Requirements requires,
             UserInput userInput,
-            HashMap<String, String> env,
+            Map<String, String> env,
             Highlight highlight) {
         this.name      = name;
         this.desc      = desc;
