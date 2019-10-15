@@ -178,7 +178,7 @@ public class Orchestrator {
     private void forcePurgeWorkspace(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
         environment
                 .getResourceManager()
-                .getWorkspace(getWorkspacePathForStage(pipeline, stage.getId()))
+                .getWorkspace(getWorkspacePathForStage(pipeline, stage))
                 .ifPresent(Orchestrator::forcePurgeWorkspace);
     }
 
@@ -387,7 +387,7 @@ public class Orchestrator {
                 .build());
 
         var stageId       = getStageId(pipeline, stageDefinition);
-        var workspacePath = getWorkspacePathForStage(pipeline, stageId);
+        var workspacePath = createWorkspacePathFor(pipeline, stageDefinition);
         var builder       = backend.newStageBuilder(pipeline.getProjectId(), stageId, stageDefinition);
 
         var resources = environment.getResourceManager().getResourceDirectory();
@@ -404,8 +404,9 @@ public class Orchestrator {
         }
 
         if (stageDefinition.getImage().isPresent()) {
-            builder = builder.withDockerImage(stageDefinition.getImage().get().getName()).withDockerImageArguments(
-                    stageDefinition.getImage().get().getArgs());
+            builder = builder
+                    .withDockerImage(stageDefinition.getImage().get().getName())
+                    .withDockerImageArguments(stageDefinition.getImage().get().getArgs());
         }
 
         if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {
@@ -440,11 +441,9 @@ public class Orchestrator {
                             config.getOptions(),
                             exportedWorkspace.get().toAbsolutePath().toString()
                     )
-                    .withEnvVariableSet(
-                            "WINSLOW_DIR_RESOURCES",
-                            targetDirResources
-                    )
-                    .withEnvVariableSet("WINSLOW_DIR_WORKSPACE", targetDirWorkspace);
+                    .withEnvVariableSet("WINSLOW_DIR_RESOURCES", targetDirResources)
+                    .withEnvVariableSet("WINSLOW_DIR_WORKSPACE", targetDirWorkspace)
+                    .withWorkspaceWithinPipeline(workspace.get().getFileName().toString());
         } else {
             throw IncompleteStageException.Builder
                     .create("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration())
@@ -544,8 +543,15 @@ public class Orchestrator {
                         .anyMatch(s -> s.getDefinition().equals(stageDefinition))));
     }
 
-    private static Path getWorkspacePathForStage(@Nonnull Pipeline pipeline, @Nonnull String stage) {
-        return Path.of(pipeline.getProjectId(), stage);
+    private static Path createWorkspacePathFor(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
+        return Path.of(
+                pipeline.getProjectId(),
+                replaceInvalidCharactersInJobName(String.format("%04d_%s", pipeline.getStageCount(), stage.getName()))
+        );
+    }
+
+    private static Path getWorkspacePathForStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
+        return Path.of(pipeline.getProjectId(), stage.getWorkspace());
     }
 
     private void copyContentOfMostRecentStageTo(
@@ -557,7 +563,7 @@ public class Orchestrator {
                 .reduce((first, second) -> second) // get the last successful stage
                 .flatMap(stageBefore -> environment
                         .getResourceManager()
-                        .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore.getId())));
+                        .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore)));
 
         if (workDirBefore.isPresent()) {
             var dirBefore = workDirBefore.get();

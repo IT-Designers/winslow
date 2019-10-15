@@ -22,6 +22,7 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     private                String                  driver;
     private final          Resources               resources = new Resources();
     private                HashMap<String, Object> deviceGpu = null;
+    private                String                  workspaceWithinPipeline;
 
     public NomadPreparedStageBuilder(
             @Nonnull String id,
@@ -66,32 +67,26 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     @Nonnull
     public NomadPreparedStageBuilder addNfsVolume(
-            String volumeName,
-            String target,
+            @Nonnull String volumeName,
+            @Nonnull String target,
             boolean readonly,
-            String options,
-            String serverExport) {
+            @Nonnull String options,
+            @Nonnull String serverExport) {
         var list = (List<Map<String, Object>>) this.config.computeIfAbsent(
                 "mounts",
                 (s) -> new ArrayList<Map<String, Object>>()
         );
         list.add(Map.of(
-                "type",
-                "volume",
-                "target",
-                target,
-                "source",
-                volumeName,
-                "readonly",
-                readonly,
+                "type", "volume",
+                "target", target,
+                "source", volumeName,
+                "readonly", readonly,
                 "volume_options",
                 List.of(Map.<String, Object>of(
                         "driver_config",
                         Map.of(
-                                "name",
-                                "local",
-                                "options",
-                                List.of(Map.<String, Object>of(
+                                "name", "local",
+                                "options", List.of(Map.<String, Object>of(
                                         "type",
                                         "nfs",
                                         "o",
@@ -182,8 +177,16 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                                                         .setResources(this.resources)
                                                         .setEnv(this.envVars))),
                 jobsApi,
-                stageDefinition
+                stageDefinition,
+                workspaceWithinPipeline
         );
+    }
+
+    @Nonnull
+    @Override
+    public PreparedStageBuilder withWorkspaceWithinPipeline(@Nonnull String workspace) {
+        this.workspaceWithinPipeline = workspace;
+        return this;
     }
 
 

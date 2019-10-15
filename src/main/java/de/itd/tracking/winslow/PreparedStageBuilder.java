@@ -48,4 +48,7 @@ public interface PreparedStageBuilder {
 
     @Nonnull
     PreparedStage build();
+
+    @Nonnull
+    PreparedStageBuilder withWorkspaceWithinPipeline(@Nonnull String viewAsPipeline);
 }

@@ -19,15 +19,18 @@ public class NomadPreparedStage implements PreparedStage {
     private JobsApi         jobsApi;
     private StageDefinition definition;
     private Stage           stage;
+    private String          workspace;
 
 
     public NomadPreparedStage(
             @Nonnull Job job,
             @Nonnull JobsApi jobsApi,
-            @Nonnull StageDefinition definition) {
+            @Nonnull StageDefinition definition,
+            @Nonnull String workspace) {
         this.job        = job;
         this.jobsApi    = jobsApi;
         this.definition = definition;
+        this.workspace  = workspace;
     }
 
     @Nonnull
@@ -41,7 +44,7 @@ public class NomadPreparedStage implements PreparedStage {
                     throw new OrchestratorException("Invalid configuration, jobId must match taskName, but doesn't: " + jobId + " != " + taskName);
                 }
 
-                var stage = new Stage(jobId, definition, jobId);
+                var stage = new Stage(jobId, definition, workspace);
 
                 // this one could fail
                 jobsApi.register(job);
