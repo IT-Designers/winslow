@@ -130,6 +130,7 @@
           <p>{{entry.stageName}}</p>
           <p class="history-list-item-grow">
             <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable" (click)="killCurrentStage()">pan_tool</mat-icon>
+            <mat-icon matTooltip="Re-Run" class="clickable" (click)="reRun(entry)">replay</mat-icon>
             <mat-icon matTooltip="Open Logs" class="clickable" (click)="openLogs(entry)">list_alt</mat-icon>
             <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open
             </mat-icon>
