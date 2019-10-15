@@ -45,7 +45,7 @@ public class LogWriter implements Runnable {
                 if (element != null) {
                     var stream   = element.isError() ? "err" : "out";
                     var dateTime = dateFormat.format(new Date(element.getTime()));
-                    var source   = "std";
+                    var source   = (String)null;
 
                     switch (element.getSource()) {
                         case STANDARD_IO:

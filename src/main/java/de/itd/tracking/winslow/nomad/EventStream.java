@@ -1,15 +1,12 @@
 package de.itd.tracking.winslow.nomad;
 
-import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
-import com.hashicorp.nomad.javasdk.NomadException;
 import de.itd.tracking.winslow.LogEntry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.stream.Stream;
@@ -17,29 +14,15 @@ import java.util.stream.Stream;
 public class EventStream {
 
     private final NomadBackend backend;
-    private final String       jobId;
-    private final String       taskName;
+    private final String       stage;
 
     private TaskState       state         = null;
     private int             previousIndex = 0;
     private Queue<LogEntry> logs          = new ArrayDeque<>();
 
-    public EventStream(NomadBackend backend, String jobId, String taskName) {
-        this.backend  = backend;
-        this.jobId    = jobId;
-        this.taskName = taskName;
-    }
-
-    @Nullable
-    private TaskState getTaskState(@Nonnull List<AllocationListStub> list) {
-        for (AllocationListStub alloc : list) {
-            if (this.jobId.equals(alloc.getJobId()) && alloc.getTaskStates() != null && alloc
-                    .getTaskStates()
-                    .get(this.taskName) != null) {
-                return alloc.getTaskStates().get(this.taskName);
-            }
-        }
-        return null;
+    public EventStream(NomadBackend backend, String stage) {
+        this.backend = backend;
+        this.stage   = stage;
     }
 
     private void maybeEnqueue(long time, boolean err, @Nonnull String message) {
@@ -57,7 +40,7 @@ public class EventStream {
             if (state == null) {
                 try {
                     awaitNextEvent();
-                } catch (IOException | NomadException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     continue;
                 }
@@ -96,26 +79,18 @@ public class EventStream {
         maybeEnqueue(time, err, next.getVaultError());
     }
 
-    private void awaitNextEvent() throws IOException, NomadException {
-        backend.getAllocationsPollRepeatedlyUntil(response -> {
-            var state = getTaskState(response);
-            if (state == null) {
-                return false;
-            } else {
-                boolean news = state.getEvents().size() > previousIndex || NomadBackend.hasTaskFinished(state);
-                if (news) {
-                    this.state = state;
-                }
-                return news;
+    private void awaitNextEvent() throws IOException {
+        backend.getTaskStatePollRepeatedlyUntil(this.stage, s -> s.map(state -> {
+            boolean news = state.getEvents().size() > previousIndex || NomadBackend.hasTaskFinished(state);
+            if (news) {
+                this.state = state;
             }
-        });
+            return news;
+        }).orElse(Boolean.FALSE));
     }
 
-    public static Stream<LogEntry> stream(
-            @Nonnull NomadBackend backend,
-            @Nonnull String jobId,
-            @Nonnull String taskName) {
-        var stream = new EventStream(backend, jobId, taskName);
+    public static Stream<LogEntry> stream(@Nonnull NomadBackend backend, @Nonnull String stage) {
+        var stream = new EventStream(backend, stage);
         return Stream
                 .iterate(
                         new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""),

@@ -101,11 +101,7 @@ public class NomadBackend implements Backend {
 
         Thread stdout = spawnStream(streamStdOut(pipeline, stage), weak, streamName(pipeline, stage, "stdout"));
         Thread stderr = spawnStream(streamStdErr(pipeline, stage), weak, streamName(pipeline, stage, "stderr"));
-        Thread events = spawnStream(
-                EventStream.stream(this, pipeline, stage),
-                weak,
-                streamName(pipeline, stage, "events")
-        );
+        Thread events = spawnStream(EventStream.stream(this, stage), weak, streamName(pipeline, stage, "events"));
 
 
         Predicate<LogEntry> predicate = p -> {
@@ -156,7 +152,7 @@ public class NomadBackend implements Backend {
     }
 
     private Stream<LogEntry> streamStdErr(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        return LogStream.stdOut(
+        return LogStream.stdErr(
                 getNewClientApi(),
                 stage,
                 () -> this.getAllocationListStubForOmitException(pipeline, stage)
@@ -222,16 +218,38 @@ public class NomadBackend implements Backend {
     @Nonnull
     public List<AllocationListStub> getAllocationsPollRepeatedlyUntil(@Nonnull Predicate<List<AllocationListStub>> predicate) throws IOException {
         synchronized (this.cachedAllocsSync) {
-            var allocs = getAllocations();
-            while (!predicate.test(allocs)) {
-                try {
-                    cachedAllocsSync.wait(CACHE_TIME_MS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            do {
+                var allocs = getAllocations();
+                if (!predicate.test(allocs)) {
+                    try {
+                        cachedAllocsSync.wait(CACHE_TIME_MS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    return allocs;
                 }
-            }
-            return allocs;
+            } while (true);
         }
+    }
+
+    @Nonnull
+    public Optional<TaskState> getTaskStatePollRepeatedlyUntil(
+            @Nonnull String stage,
+            @Nonnull Predicate<Optional<TaskState>> predicate) throws IOException {
+        return getAllocationsPollRepeatedlyUntil(allocs -> predicate
+                .test(allocs
+                              .stream()
+                              .filter(alloc -> alloc.getJobId().equals(stage))
+                              .filter(alloc -> alloc.getTaskStates() != null)
+                              .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
+                              .findFirst()
+                ))
+                .stream()
+                .filter(alloc -> alloc.getJobId().equals(stage))
+                .filter(alloc -> alloc.getTaskStates() != null)
+                .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
+                .findFirst();
     }
 
     @Nonnull
