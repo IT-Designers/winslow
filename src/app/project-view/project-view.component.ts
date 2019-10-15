@@ -1,7 +1,7 @@
 import {Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatTabGroup} from '@angular/material';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSelect, MatSelectChange, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
@@ -16,6 +16,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
   @ViewChild('console', {static: false}) console: ElementRef<HTMLElement>;
+  @ViewChild('stageSelection', {static: false}) stageSelection: MatSelect;
 
   @Input() project: Project;
   @Output('state') stateEmitter = new EventEmitter<State>();
@@ -250,7 +251,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   onOverwriteStageSelectionChanged(index: number) {
     this.longLoading.increase();
-    this.api
+    return this.api
       .getRequiredUserInput(this.project.id, index)
       .toPromise()
       .then(required => {
@@ -376,6 +377,30 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           this.notification.error('Request failed: ' + JSON.stringify(err));
         })
         .finally(() => this.longLoading.decrease());
+  }
+
+  reRun(entry: HistoryEntry) {
+    this.tabs.selectedIndex = 0;
+    for (let i = 0; i < this.project.pipelineDefinition.stageDefinitions.length; ++i) {
+      if (entry.stageName === this.project.pipelineDefinition.stageDefinitions[i].name) {
+
+        const list = this.stageSelection.options.map(e => e); // clone array
+
+        this.stageSelection.value = i;
+        // this.stageSelection.valueChange.emit(list[i]);
+
+        this.onOverwriteStageSelectionChanged(i).then(result => {
+          this.image = ProjectViewComponent.deepClone(entry.imageInfo);
+          this.imageOriginal = ProjectViewComponent.deepClone(entry.imageInfo);
+          this.project.environment = ProjectViewComponent.deepClone(entry.env);
+        });
+        break;
+      }
+    }
+  }
+
+  private static deepClone(obj: any): any {
+    return JSON.parse(JSON.stringify(obj));
   }
 }
 
