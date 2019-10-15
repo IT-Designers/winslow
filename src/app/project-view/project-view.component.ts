@@ -220,7 +220,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   openFolder(project: Project, entry: HistoryEntry) {
     this.tabs.selectedIndex = 2;
     this.filesAdditionalRoot = `${project.name};workspaces/${project.id}`;
-    this.filesNavigationTarget = `/workspaces/${project.id}/${entry.stageId}/`;
+    this.filesNavigationTarget = `/workspaces/${project.id}/${entry.workspace}/`;
   }
 
 
