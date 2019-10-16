@@ -1,7 +1,7 @@
 import {Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSelect, MatSelectChange, MatTabGroup} from '@angular/material';
+import {MAT_DIALOG_DATA, MatButtonToggle, MatDialog, MatDialogRef, MatSelect, MatSelectChange, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
@@ -19,7 +19,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
-  @ViewChild('console', {static: false}) console: ElementRef<HTMLElement>;
+  @ViewChild('console', {static: false}) htmlConsole: ElementRef<HTMLElement>;
   @ViewChild('scrollTopTarget', {static: false}) scrollTopTarget: ElementRef<HTMLElement>;
   @ViewChild('scrollBottomTarget', {static: false}) scrollBottomTarget: ElementRef<HTMLElement>;
   @ViewChild('stageSelection', {static: false}) stageSelection: MatSelect;
@@ -54,6 +54,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   imageOriginal: ImageInfo = null;
 
   stickConsole = true;
+  scrollCallback;
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -61,9 +62,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.filesAdditionalRoot = `${this.project.name};workspaces/${this.project.id}`;
+    this.scrollCallback = () => this.onWindowScroll();
+    window.addEventListener('scroll', this.scrollCallback, true);
   }
 
   ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.scrollCallback, true);
   }
 
   update(info: StateInfo) {
@@ -129,7 +133,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   requestLogs() {
     if (this.watchLatestLogs) {
       const skipLines = this.logs != null ? this.logs.length : 0;
-      const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId: null;
+      const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
       return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId).toPromise();
     } else {
       this.logs = [];
@@ -364,10 +368,26 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.stickConsole = (element.scrollHeight - element.clientHeight) <= element.scrollTop;
   }
 
+  onWindowScroll() {
+    if (this.htmlConsole != null) {
+      const rangeSize = 50;
+      let element = this.htmlConsole.nativeElement;
+      let offset = element.offsetHeight - window.innerHeight + rangeSize;
+
+      while (element) {
+        offset += element.offsetTop;
+        element = element.offsetParent as HTMLElement;
+      }
+
+      this.stickConsole = offset <= window.scrollY + rangeSize && offset >= window.scrollY - rangeSize;
+    }
+  }
+
   scrollConsoleToBottom(overwrite = false) {
     if (this.stickConsole || overwrite) {
-      this.console.nativeElement.scrollTop = 9_999_999_999;
       this.stickConsole = true;
+      setTimeout(() => this.htmlConsole.nativeElement.scrollTop = 9_999_999_999);
+      setTimeout(() => this.scrollToBottomTarget());
     }
   }
 
@@ -407,16 +427,28 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   scrollBottom() {
     this.scrollConsoleToBottom(true);
+    this.scrollToBottomTarget();
+  }
+
+  private scrollToBottomTarget(smooth = true) {
     this.scrollBottomTarget.nativeElement.scrollIntoView({
-      behavior: 'smooth',
+      behavior: smooth ? 'smooth' : 'auto',
       block: 'end'
     });
   }
 
-  scrollTop() {
+  scrollToTopTarget(smooth = true) {
     this.scrollTopTarget.nativeElement.scrollIntoView({
-      behavior: 'smooth',
+      behavior: smooth ? 'smooth' : 'auto',
       block: 'start'
+    });
+  }
+
+  scrollConsoleToBottomTimeout(checked: boolean) {
+    setTimeout(() => {
+      if (checked) {
+        this.scrollConsoleToBottom(checked);
+      }
     });
   }
 }

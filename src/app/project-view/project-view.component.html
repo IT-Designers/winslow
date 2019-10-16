@@ -165,10 +165,14 @@
               (click)="forceReloadLogs()"
       ><mat-icon>loop</mat-icon> Force Reload
       </button>
-      <mat-slide-toggle #windowMode (click)="scrollConsoleToBottom(true)">Window Mode</mat-slide-toggle>
-      <button mat-stroked-button (click)="scrollBottom()">
-        <mat-icon>arrow_downward</mat-icon>
-      </button>
+      <div>
+        <mat-slide-toggle #windowMode (change)="scrollConsoleToBottom(true)" labelPosition="before">
+          Window Mode
+        </mat-slide-toggle>
+        <button mat-stroked-button (click)="scrollBottom()">
+          <mat-icon>arrow_downward</mat-icon>
+        </button>
+      </div>
     </div>
     <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
     <div class="logs-container" *ngIf="logs != null">
@@ -190,9 +194,17 @@
       </div>
     </div>
     <div class="console-controls">
-      <button mat-stroked-button (click)="scrollTop()">
-        <mat-icon>arrow_upward</mat-icon>
-      </button>
+      <div>
+        <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
+                          labelPosition="before"
+                          [checked]="stickConsole"
+                          (change)="this.scrollConsoleToBottomTimeout($event.checked)">
+          Stick to the Bottom
+        </mat-slide-toggle>
+        <button mat-stroked-button (click)="scrollToTopTarget()">
+          <mat-icon>arrow_upward</mat-icon>
+        </button>
+      </div>
     </div>
   </mat-tab>
 

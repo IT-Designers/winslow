@@ -75,7 +75,7 @@
   padding: 1em 5em;
 }
 
-.console-controls > *:not(:last-child) {
+.console-controls *:not(:last-child) {
   margin-right: 2em;
 }
 
@@ -86,6 +86,7 @@
 .console-container {
   display: flex;
   flex-grow: 1;
+  margin: 0;
 }
 
 .console {
@@ -110,6 +111,10 @@
 }
 .console > *:hover {
   background-color: rgba(255, 255, 255, 0.15);
+}
+
+.console > *:last-child {
+  margin-bottom: 2em;
 }
 
 .console .line-number {
