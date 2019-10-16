@@ -100,7 +100,7 @@ public class Executor {
                     .writeTo(logOutput)
                     .source(Stream.<LogEntry>iterate(
                             null,
-                            p -> this.keepRunning() && iter.hasNext(),
+                            p -> this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed(),
                             p -> {
                                 var next = iter.next();
                                 if (next == null) {
