@@ -4,19 +4,18 @@ import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.JobListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.*;
-import de.itd.tracking.winslow.Backend;
-import de.itd.tracking.winslow.LogEntry;
-import de.itd.tracking.winslow.PreparedStageBuilder;
-import de.itd.tracking.winslow.Stage;
+import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,6 +92,7 @@ public class NomadBackend implements Backend {
     @Nonnull
     @Override
     public Iterator<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
+        /*
         BlockingDeque<LogEntry> queue = new LinkedBlockingDeque<>();
         var                     weak  = new WeakReference<>(queue);
 
@@ -104,8 +104,23 @@ public class NomadBackend implements Backend {
         Predicate<LogEntry> predicate = p -> {
             var weakGet = weak.get();
             return (weakGet != null && !weakGet.isEmpty()) || stdout.isAlive() || stderr.isAlive() || events.isAlive();
-        };
+        };*/
 
+        return new CombinedIterator<>(
+                LogStream.stdOutIter(
+                        getNewClientApi(),
+                        stage,
+                        () -> this.getAllocationListStubForOmitException(pipeline, stage)
+                ),
+                LogStream.stdErrIter(
+                        getNewClientApi(),
+                        stage,
+                        () -> this.getAllocationListStubForOmitException(pipeline, stage)
+                ),
+                new EventStream(this, stage)
+        );
+
+/*
         return new Iterator<>() {
             @Override
             public boolean hasNext() {
@@ -121,6 +136,8 @@ public class NomadBackend implements Backend {
                 return queue.poll();
             }
         };
+
+ */
     }
 
     @Nonnull
@@ -224,6 +241,16 @@ public class NomadBackend implements Backend {
                 }
             } while (true);
         }
+    }
+
+    @Nonnull
+    public Optional<TaskState> getTaskState(@Nonnull String stage) throws IOException {
+        return getAllocations()
+                .stream()
+                .filter(alloc -> alloc.getJobId().equals(stage))
+                .filter(alloc -> alloc.getTaskStates() != null)
+                .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
+                .findFirst();
     }
 
     @Nonnull

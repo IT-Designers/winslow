@@ -12,14 +12,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public class LogStream {
+public class LogStream implements Iterator<String> {
 
     private static final Logger LOG = Logger.getLogger(LogStream.class.getSimpleName());
 
@@ -79,5 +81,71 @@ public class LogStream {
                 return null;
             }
         }).filter(Objects::nonNull);
+    }
+
+    @Override
+    public boolean hasNext() {
+        return this.reader != null;
+    }
+
+    @Override
+    public String next() {
+        try {
+            if (this.reader.ready()) {
+                return getNextLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Iterator<LogEntry> stdOutIter(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
+        return stdIter(api, taskName, stateSupplier, "stdout", LogEntry::stdout);
+    }
+
+    public static Iterator<LogEntry> stdErrIter(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier) throws IOException {
+        return stdIter(api, taskName, stateSupplier, "stderr", LogEntry::stderr);
+    }
+
+    public static Iterator<LogEntry> stdIter(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier,
+            @Nonnull String logType,
+            @Nonnull Function<String, LogEntry> mapper) throws IOException {
+        var iter = LogStream.iter(api, taskName, stateSupplier, logType);
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return iter.hasNext();
+            }
+
+            @Override
+            public LogEntry next() {
+                return Optional.ofNullable(iter.next())
+                               .map(mapper)
+                               .orElse(null);
+            }
+
+            @Override
+            public String toString() {
+                return getClass().getSimpleName() + "@{logType='" + logType + "'}#" + hashCode();
+            }
+        };
+    }
+
+    private static Iterator<String> iter(
+            @Nonnull ClientApi api,
+            @Nonnull String taskName,
+            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier,
+            @Nonnull String logType) throws IOException {
+        return new LogStream(new LogInputStream(api, taskName, stateSupplier, logType, true));
     }
 }

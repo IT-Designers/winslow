@@ -2,6 +2,7 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.StreamFrame;
+import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
 import com.hashicorp.nomad.javasdk.NomadException;
@@ -72,9 +73,12 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private Optional<AllocationListStub> getAllocationBeingPresentOnlyIfHasStarted() {
-        return this.stateSupplier.get().filter(allocation -> NomadBackend
-                .hasTaskStarted(allocation, taskName)
-                .orElse(Boolean.FALSE));
+        return this.stateSupplier
+                .get()
+                .filter(allocation -> NomadBackend
+                        .hasTaskStarted(allocation, taskName)
+                        .orElse(Boolean.FALSE)
+                );
     }
 
     private boolean tryOpenIfNotOpened() throws IOException {
@@ -179,8 +183,10 @@ public class LogInputStream extends InputStream implements AutoCloseable {
 
     @Override
     public int available() throws IOException {
-        if (this.currentFrame != null) {
+        if (this.ensureHasData()) {
             return currentFrame.available();
+        } else if (!this.isAlive()) {
+            return 100; // this will cause a read() which then will return -1 for EOF
         } else {
             return 0;
         }

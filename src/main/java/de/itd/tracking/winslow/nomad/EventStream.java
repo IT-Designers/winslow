@@ -6,12 +6,10 @@ import de.itd.tracking.winslow.LogEntry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Stream;
 
-public class EventStream {
+public class EventStream implements Iterator<LogEntry> {
 
     public static final String MESSAGE_PREFIX = "[nomad] ";
 
@@ -36,8 +34,31 @@ public class EventStream {
         }
     }
 
+    @Override
+    public boolean hasNext() {
+        return !this.logs.isEmpty() || this.state == null || !NomadBackend.hasTaskFinished(this.state);
+    }
+
+    @Override
+    public LogEntry next() {
+        if (!this.logs.isEmpty()) {
+            return this.logs.poll();
+        }
+        if (state == null) {
+            try {
+                if (backend.getTaskState(this.stage)
+                           .map(this::stateUpdated)
+                           .orElse(Boolean.FALSE)) {
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return tryParseNext().orElse(null);
+    }
+
     @Nullable
-    private LogEntry next() {
+    private LogEntry nextNonNull() {
         while (true) {
             if (!this.logs.isEmpty()) {
                 return this.logs.poll();
@@ -50,17 +71,25 @@ public class EventStream {
                     continue;
                 }
             }
-            if (this.state != null) {
-                if (previousIndex < state.getEvents().size()) {
-                    parseNextLogEntries();
-                    return logs.poll();
-                } else if (NomadBackend.hasTaskFinished(state)) {
-                    return null;
-                } else {
-                    this.state = null;
-                }
+            var next = tryParseNext();
+            if (next.isPresent()) {
+                return next.get();
             }
         }
+    }
+
+    private Optional<LogEntry> tryParseNext() {
+        if (this.state != null) {
+            if (previousIndex < state.getEvents().size()) {
+                parseNextLogEntries();
+                return Optional.ofNullable(logs.poll());
+            } else if (NomadBackend.hasTaskFinished(state)) {
+                return Optional.empty();
+            } else {
+                this.state = null;
+            }
+        }
+        return Optional.empty();
     }
 
     private void parseNextLogEntries() {
@@ -85,13 +114,15 @@ public class EventStream {
     }
 
     private void awaitNextEvent() throws IOException {
-        backend.getTaskStatePollRepeatedlyUntil(this.stage, s -> s.map(state -> {
-            boolean news = state.getEvents().size() > previousIndex || NomadBackend.hasTaskFinished(state);
-            if (news) {
-                this.state = state;
-            }
-            return news;
-        }).orElse(Boolean.FALSE));
+        backend.getTaskStatePollRepeatedlyUntil(this.stage, s -> s.map(this::stateUpdated).orElse(Boolean.FALSE));
+    }
+
+    private boolean stateUpdated(TaskState state) {
+        boolean news = state.getEvents().size() > previousIndex || NomadBackend.hasTaskFinished(state);
+        if (news) {
+            this.state = state;
+        }
+        return news;
     }
 
     public static Stream<LogEntry> stream(@Nonnull NomadBackend backend, @Nonnull String stage) {
@@ -100,7 +131,7 @@ public class EventStream {
                 .iterate(
                         new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""),
                         Objects::nonNull,
-                        v -> stream.next()
+                        v -> stream.nextNonNull()
                 )
                 .skip(1);
     }
