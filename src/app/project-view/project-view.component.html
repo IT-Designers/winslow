@@ -126,7 +126,7 @@
         <mat-expansion-panel *ngFor="let entry of history; index as i" class="history-list-item">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <div style="height: 50%; align-items: center"><app-state-icon [state]="entry.state"></app-state-icon></div>
+              <div><app-state-icon [state]="entry.state"></app-state-icon></div>
               <div class="history-item-no">{{history.length - i}}</div>
               <div class="history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
               <div>{{entry.stageName}}</div>
