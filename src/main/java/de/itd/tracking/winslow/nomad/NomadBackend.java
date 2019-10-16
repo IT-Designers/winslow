@@ -40,10 +40,15 @@ public class NomadBackend implements Backend {
                 for (var task : alloc.getTaskStates().values()) {
                     if (!hasTaskFinished(task)) {
                         LOG.warning("Killing task that is running but was not started by this instance: " + alloc.getJobId());
-                        getNewJobsApi().deregister(alloc.getJobId());
+                    } else {
+                        LOG.info("Deleting job " + alloc.getJobId());
                     }
+                    // remove it anyway
+                    this.client.getJobsApi().deregister(alloc.getJobId()).getValue();
                 }
             }
+            LOG.info("Letting garbage be collected");
+            this.client.getSystemApi().garbageCollect().getValue();
         } catch (NomadException e) {
             throw new IOException("Failed to communicate with nomad", e);
         }
