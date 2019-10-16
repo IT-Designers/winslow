@@ -14,8 +14,14 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 })
 export class ProjectViewComponent implements OnInit, OnDestroy {
 
+  constructor(private api: ProjectApiService, private notification: NotificationService,
+              private createDialog: MatDialog) {
+  }
+
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
   @ViewChild('console', {static: false}) console: ElementRef<HTMLElement>;
+  @ViewChild('scrollTopTarget', {static: false}) scrollTopTarget: ElementRef<HTMLElement>;
+  @ViewChild('scrollBottomTarget', {static: false}) scrollBottomTarget: ElementRef<HTMLElement>;
   @ViewChild('stageSelection', {static: false}) stageSelection: MatSelect;
 
   @Input() project: Project;
@@ -49,8 +55,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   stickConsole = true;
 
-  constructor(private api: ProjectApiService, private notification: NotificationService,
-              private createDialog: MatDialog) {
+  private static deepClone(obj: any): any {
+    return JSON.parse(JSON.stringify(obj));
   }
 
   ngOnInit(): void {
@@ -399,8 +405,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private static deepClone(obj: any): any {
-    return JSON.parse(JSON.stringify(obj));
+  scrollBottom() {
+    this.scrollConsoleToBottom(true);
+    this.scrollBottomTarget.nativeElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end'
+    });
+  }
+
+  scrollTop() {
+    this.scrollTopTarget.nativeElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
   }
 }
 
