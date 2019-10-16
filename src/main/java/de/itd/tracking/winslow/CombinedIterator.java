@@ -39,11 +39,10 @@ public class CombinedIterator<T> implements Iterator<T> {
             }
 
             if (shallBreak) {
-                offset = i;
+                offset = i; // remember last position as start position
                 break;
             }
         }
-        // offset = (offset + 1) % this.iterators.length;
         return next;
     }
 }
