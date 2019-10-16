@@ -15,25 +15,27 @@
     </button>
   </div>
 
-  <mat-expansion-panel
-    *ngFor="let project of projects"
-    (afterCollapse)="stopLoading(project)"
-    (afterExpand)="startLoading(project)">
+  <mat-accordion>
+    <mat-expansion-panel
+      *ngFor="let project of projects"
+      (afterCollapse)="stopLoading(project)"
+      (afterExpand)="startLoading(project)">
 
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <app-state-icon #icon animation="true"></app-state-icon>
-        {{project.name}}
-      </mat-panel-title>
-      <mat-panel-description style="flex-grow: 0">
-        {{view.pauseReason}}
-        <mat-progress-bar *ngIf="view.progress != null && view.isRunning()" [value]="view.progress" style="width: 10em; margin: auto 1em"></mat-progress-bar>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <app-state-icon #icon animation="true"></app-state-icon>
+          {{project.name}}
+        </mat-panel-title>
+        <mat-panel-description style="flex-grow: 0">
+          {{view.pauseReason}}
+          <mat-progress-bar *ngIf="view.progress != null && view.isRunning()" [value]="view.progress" style="width: 10em; margin: auto 1em"></mat-progress-bar>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
 
-    <app-project-view #view (state)="icon.state = $event" [project]="project"></app-project-view>
+      <app-project-view #view (state)="icon.state = $event" [project]="project"></app-project-view>
 
-  </mat-expansion-panel>
+    </mat-expansion-panel>
+  </mat-accordion>
 
 
 </div>
