@@ -35,7 +35,7 @@ public class CombinedIterator<T> implements Iterator<T> {
             var checkBreakTook = System.currentTimeMillis() - beforeBreak;
 
             if (checkBreakTook > 150) {
-                LOG.warning("Expected non-blocking behavior, but checking took " + checkBreakTook + "ms for " + iter);
+                LOG.warning("Expected non-blocking behavior, it took " + checkBreakTook + "ms to check for " + iter);
             }
 
             if (shallBreak) {
