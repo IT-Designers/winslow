@@ -9,13 +9,10 @@ import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -101,20 +98,6 @@ public class NomadBackend implements Backend {
     @Nonnull
     @Override
     public Iterator<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        /*
-        BlockingDeque<LogEntry> queue = new LinkedBlockingDeque<>();
-        var                     weak  = new WeakReference<>(queue);
-
-        Thread stdout = spawnStream(streamStdOut(pipeline, stage), weak, streamName(pipeline, stage, "stdout"));
-        Thread stderr = spawnStream(streamStdErr(pipeline, stage), weak, streamName(pipeline, stage, "stderr"));
-        Thread events = spawnStream(EventStream.stream(this, stage), weak, streamName(pipeline, stage, "events"));
-
-
-        Predicate<LogEntry> predicate = p -> {
-            var weakGet = weak.get();
-            return (weakGet != null && !weakGet.isEmpty()) || stdout.isAlive() || stderr.isAlive() || events.isAlive();
-        };*/
-
         return new CombinedIterator<>(
                 LogStream.stdOutIter(
                         getNewClientApi(),
@@ -128,25 +111,6 @@ public class NomadBackend implements Backend {
                 ),
                 new EventStream(this, stage)
         );
-
-/*
-        return new Iterator<>() {
-            @Override
-            public boolean hasNext() {
-                var hasNext = predicate.test(null);
-                if (!hasNext) {
-                    weak.clear();
-                }
-                return hasNext;
-            }
-
-            @Override
-            public LogEntry next() {
-                return queue.poll();
-            }
-        };
-
- */
     }
 
     @Nonnull
@@ -156,44 +120,6 @@ public class NomadBackend implements Backend {
             @Nonnull String stage,
             @Nonnull StageDefinition stageDefinition) {
         return new NomadPreparedStageBuilder(pipeline, stage, getNewJobsApi(), stageDefinition);
-    }
-
-    private static String streamName(@Nonnull String pipeline, @Nonnull String stage, @Nonnull String stream) {
-        return pipeline + "/" + stage + "." + stream;
-    }
-
-    private Stream<LogEntry> streamStdOut(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        return LogStream.stdOut(
-                getNewClientApi(),
-                stage,
-                () -> this.getAllocationListStubForOmitException(pipeline, stage)
-        );
-    }
-
-    private Stream<LogEntry> streamStdErr(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        return LogStream.stdErr(
-                getNewClientApi(),
-                stage,
-                () -> this.getAllocationListStubForOmitException(pipeline, stage)
-        );
-    }
-
-    private Thread spawnStream(
-            @Nonnull Stream<LogEntry> source,
-            @Nonnull WeakReference<BlockingDeque<LogEntry>> target,
-            @Nonnull String name) {
-        var thread = new Thread(() -> source
-                .takeWhile(prev -> target.get() != null)
-                .forEach(element -> {
-                    var t = target.get();
-                    if (t != null) {
-                        t.add(element);
-                    }
-                }));
-        thread.setDaemon(true);
-        thread.setName(name);
-        thread.start();
-        return thread;
     }
 
     public Optional<AllocationListStub> getAllocationListStubForOmitException(
