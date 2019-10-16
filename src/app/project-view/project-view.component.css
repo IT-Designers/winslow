@@ -3,16 +3,20 @@
 }
 
 .history-list-item {
-  display: flex;
+
 }
 
-.history-list-item *:last-child {
+.history-control-icons {
   flex-grow: 1;
   text-align: end;
 }
 
 .history-list-item p {
   padding-left: 1em;
+}
+
+.state-icon-fix > span {
+  align-items: center;
 }
 
 .history-item-no {
@@ -24,6 +28,17 @@
   min-width: 10em;
   text-align: end;
 }
+
+.history-item-detail p  {
+  display: flex;
+  justify-content: space-between;
+}
+
+.history-item-detail-item {
+  margin: 0;
+  padding: 0.75em 1em;
+}
+
 .stage-control-item {
   display: flex;
   margin: 2em 2em;
