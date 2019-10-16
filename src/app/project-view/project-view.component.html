@@ -122,22 +122,60 @@
 
     <ng-container *ngIf="history != null">
       <i *ngIf="history.length == 0">This project has no history yet</i>
-      <mat-list>
-        <mat-list-item *ngFor="let entry of history; index as i" class="history-list-item mat-highlight-hover">
+      <mat-accordion>
+        <mat-expansion-panel *ngFor="let entry of history; index as i" class="history-list-item">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div style="height: 50%; align-items: center"><app-state-icon [state]="entry.state"></app-state-icon></div>
+              <div class="history-item-no">{{history.length - i}}</div>
+              <div class="history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
+              <div>{{entry.stageName}}</div>
+              <div class="history-control-icons">
+                <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable" (click)="killCurrentStage()">pan_tool</mat-icon>
+                <mat-icon matTooltip="Re-Run" class="clickable" (click)="reRun(entry)">replay</mat-icon>
+                <mat-icon matTooltip="Open Logs" class="clickable" (click)="openLogs(entry)">list_alt</mat-icon>
+                <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open
+                </mat-icon>
+              </div>
+            </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-template matExpansionPanelContent>
+              <div class="history-item-detail">
+                <ng-template #detailItem let-keyvalue>
+                  <p class="history-item-detail-item mat-highlight-hover">
+                    <label>{{keyvalue.key}}</label>
+                    <label>{{keyvalue.value}}</label>
+                  </p>
+                </ng-template>
 
-          <app-state-icon [state]="entry.state"></app-state-icon>
-          <p class="history-item-no">{{history.length - i}}</p>
-          <p class="history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</p>
-          <p>{{entry.stageName}}</p>
-          <p class="history-list-item-grow">
-            <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable" (click)="killCurrentStage()">pan_tool</mat-icon>
-            <mat-icon matTooltip="Re-Run" class="clickable" (click)="reRun(entry)">replay</mat-icon>
-            <mat-icon matTooltip="Open Logs" class="clickable" (click)="openLogs(entry)">list_alt</mat-icon>
-            <mat-icon matTooltip="Open Directory" class="clickable" (click)="openFolder(project, entry)">folder_open
-            </mat-icon>
-          </p>
-        </mat-list-item>
-      </mat-list>
+                <h3>Status Information</h3>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Unique Stage Id', value: entry.stageId}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Based on Stage Definition', value: entry.stageName}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: toDate(entry.startTime)}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet'}}"></ng-template>
+
+                <h3>Image Information</h3>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo.name}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo.args|json}}"></ng-template>
+
+
+                <h3>Environment Variables</h3>
+                <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
+                <ng-container *ngFor="let e of entry.env | keyvalue">
+                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                  </ng-template>
+                </ng-container>
+
+                <h3>Internal Environment Variables</h3>
+                <i *ngIf="entry.envInternal == null || entry.envInternal.size == 0">none</i>
+                <ng-container *ngFor="let e of entry.envInternal | keyvalue">
+                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                  </ng-template>
+                </ng-container>
+              </div>
+            </ng-template>
+        </mat-expansion-panel>
+      </mat-accordion>
     </ng-container>
   </mat-tab>
 
