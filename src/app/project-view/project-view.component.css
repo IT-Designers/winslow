@@ -71,13 +71,16 @@
 }
 
 .console-controls {
-  text-align: center;
+  display: flex;
   padding: 1em 5em;
 }
 
-
-.console-controls *:not(:last-child) {
+.console-controls > *:not(:last-child) {
   margin-right: 2em;
+}
+
+.console-controls > *:last-child {
+  margin-left: auto;
 }
 
 .console-container {

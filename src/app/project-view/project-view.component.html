@@ -1,4 +1,5 @@
-<mat-tab-group #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)">
+<div #scrollTopTarget></div>
+<mat-tab-group  #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)">
 
   <mat-tab label="Control">
     <div class="loading-bar-container">
@@ -151,7 +152,7 @@
     </ng-template>
   </mat-tab>
 
-  <mat-tab label="Logs">
+  <mat-tab  label="Logs">
     <div class="loading-bar-container">
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
@@ -165,6 +166,9 @@
       ><mat-icon>loop</mat-icon> Force Reload
       </button>
       <mat-slide-toggle #windowMode (click)="scrollConsoleToBottom(true)">Window Mode</mat-slide-toggle>
+      <button mat-stroked-button (click)="scrollBottom()">
+        <mat-icon>arrow_downward</mat-icon>
+      </button>
     </div>
     <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
     <div class="logs-container" *ngIf="logs != null">
@@ -172,18 +176,23 @@
            (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
           <code *ngIf="logs != null" class="console"
-          ><ng-container *ngFor="let log of logs; index as i"
-          ><span
-          ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
-          ><span [class.console-err]="log.error"
-                 [class.console-mgmt]="sourceIsManagement(log.source)"
-                 [class.no-word-wrap]="windowMode.checked"
-          >{{log.message}}</span
-          ></span
-          ></ng-container>
-          </code>
+            ><ng-container *ngFor="let log of logs; index as i"
+              ><span
+              ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
+              ><span [class.console-err]="log.error"
+                     [class.console-mgmt]="sourceIsManagement(log.source)"
+                     [class.no-word-wrap]="windowMode.checked"
+              >{{log.message}}</span
+              ></span
+            ></ng-container
+            ></code>
         </pre>
       </div>
+    </div>
+    <div class="console-controls">
+      <button mat-stroked-button (click)="scrollTop()">
+        <mat-icon>arrow_upward</mat-icon>
+      </button>
     </div>
   </mat-tab>
 
@@ -204,3 +213,4 @@
         </div>
     </mat-tab>
 </mat-tab-group>
+<div #scrollBottomTarget></div>
