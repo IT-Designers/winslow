@@ -128,6 +128,7 @@ export class HistoryEntry {
   workspace: string;
   imageInfo?: ImageInfo;
   env: Map<string, string>;
+  envInternal: Map<string, string>;
 }
 
 export enum LogSource {
