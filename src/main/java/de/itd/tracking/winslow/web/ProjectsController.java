@@ -455,8 +455,21 @@ public class ProjectsController {
     }
 
     @PutMapping("projects/{projectId}/kill")
-    public void killCurrentStage(User user, @PathVariable("projectId") String projectId) {
-        throw new RuntimeException("Not implemented");
+    public void killCurrentStage(User user, @PathVariable("projectId") String projectId) throws LockException {
+        var stage = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow
+                         .getOrchestrator()
+                         .getPipeline(project)
+                )
+                .flatMap(Pipeline::getRunningStage);
+
+        if (stage.isPresent()) {
+            winslow.getOrchestrator().kill(stage.get());
+        }
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {

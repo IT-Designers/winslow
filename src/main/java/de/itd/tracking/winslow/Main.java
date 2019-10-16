@@ -67,7 +67,16 @@ public class Main {
             var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder().build());
             var backend     = new NomadBackend(nomadClient);
 
-            orchestrator = new Orchestrator(environment, backend, projects, repository, attributes, logs, nodeName);
+            orchestrator = new Orchestrator(
+                    lockBus,
+                    environment,
+                    backend,
+                    projects,
+                    repository,
+                    attributes,
+                    logs,
+                    nodeName
+            );
 
             if (Env.isNoStageExecutionSet()) {
                 LOG.info("Stage execution is disabled on this node");

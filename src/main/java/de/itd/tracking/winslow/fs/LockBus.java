@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -30,6 +31,8 @@ public class LockBus {
     private final Path               eventDirectory;
     private final Map<String, Event> locks = new HashMap<>();
 
+    private final Map<Event.Command, List<Consumer<Event>>> listener = new HashMap<>();
+
     private int eventCounter = 0;
 
     public LockBus(String name, Path eventDirectory) throws IOException, LockException {
@@ -44,6 +47,12 @@ public class LockBus {
 
         this.loadNextEvent();
         this.startEventDirWatchService(eventDirectory);
+    }
+
+    public synchronized void registerEventListener(@Nonnull Event.Command command, @Nonnull Consumer<Event> consumer) {
+        this.listener
+                .computeIfAbsent(command, c -> new ArrayList<>())
+                .add(consumer);
     }
 
     private void startEventDirWatchService(Path eventDirectory) throws IOException {
@@ -166,6 +175,10 @@ public class LockBus {
                 throw new LockAlreadyExistsException(subject, lockedUntil);
             }
         }
+    }
+
+    public void publishCommand(@Nonnull Event.Command command, @Nonnull String subject) throws LockException {
+        this.publishEvent(id -> new Event(id, command, System.currentTimeMillis(), 0, subject, this.name));
     }
 
     private synchronized Token publishEvent(@Nonnull EventSupplier supplier) throws LockException {
@@ -303,7 +316,13 @@ public class LockBus {
                 this.locks.remove(event.getSubject());
                 LOG.fine("REMOVE lock for subject " + event.getSubject());
                 break;
+            case KILL:
+                break;
         }
+        Stream
+                .ofNullable(this.listener.get(event.getCommand()))
+                .flatMap(List::stream)
+                .forEach(consumer -> consumer.accept(event));
     }
 
     interface EventSupplier {

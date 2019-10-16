@@ -4,9 +4,14 @@ import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.config.UserInput;
+import de.itd.tracking.winslow.fs.Event;
+import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
-import de.itd.tracking.winslow.project.*;
+import de.itd.tracking.winslow.project.LogReader;
+import de.itd.tracking.winslow.project.LogRepository;
+import de.itd.tracking.winslow.project.Project;
+import de.itd.tracking.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -33,6 +38,7 @@ public class Orchestrator {
     private static final Pattern MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
     public static final  Pattern PROGRESS_HINT_PATTERN   = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
 
+    @Nonnull private final LockBus            lockBus;
     @Nonnull private final Environment        environment;
     @Nonnull private final Backend            backend;
     @Nonnull private final ProjectRepository  projects;
@@ -48,6 +54,7 @@ public class Orchestrator {
 
 
     public Orchestrator(
+            @Nonnull LockBus lockBus,
             @Nonnull Environment environment,
             @Nonnull Backend backend,
             @Nonnull ProjectRepository projects,
@@ -55,6 +62,7 @@ public class Orchestrator {
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
             @Nonnull String nodeName) {
+        this.lockBus     = lockBus;
         this.environment = environment;
         this.backend     = backend;
         this.projects    = projects;
@@ -62,6 +70,20 @@ public class Orchestrator {
         this.hints       = hints;
         this.logs        = logs;
         this.nodeName    = nodeName;
+
+        this.lockBus.registerEventListener(Event.Command.KILL, event -> {
+            if (null != this.executors.remove(event.getSubject())) {
+                try {
+                    backend.kill(event.getSubject());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void kill(@Nonnull Stage stage) throws LockException {
+        this.lockBus.publishCommand(Event.Command.KILL, stage.getId());
     }
 
     @Nonnull
@@ -264,7 +286,10 @@ public class Orchestrator {
     @Nonnull
     private Pipeline updateRunningStage(@Nonnull Pipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
-            LOG.info("Checking if running stage state can be updated: " + getStateOmitExceptions(pipeline, stage) + " for " + stage.getId());
+            LOG.info("Checking if running stage state can be updated: " + getStateOmitExceptions(
+                    pipeline,
+                    stage
+            ) + " for " + stage.getId());
             switch (getStateOmitExceptions(pipeline, stage).orElse(Stage.State.Failed)) {
                 case Running:
                     if (getLogRedirectionState(pipeline) != SimpleState.Failed) {

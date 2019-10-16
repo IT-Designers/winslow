@@ -89,6 +89,15 @@ public class NomadBackend implements Backend {
         }
     }
 
+    @Override
+    public void kill(@Nonnull String stage) throws IOException {
+        try {
+            getNewJobsApi().deregister(stage).getValue();
+        } catch (NomadException e) {
+            throw new IOException("Failed to deregister job for " + stage, e);
+        }
+    }
+
     @Nonnull
     @Override
     public Iterator<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
@@ -304,6 +313,8 @@ public class NomadBackend implements Backend {
         var started  = hasTaskStarted(task);
         var finished = hasTaskFinished(task);
 
+
+
         if (failed) {
             return Stage.State.Failed;
         } else if (started && finished) {
@@ -342,6 +353,7 @@ public class NomadBackend implements Backend {
 
     public static boolean hasTaskFailed(TaskState state) {
         return state.getFailed()
-                || (!hasTaskStarted(state) && state.getState().toLowerCase().contains("dead"));
+                || (!hasTaskStarted(state) && state.getState().toLowerCase().contains("dead"))
+                || state.getEvents().stream().anyMatch(e -> e.getExitCode() != 0);
     }
 }

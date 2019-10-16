@@ -48,6 +48,6 @@ public class Event {
     }
 
     public enum Command {
-        LOCK, RELEASE, EXTEND
+        LOCK, RELEASE, EXTEND, KILL
     }
 }
