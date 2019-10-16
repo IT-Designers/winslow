@@ -19,6 +19,7 @@ public class Stage {
     @Nullable private Date                finishTime;
     @Nullable private State               finishState;
     @Nullable private Map<String, String> env;
+    @Nullable private Map<String, String> envInternal;
 
     public Stage(
             @Nonnull String id,
@@ -74,6 +75,14 @@ public class Stage {
             this.env = new HashMap<>();
         }
         return this.env;
+    }
+
+    @Nonnull
+    public Map<String, String> getEnvInternal() {
+        if (this.envInternal == null) {
+            this.envInternal = new HashMap<>();
+        }
+        return this.envInternal;
     }
 
     public enum State {

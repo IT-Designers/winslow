@@ -11,26 +11,32 @@ import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
 public class NomadPreparedStage implements PreparedStage {
 
-    private Job             job;
-    private JobsApi         jobsApi;
-    private StageDefinition definition;
-    private Stage           stage;
-    private String          workspace;
-
+    private Job                 job;
+    private JobsApi             jobsApi;
+    private StageDefinition     definition;
+    private Stage               stage;
+    private String              workspace;
+    private Map<String, String> envVariables;
+    private Map<String, String> envVariablesInternal;
 
     public NomadPreparedStage(
             @Nonnull Job job,
             @Nonnull JobsApi jobsApi,
             @Nonnull StageDefinition definition,
-            @Nonnull String workspace) {
-        this.job        = job;
-        this.jobsApi    = jobsApi;
-        this.definition = definition;
-        this.workspace  = workspace;
+            @Nonnull String workspace,
+            @Nonnull Map<String, String> envVariables,
+            @Nonnull Map<String, String> envVariablesInternal) {
+        this.job                  = job;
+        this.jobsApi              = jobsApi;
+        this.definition           = definition;
+        this.workspace            = workspace;
+        this.envVariables         = envVariables;
+        this.envVariablesInternal = envVariablesInternal;
     }
 
     @Nonnull
@@ -45,7 +51,8 @@ public class NomadPreparedStage implements PreparedStage {
                 }
 
                 var stage = new Stage(jobId, definition, workspace);
-                stage.getEnv().putAll(job.getTaskGroups().get(0).getTasks().get(0).getEnv());
+                stage.getEnv().putAll(envVariables);
+                stage.getEnvInternal().putAll(envVariablesInternal);
 
                 // this one could fail
                 jobsApi.register(job);

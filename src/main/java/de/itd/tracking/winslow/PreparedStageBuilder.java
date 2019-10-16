@@ -32,13 +32,10 @@ public interface PreparedStageBuilder {
     Optional<String> getEnvVariable(@Nonnull String key);
 
     @Nonnull
-    PreparedStageBuilder withEnvVariableUnset(@Nonnull String key);
+    PreparedStageBuilder withInternalEnvVariable(@Nonnull String key, @Nonnull String value);
 
     @Nonnull
-    PreparedStageBuilder withEnvVariableSet(@Nonnull String key, @Nonnull String value);
-
-    @Nonnull
-    PreparedStageBuilder withEnvVariablesSet(@Nonnull Map<? extends String, ? extends String> variables);
+    PreparedStageBuilder withEnvVariables(@Nonnull Map<? extends String, ? extends String> variables);
 
     @Nonnull
     PreparedStageBuilder withGpuCount(int count);

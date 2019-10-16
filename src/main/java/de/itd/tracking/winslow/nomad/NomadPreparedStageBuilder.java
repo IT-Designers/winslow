@@ -16,12 +16,13 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     @Nonnull private final String                  id;
     @Nonnull private final JobsApi                 jobsApi;
     @Nonnull private final StageDefinition         stageDefinition;
-    @Nonnull private final Map<String, Object>     config    = new HashMap<>(10);
-    @Nonnull private final Map<String, String>     envVars   = new HashMap<>(10);
+    @Nonnull private final Map<String, Object>     config          = new HashMap<>();
+    @Nonnull private final Map<String, String>     envVars         = new HashMap<>();
+    @Nonnull private final Map<String, String>     envVarsInternal = new HashMap<>();
     private                String                  stage;
     private                String                  driver;
-    private final          Resources               resources = new Resources();
-    private                HashMap<String, Object> deviceGpu = null;
+    private final          Resources               resources       = new Resources();
+    private                HashMap<String, Object> deviceGpu       = null;
     private                String                  workspaceWithinPipeline;
 
     public NomadPreparedStageBuilder(
@@ -112,13 +113,13 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     }
 
     @Nonnull
-    public NomadPreparedStageBuilder withEnvVariableSet(@Nonnull String key, @Nonnull String value) {
-        this.envVars.put(key, value);
+    public NomadPreparedStageBuilder withInternalEnvVariable(@Nonnull String key, @Nonnull String value) {
+        this.envVarsInternal.put(key, value);
         return this;
     }
 
     @Nonnull
-    public NomadPreparedStageBuilder withEnvVariablesSet(@Nonnull Map<? extends String, ? extends String> variables) {
+    public NomadPreparedStageBuilder withEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.envVars.putAll(variables);
         return this;
     }
@@ -160,6 +161,9 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     @Nonnull
     public NomadPreparedStage build() {
+        var env = new HashMap<String, String>();
+        env.putAll(this.envVars);
+        env.putAll(this.envVarsInternal);
         return new NomadPreparedStage(
                 new Job()
                         .setId(this.stage)
@@ -175,10 +179,12 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                                                         .setDriver(this.driver)
                                                         .setConfig(this.config)
                                                         .setResources(this.resources)
-                                                        .setEnv(this.envVars))),
+                                                        .setEnv(env))),
                 jobsApi,
                 stageDefinition,
-                workspaceWithinPipeline
+                workspaceWithinPipeline,
+                envVars,
+                envVarsInternal
         );
     }
 

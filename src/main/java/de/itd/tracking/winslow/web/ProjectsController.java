@@ -309,23 +309,17 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .map(pipeline -> {
-                            Map<String, String> map = new HashMap<>();
+                            Map<String, String> map = new TreeMap<>();
                             project
                                     .getPipelineDefinition()
                                     .getStageDefinitions()
                                     .stream()
                                     .skip(stageIndex)
                                     .findFirst()
-                                    .ifPresent(stageDef -> {
-                                        map.putAll(stageDef.getEnvironment());
-                                        pipeline
-                                                .getAllStages()
-                                                .filter(stage -> stage
-                                                        .getDefinition()
-                                                        .getName()
-                                                        .equals(stageDef.getName()))
-                                                .forEach(stage -> map.putAll(stage.getEnv()));
-                                    });
+                                    .ifPresent(stageDef -> map.putAll(stageDef.getEnvironment()));
+                            pipeline
+                                    .getMostRecentStage()
+                                    .ifPresent(stage -> map.putAll(stage.getEnv()));
                             return map;
                         })
                 )
@@ -485,16 +479,18 @@ public class ProjectsController {
         @Nonnull public final  String              workspace;
         @Nullable public final ImageInfo           imageInfo;
         @Nonnull public final  Map<String, String> env;
+        @Nonnull public final  Map<String, String> envInternal;
 
         public HistoryEntry(Stage stage) {
-            this.stageId    = stage.getId();
-            this.startTime  = stage.getStartTime();
-            this.finishTime = stage.getFinishTime();
-            this.state      = stage.getState();
-            this.stageName  = stage.getDefinition().getName();
-            this.workspace  = stage.getWorkspace();
-            this.imageInfo  = stage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
-            this.env        = new TreeMap<>(stage.getEnv());
+            this.stageId     = stage.getId();
+            this.startTime   = stage.getStartTime();
+            this.finishTime  = stage.getFinishTime();
+            this.state       = stage.getState();
+            this.stageName   = stage.getDefinition().getName();
+            this.workspace   = stage.getWorkspace();
+            this.imageInfo   = stage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
+            this.env         = new TreeMap<>(stage.getEnv());
+            this.envInternal = new TreeMap<>(stage.getEnvInternal());
         }
     }
 

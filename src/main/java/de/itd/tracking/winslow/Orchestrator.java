@@ -5,7 +5,6 @@ import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.config.UserInput;
 import de.itd.tracking.winslow.fs.LockException;
-import de.itd.tracking.winslow.fs.LockedOutputStream;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 import de.itd.tracking.winslow.project.*;
 
@@ -17,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -479,8 +477,8 @@ public class Orchestrator {
                             config.getOptions(),
                             exportedWorkspace.get().toAbsolutePath().toString()
                     )
-                    .withEnvVariableSet("WINSLOW_DIR_RESOURCES", targetDirResources)
-                    .withEnvVariableSet("WINSLOW_DIR_WORKSPACE", targetDirWorkspace)
+                    .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_RESOURCES", targetDirResources)
+                    .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_WORKSPACE", targetDirWorkspace)
                     .withWorkspaceWithinPipeline(workspace.get().getFileName().toString());
         } else {
             throw IncompleteStageException.Builder
@@ -500,16 +498,16 @@ public class Orchestrator {
         var timeMs = System.currentTimeMillis();
         var timeS  = timeMs / 1_000;
         builder = builder
-                .withEnvVariablesSet(stageDefinition.getEnvironment())
-                .withEnvVariableSet("WINSLOW_PROJECT_ID", pipeline.getProjectId())
-                .withEnvVariableSet("WINSLOW_PIPELINE_ID", pipeline.getProjectId())
-                .withEnvVariableSet("WINSLOW_PIPELINE_NAME", definition.getName())
-                .withEnvVariableSet("WINSLOW_STAGE_ID", builder.getId())
-                .withEnvVariableSet("WINSLOW_STAGE_NAME", stageDefinition.getName())
-                .withEnvVariableSet("WINSLOW_STAGE_NUMBER", Integer.toString(pipeline.getStageCount()))
-                .withEnvVariableSet("WINSLOW_SETUP_DATE_TIME", new Date(timeS).toString())
-                .withEnvVariableSet("WINSLOW_SETUP_EPOCH_TIME", Long.toString(timeS))
-                .withEnvVariableSet("WINSLOW_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
+                .withEnvVariables(stageDefinition.getEnvironment())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_NAME", definition.getName())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", builder.getId())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.getName())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER", Integer.toString(pipeline.getStageCount()))
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_DATE_TIME", new Date(timeS).toString())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
 
 
         boolean requiresConfirmation = isConfirmationRequiredForNextStage(definition, stageDefinition, pipeline);
