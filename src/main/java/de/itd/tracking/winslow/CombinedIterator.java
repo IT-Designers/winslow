@@ -30,7 +30,8 @@ public class CombinedIterator<T> implements Iterator<T> {
     public T next() {
         T next = null;
         for (int i = 0; i < this.iterators.length; ++i) {
-            var iter           = this.iterators[(i + offset) % this.iterators.length];
+            var offsetIndex    = (i + offset) % this.iterators.length;
+            var iter           = this.iterators[offsetIndex];
             var beforeBreak    = System.currentTimeMillis();
             var shallBreak     = iter.hasNext() && (next = iter.next()) != null;
             var checkBreakTook = System.currentTimeMillis() - beforeBreak;
@@ -40,7 +41,7 @@ public class CombinedIterator<T> implements Iterator<T> {
             }
 
             if (shallBreak) {
-                offset = i; // remember last position as start position
+                offset = offsetIndex; // remember last position as start position
                 break;
             }
         }
