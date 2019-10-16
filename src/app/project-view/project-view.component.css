@@ -11,7 +11,7 @@
   text-align: end;
 }
 
-.history-list-item p {
+.history-list-column:not(:first-child) {
   padding-left: 1em;
 }
 
