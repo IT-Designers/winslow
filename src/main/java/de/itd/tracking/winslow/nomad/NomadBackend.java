@@ -29,8 +29,24 @@ public class NomadBackend implements Backend {
     private       List<AllocationListStub> cachedAllocs;
     private final Object                   cachedAllocsSync = new Object();
 
-    public NomadBackend(@Nonnull NomadApiClient client) {
+    public NomadBackend(@Nonnull NomadApiClient client) throws IOException {
         this.client = client;
+        killAnyRunningStage();
+    }
+
+    private void killAnyRunningStage() throws IOException {
+        try {
+            for (var alloc : this.client.getAllocationsApi().list().getValue()) {
+                for (var task : alloc.getTaskStates().values()) {
+                    if (!hasTaskFinished(task)) {
+                        LOG.warning("Killing task that is running but was not started by this instance: " + alloc.getJobId());
+                        getNewJobsApi().deregister(alloc.getJobId());
+                    }
+                }
+            }
+        } catch (NomadException e) {
+            throw new IOException("Failed to communicate with nomad", e);
+        }
     }
 
 
