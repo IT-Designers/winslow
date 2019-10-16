@@ -196,6 +196,16 @@ public class Orchestrator {
     private void forcePurgeStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
         forcePurgeJob(pipeline, stage);
         forcePurgeWorkspace(pipeline, stage);
+        forcePurgeExecutor(pipeline, stage);
+    }
+
+    private void forcePurgeExecutor(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
+        var executor = this.executors.remove(stage.getId());
+        if (executor != null) {
+            executor.logErr("Startup failed, force purge");
+            executor.flush();
+            executor.stop();
+        }
     }
 
     private void forcePurgeWorkspace(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {

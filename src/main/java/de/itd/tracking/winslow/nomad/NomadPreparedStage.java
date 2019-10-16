@@ -45,9 +45,11 @@ public class NomadPreparedStage implements PreparedStage {
                 }
 
                 var stage = new Stage(jobId, definition, workspace);
+                stage.getEnv().putAll(job.getTaskGroups().get(0).getTasks().get(0).getEnv());
 
                 // this one could fail
                 jobsApi.register(job);
+
 
                 // therefore reset those once passed
                 this.jobsApi = null;

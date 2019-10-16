@@ -32,7 +32,8 @@ public class Executor {
 
     @Nonnull private final List<Consumer<LogEntry>> logConsumer = new ArrayList<>();
 
-    private BlockingDeque<LogEntry> logBuffer = new LinkedBlockingDeque<>();
+    private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
+    private boolean                 keepRunning = true;
 
     public Executor(
             @Nonnull String pipeline,
@@ -60,7 +61,7 @@ public class Executor {
         log(true, message);
     }
 
-    private void log(boolean error, @Nonnull String message) {
+    private synchronized void log(boolean error, @Nonnull String message) {
         if (logBuffer != null) {
             logBuffer.add(new LogEntry(
                     System.currentTimeMillis(),
@@ -99,7 +100,7 @@ public class Executor {
                     .writeTo(logOutput)
                     .source(Stream.<LogEntry>iterate(
                             null,
-                            p -> iter.hasNext(),
+                            p -> this.keepRunning() && iter.hasNext(),
                             p -> {
                                 var next = iter.next();
                                 if (next == null) {
@@ -123,6 +124,25 @@ public class Executor {
             this.onFinished.run();
             this.logOutput.getLock().release();
         }
+    }
+
+    private synchronized boolean keepRunning() {
+        return this.keepRunning;
+    }
+
+    public synchronized void flush() {
+        while (!this.logBuffer.isEmpty()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public synchronized void stop() {
+        this.keepRunning = false;
+        this.logOutput.getLock().release();
     }
 
 

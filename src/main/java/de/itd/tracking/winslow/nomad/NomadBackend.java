@@ -308,6 +308,8 @@ public class NomadBackend implements Backend {
             return Stage.State.Failed;
         } else if (started && finished) {
             return Stage.State.Succeeded;
+        } else if (task.getState().contains("dead")) {
+            return Stage.State.Failed;
         } else {
             return Stage.State.Running;
         }
@@ -339,6 +341,7 @@ public class NomadBackend implements Backend {
     }
 
     public static boolean hasTaskFailed(TaskState state) {
-        return state.getFailed();
+        return state.getFailed()
+                || (!hasTaskStarted(state) && state.getState().toLowerCase().contains("dead"));
     }
 }
