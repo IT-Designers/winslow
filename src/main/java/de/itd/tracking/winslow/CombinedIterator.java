@@ -11,6 +11,7 @@ public class CombinedIterator<T> implements Iterator<T> {
     @Nonnull private final Iterator<T>[] iterators;
     private                int           offset = 0;
 
+    @SafeVarargs
     public CombinedIterator(@Nonnull Iterator<T>... iterators) {
         this.iterators = iterators;
     }
