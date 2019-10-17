@@ -57,6 +57,7 @@ public class LogWriter implements Runnable {
                     }
 
                     ps.println(String.join(LOG_SEPARATOR, dateTime, source + stream, element.getMessage()));
+                    ps.flush();
                     notifyConsumers(element);
                 }
             });
