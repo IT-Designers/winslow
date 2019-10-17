@@ -15,6 +15,7 @@ mkdir -p "$WINSLOW_WORK_DIRECTORY"
 
 if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
     echo "    :: Preparing NFS Storage"
+    /etc/init.d/rpcbind start
     mount.nfs "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
 
 elif [ "$WINSLOW_STORAGE_TYPE" -ne "" ]; then
