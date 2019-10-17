@@ -16,7 +16,8 @@ RUN bash -c 'distribution=$(. /etc/os-release;echo $ID$VERSION_ID) &&\
     apt-get install -y nfs-common nvidia-container-toolkit && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* && \
+    echo 'NEED_STATD=yes' >> /etc/default/nfs-common
 
 RUN curl -o nomad.zip https://releases.hashicorp.com/nomad/0.9.6/nomad_0.9.6_linux_amd64.zip && \
     unzip nomad.zip && \
