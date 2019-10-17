@@ -71,7 +71,7 @@ public class LogWriter implements Runnable {
     }
 
     public static class Builder {
-        @Nonnull final List<Consumer<LogEntry>> additionalConsumer = new ArrayList<>(0);
+        @Nonnull final List<Consumer<LogEntry>> additionalConsumer = new ArrayList<>();
         @Nonnull final LockedOutputStream       os;
         @Nullable      Stream<LogEntry>         streamSource;
 
