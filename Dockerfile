@@ -1,7 +1,7 @@
 FROM repo.itd-intern.de/winslow/component-server as server
 FROM repo.itd-intern.de/winslow/component-html as html
 
-FROM openjdk:11-jre-slim-buster
+FROM openjdk:11-jre-slim-stretch
 
 RUN apt update && \
     apt install iproute2 nfs-common curl gnupg unzip -y && \
