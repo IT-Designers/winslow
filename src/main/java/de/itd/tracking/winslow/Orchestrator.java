@@ -49,8 +49,9 @@ public class Orchestrator {
 
     @Nonnull private final Map<String, Executor> executors = new ConcurrentHashMap<>();
 
-    private boolean isRunning = false;
-    private boolean shouldRun = false;
+    private boolean isRunning     = false;
+    private boolean shouldRun     = false;
+    private boolean executeStages = true;
 
 
     public Orchestrator(
@@ -80,6 +81,10 @@ public class Orchestrator {
                 }
             }
         });
+    }
+
+    public void disableStageExecution() {
+        this.executeStages = false;
     }
 
     public void kill(@Nonnull Stage stage) throws LockException {
@@ -131,10 +136,8 @@ public class Orchestrator {
                     pollAllPipelinesForUpdate();
                     // TODO
                     Thread.sleep(1000);
-                } catch (InterruptedException e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
-                } catch (Throwable t) {
-                    t.printStackTrace();
                 }
             }
         } finally {
@@ -178,7 +181,9 @@ public class Orchestrator {
             var pipelineOpt = container.get();
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
-                tryStartNextPipelineStage(definition, container, pipeline);
+                if (this.executeStages) {
+                    tryStartNextPipelineStage(definition, container, pipeline);
+                }
             }
         } catch (LockException e) {
             LOG.log(Level.SEVERE, "Failed to get pipeline for update", e);
@@ -303,7 +308,7 @@ public class Orchestrator {
                     try {
                         backend.kill(stage.getId());
                     } catch (IOException e) {
-                        LOG.log(Level.WARNING, "Failed to request kill failed stage: "+stage.getId(), e);
+                        LOG.log(Level.WARNING, "Failed to request kill failed stage: " + stage.getId(), e);
                     }
                     break;
                 case Succeeded:
@@ -386,7 +391,7 @@ public class Orchestrator {
                             return true;
                     }
                 })
-                .orElseGet(() -> pipeline.peekNextStage().isPresent() && !pipeline.isPauseRequested());
+                .orElseGet(() -> this.executeStages && pipeline.hasEnqueuedStages() && !pipeline.isPauseRequested());
     }
 
     @Nonnull

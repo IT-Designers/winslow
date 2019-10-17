@@ -79,11 +79,12 @@ public class Main {
             );
 
             if (Env.isNoStageExecutionSet()) {
-                LOG.info("Stage execution is disabled on this node");
-            } else {
-                LOG.info("Starting stage execution service");
-                orchestrator.start();
+                LOG.info("Disabling stage execution as requested by ENV");
+                orchestrator.disableStageExecution();
             }
+
+            LOG.info("Starting orchestrator");
+            orchestrator.start();
 
             LOG.info("Assembling Winslow");
             var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects);
