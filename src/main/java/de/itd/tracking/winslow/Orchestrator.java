@@ -391,7 +391,11 @@ public class Orchestrator {
                             return true;
                     }
                 })
-                .orElseGet(() -> this.executeStages && pipeline.hasEnqueuedStages() && !pipeline.isPauseRequested());
+                .orElseGet(() -> this.executeStages
+                        && pipeline.hasEnqueuedStages()
+                        && !pipeline.isPauseRequested()
+                        && getLogRedirectionState(pipeline) != SimpleState.Running
+                );
     }
 
     @Nonnull
