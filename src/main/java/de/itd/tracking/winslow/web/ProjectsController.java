@@ -131,19 +131,31 @@ public class ProjectsController {
     }
 
     private Optional<Stage.State> getPipelineState(Pipeline pipeline) {
-        return pipeline.getMostRecentStage().map(Stage::getState).map(state -> {
-            switch (state) {
-                case Running:
-                case Failed:
-                    return state;
-                default:
-                    if (pipeline.isPauseRequested()) {
-                        return Stage.State.Paused;
-                    } else {
-                        return state;
+        return pipeline
+                .getRunningStage()
+                .map(Stage::getState)
+                .or(
+                        () -> {
+                            if (!pipeline.isPauseRequested() && pipeline.hasEnqueuedStages()) {
+                                return Optional.of(Stage.State.Running);
+                            } else {
+                                return Optional.empty();
+                            }
+                        }
+                )
+                .or(() -> pipeline.getMostRecentStage().map(Stage::getState).map(state -> {
+                    switch (state) {
+                        case Running:
+                        case Failed:
+                            return state;
+                        default:
+                            if (pipeline.isPauseRequested()) {
+                                return Stage.State.Paused;
+                            } else {
+                                return state;
+                            }
                     }
-            }
-        });
+                }));
     }
 
     @GetMapping("/projects/states")
@@ -462,8 +474,8 @@ public class ProjectsController {
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow
-                         .getOrchestrator()
-                         .getPipeline(project)
+                        .getOrchestrator()
+                        .getPipeline(project)
                 )
                 .flatMap(Pipeline::getRunningStage);
 

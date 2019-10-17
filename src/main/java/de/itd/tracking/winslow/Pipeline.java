@@ -134,6 +134,10 @@ public class Pipeline {
         }
     }
 
+    public boolean hasEnqueuedStages() {
+        return this.enqueuedStages != null && !this.enqueuedStages.isEmpty();
+    }
+
     public void enqueueStage(@Nonnull StageDefinition definition) {
         if (this.enqueuedStages == null) {
             this.enqueuedStages = new ArrayList<>();
