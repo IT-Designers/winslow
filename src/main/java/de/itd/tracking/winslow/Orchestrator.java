@@ -300,6 +300,11 @@ public class Orchestrator {
                     stage.finishNow(Stage.State.Failed);
                     pipeline.pushStage(null);
                     pipeline.requestPause(Pipeline.PauseReason.StageFailure);
+                    try {
+                        backend.kill(stage.getId());
+                    } catch (IOException e) {
+                        LOG.log(Level.WARNING, "Failed to request kill failed stage: "+stage.getId(), e);
+                    }
                     break;
                 case Succeeded:
                     stage.finishNow(Stage.State.Succeeded);
