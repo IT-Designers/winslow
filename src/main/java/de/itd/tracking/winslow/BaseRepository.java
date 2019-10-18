@@ -84,6 +84,10 @@ public abstract class BaseRepository {
         }
     }
 
+    protected boolean isLocked(Path path) {
+        return this.lockBus.isLocked(getLockSubjectForPath(path));
+    }
+
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
         Lock lock = null;
         try {
@@ -177,6 +181,10 @@ public abstract class BaseRepository {
         @Nonnull
         public Optional<LockedContainer<T>> exclusive() {
             return BaseRepository.this.getLocked(path, reader, writer);
+        }
+
+        public boolean isLocked() {
+            return BaseRepository.this.isLocked(path);
         }
     }
 }

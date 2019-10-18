@@ -135,7 +135,7 @@ public class Orchestrator {
                 try {
                     pollAllPipelinesForUpdate();
                     // TODO
-                    Thread.sleep(1000);
+                    Thread.sleep(5_000);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -148,7 +148,12 @@ public class Orchestrator {
     private void pollAllPipelinesForUpdate() {
         pipelines.getAllPipelines().filter(handle -> {
             try {
-                return handle.unsafe().map(this::hasUpdateAvailable).orElse(false);
+                var locked    = handle.isLocked();
+                var hasUpdate = handle.unsafe().map(this::hasUpdateAvailable).orElse(false);
+                LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", projectId=" + handle
+                        .unsafe()
+                        .map(Pipeline::getProjectId));
+                return !locked && hasUpdate;
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
                 return false;
@@ -344,7 +349,7 @@ public class Orchestrator {
     private boolean hasUpdateAvailable(Pipeline pipeline) {
         // LOG.info(pipeline.getProjectId() + ".isStageStateUpdateAvailable=" + isStageStateUpdateAvailable(pipeline));
         // LOG.info(pipeline.getProjectId() + ".getLogRedirectionState=" + getLogRedirectionState(pipeline));
-        return isStageStateUpdateAvailable(pipeline) || getLogRedirectionState(pipeline) == SimpleState.Failed;
+        return (isStageStateUpdateAvailable(pipeline) || getLogRedirectionState(pipeline) == SimpleState.Failed);
     }
 
     private SimpleState getLogRedirectionState(Pipeline pipeline) {

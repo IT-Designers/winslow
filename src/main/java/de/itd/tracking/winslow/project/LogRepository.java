@@ -30,9 +30,7 @@ public class LogRepository extends BaseRepository {
     }
 
     public boolean isLocked(@Nonnull String projectId, @Nonnull String stageId) {
-        var path    = getLogFile(projectId, stageId);
-        var subject = getLockSubjectForPath(path);
-        return lockBus.isLocked(subject);
+        return isLocked(getLogFile(projectId, stageId));
     }
 
     @Nonnull

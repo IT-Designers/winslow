@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +35,6 @@ public class Executor {
 
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
-
     public Executor(
             @Nonnull String pipeline,
             @Nonnull String stage,
