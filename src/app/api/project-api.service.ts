@@ -14,7 +14,6 @@ export class ProjectApiService {
 
   private static getUrl(more?: string) {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
-
   }
 
   createProject(name: string, pipeline: PipelineDefinition) {
