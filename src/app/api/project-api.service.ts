@@ -56,6 +56,10 @@ export class ProjectApiService {
         .toPromise();
   }
 
+  deleteEnqueued(projectId: string, index: number, controlSize) {
+    return this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${index}/${controlSize}`));
+  }
+
   getProjectPaused(projectId: string) {
     return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`));
   }

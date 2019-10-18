@@ -56,6 +56,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   stickConsole = true;
   consoleIsLoading = false;
+  enqueuedControlSize: number = null;
   scrollCallback;
 
   private static deepClone(obj: any): any {
@@ -83,6 +84,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
     this.stateEmitter.emit(this.state);
     this.pollWatched();
+  }
+
+  isEnqueued(state = this.state): boolean {
+    return State.Enqueued === state;
   }
 
   isRunning(state = this.state): boolean {
@@ -158,11 +163,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         history = history.reverse();
         return this.api.getProjectEnqueued(this.project.id)
             .then(enqueued => {
+              const length = enqueued.length;
               const latest = enqueued.reverse();
               history.forEach(h => latest.push(h));
-
               if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
                 this.history = latest;
+                this.enqueuedControlSize = length;
               }
             });
       })
@@ -473,6 +479,31 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         this.scrollConsoleToBottom(checked);
       }
     });
+  }
+
+  cancelEnqueuedStage(index: number) {
+    this.createDialog
+        .open(StopStageAreYouSureDialog, {})
+        .afterClosed()
+        .toPromise()
+        .then(result => {
+          if (result) {
+            this.longLoading.increase();
+            return this.api
+                .deleteEnqueued(this.project.id, index, this.enqueuedControlSize)
+                .toPromise()
+                .then(r => {
+                  if (r) {
+                    this.notification.info('Request has been accepted');
+                  } else {
+                    this.notification.error('Request failed because history has changed!');
+                  }
+                  return this.loadHistory();
+                })
+                .catch(e => this.notification.error('Failed: ' + JSON.stringify(e)))
+                .finally(() => this.longLoading.decrease());
+          }
+        });
   }
 }
 
