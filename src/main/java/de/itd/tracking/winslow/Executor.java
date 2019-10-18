@@ -75,20 +75,22 @@ public class Executor {
     }
 
     private Iterator<LogEntry> getIterator() throws IOException {
-        return new CombinedIterator<>(
-                this.orchestrator.getBackend().getLogs(pipeline, stage),
-                new Iterator<>() {
-                    @Override
-                    public boolean hasNext() {
-                        return Executor.this.logBuffer != null && !Executor.this.logBuffer.isEmpty();
-                    }
+        var logs = this.orchestrator.getBackend().getLogs(pipeline, stage);
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return !Executor.this.logBuffer.isEmpty() || logs.hasNext();
+            }
 
-                    @Override
-                    public LogEntry next() {
-                        return Executor.this.logBuffer.poll();
-                    }
+            @Override
+            public LogEntry next() {
+                var next = logBuffer.poll();
+                if (next == null && logs.hasNext()) {
+                    next = logs.next();
                 }
-        );
+                return next;
+            }
+        };
     }
 
     private void run() {
