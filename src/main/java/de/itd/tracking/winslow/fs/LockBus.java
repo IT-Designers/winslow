@@ -306,6 +306,7 @@ public class LockBus {
     }
 
     private synchronized void processEvent(Event event) {
+        LOG.info("Processing event with command=" + event.getCommand() + ", subject=" + event.getSubject());
         switch (event.getCommand()) {
             case LOCK:
             case EXTEND:
