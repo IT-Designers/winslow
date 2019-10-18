@@ -1,22 +1,24 @@
-.pipelines-container {
-  margin: 1em 0;
-  padding: 0.25em;
+.check {
+    display: flex;
+    overflow: auto;
+    padding: 0.5em 1em;
+    border-radius: 0.2em;
 }
 
-.pipelines-container .pipeline {
-  border: 1px solid silver;
-  padding: 0 2em;
+.check.check-error {
+    border: 1px solid red;
+    background-color: rgba(255, 0, 0, .2);
+}
+.check.check-success {
+    border: 1px solid green;
+    background-color: rgba(0, 255, 0, .2);
 }
 
-.pipeline h4 {
-  cursor: pointer;
+.controls {
+    margin: 0.2em 1em;
+    padding: 0.5em;
+    text-align: end;
 }
-
-.pipelines-container .pipeline:hover {
-  background-color: aliceblue;
-}
-
-.pipelines-container .pipeline:not(:first-child) {
-  border-top-color: transparent;
-  border-top-width: 1px;
+.controls *:not(:first-child) {
+    margin-left: 1em;
 }
