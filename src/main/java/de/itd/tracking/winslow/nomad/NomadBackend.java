@@ -261,7 +261,6 @@ public class NomadBackend implements Backend {
         var finished = hasTaskFinished(task);
 
 
-
         if (failed) {
             return Stage.State.Failed;
         } else if (started && finished) {
@@ -287,8 +286,7 @@ public class NomadBackend implements Backend {
 
     public static boolean hasTaskFinished(TaskState state) {
         return state.getFinishedAt().after(new Date(1))
-                || state.getState().toLowerCase().contains("dead")
-                || hasTaskFailed(state);
+                || state.getState().toLowerCase().contains("dead");
     }
 
     @Nonnull
@@ -297,8 +295,8 @@ public class NomadBackend implements Backend {
     }
 
     public static boolean hasTaskFailed(TaskState state) {
-        return state.getFailed()
-                || state.getState().toLowerCase().contains("dead")
-                || state.getEvents().stream().anyMatch(e -> e.getExitCode() != 0);
+        return state.getFailed() || (
+                hasTaskFinished(state) && state.getEvents().stream().anyMatch(e -> e.getExitCode() != 0)
+        );
     }
 }
