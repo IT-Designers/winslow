@@ -203,8 +203,6 @@ public class LockBus {
             var event = supplier.getCheckedEvent(UUID.randomUUID().toString());
             var token = new Token(event.getId(), path, event.getSubject(), event.getTime());
 
-            LOG.info(event.getCommand() + ": " + event.getSubject());
-
             Files.write(
                     path,
                     Collections.singleton(new TomlWriter().write(event)),
@@ -225,6 +223,27 @@ public class LockBus {
                 throw new LockedException("Internal communication error, failed to lock", e);
             }
         }
+    }
+
+    private synchronized void processEvent(Event event) {
+        logEvent(event);
+        switch (event.getCommand()) {
+            case LOCK:
+            case EXTEND:
+                this.locks.put(event.getSubject(), event);
+                LOG.fine("ADD/UPDATE lock for subject " + event.getSubject());
+                break;
+            case RELEASE:
+                this.locks.remove(event.getSubject());
+                LOG.fine("REMOVE lock for subject " + event.getSubject());
+                break;
+            case KILL:
+                break;
+        }
+        Stream
+                .ofNullable(this.listener.get(event.getCommand()))
+                .flatMap(List::stream)
+                .forEach(consumer -> consumer.accept(event));
     }
 
     private Path nextEventPath() throws IOException {
@@ -273,7 +292,7 @@ public class LockBus {
         return false;
     }
 
-    private void ensureSleepMs(long ms) {
+    private static void ensureSleepMs(long ms) {
         var start = System.currentTimeMillis();
         while (true) {
             var now = System.currentTimeMillis();
@@ -289,7 +308,7 @@ public class LockBus {
         }
     }
 
-    private boolean fileJustCreated(Path path) {
+    private static boolean fileJustCreated(Path path) {
         return path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000;
     }
 
@@ -323,34 +342,17 @@ public class LockBus {
         }
     }
 
-    private boolean isSurelyOutOfDate(@Nonnull Event event) {
+    private static boolean isSurelyOutOfDate(@Nonnull Event event) {
         return event.getTime() + event.getDuration() + LOCK_DURATION_OFFSET + DURATION_SURELY_OUT_OF_DATE < System.currentTimeMillis();
     }
 
-    private Event loadEvent(@Nonnull Path path) throws IOException {
+    private static Event loadEvent(@Nonnull Path path) throws IOException {
         var content = Files.readString(path);
         return new Toml().read(content).to(Event.class);
     }
 
-    private synchronized void processEvent(Event event) {
-        LOG.info("Processing event with command=" + event.getCommand() + ", subject=" + event.getSubject());
-        switch (event.getCommand()) {
-            case LOCK:
-            case EXTEND:
-                this.locks.put(event.getSubject(), event);
-                LOG.fine("ADD/UPDATE lock for subject " + event.getSubject());
-                break;
-            case RELEASE:
-                this.locks.remove(event.getSubject());
-                LOG.fine("REMOVE lock for subject " + event.getSubject());
-                break;
-            case KILL:
-                break;
-        }
-        Stream
-                .ofNullable(this.listener.get(event.getCommand()))
-                .flatMap(List::stream)
-                .forEach(consumer -> consumer.accept(event));
+    private static void logEvent(Event event) {
+        LOG.info(event.getIssuer() + ": " + event.getCommand() + " " + event.getSubject());
     }
 
     interface EventSupplier {
