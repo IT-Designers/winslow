@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -35,6 +35,7 @@ public class Executor {
 
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
+
     public Executor(
             @Nonnull String pipeline,
             @Nonnull String stage,
@@ -63,15 +64,19 @@ public class Executor {
 
     private synchronized void log(boolean error, @Nonnull String message) {
         if (logBuffer != null) {
-            logBuffer.add(new LogEntry(
-                    System.currentTimeMillis(),
-                    LogEntry.Source.MANAGEMENT_EVENT,
-                    error,
-                    PREFIX + message
-            ));
+            logBuffer.add(createLogEntry(error, message));
         } else {
             LOG.warning("LogBuffer gone, not able to log message (error=" + error + "): " + message);
         }
+    }
+
+    private LogEntry createLogEntry(boolean error, @Nonnull String message) {
+        return new LogEntry(
+                System.currentTimeMillis(),
+                LogEntry.Source.MANAGEMENT_EVENT,
+                error,
+                PREFIX + message
+        );
     }
 
     private Iterator<LogEntry> getIterator() throws IOException {
@@ -100,20 +105,25 @@ public class Executor {
 
             LogWriter
                     .writeTo(logOutput)
-                    .source(Stream.<LogEntry>iterate(
-                            null,
-                            p -> this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed(),
-                            p -> {
-                                var next = iter.next();
-                                if (next == null) {
-                                    backoff.sleep();
-                                    next = iter.next();
-                                } else {
-                                    backoff.reset();
-                                }
-                                return next;
-                            }
-                    ).filter(Objects::nonNull))
+                    .source(Stream.concat(
+                            Stream.<LogEntry>iterate(
+                                    null,
+                                    p -> this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed(),
+                                    p -> {
+                                        var next = iter.next();
+                                        if (next == null) {
+                                            backoff.sleep();
+                                            next = iter.next();
+                                        } else {
+                                            backoff.reset();
+                                        }
+                                        return next;
+                                    }
+                            ).filter(Objects::nonNull),
+                            Stream
+                                    .of((Supplier<LogEntry>) () -> createLogEntry(false, "Done"))
+                                    .map(Supplier::get)
+                    ))
                     .addConsumer(this::notifyLogConsumer)
                     .runInForeground();
 
