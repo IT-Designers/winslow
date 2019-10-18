@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {PipelineDefinition} from './api.service';
 import {map} from 'rxjs/operators';
+import {PipelineDefinition} from './pipeline-api.service';
 
 @Injectable({
   providedIn: 'root'
