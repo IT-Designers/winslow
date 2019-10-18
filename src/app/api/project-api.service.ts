@@ -48,7 +48,7 @@ export class ProjectApiService {
             history.state = State.Enqueued;
             history.stageName = entry.name;
             history.imageInfo = entry.image;
-            history.env = entry.env;
+            history.env = entry.env != null ? entry.env : new Map();
             history.envInternal = new Map();
             return history;
           });

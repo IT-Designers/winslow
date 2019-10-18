@@ -158,8 +158,8 @@
                 <h3>Status Information</h3>
                 <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Unique Stage Id', value: entry.stageId}}"></ng-template>
                 <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Based on Stage Definition', value: entry.stageName}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: toDate(entry.startTime)}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet'}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: entry.startTime != null ? toDate(entry.startTime) : 'not yet started'}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet finished'}}"></ng-template>
 
                 <h3>Image Information</h3>
                 <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo.name}}"></ng-template>
