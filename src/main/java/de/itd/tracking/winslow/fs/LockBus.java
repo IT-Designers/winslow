@@ -249,30 +249,48 @@ public class LockBus {
     }
 
     private synchronized boolean loadNextEvent(int retryCount) throws LockException {
-        Path path = null;
-        try {
-            path = this.nextEventPath();
+        for (int i = 0; i < retryCount; ++i) {
+            Path path = null;
+            try {
+                path = this.nextEventPath();
 
-            this.processEvent(loadEvent(path));
+                this.processEvent(loadEvent(path));
 
-            this.eventCounter += 1;
-            return true;
-        } catch (NoSuchFileException | FileNotFoundException e) {
-            LOG.log(Level.WARNING, "Failed to read event");
-            return false;
-        } catch (Throwable e) {
-            if (retryCount > 0 && path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000) {
-                e.printStackTrace();
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                this.eventCounter += 1;
+                return true;
+            } catch (NoSuchFileException | FileNotFoundException e) {
+                LOG.fine("Failed to read next event because there is none");
+                return false;
+            } catch (Throwable e) {
+                if (i + 1 == retryCount || !fileJustCreated(path)) {
+                    // max retries exceeded or file probably not actively written to
+                    throw new LockException("Failed to parse event file", e);
+                } else {
+                    ensureSleepMs(100);
                 }
-                return this.loadNextEvent(retryCount - 1);
-            } else {
-                throw new LockException("Failed to parse event file", e);
             }
         }
+        return false;
+    }
+
+    private void ensureSleepMs(long ms) {
+        var start = System.currentTimeMillis();
+        while (true) {
+            var now = System.currentTimeMillis();
+            if (start + ms >= now) {
+                break;
+            } else {
+                try {
+                    Thread.sleep(ms - (now - start));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private boolean fileJustCreated(Path path) {
+        return path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000;
     }
 
     private void tryDeleteOldFiles() throws IOException {
@@ -311,8 +329,7 @@ public class LockBus {
 
     private Event loadEvent(@Nonnull Path path) throws IOException {
         var content = Files.readString(path);
-        var event   = new Toml().read(content).to(Event.class);
-        return event;
+        return new Toml().read(content).to(Event.class);
     }
 
     private synchronized void processEvent(Event event) {
