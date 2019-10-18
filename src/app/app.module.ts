@@ -34,7 +34,7 @@ import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
-import {DeleteProjectAreYouSureDialog, ProjectViewComponent} from './project-view/project-view.component';
+import {DeleteProjectAreYouSureDialog, ProjectViewComponent, StopStageAreYouSureDialog} from './project-view/project-view.component';
 import { FileBrowseDialog } from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
 import { ServerComponent } from './server/server.component';
@@ -61,6 +61,7 @@ import { ServersOverviewComponent } from './servers-overview/servers-overview.co
     ServersComponent,
     ServersOverviewComponent,
     DeleteProjectAreYouSureDialog,
+    StopStageAreYouSureDialog,
   ],
   imports: [
     HttpClientModule,
@@ -116,6 +117,7 @@ import { ServersOverviewComponent } from './servers-overview/servers-overview.co
     ProjectsCreateDialog,
     FileBrowseDialog,
     DeleteProjectAreYouSureDialog,
+    StopStageAreYouSureDialog,
   ]
 })
 export class AppModule { }
