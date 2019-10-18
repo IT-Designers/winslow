@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -76,6 +77,21 @@ public class ProjectsController {
                                 pipeline.getRunningStage().stream()
                         ))
                         .map(HistoryEntry::new));
+    }
+
+    @GetMapping("/projects/{projectId}/enqueued")
+    public Stream<StageDefinition> getEnqueued(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .stream()
+                .flatMap(project -> winslow
+                        .getOrchestrator()
+                        .getPipeline(project)
+                        .stream()
+                        .flatMap(Pipeline::getEnqueuedStages));
     }
 
     @PostMapping("/projects/{projectId}/name")

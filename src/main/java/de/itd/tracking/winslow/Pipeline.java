@@ -5,6 +5,7 @@ import de.itd.tracking.winslow.config.StageDefinition;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -143,6 +144,15 @@ public class Pipeline {
             this.enqueuedStages = new ArrayList<>();
         }
         this.enqueuedStages.add(definition);
+    }
+
+    @Nonnull
+    public Stream<StageDefinition> getEnqueuedStages() {
+        if (this.enqueuedStages == null) {
+            return Stream.empty();
+        } else {
+            return this.enqueuedStages.stream();
+        }
     }
 
     @Nonnull
