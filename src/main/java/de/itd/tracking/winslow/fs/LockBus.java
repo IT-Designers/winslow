@@ -159,7 +159,7 @@ public class LockBus {
     public synchronized boolean isLocked(String subject) {
         ensureLocksAreUpToDate();
         var lock = this.locks.get(subject);
-        LOG.info("Lock lookup for the same subject: " + lock);
+        LOG.fine("Lock lookup for the same subject: " + lock);
         return lock != null && lock.getTime() + lock.getDuration() + LOCK_DURATION_OFFSET >= System.currentTimeMillis();
     }
 
