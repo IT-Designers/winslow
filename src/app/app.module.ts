@@ -40,6 +40,7 @@ import {NgxChartsModule} from '@swimlane/ngx-charts';
 import { ServerComponent } from './server/server.component';
 import { ServersComponent } from './servers/servers.component';
 import { ServersOverviewComponent } from './servers-overview/servers-overview.component';
+import { AboutComponent } from './about/about.component';
 
 @NgModule({
   declarations: [
@@ -62,6 +63,7 @@ import { ServersOverviewComponent } from './servers-overview/servers-overview.co
     ServersOverviewComponent,
     DeleteProjectAreYouSureDialog,
     StopStageAreYouSureDialog,
+    AboutComponent,
   ],
   imports: [
     HttpClientModule,
@@ -75,7 +77,8 @@ import { ServersOverviewComponent } from './servers-overview/servers-overview.co
       {path: 'pipelines', component: PipelinesComponent},
       {path: 'files', component: FilesComponent},
       {path: 'projects', component: ProjectsComponent},
-      {path: 'servers', component: ServersComponent}
+      {path: 'servers', component: ServersComponent},
+      {path: 'about', component: AboutComponent}
     ]),
 
     BrowserModule,
