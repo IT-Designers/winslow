@@ -45,7 +45,7 @@ public class LockBus {
             throw new IOException("Path to event directory is not a directory: " + eventDirectory);
         }
 
-        this.loadNextEvent();
+        this.ensureLocksAreUpToDate();
         this.startEventDirWatchService(eventDirectory);
     }
 
@@ -156,6 +156,13 @@ public class LockBus {
     }
 
     public synchronized boolean isLocked(String subject) {
+        ensureLocksAreUpToDate();
+        var lock = this.locks.get(subject);
+        LOG.info("Lock lookup for the same subject: " + lock);
+        return lock != null && lock.getTime() + lock.getDuration() + LOCK_DURATION_OFFSET >= System.currentTimeMillis();
+    }
+
+    private void ensureLocksAreUpToDate() {
         while (true) {
             try {
                 // ensure all events have been loaded
@@ -166,9 +173,6 @@ public class LockBus {
                 e.printStackTrace();
             }
         }
-        var lock = this.locks.get(subject);
-        LOG.info("Lock lookup for the same subject: " + lock);
-        return lock != null && lock.getTime() + lock.getDuration() + LOCK_DURATION_OFFSET >= System.currentTimeMillis();
     }
 
     public Token lock(String subject, long duration) throws LockException {
@@ -198,7 +202,7 @@ public class LockBus {
             var event = supplier.getCheckedEvent(UUID.randomUUID().toString());
             var token = new Token(event.getId(), path, event.getSubject(), event.getTime());
 
-            System.out.println(new TomlWriter().write(event));
+            LOG.info(event.getCommand() + ": " + event.getSubject());
 
             Files.write(
                     path,
