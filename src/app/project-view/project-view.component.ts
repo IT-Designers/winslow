@@ -54,6 +54,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   imageOriginal: ImageInfo = null;
 
   stickConsole = true;
+  consoleIsLoading = false;
   scrollCallback;
 
   private static deepClone(obj: any): any {
@@ -109,6 +110,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   loadLogs() {
+    if (this.consoleIsLoading) {
+      return;
+    }
+    this.consoleIsLoading = true;
     this.longLoading.increase();
     return this.requestLogs()
       .then(logs => {
@@ -127,7 +132,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           }
         }
       })
-      .finally(() => this.longLoading.decrease());
+      .finally(() => {
+        this.longLoading.decrease();
+        this.consoleIsLoading = false;
+      });
   }
 
   requestLogs() {
