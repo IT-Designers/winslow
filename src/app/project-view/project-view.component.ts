@@ -392,17 +392,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   killCurrentStage() {
-    this.longLoading.increase();
-    this.api
-        .killStage(this.project.id)
+    this.createDialog
+        .open(StopStageAreYouSureDialog, {})
+        .afterClosed()
         .toPromise()
         .then(result => {
-          this.notification.info('Request accepted');
-        })
-        .catch(err => {
-          this.notification.error('Request failed: ' + JSON.stringify(err));
-        })
-        .finally(() => this.longLoading.decrease());
+          if (!!result) {
+            this.longLoading.increase();
+            return this.api
+                .killStage(this.project.id)
+                .toPromise()
+                .then(r => this.notification.info('Request accepted'))
+                .catch(e => this.notification.error('Request failed: ' + JSON.stringify(e)))
+                .finally(() => this.longLoading.decrease());
+          }
+        });
   }
 
   reRun(entry: HistoryEntry) {
@@ -469,5 +473,24 @@ export class DeleteProjectAreYouSureDialog {
   constructor(
       public dialogRef: MatDialogRef<DeleteProjectAreYouSureDialog>,
       @Inject(MAT_DIALOG_DATA) public project: Project) {
+  }
+}
+
+
+@Component({
+  selector: 'dialog-stop-stage-are-you-sure',
+  template: `
+      <h1 mat-dialog-title>Are you sure you want to stop this stage?</h1>
+      <div mat-dialog-content>
+      </div>
+      <div mat-dialog-actions align="end">
+          <button mat-raised-button color="warn" (click)="dialogRef.close(true)">Stop</button>
+          <button mat-raised-button (click)="dialogRef.close(false)">Cancel</button>
+      </div>`
+})
+export class StopStageAreYouSureDialog {
+  constructor(
+      public dialogRef: MatDialogRef<StopStageAreYouSureDialog>,
+      @Inject(MAT_DIALOG_DATA) public data: any) {
   }
 }
