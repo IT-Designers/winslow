@@ -156,7 +156,18 @@ public class LockBus {
     }
 
     public synchronized boolean isLocked(String subject) {
+        while (true) {
+            try {
+                // ensure all events have been loaded
+                if (!loadNextEvent()) {
+                    break;
+                }
+            } catch (LockException e) {
+                e.printStackTrace();
+            }
+        }
         var lock = this.locks.get(subject);
+        LOG.info("Lock lookup for the same subject: " + lock);
         return lock != null && lock.getTime() + lock.getDuration() + LOCK_DURATION_OFFSET >= System.currentTimeMillis();
     }
 
