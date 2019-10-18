@@ -182,33 +182,31 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     return new Date(time).toLocaleString();
   }
 
-  setNextStage(nextStageIndex: string, singleStageOnly = false) {
+  enqueueNextStage(nextStageIndex: string) {
     this.longLoading.increase();
-    this.api.resume(this.project.id, Number(nextStageIndex), singleStageOnly, this.formGroupControl.value, this.image)
+    this.api.enqueue(this.project.id, Number(nextStageIndex), this.formGroupControl.value, this.image)
       .toPromise()
       .then(result => {
         this.notification.info('Request has been accepted');
-        this.paused = false;
         this.stateEmitter.emit(this.state = State.Running);
-        this.pauseReason = null;
         this.imageOriginal = this.image;
-        this.openLogs(null, true);
       }).catch(error => {
       this.notification.error('Request failed: ' + JSON.stringify(error));
     }).finally(() => this.longLoading.decrease());
   }
 
-  updateRequestPause(checked: boolean) {
+  updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
     this.longLoading.increase();
     const before = this.paused;
-    this.paused = checked;
-    this.api.setProjectPaused(this.project.id, checked)
+    this.paused = pause;
+    this.api.resume(this.project.id, pause, singleStageOnly)
       .toPromise()
       .then(result => {
         this.notification.info('Project updated');
         if (!this.paused) {
           this.stateEmitter.emit(this.state = State.Running);
           this.pauseReason = null;
+          this.openLogs(null, true);
         }
       })
       .catch(err => {

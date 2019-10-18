@@ -60,7 +60,7 @@ export class ProjectApiService {
     return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`));
   }
 
-  resume(projectId: string, nextStageIndex: number, singleStageOnly = false, env: any, image: ImageInfo = null) {
+  enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
     if (image != null) {
@@ -68,13 +68,13 @@ export class ProjectApiService {
       form.set('imageArgs', JSON.stringify(image.args));
     }
     return this.client.post(
-      ProjectApiService.getUrl(`${projectId}/resume/${nextStageIndex}${singleStageOnly ? '?strategy=once' : ''}`),
+      ProjectApiService.getUrl(`${projectId}/enqueue/${nextStageIndex}`),
       form
     );
   }
 
-  setProjectPaused(projectId: string, paused: boolean) {
-    return this.client.post(ProjectApiService.getUrl(`${projectId}/paused/${paused}`), new FormData());
+  resume(projectId: string, paused: boolean, singleStageOnly = false) {
+    return this.client.post(ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`), new FormData());
   }
 
   getLog(projectId: string, stageId: string) {
