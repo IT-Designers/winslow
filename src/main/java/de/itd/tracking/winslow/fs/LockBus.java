@@ -26,6 +26,7 @@ public class LockBus {
     public static final int LOCK_DURATION_OFFSET          = 1_000;
     public static final int DURATION_SURELY_OUT_OF_DATE   = 5_000;
     public static final int DURATION_FOR_UNREADABLE_FILES = 25_000;
+    public static final int MAX_OLD_EVENT_FILE_COUNT      = 100;
 
     private final String             name;
     private final Path               eventDirectory;
@@ -279,7 +280,7 @@ public class LockBus {
                 .list(eventDirectory)
                 .sorted(Comparator.comparing(Path::getFileName))
                 .collect(Collectors.toUnmodifiableList());
-        var diff = list.size() - 10;
+        var diff = list.size() - MAX_OLD_EVENT_FILE_COUNT;
 
         for (int i = 0; i < diff; ++i) {
             Path  path  = list.get(i);
