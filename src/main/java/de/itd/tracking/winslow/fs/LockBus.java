@@ -283,7 +283,7 @@ public class LockBus {
             } catch (Throwable e) {
                 if (i + 1 == retryCount || !fileJustCreated(path)) {
                     // max retries exceeded or file probably not actively written to
-                    throw new LockException("Failed to parse event file", e);
+                    throw new LockException("Failed to parse event file: " + path, e);
                 } else {
                     ensureSleepMs(100);
                 }
@@ -296,7 +296,7 @@ public class LockBus {
         var start = System.currentTimeMillis();
         while (true) {
             var now = System.currentTimeMillis();
-            if (start + ms >= now) {
+            if (now - start >= ms) {
                 break;
             } else {
                 try {
