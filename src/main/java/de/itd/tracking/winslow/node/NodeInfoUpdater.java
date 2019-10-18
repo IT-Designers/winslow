@@ -49,9 +49,14 @@ public class NodeInfoUpdater implements Runnable {
                 var tmp  = getTmpPath();
                 new TomlWriter().write(info, tmp.toFile());
                 Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, ATOMIC_MOVE);
-                Thread.sleep(1_000);
-            } catch (InterruptedException | IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    Thread.sleep(1_000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
