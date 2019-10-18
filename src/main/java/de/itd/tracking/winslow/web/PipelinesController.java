@@ -1,9 +1,13 @@
 package de.itd.tracking.winslow.web;
 
+import com.moandjiezana.toml.Toml;
+import com.moandjiezana.toml.TomlWriter;
 import de.itd.tracking.winslow.Winslow;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import de.itd.tracking.winslow.config.PipelineDefinition;
+import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @RestController
@@ -15,14 +19,75 @@ public class PipelinesController {
         this.winslow = winslow;
     }
 
-    @GetMapping("/pipelines")
+    @GetMapping("pipelines")
     public Stream<PipelineInfo> getAllPipelines() {
-        return winslow.getPipelineRepository().getPipelineIdentifiers().flatMap(identifier -> winslow
+        return winslow
                 .getPipelineRepository()
-                .getPipeline(identifier)
+                .getPipelineIdentifiers()
+                .flatMap(identifier -> winslow
+                        .getPipelineRepository()
+                        .getPipeline(identifier)
+                        .unsafe()
+                        .stream()
+                        .map(p -> new PipelineInfo(identifier, p.getName(), p.getDescription().orElse(null))));
+    }
+
+    @GetMapping("pipelines/{pipeline}")
+    public Optional<PipelineInfo> getPipeline(@PathVariable("pipeline") String pipeline) {
+        return winslow
+                .getPipelineRepository()
+                .getPipeline(pipeline)
                 .unsafe()
-                .stream()
-                .map(p -> new PipelineInfo(identifier, p.getName(), p.getDescription().orElse(null))));
+                .map(p -> new PipelineInfo(pipeline, p.getName(), p.getDescription().orElse(null)));
+    }
+
+    @GetMapping("pipelines/{pipeline}/raw")
+    public Optional<String> getPipelineRaw(@PathVariable("pipeline") String pipeline) {
+        return winslow
+                .getPipelineRepository()
+                .getPipeline(pipeline)
+                .unsafe()
+                .map(p -> new TomlWriter().write(p));
+    }
+
+    @PutMapping("pipelines/{pipeline}/raw")
+    public Optional<String> setPipeline(
+            @PathVariable("pipeline") String pipeline,
+            @RequestParam("raw") String raw) throws IOException {
+        PipelineDefinition definition = null;
+
+        try {
+            definition = new Toml().read(raw).to(PipelineDefinition.class);
+            definition.check();
+        } catch (Throwable t) {
+            return Optional.of(t.getMessage());
+        }
+
+
+        var exclusive = winslow
+                .getPipelineRepository()
+                .getPipeline(pipeline)
+                .exclusive();
+        if (exclusive.isPresent()) {
+            var container = exclusive.get();
+            var lock      = container.getLock();
+
+            try (lock) {
+                container.update(definition);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @PostMapping("pipelines/check-toml")
+    public Optional<String> checkPipelineDefToml(@RequestParam("raw") String raw) {
+        try {
+            new Toml().read(raw).to(PipelineDefinition.class).check();
+            return Optional.empty();
+        } catch (Throwable t) {
+            return Optional.of(t.getMessage());
+        }
     }
 
     public static class PipelineInfo {
