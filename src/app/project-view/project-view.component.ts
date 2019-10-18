@@ -156,9 +156,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(history => {
         history = history.reverse();
-        if (this.history === null || this.history.length !== history.length || JSON.stringify(this.history) !== JSON.stringify(history)) {
-          this.history = history;
-        }
+        return this.api.getProjectEnqueued(this.project.id)
+            .then(enqueued => {
+              const latest = enqueued.reverse();
+              history.forEach(h => latest.push(h));
+
+              if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
+                this.history = latest;
+              }
+            });
       })
       .finally(() => this.longLoading.decrease());
   }

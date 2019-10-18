@@ -40,6 +40,22 @@ export class ProjectApiService {
     return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl( `${projectId}/history`));
   }
 
+  getProjectEnqueued(projectId: string): Promise<HistoryEntry[]> {
+    return this.client.get<any[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
+        .pipe(map(enqueued => {
+          return enqueued.map(entry => {
+            const history = new HistoryEntry();
+            history.state = State.Enqueued;
+            history.stageName = entry.name;
+            history.imageInfo = entry.image;
+            history.env = entry.env;
+            history.envInternal = new Map();
+            return history;
+          });
+        }))
+        .toPromise();
+  }
+
   getProjectPaused(projectId: string) {
     return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`));
   }
@@ -104,7 +120,8 @@ export enum State {
   Succeeded = 'Succeeded',
   Failed = 'Failed',
   // local only
-  Warning = 'Warning'
+  Warning = 'Warning',
+  Enqueued = 'Enqueued'
 }
 
 export class Project {
