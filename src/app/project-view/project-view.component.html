@@ -93,14 +93,11 @@
             </button>
           </div>
         </div>
-        <div class="stage-control-item-controls" *ngIf="stageSelection.value != null">
-          <button [disabled]="!formGroupControl.valid" mat-stroked-button
-                  (click)="setNextStage(stageSelection.value, true)" color="primary">
-            Run Single Stage
-          </button>
-          <button [disabled]="!formGroupControl.valid" mat-raised-button (click)="setNextStage(stageSelection.value)"
+        <div class="stage-control-item stage-control-item-controls" *ngIf="stageSelection.value != null">
+          <button [disabled]="!formGroupControl.valid"
+                  mat-stroked-button (click)="enqueueNextStage(stageSelection.value)"
                   color="primary">
-            Resume Pipeline
+            Enqueue
           </button>
         </div>
       </div>
@@ -110,8 +107,17 @@
     <mat-divider></mat-divider>
     <div class="stage-control-item">
       <span>Pause further stage execution</span>
-      <mat-slide-toggle [checked]="paused"
-                        (change)="updateRequestPause($event.checked)"></mat-slide-toggle>
+      <div class="stage-control-item-controls">
+        <button mat-stroked-button (click)="updateRequestPause(true)" color="warn">
+          Pause Pipeline
+        </button>
+        <button mat-stroked-button (click)="updateRequestPause(false, true)" color="primary">
+          Run Single Stage
+        </button>
+        <button mat-raised-button (click)="updateRequestPause(false, false)" color="primary">
+          Resume Pipeline
+        </button>
+      </div>
     </div>
   </mat-tab>
 
