@@ -147,6 +147,15 @@ public class Pipeline {
     }
 
     @Nonnull
+    public Optional<StageDefinition> removeEnqueuedStage(int index) {
+        if (this.enqueuedStages != null && this.enqueuedStages.size() > index) {
+            return Optional.of(this.enqueuedStages.remove(index));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    @Nonnull
     public Stream<StageDefinition> getEnqueuedStages() {
         if (this.enqueuedStages == null) {
             return Stream.empty();

@@ -12,7 +12,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -92,6 +91,30 @@ public class ProjectsController {
                         .getPipeline(project)
                         .stream()
                         .flatMap(Pipeline::getEnqueuedStages));
+    }
+
+    @DeleteMapping("/projects/{projectId}/enqueued/{index}/{controlSize}")
+    public Optional<Boolean> deleteEnqueued(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("index") int index,
+            @PathVariable("controlSize") int controlSize
+            ) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow
+                        .getOrchestrator()
+                        .updatePipelineOmitExceptions(project, pipeline -> {
+                            if (pipeline.getEnqueuedStages().count() == controlSize) {
+                                return pipeline.removeEnqueuedStage(index).isPresent();
+                            } else {
+                                return Boolean.FALSE;
+                            }
+                        })
+                );
     }
 
     @PostMapping("/projects/{projectId}/name")
@@ -196,35 +219,6 @@ public class ProjectsController {
                         .orElse(null));
     }
 
-    @PostMapping("projects/{projectId}/nextStage/{stageIndex}")
-    public boolean setProjectNextStage(
-            User user,
-            @PathVariable("projectId") String projectId,
-            @PathVariable("stageIndex") int index,
-            @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
-                .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
-
-
-                    // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
-                    // so changes will not be written back
-                    var stageDef = getStageDefinitionNoClone(project, index);
-
-                    stageDef.ifPresent(stage -> {
-                        pipeline.enqueueStage(stage);
-                        pipeline.setStrategy(getPipelineStrategy(strategy));
-                        pipeline.resume(Pipeline.ResumeNotification.Confirmation);
-                    });
-
-                    return stageDef.isPresent();
-                }))
-                .orElse(false);
-    }
-
     private Pipeline.Strategy getPipelineStrategy(@Nullable @RequestParam(value = "strategy", required = false) String strategy) {
         return Optional
                 .ofNullable(strategy)
@@ -237,7 +231,8 @@ public class ProjectsController {
     public boolean setProjectNextStage(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable("paused") boolean paused) {
+            @PathVariable("paused") boolean paused,
+            @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -247,6 +242,7 @@ public class ProjectsController {
                     if (paused) {
                         pipeline.requestPause();
                     } else {
+                        pipeline.setStrategy(getPipelineStrategy(strategy));
                         pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     }
                     return Boolean.TRUE;
@@ -413,13 +409,12 @@ public class ProjectsController {
                 );
     }
 
-    @PostMapping("projects/{projectId}/resume/{stageIndex}")
-    public void resumePipeline(
+    @PostMapping("projects/{projectId}/enqueue/{stageIndex}")
+    public void enqueueStage(
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("env") Map<String, String> env,
             @PathVariable("stageIndex") int index,
-            @RequestParam(value = "strategy", required = false) @Nullable String strategy,
             @RequestParam(value = "imageName", required = false) @Nullable String imageName,
             @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs) {
         winslow
@@ -466,8 +461,6 @@ public class ProjectsController {
                                 stageDef.get().getHighlight().orElse(null)
                         );
                         pipeline.enqueueStage(definition);
-                        pipeline.setStrategy(getPipelineStrategy(strategy));
-                        pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                     }
 
                     return pipeline;
