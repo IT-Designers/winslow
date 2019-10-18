@@ -306,7 +306,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.createDialog.open(FileBrowseDialog, {
       width: '75%',
       data: {
-        additionalRoot: `${this.project.name};workspaces/${this.project.id}`,
+        //additionalRoot: `${this.project.name};workspaces/${this.project.id}`,
         preselectedPath: this.project.environment.get(key) || '/resources/',
       },
     }).afterClosed().toPromise().then(result => {
