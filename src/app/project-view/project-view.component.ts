@@ -185,7 +185,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
 
   toDate(time: number) {
-    return new Date(time).toLocaleString();
+    if (time) {
+      return new Date(time).toLocaleString();
+    } else {
+      return '';
+    }
   }
 
   enqueueNextStage(nextStageIndex: string) {
@@ -194,7 +198,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(result => {
         this.notification.info('Request has been accepted');
-        this.stateEmitter.emit(this.state = State.Running);
         this.imageOriginal = this.image;
       }).catch(error => {
       this.notification.error('Request failed: ' + JSON.stringify(error));
