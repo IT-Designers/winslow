@@ -2,7 +2,6 @@ package de.itd.tracking.winslow.fs;
 
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
-import org.springframework.security.authentication.LockedException;
 
 import javax.annotation.Nonnull;
 import java.io.FileNotFoundException;
@@ -220,7 +219,7 @@ public class LockBus {
             if (this.loadNextEvent()) {
                 return this.publishEvent(supplier);
             } else {
-                throw new LockedException("Internal communication error, failed to lock", e);
+                throw new LockException("Internal communication error, failed to lock", e);
             }
         }
     }

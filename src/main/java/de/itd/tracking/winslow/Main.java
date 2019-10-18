@@ -11,21 +11,21 @@ import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
 import de.itd.tracking.winslow.web.WebApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
+import java.util.logging.Logger;
 
 public class Main {
-    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    private static final Logger LOG = Logger.getLogger(Main.class.getSimpleName());
 
     public static void main(String[] args) throws UnknownHostException {
+        configureLogger();
         final String workDirectory = Env.getWorkDirectory();
         final String nodeName      = Env.getNodeName();
 
-        LOG.trace("program start at first line within main");
         System.out.println();
         System.out.println("           ____               ");
         System.out.println("         /       \\            ");
@@ -105,7 +105,11 @@ public class Main {
                 orchestrator.stop();
             }
         }
+    }
 
-
+    private static void configureLogger() {
+        // SpringBoot is using SLF4... so setup the bridge early
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
     }
 }
