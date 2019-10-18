@@ -5,6 +5,7 @@ import {MAT_DIALOG_DATA, MatButtonToggle, MatDialog, MatDialogRef, MatSelect, Ma
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {parseArgsStringToArgv} from 'string-argv';
 
 
 @Component({
@@ -335,11 +336,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   stringify(args: string[]) {
-    return JSON.stringify(args);
+    return args.map(v => {
+      if (v.indexOf(' ') >= 0) {
+        return '"' + v + '"';
+      } else {
+        return v;
+      }
+    }).join(' ');
   }
 
   parse(args: string) {
-    return JSON.parse(args);
+    return parseArgsStringToArgv(args);
   }
 
   sourceIsManagement(source: LogSource) {
