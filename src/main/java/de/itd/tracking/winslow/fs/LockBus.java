@@ -26,7 +26,7 @@ public class LockBus {
     public static final int LOCK_DURATION_OFFSET          = 1_000;
     public static final int DURATION_SURELY_OUT_OF_DATE   = 5_000;
     public static final int DURATION_FOR_UNREADABLE_FILES = 25_000;
-    public static final int MAX_OLD_EVENT_FILE_COUNT      = 100;
+    public static final int MAX_OLD_EVENT_FILE_COUNT      = 25;
 
     private final String             name;
     private final Path               eventDirectory;
