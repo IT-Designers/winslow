@@ -1,0 +1,17 @@
+.container {
+
+}
+
+.on-error {
+  text-align: center;
+  color: dimgray;
+  margin-top: 15vh;
+}
+
+.error-container {
+  font-size: 7vh;
+}
+
+.error-focus {
+  font-size: 4em;
+}
