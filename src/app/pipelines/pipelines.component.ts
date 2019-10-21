@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {PipelineApiService, PipelineDefinition} from '../api/pipeline-api.service';
+import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
 import {NotificationService} from '../notification.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 
@@ -9,7 +9,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
   styleUrls: ['./pipelines.component.css']
 })
 export class PipelinesComponent implements OnInit {
-  pipelines: PipelineDefinition[] = [];
+  pipelines: PipelineInfo[] = [];
 
   raw: Map<string, string> = new Map();
   error: Map<string, string> = new Map();

@@ -31,14 +31,14 @@ export class PipelineApiService {
   }
 
   getPipelineDefinition(pipeline: string) {
-    return this.client.get<PipelineDefinition>(PipelineApiService.getUrl(`${pipeline}`)).toPromise();
+    return this.client.get<PipelineInfo>(PipelineApiService.getUrl(`${pipeline}`)).toPromise();
   }
 
   getPipelineDefinitions() {
-    return this.client.get<PipelineDefinition[]>(PipelineApiService.getUrl()).toPromise();
+    return this.client.get<PipelineInfo[]>(PipelineApiService.getUrl()).toPromise();
   }
 
-  getStageDefinitions(pipeline: PipelineDefinition) {
+  getStageDefinitions(pipeline: PipelineInfo) {
     return this.client
         .get<StageInfo[]>(environment.apiLocation + 'stages/' + pipeline.id)
         .pipe(map(p => {
@@ -51,7 +51,7 @@ export class PipelineApiService {
 }
 
 
-export class PipelineDefinition {
+export class PipelineInfo {
   id: string;
   name: string;
   desc: string;
