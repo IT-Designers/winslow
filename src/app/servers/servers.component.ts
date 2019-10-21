@@ -1,6 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
-import {NotificationService} from '../notification.service';
 
 @Component({
   selector: 'app-servers',
@@ -10,14 +9,15 @@ import {NotificationService} from '../notification.service';
 export class ServersComponent implements OnInit, OnDestroy {
 
   nodes: NodeInfo[] = [];
+  loadError = null;
   interval = null;
 
-  constructor(private api: NodesApiService, private notification: NotificationService) {
+  constructor(private api: NodesApiService) {
   }
 
   ngOnInit() {
-    this.updateNodes();
-    this.interval = setInterval(() => this.updateNodes(), 1_000);
+    this.updateNodes()
+      .then(success => this.interval = setInterval(() => this.updateNodes(), 1_000));
   }
 
   ngOnDestroy(): void {
@@ -28,7 +28,9 @@ export class ServersComponent implements OnInit, OnDestroy {
   }
 
   updateNodes() {
-    this.api.getAllNodeInfo().toPromise()
+    return this.api
+      .getAllNodeInfo()
+      .toPromise()
       .then(result => {
         const nodes = result.sort((a, b) => a.name > b.name ? 1 : -1); // sort by name
         // remove missing
@@ -56,6 +58,9 @@ export class ServersComponent implements OnInit, OnDestroy {
           }
         }
       })
-      .catch(e => this.notification.error(JSON.stringify(e)));
+      .catch(e => {
+        this.nodes = null;
+        this.loadError = e;
+      });
   }
 }
