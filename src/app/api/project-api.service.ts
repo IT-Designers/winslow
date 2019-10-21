@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
-import {PipelineDefinition} from './pipeline-api.service';
+import {PipelineInfo} from './pipeline-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +16,7 @@ export class ProjectApiService {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
-  createProject(name: string, pipeline: PipelineDefinition) {
+  createProject(name: string, pipeline: PipelineInfo) {
     const form = new FormData();
     form.append('name', name);
     form.append('pipeline', pipeline.id);
@@ -132,7 +132,7 @@ export class Project {
   owner: string;
   groups: string[];
   name: string;
-  pipelineDefinition: PipelineDefinition;
+  pipelineDefinition: PipelineInfo;
   environment: Map<string, string>;
   userInput: string[];
   // local only

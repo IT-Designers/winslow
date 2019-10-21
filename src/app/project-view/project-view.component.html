@@ -254,20 +254,35 @@
   </mat-tab>
 
     <mat-tab label="Settings">
-        <div class="loading-bar-container">
-            <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
-        </div>
-        <div class="stage-control-item">
-            <label>Project Name</label>
-            <mat-form-field>
-                <input #name matInput name="name" [value]="project.name" (keydown.enter)="setName(name.value)">
-            </mat-form-field>
-            <button mat-stroked-button color="primary" (click)="setName(name.value)"
-            >Update</button>
-        </div>
-        <div class="stage-control-item">
-            <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
-        </div>
+      <div class="loading-bar-container">
+          <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
+      </div>
+      <div class="stage-control-item">
+        <label>Project Name</label>
+        <mat-form-field>
+          <input #nameOriginal hidden [value]="project.name">
+          <input #name matInput name="name" [value]="project.name" (keydown.enter)="setName(name.value)">
+        </mat-form-field>
+        <button mat-stroked-button color="primary"
+                [disabled]="nameOriginal.value == name.value"
+                (click)="setName(name.value)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <label>Project Pipeline</label>
+
+        <mat-form-field>
+          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.id">
+          <mat-select #pipeline>
+            <mat-option *ngFor="let pipeline of []" value="{{pipeline.id}}">{{pipeline.name}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button color="primary" (click)="setPipeline(project.pipelineDefinition.name)">Update</button>
+      </div>
+      <div class="stage-control-item">
+          <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
+      </div>
     </mat-tab>
 </mat-tab-group>
 <div #scrollBottomTarget></div>
