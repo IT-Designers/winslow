@@ -508,6 +508,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           }
         });
   }
+
+  setPipeline(pipelineId: string) {
+    alert(pipelineId);
+  }
 }
 
 @Component({
