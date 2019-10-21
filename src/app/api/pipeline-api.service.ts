@@ -48,6 +48,12 @@ export class PipelineApiService {
         }))
         .toPromise();
   }
+
+  createPipelineDefinition(name: string) {
+    const form = new FormData();
+    form.set('name', name);
+    return this.client.put<PipelineInfo>(PipelineApiService.getUrl(`create`), form).toPromise();
+  }
 }
 
 

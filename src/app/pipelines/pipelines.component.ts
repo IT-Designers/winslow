@@ -37,7 +37,7 @@ export class PipelinesComponent implements OnInit {
   }
 
   loadRaw(pipeline: string) {
-    this.api
+    return this.api
       .getRaw(pipeline)
       .then(raw => {
         this.raw.set(pipeline, raw);
@@ -96,7 +96,18 @@ export class PipelinesComponent implements OnInit {
       .afterClosed()
       .subscribe(result => {
         if (result) {
-          alert(JSON.stringify(result));
+          this.longLoading.increase();
+          return this.api
+            .createPipelineDefinition(result.name)
+            .then(info => {
+              if (info) {
+                return this.loadRaw(info.id)
+                  .then(loaded => this.pipelines.push(info));
+              } else {
+                this.notification.error('Request failed');
+              }
+            })
+            .finally(() => this.longLoading.decrease());
         }
       });
   }
