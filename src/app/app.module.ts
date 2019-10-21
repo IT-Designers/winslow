@@ -42,6 +42,7 @@ import { ServersComponent } from './servers/servers.component';
 import { ServersOverviewComponent } from './servers-overview/servers-overview.component';
 import { AboutComponent } from './about/about.component';
 import { CreatePipelineDialogComponent } from './pipeline-create-dialog/create-pipeline-dialog.component';
+import { LoadingInfoComponent } from './loading-info/loading-info.component';
 
 @NgModule({
   declarations: [
@@ -66,6 +67,7 @@ import { CreatePipelineDialogComponent } from './pipeline-create-dialog/create-p
     StopStageAreYouSureDialog,
     AboutComponent,
     CreatePipelineDialogComponent,
+    LoadingInfoComponent,
   ],
   imports: [
     HttpClientModule,

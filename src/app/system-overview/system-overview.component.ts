@@ -1,6 +1,5 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
-import {NotificationService} from '../notification.service';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {NodesApiService} from '../api/nodes-api.service';
 import {StorageApiService} from '../api/storage-api.service';
 
 @Component({
@@ -10,15 +9,19 @@ import {StorageApiService} from '../api/storage-api.service';
 })
 export class SystemOverviewComponent implements OnInit, OnDestroy {
 
-  storages: any[] = [];
+  storages: any[] = null;
+  loadError = null;
   interval = null;
 
-  constructor(private api: NodesApiService, private storageApi: StorageApiService, private notification: NotificationService) {
+  constructor(private api: NodesApiService, private storageApi: StorageApiService) {
   }
 
   ngOnInit() {
-    this.updateStorages();
-    this.interval = setInterval(() => this.updateStorages(), 10_000);
+    this
+      .updateStorages()
+      .then(success => {
+        this.interval = setInterval(() => this.updateStorages(), 10_000);
+      });
   }
 
   ngOnDestroy(): void {
@@ -29,9 +32,14 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
   }
 
   private updateStorages() {
-    this.storageApi.getAll().toPromise()
+    return this.storageApi
+      .getAll()
+      .toPromise()
       .then(result => this.storages = SystemOverviewComponent.convertToNgxDataset(result))
-      .catch(error => this.notification.error(error));
+      .catch(error => {
+        this.storages = null;
+        this.loadError = error;
+      });
   }
 
   private static convertToNgxDataset(result) {

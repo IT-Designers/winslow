@@ -15,6 +15,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
 
   projects: Project[] = null;
+  loadError = null;
   interval;
 
   constructor(private api: ProjectApiService, private createDialog: MatDialog, private notification: NotificationService) {
@@ -22,10 +23,14 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.projects = null;
-    this.api.listProjects().toPromise().then(projects => {
-      this.projects = projects;
-      setTimeout(() => this.pollAllProjectsForChanges(), 10);
-    });
+    this.api
+      .listProjects()
+      .toPromise()
+      .then(projects => {
+        this.projects = projects;
+        setTimeout(() => this.pollAllProjectsForChanges(), 10);
+      })
+      .catch(error => this.loadError = error);
     this.interval = setInterval(() => this.pollAllProjectsForChanges(), 3000);
   }
 

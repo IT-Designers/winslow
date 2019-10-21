@@ -7,14 +7,12 @@
     </button>
   </div>
 
-  <div>
-    <i *ngIf="projects == null">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </i>
-    <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
-      <i>There are no projects yet</i>
-    </div>
+  <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
+    <i>There are no projects yet</i>
   </div>
+
+  <app-loading-info [error]="loadError ? loadError.message : null" [loading]="projects == null"></app-loading-info>
+
 
   <mat-accordion>
     <mat-expansion-panel

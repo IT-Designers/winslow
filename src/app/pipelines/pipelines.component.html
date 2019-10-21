@@ -9,15 +9,12 @@
     </button>
   </div>
 
-  <div>
-    <i *ngIf="pipelines == null">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </i>
-    <div class="none-defined-yet" *ngIf="pipelines != null && pipelines.length == 0">
-      <i>There are no pipelines defined yet</i>
-    </div>
+
+  <div class="none-defined-yet" *ngIf="pipelines != null && pipelines.length == 0">
+    <i>There are no pipelines defined yet</i>
   </div>
 
+  <app-loading-info [error]="loadError ? loadError.message : null" [loading]="pipelines == null"></app-loading-info>
 
   <mat-accordion>
     <mat-expansion-panel *ngFor="let pipeline of pipelines">

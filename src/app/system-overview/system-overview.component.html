@@ -1,6 +1,8 @@
 <app-servers></app-servers>
 
-<div class="overview-element">
+<app-loading-info [error]="loadError ? loadError.message : null" [loading]="storages == null"></app-loading-info>
+
+<div class="overview-element" *ngIf="storages != null">
   <h3>Storage</h3>
   <div>
     <ngx-charts-bar-horizontal-normalized
