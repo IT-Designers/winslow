@@ -3,7 +3,8 @@
 
   <div *ngIf="this.pipelines != null" class="flex-grow-row control-button-row">
     <div class="flex-grow"></div>
-    <button class="create-button" mat-raised-button color="primary">
+    <button class="create-button" mat-raised-button color="primary"
+          (click)="openCreatePipelineDialog()">
       Create Pipeline
     </button>
   </div>

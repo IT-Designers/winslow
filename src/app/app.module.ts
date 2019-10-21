@@ -41,6 +41,7 @@ import { ServerComponent } from './server/server.component';
 import { ServersComponent } from './servers/servers.component';
 import { ServersOverviewComponent } from './servers-overview/servers-overview.component';
 import { AboutComponent } from './about/about.component';
+import { CreatePipelineDialogComponent } from './pipeline-create-dialog/create-pipeline-dialog.component';
 
 @NgModule({
   declarations: [
@@ -64,6 +65,7 @@ import { AboutComponent } from './about/about.component';
     DeleteProjectAreYouSureDialog,
     StopStageAreYouSureDialog,
     AboutComponent,
+    CreatePipelineDialogComponent,
   ],
   imports: [
     HttpClientModule,
@@ -121,6 +123,7 @@ import { AboutComponent } from './about/about.component';
     FileBrowseDialog,
     DeleteProjectAreYouSureDialog,
     StopStageAreYouSureDialog,
+    CreatePipelineDialogComponent,
   ]
 })
 export class AppModule { }

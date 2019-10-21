@@ -71,3 +71,27 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   text-align: center;
   padding: 3em;
 }
+
+
+.dialog-content {
+  display: flex;
+  min-width: 20em;
+  max-width: 75vw;
+}
+
+.dialog-form-field {
+  display: flex !important;
+  flex-grow: 1;
+}
+.dialog-form-field > * {
+  display: flex;
+  flex-grow: 1;
+}
+
+.dialog-actions > *:first-child {
+  margin-left: auto;
+}
+
+.dialog-actions > *:not(:first-child) {
+  margin-left: 2em;
+}
