@@ -41,7 +41,7 @@
 
 .stage-control-item {
   display: flex;
-  margin: 2em 2em;
+  margin: 0 2em;
   align-items: center;
 }
 
@@ -74,7 +74,8 @@
 }
 
 .stage-control-item-env-list {
-  margin: 0 2em 1em 2em;
+  margin: 1em 2em 2em 2em;
+  padding: 1em 0;
   border: 1px solid silver;
   border-top: none;
   border-bottom: none;
