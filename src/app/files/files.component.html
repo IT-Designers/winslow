@@ -1,6 +1,6 @@
-<app-loading-info style="width: 100%"
-                  [error]="loadError ? loadError.message : null"
-                  [loading]="files == null || this.longLoading.isLongLoading()">
+<app-loading-info
+  [error]="loadError ? loadError.message : null"
+  [loading]="files == null || this.longLoading.isLongLoading()">
 </app-loading-info>
 
 <div class="container" *ngIf="files != null">
