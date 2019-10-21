@@ -3,22 +3,23 @@
 
   <i *ngIf="pipelines != null && pipelines.length == 0">There are no pipelines defined yet</i>
   <mat-accordion>
-    <mat-expansion-panel class="pipeline" *ngFor="let pipeline of pipelines">
+    <mat-expansion-panel *ngFor="let pipeline of pipelines">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          {{pipeline.name}}
+          <mat-icon class="title-icon">timeline</mat-icon>{{pipeline.name}}
         </mat-panel-title>
         <mat-panel-description>
           {{pipeline.desc}}
         </mat-panel-description>
       </mat-expansion-panel-header>
-      <div class="controls">
+      <div class="toml-pipeline">
+        <h5>TOML Definition</h5>
         <textarea #text style="width: 100%" cdkTextareaAutosize>{{raw.get(pipeline.id)}}</textarea>
         <pre *ngIf="this.error.get(pipeline.id) != null" class="check check-error">{{this.error.get(pipeline.id)}}</pre>
         <pre *ngIf="this.success.get(pipeline.id) != null" class="check check-success">{{this.success.get(pipeline.id)}}</pre>
-        <div>
-          <button mat-stroked-button color="primary" (click)="update(pipeline.id, text.value)">Save</button>
-          <button mat-raised-button color="primary" (click)="check(pipeline.id, text.value)">Check</button>
+        <div class="controls">
+          <button mat-raised-button color="primary" (click)="update(pipeline.id, text.value)">Save</button>
+          <button mat-stroked-button color="primary" (click)="check(pipeline.id, text.value)">Check</button>
         </div>
       </div>
     </mat-expansion-panel>
