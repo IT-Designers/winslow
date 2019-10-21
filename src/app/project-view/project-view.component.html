@@ -261,11 +261,12 @@
         <label>Project Name</label>
         <mat-form-field>
           <input #nameOriginal hidden [value]="project.name">
-          <input #name matInput name="name" [value]="project.name" (keydown.enter)="setName(name.value)">
+          <input #nameEntered matInput name="name" [value]="project.name"
+                 (input)="updateName.disabled = $event.target.value == nameOriginal.value"
+                 (keydown.enter)="setName(nameEntered.value)">
         </mat-form-field>
-        <button mat-stroked-button color="primary"
-                [disabled]="nameOriginal.value == name.value"
-                (click)="setName(name.value)">
+        <button #updateName mat-stroked-button disabled color="primary"
+                (click)="setName(nameEntered.value)">
           Update
         </button>
       </div>
@@ -274,15 +275,15 @@
 
         <mat-form-field>
           <input #pipelineOriginal hidden [value]="project.pipelineDefinition.name">
-          <mat-select #pipeline [value]="project.pipelineDefinition.name">
+          <mat-select #selectedPipeline [value]="project.pipelineDefinition.name"
+                      (valueChange)="updatePipeline.disabled = $event == pipelineOriginal.value">
             <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.name}}">
               {{pipeline.name}}
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <button mat-stroked-button color="primary"
-                [disabled]="pipelineOriginal.value == pipeline.value"
-                (click)="setPipeline(pipeline.value)">
+        <button #updatePipeline mat-stroked-button disabled color="primary"
+                (click)="setPipeline(selectedPipeline.value)">
           Update
         </button>
       </div>
