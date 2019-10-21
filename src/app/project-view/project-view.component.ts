@@ -6,6 +6,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {parseArgsStringToArgv} from 'string-argv';
+import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
 
 
 @Component({
@@ -16,7 +17,7 @@ import {parseArgsStringToArgv} from 'string-argv';
 export class ProjectViewComponent implements OnInit, OnDestroy {
 
   constructor(private api: ProjectApiService, private notification: NotificationService,
-              private createDialog: MatDialog) {
+              private pipelinesApi: PipelineApiService, private createDialog: MatDialog) {
   }
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
@@ -58,6 +59,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   consoleIsLoading = false;
   enqueuedControlSize: number = null;
   scrollCallback;
+  pipelines: PipelineInfo[];
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -67,6 +69,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.filesAdditionalRoot = `${this.project.name};workspaces/${this.project.id}`;
     this.scrollCallback = () => this.onWindowScroll();
     window.addEventListener('scroll', this.scrollCallback, true);
+    this.pipelinesApi.getPipelineDefinitions().then(result => this.pipelines = result);
   }
 
   ngOnDestroy(): void {
@@ -510,7 +513,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   setPipeline(pipelineId: string) {
-    alert(pipelineId);
+    alert('Not yet implemented... aww! id='+pipelineId);
   }
 }
 
