@@ -9,7 +9,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
   styleUrls: ['./pipelines.component.css']
 })
 export class PipelinesComponent implements OnInit {
-  pipelines: PipelineInfo[] = [];
+  pipelines: PipelineInfo[] = null;
 
   raw: Map<string, string> = new Map();
   error: Map<string, string> = new Map();

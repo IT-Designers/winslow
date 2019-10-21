@@ -1,18 +1,19 @@
 <div>
-  <h1>Projects</h1>
-
-  <div class="project-list-replacement">
-    <i *ngIf="projects == null">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </i>
-    <i *ngIf="projects != null && projects.length == 0">There are no projects yet</i>
-  </div>
 
   <div *ngIf="this.projects != null" class="flex-grow-row control-button-row">
     <div class="flex-grow"></div>
     <button class="create-button" mat-raised-button color="primary"
             (click)="createNewProject()">Create Project
     </button>
+  </div>
+
+  <div>
+    <i *ngIf="projects == null">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </i>
+    <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
+      <i>There are no projects yet</i>
+    </div>
   </div>
 
   <mat-accordion>

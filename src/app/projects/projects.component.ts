@@ -1,6 +1,6 @@
-import {AfterViewInit, Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
-import {MatDialog, MatSnackBar} from '@angular/material';
+import {MatDialog} from '@angular/material';
 import {Project, ProjectApiService} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
@@ -14,7 +14,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
 
-  projects: Project[];
+  projects: Project[] = null;
   interval;
 
   constructor(private api: ProjectApiService, private createDialog: MatDialog, private notification: NotificationService) {
