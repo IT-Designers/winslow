@@ -12,6 +12,7 @@ import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-c
 })
 export class PipelinesComponent implements OnInit {
   pipelines: PipelineInfo[] = null;
+  loadError = null;
 
   raw: Map<string, string> = new Map();
   error: Map<string, string> = new Map();
@@ -31,7 +32,8 @@ export class PipelinesComponent implements OnInit {
       .then(r => {
         this.pipelines = r;
         this.pipelines.forEach(p => this.loadRaw(p.id));
-      });
+      })
+      .catch(error => this.loadError = error);
   }
 
   loadRaw(pipeline: string) {

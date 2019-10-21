@@ -2,6 +2,7 @@ import {Component, EventEmitter, Inject, Input, OnInit, Output} from '@angular/c
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {HttpEventType} from '@angular/common/http';
 import {FileInfo, FilesApiService} from '../api/files-api.service';
+import {LongLoadingDetector} from '../long-loading-detector';
 
 @Component({
   selector: 'app-files',
@@ -13,7 +14,9 @@ export class FilesComponent implements OnInit {
   @Input() navigateToAdditionalRoot = true;
   @Input() navigationTarget?: string;
 
-  files: Map<string, FileInfo[]> = new Map();
+  files: Map<string, FileInfo[]> = null;
+  longLoading = new LongLoadingDetector();
+  loadError = null;
 
   latestPath = '/resources'; // IMPORTANT: starts with a slash, but never ends with one: '/resources/ab/cd/ef'
   @Output('selection') selectedPath = new EventEmitter<string>();
@@ -26,35 +29,38 @@ export class FilesComponent implements OnInit {
     private api: FilesApiService,
     private createDialog: MatDialog
   ) {
-    this.files.set('/', []);
   }
 
   ngOnInit() {
     let additionalPath: string = null;
+    this.longLoading.increase();
+    this.api
+      .listFiles('/resources')
+      .toPromise()
+      .then(res => {
+        this.files = new Map<string, FileInfo[]>();
+        this.files.set('/', (() => {
+          const root = [];
+          const info = new FileInfo();
+          info.directory = true;
+          info.name = 'resources';
+          info.path = '/resources';
+          this.files.set('/resources', res);
+          root.push(info);
 
-    this.api.listFiles('/resources').toPromise().then(res => {
-      this.files.set('/', (() => {
-        const root = [];
-        const info = new FileInfo();
-        info.directory = true;
-        info.name = 'resources';
-        info.path = '/resources';
-        this.files.set('/resources', res);
-        root.push(info);
-
-        if (this.additionalRoot != null) {
-          const additional = new FileInfo();
-          additional.directory = true;
-          additional.name = this.additionalRoot.split(';')[0];
-          additional.path = `/${this.additionalRoot.split(';')[1]}`;
-          additionalPath = additional.path;
-          this.files.set(additional.path, []);
-          root.push(additional);
-        }
-        return root;
-      })());
-      return this.loadDirectory(this.latestPath);
-    }).then(result => {
+          if (this.additionalRoot != null) {
+            const additional = new FileInfo();
+            additional.directory = true;
+            additional.name = this.additionalRoot.split(';')[0];
+            additional.path = `/${this.additionalRoot.split(';')[1]}`;
+            additionalPath = additional.path;
+            this.files.set(additional.path, []);
+            root.push(additional);
+          }
+          return root;
+        })());
+        return this.loadDirectory(this.latestPath);
+      }).then(result => {
       if (additionalPath) {
         return this.navigateDirectlyTo(additionalPath);
       }
@@ -62,7 +68,9 @@ export class FilesComponent implements OnInit {
       if (this.navigationTarget != null) {
         return this.navigateDirectlyTo(this.navigationTarget);
       }
-    });
+    }).catch(error => {
+      this.loadError = error;
+    }).finally(() => this.longLoading.decrease());
   }
 
   updateAdditionalRoot(root: string, view: boolean) {
@@ -117,9 +125,10 @@ export class FilesComponent implements OnInit {
   }
 
   private loadDirectory(path: string) {
+    this.longLoading.increase();
     return this.api.listFiles(path).toPromise().then(res => {
       this.insertListResourceResult(path, res);
-    });
+    }).finally(() => this.longLoading.decrease());
   }
 
   currentDirectoryFilesOnly(): FileInfo[] {
@@ -154,10 +163,11 @@ export class FilesComponent implements OnInit {
       }
     }
 
+    this.longLoading.increase();
     return this.recursivelyLoadDirectoriesOfPath(split, index, combined).then(p => {
       this.selectedPath.emit(this.latestPath = p);
       this.updateSelection();
-    });
+    }).finally(() => this.longLoading.decrease());
   }
 
   private recursivelyLoadDirectoriesOfPath(pathSplit: string[], currentIndex = 0, combined = ''): Promise<string> {
@@ -208,10 +218,12 @@ export class FilesComponent implements OnInit {
     }).afterClosed().subscribe(result => {
       if (result) {
         const path = this.absoluteDirectoryPath(this.latestPath + '/' + result);
+        this.longLoading.increase();
         this
           .api
           .createDirectory(path)
-          .then(p => this.navigateDirectlyTo(this.latestPath));
+          .then(p => this.navigateDirectlyTo(this.latestPath))
+          .finally(() => this.longLoading.decrease());
       }
     });
   }
@@ -278,8 +290,14 @@ export class FilesComponent implements OnInit {
       .afterClosed()
       .subscribe(result => {
         if (result) {
-          this.api.delete(file.path)
-            .toPromise().finally(() => this.loadDirectory(this.latestPath));
+          this.longLoading.increase();
+          this.api
+            .delete(file.path)
+            .toPromise()
+            .finally(() => {
+              this.longLoading.decrease();
+              this.loadDirectory(this.latestPath);
+            });
         }
       });
   }
