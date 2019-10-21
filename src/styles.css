@@ -52,7 +52,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 .control-button-row {
-  padding-bottom: 2em;
+  padding: 2em;
 }
 
 .overview-element {
@@ -61,4 +61,13 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   border-radius: 1em;
   padding: 1em;
   margin: 1em 0;
+  background-color: white;
+}
+
+
+
+.none-defined-yet {
+  background-color: white;
+  text-align: center;
+  padding: 3em;
 }

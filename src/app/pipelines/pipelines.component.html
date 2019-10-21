@@ -1,7 +1,23 @@
 <div>
-  <h1>Pipelines</h1>
 
-  <i *ngIf="pipelines != null && pipelines.length == 0">There are no pipelines defined yet</i>
+
+  <div *ngIf="this.pipelines != null" class="flex-grow-row control-button-row">
+    <div class="flex-grow"></div>
+    <button class="create-button" mat-raised-button color="primary">
+      Create Pipeline
+    </button>
+  </div>
+
+  <div>
+    <i *ngIf="pipelines == null">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </i>
+    <div class="none-defined-yet" *ngIf="pipelines != null && pipelines.length == 0">
+      <i>There are no pipelines defined yet</i>
+    </div>
+  </div>
+
+
   <mat-accordion>
     <mat-expansion-panel *ngFor="let pipeline of pipelines">
       <mat-expansion-panel-header>

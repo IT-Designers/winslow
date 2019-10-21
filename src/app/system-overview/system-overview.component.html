@@ -1,18 +1,13 @@
-<div class="servers">
+<app-servers></app-servers>
 
-  <app-servers></app-servers>
-</div>
-
-<div>
-  <h1>Storage</h1>
-  <div class="overview-element">
-    <div>
-      <ngx-charts-bar-horizontal-normalized
-        [legend]="true"
-        [yAxis]="true"
-        [showYAxisLabel]="true"
-        [results]="this.storages"
-      ></ngx-charts-bar-horizontal-normalized>
-    </div>
+<div class="overview-element">
+  <h3>Storage</h3>
+  <div>
+    <ngx-charts-bar-horizontal-normalized
+      [legend]="true"
+      [yAxis]="true"
+      [showYAxisLabel]="true"
+      [results]="this.storages"
+    ></ngx-charts-bar-horizontal-normalized>
   </div>
 </div>
