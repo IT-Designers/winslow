@@ -65,6 +65,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
     });
   }
+
   stopLoading(project: Project) {
     this.views.forEach(view => {
       if (view.project.id === project.id) {
