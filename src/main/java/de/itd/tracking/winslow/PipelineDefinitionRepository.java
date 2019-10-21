@@ -14,10 +14,15 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PipelineDefinitionRepository extends BaseRepository {
+
+    private static final Pattern INVALID_ID_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-]");
+    private static final Pattern MULTI_DASH           = Pattern.compile("-[-]+");
+
 
     public static final Logger LOG    = Logger.getLogger(PipelineDefinitionRepository.class.getSimpleName());
     public static final String SUFFIX = ".toml";
@@ -99,5 +104,10 @@ public class PipelineDefinitionRepository extends BaseRepository {
                 pipelineLoader(),
                 pipelineWriter()
         );
+    }
+
+    @Nonnull
+    public static String derivePipelineIdFromName(@Nonnull String name) {
+        return MULTI_DASH.matcher(INVALID_ID_CHARACTER.matcher(name.toLowerCase()).replaceAll("-")).replaceAll("-");
     }
 }

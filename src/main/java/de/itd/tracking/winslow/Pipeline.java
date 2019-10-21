@@ -5,7 +5,6 @@ import de.itd.tracking.winslow.config.StageDefinition;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;

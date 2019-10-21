@@ -2,11 +2,14 @@ package de.itd.tracking.winslow.web;
 
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
+import de.itd.tracking.winslow.PipelineDefinitionRepository;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.config.PipelineDefinition;
+import de.itd.tracking.winslow.fs.LockException;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -88,6 +91,29 @@ public class PipelinesController {
         } catch (Throwable t) {
             return Optional.of(t.getMessage());
         }
+    }
+
+    @PutMapping("pipelines/create")
+    public Optional<PipelineInfo> createPipeline(@RequestParam("name") String name) {
+        var id = PipelineDefinitionRepository.derivePipelineIdFromName(name);
+        return this.winslow
+                .getPipelineRepository()
+                .getPipeline(id)
+                .exclusive()
+                .flatMap(container -> {
+                    try {
+                        if (container.get().isEmpty()) {
+                            var def = new PipelineDefinition(name, null, null, Collections.emptyList());
+                            container.update(def);
+                            return Optional.of(new PipelineInfo(id, name, null));
+                        } else {
+                            return Optional.empty();
+                        }
+                    } catch (LockException | IOException e) {
+                        e.printStackTrace();
+                        return Optional.empty();
+                    }
+                });
     }
 
     public static class PipelineInfo {
