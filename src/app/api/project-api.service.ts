@@ -172,6 +172,7 @@ export class StateInfo {
   state: State;
   pauseReason?: string;
   stageProgress?: number;
+  hasEnqueuedStages: boolean;
 }
 
 export class ImageInfo {

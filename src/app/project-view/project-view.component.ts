@@ -81,6 +81,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.pauseReason = info.pauseReason;
     this.progress = info.stageProgress;
 
+    if (this.state !== State.Paused && info.hasEnqueuedStages) {
+      this.state = State.Enqueued;
+    }
+
     if (this.state !== State.Failed && this.pauseReason != null) {
       this.state = State.Warning;
     }
