@@ -19,9 +19,14 @@ public class StagesController {
 
     @GetMapping("/stages/{pipeline}")
     public Stream<StageInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
-        return winslow.getPipelineRepository().getPipeline(pipeline).unsafe().stream().flatMap(p -> p
-                .getStageDefinitions()
-                .stream()).map(StageInfo::new);
+        return winslow
+                .getPipelineRepository()
+                .getPipeline(pipeline)
+                .unsafe()
+                .stream()
+                .flatMap(p -> p
+                        .getStageDefinitions()
+                        .stream()).map(StageInfo::new);
     }
 
     public static class StageInfo {

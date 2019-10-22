@@ -6,21 +6,22 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class Project {
 
     @Nonnull private final String             id;
     @Nonnull private final String             owner;
     @Nonnull private final List<String>       groups = new ArrayList<>();
-    @Nonnull private final PipelineDefinition pipeline;
 
-    private String name;
+    @Nonnull private PipelineDefinition pipeline;
+    @Nonnull private String name;
 
     public Project(@Nonnull String id, String owner, @Nonnull PipelineDefinition pipeline) {
         this(id, owner, pipeline, "");
     }
 
-    public Project(@Nonnull String id, String owner, @Nonnull PipelineDefinition pipeline, String name) {
+    public Project(@Nonnull String id, String owner, @Nonnull PipelineDefinition pipeline, @Nonnull String name) {
         this.id       = id;
         this.owner    = owner;
         this.pipeline = pipeline;
@@ -32,17 +33,24 @@ public class Project {
         return id;
     }
 
+    @Nonnull
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(@Nonnull String name) {
+        Objects.requireNonNull(name);
         this.name = name;
     }
 
     @Nonnull
     public String getOwner() {
         return owner;
+    }
+
+    public void setPipelineDefinition(@Nonnull PipelineDefinition definition) {
+        Objects.requireNonNull(definition);
+        this.pipeline = definition;
     }
 
     @Nonnull

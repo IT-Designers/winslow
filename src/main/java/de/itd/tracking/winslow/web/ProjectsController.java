@@ -99,7 +99,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("index") int index,
             @PathVariable("controlSize") int controlSize
-            ) {
+    ) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -409,6 +409,44 @@ public class ProjectsController {
                 );
     }
 
+    @PostMapping("projects/{projectId}/pipeline/{pipelineId}")
+    public Boolean changePipeline(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("pipelineId") String pipelineId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive()
+                .map(projectContainer -> {
+                    try (projectContainer) {
+                        try {
+                            var updatedProject = projectContainer
+                                    .get()
+                                    .filter(project -> canUserAccessProject(user, project))
+                                    .flatMap(project -> winslow
+                                            .getPipelineRepository()
+                                            .getPipeline(pipelineId)
+                                            .unsafe()
+                                            .map(pipeline -> {
+                                                project.setPipelineDefinition(pipeline);
+                                                return project;
+                                            }));
+
+                            if (updatedProject.isPresent()) {
+                                projectContainer.update(updatedProject.get());
+                                return Boolean.TRUE;
+                            }
+                        } catch (LockException | IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        return false;
+                    }
+
+                }).orElse(Boolean.FALSE);
+    }
+
     @PostMapping("projects/{projectId}/enqueue/{stageIndex}")
     public void enqueueStage(
             User user,
@@ -421,10 +459,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(
-                        user,
-                        project
-                ))
+                .filter(project -> canUserAccessProject(user, project))
                 .ifPresent(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
 
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
