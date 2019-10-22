@@ -9,7 +9,24 @@
 
     <form [formGroup]="formGroupControl">
       <div class="stage-control-item">
-        <p>Stage to execute</p>
+        <label>Pipeline</label>
+
+        <mat-form-field>
+          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.id">
+          <mat-select #selectedPipeline [value]="project.pipelineDefinition.id"
+                      (valueChange)="updatePipeline.disabled = $event == pipelineOriginal.value">
+            <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.id}}">
+              {{pipeline.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button #updatePipeline mat-stroked-button disabled color="primary"
+                (click)="setPipelineAdapter(selectedPipeline.value, updatePipeline, stageSelection)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <p>Stage</p>
         <mat-form-field>
           <mat-select #stageSelection placeholder="Stage selection"
                       (valueChange)="onOverwriteStageSelectionChanged($event)">
@@ -17,7 +34,7 @@
                         value="{{i}}">{{stage.name}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button mat-stroked-button color="primary"
+        <button mat-stroked-button color="primary" #reloadStateSelection
                 [disabled]="stageSelection.value == null"
                 (click)="onOverwriteStageSelectionChanged(stageSelection.value)">
           <mat-icon>loop</mat-icon>
@@ -265,23 +282,6 @@
         </mat-form-field>
         <button #updateName mat-stroked-button disabled color="primary"
                 (click)="setName(nameEntered.value)">
-          Update
-        </button>
-      </div>
-      <div class="stage-control-item">
-        <label>Project Pipeline</label>
-
-        <mat-form-field>
-          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.id">
-          <mat-select #selectedPipeline [value]="project.pipelineDefinition.id"
-                      (valueChange)="updatePipeline.disabled = $event == pipelineOriginal.value">
-            <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.id}}">
-              {{pipeline.name}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button #updatePipeline mat-stroked-button disabled color="primary"
-                (click)="setPipeline(selectedPipeline.value, updatePipeline)">
           Update
         </button>
       </div>
