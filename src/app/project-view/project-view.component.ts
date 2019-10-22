@@ -315,7 +315,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
               }
             }
             this.project.environment = env;
-            this.recreateFormGroup([...this.project.environment.keys()]);
+            this.recreateFormGroup([...this.project.environment.keys()].sort((a, b) => a.localeCompare(b)));
 
             return this.api
               .getImage(this.project.id, index)
