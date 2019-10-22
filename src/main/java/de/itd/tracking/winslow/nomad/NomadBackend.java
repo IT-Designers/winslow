@@ -2,9 +2,11 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.JobListStub;
+import com.hashicorp.nomad.apimodel.NodeListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.*;
 import de.itd.tracking.winslow.*;
+import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
@@ -141,6 +143,45 @@ public class NomadBackend implements Backend {
             @Nonnull String stage,
             @Nonnull StageDefinition stageDefinition) {
         return new NomadPreparedStageBuilder(pipeline, stage, getNewJobsApi(), stageDefinition);
+    }
+
+    @Override
+    public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
+        try {
+            return getNewClient()
+                    .getNodesApi()
+                    .list()
+                    .getValue()
+                    .stream()
+                    .map(NodeListStub::getDrivers)
+                    .flatMap(drivers -> drivers.entrySet().stream())
+                    .filter(entry -> {
+                        if (stage.getImage().isPresent()) {
+                            return "docker".equalsIgnoreCase(entry.getKey());
+                        } else {
+                            return true;
+                        }
+                    })
+                    .filter(entry -> {
+                        var gpuRequired = stage.getRequirements().map(req -> req.getGpu().isPresent()).orElse(false);
+
+                        var gpuVendor = stage
+                                .getRequirements()
+                                .flatMap(Requirements::getGpu)
+                                .flatMap(Requirements.Gpu::getVendor);
+
+                        var gpuAvailable = Optional
+                                .ofNullable(entry.getValue().getAttributes().get("driver.docker.runtimes"))
+                                .filter(runtimes -> runtimes.contains(gpuVendor.orElse("nvidia")))
+                                .isPresent();
+
+                        return !gpuRequired || gpuAvailable;
+                    })
+                    .anyMatch(entry -> entry.getValue().getHealthy() && entry.getValue().getDetected());
+        } catch (IOException | NomadException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public Optional<AllocationListStub> getAllocationListStubForOmitException(

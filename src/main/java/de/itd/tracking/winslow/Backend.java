@@ -28,4 +28,6 @@ public interface Backend {
             @Nonnull String pipeline,
             @Nonnull String stage,
             @Nonnull StageDefinition definition);
+
+    boolean isCapableOfExecuting(@Nonnull StageDefinition stage);
 }

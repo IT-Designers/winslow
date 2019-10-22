@@ -150,10 +150,16 @@ public class Orchestrator {
             try {
                 var locked    = handle.isLocked();
                 var hasUpdate = handle.unsafe().map(this::hasUpdateAvailable).orElse(false);
+                var capable = handle
+                        .unsafe()
+                        .map(Pipeline::getEnqueuedStages)
+                        .flatMap(Stream::findFirst)
+                        .map(backend::isCapableOfExecuting)
+                        .orElse(false);
                 LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", projectId=" + handle
                         .unsafe()
-                        .map(Pipeline::getProjectId));
-                return !locked && hasUpdate;
+                        .map(Pipeline::getProjectId) + ", capable=" + capable);
+                return !locked && hasUpdate && capable;
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
                 return false;
