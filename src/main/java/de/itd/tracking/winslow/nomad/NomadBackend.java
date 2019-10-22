@@ -22,8 +22,11 @@ import java.util.stream.Stream;
 
 public class NomadBackend implements Backend {
 
-    private static final long   CACHE_TIME_MS = 750;
-    private static final Logger LOG           = Logger.getLogger(NomadBackend.class.getSimpleName());
+    private static final long   CACHE_TIME_MS                    = 750;
+    private static final Logger LOG                              = Logger.getLogger(NomadBackend.class.getSimpleName());
+    public static final  String DRIVER_ATTRIBUTE_DOCKER_RUNTIMES = "driver.docker.runtimes";
+    public static final  String DEFAULT_GPU_VENDOR               = "nvidia";
+    public static final  String IMAGE_DRIVER_NAME                = "docker";
 
     @Nonnull private final NomadApiClient client;
 
@@ -157,7 +160,7 @@ public class NomadBackend implements Backend {
                     .flatMap(drivers -> drivers.entrySet().stream())
                     .filter(entry -> {
                         if (stage.getImage().isPresent()) {
-                            return "docker".equalsIgnoreCase(entry.getKey());
+                            return IMAGE_DRIVER_NAME.equalsIgnoreCase(entry.getKey());
                         } else {
                             return true;
                         }
@@ -171,8 +174,8 @@ public class NomadBackend implements Backend {
                                 .flatMap(Requirements.Gpu::getVendor);
 
                         var gpuAvailable = Optional
-                                .ofNullable(entry.getValue().getAttributes().get("driver.docker.runtimes"))
-                                .filter(runtimes -> runtimes.contains(gpuVendor.orElse("nvidia")))
+                                .ofNullable(entry.getValue().getAttributes().get(DRIVER_ATTRIBUTE_DOCKER_RUNTIMES))
+                                .filter(runtimes -> runtimes.contains(gpuVendor.orElse(DEFAULT_GPU_VENDOR)))
                                 .isPresent();
 
                         return !gpuRequired || gpuAvailable;
