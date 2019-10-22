@@ -272,16 +272,16 @@
         <label>Project Pipeline</label>
 
         <mat-form-field>
-          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.name">
-          <mat-select #selectedPipeline [value]="project.pipelineDefinition.name"
+          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.id">
+          <mat-select #selectedPipeline [value]="project.pipelineDefinition.id"
                       (valueChange)="updatePipeline.disabled = $event == pipelineOriginal.value">
-            <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.name}}">
+            <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.id}}">
               {{pipeline.name}}
             </mat-option>
           </mat-select>
         </mat-form-field>
         <button #updatePipeline mat-stroked-button disabled color="primary"
-                (click)="setPipeline(selectedPipeline.value)">
+                (click)="setPipeline(selectedPipeline.value, updatePipeline)">
           Update
         </button>
       </div>
