@@ -14,6 +14,7 @@ import de.itd.tracking.winslow.project.Project;
 import de.itd.tracking.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -430,10 +431,18 @@ public class Orchestrator {
 
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             Pipeline pipeline = new Pipeline(project.getId());
+            tryCreateInitDirectory(pipeline);
             tryUpdateContainer(container, pipeline);
             tryStartNextPipelineStage(project.getPipelineDefinition(), container, pipeline);
             return pipeline;
         }
+    }
+
+    private void tryCreateInitDirectory(@Nonnull Pipeline pipeline) throws OrchestratorException {
+        environment
+                .getResourceManager()
+                .createWorkspace(createWorkspaceInitPath(pipeline.getProjectId()), true)
+                .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
     }
 
     private Pipeline tryUpdateContainer(
@@ -651,9 +660,22 @@ public class Orchestrator {
     }
 
     private static Path createWorkspacePathFor(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
+        return createWorkspacePathFor(pipeline.getProjectId(), pipeline.getStageCount() + 1, stage.getName());
+    }
+
+    private static Path createWorkspaceInitPath(@Nonnull String projectId) {
+        return createWorkspacePathFor(projectId, 0, null);
+    }
+
+    private static Path createWorkspacePathFor(@Nonnull String projectId, int stageNumber, @Nullable String suffix) {
         return Path.of(
-                pipeline.getProjectId(),
-                replaceInvalidCharactersInJobName(String.format("%04d_%s", pipeline.getStageCount() + 1, stage.getName()))
+                projectId,
+                replaceInvalidCharactersInJobName(String.format(
+                        "%04d%s%s",
+                        stageNumber,
+                        suffix != null ? "_" : "",
+                        suffix != null ? suffix : ""
+                ))
         );
     }
 
@@ -662,15 +684,17 @@ public class Orchestrator {
     }
 
     private void copyContentOfMostRecentStageTo(
-            Pipeline pipeline,
-            Path workspace) throws IncompleteStageException {
-        var workDirBefore = pipeline
-                .getAllStages()
-                .filter(stage -> stage.getState() == Stage.State.Succeeded)
-                .reduce((first, second) -> second) // get the last successful stage
-                .flatMap(stageBefore -> environment
-                        .getResourceManager()
-                        .getWorkspace(getWorkspacePathForStage(pipeline, stageBefore)));
+            @Nonnull Pipeline pipeline,
+            @Nonnull Path workspace) throws IncompleteStageException {
+
+        var workDirBefore = environment
+                .getResourceManager()
+                .getWorkspace(pipeline
+                                      .getAllStages()
+                                      .filter(stage -> stage.getState() == Stage.State.Succeeded)
+                                      .reduce((first, second) -> second) // get the last successful stage
+                                      .map(stage -> getWorkspacePathForStage(pipeline, stage))
+                                      .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())));
 
         if (workDirBefore.isPresent()) {
             var dirBefore = workDirBefore.get();
