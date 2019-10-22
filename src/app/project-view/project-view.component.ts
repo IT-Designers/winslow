@@ -518,16 +518,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .setPipelineDefinition(this.project.id, pipelineId)
       .toPromise()
       .then(result => {
-        console.log(result);
         if (result) {
           return this.pipelinesApi
             .getPipelineDefinition(pipelineId)
             .then(pipeline => {
-              console.log(pipeline);
               return this.pipelinesApi
                 .getStageDefinitions(pipeline)
                 .then(stages => {
-                  console.log('Stages: ' + stages);
                   this.project.pipelineDefinition = pipeline;
                   this.project.pipelineDefinition.id = pipelineId;
                   this.project.pipelineDefinition.stageDefinitions = stages;
