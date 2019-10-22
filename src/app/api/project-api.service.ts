@@ -115,6 +115,10 @@ export class ProjectApiService {
   killStage(projectId: string) {
     return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/kill`), new FormData());
   }
+
+  setPipelineDefinition(projectId: string, pipelineId: string) {
+    return this.client.post<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), new FormData());
+  }
 }
 
 export enum State {

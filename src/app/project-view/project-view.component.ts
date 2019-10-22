@@ -1,7 +1,7 @@
 import {Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MAT_DIALOG_DATA, MatButtonToggle, MatDialog, MatDialogRef, MatSelect, MatSelectChange, MatTabGroup} from '@angular/material';
+import {CanDisable, MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSelect, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
@@ -165,15 +165,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       .then(history => {
         history = history.reverse();
         return this.api.getProjectEnqueued(this.project.id)
-            .then(enqueued => {
-              const length = enqueued.length;
-              const latest = enqueued.reverse();
-              history.forEach(h => latest.push(h));
-              if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
-                this.history = latest;
-                this.enqueuedControlSize = length;
-              }
-            });
+          .then(enqueued => {
+            const length = enqueued.length;
+            const latest = enqueued.reverse();
+            history.forEach(h => latest.push(h));
+            if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
+              this.history = latest;
+              this.enqueuedControlSize = length;
+            }
+          });
       })
       .finally(() => this.longLoading.decrease());
   }
@@ -377,11 +377,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   setName(name: string) {
     this.longLoading.increase();
     this.api.setName(this.project.id, name)
-        .toPromise()
-        .then(result => {
-          this.project.name = name;
-        })
-        .finally(() => this.longLoading.decrease());
+      .toPromise()
+      .then(result => {
+        this.project.name = name;
+      })
+      .finally(() => this.longLoading.decrease());
   }
 
   delete() {
@@ -424,20 +424,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   killCurrentStage() {
     this.createDialog
-        .open(StopStageAreYouSureDialog, {})
-        .afterClosed()
-        .toPromise()
-        .then(result => {
-          if (!!result) {
-            this.longLoading.increase();
-            return this.api
-                .killStage(this.project.id)
-                .toPromise()
-                .then(r => this.notification.info('Request accepted'))
-                .catch(e => this.notification.error('Request failed: ' + JSON.stringify(e)))
-                .finally(() => this.longLoading.decrease());
-          }
-        });
+      .open(StopStageAreYouSureDialog, {})
+      .afterClosed()
+      .toPromise()
+      .then(result => {
+        if (!!result) {
+          this.longLoading.increase();
+          return this.api
+            .killStage(this.project.id)
+            .toPromise()
+            .then(r => this.notification.info('Request accepted'))
+            .catch(e => this.notification.error('Request failed: ' + JSON.stringify(e)))
+            .finally(() => this.longLoading.decrease());
+        }
+      });
   }
 
   reRun(entry: HistoryEntry) {
@@ -489,31 +489,65 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   cancelEnqueuedStage(index: number) {
     this.createDialog
-        .open(StopStageAreYouSureDialog, {})
-        .afterClosed()
-        .toPromise()
-        .then(result => {
-          if (result) {
-            this.longLoading.increase();
-            return this.api
-                .deleteEnqueued(this.project.id, index, this.enqueuedControlSize)
-                .toPromise()
-                .then(r => {
-                  if (r) {
-                    this.notification.info('Request has been accepted');
-                  } else {
-                    this.notification.error('Request failed because history has changed!');
-                  }
-                  return this.loadHistory();
-                })
-                .catch(e => this.notification.error('Failed: ' + JSON.stringify(e)))
-                .finally(() => this.longLoading.decrease());
-          }
-        });
+      .open(StopStageAreYouSureDialog, {})
+      .afterClosed()
+      .toPromise()
+      .then(result => {
+        if (result) {
+          this.longLoading.increase();
+          return this.api
+            .deleteEnqueued(this.project.id, index, this.enqueuedControlSize)
+            .toPromise()
+            .then(r => {
+              if (r) {
+                this.notification.info('Request has been accepted');
+              } else {
+                this.notification.error('Request failed because history has changed!');
+              }
+              return this.loadHistory();
+            })
+            .catch(e => this.notification.error('Failed: ' + JSON.stringify(e)))
+            .finally(() => this.longLoading.decrease());
+        }
+      });
   }
 
-  setPipeline(pipelineId: string) {
-    alert('Not yet implemented... aww! id='+pipelineId);
+  setPipeline(pipelineId: string, onSuccessDisable?: HTMLInputElement | HTMLButtonElement | CanDisable) {
+    this.longLoading.increase();
+    this.api
+      .setPipelineDefinition(this.project.id, pipelineId)
+      .toPromise()
+      .then(result => {
+        console.log(result);
+        if (result) {
+          return this.pipelinesApi
+            .getPipelineDefinition(pipelineId)
+            .then(pipeline => {
+              console.log(pipeline);
+              return this.pipelinesApi
+                .getStageDefinitions(pipeline)
+                .then(stages => {
+                  console.log('Stages: ' + stages);
+                  this.project.pipelineDefinition = pipeline;
+                  this.project.pipelineDefinition.id = pipelineId;
+                  this.project.pipelineDefinition.stageDefinitions = stages;
+                  this.notification.info('Project updated');
+                  if (onSuccessDisable) {
+                    onSuccessDisable.disabled = true;
+                  }
+                });
+            });
+        } else {
+          return Promise.reject(result);
+        }
+      })
+      .catch(err => {
+        this.notification.error('Update declined: ' + JSON.stringify(err));
+        if (onSuccessDisable) {
+          onSuccessDisable.disabled = true;
+        }
+      })
+      .finally(() => this.longLoading.decrease());
   }
 }
 
@@ -531,8 +565,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 })
 export class DeleteProjectAreYouSureDialog {
   constructor(
-      public dialogRef: MatDialogRef<DeleteProjectAreYouSureDialog>,
-      @Inject(MAT_DIALOG_DATA) public project: Project) {
+    public dialogRef: MatDialogRef<DeleteProjectAreYouSureDialog>,
+    @Inject(MAT_DIALOG_DATA) public project: Project) {
   }
 }
 
@@ -550,7 +584,7 @@ export class DeleteProjectAreYouSureDialog {
 })
 export class StopStageAreYouSureDialog {
   constructor(
-      public dialogRef: MatDialogRef<StopStageAreYouSureDialog>,
-      @Inject(MAT_DIALOG_DATA) public data: any) {
+    public dialogRef: MatDialogRef<StopStageAreYouSureDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: any) {
   }
 }
