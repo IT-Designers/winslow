@@ -291,6 +291,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  resetStageSelection() {
+    this.recreateFormGroup([]);
+    this.project.userInput = null;
+    this.project.environment = null;
+  }
+
   onOverwriteStageSelectionChanged(index: number) {
     this.longLoading.increase();
     return this.api
@@ -519,9 +525,24 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       });
   }
 
-  setPipeline(pipelineId: string, onSuccessDisable?: HTMLInputElement | HTMLButtonElement | CanDisable) {
+  setPipelineAdapter(pipelineId: string, onSuccessDisable: HTMLInputElement | HTMLButtonElement | CanDisable, selection: HTMLSelectElement) {
+    this.setPipeline(pipelineId).then(result => {
+      if (onSuccessDisable) {
+        onSuccessDisable.disabled = !!result;
+      }
+      if (!!result && selection != null) {
+        if (selection.value != null) {
+          setTimeout(() => this.onOverwriteStageSelectionChanged(Number(selection.value)));
+        } else {
+          this.resetStageSelection();
+        }
+      }
+    });
+  }
+
+  setPipeline(pipelineId: string): Promise<boolean> {
     this.longLoading.increase();
-    this.api
+    return this.api
       .setPipelineDefinition(this.project.id, pipelineId)
       .toPromise()
       .then(result => {
@@ -536,9 +557,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
                   this.project.pipelineDefinition.id = pipelineId;
                   this.project.pipelineDefinition.stageDefinitions = stages;
                   this.notification.info('Project updated');
-                  if (onSuccessDisable) {
-                    onSuccessDisable.disabled = true;
-                  }
+                  return true;
                 });
             });
         } else {
@@ -547,9 +566,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       })
       .catch(err => {
         this.notification.error('Update declined: ' + JSON.stringify(err));
-        if (onSuccessDisable) {
-          onSuccessDisable.disabled = true;
-        }
+        return Promise.reject(err); // !??!??
       })
       .finally(() => this.longLoading.decrease());
   }
