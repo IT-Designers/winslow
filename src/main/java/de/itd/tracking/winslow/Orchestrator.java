@@ -151,12 +151,13 @@ public class Orchestrator {
                 var locked    = handle.isLocked();
                 var pipe      = handle.unsafe();
                 var hasUpdate = pipe.map(this::hasUpdateAvailable).orElse(false);
+                var hasFailed = pipe.map(this::hasLogRedirectionFailed).orElse(false);
                 var capable   = pipe.flatMap(Pipeline::peekNextStage).map(backend::isCapableOfExecuting).orElse(false);
                 var projectId = handle.unsafe().map(Pipeline::getProjectId);
 
-                LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", projectId=" + projectId);
+                LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", failed=" + hasFailed + " projectId=" + projectId);
 
-                return !locked && hasUpdate && capable;
+                return !locked && hasUpdate && (capable || hasFailed);
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
                 return false;
@@ -280,9 +281,13 @@ public class Orchestrator {
     private Optional<Stage> startNextStageIfReady(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
-        if (pipeline.getRunningStage().isEmpty() && !pipeline.isPauseRequested() && pipeline
-                .peekNextStage()
-                .isPresent()) {
+
+        var noneRunning = pipeline.getRunningStage().isPresent();
+        var paused      = pipeline.isPauseRequested();
+        var hasNext     = pipeline.peekNextStage().isPresent();
+        var isCapable   = pipeline.peekNextStage().map(backend::isCapableOfExecuting).orElse(false);
+
+        if (noneRunning && !paused && hasNext && isCapable) {
             switch (pipeline.getStrategy()) {
                 case MoveForwardOnce:
                     pipeline.requestPause();
@@ -349,10 +354,14 @@ public class Orchestrator {
         return backend.getState(pipeline.getProjectId(), stage.getId());
     }
 
-    private boolean hasUpdateAvailable(Pipeline pipeline) {
+    private boolean hasUpdateAvailable(@Nonnull Pipeline pipeline) {
         // LOG.info(pipeline.getProjectId() + ".isStageStateUpdateAvailable=" + isStageStateUpdateAvailable(pipeline));
         // LOG.info(pipeline.getProjectId() + ".getLogRedirectionState=" + getLogRedirectionState(pipeline));
-        return (isStageStateUpdateAvailable(pipeline) || getLogRedirectionState(pipeline) == SimpleState.Failed);
+        return isStageStateUpdateAvailable(pipeline) || hasLogRedirectionFailed(pipeline);
+    }
+
+    private boolean hasLogRedirectionFailed(@Nonnull Pipeline pipeline) {
+        return getLogRedirectionState(pipeline) == SimpleState.Failed;
     }
 
     private SimpleState getLogRedirectionState(Pipeline pipeline) {
