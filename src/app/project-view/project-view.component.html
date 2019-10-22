@@ -135,7 +135,7 @@
               <div class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
               <div class="history-list-column">{{entry.stageName}}</div>
               <div class="history-list-column history-control-icons">
-                <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Stop" class="clickable" (click)="$event.stopPropagation(); cancelEnqueuedStage(i)">pan_tool</mat-icon>
+                <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Stop" class="clickable" (click)="$event.stopPropagation(); cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)">pan_tool</mat-icon>
                 <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable" (click)="$event.stopPropagation(); killCurrentStage()">pan_tool</mat-icon>
                 <mat-icon matTooltip="Re-Run" class="clickable" (click)="$event.stopPropagation(); reRun(entry)">replay</mat-icon>
                 <mat-icon *ngIf="entry.stageId" matTooltip="Open Logs" class="clickable" (click)="$event.stopPropagation(); openLogs(entry)">list_alt</mat-icon>

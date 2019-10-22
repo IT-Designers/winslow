@@ -57,7 +57,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   stickConsole = true;
   consoleIsLoading = false;
-  enqueuedControlSize: number = null;
   scrollCallback;
   pipelines: PipelineInfo[];
 
@@ -170,12 +169,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         history = history.reverse();
         return this.api.getProjectEnqueued(this.project.id)
           .then(enqueued => {
-            const length = enqueued.length;
+            // remember state before adding to other history entires
+            for (let i = 0; i < enqueued.length; ++i) {
+              enqueued[i].enqueueIndex = i;
+              enqueued[i].enqueueControlSize = enqueued.length;
+            }
+
             const latest = enqueued.reverse();
             history.forEach(h => latest.push(h));
             if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
               this.history = latest;
-              this.enqueuedControlSize = length;
             }
           });
       })
@@ -335,7 +338,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.createDialog.open(FileBrowseDialog, {
       width: '75%',
       data: {
-        //additionalRoot: `${this.project.name};workspaces/${this.project.id}`,
+        // additionalRoot: `${this.project.name};workspaces/${this.project.id}`,
         preselectedPath: this.project.environment.get(key) || '/resources/',
       },
     }).afterClosed().toPromise().then(result => {
@@ -491,7 +494,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     });
   }
 
-  cancelEnqueuedStage(index: number) {
+  cancelEnqueuedStage(index: number, controlSize: number) {
     this.createDialog
       .open(StopStageAreYouSureDialog, {})
       .afterClosed()
@@ -500,7 +503,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         if (result) {
           this.longLoading.increase();
           return this.api
-            .deleteEnqueued(this.project.id, index, this.enqueuedControlSize)
+            .deleteEnqueued(this.project.id, index, controlSize)
             .toPromise()
             .then(r => {
               if (r) {
