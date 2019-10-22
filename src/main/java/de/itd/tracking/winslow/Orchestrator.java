@@ -653,7 +653,7 @@ public class Orchestrator {
     private static Path createWorkspacePathFor(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
         return Path.of(
                 pipeline.getProjectId(),
-                replaceInvalidCharactersInJobName(String.format("%04d_%s", pipeline.getStageCount(), stage.getName()))
+                replaceInvalidCharactersInJobName(String.format("%04d_%s", pipeline.getStageCount() + 1, stage.getName()))
         );
     }
 
