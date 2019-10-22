@@ -1,27 +1,29 @@
 package de.itd.tracking.winslow.config;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 public class StageDefinition {
-    private final String              name;
-    private final String              desc;
-    private final Image               image;
-    private final Requirements        requires;
-    private final UserInput           userInput;
-    private final Map<String, String> env;
-    private final Highlight           highlight;
+    private final @Nonnull  String              name;
+    private final @Nullable String              desc;
+    private final @Nullable Image               image;
+    private final @Nullable Requirements        requires;
+    private final @Nullable UserInput           userInput;
+    private final @Nullable Map<String, String> env;
+    private final @Nullable Highlight           highlight;
 
     public StageDefinition(
-            String name,
-            String desc,
-            Image image,
-            Requirements requires,
-            UserInput userInput,
-            Map<String, String> env,
-            Highlight highlight) {
+            @Nonnull String name,
+            @Nullable String desc,
+            @Nullable Image image,
+            @Nullable Requirements requires,
+            @Nullable UserInput userInput,
+            @Nullable Map<String, String> env,
+            @Nullable Highlight highlight) {
         this.name      = name;
         this.desc      = desc;
         this.image     = image;
@@ -36,6 +38,7 @@ public class StageDefinition {
         Objects.requireNonNull(name, "The name of a stage must be set");
     }
 
+    @Nonnull
     public String getName() {
         return name;
     }

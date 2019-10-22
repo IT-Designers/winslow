@@ -1,14 +1,15 @@
 package de.itd.tracking.winslow.config;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
 public class Requirements {
-    private final long ram;
-    private final Gpu  gpu;
+    private final       long ram;
+    private final @Nullable Gpu  gpu;
 
-    public Requirements(long ram, Gpu gpu) {
+    public Requirements(long ram, @Nullable Gpu gpu) {
         this.ram = ram;
         this.gpu = gpu;
     }

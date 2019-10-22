@@ -4,12 +4,14 @@ import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
 import de.itd.tracking.winslow.PipelineDefinitionRepository;
 import de.itd.tracking.winslow.Winslow;
-import de.itd.tracking.winslow.config.PipelineDefinition;
+import de.itd.tracking.winslow.config.*;
 import de.itd.tracking.winslow.fs.LockException;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -103,7 +105,42 @@ public class PipelinesController {
                 .flatMap(container -> {
                     try {
                         if (container.get().isEmpty()) {
-                            var def = new PipelineDefinition(name, null, null, Collections.emptyList());
+                            var def = new PipelineDefinition(
+                                    name,
+                                    "Automatically generated description for '" + name + "'",
+                                    new UserInput(
+                                            UserInput.Confirmation.Once,
+                                            List.of("SOME", "ENV_VARS", "THAT_MUST_BE_SET")
+                                    ),
+                                    List.of(new StageDefinition(
+                                            "Auto Modest Stage",
+                                            "Automatically generated stage description",
+                                            new Image("library/hello-world", new String[0]),
+                                            null,
+                                            new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
+                                            Map.of("SOME", "VALUE"),
+                                            null
+                                    ), new StageDefinition(
+                                            "Auto Nvidia Stage",
+                                            "Automatically generated stage description",
+                                            new Image("nvidia/cuda", new String[]{"nvidia-smi"}),
+                                            new Requirements(
+                                                    0,
+                                                    new Requirements.Gpu(1, "nvidia", new String[]{"cuda"})
+                                            ),
+                                            new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
+                                            Map.of("ANOTHER", "VALUE"),
+                                            null
+                                    ), new StageDefinition(
+                                            "Auto Stage 3",
+                                            "Downloading more RAM for speedup",
+                                            new Image("library/hello-world", new String[]{}),
+                                            new Requirements(10240, null),
+                                            new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
+                                            Map.of("GIMME", "MOAR RAM"),
+                                            null
+                                    ))
+                            );
                             container.update(def);
                             return Optional.of(new PipelineInfo(id, name, null));
                         } else {
