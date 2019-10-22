@@ -153,6 +153,9 @@ export class HistoryEntry {
   imageInfo?: ImageInfo;
   env: Map<string, string>;
   envInternal: Map<string, string>;
+  // local only
+  enqueueIndex?: number;
+  enqueueControlSize?: number;
 }
 
 export enum LogSource {
