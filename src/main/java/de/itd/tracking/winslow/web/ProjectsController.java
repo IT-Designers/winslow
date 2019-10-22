@@ -214,7 +214,8 @@ public class ProjectsController {
                                         .getPauseReason()
                                         .map(Pipeline.PauseReason::toString)
                                         .orElse(null),
-                                winslow.getOrchestrator().getProgressHint(p.get()).orElse(null)
+                                winslow.getOrchestrator().getProgressHint(p.get()).orElse(null),
+                                pipeline.hasEnqueuedStages()
                         ))
                         .orElse(null));
     }
@@ -567,11 +568,18 @@ public class ProjectsController {
         @Nullable public final Stage.State state;
         @Nullable public final String      pauseReason;
         @Nullable public final Integer     stageProgress;
+        public final           boolean     hasEnqueuedStages;
 
-        StateInfo(@Nullable Stage.State state, @Nullable String pauseReason, @Nullable Integer stageProgress) {
-            this.state         = state;
-            this.pauseReason   = pauseReason;
-            this.stageProgress = stageProgress;
+
+        StateInfo(
+                @Nullable Stage.State state,
+                @Nullable String pauseReason,
+                @Nullable Integer stageProgress,
+                boolean hasEnqueuedStages) {
+            this.state             = state;
+            this.pauseReason       = pauseReason;
+            this.stageProgress     = stageProgress;
+            this.hasEnqueuedStages = hasEnqueuedStages;
         }
     }
 
