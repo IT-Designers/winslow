@@ -95,3 +95,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .dialog-actions > *:not(:first-child) {
   margin-left: 2em;
 }
+
+
+/* --- Mat-Design Fixes --- */
+.mat-expansion-panel-header-description {
+  flex-grow: 0 !important;
+}
+/* --- Mat-Design Fixes --- */
