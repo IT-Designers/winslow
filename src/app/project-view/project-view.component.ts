@@ -334,7 +334,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   private recreateFormGroup(required: string[]) {
     const fg = {};
     for (const req of required) {
-      fg[req] = new FormControl(this.project && this.project.environment && this.project.environment.get(req));
+      fg[req] = new FormControl(
+        this.project && this.project.environment
+          ? this.project.environment.get(req)
+          : null,
+        Validators.required
+      );
     }
     this.formGroupControl = new FormGroup(fg, Validators.required);
     this.formGroupControl.markAllAsTouched();
@@ -525,19 +530,29 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       });
   }
 
-  setPipelineAdapter(pipelineId: string, onSuccessDisable: HTMLInputElement | HTMLButtonElement | CanDisable, selection: HTMLSelectElement) {
-    this.setPipeline(pipelineId).then(result => {
-      if (onSuccessDisable) {
-        onSuccessDisable.disabled = !!result;
+  setPipelineAdapter(pipelineName: string, onSuccessDisable: HTMLInputElement | HTMLButtonElement | CanDisable, selection: HTMLSelectElement | MatSelect) {
+    let pipelineId = null;
+    for (const def of this.pipelines) {
+      if (def.name === pipelineName) {
+        pipelineId = def.id;
+        break;
       }
-      if (!!result && selection != null) {
-        if (selection.value != null) {
-          setTimeout(() => this.onOverwriteStageSelectionChanged(Number(selection.value)));
-        } else {
-          this.resetStageSelection();
+    }
+    if (pipelineId) {
+      this.setPipeline(pipelineId).then(result => {
+        if (onSuccessDisable) {
+          onSuccessDisable.disabled = result;
         }
-      }
-    });
+        if (result && selection != null) {
+          if (selection.value != null) {
+            const index = Math.min(Number(selection.value), this.project.pipelineDefinition.stageDefinitions.length - 1);
+            return this.onOverwriteStageSelectionChanged(0);
+          } else {
+            this.resetStageSelection();
+          }
+        }
+      });
+    }
   }
 
   setPipeline(pipelineId: string): Promise<boolean> {

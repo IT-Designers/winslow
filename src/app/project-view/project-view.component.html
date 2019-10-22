@@ -12,10 +12,10 @@
         <label>Pipeline</label>
 
         <mat-form-field>
-          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.id">
-          <mat-select #selectedPipeline [value]="project.pipelineDefinition.id"
+          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.name">
+          <mat-select #selectedPipeline [value]="project.pipelineDefinition.name"
                       (valueChange)="updatePipeline.disabled = $event == pipelineOriginal.value">
-            <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.id}}">
+            <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.name}}">
               {{pipeline.name}}
             </mat-option>
           </mat-select>
@@ -34,7 +34,7 @@
                         value="{{i}}">{{stage.name}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button mat-stroked-button color="primary" #reloadStateSelection
+        <button mat-stroked-button color="primary"
                 [disabled]="stageSelection.value == null"
                 (click)="onOverwriteStageSelectionChanged(stageSelection.value)">
           <mat-icon>loop</mat-icon>
