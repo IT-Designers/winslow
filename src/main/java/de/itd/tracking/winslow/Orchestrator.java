@@ -536,14 +536,14 @@ public class Orchestrator {
 
             builder = builder
                     .addNfsVolume(
-                            "winslow-" + builder.getId() + "-resources",
+                            "winslow-" + stageId + "-resources",
                             targetDirResources,
                             true,
                             config.getOptions(),
                             exportedResources.get().toAbsolutePath().toString()
                     )
                     .addNfsVolume(
-                            "winslow-" + builder.getId() + "-workspace",
+                            "winslow-" + stageId + "-workspace",
                             targetDirWorkspace,
                             false,
                             config.getOptions(),
@@ -574,7 +574,7 @@ public class Orchestrator {
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_NAME", definition.getName())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", builder.getId())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", stageId)
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.getName())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER", Integer.toString(pipeline.getStageCount()))
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_DATE_TIME", new Date(timeS).toString())
