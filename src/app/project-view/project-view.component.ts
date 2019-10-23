@@ -16,7 +16,7 @@ import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
 })
 export class ProjectViewComponent implements OnInit, OnDestroy {
 
-  constructor(private api: ProjectApiService, private notification: NotificationService,
+  constructor(api: ProjectApiService, private notification: NotificationService,
               private pipelinesApi: PipelineApiService, private createDialog: MatDialog) {
   }
 
