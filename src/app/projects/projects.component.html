@@ -21,23 +21,15 @@
       (afterExpand)="startLoading(project)">
 
       <mat-expansion-panel-header>
-        <mat-panel-title style="max-width: 45%; padding-right: 1em; overflow: hidden; white-space: nowrap">
-          <app-state-icon #icon animation="true"></app-state-icon>
-          {{project.name}}
-        </mat-panel-title>
-        <mat-panel-description style="overflow: hidden; white-space: nowrap; max-height: 2.2em">
-          <app-tags-with-autocomplete [readonly]="true" [tags]="project.tags"></app-tags-with-autocomplete>
-        </mat-panel-description>
-        <mat-panel-description style="margin-left: auto">
-          {{view.pauseReason}}
-          <mat-progress-bar *ngIf="view.progress != null && view.isRunning()"
-                            [value]="view.progress"
-                            style="width: 10em; margin: auto 1em">
-          </mat-progress-bar>
-        </mat-panel-description>
+        <app-project-view-header #header
+          [project]="project"
+          [pauseReason]="view.pauseReason"
+          [progress]="view.progress"
+          [running]="view.isRunning()">
+        </app-project-view-header>
       </mat-expansion-panel-header>
 
-      <app-project-view #view (state)="icon.state = $event" [project]="project"></app-project-view>
+      <app-project-view #view (state)="header.icon.state = $event" [project]="project"></app-project-view>
 
     </mat-expansion-panel>
   </mat-accordion>
