@@ -1,48 +1,70 @@
-<app-loading-info [error]="loadError != null ? loadError.message : null" [loading]="longLoading.isLongLoading()"></app-loading-info>
+<app-loading-info [error]="loadError != null ? loadError.message : null"
+                  [loading]="longLoading.isLongLoading()"></app-loading-info>
 
-<div *ngIf="projects != null" class="control-row">
-  <mat-card>
-    <mat-card-title>Filter</mat-card-title>
-
-    <mat-card-content style="display: flex; flex-direction: row">
-      <div style="flex-grow: 1; margin: 0 1em">
-        <mat-card-subtitle>Projects that include the following tags</mat-card-subtitle>
-        <app-tags-with-autocomplete #include
-          [proposals]="this.api.cachedTags"
-          (tags)="updateFilter(include.selectedTags, exclude.selectedTags)"
-        ></app-tags-with-autocomplete>
-      </div>
-      <div style="flex-grow: 1; margin: 0 1em">
-        <mat-card-subtitle>Projects that exclude the following tags</mat-card-subtitle>
-        <app-tags-with-autocomplete #exclude
-                                    [proposals]="this.api.cachedTags"
-                                    (tags)="updateFilter(include.selectedTags, exclude.selectedTags)"
-        ></app-tags-with-autocomplete>
-      </div>
-    </mat-card-content>
-
-    <mat-card-actions>
-
-    </mat-card-actions>
-  </mat-card>
-</div>
 
 <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
   <i>There are no projects matching your filter</i>
 </div>
 
-<mat-card>
-  <mat-card-title>Matching Projects</mat-card-title>
-  <mat-card-content>
-  <mat-list>
-    <mat-list-item *ngFor="let project of filtered">
-      <app-project-view-header
-        [project]="project"
-        [running]="false"
-        [progress]="null"
-        [pauseReason]="null">
-      </app-project-view-header>
-    </mat-list-item>
-  </mat-list>
-  </mat-card-content>
-</mat-card>
+<ng-container *ngIf="projects != null">
+  <mat-card>
+    <mat-card-title>Filter</mat-card-title>
+
+    <mat-card-content class="flex-grow-row tag-filter">
+      <div>
+        <mat-card-subtitle>Projects that <strong>include</strong> the following tags</mat-card-subtitle>
+        <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
+                                    (tags)="this.includeTags = $event; updateFilter()"
+        ></app-tags-with-autocomplete>
+        <mat-slide-toggle (change)="includeEmpty = $event.checked; updateFilter()">
+          Include with no Tags
+        </mat-slide-toggle>
+      </div>
+      <div>
+        <mat-card-subtitle>Projects that <strong>exclude</strong> the following tags</mat-card-subtitle>
+        <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
+                                    (tags)="this.excludeTags = $event; updateFilter()"
+        ></app-tags-with-autocomplete>
+        <mat-slide-toggle (change)="excludeEmpty = $event.checked; updateFilter()">
+          Exclude with no Tags
+        </mat-slide-toggle>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-title>Matching Projects</mat-card-title>
+    <mat-card-content>
+      <mat-list>
+        <mat-list-item *ngFor="let project of filtered">
+          <app-project-view-header
+            [project]="project"
+            [running]="false"
+            [progress]="null"
+            [pauseReason]="null">
+          </app-project-view-header>
+        </mat-list-item>
+      </mat-list>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-title>Action</mat-card-title>
+    <mat-card-content class="flex-grow-column action-selector">
+      <mat-form-field>
+        <mat-select placeholder="Pipeline" dense>
+          <mat-option value="A">A</mat-option>
+          <mat-option value="B">B</mat-option>
+          <mat-option value="C">C</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-select placeholder="Stage" dense>
+          <mat-option value="A">A</mat-option>
+          <mat-option value="B">B</mat-option>
+          <mat-option value="C">C</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+</ng-container>
