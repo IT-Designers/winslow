@@ -568,7 +568,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             .getPipelineDefinition(pipelineId)
             .then(pipeline => {
               return this.pipelinesApi
-                .getStageDefinitions(pipeline)
+                .getStageDefinitions(pipeline.id)
                 .then(stages => {
                   this.project.pipelineDefinition = pipeline;
                   this.project.pipelineDefinition.id = pipelineId;

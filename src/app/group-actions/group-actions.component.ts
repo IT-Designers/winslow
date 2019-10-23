@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Project, ProjectApiService} from '../api/project-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
+import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 
 @Component({
   selector: 'app-group-actions',
@@ -9,28 +10,38 @@ import {LongLoadingDetector} from '../long-loading-detector';
 })
 export class GroupActionsComponent implements OnInit {
 
-  loadError = null;
-  longLoading = new LongLoadingDetector();
   projects: Project[];
   filtered: Project[];
+  projectsLoadError = null;
+  projectsLongLoading = new LongLoadingDetector();
 
   includeTags: string[] = [];
   includeEmpty = false;
-
   excludeTags: string[] = [];
   excludeEmpty = false;
 
+  pipelines: PipelineInfo[] = null;
+  stages: StageInfo[] = null;
+  actionLoadError = null;
+  actionLongLoading = new LongLoadingDetector();
 
-  constructor(public api: ProjectApiService) {
+
+  constructor(public api: ProjectApiService, private pipelineApi: PipelineApiService) {
   }
 
   ngOnInit() {
-    this.longLoading.increase();
+    this.projectsLongLoading.increase();
     this.api.listProjects()
       .toPromise()
       .then(projects => this.filtered = this.projects = projects)
-      .catch(err => this.longLoading = err)
-      .finally(() => this.longLoading.decrease());
+      .catch(err => this.projectsLoadError = err)
+      .finally(() => this.projectsLongLoading.decrease());
+
+    this.actionLongLoading.increase();
+    this.pipelineApi.getPipelineDefinitions()
+      .then(pipelines => this.pipelines = pipelines)
+      .catch(err => this.actionLoadError = err)
+      .finally(() => this.actionLongLoading.decrease());
   }
 
   updateFilter() {
@@ -55,5 +66,13 @@ export class GroupActionsComponent implements OnInit {
       }
       return true;
     });
+  }
+
+  loadStagesForPipeline(pipelineId: string) {
+    this.actionLongLoading.increase();
+    this.pipelineApi.getStageDefinitions(pipelineId)
+      .then(result => this.stages = result)
+      .catch(err => this.actionLoadError = err)
+      .finally(() => this.actionLongLoading.decrease());
   }
 }

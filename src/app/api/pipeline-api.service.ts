@@ -38,9 +38,9 @@ export class PipelineApiService {
     return this.client.get<PipelineInfo[]>(PipelineApiService.getUrl()).toPromise();
   }
 
-  getStageDefinitions(pipeline: PipelineInfo) {
+  getStageDefinitions(pipelineId: string) {
     return this.client
-        .get<StageInfo[]>(environment.apiLocation + 'stages/' + pipeline.id)
+        .get<StageInfo[]>(environment.apiLocation + 'stages/' + pipelineId)
         .toPromise();
   }
 
