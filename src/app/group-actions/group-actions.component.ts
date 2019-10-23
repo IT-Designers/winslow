@@ -14,6 +14,12 @@ export class GroupActionsComponent implements OnInit {
   projects: Project[];
   filtered: Project[];
 
+  includeTags: string[] = [];
+  includeEmpty = false;
+
+  excludeTags: string[] = [];
+  excludeEmpty = false;
+
 
   constructor(public api: ProjectApiService) {
   }
@@ -27,14 +33,22 @@ export class GroupActionsComponent implements OnInit {
       .finally(() => this.longLoading.decrease());
   }
 
-  updateFilter(includeTags: string[], excludeTags: string[]) {
+  updateFilter() {
     this.filtered = this.projects.filter(project => {
-      for (const tag of includeTags) {
+      if (project.tags.length === 0) {
+        if (this.includeEmpty) {
+          return true;
+        } else if (this.excludeEmpty) {
+          return false;
+        }
+      }
+
+      for (const tag of this.includeTags) {
         if (project.tags.indexOf(tag) < 0) {
           return false;
         }
       }
-      for (const tag of excludeTags) {
+      for (const tag of this.excludeTags) {
         if (project.tags.indexOf(tag) >= 0) {
           return false;
         }
