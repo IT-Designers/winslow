@@ -1,6 +1,6 @@
-<app-loading-info [error]="false ? loadError.message : null" [loading]="false == null"></app-loading-info>
+<app-loading-info [error]="loadError != null ? loadError.message : null" [loading]="longLoading.isLongLoading()"></app-loading-info>
 
-<div *ngIf="true != null" class="control-row">
+<div *ngIf="projects != null" class="control-row">
   <mat-card>
     <mat-card-title></mat-card-title>
 
@@ -16,7 +16,7 @@
   </mat-card>
 </div>
 
-<div *ngIf="true != null && 1 == 0" class="none-defined-yet">
+<div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
   <i>There are no projects yet</i>
 </div>
 

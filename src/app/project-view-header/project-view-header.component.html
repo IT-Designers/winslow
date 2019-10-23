@@ -1,0 +1,16 @@
+<mat-panel-title class="title">
+  <app-state-icon #icon animation="true"></app-state-icon>
+  <label>{{project.name}}</label>
+</mat-panel-title>
+
+<mat-panel-description class="description-tags">
+  <app-tags-with-autocomplete [readonly]="true" [tags]="project.tags"></app-tags-with-autocomplete>
+</mat-panel-description>
+
+<mat-panel-description class="description-etc">
+  {{pauseReason}}
+  <mat-progress-bar class="description-progress-bar"
+                    *ngIf="progress != null && running"
+                    [value]="progress">
+  </mat-progress-bar>
+</mat-panel-description>

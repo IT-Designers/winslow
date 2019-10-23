@@ -49,6 +49,7 @@ import {LoadingInfoComponent} from './connect-failed-info/loading-info.component
 import {GroupActionsComponent} from './group-actions/group-actions.component';
 import {ScrollingModule} from '@angular/cdk/scrolling';
 import {TagsWithAutocompleteComponent} from './tags-with-autocomplete/tags-with-autocomplete.component';
+import { ProjectViewHeaderComponent } from './project-view-header/project-view-header.component';
 
 @NgModule({
   declarations: [
@@ -76,6 +77,7 @@ import {TagsWithAutocompleteComponent} from './tags-with-autocomplete/tags-with-
     LoadingInfoComponent,
     GroupActionsComponent,
     TagsWithAutocompleteComponent,
+    ProjectViewHeaderComponent,
   ],
   imports: [
     HttpClientModule,
