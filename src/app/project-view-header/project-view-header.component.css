@@ -5,6 +5,8 @@
 }
 
 .title {
+  display: flex;
+  flex-grow: 1;
   max-width: 45%;
   padding-right: 1em;
   overflow: hidden;
