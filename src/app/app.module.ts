@@ -11,9 +11,12 @@ import {CreateDirectoryDialog, DeleteAreYouSureDialog, FilesComponent, UploadFil
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {
+  MatAutocompleteModule,
   MatButtonModule,
   MatButtonToggleModule,
+  MatCardModule,
   MatCheckboxModule,
+  MatChipsModule,
   MatExpansionModule,
   MatGridListModule,
   MatIconModule,
@@ -35,14 +38,17 @@ import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
 import {DeleteProjectAreYouSureDialog, ProjectViewComponent, StopStageAreYouSureDialog} from './project-view/project-view.component';
-import { FileBrowseDialog } from './file-browse-dialog/file-browse-dialog.component';
+import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
-import { ServerComponent } from './server/server.component';
-import { ServersComponent } from './servers/servers.component';
-import { ServersOverviewComponent } from './servers-overview/servers-overview.component';
-import { AboutComponent } from './about/about.component';
-import { CreatePipelineDialogComponent } from './pipeline-create-dialog/create-pipeline-dialog.component';
-import { LoadingInfoComponent } from './connect-failed-info/loading-info.component';
+import {ServerComponent} from './server/server.component';
+import {ServersComponent} from './servers/servers.component';
+import {ServersOverviewComponent} from './servers-overview/servers-overview.component';
+import {AboutComponent} from './about/about.component';
+import {CreatePipelineDialogComponent} from './pipeline-create-dialog/create-pipeline-dialog.component';
+import {LoadingInfoComponent} from './connect-failed-info/loading-info.component';
+import {GroupActionsComponent} from './group-actions/group-actions.component';
+import {ScrollingModule} from '@angular/cdk/scrolling';
+import {TagsWithAutocompleteComponent} from './tags-with-autocomplete/tags-with-autocomplete.component';
 
 @NgModule({
   declarations: [
@@ -68,6 +74,8 @@ import { LoadingInfoComponent } from './connect-failed-info/loading-info.compone
     AboutComponent,
     CreatePipelineDialogComponent,
     LoadingInfoComponent,
+    GroupActionsComponent,
+    TagsWithAutocompleteComponent,
   ],
   imports: [
     HttpClientModule,
@@ -78,9 +86,10 @@ import { LoadingInfoComponent } from './connect-failed-info/loading-info.compone
 
     RouterModule.forRoot([
       {path: '', component: SystemOverviewComponent},
+      {path: 'actions', component: GroupActionsComponent},
+      {path: 'projects', component: ProjectsComponent},
       {path: 'pipelines', component: PipelinesComponent},
       {path: 'files', component: FilesComponent},
-      {path: 'projects', component: ProjectsComponent},
       {path: 'servers', component: ServersComponent},
       {path: 'about', component: AboutComponent}
     ]),
@@ -110,7 +119,11 @@ import { LoadingInfoComponent } from './connect-failed-info/loading-info.compone
     MatTabsModule,
     MatCheckboxModule,
 
-    NgxChartsModule
+    NgxChartsModule,
+    MatCardModule,
+    ScrollingModule,
+    MatAutocompleteModule,
+    MatChipsModule
 
   ],
   providers: [
