@@ -9,7 +9,7 @@ import {ProjectApiService} from '../api/project-api.service';
 export class GroupActionsComponent implements OnInit {
 
 
-  constructor(private api: ProjectApiService) {
+  constructor(public api: ProjectApiService) {
   }
 
   ngOnInit() {
