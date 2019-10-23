@@ -1,0 +1,25 @@
+<app-loading-info [error]="false ? loadError.message : null" [loading]="false == null"></app-loading-info>
+
+<div *ngIf="true != null" class="control-row">
+  <mat-card>
+    <mat-card-title></mat-card-title>
+
+    <mat-card-content>
+      <app-tags-with-autocomplete
+        [proposals]="this.api.cachedTags"
+      ></app-tags-with-autocomplete>
+    </mat-card-content>
+
+    <mat-card-actions>
+
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<div *ngIf="true != null && 1 == 0" class="none-defined-yet">
+  <i>There are no projects yet</i>
+</div>
+
+
+<app-projects></app-projects>
+

@@ -1,5 +1,5 @@
 <div #scrollTopTarget></div>
-<mat-tab-group  #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)">
+<mat-tab-group #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)">
 
   <mat-tab label="Control">
     <div class="loading-bar-container">
@@ -147,55 +147,74 @@
         <mat-expansion-panel *ngFor="let entry of history; index as i" class="history-list-item">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <div class="history-list-column"><app-state-icon [state]="entry.state"></app-state-icon></div>
+              <div class="history-list-column">
+                <app-state-icon [state]="entry.state"></app-state-icon>
+              </div>
               <div class="history-list-column history-item-no">{{history.length - i}}</div>
-              <div class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
+              <div
+                class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
               <div class="history-list-column">{{entry.stageName}}</div>
               <div class="history-list-column history-control-icons">
-                <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Stop" class="clickable" (click)="$event.stopPropagation(); cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)">pan_tool</mat-icon>
-                <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable" (click)="$event.stopPropagation(); killCurrentStage()">pan_tool</mat-icon>
-                <mat-icon matTooltip="Re-Run" class="clickable" (click)="$event.stopPropagation(); reRun(entry)">replay</mat-icon>
-                <mat-icon *ngIf="entry.stageId" matTooltip="Open Logs" class="clickable" (click)="$event.stopPropagation(); openLogs(entry)">list_alt</mat-icon>
-                <mat-icon *ngIf="entry.workspace" matTooltip="Open Directory" class="clickable" (click)="$event.stopPropagation(); openFolder(project, entry)">folder_open
+                <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Stop" class="clickable"
+                          (click)="$event.stopPropagation(); cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)">
+                  pan_tool
+                </mat-icon>
+                <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable"
+                          (click)="$event.stopPropagation(); killCurrentStage()">pan_tool
+                </mat-icon>
+                <mat-icon matTooltip="Re-Run" class="clickable" (click)="$event.stopPropagation(); reRun(entry)">
+                  replay
+                </mat-icon>
+                <mat-icon *ngIf="entry.stageId" matTooltip="Open Logs" class="clickable"
+                          (click)="$event.stopPropagation(); openLogs(entry)">list_alt
+                </mat-icon>
+                <mat-icon *ngIf="entry.workspace" matTooltip="Open Directory" class="clickable"
+                          (click)="$event.stopPropagation(); openFolder(project, entry)">folder_open
                 </mat-icon>
               </div>
             </mat-panel-title>
-            </mat-expansion-panel-header>
-            <ng-template matExpansionPanelContent>
-              <div class="history-item-detail">
-                <ng-template #detailItem let-keyvalue>
-                  <p class="history-item-detail-item mat-highlight-hover">
-                    <label>{{keyvalue.key}}</label>
-                    <label>{{keyvalue.value}}</label>
-                  </p>
+          </mat-expansion-panel-header>
+          <ng-template matExpansionPanelContent>
+            <div class="history-item-detail">
+              <ng-template #detailItem let-keyvalue>
+                <p class="history-item-detail-item mat-highlight-hover">
+                  <label>{{keyvalue.key}}</label>
+                  <label>{{keyvalue.value}}</label>
+                </p>
+              </ng-template>
+
+              <h3>Status Information</h3>
+              <ng-template
+                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Unique Stage Id', value: entry.stageId}}"></ng-template>
+              <ng-template
+                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Based on Stage Definition', value: entry.stageName}}"></ng-template>
+              <ng-template
+                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: entry.startTime != null ? toDate(entry.startTime) : 'not yet started'}}"></ng-template>
+              <ng-template
+                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet finished'}}"></ng-template>
+
+              <h3>Image Information</h3>
+              <ng-template
+                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo.name}}"></ng-template>
+              <ng-template
+                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo.args|json}}"></ng-template>
+
+
+              <h3>Environment Variables</h3>
+              <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
+              <ng-container *ngFor="let e of entry.env | keyvalue">
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
                 </ng-template>
+              </ng-container>
 
-                <h3>Status Information</h3>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Unique Stage Id', value: entry.stageId}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Based on Stage Definition', value: entry.stageName}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: entry.startTime != null ? toDate(entry.startTime) : 'not yet started'}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet finished'}}"></ng-template>
-
-                <h3>Image Information</h3>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo.name}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo.args|json}}"></ng-template>
-
-
-                <h3>Environment Variables</h3>
-                <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
-                <ng-container *ngFor="let e of entry.env | keyvalue">
-                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                  </ng-template>
-                </ng-container>
-
-                <h3>Internal Environment Variables</h3>
-                <i *ngIf="entry.envInternal == null || entry.envInternal.size == 0">none</i>
-                <ng-container *ngFor="let e of entry.envInternal | keyvalue">
-                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                  </ng-template>
-                </ng-container>
-              </div>
-            </ng-template>
+              <h3>Internal Environment Variables</h3>
+              <i *ngIf="entry.envInternal == null || entry.envInternal.size == 0">none</i>
+              <ng-container *ngFor="let e of entry.envInternal | keyvalue">
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                </ng-template>
+              </ng-container>
+            </div>
+          </ng-template>
         </mat-expansion-panel>
       </mat-accordion>
     </ng-container>
@@ -212,7 +231,7 @@
     </ng-template>
   </mat-tab>
 
-  <mat-tab  label="Logs">
+  <mat-tab label="Logs">
     <div class="loading-bar-container">
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
@@ -223,7 +242,9 @@
       </button>
       <button mat-stroked-button
               (click)="forceReloadLogs()"
-      ><mat-icon>loop</mat-icon> Force Reload
+      >
+        <mat-icon>loop</mat-icon>
+        Force Reload
       </button>
       <div>
         <mat-slide-toggle #windowMode (change)="scrollConsoleToBottom(true)" labelPosition="before">
@@ -240,16 +261,16 @@
            (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
           <code *ngIf="logs != null" class="console"
-            ><ng-container *ngFor="let log of logs; index as i"
-              ><span
-              ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
-              ><span [class.console-err]="log.error"
-                     [class.console-mgmt]="sourceIsManagement(log.source)"
-                     [class.no-word-wrap]="windowMode.checked"
-              >{{log.message}}</span
-              ></span
-            ></ng-container
-            ></code>
+          ><ng-container *ngFor="let log of logs; index as i"
+          ><span
+          ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
+          ><span [class.console-err]="log.error"
+                 [class.console-mgmt]="sourceIsManagement(log.source)"
+                 [class.no-word-wrap]="windowMode.checked"
+          >{{log.message}}</span
+          ></span
+          ></ng-container
+          ></code>
         </pre>
       </div>
     </div>
@@ -268,26 +289,37 @@
     </div>
   </mat-tab>
 
-    <mat-tab label="Settings">
-      <div class="loading-bar-container">
-          <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
-      </div>
-      <div class="stage-control-item">
-        <label>Project Name</label>
-        <mat-form-field>
-          <input #nameOriginal hidden [value]="project.name">
-          <input #nameEntered matInput name="name" [value]="project.name"
-                 (input)="updateName.disabled = $event.target.value == nameOriginal.value"
-                 (keydown.enter)="setName(nameEntered.value)">
-        </mat-form-field>
-        <button #updateName mat-stroked-button disabled color="primary"
-                (click)="setName(nameEntered.value)">
-          Update
-        </button>
-      </div>
-      <div class="stage-control-item">
-          <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
-      </div>
-    </mat-tab>
+  <mat-tab label="Settings">
+    <div class="loading-bar-container">
+      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
+    </div>
+    <div class="stage-control-item">
+      <label>Project Name</label>
+      <mat-form-field>
+        <input #nameOriginal hidden [value]="project.name">
+        <input #nameEntered matInput name="name" [value]="project.name"
+               (input)="updateName.disabled = $event.target.value == nameOriginal.value"
+               (keydown.enter)="setName(nameEntered.value)">
+      </mat-form-field>
+      <button #updateName mat-stroked-button disabled color="primary" (click)="setName(nameEntered.value)">
+        Update
+      </button>
+    </div>
+    <div class="stage-control-item">
+      <label>Project Tags</label>
+      <app-tags-with-autocomplete #tags
+                                  [sort]="false"
+                                  [tags]="project.tags"
+                                  [proposals]="api.cachedTags"
+                                  (tags)="updateTags.disabled = false">
+      </app-tags-with-autocomplete>
+      <button #updateTags mat-stroked-button disabled color="primary" (click)="setTags(tags.selectedTags)">
+        Update
+      </button>
+    </div>
+    <div class="stage-control-item">
+      <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
+    </div>
+  </mat-tab>
 </mat-tab-group>
 <div #scrollBottomTarget></div>
