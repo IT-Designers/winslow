@@ -38,8 +38,12 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 .flex-grow-row {
-  display: flex;
-  flex-direction: row;
+  display: flex !important;
+  flex-direction: row !important;
+}
+.flex-grow-column {
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .flex-grow {
