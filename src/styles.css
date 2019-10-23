@@ -51,6 +51,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   margin-right: 0;
 }
 
+.control-row {
+  padding: 2em 0;
+}
+
 .control-button-row {
   padding: 2em;
 }

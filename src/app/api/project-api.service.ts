@@ -9,7 +9,17 @@ import {PipelineInfo} from './pipeline-api.service';
 })
 export class ProjectApiService {
 
+  public cachedTags: string[] = [];
+
   constructor(private client: HttpClient) {
+  }
+
+  private cacheTags(tags: string[]) {
+    tags.forEach(tag => {
+      if (this.cachedTags.indexOf(tag) < 0) {
+        this.cachedTags.push(tag);
+      }
+    });
   }
 
   private static getUrl(more?: string) {
@@ -24,7 +34,12 @@ export class ProjectApiService {
   }
 
   listProjects() {
-    return this.client.get<Project[]>(ProjectApiService.getUrl(null));
+    return this.client
+      .get<Project[]>(ProjectApiService.getUrl(null))
+      .pipe(map(projects => {
+        projects.forEach(project => this.cacheTags(project.tags));
+        return projects;
+      }));
   }
 
   getProjectState(projectId: string) {
@@ -112,6 +127,17 @@ export class ProjectApiService {
       return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/name`), form);
   }
 
+  setTags(projectId: string, tags: string[]) {
+    const form = new FormData();
+    form.set('tags', JSON.stringify(tags));
+    return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/tags`), form)
+      .toPromise()
+      .then(result => {
+        this.cacheTags(tags);
+        return result;
+      });
+  }
+
   killStage(projectId: string) {
     return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/kill`), new FormData());
   }
@@ -135,6 +161,7 @@ export class Project {
   id: string;
   owner: string;
   groups: string[];
+  tags: string[];
   name: string;
   pipelineDefinition: PipelineInfo;
   environment: Map<string, string>;

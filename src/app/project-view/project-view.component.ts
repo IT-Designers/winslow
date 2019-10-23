@@ -546,7 +546,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         if (result && selection != null) {
           if (selection.value != null) {
             const index = Math.min(Number(selection.value), this.project.pipelineDefinition.stageDefinitions.length - 1);
-            return this.onOverwriteStageSelectionChanged(0);
+            (selection as MatSelect).value = String(index);
+            (selection as MatSelect).valueChange.emit(String(index));
+            return this.onOverwriteStageSelectionChanged(index);
           } else {
             this.resetStageSelection();
           }
@@ -583,6 +585,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         this.notification.error('Update declined: ' + JSON.stringify(err));
         return Promise.reject(err); // !??!??
       })
+      .finally(() => this.longLoading.decrease());
+  }
+
+  setTags(tags: string[]) {
+    this.longLoading.increase();
+    this.api
+      .setTags(this.project.id, tags)
+      .then(result => {
+        this.project.tags = tags;
+        this.notification.info('Tags updated');
+      })
+      .catch(err => this.notification.error('Request failed: ' + JSON.stringify(err)))
       .finally(() => this.longLoading.decrease());
   }
 }
