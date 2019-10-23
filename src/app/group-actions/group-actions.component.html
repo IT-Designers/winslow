@@ -2,12 +2,23 @@
 
 <div *ngIf="projects != null" class="control-row">
   <mat-card>
-    <mat-card-title></mat-card-title>
+    <mat-card-title>Filter</mat-card-title>
 
-    <mat-card-content>
-      <app-tags-with-autocomplete
-        [proposals]="this.api.cachedTags"
-      ></app-tags-with-autocomplete>
+    <mat-card-content style="display: flex; flex-direction: row">
+      <div style="flex-grow: 1; margin: 0 1em">
+        <mat-card-subtitle>Projects that include the following tags</mat-card-subtitle>
+        <app-tags-with-autocomplete #include
+          [proposals]="this.api.cachedTags"
+          (tags)="updateFilter(include.selectedTags, exclude.selectedTags)"
+        ></app-tags-with-autocomplete>
+      </div>
+      <div style="flex-grow: 1; margin: 0 1em">
+        <mat-card-subtitle>Projects that exclude the following tags</mat-card-subtitle>
+        <app-tags-with-autocomplete #exclude
+                                    [proposals]="this.api.cachedTags"
+                                    (tags)="updateFilter(include.selectedTags, exclude.selectedTags)"
+        ></app-tags-with-autocomplete>
+      </div>
     </mat-card-content>
 
     <mat-card-actions>
@@ -17,9 +28,21 @@
 </div>
 
 <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
-  <i>There are no projects yet</i>
+  <i>There are no projects matching your filter</i>
 </div>
 
-
-<app-projects></app-projects>
-
+<mat-card>
+  <mat-card-title>Matching Projects</mat-card-title>
+  <mat-card-content>
+  <mat-list>
+    <mat-list-item *ngFor="let project of filtered">
+      <app-project-view-header
+        [project]="project"
+        [running]="false"
+        [progress]="null"
+        [pauseReason]="null">
+      </app-project-view-header>
+    </mat-list-item>
+  </mat-list>
+  </mat-card-content>
+</mat-card>
