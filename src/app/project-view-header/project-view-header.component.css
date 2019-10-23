@@ -1,0 +1,31 @@
+:host {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.title {
+  max-width: 45%;
+  padding-right: 1em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.title label {
+  margin: auto 0;
+}
+
+.description-tags {
+  max-height: 2.2em; /* TODO */
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.description-etc {
+  margin-left: auto;
+}
+
+.description-progress-bar {
+  width: 10em;
+  margin: auto 1em;
+}

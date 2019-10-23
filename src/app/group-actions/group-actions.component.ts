@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {ProjectApiService} from '../api/project-api.service';
+import {Project, ProjectApiService} from '../api/project-api.service';
+import {LongLoadingDetector} from '../long-loading-detector';
 
 @Component({
   selector: 'app-group-actions',
@@ -8,6 +9,10 @@ import {ProjectApiService} from '../api/project-api.service';
 })
 export class GroupActionsComponent implements OnInit {
 
+  loadError = null;
+  longLoading = new LongLoadingDetector();
+  projects: Project[] = null;
+  
 
   constructor(public api: ProjectApiService) {
   }
