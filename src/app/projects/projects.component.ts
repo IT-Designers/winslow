@@ -27,7 +27,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       .listProjects()
       .toPromise()
       .then(projects => {
-        this.projects = projects;
+        this.projects = projects.sort((a, b) => a.name.localeCompare(b.name));
         setTimeout(() => this.pollAllProjectsForChanges(), 10);
       })
       .catch(error => this.loadError = error);
