@@ -156,6 +156,45 @@ public class ProjectsController {
         }
     }
 
+    @PostMapping("/projects/{projectId}/tags")
+    public void setProjectName(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam("tags") String[] tags) throws LockException, IOException {
+        var canAccess = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(p -> canUserAccessProject(user, p));
+
+        // do not try to lock expensively if the
+        // user is not allowed to access the project anyway
+        if (canAccess.isEmpty()) {
+            return;
+        }
+
+        var exclusive = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive();
+
+        if (exclusive.isPresent()) {
+            try (var project = exclusive.get()) {
+                var update = project
+                        .get()
+                        .filter(p -> canUserAccessProject(user, p))
+                        .map(p -> {
+                            p.setTags(tags);
+                            return p;
+                        });
+
+                if (update.isPresent()) {
+                    project.update(update.get());
+                }
+            }
+        }
+    }
+
     @GetMapping("/projects/{projectId}/state")
     public Optional<Stage.State> getProjectState(User user, @PathVariable("projectId") String projectId) {
         return winslow

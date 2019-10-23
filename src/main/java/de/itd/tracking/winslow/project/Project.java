@@ -3,6 +3,7 @@ package de.itd.tracking.winslow.project;
 import de.itd.tracking.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,12 +11,14 @@ import java.util.Objects;
 
 public class Project {
 
-    @Nonnull private final String             id;
-    @Nonnull private final String             owner;
-    @Nonnull private final List<String>       groups = new ArrayList<>();
+    @Nonnull private final String id;
+    @Nonnull private final String owner;
+
+    @Nullable private List<String> groups = new ArrayList<>();
+    @Nullable private List<String> tags   = new ArrayList<>();
 
     @Nonnull private PipelineDefinition pipeline;
-    @Nonnull private String name;
+    @Nonnull private String             name;
 
     public Project(@Nonnull String id, String owner, @Nonnull PipelineDefinition pipeline) {
         this(id, owner, pipeline, "");
@@ -60,16 +63,56 @@ public class Project {
 
     @Nonnull
     public Iterable<String> getGroups() {
-        return Collections.unmodifiableList(this.groups);
+        if (this.groups != null) {
+            return Collections.unmodifiableList(this.groups);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     public void addGroup(String group) {
+        if (this.groups == null) {
+            this.groups = new ArrayList<>();
+        }
         if (!this.groups.contains(group)) {
             this.groups.add(group);
         }
     }
 
     public boolean removeGroup(String group) {
-        return this.groups.remove(group);
+        return this.groups != null && this.groups.remove(group);
+    }
+
+    @Nonnull
+    public Iterable<String> getTags() {
+        if (this.tags != null) {
+            return Collections.unmodifiableList(this.tags);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public void addTag(@Nonnull String tag) {
+        if (this.tags == null) {
+            this.tags = new ArrayList<>();
+        }
+        if (!this.tags.contains(tag)) {
+            this.tags.add(tag);
+        }
+    }
+
+    public boolean removeTag(@Nonnull String tag) {
+        return this.tags != null && this.tags.remove(tag);
+    }
+
+    public void setTags(@Nullable String...tags) {
+        if (this.tags == null) {
+            this.tags = new ArrayList<>(tags.length);
+        } else {
+            this.tags.clear();
+        }
+        for (String tag : tags) {
+            this.tags.add(tag);
+        }
     }
 }
