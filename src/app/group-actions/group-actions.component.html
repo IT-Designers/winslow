@@ -1,70 +1,63 @@
-<app-loading-info [error]="loadError != null ? loadError.message : null"
-                  [loading]="longLoading.isLongLoading()"></app-loading-info>
+<mat-card>
+  <mat-card-title>Filter</mat-card-title>
 
+  <mat-card-content class="flex-grow-row tag-filter">
+    <div>
+      <mat-card-subtitle>Projects that <strong>include</strong> the following tags</mat-card-subtitle>
+      <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
+                                  (tags)="this.includeTags = $event; updateFilter()"
+      ></app-tags-with-autocomplete>
+      <mat-slide-toggle (change)="includeEmpty = $event.checked; updateFilter()">
+        Include with no Tags
+      </mat-slide-toggle>
+    </div>
+    <div>
+      <mat-card-subtitle>Projects that <strong>exclude</strong> the following tags</mat-card-subtitle>
+      <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
+                                  (tags)="this.excludeTags = $event; updateFilter()"
+      ></app-tags-with-autocomplete>
+      <mat-slide-toggle (change)="excludeEmpty = $event.checked; updateFilter()">
+        Exclude with no Tags
+      </mat-slide-toggle>
+    </div>
+  </mat-card-content>
+</mat-card>
 
-<div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
-  <i>There are no projects matching your filter</i>
-</div>
+<mat-card>
+  <mat-card-title>Matching Projects</mat-card-title>
+  <mat-card-content>
+    <mat-list>
+      <mat-list-item *ngFor="let project of filtered">
+        <app-project-view-header
+          [project]="project"
+          [running]="false"
+          [progress]="null"
+          [pauseReason]="null">
+        </app-project-view-header>
+      </mat-list-item>
+    </mat-list>
+    <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
+      <i>There are no projects matching your filter</i>
+    </div>
+    <app-loading-info [error]="projectsLoadError != null ? projectsLoadError.message : null"
+                      [loading]="projectsLongLoading.isLongLoading()"></app-loading-info>
+  </mat-card-content>
+</mat-card>
 
-<ng-container *ngIf="projects != null">
-  <mat-card>
-    <mat-card-title>Filter</mat-card-title>
-
-    <mat-card-content class="flex-grow-row tag-filter">
-      <div>
-        <mat-card-subtitle>Projects that <strong>include</strong> the following tags</mat-card-subtitle>
-        <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
-                                    (tags)="this.includeTags = $event; updateFilter()"
-        ></app-tags-with-autocomplete>
-        <mat-slide-toggle (change)="includeEmpty = $event.checked; updateFilter()">
-          Include with no Tags
-        </mat-slide-toggle>
-      </div>
-      <div>
-        <mat-card-subtitle>Projects that <strong>exclude</strong> the following tags</mat-card-subtitle>
-        <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
-                                    (tags)="this.excludeTags = $event; updateFilter()"
-        ></app-tags-with-autocomplete>
-        <mat-slide-toggle (change)="excludeEmpty = $event.checked; updateFilter()">
-          Exclude with no Tags
-        </mat-slide-toggle>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card>
-    <mat-card-title>Matching Projects</mat-card-title>
-    <mat-card-content>
-      <mat-list>
-        <mat-list-item *ngFor="let project of filtered">
-          <app-project-view-header
-            [project]="project"
-            [running]="false"
-            [progress]="null"
-            [pauseReason]="null">
-          </app-project-view-header>
-        </mat-list-item>
-      </mat-list>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card>
-    <mat-card-title>Action</mat-card-title>
-    <mat-card-content class="flex-grow-column action-selector">
-      <mat-form-field>
-        <mat-select placeholder="Pipeline" dense>
-          <mat-option value="A">A</mat-option>
-          <mat-option value="B">B</mat-option>
-          <mat-option value="C">C</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-select placeholder="Stage" dense>
-          <mat-option value="A">A</mat-option>
-          <mat-option value="B">B</mat-option>
-          <mat-option value="C">C</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </mat-card-content>
-  </mat-card>
-</ng-container>
+<mat-card>
+  <mat-card-title>Action</mat-card-title>
+  <mat-card-content class="flex-grow-column action-selector">
+    <mat-form-field *ngIf="pipelines != null">
+      <mat-select placeholder="Pipeline" dense (selectionChange)="loadStagesForPipeline($event.value)">
+        <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field *ngIf="stages != null">
+      <mat-select placeholder="Stage" dense>
+        <mat-option *ngFor="let stage of stages" [value]="stage.name">{{stage.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <app-loading-info [error]="actionLoadError != null ? actionLoadError.message : null"
+                      [loading]="actionLongLoading.isLongLoading()"></app-loading-info>
+  </mat-card-content>
+</mat-card>
