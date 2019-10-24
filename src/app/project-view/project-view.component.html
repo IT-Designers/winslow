@@ -15,132 +15,29 @@
                                        [defaultEnvironmentVariables]="defaultEnvVars">
         </app-stage-execution-selection>
       </div>
-      <div class="stage-control-item stage-control-item-controls">
+      <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item stage-control-item-controls">
         <button mat-stroked-button color="warn"
                 [disabled]="!executionSelection.isValid()"
-                (click)="enqueueNextStage(stageSelection.value)">
+                (click)="enqueue(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getImage()
+                )">
           Group Action
         </button>
         <button mat-stroked-button color="primary"
                 [disabled]="!executionSelection.isValid()"
-                (click)="enqueueNextStage(stageSelection.value)">
+                (click)="enqueue(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getImage()
+                )">
           Enqueue
         </button>
       </div>
-
-
-      <div class="stage-control-item">
-        <label>Pipeline</label>
-
-        <mat-form-field>
-          <input #pipelineOriginal hidden [value]="project.pipelineDefinition.name">
-          <mat-select #selectedPipeline [value]="project.pipelineDefinition.name"
-                      (valueChange)="updatePipeline.disabled = $event == pipelineOriginal.value">
-            <mat-option *ngFor="let pipeline of pipelines" value="{{pipeline.name}}">
-              {{pipeline.name}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button #updatePipeline mat-stroked-button disabled color="primary"
-                (click)="setPipelineAdapter(selectedPipeline.value, updatePipeline, stageSelection)">
-          Update
-        </button>
-      </div>
-      <div class="stage-control-item">
-        <p>Stage</p>
-        <mat-form-field>
-          <mat-select #stageSelection placeholder="Stage selection"
-                      (valueChange)="onOverwriteStageSelectionChanged($event)">
-            <mat-option *ngFor="let stage of project.pipelineDefinition.stages; index as i"
-                        value="{{i}}">{{stage.name}}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-stroked-button color="primary"
-                [disabled]="stageSelection.value == null"
-                (click)="onOverwriteStageSelectionChanged(stageSelection.value)">
-          <mat-icon>loop</mat-icon>
-        </button>
-      </div>
-
-      <div *ngIf="project.environment != null" class="stage-control-item-env-list">
-        <div *ngFor="let entry of project.environment | keyvalue" class="stage-control-item">
-          <p>{{entry.key}}</p>
-          <mat-form-field>
-            <input matInput placeholder="{{entry.key}}"
-                   formControlName="{{entry.key}}"
-                   [formGroup]="formGroupControl"
-                   [required]="project.userInput.indexOf(entry.key) >= 0"
-                   [value]="entry.value"
-                   (change)="project.environment.set(entry.key, $event.target.value)">
-          </mat-form-field>
-          <div>
-            <button mat-raised-button (click)="openFileBrowseDialog(entry.key)">Browse Files</button>
-            <button mat-button color="warn" [disabled]="project.userInput.indexOf(entry.key) >= 0"
-                    [matTooltip]="project.userInput.indexOf(entry.key) >= 0 ? 'This value is required' : null"
-                    (click)="deleteEnvironment(entry.key)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div class="stage-control-item">
-          <mat-form-field>
-            <input #key required matInput placeholder="Key">
-          </mat-form-field>
-          <mat-form-field>
-            <input #value required matInput placeholder="Value">
-          </mat-form-field>
-          <div>
-            <button mat-raised-button [disabled]="key.value.length == 0 || value.value.length == 0"
-                    color="primary" (click)="addEnvironment(key.value, value.value); key.value = ''; value.value = '';">
-              Add
-            </button>
-            <button mat-button color="primary" [disabled]="key.value.length == 0 && value.value.length == 0"
-                    color="primary" (click)="key.value = ''; value.value = '';">Reset
-            </button>
-          </div>
-        </div>
-        <div class="stage-control-item" *ngIf="image">
-          <label>Image</label>
-          <mat-form-field>
-            <input #value required matInput placeholder="Docker Image"
-                   [required]="image.name != null && image.name.length > 0"
-                   [formGroup]="formGroupControl"
-                   [value]="image.name"
-                   (change)="image.name = $event.target.value"
-            >
-          </mat-form-field>
-          <div>
-            <button mat-button color="primary" [disabled]="value.value == imageOriginal.name"
-                    color="primary" (click)="value.value = imageOriginal.name;">Reset
-            </button>
-          </div>
-        </div>
-        <div class="stage-control-item" *ngIf="image">
-          <label>Start Parameters</label>
-          <mat-form-field>
-            <input #value matInput placeholder="Parameters"
-                   [required]="image.args != null && image.args.length > 0"
-                   [formGroup]="formGroupControl"
-                   [value]="stringify(image.args)"
-                   (change)="image.args = parse($event.target.value)"
-            >
-          </mat-form-field>
-          <div>
-            <button mat-button color="primary" [disabled]="value.value == stringify(imageOriginal.args)"
-                    color="primary" (click)="value.value = stringify(imageOriginal.args);">Reset
-            </button>
-          </div>
-        </div>
-        <div class="stage-control-item stage-control-item-controls" *ngIf="stageSelection.value != null">
-          <button [disabled]="!formGroupControl.valid"
-                  mat-stroked-button (click)="enqueueNextStage(stageSelection.value)"
-                  color="primary">
-            Enqueue
-          </button>
-        </div>
-      </div>
     </form>
-
     <div class="stage-control-item">
       <span></span>
       <div class="stage-control-item-controls">

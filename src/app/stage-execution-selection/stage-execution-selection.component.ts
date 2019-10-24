@@ -3,6 +3,8 @@ import {PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {MatDialog} from '@angular/material';
 import {FormControl, FormGroup} from '@angular/forms';
+import {ImageInfo} from '../api/project-api.service';
+import {parseArgsStringToArgv} from 'string-argv';
 
 @Component({
   selector: 'app-stage-execution-selection',
@@ -11,31 +13,7 @@ import {FormControl, FormGroup} from '@angular/forms';
 })
 export class StageExecutionSelectionComponent implements OnInit {
 
-  @Input() pipelines: PipelineInfo[];
-
-  @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
-  @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageInfo>();
-
-  defaultPipelineIdValue: string;
-
-  selectedPipeline: PipelineInfo = null;
-  selectedStage: StageInfo = null;
-  environmentVariables: Map<string, [boolean, string]> = null;
-
-  defaultEnvironmentVariablesValue = new Map<string, string>();
-
-  formGroupEnv = new FormGroup({});
-
-
   constructor(private dialog: MatDialog) {
-
-  }
-
-  ngOnInit() {
-  }
-
-  isValid(): boolean {
-    return this.selectedPipeline != null && this.selectedStage != null && this.formGroupEnv && this.formGroupEnv.valid;
   }
 
   @Input()
@@ -51,6 +29,40 @@ export class StageExecutionSelectionComponent implements OnInit {
       map.forEach((value, key) => this.setEnvValue(key, value));
       setTimeout(() => this.formGroupEnv.markAllAsTouched());
     }
+  }
+
+  @Input() pipelines: PipelineInfo[];
+
+  @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
+  @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageInfo>();
+
+  defaultPipelineIdValue: string;
+
+  selectedPipeline: PipelineInfo = null;
+  selectedStage: StageInfo = null;
+  environmentVariables: Map<string, [boolean, string]> = null;
+  image = new ImageInfo();
+
+  defaultEnvironmentVariablesValue = new Map<string, string>();
+
+  formGroupEnv = new FormGroup({});
+  static deepClone(image: ImageInfo) {
+    return JSON.parse(JSON.stringify(image));
+  }
+
+  ngOnInit() {
+  }
+
+  isValid(): boolean {
+    return this.selectedPipeline != null && this.selectedStage != null && this.formGroupEnv && this.formGroupEnv.valid;
+  }
+
+  getEnv() {
+    return this.formGroupEnv.value;
+  }
+
+  getImage(): ImageInfo {
+    return this.image;
   }
 
   setEnvValue(key: string, value: string) {
@@ -85,6 +97,7 @@ export class StageExecutionSelectionComponent implements OnInit {
         if (stage.name === stageName) {
           this.selectedStage = stage;
           this.selectedStageEmitter.emit(stage);
+          this.image = StageExecutionSelectionComponent.deepClone(stage.image);
 
           this.formGroupEnv = new FormGroup({});
           this.environmentVariables = new Map();
@@ -135,5 +148,9 @@ export class StageExecutionSelectionComponent implements OnInit {
           valueReceiver.value = result;
         }
       });
+  }
+
+  updateImageArgs(value: string) {
+    this.image.args = parseArgsStringToArgv(value);
   }
 }

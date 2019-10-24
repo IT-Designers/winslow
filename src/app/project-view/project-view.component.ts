@@ -212,16 +212,28 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  enqueueNextStage(nextStageIndex: string) {
-    this.longLoading.increase();
-    this.api.enqueue(this.project.id, Number(nextStageIndex), this.formGroupControl.value, this.image)
-      .toPromise()
-      .then(result => {
-        this.notification.info('Request has been accepted');
-        this.imageOriginal = this.image;
-      }).catch(error => {
-      this.notification.error('Request failed: ' + JSON.stringify(error));
-    }).finally(() => this.longLoading.decrease());
+  enqueue(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
+    if (pipeline.name === this.project.pipelineDefinition.name) {
+      let index = null;
+      for (let i = 0; i < pipeline.stages.length; ++i) {
+        if (pipeline.stages[i].name === stage.name) {
+          index = i;
+          break;
+        }
+      }
+      if (index !== null) {
+        this.longLoading.increase();
+        this.api.enqueue(this.project.id, index, env, image)
+          .toPromise()
+          .then(result => {
+            this.notification.info('Request has been accepted');
+          })
+          .catch(error => this.notification.error('Request failed: ' + JSON.stringify(error)))
+          .finally(() => this.longLoading.decrease());
+      }
+    } else {
+      this.notification.error('Changing the Pipeline is not yet supported!');
+    }
   }
 
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
