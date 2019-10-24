@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
+import {ImageInfo} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +39,9 @@ export class PipelineApiService {
     return this.client.get<PipelineInfo[]>(PipelineApiService.getUrl()).toPromise();
   }
 
+  /**
+   * @deprecated Stages ({@link StageInfo}[]) is already included in the {@link PipelineInfo}
+   */
   getStageDefinitions(pipelineId: string) {
     return this.client
         .get<StageInfo[]>(environment.apiLocation + 'stages/' + pipelineId)
@@ -55,10 +59,13 @@ export class PipelineApiService {
 export class PipelineInfo {
   id: string;
   name: string;
-  desc: string;
-  stageDefinitions: StageInfo[];
+  desc?: string;
+  requiredEnvVariables: string[];
+  stages: StageInfo[];
 }
 
 export class StageInfo {
   name: string;
+  image?: ImageInfo;
+  requiredEnvVariables: string[];
 }
