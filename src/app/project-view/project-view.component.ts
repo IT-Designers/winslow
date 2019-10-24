@@ -460,8 +460,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   reRun(entry: HistoryEntry) {
     this.tabs.selectedIndex = 0;
-    for (let i = 0; i < this.project.pipelineDefinition.stageDefinitions.length; ++i) {
-      if (entry.stageName === this.project.pipelineDefinition.stageDefinitions[i].name) {
+    for (let i = 0; i < this.project.pipelineDefinition.stages.length; ++i) {
+      if (entry.stageName === this.project.pipelineDefinition.stages[i].name) {
 
         const list = this.stageSelection.options.map(e => e); // clone array
 
@@ -545,7 +545,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         }
         if (result && selection != null) {
           if (selection.value != null) {
-            const index = Math.min(Number(selection.value), this.project.pipelineDefinition.stageDefinitions.length - 1);
+            const index = Math.min(Number(selection.value), this.project.pipelineDefinition.stages.length - 1);
             (selection as MatSelect).value = String(index);
             (selection as MatSelect).valueChange.emit(String(index));
             return this.onOverwriteStageSelectionChanged(index);
@@ -572,7 +572,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
                 .then(stages => {
                   this.project.pipelineDefinition = pipeline;
                   this.project.pipelineDefinition.id = pipelineId;
-                  this.project.pipelineDefinition.stageDefinitions = stages;
+                  this.project.pipelineDefinition.stages = stages;
                   this.notification.info('Project updated');
                   return true;
                 });
