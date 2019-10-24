@@ -7,6 +7,7 @@ import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.compone
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {parseArgsStringToArgv} from 'string-argv';
 import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
+import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   @ViewChild('scrollTopTarget', {static: false}) scrollTopTarget: ElementRef<HTMLElement>;
   @ViewChild('scrollBottomTarget', {static: false}) scrollBottomTarget: ElementRef<HTMLElement>;
   @ViewChild('stageSelection', {static: false}) stageSelection: MatSelect;
+  @ViewChild('executionSelection', {static: false}) executionSelection: StageExecutionSelectionComponent;
 
   @Input() project: Project;
   @Output('state') stateEmitter = new EventEmitter<State>();
@@ -72,7 +74,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.filesAdditionalRoot = `${this.project.name};workspaces/${this.project.id}`;
     this.scrollCallback = () => this.onWindowScroll();
     window.addEventListener('scroll', this.scrollCallback, true);
-    this.pipelinesApi.getPipelineDefinitions().then(result => this.pipelines = result);
+    this.pipelinesApi.getPipelineDefinitions().then(result => {
+      this.pipelines = result;
+      this.executionSelection.pipelines = result;
+      this.executionSelection.defaultPipelineId = this.getProjectPipelineId();
+    });
   }
 
   ngOnDestroy(): void {
@@ -626,6 +632,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           .finally(() => this.longLoading.decrease());
       }
     }
+  }
+
+  getProjectPipelineId(): string {
+    if (this.pipelines != null) {
+      for (const pipeline of this.pipelines) {
+        if (this.project.pipelineDefinition.name === pipeline.name) {
+          return pipeline.id;
+        }
+      }
+    }
+    return null;
   }
 }
 

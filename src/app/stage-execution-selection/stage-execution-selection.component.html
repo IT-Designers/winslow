@@ -1,7 +1,7 @@
 <div *ngIf="pipelines != null" class="action-row">
   <mat-label class="title">Pipeline</mat-label>
   <mat-form-field>
-    <mat-select (selectionChange)="loadStagesForPipeline($event.value)">
+    <mat-select (valueChange)="loadStagesForPipeline($event)" [value]="defaultPipelineIdValue">
       <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
     </mat-select>
   </mat-form-field>

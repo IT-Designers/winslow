@@ -16,6 +16,8 @@ export class StageExecutionSelectionComponent implements OnInit {
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
   @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageInfo>();
 
+  defaultPipelineIdValue: string;
+
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageInfo = null;
   environmentVariables: Map<string, [boolean, string]> = null;
@@ -32,8 +34,14 @@ export class StageExecutionSelectionComponent implements OnInit {
   ngOnInit() {
   }
 
-  get valid(): boolean {
-    return this.formGroupEnv && this.formGroupEnv.valid;
+  isValid(): boolean {
+    return this.selectedPipeline != null && this.selectedStage != null && this.formGroupEnv && this.formGroupEnv.valid;
+  }
+
+  @Input()
+  set defaultPipelineId(id: string) {
+    this.defaultPipelineIdValue = id;
+    this.loadStagesForPipeline(id);
   }
 
   @Input()

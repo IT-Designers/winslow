@@ -8,12 +8,24 @@
 
     <form [formGroup]="formGroupControl">
       <div class="stage-control-item">
-        <app-stage-execution-selection #selection
+        <app-stage-execution-selection #executionSelection
                                        [pipelines]="pipelines"
                                        (selectedPipeline)="onSelectedPipelineChanged($event)"
                                        (selectedStage)="onSelectedStageChanged($event)"
                                        [defaultEnvironmentVariables]="defaultEnvVars">
         </app-stage-execution-selection>
+      </div>
+      <div class="stage-control-item stage-control-item-controls">
+        <button mat-stroked-button color="warn"
+                [disabled]="!executionSelection.isValid()"
+                (click)="enqueueNextStage(stageSelection.value)">
+          Group Action
+        </button>
+        <button mat-stroked-button color="primary"
+                [disabled]="!executionSelection.isValid()"
+                (click)="enqueueNextStage(stageSelection.value)">
+          Enqueue
+        </button>
       </div>
 
 
