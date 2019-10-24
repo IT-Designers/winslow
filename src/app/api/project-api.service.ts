@@ -164,10 +164,10 @@ export class Project {
   tags: string[];
   name: string;
   pipelineDefinition: PipelineInfo;
-  environment: Map<string, string>;
-  userInput: string[];
   // local only
   version: number;
+  environment: Map<string, string>;
+  userInput: string[];
 }
 
 export class HistoryEntry {
