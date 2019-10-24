@@ -11,7 +11,9 @@
 <div *ngIf="selectedPipeline != null" class="action-row">
   <mat-label class="title pipeline-to-stage-indention">Stage</mat-label>
   <mat-form-field>
-    <mat-select (selectionChange)="loadEnvForStageName($event.value)">
+    <mat-select
+      (selectionChange)="loadEnvForStageName($event.value)"
+      [value]="selectedPipeline"> <!-- get triggered when the pipeline changes -->
       <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.name">{{stage.name}}</mat-option>
     </mat-select>
   </mat-form-field>
@@ -28,7 +30,7 @@
   <div class="action-row">
     <mat-label class="title">Image Name</mat-label>
     <mat-form-field>
-      <input #imageName matInput required [value]="selectedStage.image.name" name="name">
+      <input #imageName matInput required [value]="selectedStage.image.name" (change)="image.name = $event.target.value">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"
@@ -41,7 +43,7 @@
   <div class="action-row">
     <mat-label class="title">Image Args</mat-label>
     <mat-form-field>
-      <input #imageArgs matInput required [value]="getSelectedImageArgs()" name="args">
+      <input #imageArgs matInput required [value]="getSelectedImageArgs()"  (change)="updateImageArgs($event.target.value)">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"
@@ -93,7 +95,7 @@
       </button>
       <button dense mat-raised-button color="primary" #button
               [disabled]="name.value.trim().length == 0 || value.value.trim().length == 0"
-              (click)="environmentVariables.set(name.value.trim(), [false, value.value.trim()]); name.value = null; value.value = null">
+              (click)="setEnvValue(name.value.trim(), value.value.trim()); name.value = null; value.value = null">
         Add
       </button>
     </div>
