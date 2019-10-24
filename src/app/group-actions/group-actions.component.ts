@@ -2,6 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {Project, ProjectApiService} from '../api/project-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
+import {MatDialog} from '@angular/material';
+import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 
 @Component({
   selector: 'app-group-actions',
@@ -21,12 +23,15 @@ export class GroupActionsComponent implements OnInit {
   excludeEmpty = false;
 
   pipelines: PipelineInfo[] = null;
-  stages: StageInfo[] = null;
   actionLoadError = null;
   actionLongLoading = new LongLoadingDetector();
 
+  selectedPipeline: PipelineInfo = null;
+  selectedStage: StageInfo = null;
+  environmentVariables: Map<string, [boolean, string]> = null;
 
-  constructor(public api: ProjectApiService, private pipelineApi: PipelineApiService) {
+
+  constructor(public api: ProjectApiService, private pipelineApi: PipelineApiService, private dialog: MatDialog) {
   }
 
   ngOnInit() {
@@ -69,10 +74,50 @@ export class GroupActionsComponent implements OnInit {
   }
 
   loadStagesForPipeline(pipelineId: string) {
-    this.actionLongLoading.increase();
-    this.pipelineApi.getStageDefinitions(pipelineId)
-      .then(result => this.stages = result)
-      .catch(err => this.actionLoadError = err)
-      .finally(() => this.actionLongLoading.decrease());
+    this.selectedPipeline = null;
+    this.selectedStage = null;
+    this.environmentVariables = null;
+
+    for (const pipeline of this.pipelines) {
+      if (pipeline.id === pipelineId) {
+        this.selectedPipeline = pipeline;
+        break;
+      }
+    }
+  }
+
+  loadEnvForStageName(stageName: string) {
+    if (this.selectedPipeline != null) {
+      for (const stage of this.selectedPipeline.stages) {
+        if (stage.name === stageName) {
+          this.selectedStage = stage;
+
+          this.environmentVariables = new Map();
+          this.selectedPipeline.requiredEnvVariables.forEach(env => this.environmentVariables.set(env, [true, null]));
+          this.selectedStage.requiredEnvVariables.forEach(env => this.environmentVariables.set(env, [true, null]));
+
+          break;
+        }
+      }
+    }
+  }
+
+  getSelectedImageArgs(): string {
+    return this.selectedStage.image.args.join(' ');
+  }
+
+  browseForValue(valueReceiver: HTMLInputElement) {
+    this.dialog.open(FileBrowseDialog, {
+      data: {
+        preselectedPath: valueReceiver.value.trim().length > 0 ? valueReceiver.value.trim() : null
+      }
+    })
+      .afterClosed()
+      .toPromise()
+      .then(result => {
+        if (result) {
+          valueReceiver.value = result;
+        }
+      });
   }
 }
