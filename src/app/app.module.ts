@@ -50,6 +50,7 @@ import {GroupActionsComponent} from './group-actions/group-actions.component';
 import {ScrollingModule} from '@angular/cdk/scrolling';
 import {TagsWithAutocompleteComponent} from './tags-with-autocomplete/tags-with-autocomplete.component';
 import { ProjectViewHeaderComponent } from './project-view-header/project-view-header.component';
+import { StageExecutionSelectionComponent } from './stage-execution-selection/stage-execution-selection.component';
 
 @NgModule({
   declarations: [
@@ -78,6 +79,7 @@ import { ProjectViewHeaderComponent } from './project-view-header/project-view-h
     GroupActionsComponent,
     TagsWithAutocompleteComponent,
     ProjectViewHeaderComponent,
+    StageExecutionSelectionComponent,
   ],
   imports: [
     HttpClientModule,

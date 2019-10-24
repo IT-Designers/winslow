@@ -105,6 +105,14 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 
+.whitespace-separator {
+  margin: 1em !important;
+}
+
+.whitespace-separator-top {
+  margin-top: 1.5em !important;
+}
+
 /* --- Mat-Design Fixes --- */
 .mat-expansion-panel-header-description {
   flex-grow: 0 !important;
