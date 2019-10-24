@@ -62,11 +62,11 @@
   </div>
   <div *ngFor="let envVar of environmentVariables | keyvalue" class="action-row">
     <mat-label class="title">{{envVar.key}}</mat-label>
-    <mat-form-field [formGroup]="formGroup">
+    <mat-form-field [formGroup]="formGroupEnv">
       <input #value matInput
              [required]="envVar.value[0]"
-             formControlName="env.{{envVar.key}}"
              [value]="envVar.value[1]"
+             [formControlName]="envVar.key"
              name="{{envVar.key}}">
     </mat-form-field>
     <div class="controls">
