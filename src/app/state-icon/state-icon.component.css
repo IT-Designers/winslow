@@ -1,6 +1,11 @@
+:host {
+  display: flex;
+}
 .state-icon {
   display: flex;
   width: 2em;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .state-icon-preparing {
