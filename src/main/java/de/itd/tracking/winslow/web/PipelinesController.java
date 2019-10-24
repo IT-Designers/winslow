@@ -8,11 +8,14 @@ import de.itd.tracking.winslow.config.*;
 import de.itd.tracking.winslow.fs.LockException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RestController
@@ -34,7 +37,7 @@ public class PipelinesController {
                         .getPipeline(identifier)
                         .unsafe()
                         .stream()
-                        .map(p -> new PipelineInfo(identifier, p.getName(), p.getDescription().orElse(null))));
+                        .map(p -> new PipelineInfo(identifier, p)));
     }
 
     @GetMapping("pipelines/{pipeline}")
@@ -43,7 +46,7 @@ public class PipelinesController {
                 .getPipelineRepository()
                 .getPipeline(pipeline)
                 .unsafe()
-                .map(p -> new PipelineInfo(pipeline, p.getName(), p.getDescription().orElse(null)));
+                .map(p -> new PipelineInfo(pipeline, p));
     }
 
     @GetMapping("pipelines/{pipeline}/raw")
@@ -142,7 +145,7 @@ public class PipelinesController {
                                     ))
                             );
                             container.update(def);
-                            return Optional.of(new PipelineInfo(id, name, null));
+                            return Optional.of(new PipelineInfo(id, def));
                         } else {
                             return Optional.empty();
                         }
@@ -154,26 +157,25 @@ public class PipelinesController {
     }
 
     public static class PipelineInfo {
-        private final String id;
-        private final String name;
-        private final String desc;
+        @Nonnull public final  String                           id;
+        @Nonnull public final  String                           name;
+        @Nullable public final String                           desc;
+        @Nonnull public final  List<String>                     requiredEnvVariables;
+        @Nonnull public final  List<StagesController.StageInfo> stages;
 
-        public PipelineInfo(String id, String name, String description) {
-            this.id   = id;
-            this.name = name;
-            this.desc = description;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDesc() {
-            return desc;
+        public PipelineInfo(@Nonnull String id, @Nonnull PipelineDefinition pipeline) {
+            this.id                   = id;
+            this.name                 = pipeline.getName();
+            this.desc                 = pipeline.getDescription().orElse(null);
+            this.requiredEnvVariables = pipeline
+                    .getUserInput()
+                    .map(UserInput::getValueFor)
+                    .orElseGet(Collections::emptyList);
+            this.stages               = pipeline
+                    .getStageDefinitions()
+                    .stream()
+                    .map(StagesController.StageInfo::new)
+                    .collect(Collectors.toUnmodifiableList());
         }
     }
 }
