@@ -47,98 +47,12 @@
 <mat-card>
   <mat-card-title>Stage Execution</mat-card-title>
   <mat-card-content class="flex-grow-column action-selector">
-    <div *ngIf="pipelines != null" class="action-row">
-      <mat-label class="title">Pipeline</mat-label>
-      <mat-form-field>
-        <mat-select (selectionChange)="loadStagesForPipeline($event.value)">
-          <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <div class="controls"></div>
-    </div>
+    <app-stage-execution-selection #selection
+                                   [pipelines]="pipelines">
+    </app-stage-execution-selection>
 
-    <div *ngIf="selectedPipeline != null" class="action-row">
-      <mat-label class="title pipeline-to-stage-indention">Stage</mat-label>
-      <mat-form-field>
-        <mat-select (selectionChange)="loadEnvForStageName($event.value)">
-          <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.name">{{stage.name}}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <div class="controls"></div>
-    </div>
-
-    <ng-container *ngIf="selectedPipeline != null && selectedStage != null && selectedStage.image != null">
-      <div>
-        <mat-divider></mat-divider>
-      </div>
-      <div class="whitespace-separator-top">
-        <mat-card-subtitle>Image Information</mat-card-subtitle>
-      </div>
-      <div class="action-row">
-        <mat-label class="title">Image Name</mat-label>
-        <mat-form-field>
-          <input matInput [value]="selectedStage.image.name">
-        </mat-form-field>
-        <div class="controls">
-          <button dense mat-stroked-button color="primary">Reset</button>
-        </div>
-      </div>
-      <div class="action-row">
-        <mat-label class="title">Image Args</mat-label>
-        <mat-form-field>
-          <input matInput [value]="getSelectedImageArgs()">
-        </mat-form-field>
-        <div class="controls">
-          <button dense mat-stroked-button color="primary">Reset</button>
-        </div>
-      </div>
-    </ng-container>
-
-    <ng-container *ngIf="environmentVariables != null">
-      <div>
-        <mat-divider></mat-divider>
-      </div>
-      <div class="whitespace-separator-top">
-        <mat-card-subtitle>Environment Variables</mat-card-subtitle>
-      </div>
-      <div *ngFor="let envVar of environmentVariables | keyvalue" class="action-row">
-        <mat-label class="title">{{envVar.key}}</mat-label>
-        <mat-form-field>
-          <input #value matInput [required]="envVar.value[0]" name="{{envVar.key}}" [value]="envVar.value[1]">
-        </mat-form-field>
-        <div class="controls">
-          <button mat-stroked-button color="primary" (click)="browseForValue(value)">
-            <mat-icon class="material-icons-outlined">folder</mat-icon>
-          </button>
-          <button mat-button color="warn" [disabled]="envVar.value[0]"
-                  [matTooltip]="envVar.value[0] ? 'This value is required' : null"
-                  (click)="environmentVariables.delete(envVar.key)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-      </div>
-      <div class="action-row">
-        <mat-form-field class="title">
-          <input matInput placeholder="Name" #name>
-        </mat-form-field>
-        <mat-form-field>
-          <input matInput placeholder="Value" #value>
-        </mat-form-field>
-        <div class="controls">
-          <button mat-stroked-button color="primary" (click)="browseForValue(value)">
-            <mat-icon class="material-icons-outlined">folder</mat-icon>
-          </button>
-          <button dense mat-raised-button color="primary" #button
-                  [disabled]="name.value.trim().length == 0 || value.value.trim().length == 0"
-                  (click)="environmentVariables.set(name.value.trim(), [false, value.value.trim()]); name.value = null; value.value = null">
-            Add
-          </button>
-        </div>
-      </div>
-    </ng-container>
-
-
-    <ng-container *ngIf="selectedPipeline != null && selectedStage != null">
+    <ng-container *ngIf="selection.
+    selectedStage != null && selection.selectedPipeline != null">
       <div>
         <mat-divider></mat-divider>
       </div>
@@ -148,8 +62,8 @@
       <div class="action-row">
         <div class="title"></div>
         <div class="centered-controls">
-          <button mat-stroked-button color="primary">Add by appending to queues</button>
-          <button mat-stroked-button color="warn">Add by replacing existing queues</button>
+          <button [disabled]="!selection.valid" mat-stroked-button color="primary">Add by appending to queues</button>
+          <button [disabled]="!selection.valid" mat-stroked-button color="warn">Add by replacing existing queues</button>
         </div>
         <div class="controls"></div>
       </div>

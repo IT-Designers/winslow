@@ -1,0 +1,102 @@
+<div *ngIf="pipelines != null" class="action-row">
+  <mat-label class="title">Pipeline</mat-label>
+  <mat-form-field>
+    <mat-select (selectionChange)="loadStagesForPipeline($event.value)">
+      <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div class="controls"></div>
+</div>
+
+<div *ngIf="selectedPipeline != null" class="action-row">
+  <mat-label class="title pipeline-to-stage-indention">Stage</mat-label>
+  <mat-form-field>
+    <mat-select (selectionChange)="loadEnvForStageName($event.value)">
+      <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.name">{{stage.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div class="controls"></div>
+</div>
+
+<ng-container *ngIf="selectedPipeline != null && selectedStage != null && selectedStage.image != null">
+  <div>
+    <mat-divider></mat-divider>
+  </div>
+  <div class="whitespace-separator-top">
+    <mat-card-subtitle>Image Information</mat-card-subtitle>
+  </div>
+  <div class="action-row">
+    <mat-label class="title">Image Name</mat-label>
+    <mat-form-field>
+      <input #imageName matInput required [value]="selectedStage.image.name" name="name">
+    </mat-form-field>
+    <div class="controls">
+      <button dense mat-stroked-button color="primary"
+              [disabled]="imageName.value == selectedStage.image.name"
+              (click)="imageName.value = selectedStage.image.name">
+        Reset
+      </button>
+    </div>
+  </div>
+  <div class="action-row">
+    <mat-label class="title">Image Args</mat-label>
+    <mat-form-field>
+      <input #imageArgs matInput required [value]="getSelectedImageArgs()" name="args">
+    </mat-form-field>
+    <div class="controls">
+      <button dense mat-stroked-button color="primary"
+              [disabled]="imageArgs.value == getSelectedImageArgs()"
+              (click)="imageArgs.value = getSelectedImageArgs()">
+        Reset
+      </button>
+    </div>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="environmentVariables != null">
+  <div>
+    <mat-divider></mat-divider>
+  </div>
+  <div class="whitespace-separator-top">
+    <mat-card-subtitle>Environment Variables</mat-card-subtitle>
+  </div>
+  <div *ngFor="let envVar of environmentVariables | keyvalue" class="action-row">
+    <mat-label class="title">{{envVar.key}}</mat-label>
+    <mat-form-field [formGroup]="formGroup">
+      <input #value matInput
+             [required]="envVar.value[0]"
+             formControlName="env.{{envVar.key}}"
+             [value]="envVar.value[1]"
+             name="{{envVar.key}}">
+    </mat-form-field>
+    <div class="controls">
+      <button mat-stroked-button color="primary" (click)="browseForValue(value)">
+        <mat-icon class="material-icons-outlined">folder</mat-icon>
+      </button>
+      <button mat-button color="warn" [disabled]="envVar.value[0]"
+              [matTooltip]="envVar.value[0] ? 'This value is required' : null"
+              (click)="environmentVariables.delete(envVar.key)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div class="action-row">
+    <mat-form-field class="title">
+      <input matInput placeholder="Name" #name>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput placeholder="Value" #value>
+    </mat-form-field>
+    <div class="controls">
+      <button mat-stroked-button color="primary" (click)="browseForValue(value)">
+        <mat-icon class="material-icons-outlined">folder</mat-icon>
+      </button>
+      <button dense mat-raised-button color="primary" #button
+              [disabled]="name.value.trim().length == 0 || value.value.trim().length == 0"
+              (click)="environmentVariables.set(name.value.trim(), [false, value.value.trim()]); name.value = null; value.value = null">
+        Add
+      </button>
+    </div>
+  </div>
+</ng-container>
+

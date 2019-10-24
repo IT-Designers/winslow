@@ -6,8 +6,14 @@
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
 
-
     <form [formGroup]="formGroupControl">
+      <div class="stage-control-item">
+        <app-stage-execution-selection #selection
+                                       [pipelines]="pipelines">
+        </app-stage-execution-selection>
+      </div>
+
+
       <div class="stage-control-item">
         <label>Pipeline</label>
 
