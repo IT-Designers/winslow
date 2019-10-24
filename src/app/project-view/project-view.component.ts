@@ -6,7 +6,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {parseArgsStringToArgv} from 'string-argv';
-import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
+import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 
 
 @Component({
@@ -59,6 +59,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   consoleIsLoading = false;
   scrollCallback;
   pipelines: PipelineInfo[];
+
+  selectedPipeline: PipelineInfo = null;
+  selectedStage: StageInfo = null;
+  defaultEnvVars: Map<string, string> = null;
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -598,6 +602,30 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       })
       .catch(err => this.notification.error('Request failed: ' + JSON.stringify(err)))
       .finally(() => this.longLoading.decrease());
+  }
+
+  onSelectedPipelineChanged(info: PipelineInfo) {
+    this.selectedPipeline = info;
+  }
+
+  onSelectedStageChanged(info: StageInfo) {
+    this.selectedStage = info;
+    if (this.selectedPipeline != null && this.selectedStage != null) {
+      if (this.selectedPipeline.name === this.project.pipelineDefinition.name) {
+        let index = null;
+        for (let i = 0; i < this.selectedPipeline.stages.length; ++i) {
+          if (this.selectedPipeline.stages[i].name === this.selectedStage.name) {
+            index = i;
+            break;
+          }
+        }
+        this.longLoading.increase();
+        this.api.getEnvironment(this.project.id, index)
+          .toPromise()
+          .then(result => this.defaultEnvVars = result)
+          .finally(() => this.longLoading.decrease());
+      }
+    }
   }
 }
 
