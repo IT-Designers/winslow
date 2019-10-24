@@ -62,8 +62,8 @@
       <div class="action-row">
         <div class="title"></div>
         <div class="centered-controls">
-          <button [disabled]="!selection.valid" mat-stroked-button color="primary">Add by appending to queues</button>
-          <button [disabled]="!selection.valid" mat-stroked-button color="warn">Add by replacing existing queues</button>
+          <button [disabled]="!selection.isValid()" mat-stroked-button color="primary">Add by appending to queues</button>
+          <button [disabled]="!selection.isValid()" mat-stroked-button color="warn">Add by replacing existing queues</button>
         </div>
         <div class="controls"></div>
       </div>
