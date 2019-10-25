@@ -147,43 +147,41 @@ public class Orchestrator {
     }
 
     private void pollAllPipelinesForUpdate() {
-        try (var pipelines = this.pipelines.getAllPipelines()) {
-            pipelines.filter(handle -> {
-                try {
-                    var locked       = handle.isLocked();
-                    var pipe         = handle.unsafe();
-                    var projectId    = pipe.map(Pipeline::getProjectId);
-                    var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
-                    var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
-                    var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
+        this.pipelines.getAllPipelines().filter(handle -> {
+            try {
+                var locked       = handle.isLocked();
+                var pipe         = handle.unsafe();
+                var projectId    = pipe.map(Pipeline::getProjectId);
+                var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
+                var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
+                var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
 
-                    LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", inconsistent=" + inconsistent + " projectId=" + projectId);
+                LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", inconsistent=" + inconsistent + " projectId=" + projectId);
 
-                    return !locked && ((hasUpdate && capable) || inconsistent);
-                } catch (Throwable t) {
-                    LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
-                    return false;
+                return !locked && ((hasUpdate && capable) || inconsistent);
+            } catch (Throwable t) {
+                LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
+                return false;
+            }
+        }).map(BaseRepository.Handle::exclusive).flatMap(Optional::stream).forEach(container -> {
+            var projectId = container.getNoThrow().map(Pipeline::getProjectId);
+            var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
+
+            try {
+                if (project.isPresent()) {
+                    updatePipeline(project.get().getPipelineDefinition(), container);
+                } else {
+                    LOG.warning("Failed to load project for project " + projectId + ", " + container.getLock());
                 }
-            }).map(BaseRepository.Handle::exclusive).flatMap(Optional::stream).forEach(container -> {
-                var projectId = container.getNoThrow().map(Pipeline::getProjectId);
-                var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
+            } catch (OrchestratorException e) {
+                LOG.log(
+                        Level.SEVERE,
+                        "Failed to update pipeline " + container.getNoThrow().map(Pipeline::getProjectId),
+                        e
+                );
+            }
 
-                try {
-                    if (project.isPresent()) {
-                        updatePipeline(project.get().getPipelineDefinition(), container);
-                    } else {
-                        LOG.warning("Failed to load project for project " + projectId + ", " + container.getLock());
-                    }
-                } catch (OrchestratorException e) {
-                    LOG.log(
-                            Level.SEVERE,
-                            "Failed to update pipeline " + container.getNoThrow().map(Pipeline::getProjectId),
-                            e
-                    );
-                }
-
-            });
-        }
+        });
     }
 
     private Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
@@ -702,9 +700,10 @@ public class Orchestrator {
             var dirBefore = workDirBefore.get();
             var failure   = Optional.<IOException>empty();
 
-            try {
-                LOG.fine("Source workspace directory: " + workDirBefore.get());
-                failure = Files.walk(workDirBefore.get()).flatMap(path -> {
+            LOG.fine("Source workspace directory: " + workDirBefore.get());
+
+            try (var walk = Files.walk(workDirBefore.get())) {
+                failure = walk.flatMap(path -> {
                     try {
                         var file = path.toFile();
                         var dst  = workspace.resolve(dirBefore.relativize(path));

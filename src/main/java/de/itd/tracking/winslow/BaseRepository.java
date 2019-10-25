@@ -12,6 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class BaseRepository {
@@ -50,9 +51,9 @@ public abstract class BaseRepository {
     }
 
     @Nonnull
-    protected Stream<Path> listAllInDirectory(Path directory) {
-        try {
-            return Files.list(directory);
+    protected static Stream<Path> listAllInDirectory(Path directory) {
+        try (var files = Files.list(directory)) {
+            return files.collect(Collectors.toUnmodifiableList()).stream();
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to list all entries in directory: " + directory, e);
             return Stream.empty();

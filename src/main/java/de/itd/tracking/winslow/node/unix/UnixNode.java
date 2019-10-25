@@ -78,12 +78,13 @@ public class UnixNode implements Node {
 
     @Nonnull
     private static String loadCpuModel() throws IOException {
-        return Files
-                .lines(resolveCpuInfo())
-                .filter(line -> line.startsWith(CPU_INFO_MODEL_PREFIX))
-                .map(line -> line.split(CPU_INFO_SEPARATOR, 2)[1].trim())
-                .findFirst()
-                .orElseThrow(() -> new IOException("Invalid cpu info file format"));
+        try (var lines = Files.lines(resolveCpuInfo())) {
+            return lines
+                    .filter(line -> line.startsWith(CPU_INFO_MODEL_PREFIX))
+                    .map(line -> line.split(CPU_INFO_SEPARATOR, 2)[1].trim())
+                    .findFirst()
+                    .orElseThrow(() -> new IOException("Invalid cpu info file format"));
+        }
     }
 
     @Nonnull
@@ -103,14 +104,18 @@ public class UnixNode implements Node {
     }
 
     private static List<UnixCpuInfoParser.CpuTimes> getCpuTimes(@Nonnull Path path) throws IOException {
-        List<String> lines      = Files.lines(path).collect(Collectors.toUnmodifiableList());
-        String[]     linesArray = new String[lines.size()];
-        return new UnixCpuInfoParser(lines.toArray(linesArray)).getCpuTimes();
+        try (var lineStream = Files.lines(path)) {
+            List<String> lines      = lineStream.collect(Collectors.toUnmodifiableList());
+            String[]     linesArray = new String[lines.size()];
+            return new UnixCpuInfoParser(lines.toArray(linesArray)).getCpuTimes();
+        }
     }
 
     @Nonnull
     private static MemInfo loadMemInfo() throws IOException {
-        return new UnixMemInfoParser(Files.lines(resolveMemInfo())).parseMemInfo();
+        try (var lines = Files.lines(resolveMemInfo())) {
+            return UnixMemInfoParser.parseMemInfo(lines);
+        }
     }
 
     private NetInfo loadNetInfo() throws IOException {
@@ -131,9 +136,11 @@ public class UnixNode implements Node {
     }
 
     private static List<UnixNetIoParser.InterfaceInfo> getInterfaceInfo(@Nonnull Path path) throws IOException {
-        return UnixNetIoParser
-                .getNetInfoConsiderOnlyPhysicalInterfaces(Files.lines(path))
-                .collect(Collectors.toUnmodifiableList());
+        try (var lines = Files.lines(path)) {
+            return UnixNetIoParser
+                    .getNetInfoConsiderOnlyPhysicalInterfaces(lines)
+                    .collect(Collectors.toUnmodifiableList());
+        }
     }
 
     private DiskInfo loadDiskInfo() throws IOException {
@@ -154,8 +161,10 @@ public class UnixNode implements Node {
     }
 
     private static List<UnixDiskIoParser.DiskInfo> getDiskInfo(@Nonnull Path path) throws IOException {
-        return UnixDiskIoParser
-                .getDiskInfoConsiderOnlyPhysicalInterfaces(Files.lines(path))
-                .collect(Collectors.toUnmodifiableList());
+        try (var lines = Files.lines(path)) {
+            return UnixDiskIoParser
+                    .getDiskInfoConsiderOnlyPhysicalInterfaces(lines)
+                    .collect(Collectors.toUnmodifiableList());
+        }
     }
 }

@@ -38,10 +38,7 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
         String pattern = " " + workDir.toFile().getCanonicalPath() + " ";
         String line;
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(openOneOf(
-                "/etc/mtab",
-                "/proc/mounts"
-        )))) {
+        try (BufferedReader reader = newReaderForOneOf("/etc/mtab", "/proc/mounts")) {
             while ((line = reader.readLine()) != null) {
                 if (line.contains(pattern) && line.contains(NFS_TYPE_PATTERN)) {
                     try {
@@ -58,7 +55,11 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
         throw new IOException("Working director '" + workDir + "' is not mounted");
     }
 
-    private static FileInputStream openOneOf(String... files) throws IOException {
+    private static BufferedReader newReaderForOneOf(@Nonnull String...files) throws IOException {
+        return new BufferedReader(new InputStreamReader(openOneOf(files)));
+    }
+
+    private static FileInputStream openOneOf(@Nonnull String... files) throws IOException {
         for (int i = 0; i < files.length; ++i) {
             try {
                 return new FileInputStream(files[i]);

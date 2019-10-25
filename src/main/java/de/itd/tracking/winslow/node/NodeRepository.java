@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static de.itd.tracking.winslow.node.NodeInfoUpdater.TMP_FILE_SUFFIX;
@@ -33,11 +34,12 @@ public class NodeRepository extends BaseRepository {
     }
 
     private Stream<Path> listActiveNodePaths() {
-        try {
-            return Files
-                    .list(getRepositoryDirectory())
+        try (var files = Files.list(getRepositoryDirectory())) {
+            return files
                     .filter(p -> !p.toString().endsWith(TMP_FILE_SUFFIX))
-                    .filter(p -> System.currentTimeMillis() - p.toFile().lastModified() < ACTIVE_MAX_MS_DIFF);
+                    .filter(p -> System.currentTimeMillis() - p.toFile().lastModified() < ACTIVE_MAX_MS_DIFF)
+                    .collect(Collectors.toList())
+                    .stream();
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to list nodes", e);
             return Stream.empty();
@@ -51,11 +53,9 @@ public class NodeRepository extends BaseRepository {
 
     @Nonnull
     public Optional<NodeInfo> getNodeInfo(@Nonnull String name) {
-        try (var paths = listActiveNodePaths()) {
-            return paths
-                    .filter(p -> p.getFileName().toString().startsWith(name))
-                    .findFirst()
-                    .flatMap(p -> getUnsafe(p, defaultReader(NodeInfo.class)));
-        }
+        return listActiveNodePaths()
+                .filter(p -> p.getFileName().toString().startsWith(name))
+                .findFirst()
+                .flatMap(p -> getUnsafe(p, defaultReader(NodeInfo.class)));
     }
 }

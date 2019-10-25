@@ -13,14 +13,11 @@ public class UnixMemInfoParser {
     public static final String SEPARATOR_VALUE    = " ";
     public static final int    MEMINFO_LINE_COUNT = 51;
 
-    @Nonnull private final Stream<String> lines;
-
-    public UnixMemInfoParser(@Nonnull Stream<String> lines) {
-        this.lines = lines;
+    private UnixMemInfoParser() {
     }
 
     @Nonnull
-    public MemInfo parseMemInfo() {
+    public static MemInfo parseMemInfo(@Nonnull Stream<String> lines) {
         var info = new HashMap<String, Long>(MEMINFO_LINE_COUNT);
         lines.map(l -> l.split(SEPARATOR)).forEach(l -> info.put(l[0].trim(), parseValueAsNumberOfBytes(l[1])));
 
