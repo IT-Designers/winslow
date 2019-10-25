@@ -1,0 +1,10 @@
+<mat-list>
+  <mat-list-item *ngFor="let project of projects">
+    <app-project-view-header
+      [project]="project"
+      [running]="isRunning(project)"
+      [progress]="getProgress(project)"
+      [pauseReason]="getPauseReason(project)">
+    </app-project-view-header>
+  </mat-list-item>
+</mat-list>

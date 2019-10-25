@@ -17,7 +17,7 @@
     <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item stage-control-item-controls">
       <button mat-stroked-button color="warn"
               [disabled]="!executionSelection.isValid()"
-              (click)="enqueue(
+              (click)="enqueueGroup(
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),

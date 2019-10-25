@@ -37,7 +37,12 @@ import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
-import {DeleteProjectAreYouSureDialog, ProjectViewComponent, StopStageAreYouSureDialog} from './project-view/project-view.component';
+import {
+  DeleteProjectAreYouSureDialog,
+  GroupActionDialog,
+  ProjectViewComponent,
+  StopStageAreYouSureDialog
+} from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
 import {ServerComponent} from './server/server.component';
@@ -51,6 +56,8 @@ import {ScrollingModule} from '@angular/cdk/scrolling';
 import {TagsWithAutocompleteComponent} from './tags-with-autocomplete/tags-with-autocomplete.component';
 import { ProjectViewHeaderComponent } from './project-view-header/project-view-header.component';
 import { StageExecutionSelectionComponent } from './stage-execution-selection/stage-execution-selection.component';
+import { ProjectListComponent } from './project-list/project-list.component';
+import { TagFilterComponent } from './tag-filter/tag-filter.component';
 
 @NgModule({
   declarations: [
@@ -80,6 +87,9 @@ import { StageExecutionSelectionComponent } from './stage-execution-selection/st
     TagsWithAutocompleteComponent,
     ProjectViewHeaderComponent,
     StageExecutionSelectionComponent,
+    GroupActionDialog,
+    ProjectListComponent,
+    TagFilterComponent,
   ],
   imports: [
     HttpClientModule,
@@ -143,6 +153,7 @@ import { StageExecutionSelectionComponent } from './stage-execution-selection/st
     DeleteProjectAreYouSureDialog,
     StopStageAreYouSureDialog,
     CreatePipelineDialogComponent,
+    GroupActionDialog,
   ]
 })
 export class AppModule { }
