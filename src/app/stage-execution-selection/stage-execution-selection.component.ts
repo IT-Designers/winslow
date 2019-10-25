@@ -13,25 +13,8 @@ import {parseArgsStringToArgv} from 'string-argv';
 })
 export class StageExecutionSelectionComponent implements OnInit {
 
-  constructor(private dialog: MatDialog) {
-  }
-
-  @Input()
-  set defaultPipelineId(id: string) {
-    this.defaultPipelineIdValue = id;
-    this.loadStagesForPipeline(id);
-  }
-
-  @Input()
-  set defaultEnvironmentVariables(map: Map<string, string>) {
-    this.defaultEnvironmentVariablesValue = map;
-    if (map != null) {
-      map.forEach((value, key) => this.setEnvValue(key, value));
-      setTimeout(() => this.formGroupEnv.markAllAsTouched());
-    }
-  }
-
   @Input() pipelines: PipelineInfo[];
+  @Input() pipelineSelectionDisabled = false;
 
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
   @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageInfo>();
@@ -50,7 +33,25 @@ export class StageExecutionSelectionComponent implements OnInit {
     return JSON.parse(JSON.stringify(image));
   }
 
+  constructor(private dialog: MatDialog) {
+  }
+
   ngOnInit() {
+  }
+
+  @Input()
+  set defaultPipelineId(id: string) {
+    this.defaultPipelineIdValue = id;
+    this.loadStagesForPipeline(id);
+  }
+
+  @Input()
+  set defaultEnvironmentVariables(map: Map<string, string>) {
+    this.defaultEnvironmentVariablesValue = map;
+    if (map != null) {
+      map.forEach((value, key) => this.setEnvValue(key, value));
+      setTimeout(() => this.formGroupEnv.markAllAsTouched());
+    }
   }
 
   isValid(): boolean {

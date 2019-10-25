@@ -1,7 +1,10 @@
 <div *ngIf="pipelines != null" class="action-row">
   <mat-label class="title">Pipeline</mat-label>
   <mat-form-field>
-    <mat-select (valueChange)="loadStagesForPipeline($event)" [value]="defaultPipelineIdValue">
+    <mat-select
+      [value]="defaultPipelineIdValue"
+      [disabled]="pipelineSelectionDisabled"
+      (valueChange)="loadStagesForPipeline($event)">
       <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
     </mat-select>
   </mat-form-field>
@@ -30,7 +33,8 @@
   <div class="action-row">
     <mat-label class="title">Image Name</mat-label>
     <mat-form-field>
-      <input #imageName matInput required [value]="selectedStage.image.name" (change)="image.name = $event.target.value">
+      <input #imageName matInput required [value]="selectedStage.image.name"
+             (change)="image.name = $event.target.value">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"
@@ -43,7 +47,8 @@
   <div class="action-row">
     <mat-label class="title">Image Args</mat-label>
     <mat-form-field>
-      <input #imageArgs matInput required [value]="getSelectedImageArgs()"  (change)="updateImageArgs($event.target.value)">
+      <input #imageArgs matInput required [value]="getSelectedImageArgs()"
+             (change)="updateImageArgs($event.target.value)">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"

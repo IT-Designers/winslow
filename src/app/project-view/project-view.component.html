@@ -7,11 +7,13 @@
     </div>
 
     <div class="stage-control-item">
-      <app-stage-execution-selection #executionSelection
-                                     [pipelines]="pipelines"
-                                     (selectedPipeline)="onSelectedPipelineChanged($event)"
-                                     (selectedStage)="onSelectedStageChanged($event)"
-                                     [defaultEnvironmentVariables]="defaultEnvVars">
+      <app-stage-execution-selection
+          #executionSelection
+          [pipelineSelectionDisabled]="true"
+          [pipelines]="pipelines"
+          (selectedPipeline)="onSelectedPipelineChanged($event)"
+          (selectedStage)="onSelectedStageChanged($event)"
+          [defaultEnvironmentVariables]="defaultEnvVars">
       </app-stage-execution-selection>
     </div>
     <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item stage-control-item-controls">
