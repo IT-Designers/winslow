@@ -67,6 +67,9 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   setEnvValue(key: string, value: string) {
     this.prepareEnvFormControl(key, value);
+    if (this.environmentVariables == null) {
+      this.environmentVariables = new Map();
+    }
     const current = this.environmentVariables.get(key);
     if (current != null) {
       this.environmentVariables.set(key, [current[0], value]);
@@ -113,6 +116,9 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   setEnvRequired(key: string) {
     this.prepareEnvFormControl(key, null);
+    if (this.environmentVariables == null) {
+      this.environmentVariables = new Map();
+    }
     const value = this.environmentVariables.get(key);
     if (value != null) {
       this.environmentVariables.set(key, [true, value[1]]);
@@ -132,7 +138,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   getSelectedImageArgs(): string {
-    return this.selectedStage.image.args.join(' ');
+    return this.image && this.image.args ? this.image.args.join(' ') : '';
   }
 
   browseForValue(valueReceiver: HTMLInputElement) {

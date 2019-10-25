@@ -1,11 +1,8 @@
 import {Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {CanDisable, MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSelect, MatTabGroup} from '@angular/material';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSelect, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {parseArgsStringToArgv} from 'string-argv';
 import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
 
@@ -52,14 +49,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   loadLogsOnceAnyway = false;
 
   longLoading = new LongLoadingDetector();
-  formGroupControl = new FormGroup({}, [Validators.required]);
-
-  image: ImageInfo = null;
-  imageOriginal: ImageInfo = null;
 
   stickConsole = true;
   consoleIsLoading = false;
   scrollCallback;
+
   pipelines: PipelineInfo[];
 
   selectedPipeline: PipelineInfo = null;
@@ -173,8 +167,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   loadHistory() {
     this.longLoading.increase();
-    return this.api.getProjectHistory(this.project.id)
-      .toPromise()
+    return this.api
+      .getProjectHistory(this.project.id)
       .then(history => {
         history = history.reverse();
         return this.api.getProjectEnqueued(this.project.id)
@@ -313,98 +307,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  resetStageSelection() {
-    this.recreateFormGroup([]);
-    this.project.userInput = null;
-    this.project.environment = null;
-  }
-
-  onOverwriteStageSelectionChanged(index: number) {
-    this.longLoading.increase();
-    return this.api
-      .getRequiredUserInput(this.project.id, index)
-      .toPromise()
-      .then(required => {
-        this.recreateFormGroup(required);
-        this.project.userInput = required;
-        return this.api
-          .getEnvironment(this.project.id, index)
-          .toPromise()
-          .then(env => {
-            for (const req of required) {
-              if (!env.has(req)) {
-                env.set(req, null);
-              }
-            }
-            this.project.environment = env;
-            this.recreateFormGroup([...this.project.environment.keys()].sort((a, b) => a.localeCompare(b)));
-
-            return this.api
-              .getImage(this.project.id, index)
-              .toPromise()
-              .then(image => {
-                if (image != null) {
-                  this.imageOriginal = this.image = image;
-                }
-              });
-          });
-      })
-      .catch(err => this.notification.error('Failed to retrieve environment: ' + err))
-      .finally(() => this.longLoading.decrease());
-  }
-
-  private recreateFormGroup(required: string[]) {
-    const fg = {};
-    for (const req of required) {
-      fg[req] = new FormControl(
-        this.project && this.project.environment
-          ? this.project.environment.get(req)
-          : null,
-        Validators.required
-      );
-    }
-    this.formGroupControl = new FormGroup(fg, Validators.required);
-    this.formGroupControl.markAllAsTouched();
-  }
-
-  openFileBrowseDialog(key: string) {
-    this.createDialog.open(FileBrowseDialog, {
-      width: '75%',
-      data: {
-        // additionalRoot: `${this.project.name};workspaces/${this.project.id}`,
-        preselectedPath: this.project.environment.get(key) || '/resources/',
-      },
-    }).afterClosed().toPromise().then(result => {
-      if (result != null) {
-        this.formGroupControl.get(key).setValue(result);
-      }
-    });
-  }
-
-  addEnvironment(key: string, value: string) {
-    this.project.environment.set(key, value);
-    this.formGroupControl.addControl(key, new FormControl(value));
-  }
-
-  deleteEnvironment(key: string) {
-    this.project.environment.delete(key);
-    this.formGroupControl.removeControl(key);
-  }
-
-  stringify(args: string[]) {
-    return args.map(v => {
-      if (v.indexOf(' ') >= 0) {
-        return '"' + v + '"';
-      } else {
-        return v;
-      }
-    }).join(' ');
-  }
-
-  parse(args: string) {
-    return parseArgsStringToArgv(args);
-  }
-
   sourceIsManagement(source: LogSource) {
     return source === LogSource.MANAGEMENT_EVENT;
   }
@@ -481,23 +383,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   reRun(entry: HistoryEntry) {
+    const stageInfo = new StageInfo();
+    stageInfo.image = ProjectViewComponent.deepClone(entry.imageInfo);
+    stageInfo.name = entry.stageName;
+    stageInfo.requiredEnvVariables = entry.env && entry.env.keys ? [...entry.env.keys()] : [];
+
+    this.executionSelection.image = stageInfo.image;
+    this.executionSelection.selectedStage = stageInfo;
+    this.defaultEnvVars = entry.env;
     this.tabs.selectedIndex = 0;
-    for (let i = 0; i < this.project.pipelineDefinition.stages.length; ++i) {
-      if (entry.stageName === this.project.pipelineDefinition.stages[i].name) {
-
-        const list = this.stageSelection.options.map(e => e); // clone array
-
-        this.stageSelection.value = i;
-        // this.stageSelection.valueChange.emit(list[i]);
-
-        this.onOverwriteStageSelectionChanged(i).then(result => {
-          this.image = ProjectViewComponent.deepClone(entry.imageInfo);
-          this.imageOriginal = ProjectViewComponent.deepClone(entry.imageInfo);
-          this.project.environment = ProjectViewComponent.deepClone(entry.env);
-        });
-        break;
-      }
-    }
   }
 
   scrollBottom() {
@@ -550,64 +444,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             .finally(() => this.longLoading.decrease());
         }
       });
-  }
-
-  setPipelineAdapter(pipelineName: string, onSuccessDisable: HTMLInputElement | HTMLButtonElement | CanDisable, selection: HTMLSelectElement | MatSelect) {
-    let pipelineId = null;
-    for (const def of this.pipelines) {
-      if (def.name === pipelineName) {
-        pipelineId = def.id;
-        break;
-      }
-    }
-    if (pipelineId) {
-      this.setPipeline(pipelineId).then(result => {
-        if (onSuccessDisable) {
-          onSuccessDisable.disabled = result;
-        }
-        if (result && selection != null) {
-          if (selection.value != null) {
-            const index = Math.min(Number(selection.value), this.project.pipelineDefinition.stages.length - 1);
-            (selection as MatSelect).value = String(index);
-            (selection as MatSelect).valueChange.emit(String(index));
-            return this.onOverwriteStageSelectionChanged(index);
-          } else {
-            this.resetStageSelection();
-          }
-        }
-      });
-    }
-  }
-
-  setPipeline(pipelineId: string): Promise<boolean> {
-    this.longLoading.increase();
-    return this.api
-      .setPipelineDefinition(this.project.id, pipelineId)
-      .toPromise()
-      .then(result => {
-        if (result) {
-          return this.pipelinesApi
-            .getPipelineDefinition(pipelineId)
-            .then(pipeline => {
-              return this.pipelinesApi
-                .getStageDefinitions(pipeline.id)
-                .then(stages => {
-                  this.project.pipelineDefinition = pipeline;
-                  this.project.pipelineDefinition.id = pipelineId;
-                  this.project.pipelineDefinition.stages = stages;
-                  this.notification.info('Project updated');
-                  return true;
-                });
-            });
-        } else {
-          return Promise.reject(result);
-        }
-      })
-      .catch(err => {
-        this.notification.error('Update declined: ' + JSON.stringify(err));
-        return Promise.reject(err); // !??!??
-      })
-      .finally(() => this.longLoading.decrease());
   }
 
   setTags(tags: string[]) {
