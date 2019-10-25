@@ -26,7 +26,6 @@ export class GroupActionsComponent implements OnInit {
   ngOnInit() {
     this.projectsLongLoading.increase();
     this.api.listProjects()
-      .toPromise()
       .then(projects => this.filtered = this.projects = projects)
       .catch(err => this.projectsLoadError = err)
       .finally(() => this.projectsLongLoading.decrease());

@@ -1,8 +1,3 @@
-.tag-filter > * {
-  flex-grow: 1;
-  margin: 0 1em;
-}
-
 .action-selector > * {
   flex-grow: 1;
   margin: 0 1em;
