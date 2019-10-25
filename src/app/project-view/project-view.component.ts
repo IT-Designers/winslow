@@ -5,6 +5,7 @@ import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSelect, MatTabGroup} from '
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
+import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
 
 
 @Component({
@@ -232,11 +233,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.longLoading.increase();
     this.api.listProjects()
       .then(projects => {
-        return this.createDialog.open(GroupActionDialog, {
+        return this.createDialog.open(GroupSettingsDialogComponent, {
           data: {
             projects,
             availableTags: this.api.cachedTags,
-          } as GroupActionDialogData
+          } as GroupSettingsDialogData
         });
       })
       .finally(() => this.longLoading.decrease());
@@ -537,40 +538,4 @@ export class StopStageAreYouSureDialog {
     public dialogRef: MatDialogRef<StopStageAreYouSureDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any) {
   }
-}
-
-
-@Component({
-  selector: 'dialog-group-action',
-  template: `
-      <h1 mat-dialog-title>Filter for the Stages you want to modify</h1>
-      <div mat-dialog-content style="padding: 0 2em 0 2em; display: flex; flex-direction: column">
-          <app-tag-filter [availableTags]="availableTags" [projects]="projects" (filtered)="this.filtered = $event">
-          </app-tag-filter>
-          <div style="margin: 2em 1em; border: 1px solid silver; overflow: auto">
-              <app-project-list [projects]="filtered"></app-project-list>
-          </div>
-      </div>
-      <div mat-dialog-actions align="end">
-          <button mat-stroked-button color="warn" (click)="dialogRef.close(true)">Enqueue, <strong>replace</strong> existing queues</button>
-          <button mat-stroked-button color="primary" (click)="dialogRef.close(true)">Enqueue, <strong>append</strong> on existing queues</button>
-          <button mat-stroked-button (click)="dialogRef.close(false)">Cancel</button>
-      </div>`
-})
-export class GroupActionDialog {
-
-  availableTags: string[];
-  projects: Project[];
-  filtered: Project[];
-
-  constructor(
-    public dialogRef: MatDialogRef<GroupActionDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: GroupActionDialogData) {
-    this.projects = data.projects.sort((a, b) => a.name.localeCompare(b.name));
-    this.availableTags = data.availableTags;
-  }
-}
-export class GroupActionDialogData {
-  projects: Project[];
-  availableTags: string[];
 }
