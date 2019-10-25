@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -417,36 +418,6 @@ public class ProjectsController {
                                 .stream()
                                 .flatMap(u -> u.getValueFor().stream())
                 ));
-    }
-
-    @GetMapping("projects/{projectId}/{stageIndex}/image")
-    public Optional<ImageInfo> getImage(
-            User user,
-            @PathVariable("projectId") String projectId,
-            @PathVariable("stageIndex") int stageIndex) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
-                .flatMap(project -> project
-                        .getPipelineDefinition()
-                        .getStageDefinitions()
-                        .stream()
-                        .skip(stageIndex)
-                        .findFirst()
-                        .flatMap(def -> winslow
-                                .getOrchestrator()
-                                .getPipeline(project)
-                                .map(pipeline -> pipeline
-                                        .getAllStages()
-                                        .filter(stage -> stage.getDefinition().getName().equals(def.getName()))
-                                        .map(Stage::getDefinition)
-                                        .reduce((first, second) -> second)
-                                        .orElse(def)))
-                        .flatMap(StageDefinition::getImage)
-                        .map(ImageInfo::new)
-                );
     }
 
     @PostMapping("projects/{projectId}/pipeline/{pipelineId}")
