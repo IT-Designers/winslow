@@ -13,9 +13,10 @@ public class WebApi {
     public static Context start(Winslow winslow) {
         var builder = new SpringApplicationBuilder(WebApi.class).web(WebApplicationType.SERVLET);
 
-        builder.application().addInitializers((GenericApplicationContext context) -> {
-            context.registerBean(Winslow.class, () -> winslow);
-        });
+        builder.application().addInitializers((GenericApplicationContext context) -> context.registerBean(
+                Winslow.class,
+                () -> winslow
+        ));
 
         return new Context(builder.run());
     }

@@ -46,13 +46,11 @@ public class PipelineDefinitionRepository extends BaseRepository {
 
     public Stream<String> getPipelineIdentifiers() {
         try {
-            return Files.list(workDirectoryConfiguration.getPipelinesDirectory()).map(path -> path
-                    .getFileName()
-                    .toString()).filter(name -> name.endsWith(SUFFIX)).map(name -> name.substring(
-                    0,
-                    name.length() - SUFFIX
-                            .length()
-            ));
+            return Files
+                    .list(workDirectoryConfiguration.getPipelinesDirectory())
+                    .map(path -> path.getFileName().toString())
+                    .filter(name -> name.endsWith(SUFFIX))
+                    .map(name -> name.substring(0, name.length() - SUFFIX.length()));
         } catch (IOException e) {
             return Stream.empty();
         }

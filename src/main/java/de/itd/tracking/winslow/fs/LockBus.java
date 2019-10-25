@@ -31,7 +31,7 @@ public class LockBus {
     private final Path               eventDirectory;
     private final Map<String, Event> locks = new HashMap<>();
 
-    private final Map<Event.Command, List<Consumer<Event>>> listener = new HashMap<>();
+    private final Map<Event.Command, List<Consumer<Event>>> listener = new EnumMap<>(Event.Command.class);
 
     private int eventCounter = 0;
 
@@ -71,7 +71,10 @@ public class LockBus {
             try {
                 var key = ws.poll(1, TimeUnit.MINUTES);
                 if (key != null) {
-                    key.reset();
+                    if (!key.reset() || !key.isValid()) {
+                        key.cancel();
+                        continue;
+                    }
                     for (var event : key.pollEvents()) {
                         try {
                             var path = (Path) event.context();
@@ -246,16 +249,20 @@ public class LockBus {
     }
 
     private Path nextEventPath() throws IOException {
-        Files.list(eventDirectory).flatMap(p -> {
-            try {
-                return Stream.of(Integer.parseInt(p.getFileName().toString()));
-            } catch (NumberFormatException ee) {
-                return Stream.empty();
-            }
-        }).filter(a -> a >= this.eventCounter).min(Comparator.comparingInt(a -> a)).ifPresent(next -> {
-            this.eventCounter = next;
-        });
-        return this.eventDirectory.resolve(this.getEventFileNameForCurrentCounter());
+        try (var stream = Files.list(eventDirectory)) {
+            stream
+                    .flatMap(p -> {
+                        try {
+                            return Stream.of(Integer.parseInt(p.getFileName().toString()));
+                        } catch (NumberFormatException ee) {
+                            return Stream.empty();
+                        }
+                    })
+                    .filter(a -> a >= this.eventCounter)
+                    .min(Comparator.comparingInt(a -> a))
+                    .ifPresent(next -> this.eventCounter = next);
+            return this.eventDirectory.resolve(this.getEventFileNameForCurrentCounter());
+        }
     }
 
     private String getEventFileNameForCurrentCounter() {
@@ -312,10 +319,7 @@ public class LockBus {
     }
 
     private void tryDeleteOldFiles() throws IOException {
-        var list = Files
-                .list(eventDirectory)
-                .sorted(Comparator.comparing(Path::getFileName))
-                .collect(Collectors.toUnmodifiableList());
+        var list = sortedEventFileList();
         var diff = list.size() - MAX_OLD_EVENT_FILE_COUNT;
 
         for (int i = 0; i < diff; ++i) {
@@ -338,6 +342,14 @@ public class LockBus {
             } else {
                 break;
             }
+        }
+    }
+
+    private List<Path> sortedEventFileList() throws IOException {
+        try (var files = Files.list(eventDirectory)) {
+            return files
+                    .sorted(Comparator.comparing(Path::getFileName))
+                    .collect(Collectors.toUnmodifiableList());
         }
     }
 

@@ -20,10 +20,12 @@ public class JsonToListStringConverter implements Converter<String, List<String>
     @Override
     public List<String> convert(@Nonnull String s) {
         try {
-            return new ObjectMapper().readValue(s, new TypeReference<List<String>>() {
-            });
+            return new ObjectMapper().readValue(s, new StringListTypeReference());
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private static class StringListTypeReference extends TypeReference<List<String>> {
     }
 }

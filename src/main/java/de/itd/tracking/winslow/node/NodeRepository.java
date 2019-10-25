@@ -51,9 +51,11 @@ public class NodeRepository extends BaseRepository {
 
     @Nonnull
     public Optional<NodeInfo> getNodeInfo(@Nonnull String name) {
-        return listActiveNodePaths()
-                .filter(p -> p.getFileName().toString().startsWith(name))
-                .findFirst()
-                .flatMap(p -> getUnsafe(p, defaultReader(NodeInfo.class)));
+        try (var paths = listActiveNodePaths()) {
+            return paths
+                    .filter(p -> p.getFileName().toString().startsWith(name))
+                    .findFirst()
+                    .flatMap(p -> getUnsafe(p, defaultReader(NodeInfo.class)));
+        }
     }
 }

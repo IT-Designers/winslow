@@ -22,9 +22,7 @@ public class UnixMemInfoParser {
     @Nonnull
     public MemInfo parseMemInfo() {
         var info = new HashMap<String, Long>(MEMINFO_LINE_COUNT);
-        lines.map(l -> l.split(SEPARATOR)).forEach(l -> {
-            info.put(l[0].trim(), parseValueAsNumberOfBytes(l[1]));
-        });
+        lines.map(l -> l.split(SEPARATOR)).forEach(l -> info.put(l[0].trim(), parseValueAsNumberOfBytes(l[1])));
 
         var systemCache = info.getOrDefault("Cached", DEFAULT_VALUE);
         var memTotal    = info.getOrDefault("MemTotal", DEFAULT_VALUE);

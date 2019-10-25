@@ -4,10 +4,7 @@ import de.itd.tracking.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Project {
 
@@ -107,12 +104,12 @@ public class Project {
 
     public void setTags(@Nullable String...tags) {
         if (this.tags == null) {
-            this.tags = new ArrayList<>(tags.length);
+            this.tags = new ArrayList<>(tags != null ? tags.length : 0);
         } else {
             this.tags.clear();
         }
-        for (String tag : tags) {
-            this.tags.add(tag);
+        if (tags != null) {
+            this.tags.addAll(Arrays.asList(tags));
         }
     }
 }

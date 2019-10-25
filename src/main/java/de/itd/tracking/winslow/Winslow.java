@@ -91,20 +91,21 @@ public class Winslow implements Runnable {
                 if ("exit".equals(line) || "stop".equals(line)) {
                     break;
                 } else if ("reload".equals(line)) {
-                    getProjectRepository()
-                            .getProjects()
-                            .map(BaseRepository.Handle::unsafe)
-                            .flatMap(Optional::stream)
-                            .filter(project -> orchestrator.getPipeline(project).isEmpty())
-                            .forEach(project -> {
-                                try {
-                                    orchestrator.createPipeline(project);
-                                    System.out.println(" - recreated pipeline for " + project.getId());
-                                } catch (OrchestratorException e) {
-                                    System.out.println(" - failed for " + project.getId() + ": " + e.getMessage());
-                                    e.printStackTrace(System.err);
-                                }
-                            });
+                    try (var projects = getProjectRepository().getProjects()) {
+                        projects
+                                .map(BaseRepository.Handle::unsafe)
+                                .flatMap(Optional::stream)
+                                .filter(project -> orchestrator.getPipeline(project).isEmpty())
+                                .forEach(project -> {
+                                    try {
+                                        orchestrator.createPipeline(project);
+                                        System.out.println(" - recreated pipeline for " + project.getId());
+                                    } catch (OrchestratorException e) {
+                                        System.out.println(" - failed for " + project.getId() + ": " + e.getMessage());
+                                        e.printStackTrace(System.err);
+                                    }
+                                });
+                    }
                 } else if (!line.isEmpty()) {
                     System.out.println("Unknown command");
                 }
