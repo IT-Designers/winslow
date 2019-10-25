@@ -12,13 +12,9 @@ export class GroupActionsComponent implements OnInit {
 
   projects: Project[];
   filtered: Project[];
+
   projectsLoadError = null;
   projectsLongLoading = new LongLoadingDetector();
-
-  includeTags: string[] = [];
-  includeEmpty = false;
-  excludeTags: string[] = [];
-  excludeEmpty = false;
 
   pipelines: PipelineInfo[] = null;
   actionLoadError = null;
@@ -42,29 +38,6 @@ export class GroupActionsComponent implements OnInit {
       .finally(() => this.actionLongLoading.decrease());
   }
 
-  updateFilter() {
-    this.filtered = this.projects.filter(project => {
-      if (project.tags.length === 0) {
-        if (this.includeEmpty) {
-          return true;
-        } else if (this.excludeEmpty) {
-          return false;
-        }
-      }
-
-      for (const tag of this.includeTags) {
-        if (project.tags.indexOf(tag) < 0) {
-          return false;
-        }
-      }
-      for (const tag of this.excludeTags) {
-        if (project.tags.indexOf(tag) >= 0) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }
 
 
 }
