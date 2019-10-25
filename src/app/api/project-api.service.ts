@@ -14,6 +14,10 @@ export class ProjectApiService {
   constructor(private client: HttpClient) {
   }
 
+  private static getUrl(more?: string) {
+    return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
+  }
+
   private cacheTags(tags: string[]) {
     tags.forEach(tag => {
       if (this.cachedTags.indexOf(tag) < 0) {
@@ -22,15 +26,11 @@ export class ProjectApiService {
     });
   }
 
-  private static getUrl(more?: string) {
-    return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
-  }
-
   createProject(name: string, pipeline: PipelineInfo) {
     const form = new FormData();
     form.append('name', name);
     form.append('pipeline', pipeline.id);
-    return this.client.post<any>(ProjectApiService.getUrl(null), form);
+    return this.client.post<any>(ProjectApiService.getUrl(null), form).toPromise();
   }
 
   listProjects() {
@@ -39,19 +39,20 @@ export class ProjectApiService {
       .pipe(map(projects => {
         projects.forEach(project => this.cacheTags(project.tags));
         return projects;
-      }));
+      }))
+      .toPromise();
   }
 
   getProjectState(projectId: string) {
-    return this.client.get<State>(ProjectApiService.getUrl(`${projectId}/state`));
+    return this.client.get<State>(ProjectApiService.getUrl(`${projectId}/state`)).toPromise();
   }
 
   getProjectStates(projectIds: string[]) {
-    return this.client.get<StateInfo[]>(ProjectApiService.getUrl(`states?projectIds=${projectIds.join(',')}`));
+    return this.client.get<StateInfo[]>(ProjectApiService.getUrl(`states?projectIds=${projectIds.join(',')}`)).toPromise();
   }
 
   getProjectHistory(projectId: string) {
-    return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl( `${projectId}/history`))
+    return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
       .then(result => {
         return result.map(entry => {
@@ -64,26 +65,26 @@ export class ProjectApiService {
 
   getProjectEnqueued(projectId: string): Promise<HistoryEntry[]> {
     return this.client.get<any[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
-        .pipe(map(enqueued => {
-          return enqueued.map(entry => {
-            const history = new HistoryEntry();
-            history.state = State.Enqueued;
-            history.stageName = entry.name;
-            history.imageInfo = entry.image;
-            history.env = entry.env != null ? entry.env : new Map();
-            history.envInternal = new Map();
-            return history;
-          });
-        }))
-        .toPromise();
+      .pipe(map(enqueued => {
+        return enqueued.map(entry => {
+          const history = new HistoryEntry();
+          history.state = State.Enqueued;
+          history.stageName = entry.name;
+          history.imageInfo = entry.image;
+          history.env = entry.env != null ? entry.env : new Map();
+          history.envInternal = new Map();
+          return history;
+        });
+      }))
+      .toPromise();
   }
 
   deleteEnqueued(projectId: string, index: number, controlSize) {
-    return this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${index}/${controlSize}`));
+    return this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${index}/${controlSize}`)).toPromise();
   }
 
   getProjectPaused(projectId: string) {
-    return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`));
+    return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`)).toPromise();
   }
 
   enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null) {
@@ -96,35 +97,36 @@ export class ProjectApiService {
     return this.client.post(
       ProjectApiService.getUrl(`${projectId}/enqueue/${nextStageIndex}`),
       form
-    );
+    ).toPromise();
   }
 
   resume(projectId: string, paused: boolean, singleStageOnly = false) {
-    return this.client.post(ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`), new FormData());
+    return this.client.post(ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`), new FormData()).toPromise();
   }
 
   getLog(projectId: string, stageId: string) {
-    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`));
+    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`)).toPromise();
   }
 
   getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
-    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`));
+    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)).toPromise();
   }
 
   getPauseReason(projectId: string) {
-    return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pause-reason`));
+    return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pause-reason`)).toPromise();
   }
 
   getEnvironment(projectId: string, stageIndex: number) {
     return this.client
       .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
-      .pipe(map(response => new Map(Object.entries(response))));
+      .pipe(map(response => new Map(Object.entries(response))))
+      .toPromise();
   }
 
   setName(projectId: string, name: string) {
-      const form = new FormData();
-      form.set('name', name);
-      return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/name`), form);
+    const form = new FormData();
+    form.set('name', name);
+    return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/name`), form).toPromise();
   }
 
   setTags(projectId: string, tags: string[]) {
@@ -139,11 +141,11 @@ export class ProjectApiService {
   }
 
   killStage(projectId: string) {
-    return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/kill`), new FormData());
+    return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/kill`), new FormData()).toPromise();
   }
 
   setPipelineDefinition(projectId: string, pipelineId: string) {
-    return this.client.post<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), new FormData());
+    return this.client.post<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), new FormData()).toPromise();
   }
 }
 
