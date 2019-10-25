@@ -158,10 +158,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     if (this.watchLatestLogs) {
       const skipLines = this.logs != null ? this.logs.length : 0;
       const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
-      return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId).toPromise();
+      return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId);
     } else {
       this.logs = [];
-      return this.api.getLog(this.project.id, this.watchLogsId).toPromise();
+      return this.api.getLog(this.project.id, this.watchLogsId);
     }
   }
 
@@ -192,7 +192,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   loadPaused(): void {
     this.longLoading.increase();
     this.api.getProjectPaused(this.project.id)
-      .toPromise()
       .then(paused => this.paused = paused)
       .finally(() => this.longLoading.decrease());
   }
@@ -218,7 +217,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       if (index !== null) {
         this.longLoading.increase();
         this.api.enqueue(this.project.id, index, env, image)
-          .toPromise()
           .then(result => {
             this.notification.info('Request has been accepted');
           })
@@ -231,7 +229,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   enqueueGroup(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
-    this.createDialog.open(GroupActionDialog, {});
+    this.longLoading.increase();
+    this.api.listProjects()
+      .then(projects => {
+        return this.createDialog.open(GroupActionDialog, {
+          data: {
+            projects,
+            availableTags: this.api.cachedTags,
+          } as GroupActionDialogData
+        });
+      })
+      .finally(() => this.longLoading.decrease());
   }
 
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
@@ -239,7 +247,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     const before = this.paused;
     this.paused = pause;
     this.api.resume(this.project.id, pause, singleStageOnly)
-      .toPromise()
       .then(result => {
         this.notification.info('Project updated');
         if (!this.paused) {
@@ -323,7 +330,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   setName(name: string) {
     this.longLoading.increase();
     this.api.setName(this.project.id, name)
-      .toPromise()
       .then(result => {
         this.project.name = name;
       })
@@ -378,7 +384,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           this.longLoading.increase();
           return this.api
             .killStage(this.project.id)
-            .toPromise()
             .then(r => this.notification.info('Request accepted'))
             .catch(e => this.notification.error('Request failed: ' + JSON.stringify(e)))
             .finally(() => this.longLoading.decrease());
@@ -435,7 +440,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           this.longLoading.increase();
           return this.api
             .deleteEnqueued(this.project.id, index, controlSize)
-            .toPromise()
             .then(r => {
               if (r) {
                 this.notification.info('Request has been accepted');
@@ -479,7 +483,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         }
         this.longLoading.increase();
         this.api.getEnvironment(this.project.id, index)
-          .toPromise()
           .then(result => this.defaultEnvVars = result)
           .finally(() => this.longLoading.decrease());
       }
@@ -541,17 +544,33 @@ export class StopStageAreYouSureDialog {
   selector: 'dialog-group-action',
   template: `
       <h1 mat-dialog-title>Filter for the Stages you want to modify</h1>
-      <div mat-dialog-content style="padding: 0 2em 5em 2em; background-color: whitesmoke">
-          <app-group-actions></app-group-actions>
+      <div mat-dialog-content style="padding: 0 2em 0 2em; display: flex; flex-direction: column">
+          <app-tag-filter [availableTags]="availableTags" [projects]="projects" (filtered)="this.filtered = $event">
+          </app-tag-filter>
+          <div style="margin: 2em 1em; border: 1px solid silver; overflow: auto">
+              <app-project-list [projects]="filtered"></app-project-list>
+          </div>
       </div>
       <div mat-dialog-actions align="end">
-          <button mat-raised-button color="warn" (click)="dialogRef.close(true)">Stop</button>
-          <button mat-raised-button (click)="dialogRef.close(false)">Cancel</button>
+          <button mat-stroked-button color="warn" (click)="dialogRef.close(true)">Enqueue, <strong>replace</strong> existing queues</button>
+          <button mat-stroked-button color="primary" (click)="dialogRef.close(true)">Enqueue, <strong>append</strong> on existing queues</button>
+          <button mat-stroked-button (click)="dialogRef.close(false)">Cancel</button>
       </div>`
 })
 export class GroupActionDialog {
+
+  availableTags: string[];
+  projects: Project[];
+  filtered: Project[];
+
   constructor(
     public dialogRef: MatDialogRef<GroupActionDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any) {
+    @Inject(MAT_DIALOG_DATA) public data: GroupActionDialogData) {
+    this.projects = data.projects.sort((a, b) => a.name.localeCompare(b.name));
+    this.availableTags = data.availableTags;
   }
+}
+export class GroupActionDialogData {
+  projects: Project[];
+  availableTags: string[];
 }
