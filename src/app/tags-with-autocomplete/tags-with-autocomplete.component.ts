@@ -43,6 +43,9 @@ export class TagsWithAutocompleteComponent implements OnInit {
   set tags(tags: string[]) {
     this.selectedTags = [];
     tags.forEach(tag => this.selectedTags.push(tag));
+    if (this.sort) {
+      this.sortSelectedTags();
+    }
   }
 
   ngOnInit() {
@@ -55,10 +58,14 @@ export class TagsWithAutocompleteComponent implements OnInit {
     if ((value || '').trim() && (!this.unique || this.selectedTags.indexOf(value.trim()) < 0)) {
       this.selectedTags.push(value.trim());
       if (this.sort) {
-        this.selectedTags = this.selectedTags.sort((a, b) => a.localeCompare(b));
+        this.sortSelectedTags();
       }
       this.tagsEmitter.emit(this.selectedTags);
     }
+  }
+
+  private sortSelectedTags() {
+    this.selectedTags = this.selectedTags.sort((a, b) => a.localeCompare(b));
   }
 
   add($event: MatChipInputEvent) {
