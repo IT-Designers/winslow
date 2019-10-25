@@ -6,38 +6,37 @@
       <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
     </div>
 
-    <form [formGroup]="formGroupControl">
-      <div class="stage-control-item">
-        <app-stage-execution-selection #executionSelection
-                                       [pipelines]="pipelines"
-                                       (selectedPipeline)="onSelectedPipelineChanged($event)"
-                                       (selectedStage)="onSelectedStageChanged($event)"
-                                       [defaultEnvironmentVariables]="defaultEnvVars">
-        </app-stage-execution-selection>
-      </div>
-      <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item stage-control-item-controls">
-        <button mat-stroked-button color="warn"
-                [disabled]="!executionSelection.isValid()"
-                (click)="enqueue(
+    <div class="stage-control-item">
+      <app-stage-execution-selection #executionSelection
+                                     [pipelines]="pipelines"
+                                     (selectedPipeline)="onSelectedPipelineChanged($event)"
+                                     (selectedStage)="onSelectedStageChanged($event)"
+                                     [defaultEnvironmentVariables]="defaultEnvVars">
+      </app-stage-execution-selection>
+    </div>
+    <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item stage-control-item-controls">
+      <button mat-stroked-button color="warn"
+              [disabled]="!executionSelection.isValid()"
+              (click)="enqueue(
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-          Group Action
-        </button>
-        <button mat-stroked-button color="primary"
-                [disabled]="!executionSelection.isValid()"
-                (click)="enqueue(
+        Group Action
+      </button>
+      <button mat-stroked-button color="primary"
+              [disabled]="!executionSelection.isValid()"
+              (click)="enqueue(
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-          Enqueue
-        </button>
-      </div>
-    </form>
+        Enqueue
+      </button>
+    </div>
+
     <div class="stage-control-item">
       <span></span>
       <div class="stage-control-item-controls">
