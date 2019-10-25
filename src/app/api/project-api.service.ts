@@ -51,7 +51,15 @@ export class ProjectApiService {
   }
 
   getProjectHistory(projectId: string) {
-    return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl( `${projectId}/history`));
+    return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl( `${projectId}/history`))
+      .toPromise()
+      .then(result => {
+        return result.map(entry => {
+          entry.env = new Map(Object.keys(entry.env).map(key => [key, entry.env[key]]));
+          entry.envInternal = new Map(Object.keys(entry.envInternal).map(key => [key, entry.envInternal[key]]));
+          return entry;
+        });
+      });
   }
 
   getProjectEnqueued(projectId: string): Promise<HistoryEntry[]> {
@@ -111,14 +119,6 @@ export class ProjectApiService {
     return this.client
       .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
       .pipe(map(response => new Map(Object.entries(response))));
-  }
-
-  getRequiredUserInput(projectId: string, stageIndex: number) {
-    return this.client.get<string[]>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/required-user-input`));
-  }
-
-  getImage(projectId: string, stageIndex: number) {
-    return this.client.get<ImageInfo>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/image`));
   }
 
   setName(projectId: string, name: string) {
