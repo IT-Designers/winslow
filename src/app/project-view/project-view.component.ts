@@ -230,6 +230,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  enqueueGroup(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
+    this.createDialog.open(GroupActionDialog, {});
+  }
+
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
     this.longLoading.increase();
     const before = this.paused;
@@ -528,6 +532,26 @@ export class DeleteProjectAreYouSureDialog {
 export class StopStageAreYouSureDialog {
   constructor(
     public dialogRef: MatDialogRef<StopStageAreYouSureDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: any) {
+  }
+}
+
+
+@Component({
+  selector: 'dialog-group-action',
+  template: `
+      <h1 mat-dialog-title>Filter for the Stages you want to modify</h1>
+      <div mat-dialog-content style="padding: 0 2em 5em 2em; background-color: whitesmoke">
+          <app-group-actions></app-group-actions>
+      </div>
+      <div mat-dialog-actions align="end">
+          <button mat-raised-button color="warn" (click)="dialogRef.close(true)">Stop</button>
+          <button mat-raised-button (click)="dialogRef.close(false)">Cancel</button>
+      </div>`
+})
+export class GroupActionDialog {
+  constructor(
+    public dialogRef: MatDialogRef<GroupActionDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any) {
   }
 }

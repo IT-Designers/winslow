@@ -1,42 +1,19 @@
 <mat-card>
   <mat-card-title>Filter</mat-card-title>
 
-  <mat-card-content class="flex-grow-row tag-filter">
-    <div>
-      <mat-card-subtitle>Projects that <strong>include</strong> the following tags</mat-card-subtitle>
-      <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
-                                  (tags)="this.includeTags = $event; updateFilter()"
-      ></app-tags-with-autocomplete>
-      <mat-slide-toggle (change)="includeEmpty = $event.checked; updateFilter()">
-        Include with no Tags
-      </mat-slide-toggle>
-    </div>
-    <div>
-      <mat-card-subtitle>Projects that <strong>exclude</strong> the following tags</mat-card-subtitle>
-      <app-tags-with-autocomplete [proposals]="this.api.cachedTags"
-                                  (tags)="this.excludeTags = $event; updateFilter()"
-      ></app-tags-with-autocomplete>
-      <mat-slide-toggle (change)="excludeEmpty = $event.checked; updateFilter()">
-        Exclude with no Tags
-      </mat-slide-toggle>
-    </div>
+  <mat-card-content>
+    <app-tag-filter [availableTags]="this.api.cachedTags"
+                    [projects]="projects"
+                    (filtered)="this.filtered = $event">
+    </app-tag-filter>
   </mat-card-content>
 </mat-card>
 
 <mat-card>
   <mat-card-title>Matching Projects</mat-card-title>
   <mat-card-content>
-    <mat-list>
-      <mat-list-item *ngFor="let project of filtered">
-        <app-project-view-header
-          [project]="project"
-          [running]="false"
-          [progress]="null"
-          [pauseReason]="null">
-        </app-project-view-header>
-      </mat-list-item>
-    </mat-list>
-    <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
+    <app-project-list [projects]="filtered"></app-project-list>
+    <div *ngIf="filtered != null && filtered.length == 0" class="none-defined-yet">
       <i>There are no projects matching your filter</i>
     </div>
     <app-loading-info [error]="projectsLoadError != null ? projectsLoadError.message : null"
@@ -62,8 +39,10 @@
       <div class="action-row">
         <div class="title"></div>
         <div class="centered-controls">
-          <button [disabled]="!selection.isValid()" mat-stroked-button color="primary">Add by appending to queues</button>
-          <button [disabled]="!selection.isValid()" mat-stroked-button color="warn">Add by replacing existing queues</button>
+          <button [disabled]="!selection.isValid()" mat-stroked-button color="primary">Add by appending to queues
+          </button>
+          <button [disabled]="!selection.isValid()" mat-stroked-button color="warn">Add by replacing existing queues
+          </button>
         </div>
         <div class="controls"></div>
       </div>
