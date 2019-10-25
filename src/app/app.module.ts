@@ -39,7 +39,6 @@ import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dia
 import {StateIconComponent} from './state-icon/state-icon.component';
 import {
   DeleteProjectAreYouSureDialog,
-  GroupActionDialog,
   ProjectViewComponent,
   StopStageAreYouSureDialog
 } from './project-view/project-view.component';
@@ -58,6 +57,7 @@ import { ProjectViewHeaderComponent } from './project-view-header/project-view-h
 import { StageExecutionSelectionComponent } from './stage-execution-selection/stage-execution-selection.component';
 import { ProjectListComponent } from './project-list/project-list.component';
 import { TagFilterComponent } from './tag-filter/tag-filter.component';
+import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settings-dialog.component';
 
 @NgModule({
   declarations: [
@@ -87,7 +87,7 @@ import { TagFilterComponent } from './tag-filter/tag-filter.component';
     TagsWithAutocompleteComponent,
     ProjectViewHeaderComponent,
     StageExecutionSelectionComponent,
-    GroupActionDialog,
+    GroupSettingsDialogComponent,
     ProjectListComponent,
     TagFilterComponent,
   ],
@@ -153,7 +153,7 @@ import { TagFilterComponent } from './tag-filter/tag-filter.component';
     DeleteProjectAreYouSureDialog,
     StopStageAreYouSureDialog,
     CreatePipelineDialogComponent,
-    GroupActionDialog,
+    GroupSettingsDialogComponent,
   ]
 })
 export class AppModule { }
