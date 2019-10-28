@@ -58,5 +58,19 @@
       <li (click)="fileInput.click(); contextMenuVisible = false">Upload a file</li>
     </ul>
   </div>
+  <swal #swalUpload title="Uploading your files"
+        [type]="dataUpload != null ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
+        (afterClose)="dataUpload = null">
+    <div *swalPortal="swalTargets.content">
+      <mat-list *ngIf="dataUpload != null">
+        <mat-list *ngFor="let upload of dataUpload.uploads">
+          <ng-container>
+            <p>{{upload[0]}}</p>
+            <mat-progress-bar mode="determinate" value="{{ upload[1] / upload[2] * 100 }}"></mat-progress-bar>
+          </ng-container>
+        </mat-list>
+      </mat-list>
+    </div>
+  </swal>
 </div>
 

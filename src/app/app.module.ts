@@ -7,7 +7,7 @@ import {RouterModule} from '@angular/router';
 import {SystemOverviewComponent} from './system-overview/system-overview.component';
 import {PipelinesComponent} from './pipelines/pipelines.component';
 import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
-import { FilesComponent, DialogUploadFilesProgressComponent} from './files/files.component';
+import {FilesComponent} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {
@@ -54,6 +54,7 @@ import {StageExecutionSelectionComponent} from './stage-execution-selection/stag
 import {ProjectListComponent} from './project-list/project-list.component';
 import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settings-dialog.component';
+import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 
 @NgModule({
   declarations: [
@@ -61,7 +62,6 @@ import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settin
     TopbarComponent,
     SystemOverviewComponent,
     PipelinesComponent,
-    DialogUploadFilesProgressComponent,
     FilesComponent,
     DragDropDirectiveDirective,
     ProjectsComponent,
@@ -84,6 +84,7 @@ import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settin
     TagFilterComponent,
   ],
   imports: [
+    SweetAlert2Module.forRoot(),
     HttpClientModule,
     HttpClientXsrfModule.withOptions({
       cookieName: 'XSRF-TOKEN',
@@ -137,7 +138,6 @@ import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settin
   ],
   bootstrap: [AppComponent],
   entryComponents: [
-    DialogUploadFilesProgressComponent,
     ProjectsCreateDialog,
     FileBrowseDialog,
     CreatePipelineDialogComponent,
