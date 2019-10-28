@@ -3,7 +3,6 @@ import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {HttpEventType} from '@angular/common/http';
 import {FileInfo, FilesApiService} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
-import Swal from 'sweetalert2';
 import {DialogService} from '../dialog.service';
 
 @Component({
@@ -302,16 +301,16 @@ export interface UploadFilesProgress {
 @Component({
   selector: 'app-dialog-upload-files-progress',
   template: `
-      <h1 mat-dialog-title>Uploading your files</h1>
-      <div mat-dialog-content>
+      <mat-card-title>Uploading your files</mat-card-title>
+      <mat-card-content mat-dialog-content>
           <mat-list *ngFor="let upload of data.uploads">
               <p>{{upload[0]}}</p>
               <mat-progress-bar mode="determinate" value="{{ upload[1] / upload[2] * 100 }}"></mat-progress-bar>
           </mat-list>
-      </div>
-      <div mat-dialog-actions align="end">
+      </mat-card-content>
+      <mat-card-actions mat-dialog-actions class="dialog-actions">
           <button [disabled]="!data.closable" mat-button (click)="dialogRef.close()">Close</button>
-      </div>
+      </mat-card-actions>
   `
 })
 export class DialogUploadFilesProgressComponent {
