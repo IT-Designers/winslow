@@ -15,7 +15,7 @@ export class DialogService {
         if (result.value) {
           return Swal.fire({
             type: 'success',
-            timer: 1500,
+            timer: 1000,
           });
         }
         return result;
@@ -34,8 +34,8 @@ export class DialogService {
       .then(result => true);
   }
 
-  private preConfirmPromiseWithErrorCatcher(promise: () => Promise<any>): (r) => Promise<boolean> {
-    return v => this.errorCatcher(promise());
+  private preConfirmPromiseWithErrorCatcher(promise: (value: any) => Promise<any>): (r) => Promise<boolean> {
+    return v => this.errorCatcher(promise(v));
   }
 
   openLoadingIndicator(toExecute: Promise<any>, text?: string, withSuccessNotification = true) {
@@ -69,6 +69,16 @@ export class DialogService {
       cancelButtonText: 'Not today',
       showLoaderOnConfirm: true,
       preConfirm: this.preConfirmPromiseWithErrorCatcher(onSure)
+    });
+  }
+
+  createAThing(thing: string, placeholder: string, action: (input: string) => Promise<void>) {
+    this.fireWithSuccessNotification({
+      title: 'Create a ' + thing,
+      input: 'text',
+      inputPlaceholder: placeholder,
+      showLoaderOnConfirm: true,
+      preConfirm: this.preConfirmPromiseWithErrorCatcher(action),
     });
   }
 
