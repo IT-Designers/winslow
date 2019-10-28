@@ -1,9 +1,9 @@
-import {Component, EventEmitter, Inject, Input, OnInit, Output} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {HttpEventType} from '@angular/common/http';
 import {FileInfo, FilesApiService} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService} from '../dialog.service';
+import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
 
 @Component({
   selector: 'app-files',
@@ -26,10 +26,14 @@ export class FilesComponent implements OnInit {
   contextMenuY = 0;
   contextMenuVisible = false;
 
+  dataUpload: UploadFilesProgress = null;
+  @ViewChild('swalUpload', {static: false}) swalUpload: SwalComponent;
+
+
   constructor(
     private api: FilesApiService,
-    private createDialog: MatDialog,
     private dialog: DialogService,
+    public readonly swalTargets: SwalPortalTargets
   ) {
   }
 
@@ -245,35 +249,49 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  uploadFile(files: FileList, currentItem = 0, data: UploadFilesProgress = null, dialog: MatDialogRef<DialogUploadFilesProgressComponent> = null) {
-    if (data == null || dialog == null) {
-      data = {
-        uploads: [],
-        closable: false,
-      };
-      for (let i = 0; i < files.length; ++i) {
-        data.uploads.push([files.item(i).name, 0, 100]);
+  uploadFile(files: FileList) {
+    this.prepareDataUpload(files);
+
+    const instance = {
+      swal: this.swalUpload.fire(),
+      uploader: null
+    };
+
+    instance.uploader = (index: number): Promise<void> => {
+      if (index < files.length) {
+        const upload = this.api.uploadFile(this.latestPath, files.item(index));
+        upload.subscribe(event => {
+          if (event.type === HttpEventType.UploadProgress) {
+            this.dataUpload.uploads[index][1] = event.loaded;
+            this.dataUpload.uploads[index][2] = event.total;
+          }
+        });
+        return upload
+          .toPromise()
+          .then(rr => this.loadDirectory(this.latestPath))
+          .then(rr => instance.uploader(index + 1))
+          .catch(err => {
+            this.dataUpload.err = '' + err;
+            return Promise.reject();
+          });
+      } else {
+        return Promise.resolve();
       }
-      dialog = this.createDialog.open(DialogUploadFilesProgressComponent, {
-        width: '60%',
-        data,
-      });
-    }
-    if (currentItem < files.length) {
-      this.api.uploadFile(this.latestPath, files.item(currentItem)).subscribe(event => {
-        if (event.type === HttpEventType.UploadProgress) {
-          data.uploads[currentItem][1] = event.loaded;
-          data.uploads[currentItem][2] = event.total;
-        }
-      }).add(() => {
-        this.loadDirectory(this.latestPath);
-        this.uploadFile(files, currentItem + 1, data, dialog);
-      });
-    } else {
-      data.closable = true;
-      setTimeout(() => {
-        dialog.close();
-      }, 5000);
+    };
+
+    instance
+      .uploader(0)
+      .finally(() => this.dataUpload.closable = true);
+  }
+
+  private prepareDataUpload(files: FileList) {
+    this.dataUpload = {
+      uploads: [],
+      closable: false,
+      err: null,
+    };
+    for (let i = 0; i < files.length; ++i) {
+      this.dataUpload.uploads.push([files.item(i).name, 0, 1]);
     }
   }
 
@@ -296,26 +314,5 @@ export class FilesComponent implements OnInit {
 export interface UploadFilesProgress {
   uploads: [string, number, number][];
   closable: boolean;
-}
-
-@Component({
-  selector: 'app-dialog-upload-files-progress',
-  template: `
-      <mat-card-title>Uploading your files</mat-card-title>
-      <mat-card-content mat-dialog-content>
-          <mat-list *ngFor="let upload of data.uploads">
-              <p>{{upload[0]}}</p>
-              <mat-progress-bar mode="determinate" value="{{ upload[1] / upload[2] * 100 }}"></mat-progress-bar>
-          </mat-list>
-      </mat-card-content>
-      <mat-card-actions mat-dialog-actions class="dialog-actions">
-          <button [disabled]="!data.closable" mat-button (click)="dialogRef.close()">Close</button>
-      </mat-card-actions>
-  `
-})
-export class DialogUploadFilesProgressComponent {
-  constructor(
-    public dialogRef: MatDialogRef<DialogUploadFilesProgressComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: UploadFilesProgress) {
-  }
+  err: any;
 }
