@@ -80,7 +80,7 @@ export class ProjectApiService {
   }
 
   deleteEnqueued(projectId: string, index: number, controlSize) {
-    return this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${index}/${controlSize}`)).toPromise();
+    return this.client.delete<void>(ProjectApiService.getUrl(`${projectId}/enqueued/${index}/${controlSize}`)).toPromise();
   }
 
   getProjectPaused(projectId: string) {

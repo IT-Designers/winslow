@@ -81,7 +81,7 @@
                 <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable"
                           (click)="$event.stopPropagation(); killCurrentStage()">pan_tool
                 </mat-icon>
-                <mat-icon matTooltip="Re-Run" class="clickable" (click)="$event.stopPropagation(); reRun(entry)">
+                <mat-icon matTooltip="Re-Run" class="clickable" (click)="$event.stopPropagation(); prepareEnqueue(entry)">
                   replay
                 </mat-icon>
                 <mat-icon *ngIf="entry.stageId" matTooltip="Open Logs" class="clickable"
@@ -229,10 +229,11 @@
       <app-tags-with-autocomplete #tags
                                   [sort]="false"
                                   [tags]="project.tags"
-                                  [proposals]="api.cachedTags"
-                                  (tags)="updateTags.disabled = false">
+                                  [proposals]="api.cachedTags">
       </app-tags-with-autocomplete>
-      <button #updateTags mat-stroked-button disabled color="primary" (click)="setTags(tags.selectedTags)">
+      <button mat-stroked-button color="primary" #tagsButton
+              [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
+              (click)="setTags(tags.selectedTags)">
         Update
       </button>
     </div>
