@@ -1,11 +1,12 @@
-import {Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSelect, MatTabGroup} from '@angular/material';
+import {MatDialog, MatSelect, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
 import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
+import {DialogService} from '../dialog.service';
 
 
 @Component({
@@ -14,10 +15,6 @@ import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-se
   styleUrls: ['./project-view.component.css']
 })
 export class ProjectViewComponent implements OnInit, OnDestroy {
-
-  constructor(public api: ProjectApiService, private notification: NotificationService,
-              private pipelinesApi: PipelineApiService, private createDialog: MatDialog) {
-  }
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
   @ViewChild('console', {static: false}) htmlConsole: ElementRef<HTMLElement>;
@@ -60,6 +57,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageInfo = null;
   defaultEnvVars: Map<string, string> = null;
+
+
+  constructor(public api: ProjectApiService, private notification: NotificationService,
+              private pipelinesApi: PipelineApiService, private createDialog: MatDialog,
+              private dialog: DialogService) {
+  }
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -216,16 +219,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         }
       }
       if (index !== null) {
-        this.longLoading.increase();
-        this.api.enqueue(this.project.id, index, env, image)
-          .then(result => {
-            this.notification.info('Request has been accepted');
-          })
-          .catch(error => this.notification.error('Request failed: ' + JSON.stringify(error)))
-          .finally(() => this.longLoading.decrease());
+        this.dialog.openLoadingIndicator(
+          this.api.enqueue(this.project.id, index, env, image),
+          `Submitting selections`
+        );
       }
     } else {
-      this.notification.error('Changing the Pipeline is not yet supported!');
+      this.dialog.error('Changing the Pipeline is not yet supported!');
     }
   }
 
@@ -244,23 +244,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
-    this.longLoading.increase();
     const before = this.paused;
     this.paused = pause;
-    this.api.resume(this.project.id, pause, singleStageOnly)
-      .then(result => {
-        this.notification.info('Project updated');
-        if (!this.paused) {
-          this.stateEmitter.emit(this.state = State.Running);
-          this.pauseReason = null;
-          this.openLogs(null, true);
-        }
-      })
-      .catch(err => {
-        this.paused = before;
-        this.notification.error('Request failed: ' + JSON.stringify(err));
-      })
-      .finally(() => this.longLoading.decrease());
+    this.dialog.openLoadingIndicator(
+      this.api
+        .resume(this.project.id, pause, singleStageOnly)
+        .then(result => {
+          if (!this.paused) {
+            this.stateEmitter.emit(this.state = State.Running);
+            this.pauseReason = null;
+            this.openLogs(null, true);
+          }
+        })
+        .catch(err => {
+          this.paused = before;
+          return Promise.reject(err);
+        })
+    );
   }
 
   startLoading() {
@@ -329,22 +329,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   setName(name: string) {
-    this.longLoading.increase();
-    this.api.setName(this.project.id, name)
-      .then(result => {
-        this.project.name = name;
-      })
-      .finally(() => this.longLoading.decrease());
+    this.dialog.openLoadingIndicator(
+      this.api
+        .setName(this.project.id, name)
+        .then(result => {
+          this.project.name = name;
+        }),
+      `Updating name`
+    );
   }
 
   delete() {
-    this.createDialog.open(DeleteProjectAreYouSureDialog, {
-      data: this.project
-    }).afterClosed().toPromise().then(result => {
-      if (!!result) {
-        alert('Not yet implemented');
-      }
-    });
+    this.dialog.openAreYouSure(
+      `Project being deleted: ${this.project.name}`,
+      () => new Promise(resolve => setTimeout(() => {
+        resolve.apply(false);
+      }, 1000)).then(result => Promise.reject('Not yet implemented')),
+    );
   }
 
   onConsoleScroll($event: Event) {
@@ -376,23 +377,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   killCurrentStage() {
-    this.createDialog
-      .open(StopStageAreYouSureDialog, {})
-      .afterClosed()
-      .toPromise()
-      .then(result => {
-        if (!!result) {
-          this.longLoading.increase();
-          return this.api
-            .killStage(this.project.id)
-            .then(r => this.notification.info('Request accepted'))
-            .catch(e => this.notification.error('Request failed: ' + JSON.stringify(e)))
-            .finally(() => this.longLoading.decrease());
-        }
-      });
+    this.dialog.openAreYouSure(
+      `Kill currently running stage of project ${this.project.name}`,
+      () => this.api.killStage(this.project.id)
+    );
   }
 
-  reRun(entry: HistoryEntry) {
+  prepareEnqueue(entry: HistoryEntry) {
     const stageInfo = new StageInfo();
     stageInfo.image = ProjectViewComponent.deepClone(entry.imageInfo);
     stageInfo.name = entry.stageName;
@@ -432,39 +423,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   cancelEnqueuedStage(index: number, controlSize: number) {
-    this.createDialog
-      .open(StopStageAreYouSureDialog, {})
-      .afterClosed()
-      .toPromise()
-      .then(result => {
-        if (result) {
-          this.longLoading.increase();
-          return this.api
-            .deleteEnqueued(this.project.id, index, controlSize)
-            .then(r => {
-              if (r) {
-                this.notification.info('Request has been accepted');
-              } else {
-                this.notification.error('Request failed because history has changed!');
-              }
-              return this.loadHistory();
-            })
-            .catch(e => this.notification.error('Failed: ' + JSON.stringify(e)))
-            .finally(() => this.longLoading.decrease());
-        }
-      });
+    this.dialog.openAreYouSure(
+      `Remove enqueued stage from project ${this.project.name}`,
+      () => this.api.deleteEnqueued(this.project.id, index, controlSize)
+    );
   }
 
   setTags(tags: string[]) {
-    this.longLoading.increase();
-    this.api
-      .setTags(this.project.id, tags)
-      .then(result => {
-        this.project.tags = tags;
-        this.notification.info('Tags updated');
-      })
-      .catch(err => this.notification.error('Request failed: ' + JSON.stringify(err)))
-      .finally(() => this.longLoading.decrease());
+    return this.dialog.openLoadingIndicator(
+      this.api
+        .setTags(this.project.id, tags)
+        .then(result => {
+          this.project.tags = tags;
+        }),
+      'Updating tags'
+    );
   }
 
   onSelectedPipelineChanged(info: PipelineInfo) {
@@ -482,10 +455,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             break;
           }
         }
-        this.longLoading.increase();
-        this.api.getEnvironment(this.project.id, index)
-          .then(result => this.defaultEnvVars = result)
-          .finally(() => this.longLoading.decrease());
+
+        this.dialog.openLoadingIndicator(
+          this.api
+            .getEnvironment(this.project.id, index)
+            .then(result => {
+              this.defaultEnvVars = result;
+            }),
+          `Loading environment variables`,
+          false
+        );
       }
     }
   }
@@ -502,40 +481,3 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 }
 
-@Component({
-  selector: 'dialog-delete-project-are-you-sure',
-  template: `
-      <h1 mat-dialog-title>Are you sure you want to delete this project?</h1>
-      <div mat-dialog-content>
-          <p>{{project.name}}</p>
-      </div>
-      <div mat-dialog-actions align="end">
-          <button mat-raised-button color="warn" (click)="dialogRef.close(true)">Delete</button>
-          <button mat-raised-button (click)="dialogRef.close(false)">Cancel</button>
-      </div>`
-})
-export class DeleteProjectAreYouSureDialog {
-  constructor(
-    public dialogRef: MatDialogRef<DeleteProjectAreYouSureDialog>,
-    @Inject(MAT_DIALOG_DATA) public project: Project) {
-  }
-}
-
-
-@Component({
-  selector: 'dialog-stop-stage-are-you-sure',
-  template: `
-      <h1 mat-dialog-title>Are you sure you want to stop this stage?</h1>
-      <div mat-dialog-content>
-      </div>
-      <div mat-dialog-actions align="end">
-          <button mat-raised-button color="warn" (click)="dialogRef.close(true)">Stop</button>
-          <button mat-raised-button (click)="dialogRef.close(false)">Cancel</button>
-      </div>`
-})
-export class StopStageAreYouSureDialog {
-  constructor(
-    public dialogRef: MatDialogRef<StopStageAreYouSureDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any) {
-  }
-}
