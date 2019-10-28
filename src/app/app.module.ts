@@ -7,7 +7,7 @@ import {RouterModule} from '@angular/router';
 import {SystemOverviewComponent} from './system-overview/system-overview.component';
 import {PipelinesComponent} from './pipelines/pipelines.component';
 import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
-import {DialogCreateDirectoryComponent, DialogDeleteAreYouSureComponent, FilesComponent, DialogUploadFilesProgressComponent} from './files/files.component';
+import { FilesComponent, DialogUploadFilesProgressComponent} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {
@@ -61,9 +61,7 @@ import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settin
     TopbarComponent,
     SystemOverviewComponent,
     PipelinesComponent,
-    DialogCreateDirectoryComponent,
     DialogUploadFilesProgressComponent,
-    DialogDeleteAreYouSureComponent,
     FilesComponent,
     DragDropDirectiveDirective,
     ProjectsComponent,
@@ -139,9 +137,7 @@ import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settin
   ],
   bootstrap: [AppComponent],
   entryComponents: [
-    DialogCreateDirectoryComponent,
     DialogUploadFilesProgressComponent,
-    DialogDeleteAreYouSureComponent,
     ProjectsCreateDialog,
     FileBrowseDialog,
     CreatePipelineDialogComponent,

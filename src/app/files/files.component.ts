@@ -3,6 +3,8 @@ import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {HttpEventType} from '@angular/common/http';
 import {FileInfo, FilesApiService} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
+import Swal from 'sweetalert2';
+import {DialogService} from '../dialog.service';
 
 @Component({
   selector: 'app-files',
@@ -27,7 +29,8 @@ export class FilesComponent implements OnInit {
 
   constructor(
     private api: FilesApiService,
-    private createDialog: MatDialog
+    private createDialog: MatDialog,
+    private dialog: DialogService,
   ) {
   }
 
@@ -212,20 +215,16 @@ export class FilesComponent implements OnInit {
   }
 
   createDirectory() {
-    this.createDialog.open(DialogCreateDirectoryComponent, {
-      width: '20em',
-      data: {}
-    }).afterClosed().subscribe(result => {
-      if (result) {
-        const path = this.absoluteDirectoryPath(this.latestPath + '/' + result);
-        this.longLoading.increase();
-        this
-          .api
-          .createDirectory(path)
-          .then(p => this.navigateDirectlyTo(this.latestPath))
-          .finally(() => this.longLoading.decrease());
+    this.dialog.createAThing(
+      'directory',
+      'Name of the directory',
+      name => {
+        if (name != null && name.length > 0) {
+          const path = this.absoluteDirectoryPath(this.latestPath + '/' + name);
+          return this.api.createDirectory(path).then(r => this.navigateDirectlyTo(path));
+        }
       }
-    });
+    );
   }
 
   updateSelection() {
@@ -284,55 +283,14 @@ export class FilesComponent implements OnInit {
   }
 
   delete(file: FileInfo) {
-    this
-      .createDialog
-      .open(DialogDeleteAreYouSureComponent, {width: '40em', data: file})
-      .afterClosed()
-      .subscribe(result => {
-        if (result) {
-          this.longLoading.increase();
-          this.api
-            .delete(file.path)
-            .toPromise()
-            .finally(() => {
-              this.longLoading.decrease();
-              this.loadDirectory(this.latestPath);
-            });
-        }
-      });
+    this.dialog.openAreYouSure(
+      `Deleting ${file.directory ? 'directory' : 'file'} ${file.name}`,
+      () => this.api.delete(file.path).toPromise().then(r => this.loadDirectory(this.latestPath))
+    );
   }
 
   onItemSelected(file: FileInfo) {
     this.selectedPath.emit(file.path);
-  }
-}
-
-export interface CreateDirectoryData {
-  name: string;
-}
-
-@Component({
-  selector: 'app-dialog-directory-create',
-  template: `
-      <h1 mat-dialog-title>Creating a new directory</h1>
-      <div mat-dialog-content>
-          <mat-form-field>
-              <input cdkFocusInitial
-                     matInput [(ngModel)]="data.name" placeholder="Name of the new directory"
-                     (keyup.enter)="dialogRef.close(data.name)"
-                     (keydown.escape)="dialogRef.close()"
-              >
-          </mat-form-field>
-      </div>
-      <div mat-dialog-actions align="end">
-          <button mat-button (click)="dialogRef.close(data.name)">Submit</button>
-          <button mat-button (click)="dialogRef.close()">Cancel</button>
-      </div>`
-})
-export class DialogCreateDirectoryComponent {
-  constructor(
-    public dialogRef: MatDialogRef<DialogCreateDirectoryComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CreateDirectoryData) {
   }
 }
 
@@ -360,24 +318,5 @@ export class DialogUploadFilesProgressComponent {
   constructor(
     public dialogRef: MatDialogRef<DialogUploadFilesProgressComponent>,
     @Inject(MAT_DIALOG_DATA) public data: UploadFilesProgress) {
-  }
-}
-
-@Component({
-  selector: 'app-dialog-delete-are-you-sure',
-  template: `
-      <h1 mat-dialog-title>Are you sure you want to delete this file?</h1>
-      <div mat-dialog-content>
-          <p>{{file.name}}</p>
-      </div>
-      <div mat-dialog-actions align="end">
-          <button mat-button (click)="dialogRef.close(true)">Delete</button>
-          <button mat-button (click)="dialogRef.close(false)">Cancel</button>
-      </div>`
-})
-export class DialogDeleteAreYouSureComponent {
-  constructor(
-    public dialogRef: MatDialogRef<DialogDeleteAreYouSureComponent>,
-    @Inject(MAT_DIALOG_DATA) public file: FileInfo) {
   }
 }
