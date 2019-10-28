@@ -212,7 +212,7 @@ export class FilesComponent implements OnInit {
   }
 
   createDirectory() {
-    this.createDialog.open(CreateDirectoryDialog, {
+    this.createDialog.open(DialogCreateDirectoryComponent, {
       width: '20em',
       data: {}
     }).afterClosed().subscribe(result => {
@@ -247,7 +247,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  uploadFile(files: FileList, currentItem = 0, data: UploadFilesProgress = null, dialog: MatDialogRef<UploadFilesProgressDialog> = null) {
+  uploadFile(files: FileList, currentItem = 0, data: UploadFilesProgress = null, dialog: MatDialogRef<DialogUploadFilesProgressComponent> = null) {
     if (data == null || dialog == null) {
       data = {
         uploads: [],
@@ -256,7 +256,7 @@ export class FilesComponent implements OnInit {
       for (let i = 0; i < files.length; ++i) {
         data.uploads.push([files.item(i).name, 0, 100]);
       }
-      dialog = this.createDialog.open(UploadFilesProgressDialog, {
+      dialog = this.createDialog.open(DialogUploadFilesProgressComponent, {
         width: '60%',
         data,
       });
@@ -286,7 +286,7 @@ export class FilesComponent implements OnInit {
   delete(file: FileInfo) {
     this
       .createDialog
-      .open(DeleteAreYouSureDialog, {width: '40em', data: file})
+      .open(DialogDeleteAreYouSureComponent, {width: '40em', data: file})
       .afterClosed()
       .subscribe(result => {
         if (result) {
@@ -312,7 +312,7 @@ export interface CreateDirectoryData {
 }
 
 @Component({
-  selector: 'dialog-directory-create',
+  selector: 'app-dialog-directory-create',
   template: `
       <h1 mat-dialog-title>Creating a new directory</h1>
       <div mat-dialog-content>
@@ -329,9 +329,9 @@ export interface CreateDirectoryData {
           <button mat-button (click)="dialogRef.close()">Cancel</button>
       </div>`
 })
-export class CreateDirectoryDialog {
+export class DialogCreateDirectoryComponent {
   constructor(
-    public dialogRef: MatDialogRef<CreateDirectoryDialog>,
+    public dialogRef: MatDialogRef<DialogCreateDirectoryComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CreateDirectoryData) {
   }
 }
@@ -342,7 +342,7 @@ export interface UploadFilesProgress {
 }
 
 @Component({
-  selector: 'dialog-upload-files-progress',
+  selector: 'app-dialog-upload-files-progress',
   template: `
       <h1 mat-dialog-title>Uploading your files</h1>
       <div mat-dialog-content>
@@ -356,15 +356,15 @@ export interface UploadFilesProgress {
       </div>
   `
 })
-export class UploadFilesProgressDialog {
+export class DialogUploadFilesProgressComponent {
   constructor(
-    public dialogRef: MatDialogRef<UploadFilesProgressDialog>,
+    public dialogRef: MatDialogRef<DialogUploadFilesProgressComponent>,
     @Inject(MAT_DIALOG_DATA) public data: UploadFilesProgress) {
   }
 }
 
 @Component({
-  selector: 'dialog-delete-are-you-sure',
+  selector: 'app-dialog-delete-are-you-sure',
   template: `
       <h1 mat-dialog-title>Are you sure you want to delete this file?</h1>
       <div mat-dialog-content>
@@ -375,9 +375,9 @@ export class UploadFilesProgressDialog {
           <button mat-button (click)="dialogRef.close(false)">Cancel</button>
       </div>`
 })
-export class DeleteAreYouSureDialog {
+export class DialogDeleteAreYouSureComponent {
   constructor(
-    public dialogRef: MatDialogRef<DeleteAreYouSureDialog>,
+    public dialogRef: MatDialogRef<DialogDeleteAreYouSureComponent>,
     @Inject(MAT_DIALOG_DATA) public file: FileInfo) {
   }
 }
