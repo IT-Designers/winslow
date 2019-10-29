@@ -42,7 +42,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   watchLogsInterval: any = null;
   watchLogsId?: string = null;
   watchLatestLogs = true;
-  watchVersion: number = null;
 
   loadLogsOnceAnyway = false;
 
@@ -85,17 +84,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   update(info: StateInfo) {
-    this.state = info.state;
+    this.state = info.actualState();
     this.pauseReason = info.pauseReason;
     this.progress = info.stageProgress;
-
-    if (this.state !== State.Paused && this.state !== State.Running && info.hasEnqueuedStages) {
-      this.state = State.Enqueued;
-    }
-
-    if (this.state !== State.Failed && this.pauseReason != null) {
-      this.state = State.Warning;
-    }
 
     this.stateEmitter.emit(this.state);
     this.pollWatched();
@@ -110,16 +101,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   pollWatched(): void {
-    const changed = this.watchVersion !== this.project.version;
-    this.watchVersion = this.project.version;
-
-    if (this.watchHistory && (this.isRunning() || changed)) {
+    if (this.watchHistory && this.isRunning()) {
       this.loadHistory();
     }
-    if (this.watchPaused && (this.isRunning() || changed)) {
+    if (this.watchPaused && this.isRunning()) {
       this.loadPaused();
     }
-    if (this.watchLogs && (this.isRunning() || changed || this.loadLogsOnceAnyway)) {
+    if (this.watchLogs && (this.isRunning() || this.loadLogsOnceAnyway)) {
       if (!this.watchLogsInterval) {
         this.watchLogsInterval = setInterval(() => this.loadLogs(), 1000);
       }
