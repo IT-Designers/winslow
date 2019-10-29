@@ -239,6 +239,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             projects,
             availableTags: this.api.cachedTags,
           } as GroupSettingsDialogData
+        }).afterClosed().toPromise().then(result => {
+          if (result) {
+            this.dialog.openLoadingIndicator(
+              new Promise(resolve => setTimeout(resolve, 2000))
+                .then(r => Promise.reject('Not yet implemented')),
+              `Applying settings on all selected projects`,
+            );
+          }
         });
       })
       .finally(() => this.longLoading.decrease());
