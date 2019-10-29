@@ -85,7 +85,7 @@
 }
 
 .files-tab-content {
-  height: 80vh;
+  height: calc(100vh - 17em);
 }
 
 .console-controls {
@@ -162,8 +162,8 @@
 }
 
 .window-mode {
+  height: calc(100vh - 26.35em);
   overflow: auto;
-  height: 70vh;
 }
 
 .console .no-word-wrap {
