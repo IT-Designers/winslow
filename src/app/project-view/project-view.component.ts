@@ -48,7 +48,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   longLoading = new LongLoadingDetector();
 
-  stickConsole = true;
+  stickConsole = false;
   consoleIsLoading = false;
   scrollCallback;
 
