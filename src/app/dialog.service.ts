@@ -50,10 +50,14 @@ export class DialogService {
       preConfirm: this.preConfirmPromiseWithErrorCatcher(() => toExecute),
     };
 
+    const promiseState = { done: false };
+    toExecute.finally(() => promiseState.done = true);
+
     setTimeout(() => {
-      const promise = withSuccessNotification ? this.fireWithSuccessNotification(options) : Swal.fire(options);
-      Swal.clickConfirm();
-      return promise;
+      if (!promiseState.done || withSuccessNotification) {
+        withSuccessNotification ? this.fireWithSuccessNotification(options) : Swal.fire(options);
+        Swal.clickConfirm();
+      }
     }, 150); // try to prevent the first popup from being displayed if it would only be visible for a really short moment
   }
 
