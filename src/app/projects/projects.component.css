@@ -2,6 +2,7 @@ mat-list-item {
   transition: 0.15s;
 }
 
+/* --- Mat-Design Fixes --- */
 mat-list-item:not(:last-child) {
   /* same color as the Mat-Design uses */
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
@@ -10,4 +11,37 @@ mat-list-item:not(:last-child) {
 mat-list-item:hover {
   /* same color as the Mat-Design uses */
   background-color: rgba(0, 0, 0, 0.04);
+}
+/* --- Mat-Design Fixes --- */
+
+.container {
+  display: flex;
+  flex-direction: row;
+}
+
+
+.project-selection-sidebar-container {
+  display: flex;
+  max-width: 30vw;
+}
+
+.project-selection-sidebar {
+  overflow: auto;
+}
+
+.project-selection-sidebar-item {
+  height: 6em !important; /* TODO */
+}
+
+.project-selection-container {
+  display: flex;
+  flex-grow: 1;
+  padding-left: 0.5em;
+}
+
+.project-selection {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  overflow: auto;
 }
