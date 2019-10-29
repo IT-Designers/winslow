@@ -165,7 +165,7 @@
         Force Reload
       </button>
       <div>
-        <mat-slide-toggle #windowMode (change)="scrollConsoleToBottom(true)" labelPosition="before">
+        <mat-slide-toggle #windowMode [checked]="true" (change)="scrollConsoleToBottom(true)" labelPosition="before">
           Window Mode
         </mat-slide-toggle>
         <button mat-stroked-button (click)="scrollBottom()">
