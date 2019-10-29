@@ -1,0 +1,13 @@
+mat-list-item {
+  transition: 0.15s;
+}
+
+mat-list-item:not(:last-child) {
+  /* same color as the Mat-Design uses */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+mat-list-item:hover {
+  /* same color as the Mat-Design uses */
+  background-color: rgba(0, 0, 0, 0.04);
+}

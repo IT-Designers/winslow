@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {Project} from '../api/project-api.service';
+import {Project, State} from '../api/project-api.service';
 import {StateIconComponent} from '../state-icon/state-icon.component';
 
 @Component({
@@ -19,6 +19,13 @@ export class ProjectViewHeaderComponent implements OnInit {
   icon: StateIconComponent;
 
   constructor() {
+  }
+
+  @Input()
+  set iconState(value: State) {
+    if (this.icon != null) {
+      this.icon.state = value;
+    }
   }
 
   ngOnInit() {

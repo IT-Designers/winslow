@@ -48,7 +48,10 @@ export class ProjectApiService {
   }
 
   getProjectStates(projectIds: string[]) {
-    return this.client.get<StateInfo[]>(ProjectApiService.getUrl(`states?projectIds=${projectIds.join(',')}`)).toPromise();
+    return this.client
+      .get<StateInfo[]>(ProjectApiService.getUrl(`states?projectIds=${projectIds.join(',')}`))
+      .toPromise()
+      .then(result => result.map(r => new StateInfo(r)));
   }
 
   getProjectHistory(projectId: string) {
@@ -205,6 +208,36 @@ export class StateInfo {
   pauseReason?: string;
   stageProgress?: number;
   hasEnqueuedStages: boolean;
+
+  constructor(json: any) {
+    Object.keys(json).forEach(key => this[key] = json[key]);
+  }
+
+  hasEnqueuedFlag(): boolean {
+    return this.state !== State.Paused && this.state !== State.Running && this.hasEnqueuedStages;
+  }
+
+  hasWarningFlag(): boolean {
+    return this.state !== State.Failed && this.pauseReason != null;
+  }
+
+  isRunning(): boolean {
+    return State.Running === this.actualState();
+  }
+
+  actualState(): State {
+    let state = this.state;
+
+    if (this.hasEnqueuedFlag()) {
+      state = State.Enqueued;
+    }
+
+    if (this.hasWarningFlag()) {
+      state = State.Warning;
+    }
+
+    return state;
+  }
 }
 
 export class ImageInfo {
