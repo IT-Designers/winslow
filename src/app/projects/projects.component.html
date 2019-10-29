@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="queryParams != null && queryParams['legacy'] != null">
 
   <div *ngIf="this.projects != null" class="flex-grow-row control-button-row">
     <div class="flex-grow"></div>
@@ -22,10 +22,10 @@
 
       <mat-expansion-panel-header>
         <app-project-view-header #header
-          [project]="project"
-          [pauseReason]="view.pauseReason"
-          [progress]="view.progress"
-          [running]="view.isRunning()">
+                                 [project]="project"
+                                 [pauseReason]="view.pauseReason"
+                                 [progress]="view.progress"
+                                 [running]="view.isRunning()">
         </app-project-view-header>
       </mat-expansion-panel-header>
 
@@ -35,4 +35,53 @@
   </mat-accordion>
 
 
+</div>
+
+
+<div style="display: flex; flex-direction: row" class="auto-full-height">
+
+
+  <app-loading-info [error]="loadError ? loadError.message : null" [loading]="projects == null"></app-loading-info>
+
+
+  <div *ngIf="projects != null" STYLE="max-width: 30vw; display: flex">
+    <mat-card style="overflow: auto;">
+      <mat-card-title>Available Projects</mat-card-title>
+      <mat-list>
+        <mat-list-item *ngFor="let project of projects" style="height: 6em" dense
+                       (click)="stopLoading(selectedProject); startLoading(selectedProject = project)">
+          <app-project-view-header [project]="project"
+                                   [iconState]="stateInfo?.get(project.id)?.actualState()"
+                                   [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
+                                   [progress]="stateInfo?.get(project.id)?.stageProgress"
+                                   [running]="stateInfo?.get(project.id)?.isRunning()">
+          </app-project-view-header>
+        </mat-list-item>
+
+        <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
+          <i>There are no projects yet</i>
+        </div>
+      </mat-list>
+    </mat-card>
+  </div>
+  <div style="flex-grow: 1; padding-left: 0.5em; display: flex">
+    <mat-card style="flex-grow: 1; overflow: auto; display: flex; flex-direction: column">
+      <mat-card-title>Selected Project</mat-card-title>
+
+      <div *ngIf="selectedProject == null" class="none-defined-yet">
+        <i>No project selected yet</i>
+      </div>
+
+      <ng-container *ngIf="selectedProject != null">
+        <app-project-view-header [project]="selectedProject"
+                                 [iconState]="stateInfo?.get(selectedProject.id)?.actualState()"
+                                 [pauseReason]="stateInfo?.get(selectedProject.id)?.pauseReason"
+                                 [progress]="stateInfo?.get(selectedProject.id)?.stageProgress"
+                                 [running]="stateInfo?.get(selectedProject.id)?.isRunning()"
+                                 style="flex-grow: 0">
+        </app-project-view-header>
+        <app-project-view [project]="selectedProject"></app-project-view>
+      </ng-container>
+    </mat-card>
+  </div>
 </div>

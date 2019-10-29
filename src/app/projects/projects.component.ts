@@ -1,9 +1,11 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material';
-import {Project, ProjectApiService} from '../api/project-api.service';
+import {Project, ProjectApiService, StateInfo} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
+import {ActivatedRoute, Params} from '@angular/router';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-projects',
@@ -15,10 +17,19 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
 
   projects: Project[] = null;
+  stateInfo: Map<string, StateInfo> = null;
   loadError = null;
   interval;
+  selectedProject: Project = null;
 
-  constructor(private api: ProjectApiService, private createDialog: MatDialog, private notification: NotificationService) {
+  queryParams: Params = null;
+  queryParamsSubscription: Subscription = null;
+
+  constructor(private api: ProjectApiService,
+              private createDialog: MatDialog,
+              private notification: NotificationService,
+              private route: ActivatedRoute) {
+    this.queryParamsSubscription = route.queryParams.subscribe(params => this.queryParams = params);
   }
 
   ngOnInit() {
@@ -33,15 +44,15 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.queryParamsSubscription.unsubscribe();
+    this.queryParamsSubscription = null;
     this.projects = null;
     clearInterval(this.interval);
   }
 
   pollAllProjectsForChanges() {
-    const projectIds = this.views.map(view => {
-      view.longLoading.increase();
-      return view.project.id;
-    });
+    this.views.forEach(view => view.longLoading.increase());
+    const projectIds = this.projects.map(project => project.id);
     if (projectIds != null && projectIds.length > 0) {
       this.api.getProjectStates(projectIds)
         .then(result => {
@@ -49,6 +60,15 @@ export class ProjectsComponent implements OnInit, OnDestroy {
           this.views.forEach(view => {
             view.update(result[index++]);
           });
+          this.stateInfo = new Map<string, StateInfo>();
+          for (let i = 0; i < result.length; ++i) {
+            this.stateInfo.set(projectIds[i], result[i]);
+            this.views.forEach(view => {
+              if (view.project.id === projectIds[i]) {
+                view.update(result[i]);
+              }
+            });
+          }
         })
         .finally(() => {
           this.views.forEach(view => view.longLoading.decrease());
@@ -70,18 +90,26 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   stopLoading(project: Project) {
-    this.views.forEach(view => {
-      if (view.project.id === project.id) {
-        view.stopLoading();
-      }
-    });
+    if (project != null) {
+      this.views.forEach(view => {
+        if (view.project.id === project.id) {
+          view.stopLoading();
+        }
+      });
+    }
   }
 
   startLoading(project: Project) {
-    this.views.forEach(view => {
-      if (view.project.id === project.id) {
-        view.startLoading();
-      }
-    });
+    if (project != null) {
+      this.views.forEach(view => {
+        if (view.project.id === project.id) {
+          const stateInfo = this.stateInfo.get(project.id);
+          if (stateInfo != null) {
+            view.update(stateInfo);
+          }
+          view.startLoading();
+        }
+      });
+    }
   }
 }

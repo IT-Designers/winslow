@@ -1,3 +1,13 @@
+:host {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+:host mat-tab-group {
+  overflow: auto !important;
+}
+
 .loading-bar-container {
   height: 0.2em;
 }

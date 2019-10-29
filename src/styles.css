@@ -113,6 +113,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   margin-top: 1.5em !important;
 }
 
+.auto-full-height {
+  height: calc(100vh - 6em);
+  padding: 1em 0;
+}
+
 /* --- Mat-Design Fixes --- */
 .mat-expansion-panel-header-description {
   flex-grow: 0 !important;
