@@ -24,14 +24,15 @@ export class DialogService {
 
   private errorCatcher(promise: Promise<any>): Promise<boolean> {
     return promise
+      .then(r => true)
       .catch(err => {
         Swal.clickCancel();
         Swal.fire({
           type: 'error',
           text: err != null ? '' + err : null,
         });
-      })
-      .then(result => true);
+        return false;
+      });
   }
 
   private preConfirmPromiseWithErrorCatcher(promise: (value: any) => Promise<any>): (r) => Promise<boolean> {
