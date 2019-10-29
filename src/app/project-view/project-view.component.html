@@ -89,7 +89,7 @@
                           (click)="$event.stopPropagation(); openLogs(entry)">list_alt
                 </mat-icon>
                 <mat-icon *ngIf="entry.workspace" matTooltip="Open Directory" class="clickable"
-                          (click)="$event.stopPropagation(); openFolder(project, entry)">folder_open
+                          (click)="$event.stopPropagation(); openFolder(projectValue, entry)">folder_open
                 </mat-icon>
               </div>
             </mat-panel-title>
@@ -215,8 +215,8 @@
     <div class="stage-control-item">
       <label>Project Name</label>
       <mat-form-field>
-        <input #nameOriginal hidden [value]="project.name">
-        <input #nameEntered matInput name="name" [value]="project.name"
+        <input #nameOriginal hidden [value]="projectValue.name">
+        <input #nameEntered matInput name="name" [value]="projectValue.name"
                (input)="updateName.disabled = $event.target.value == nameOriginal.value"
                (keydown.enter)="setName(nameEntered.value)">
       </mat-form-field>
@@ -228,11 +228,11 @@
       <label>Project Tags</label>
       <app-tags-with-autocomplete #tags
                                   [sort]="false"
-                                  [tags]="project.tags"
+                                  [tags]="projectValue.tags"
                                   [proposals]="api.cachedTags">
       </app-tags-with-autocomplete>
       <button mat-stroked-button color="primary" #tagsButton
-              [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
+              [disabled]="(projectValue.tags.sort() | json) == (tags.selectedTags.sort() | json)"
               (click)="setTags(tags.selectedTags)">
         Update
       </button>
@@ -240,14 +240,14 @@
     <div class="stage-control-item">
       <label>Project Pipeline</label>
       <mat-form-field>
-        <mat-select #pipelineSelection [value]="this.project.pipelineDefinition.id">
+        <mat-select #pipelineSelection [value]="this.projectValue.pipelineDefinition.id">
           <ng-container *ngFor="let pipeline of pipelines">
             <mat-option [value]="pipeline.id">{{pipeline.name}}</mat-option>
           </ng-container>
         </mat-select>
       </mat-form-field>
       <button mat-stroked-button color="primary" #tagsButton
-              [disabled]="pipelineSelection.value == this.project.pipelineDefinition.id"
+              [disabled]="pipelineSelection.value == this.projectValue.pipelineDefinition.id"
               (click)="setPipeline(pipelineSelection.value)">
         Update
       </button>

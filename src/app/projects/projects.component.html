@@ -38,17 +38,17 @@
 </div>
 
 
-<div style="display: flex; flex-direction: row" class="auto-full-height">
+<div class="container auto-full-height">
 
 
   <app-loading-info [error]="loadError ? loadError.message : null" [loading]="projects == null"></app-loading-info>
 
 
-  <div *ngIf="projects != null" STYLE="max-width: 30vw; display: flex">
-    <mat-card style="overflow: auto;">
+  <div *ngIf="projects != null" class="project-selection-sidebar-container">
+    <mat-card class="project-selection-sidebar">
       <mat-card-title>Available Projects</mat-card-title>
       <mat-list>
-        <mat-list-item *ngFor="let project of projects" style="height: 6em" dense
+        <mat-list-item *ngFor="let project of projects" class="project-selection-sidebar-item"
                        (click)="stopLoading(selectedProject); startLoading(selectedProject = project)">
           <app-project-view-header [project]="project"
                                    [iconState]="stateInfo?.get(project.id)?.actualState()"
@@ -64,21 +64,20 @@
       </mat-list>
     </mat-card>
   </div>
-  <div style="flex-grow: 1; padding-left: 0.5em; display: flex">
-    <mat-card style="flex-grow: 1; overflow: auto; display: flex; flex-direction: column">
+  <div class="project-selection-container">
+    <mat-card class="project-selection">
       <mat-card-title>Selected Project</mat-card-title>
 
       <div *ngIf="selectedProject == null" class="none-defined-yet">
-        <i>No project selected yet</i>
+        <i>No project selected</i>
       </div>
 
       <ng-container *ngIf="selectedProject != null">
-        <app-project-view-header [project]="selectedProject"
+        <app-project-view-header [project]="selectedProject" class="no-flex-grow"
                                  [iconState]="stateInfo?.get(selectedProject.id)?.actualState()"
                                  [pauseReason]="stateInfo?.get(selectedProject.id)?.pauseReason"
                                  [progress]="stateInfo?.get(selectedProject.id)?.stageProgress"
-                                 [running]="stateInfo?.get(selectedProject.id)?.isRunning()"
-                                 style="flex-grow: 0">
+                                 [running]="stateInfo?.get(selectedProject.id)?.isRunning()">
         </app-project-view-header>
         <app-project-view [project]="selectedProject"></app-project-view>
       </ng-container>
