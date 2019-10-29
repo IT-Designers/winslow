@@ -16,7 +16,7 @@
           [defaultEnvironmentVariables]="defaultEnvVars">
       </app-stage-execution-selection>
     </div>
-    <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item stage-control-item-controls">
+    <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
       <button mat-stroked-button color="warn"
               [disabled]="!executionSelection.isValid()"
               (click)="enqueueGroup(
@@ -25,7 +25,7 @@
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-        Apply Settings on other Projects
+        Set on other Projects
       </button>
       <button mat-stroked-button color="primary"
               [disabled]="!executionSelection.isValid()"
@@ -35,23 +35,8 @@
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-        Apply Settings
+        Apply and Enqueue
       </button>
-    </div>
-
-    <div class="stage-control-item">
-      <span></span>
-      <div class="stage-control-item-controls">
-        <button mat-stroked-button (click)="updateRequestPause(true)" color="warn">
-          Pause Pipeline
-        </button>
-        <button mat-stroked-button (click)="updateRequestPause(false, true)" color="primary">
-          Run Single Stage
-        </button>
-        <button mat-raised-button (click)="updateRequestPause(false, false)" color="primary">
-          Resume Pipeline
-        </button>
-      </div>
     </div>
   </mat-tab>
 
@@ -74,14 +59,27 @@
                 class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
               <div class="history-list-column">{{entry.stageName}}</div>
               <div class="history-list-column history-control-icons">
-                <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Stop" class="clickable"
+                <mat-icon *ngIf="isEnqueued(entry.state) && paused && entry.enqueueIndex == 0" matTooltip="Resume only this stage" class="clickable"
+                          (click)="$event.stopPropagation(); updateRequestPause(false, true)">
+                  skip_next
+                </mat-icon>
+                <mat-icon *ngIf="isEnqueued(entry.state) && paused" matTooltip="Resume Pipeline" class="clickable"
+                          (click)="$event.stopPropagation(); updateRequestPause(false, false)">
+                  play_circle_outlined
+                </mat-icon>
+                <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Delete" class="clickable"
                           (click)="$event.stopPropagation(); cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)">
                   pan_tool
                 </mat-icon>
-                <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable"
-                          (click)="$event.stopPropagation(); killCurrentStage()">pan_tool
+                <mat-icon *ngIf="!paused && (isRunning(entry.state) || (i == 0 && !isEnqueued(entry.state)))" matTooltip="Pause Pipeline after this" class="clickable"
+                          (click)="$event.stopPropagation(); updateRequestPause(true)">
+                  pause_circle_outlined
                 </mat-icon>
-                <mat-icon matTooltip="Re-Run" class="clickable"
+                <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable"
+                          (click)="$event.stopPropagation(); killCurrentStage()">
+                  pan_tool
+                </mat-icon>
+                <mat-icon matTooltip="Use as blueprint" class="clickable"
                           (click)="$event.stopPropagation(); prepareEnqueue(entry)">
                   replay
                 </mat-icon>
@@ -241,7 +239,7 @@
     <div class="stage-control-item">
       <label>Project Pipeline</label>
       <mat-form-field>
-        <mat-select #pipelineSelection  [value]="this.project.pipelineDefinition.id">
+        <mat-select #pipelineSelection [value]="this.project.pipelineDefinition.id">
           <ng-container *ngFor="let pipeline of pipelines">
             <mat-option [value]="pipeline.id">{{pipeline.name}}</mat-option>
           </ng-container>
