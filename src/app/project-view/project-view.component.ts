@@ -75,7 +75,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.pipelinesApi.getPipelineDefinitions().then(result => {
       this.pipelines = result;
       this.executionSelection.pipelines = result;
-      this.executionSelection.defaultPipelineId = this.getProjectPipelineId();
+      this.project.pipelineDefinition.id = this.getProjectPipelineId();
+      this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
     });
   }
 
@@ -478,6 +479,29 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       }
     }
     return null;
+  }
+
+  setPipeline(pipelineId: string) {
+    for (const pipeline of this.pipelines) {
+      if (pipelineId === pipeline.id) {
+        this.dialog.openLoadingIndicator(
+          this.api
+            .setPipelineDefinition(this.project.id, pipelineId)
+            .then(successful => {
+              if (successful) {
+                this.project.pipelineDefinition = pipeline;
+                this.executionSelection.defaultPipelineId = pipelineId;
+                return Promise.resolve();
+              } else {
+                return Promise.reject();
+              }
+            }),
+          `Submitting Pipeline selection`,
+          true
+        );
+        break;
+      }
+    }
   }
 }
 

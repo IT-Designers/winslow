@@ -81,7 +81,8 @@
                 <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable"
                           (click)="$event.stopPropagation(); killCurrentStage()">pan_tool
                 </mat-icon>
-                <mat-icon matTooltip="Re-Run" class="clickable" (click)="$event.stopPropagation(); prepareEnqueue(entry)">
+                <mat-icon matTooltip="Re-Run" class="clickable"
+                          (click)="$event.stopPropagation(); prepareEnqueue(entry)">
                   replay
                 </mat-icon>
                 <mat-icon *ngIf="entry.stageId" matTooltip="Open Logs" class="clickable"
@@ -234,6 +235,21 @@
       <button mat-stroked-button color="primary" #tagsButton
               [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
               (click)="setTags(tags.selectedTags)">
+        Update
+      </button>
+    </div>
+    <div class="stage-control-item">
+      <label>Project Pipeline</label>
+      <mat-form-field>
+        <mat-select #pipelineSelection  [value]="this.project.pipelineDefinition.id">
+          <ng-container *ngFor="let pipeline of pipelines">
+            <mat-option [value]="pipeline.id">{{pipeline.name}}</mat-option>
+          </ng-container>
+        </mat-select>
+      </mat-form-field>
+      <button mat-stroked-button color="primary" #tagsButton
+              [disabled]="pipelineSelection.value == this.project.pipelineDefinition.id"
+              (click)="setPipeline(pipelineSelection.value)">
         Update
       </button>
     </div>
