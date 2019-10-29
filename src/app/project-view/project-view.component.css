@@ -65,7 +65,9 @@
 
 .stage-control-item-controls {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  margin-top: 3em;
+  margin-bottom: 1em;
 }
 
 .stage-control-item button:not(:first-child), .stage-control-item-controls button:not(:first-child) {
