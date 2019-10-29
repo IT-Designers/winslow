@@ -59,7 +59,8 @@
                 class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
               <div class="history-list-column">{{entry.stageName}}</div>
               <div class="history-list-column history-control-icons">
-                <mat-icon *ngIf="isEnqueued(entry.state) && paused && entry.enqueueIndex == 0" matTooltip="Resume only this stage" class="clickable"
+                <mat-icon *ngIf="isEnqueued(entry.state) && paused && entry.enqueueIndex == 0"
+                          matTooltip="Resume only this stage" class="clickable"
                           (click)="$event.stopPropagation(); updateRequestPause(false, true)">
                   skip_next
                 </mat-icon>
@@ -71,7 +72,8 @@
                           (click)="$event.stopPropagation(); cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)">
                   pan_tool
                 </mat-icon>
-                <mat-icon *ngIf="!paused && (isRunning(entry.state) || (i == 0 && !isEnqueued(entry.state)))" matTooltip="Pause Pipeline after this" class="clickable"
+                <mat-icon *ngIf="!paused && (isRunning(entry.state) || (i == 0 && !isEnqueued(entry.state)))"
+                          matTooltip="Pause Pipeline after this" class="clickable"
                           (click)="$event.stopPropagation(); updateRequestPause(true)">
                   pause_circle_outlined
                 </mat-icon>
@@ -175,8 +177,7 @@
     </div>
     <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
     <div class="logs-container" *ngIf="logs != null">
-      <div #console class="console-container dark-console" [class.window-mode]="windowMode.checked"
-           (scroll)="onConsoleScroll($event)">
+      <div #console class="dark-console" [class.window-mode]="windowMode.checked" (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
           <code *ngIf="logs != null" class="console"
           ><ng-container *ngFor="let log of logs; index as i"
