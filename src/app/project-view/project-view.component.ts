@@ -23,7 +23,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   @ViewChild('stageSelection', {static: false}) stageSelection: MatSelect;
   @ViewChild('executionSelection', {static: false}) executionSelection: StageExecutionSelectionComponent;
 
-  projectValue: Project;
+  private projectValue: Project;
   @Output('state') stateEmitter = new EventEmitter<State>();
 
   filesAdditionalRoot: string = null;
@@ -68,13 +68,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.filesAdditionalRoot = `${this.projectValue.name};workspaces/${this.projectValue.id}`;
+    this.filesAdditionalRoot = `${this.project.name};workspaces/${this.project.id}`;
     this.scrollCallback = () => this.onWindowScroll();
     window.addEventListener('scroll', this.scrollCallback, true);
     this.pipelinesApi.getPipelineDefinitions().then(result => {
       this.pipelines = result;
       this.executionSelection.pipelines = result;
-      this.project = this.projectValue;
+      this.project = this.project;
     });
   }
 
@@ -89,6 +89,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.projectValue.pipelineDefinition.id = this.getProjectPipelineId();
       this.executionSelection.defaultPipelineId = this.projectValue.pipelineDefinition.id;
     }
+  }
+
+  public  get project(): Project {
+    return this.projectValue;
   }
 
   update(info: StateInfo) {
@@ -159,20 +163,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     if (this.watchLatestLogs) {
       const skipLines = this.logs != null ? this.logs.length : 0;
       const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
-      return this.api.getLatestLogs(this.projectValue.id, skipLines, expectingStageId);
+      return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId);
     } else {
       this.logs = [];
-      return this.api.getLog(this.projectValue.id, this.watchLogsId);
+      return this.api.getLog(this.project.id, this.watchLogsId);
     }
   }
 
   loadHistory() {
     this.longLoading.increase();
     return this.api
-      .getProjectHistory(this.projectValue.id)
+      .getProjectHistory(this.project.id)
       .then(history => {
         history = history.reverse();
-        return this.api.getProjectEnqueued(this.projectValue.id)
+        return this.api.getProjectEnqueued(this.project.id)
           .then(enqueued => {
             // remember state before adding to other history entires
             for (let i = 0; i < enqueued.length; ++i) {
@@ -192,7 +196,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   loadPaused(): void {
     this.longLoading.increase();
-    this.api.getProjectPaused(this.projectValue.id)
+    this.api.getProjectPaused(this.project.id)
       .then(paused => this.paused = paused)
       .finally(() => this.longLoading.decrease());
   }
@@ -207,7 +211,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   enqueue(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
-    if (pipeline.name === this.projectValue.pipelineDefinition.name) {
+    if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
         if (pipeline.stages[i].name === stage.name) {
@@ -217,7 +221,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.enqueue(this.projectValue.id, index, env, image),
+          this.api.enqueue(this.project.id, index, env, image),
           `Submitting selections`
         );
       }
@@ -253,7 +257,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.paused = pause;
     this.dialog.openLoadingIndicator(
       this.api
-        .resume(this.projectValue.id, pause, singleStageOnly)
+        .resume(this.project.id, pause, singleStageOnly)
         .then(result => {
           if (!this.paused) {
             this.stateEmitter.emit(this.state = State.Running);
@@ -336,9 +340,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   setName(name: string) {
     this.dialog.openLoadingIndicator(
       this.api
-        .setName(this.projectValue.id, name)
+        .setName(this.project.id, name)
         .then(result => {
-          this.projectValue.name = name;
+          this.project.name = name;
         }),
       `Updating name`
     );
@@ -346,7 +350,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   delete() {
     this.dialog.openAreYouSure(
-      `Project being deleted: ${this.projectValue.name}`,
+      `Project being deleted: ${this.project.name}`,
       () => new Promise(resolve => setTimeout(resolve, 1000))
         .then(result => Promise.reject('Not yet implemented')),
     );
@@ -382,8 +386,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   killCurrentStage() {
     this.dialog.openAreYouSure(
-      `Kill currently running stage of project ${this.projectValue.name}`,
-      () => this.api.killStage(this.projectValue.id)
+      `Kill currently running stage of project ${this.project.name}`,
+      () => this.api.killStage(this.project.id)
     );
   }
 
@@ -428,17 +432,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   cancelEnqueuedStage(index: number, controlSize: number) {
     this.dialog.openAreYouSure(
-      `Remove enqueued stage from project ${this.projectValue.name}`,
-      () => this.api.deleteEnqueued(this.projectValue.id, index, controlSize)
+      `Remove enqueued stage from project ${this.project.name}`,
+      () => this.api.deleteEnqueued(this.project.id, index, controlSize)
     );
   }
 
   setTags(tags: string[]) {
     return this.dialog.openLoadingIndicator(
       this.api
-        .setTags(this.projectValue.id, tags)
+        .setTags(this.project.id, tags)
         .then(result => {
-          this.projectValue.tags = tags;
+          this.project.tags = tags;
         }),
       'Updating tags'
     );
@@ -451,7 +455,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   onSelectedStageChanged(info: StageInfo) {
     this.selectedStage = info;
     if (this.selectedPipeline != null && this.selectedStage != null) {
-      if (this.selectedPipeline.name === this.projectValue.pipelineDefinition.name) {
+      if (this.selectedPipeline.name === this.project.pipelineDefinition.name) {
         let index = null;
         for (let i = 0; i < this.selectedPipeline.stages.length; ++i) {
           if (this.selectedPipeline.stages[i].name === this.selectedStage.name) {
@@ -462,7 +466,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
         this.dialog.openLoadingIndicator(
           this.api
-            .getEnvironment(this.projectValue.id, index)
+            .getEnvironment(this.project.id, index)
             .then(result => {
               this.defaultEnvVars = result;
             }),
@@ -476,7 +480,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   getProjectPipelineId(): string {
     if (this.pipelines != null) {
       for (const pipeline of this.pipelines) {
-        if (this.projectValue.pipelineDefinition.name === pipeline.name) {
+        if (this.project.pipelineDefinition.name === pipeline.name) {
           return pipeline.id;
         }
       }
@@ -489,10 +493,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       if (pipelineId === pipeline.id) {
         this.dialog.openLoadingIndicator(
           this.api
-            .setPipelineDefinition(this.projectValue.id, pipelineId)
+            .setPipelineDefinition(this.project.id, pipelineId)
             .then(successful => {
               if (successful) {
-                this.projectValue.pipelineDefinition = pipeline;
+                this.project.pipelineDefinition = pipeline;
                 this.executionSelection.defaultPipelineId = pipelineId;
                 return Promise.resolve();
               } else {
