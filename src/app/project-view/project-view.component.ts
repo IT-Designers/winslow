@@ -24,12 +24,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   @ViewChild('executionSelection', {static: false}) executionSelection: StageExecutionSelectionComponent;
 
   private projectValue: Project;
-  @Output('state') stateEmitter = new EventEmitter<State>();
+  @Output('state') private stateEmitter = new EventEmitter<State>();
 
   filesAdditionalRoot: string = null;
   filesNavigationTarget: string = null;
 
-  state?: State = null;
+  stateValue?: State = null;
   history?: HistoryEntry[] = null;
   logs?: LogEntry[] = null;
   paused: boolean = null;
@@ -91,24 +91,31 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  public  get project(): Project {
+  public get project(): Project {
     return this.projectValue;
   }
 
+  @Input()
+  public set state(value: StateInfo) {
+    this.update(value);
+  }
+
   update(info: StateInfo) {
-    this.state = info.actualState();
+    this.stateValue = info.actualState();
     this.pauseReason = info.pauseReason;
     this.progress = info.stageProgress;
 
-    this.stateEmitter.emit(this.state);
+    this.paused =  this.stateValue === State.Paused;
+
+    this.stateEmitter.emit(this.stateValue);
     this.pollWatched();
   }
 
-  isEnqueued(state = this.state): boolean {
+  isEnqueued(state = this.stateValue): boolean {
     return State.Enqueued === state;
   }
 
-  isRunning(state = this.state): boolean {
+  isRunning(state = this.stateValue): boolean {
     return State.Running === state;
   }
 
@@ -260,7 +267,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         .resume(this.project.id, pause, singleStageOnly)
         .then(result => {
           if (!this.paused) {
-            this.stateEmitter.emit(this.state = State.Running);
+            this.stateEmitter.emit(this.stateValue = State.Running);
             this.pauseReason = null;
             this.openLogs(null, true);
           }
