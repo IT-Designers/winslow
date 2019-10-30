@@ -49,7 +49,7 @@
       <mat-card-title>Available Projects</mat-card-title>
       <mat-list>
         <mat-list-item *ngFor="let project of projects" class="project-selection-sidebar-item"
-                       (click)="stopLoading(selectedProject); startLoading(selectedProject = project)">
+                       (click)="selectedProject = project">
           <app-project-view-header [project]="project"
                                    [iconState]="stateInfo?.get(project.id)?.actualState()"
                                    [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
@@ -79,7 +79,7 @@
                                  [progress]="stateInfo?.get(selectedProject.id)?.stageProgress"
                                  [running]="stateInfo?.get(selectedProject.id)?.isRunning()">
         </app-project-view-header>
-        <app-project-view [project]="selectedProject"></app-project-view>
+        <app-project-view [project]="selectedProject" [state]="stateInfo?.get(selectedProject.id)"></app-project-view>
       </ng-container>
     </mat-card>
   </div>
