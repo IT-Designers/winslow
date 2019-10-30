@@ -1,5 +1,15 @@
 import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
+import {
+  Action,
+  HistoryEntry,
+  ImageInfo,
+  LogEntry,
+  LogSource,
+  Project,
+  ProjectApiService,
+  State,
+  StateInfo
+} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
@@ -111,6 +121,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
     this.stateEmitter.emit(this.stateValue);
     this.pollWatched();
+  }
+
+  isConfigure(action: Action): boolean {
+    return Action.Configure === action;
   }
 
   isEnqueued(state = this.stateValue): boolean {
