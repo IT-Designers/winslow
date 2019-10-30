@@ -8,6 +8,7 @@ import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.Image;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.fs.LockException;
+import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.Stage;
@@ -492,28 +493,10 @@ public class ProjectsController {
                             .orElse(def)
                     );
 
-                    if ((imageName != null || imageArgs != null)) {
-                        stageDef.flatMap(StageDefinition::getImage).ifPresent(image -> {
-                            if (imageName != null) {
-                                image.setName(imageName);
-                            }
-                            if (imageArgs != null) {
-                                image.setArgs(imageArgs);
-                            }
-                        });
-                    }
 
                     if (stageDef.isPresent()) {
-                        var definition = new StageDefinition(
-                                stageDef.get().getName(),
-                                stageDef.get().getDescription().orElse(null),
-                                stageDef.get().getImage().orElse(null),
-                                stageDef.get().getRequirements().orElse(null),
-                                stageDef.get().getUserInput().orElse(null),
-                                env,
-                                stageDef.get().getHighlight().orElse(null)
-                        );
-                        pipeline.enqueueStage(definition);
+                        maybeUpdateImageInfo(imageName, imageArgs, stageDef.get());
+                        pipeline.enqueueStage(createStageDefinition(env, stageDef.get()));
                     }
 
                     return pipeline;
@@ -527,13 +510,72 @@ public class ProjectsController {
             @RequestParam("pipelineId") String pipelineId,
             @RequestParam("stageIndex") int stageIndex,
             @RequestParam(value = "image.name", required = false) @Nullable String imageName,
-            @RequestParam(value = "image.args", required = false) @Nullable String[] imageArgs)  {
+            @RequestParam(value = "image.args", required = false) @Nullable String[] imageArgs) {
+
+
         LOG.info("To configure: " + Arrays.toString(projectIds));
         LOG.info("   » env        " + env);
         LOG.info("   » pipelineId " + pipelineId);
         LOG.info("   » stageIndex " + stageIndex);
         LOG.info("   » image.name " + imageName);
         LOG.info("   » image.args " + Arrays.toString(imageArgs));
+
+        winslow.getPipelineRepository().getPipeline(pipelineId).unsafe().ifPresent(pipelineDefinition -> {
+            var stages   = pipelineDefinition.getStageDefinitions();
+            var stageDef = stages.stream().skip(stageIndex).findFirst();
+
+            LOG.info("     » pipeline name " + pipelineDefinition.getName());
+            LOG.info("     » stage name    " + stageDef.map(StageDefinition::getName).orElse(null));
+
+            if (stageDef.isPresent()) {
+                maybeUpdateImageInfo(imageName, imageArgs, stageDef.get());
+                var definition = createStageDefinition(env, stageDef.get());
+
+                Stream
+                        .of(projectIds)
+                        .flatMap(id -> winslow
+                                .getProjectRepository()
+                                .getProject(id)
+                                .unsafe()
+                                .filter(project -> canUserAccessProject(user, project))
+                                .stream()
+                        )
+                        .forEach(project -> winslow
+                                .getOrchestrator()
+                                .updatePipelineOmitExceptions(project, pipeline -> {
+                                    pipeline.enqueueStage(definition, Action.Configure);
+                                    return null;
+                                }));
+            }
+        });
+    }
+
+    private StageDefinition createStageDefinition(@Nonnull Map<String, String> env, @Nonnull StageDefinition stageDef) {
+        return new StageDefinition(
+                stageDef.getName(),
+                stageDef.getDescription().orElse(null),
+                stageDef.getImage().orElse(null),
+                stageDef.getRequirements().orElse(null),
+                stageDef.getUserInput().orElse(null),
+                env,
+                stageDef.getHighlight().orElse(null)
+        );
+    }
+
+    private void maybeUpdateImageInfo(
+            @Nullable String imageName,
+            @Nullable String[] imageArgs,
+            @Nonnull StageDefinition stageDef) {
+        if ((imageName != null || imageArgs != null)) {
+            stageDef.getImage().ifPresent(image -> {
+                if (imageName != null) {
+                    image.setName(imageName);
+                }
+                if (imageArgs != null) {
+                    image.setArgs(imageArgs);
+                }
+            });
+        }
     }
 
     @Nonnull
