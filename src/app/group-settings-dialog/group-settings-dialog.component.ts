@@ -22,6 +22,14 @@ export class GroupSettingsDialogComponent implements OnInit {
 
   ngOnInit() {
   }
+
+  apply() {
+    this.dialogRef.close(this.filtered.map(f => f.id));
+  }
+
+  cancel() {
+    this.dialogRef.close(null);
+  }
 }
 
 export class GroupSettingsDialogData {
