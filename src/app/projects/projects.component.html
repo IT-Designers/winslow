@@ -46,10 +46,14 @@
 
   <div *ngIf="projects != null" class="project-selection-sidebar-container">
     <mat-card class="project-selection-sidebar">
-      <mat-card-title>Available Projects</mat-card-title>
+      <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
+        <i>There are no projects yet</i>
+      </div>
+
       <mat-list>
         <mat-list-item *ngFor="let project of projects" class="project-selection-sidebar-item"
-                       (click)="selectedProject = project">
+                       (click)="selectedProject = project"
+                       [class.selected]="project.id == selectedProject?.id">
           <app-project-view-header [project]="project"
                                    [iconState]="stateInfo?.get(project.id)?.actualState()"
                                    [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
@@ -57,28 +61,16 @@
                                    [running]="stateInfo?.get(project.id)?.isRunning()">
           </app-project-view-header>
         </mat-list-item>
-
-        <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
-          <i>There are no projects yet</i>
-        </div>
       </mat-list>
     </mat-card>
   </div>
   <div class="project-selection-container">
     <mat-card class="project-selection">
-      <mat-card-title>Selected Project</mat-card-title>
-
       <div *ngIf="selectedProject == null" class="none-defined-yet">
         <i>No project selected</i>
       </div>
 
       <ng-container *ngIf="selectedProject != null">
-        <app-project-view-header [project]="selectedProject" class="no-flex-grow"
-                                 [iconState]="stateInfo?.get(selectedProject.id)?.actualState()"
-                                 [pauseReason]="stateInfo?.get(selectedProject.id)?.pauseReason"
-                                 [progress]="stateInfo?.get(selectedProject.id)?.stageProgress"
-                                 [running]="stateInfo?.get(selectedProject.id)?.isRunning()">
-        </app-project-view-header>
         <app-project-view [project]="selectedProject" [state]="stateInfo?.get(selectedProject.id)"></app-project-view>
       </ng-container>
     </mat-card>
