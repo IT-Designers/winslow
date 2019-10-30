@@ -2,6 +2,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 }
 
 :host mat-tab-group {
@@ -10,6 +11,7 @@
 
 .loading-bar-container {
   height: 0.2em;
+  flex-shrink: 0;
 }
 
 .history-list-item {
@@ -95,12 +97,19 @@
 }
 
 .files-tab-content {
-  height: calc(100vh - 17em);
+  height: 100%;
+}
+
+.logs-container {
+  overflow: auto;
+  flex-grow: 1;
+  flex-shrink: 1;
 }
 
 .console-controls {
   display: flex;
   padding: 1em 5em;
+  flex-shrink: 0;
 }
 
 .console-controls *:not(:last-child) {
@@ -174,8 +183,8 @@
 }
 
 .window-mode {
-  height: calc(100vh - 26.35em);
   overflow: auto;
+  height: 100%;
 }
 
 .console .no-word-wrap {

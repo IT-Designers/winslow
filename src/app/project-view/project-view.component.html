@@ -1,5 +1,5 @@
 <div #scrollTopTarget></div>
-<mat-tab-group #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)">
+<mat-tab-group #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)" class="fill-height">
 
   <mat-tab label="Control">
     <div class="loading-bar-container">
@@ -142,7 +142,7 @@
 
   <mat-tab label="Files">
     <ng-template matTabContent>
-      <app-files #files class="files-tab-content"
+      <app-files class="files-tab-content"
                  [additionalRoot]="filesAdditionalRoot"
                  [navigationTarget]="this.filesNavigationTarget"
       ></app-files>
@@ -151,58 +151,51 @@
   </mat-tab>
 
   <mat-tab label="Logs">
-    <div class="loading-bar-container">
-      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
-    </div>
-    <div class="console-controls">
-      <button mat-raised-button color="accent"
-              [disabled]="watchLatestLogs"
-              (click)="showLatestLogs(null)">Show log of most recent Stage
-      </button>
-      <button mat-stroked-button
-              (click)="forceReloadLogs()"
-      >
-        <mat-icon>loop</mat-icon>
-        Force Reload
-      </button>
-      <div>
-        <mat-slide-toggle #windowMode [checked]="true" (change)="scrollConsoleToBottom(true)" labelPosition="before">
-          Window Mode
-        </mat-slide-toggle>
-        <button mat-stroked-button (click)="scrollBottom()">
-          <mat-icon>arrow_downward</mat-icon>
-        </button>
+    <div style="height: 100%" class="flex-grow flex-grow-column">
+      <div class="loading-bar-container">
+        <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
       </div>
-    </div>
-    <div *ngIf="watchLogsId == null && !watchLatestLogs"><i>No stage selected</i></div>
-    <div class="logs-container" *ngIf="logs != null">
-      <div #console class="dark-console" [class.window-mode]="windowMode.checked" (scroll)="onConsoleScroll($event)">
+      <div class="console-controls">
+        <button mat-raised-button color="accent"
+                [disabled]="watchLatestLogs"
+                (click)="showLatestLogs(null)">Show log of most recent Stage
+        </button>
+        <button mat-stroked-button
+                (click)="forceReloadLogs()"
+        >
+          <mat-icon>loop</mat-icon>
+          Force Reload
+        </button>
+
+        <div>
+          <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
+                            labelPosition="before"
+                            [checked]="stickConsole"
+                            (change)="this.scrollConsoleToBottomTimeout($event.checked)">
+            Stick to the Bottom
+          </mat-slide-toggle>
+        </div>
+        <div>
+          <button mat-stroked-button (click)="scrollConsoleToBottom(true)">
+            <mat-icon>arrow_downward</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="logs-container">
+        <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
           <code *ngIf="logs != null" class="console"
           ><ng-container *ngFor="let log of logs; index as i"
           ><span
-          ><span class="line-number" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
+          ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
           ><span [class.console-err]="log.error"
                  [class.console-mgmt]="sourceIsManagement(log.source)"
-                 [class.no-word-wrap]="windowMode.checked"
           >{{log.message}}</span
           ></span
           ></ng-container
           ></code>
         </pre>
-      </div>
-    </div>
-    <div class="console-controls">
-      <div>
-        <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
-                          labelPosition="before"
-                          [checked]="stickConsole"
-                          (change)="this.scrollConsoleToBottomTimeout($event.checked)">
-          Stick to the Bottom
-        </mat-slide-toggle>
-        <button mat-stroked-button (click)="scrollToTopTarget()">
-          <mat-icon>arrow_upward</mat-icon>
-        </button>
+        </div>
       </div>
     </div>
   </mat-tab>
