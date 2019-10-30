@@ -23,7 +23,11 @@
 
     <div mat-dialog-actions align="end">
       <button mat-raised-button (click)="dialogRef.close()">Cancel</button>
-      <button mat-raised-button color="primary" (click)="dialogRef.close(data)">Create</button>
+      <button mat-raised-button color="primary"
+              [disabled]="data.name?.trim().length == 0 || data.pipeline == null"
+              (click)="dialogRef.close(data)">
+        Create
+      </button>
     </div>
   </div>
 </div>

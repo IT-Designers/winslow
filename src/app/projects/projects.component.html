@@ -62,8 +62,14 @@
           </app-project-view-header>
         </mat-list-item>
       </mat-list>
+      <div style="padding-top: 2.5em">
+      </div>
+        <div style="position: sticky; margin-left: calc(100% - 4em); bottom: 1em">
+          <button mat-mini-fab color="primary" (click)="createNewProject()"><mat-icon>add</mat-icon></button>
+        </div>
     </mat-card>
   </div>
+
   <div class="project-selection-container">
     <mat-card class="project-selection">
       <div *ngIf="selectedProject == null" class="none-defined-yet">
