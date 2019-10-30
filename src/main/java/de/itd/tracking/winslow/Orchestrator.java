@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -326,7 +327,10 @@ public class Orchestrator {
                     pipeline,
                     stage
             ) + " for " + stage.getId());
-            switch (getStateOmitExceptions(pipeline, stage).orElse(Stage.State.Failed)) {
+            Supplier<Stage.State> finishStateOrFailed = () -> stage.getFinishTime() != null
+                                                              ? stage.getState()
+                                                              : Stage.State.Failed;
+            switch (getStateOmitExceptions(pipeline, stage).orElseGet(finishStateOrFailed)) {
                 case Running:
                     if (getLogRedirectionState(pipeline) != SimpleState.Failed) {
                         break;
