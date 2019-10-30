@@ -1,9 +1,6 @@
+<app-loading-info [error]="loadError ? loadError.message : null" [loading]="projects == null"></app-loading-info>
+
 <div class="container auto-full-height">
-
-
-  <app-loading-info [error]="loadError ? loadError.message : null" [loading]="projects == null"></app-loading-info>
-
-
   <div *ngIf="projects != null" class="project-selection-sidebar-container">
     <mat-card class="project-selection-sidebar">
       <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
@@ -30,7 +27,7 @@
     </mat-card>
   </div>
 
-  <div class="project-selection-container">
+  <div *ngIf="projects != null" class="project-selection-container">
     <mat-card class="project-selection">
       <div *ngIf="selectedProject == null" class="none-defined-yet">
         <i>No project selected</i>
