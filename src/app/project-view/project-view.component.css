@@ -9,11 +9,6 @@
   overflow: auto !important;
 }
 
-.loading-bar-container {
-  height: 0.2em;
-  flex-shrink: 0;
-}
-
 .history-list-item {
 
 }
@@ -100,6 +95,10 @@
   height: 100%;
 }
 
+.logs-tab-content {
+  height: 100%;
+}
+
 .logs-container {
   overflow: auto;
   flex-grow: 1;
@@ -108,7 +107,7 @@
 
 .console-controls {
   display: flex;
-  padding: 1em 5em;
+  padding: 1em 0;
   flex-shrink: 0;
 }
 

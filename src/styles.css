@@ -152,3 +152,8 @@ body {
 .mat-tab-group.fill-height {
   flex-grow: 1;
 }
+
+.vertical-center-with-margin {
+  margin-top: auto;
+  margin-bottom: auto;
+}
