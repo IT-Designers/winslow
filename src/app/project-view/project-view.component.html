@@ -1,10 +1,7 @@
-<div #scrollTopTarget></div>
 <mat-tab-group #tabGroup (selectedIndexChange)="onSelectedTabChanged($event)" class="fill-height">
 
   <mat-tab label="Control">
-    <div class="loading-bar-container">
-      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
-    </div>
+    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
     <div class="stage-control-item">
       <app-stage-execution-selection
@@ -41,9 +38,7 @@
   </mat-tab>
 
   <mat-tab label="History">
-    <div class="loading-bar-container">
-      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
-    </div>
+    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
     <ng-container *ngIf="history != null">
       <i *ngIf="history.length == 0">This project has no history yet</i>
@@ -151,10 +146,8 @@
   </mat-tab>
 
   <mat-tab label="Logs">
-    <div style="height: 100%" class="flex-grow flex-grow-column">
-      <div class="loading-bar-container">
-        <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
-      </div>
+    <div class="logs-tab-content flex-grow flex-grow-column">
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
       <div class="console-controls">
         <button mat-raised-button color="accent"
                 [disabled]="watchLatestLogs"
@@ -167,7 +160,7 @@
           Force Reload
         </button>
 
-        <div>
+        <div class="vertical-center-with-margin">
           <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
                             labelPosition="before"
                             [checked]="stickConsole"
@@ -201,9 +194,7 @@
   </mat-tab>
 
   <mat-tab label="Settings">
-    <div class="loading-bar-container">
-      <mat-progress-bar *ngIf="isLongLoading()" mode="buffer"></mat-progress-bar>
-    </div>
+    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
     <div class="stage-control-item">
       <label>Project Name</label>
       <mat-form-field>
