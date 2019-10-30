@@ -6,6 +6,7 @@ import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {Subscription} from 'rxjs';
+import {DialogService} from '../dialog.service';
 
 @Component({
   selector: 'app-projects',
@@ -28,7 +29,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   constructor(private api: ProjectApiService,
               private createDialog: MatDialog,
               private notification: NotificationService,
-              private route: ActivatedRoute) {
+              private route: ActivatedRoute,
+              private dialog: DialogService) {
     this.queryParamsSubscription = route.queryParams.subscribe(params => this.queryParams = params);
   }
 
@@ -77,16 +79,20 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   createNewProject() {
-    this.createDialog.open(ProjectsCreateDialog, {
-      width: '50%',
-      data: {}
-    }).afterClosed().subscribe(result => {
-      console.log(JSON.stringify(result));
-      this.api.createProject(result.name, result.pipeline).then(r => {
-        this.notification.info('Project created successfully');
-        this.projects.push(r);
+    this.createDialog
+      .open(ProjectsCreateDialog, {data: {}})
+      .afterClosed()
+      .subscribe(result => {
+        if (result) {
+          return this.dialog.openLoadingIndicator(
+            this.api.createProject(result.name, result.pipeline).then(r => {
+              this.projects.push(r);
+              this.selectedProject = r;
+            }),
+            `Creating new Project`
+          );
+        }
       });
-    });
   }
 
   stopLoading(project: Project) {
