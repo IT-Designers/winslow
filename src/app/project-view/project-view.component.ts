@@ -68,7 +68,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.filesAdditionalRoot = `${this.project.name};workspaces/${this.project.id}`;
+    this.setupFiles();
     this.scrollCallback = () => this.onWindowScroll();
     window.addEventListener('scroll', this.scrollCallback, true);
     this.pipelinesApi.getPipelineDefinitions().then(result => {
@@ -89,6 +89,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.projectValue.pipelineDefinition.id = this.getProjectPipelineId();
       this.executionSelection.defaultPipelineId = this.projectValue.pipelineDefinition.id;
     }
+    this.logs = null;
+    this.history = null;
+    this.pollWatched(true);
+    this.setupFiles();
   }
 
   public get project(): Project {
@@ -119,14 +123,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     return State.Running === state;
   }
 
-  pollWatched(): void {
-    if (this.watchHistory && this.isRunning()) {
+  pollWatched(forceUpdateOnWatched = false): void {
+    if (this.watchHistory && (this.isRunning() || forceUpdateOnWatched)) {
       this.loadHistory();
     }
-    if (this.watchPaused && this.isRunning()) {
+    if (this.watchPaused && (this.isRunning() || forceUpdateOnWatched)) {
       this.loadPaused();
     }
-    if (this.watchLogs && (this.isRunning() || this.loadLogsOnceAnyway)) {
+    if (this.watchLogs && (this.isRunning() || this.loadLogsOnceAnyway || forceUpdateOnWatched)) {
       if (!this.watchLogsInterval) {
         this.watchLogsInterval = setInterval(() => this.loadLogs(), 1000);
       }
@@ -306,8 +310,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   openFolder(project: Project, entry: HistoryEntry) {
     this.tabs.selectedIndex = 2;
-    this.filesAdditionalRoot = `${project.name};workspaces/${project.id}`;
+    this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${project.id}/${entry.workspace}/`;
+  }
+
+  private setupFiles(project = this.projectValue) {
+    if (this.projectValue != null) {
+      this.filesAdditionalRoot = `${project.name};workspaces/${project.id}`;
+    }
   }
 
 

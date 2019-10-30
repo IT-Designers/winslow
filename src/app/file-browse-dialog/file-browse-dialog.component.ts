@@ -29,7 +29,6 @@ export class FileBrowseDialog implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     if (this.data.additionalRoot != null) {
-      this.files.navigateToAdditionalRoot = this.data.preselectedPath === null;
       this.files.additionalRoot = this.data.additionalRoot;
     }
     if (this.data.preselectedPath != null) {
