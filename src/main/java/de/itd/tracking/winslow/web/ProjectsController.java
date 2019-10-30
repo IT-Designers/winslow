@@ -465,12 +465,12 @@ public class ProjectsController {
                 }).orElse(Boolean.FALSE);
     }
 
-    @PostMapping("projects/{projectId}/enqueue/{stageIndex}")
+    @PutMapping("projects/{projectId}/enqueued")
     public void enqueueStage(
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("env") Map<String, String> env,
-            @PathVariable("stageIndex") int index,
+            @RequestParam("stageIndex") int index,
             @RequestParam(value = "imageName", required = false) @Nullable String imageName,
             @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs) {
         winslow
