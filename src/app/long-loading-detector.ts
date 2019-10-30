@@ -5,7 +5,7 @@ export class LongLoadingDetector {
 
   longLoading = false;
 
-  constructor(msForCategorizationAsLongLoading = 100) {
+  constructor(msForCategorizationAsLongLoading = 250) {
     this.loadingCount = 0;
     this.longLoadingMs = msForCategorizationAsLongLoading;
   }
