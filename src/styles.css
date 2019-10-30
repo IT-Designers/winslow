@@ -129,4 +129,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .cdk-global-overlay-wrapper .cdk-overlay-pane {
   width: 100% !important;
 }
+.mat-list-base .mat-list-item {
+  font-size: 14px !important;
+}
 /* --- Mat-Design Fixes --- */
