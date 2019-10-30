@@ -24,6 +24,7 @@ export class ProjectApiService {
         this.cachedTags.push(tag);
       }
     });
+    this.cachedTags = this.cachedTags.sort();
   }
 
   createProject(name: string, pipeline: PipelineInfo) {
