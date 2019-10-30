@@ -18,9 +18,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
   @ViewChild('console', {static: false}) htmlConsole: ElementRef<HTMLElement>;
-  @ViewChild('scrollTopTarget', {static: false}) scrollTopTarget: ElementRef<HTMLElement>;
   @ViewChild('scrollBottomTarget', {static: false}) scrollBottomTarget: ElementRef<HTMLElement>;
-  @ViewChild('stageSelection', {static: false}) stageSelection: MatSelect;
   @ViewChild('executionSelection', {static: false}) executionSelection: StageExecutionSelectionComponent;
 
   private projectValue: Project;
@@ -420,22 +418,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.tabs.selectedIndex = 0;
   }
 
-  scrollBottom() {
-    this.scrollConsoleToBottom(true);
-    this.scrollToBottomTarget();
-  }
-
   private scrollToBottomTarget(smooth = true) {
     this.scrollBottomTarget.nativeElement.scrollIntoView({
       behavior: smooth ? 'smooth' : 'auto',
       block: 'end'
-    });
-  }
-
-  scrollToTopTarget(smooth = true) {
-    this.scrollTopTarget.nativeElement.scrollIntoView({
-      behavior: smooth ? 'smooth' : 'auto',
-      block: 'start'
     });
   }
 
