@@ -28,6 +28,7 @@ mat-list-item:hover {
 .project-selection-sidebar-container {
   display: flex;
   max-width: 30vw;
+  padding: 0.5em;
 }
 
 .project-selection-sidebar {
@@ -41,7 +42,8 @@ mat-list-item:hover {
 .project-selection-container {
   display: flex;
   flex-grow: 1;
-  padding-left: 0.5em;
+  overflow: auto;
+  padding: 0.5em;
 }
 
 .project-selection {
