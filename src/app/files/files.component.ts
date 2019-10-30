@@ -11,9 +11,6 @@ import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
   styleUrls: ['./files.component.css']
 })
 export class FilesComponent implements OnInit {
-  @Input() additionalRoot?: string;
-  @Input() navigateToAdditionalRoot = true;
-  @Input() navigationTarget?: string;
 
   files: Map<string, FileInfo[]> = null;
   longLoading = new LongLoadingDetector();
@@ -35,65 +32,49 @@ export class FilesComponent implements OnInit {
     private dialog: DialogService,
     public readonly swalTargets: SwalPortalTargets
   ) {
+    const root = [];
+    const info = new FileInfo();
+    info.directory = true;
+    info.name = 'resources';
+    info.path = '/resources';
+    root.push(info);
+    this.files = new Map();
+    this.files.set('/', root);
   }
 
   ngOnInit() {
-    let additionalPath: string = null;
     this.longLoading.increase();
     this.api
       .listFiles('/resources')
       .toPromise()
       .then(res => {
-        this.files = new Map<string, FileInfo[]>();
-        this.files.set('/', (() => {
-          const root = [];
-          const info = new FileInfo();
-          info.directory = true;
-          info.name = 'resources';
-          info.path = '/resources';
-          this.files.set('/resources', res);
-          root.push(info);
-
-          if (this.additionalRoot != null) {
-            const additional = new FileInfo();
-            additional.directory = true;
-            additional.name = this.additionalRoot.split(';')[0];
-            additional.path = `/${this.additionalRoot.split(';')[1]}`;
-            additionalPath = additional.path;
-            this.files.set(additional.path, []);
-            root.push(additional);
-          }
-          return root;
-        })());
+        this.files.set('/resources', res);
         return this.loadDirectory(this.latestPath);
-      }).then(result => {
-      if (additionalPath) {
-        return this.navigateDirectlyTo(additionalPath);
-      }
-    }).then(result => {
-      if (this.navigationTarget != null) {
-        return this.navigateDirectlyTo(this.navigationTarget);
-      }
-    }).catch(error => {
+      })
+      .then(result => {
+        if (this.navigationTarget != null) {
+          return this.navigateDirectlyTo(this.navigationTarget);
+        }
+      }).catch(error => {
       this.loadError = error;
     }).finally(() => this.longLoading.decrease());
   }
 
-  updateAdditionalRoot(root: string, view: boolean) {
-    this.additionalRoot = root;
-    const files = this.files.get('/');
-    if (files.length < 2) {
-      files.push(null);
-    } else {
-      this.files.delete(files[0].path);
-    }
-    files[1] = new FileInfo();
-    files[1].directory = true;
-    files[1].name = this.additionalRoot.split(';')[0];
-    files[1].path = `/${this.additionalRoot.split(';')[1]}`;
-    this.files.set(files[1].path, []);
-    if (view) {
-      this.loadDirectory(files[1].path);
+  @Input()
+  public set additionalRoot(value: string) {
+    const additional = new FileInfo();
+    additional.directory = true;
+    additional.name = value.split(';')[0];
+    additional.path = `/${value.split(';')[1]}`;
+    this.files.get('/').splice(1);
+    this.files.get('/').push(additional);
+    this.files.set(additional.path, []);
+    this.navigationTarget = additional.path;
+  }
+  @Input()
+  public set navigationTarget(target: string) {
+    if (target != null) {
+      this.navigateDirectlyTo(target);
     }
   }
 
@@ -135,10 +116,6 @@ export class FilesComponent implements OnInit {
     return this.api.listFiles(path).toPromise().then(res => {
       this.insertListResourceResult(path, res);
     }).finally(() => this.longLoading.decrease());
-  }
-
-  currentDirectoryFilesOnly(): FileInfo[] {
-    return this.currentDirectory().filter(info => !info.directory);
   }
 
   currentDirectory(): FileInfo[] {
