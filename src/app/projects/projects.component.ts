@@ -64,7 +64,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
           for (let i = 0; i < result.length; ++i) {
             this.stateInfo.set(projectIds[i], result[i]);
             this.views.forEach(view => {
-              if (view.projectValue.id === projectIds[i]) {
+              if (view.project.id === projectIds[i]) {
                 view.update(result[i]);
               }
             });
@@ -92,7 +92,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   stopLoading(project: Project) {
     if (project != null) {
       this.views.forEach(view => {
-        if (view.projectValue.id === project.id) {
+        if (view.project.id === project.id) {
           view.stopLoading();
         }
       });
@@ -102,7 +102,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   startLoading(project: Project) {
     if (project != null) {
       this.views.forEach(view => {
-        if (view.projectValue.id === project.id) {
+        if (view.project.id === project.id) {
           const stateInfo = this.stateInfo.get(project.id);
           if (stateInfo != null) {
             view.update(stateInfo);
