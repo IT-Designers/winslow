@@ -520,6 +520,22 @@ public class ProjectsController {
                 }));
     }
 
+    @PutMapping("projects/configuration")
+    public void enqueueConfigure(
+            User user, @RequestParam("projectIds") String[] projectIds,
+            @RequestParam("env") Map<String, String> env,
+            @RequestParam("pipelineId") String pipelineId,
+            @RequestParam("stageIndex") int stageIndex,
+            @RequestParam(value = "image.name", required = false) @Nullable String imageName,
+            @RequestParam(value = "image.args", required = false) @Nullable String[] imageArgs)  {
+        LOG.info("To configure: " + Arrays.toString(projectIds));
+        LOG.info("   » env        " + env);
+        LOG.info("   » pipelineId " + pipelineId);
+        LOG.info("   » stageIndex " + stageIndex);
+        LOG.info("   » image.name " + imageName);
+        LOG.info("   » image.args " + Arrays.toString(imageArgs));
+    }
+
     @Nonnull
     private static Optional<StageDefinition> getStageDefinitionNoClone(@Nonnull Project project, int index) {
         if (project.getPipelineDefinition().getStageDefinitions().size() > index) {
