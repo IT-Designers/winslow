@@ -94,12 +94,13 @@ export class ProjectApiService {
   enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
+    form.set('stageIndex', '' + nextStageIndex);
     if (image != null) {
       form.set('imageName', image.name);
       form.set('imageArgs', JSON.stringify(image.args));
     }
-    return this.client.post(
-      ProjectApiService.getUrl(`${projectId}/enqueue/${nextStageIndex}`),
+    return this.client.put(
+      ProjectApiService.getUrl(`${projectId}/enqueued`),
       form
     ).toPromise();
   }
