@@ -620,6 +620,7 @@ public class ProjectsController {
         @Nonnull public final  Date                startTime;
         @Nullable public final Date                finishTime;
         @Nonnull public final  Stage.State         state;
+        @Nonnull public final  Action              action;
         @Nonnull public final  String              stageName;
         @Nonnull public final  String              workspace;
         @Nullable public final ImageInfo           imageInfo;
@@ -631,6 +632,7 @@ public class ProjectsController {
             this.startTime   = stage.getStartTime();
             this.finishTime  = stage.getFinishTime();
             this.state       = stage.getState();
+            this.action      = stage.getAction();
             this.stageName   = stage.getDefinition().getName();
             this.workspace   = stage.getWorkspace();
             this.imageInfo   = stage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
