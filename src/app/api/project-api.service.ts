@@ -105,6 +105,22 @@ export class ProjectApiService {
     ).toPromise();
   }
 
+  configureGroup(projectIds: string[], pipelineId: string, stageIndex: number, env: any, image: ImageInfo = null) {
+    const form = new FormData();
+    form.set('projectIds', JSON.stringify(projectIds));
+    form.set('pipelineId', JSON.stringify(pipelineId));
+    form.set('stageIndex', JSON.stringify(stageIndex));
+    form.set('env', JSON.stringify(env));
+    if (image != null) {
+      form.set('image.name', JSON.stringify(image.name));
+      form.set('image.args', JSON.stringify(image.args));
+    }
+    return this.client.put(
+      ProjectApiService.getUrl(`configuration`),
+      form
+    ).toPromise();
+  }
+
   resume(projectId: string, paused: boolean, singleStageOnly = false) {
     return this.client.post(ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`), new FormData()).toPromise();
   }
