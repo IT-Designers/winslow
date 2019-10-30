@@ -14,6 +14,11 @@ mat-list-item:hover {
 }
 /* --- Mat-Design Fixes --- */
 
+.selected {
+  background-color: #6495ED20;
+  border-left: 1px solid cornflowerblue;
+}
+
 .container {
   display: flex;
   flex-direction: row;
