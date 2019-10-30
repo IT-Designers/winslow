@@ -108,11 +108,11 @@ export class ProjectApiService {
   configureGroup(projectIds: string[], pipelineId: string, stageIndex: number, env: any, image: ImageInfo = null) {
     const form = new FormData();
     form.set('projectIds', JSON.stringify(projectIds));
-    form.set('pipelineId', JSON.stringify(pipelineId));
-    form.set('stageIndex', JSON.stringify(stageIndex));
+    form.set('pipelineId', pipelineId);
+    form.set('stageIndex', '' + stageIndex);
     form.set('env', JSON.stringify(env));
     if (image != null) {
-      form.set('image.name', JSON.stringify(image.name));
+      form.set('image.name', image.name);
       form.set('image.args', JSON.stringify(image.args));
     }
     return this.client.put(
@@ -180,6 +180,11 @@ export enum State {
   Enqueued = 'Enqueued'
 }
 
+export enum Action {
+  Execute = 'Execute',
+  Configure = 'Configure',
+}
+
 export class Project {
   id: string;
   owner: string;
@@ -198,6 +203,7 @@ export class HistoryEntry {
   startTime: number;
   finishTime?: number;
   state: State;
+  action: Action;
   stageName: string;
   workspace: string;
   imageInfo?: ImageInfo;
