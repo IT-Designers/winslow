@@ -18,7 +18,7 @@
     </div>
     <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
       <button mat-stroked-button color="warn"
-              [disabled]="!executionSelection.isValid()"
+              [disabled]="!executionSelection.valid"
               (click)="enqueueGroup(
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
@@ -28,7 +28,7 @@
         Set on other Projects
       </button>
       <button mat-stroked-button color="primary"
-              [disabled]="!executionSelection.isValid()"
+              [disabled]="!executionSelection.valid"
               (click)="enqueue(
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
