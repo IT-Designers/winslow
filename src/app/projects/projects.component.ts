@@ -4,8 +4,6 @@ import {MatDialog} from '@angular/material';
 import {Project, ProjectApiService, StateInfo} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
-import {ActivatedRoute, Params} from '@angular/router';
-import {Subscription} from 'rxjs';
 import {DialogService} from '../dialog.service';
 
 @Component({
@@ -21,17 +19,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   stateInfo: Map<string, StateInfo> = null;
   loadError = null;
   interval;
-  selectedProject: Project = null;
-
-  queryParams: Params = null;
-  queryParamsSubscription: Subscription = null;
+  selectedProject: Project = null;;
 
   constructor(private api: ProjectApiService,
               private createDialog: MatDialog,
               private notification: NotificationService,
-              private route: ActivatedRoute,
               private dialog: DialogService) {
-    this.queryParamsSubscription = route.queryParams.subscribe(params => this.queryParams = params);
   }
 
   ngOnInit() {
@@ -46,8 +39,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.queryParamsSubscription.unsubscribe();
-    this.queryParamsSubscription = null;
     this.projects = null;
     clearInterval(this.interval);
   }
