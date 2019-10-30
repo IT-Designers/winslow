@@ -26,6 +26,8 @@ export class StageExecutionSelectionComponent implements OnInit {
   environmentVariables: Map<string, [boolean, string]> = null;
   image = new ImageInfo();
 
+  valid = false;
+
   defaultEnvironmentVariablesValue = new Map<string, string>();
 
   formGroupEnv = new FormGroup({});
@@ -50,8 +52,15 @@ export class StageExecutionSelectionComponent implements OnInit {
     this.defaultEnvironmentVariablesValue = map;
     if (map != null) {
       map.forEach((value, key) => this.setEnvValue(key, value));
-      setTimeout(() => this.formGroupEnv.markAllAsTouched());
+      setTimeout(() => {
+        this.formGroupEnv.markAllAsTouched();
+        this.updateValid();
+      });
     }
+  }
+
+  updateValid() {
+    this.valid = this.isValid();
   }
 
   isValid(): boolean {
@@ -93,6 +102,8 @@ export class StageExecutionSelectionComponent implements OnInit {
         break;
       }
     }
+
+    this.updateValid();
   }
 
   loadEnvForStageName(stageName: string) {
@@ -107,11 +118,16 @@ export class StageExecutionSelectionComponent implements OnInit {
           this.environmentVariables = new Map();
           this.selectedPipeline.requiredEnvVariables.forEach(key => this.setEnvRequired(key));
           this.selectedStage.requiredEnvVariables.forEach(key => this.setEnvRequired(key));
-          setTimeout(() => this.formGroupEnv.markAllAsTouched());
+          setTimeout(() => {
+            this.formGroupEnv.markAllAsTouched();
+            this.updateValid();
+          });
 
           break;
         }
       }
+
+      this.updateValid();
     }
   }
 
@@ -136,6 +152,7 @@ export class StageExecutionSelectionComponent implements OnInit {
       control.setValue(value);
       control.updateValueAndValidity();
     }
+    this.updateValid();
   }
 
   getSelectedImageArgs(): string {
