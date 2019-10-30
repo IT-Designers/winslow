@@ -174,6 +174,13 @@ public abstract class BaseRepository {
             this.writer = writer;
         }
 
+        /**
+         * Unsafe meaning might fail to load and changes are not persisted.
+         * Consider it as a shared read-only instance of the time it has been
+         * loaded, if successful.
+         *
+         * @return A instance of the underlying at the time of the call or nothing on any error
+         */
         @Nonnull
         public Optional<T> unsafe() {
             return BaseRepository.this.getUnsafe(path, reader);
