@@ -8,6 +8,10 @@ import de.itd.tracking.winslow.fs.Event;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
+import de.itd.tracking.winslow.pipeline.Action;
+import de.itd.tracking.winslow.pipeline.Pipeline;
+import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
+import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.project.LogReader;
 import de.itd.tracking.winslow.project.LogRepository;
 import de.itd.tracking.winslow.project.Project;
@@ -185,7 +189,16 @@ public class Orchestrator {
     }
 
     private Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
-        return pipeline.peekNextStage().map(this.backend::isCapableOfExecuting);
+        return pipeline.peekNextStage().map(enqueued -> {
+            switch (enqueued.getAction()) {
+                case Execute:
+                    return this.backend.isCapableOfExecuting(enqueued.getDefinition());
+                default:
+                    LOG.warning("Unexpected Action for enqueued Stage: " + enqueued.getAction());
+                case Configure:
+                    return true;
+            }
+        });
     }
 
     private void updatePipeline(
@@ -290,7 +303,7 @@ public class Orchestrator {
         var noneRunning = pipeline.getRunningStage().isEmpty();
         var paused      = pipeline.isPauseRequested();
         var hasNext     = pipeline.peekNextStage().isPresent();
-        var isCapable   = pipeline.peekNextStage().map(backend::isCapableOfExecuting).orElse(false);
+        var isCapable   = isCapableOfExecutingNextStage(pipeline).orElse(false);
 
         if (noneRunning && !paused && hasNext && isCapable) {
             switch (pipeline.getStrategy()) {
@@ -490,13 +503,16 @@ public class Orchestrator {
     private Stage startNextPipelineStage(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) throws IncompleteStageException {
-        var stageDefinition = pipeline.peekNextStage().orElseThrow(() -> IncompleteStageException.Builder
-                .create("A pipeline requires at least one stage")
-                .build());
+        var stageEnqueued = pipeline
+                .peekNextStage()
+                .orElseThrow(() -> IncompleteStageException.Builder
+                        .create("A pipeline requires at least one stage")
+                        .build());
 
-        var stageId       = getStageId(pipeline, stageDefinition);
-        var workspacePath = createWorkspacePathFor(pipeline, stageDefinition);
-        var builder       = backend.newStageBuilder(pipeline.getProjectId(), stageId, stageDefinition);
+        var stageDefinition = stageEnqueued.getDefinition();
+        var stageId         = getStageId(pipeline, stageDefinition);
+        var workspacePath   = createWorkspacePathFor(pipeline, stageDefinition);
+        var builder         = backend.newStageBuilder(pipeline.getProjectId(), stageId, stageDefinition);
 
         var resources = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(workspacePath, true);
@@ -600,20 +616,30 @@ public class Orchestrator {
 
 
         try {
-            copyContentOfMostRecentStageTo(pipeline, workspace.get());
-            var stage = builder.build().start();
+            var stage    = (Stage) null;
+            var prepared = builder.build();
+            switch (stageEnqueued.getAction()) {
+                case Execute:
+                    copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(pipeline, workspace.get());
+                    stage = prepared.execute();
+
+                    startExecutor(
+                            pipeline.getProjectId(),
+                            stage.getId(),
+                            getProgressHintMatcher(pipeline.getProjectId())
+                    ).logInf("Stage execution started on " + this.nodeName);
+
+                    break;
+
+                case Configure:
+                    stage = prepared.configure();
+            }
+
             pipeline.resetResumeNotification();
             pipeline.popNextStage();
-            // redirectLogs(pipeline, stage, getProgressHintMatcher(pipeline.getProjectId()));
-
-            var executor = startExecutor(
-                    pipeline.getProjectId(),
-                    stage.getId(),
-                    getProgressHintMatcher(pipeline.getProjectId())
-            );
-            executor.logInf("Stage execution started on " + this.nodeName);
 
             return stage;
+
         } catch (OrchestratorException | LockException | FileNotFoundException e) {
             throw IncompleteStageException.Builder
                     .create("Failed to start stage")
@@ -683,7 +709,7 @@ public class Orchestrator {
         return Path.of(pipeline.getProjectId(), stage.getWorkspace());
     }
 
-    private void copyContentOfMostRecentStageTo(
+    private void copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
             @Nonnull Pipeline pipeline,
             @Nonnull Path workspace) throws IncompleteStageException {
 
@@ -692,6 +718,7 @@ public class Orchestrator {
                 .getWorkspace(pipeline
                                       .getAllStages()
                                       .filter(stage -> stage.getState() == Stage.State.Succeeded)
+                                      .filter(stage -> stage.getAction() == Action.Execute)
                                       .reduce((first, second) -> second) // get the last successful stage
                                       .map(stage -> getWorkspacePathForStage(pipeline, stage))
                                       .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())));

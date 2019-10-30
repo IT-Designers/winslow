@@ -1,5 +1,7 @@
 package de.itd.tracking.winslow;
 
+import de.itd.tracking.winslow.pipeline.Stage;
+
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

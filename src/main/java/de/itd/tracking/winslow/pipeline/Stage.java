@@ -1,4 +1,4 @@
-package de.itd.tracking.winslow;
+package de.itd.tracking.winslow.pipeline;
 
 import de.itd.tracking.winslow.config.StageDefinition;
 
@@ -13,6 +13,7 @@ public class Stage {
 
     @Nonnull private final String          id;
     @Nonnull private final StageDefinition definition;
+    @Nonnull private final Action          action;
     @Nonnull private final Date            startTime;
     @Nonnull private final String          workspace;
 
@@ -24,9 +25,11 @@ public class Stage {
     public Stage(
             @Nonnull String id,
             @Nonnull StageDefinition definition,
+            @Nonnull Action action,
             @Nonnull String workspace) {
         this.id         = id;
         this.definition = definition;
+        this.action     = action;
         this.workspace  = workspace;
 
         this.startTime   = new Date();
@@ -47,6 +50,11 @@ public class Stage {
     @Nonnull
     public StageDefinition getDefinition() {
         return this.definition;
+    }
+
+    @Nonnull
+    public Action getAction() {
+        return this.action;
     }
 
     @Nonnull

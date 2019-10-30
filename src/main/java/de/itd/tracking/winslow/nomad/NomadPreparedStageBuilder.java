@@ -2,7 +2,7 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.JobsApi;
-import de.itd.tracking.winslow.PreparedStageBuilder;
+import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
 import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;

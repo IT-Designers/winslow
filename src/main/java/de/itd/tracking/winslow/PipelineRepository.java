@@ -3,6 +3,7 @@ package de.itd.tracking.winslow;
 
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
+import de.itd.tracking.winslow.pipeline.Pipeline;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

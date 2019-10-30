@@ -1,4 +1,4 @@
-package de.itd.tracking.winslow;
+package de.itd.tracking.winslow.pipeline;
 
 import de.itd.tracking.winslow.config.StageDefinition;
 
@@ -14,10 +14,10 @@ public class Pipeline {
     @Nonnull private final String      projectId;
     @Nonnull private final List<Stage> stages = new ArrayList<>();
 
-    private           boolean               pauseRequested     = false;
-    @Nullable private PauseReason           pauseReason        = null;
-    @Nullable private ResumeNotification    resumeNotification = null;
-    @Nullable private List<StageDefinition> enqueuedStages     = new ArrayList<>();
+    private           boolean             pauseRequested     = false;
+    @Nullable private PauseReason         pauseReason        = null;
+    @Nullable private ResumeNotification  resumeNotification = null;
+    @Nullable private List<EnqueuedStage> enqueuedStages     = new ArrayList<>();
 
     @Nonnull private  Strategy strategy;
     @Nullable private Stage    stage;
@@ -77,7 +77,6 @@ public class Pipeline {
 
     public void requestPause() {
         this.requestPause(null);
-        ;
     }
 
     public void requestPause(@Nullable PauseReason reason) {
@@ -117,7 +116,7 @@ public class Pipeline {
     }
 
     @Nonnull
-    public Optional<StageDefinition> peekNextStage() {
+    public Optional<EnqueuedStage> peekNextStage() {
         if (this.enqueuedStages != null && !this.enqueuedStages.isEmpty()) {
             return Optional.ofNullable(this.enqueuedStages.get(0));
         } else {
@@ -126,7 +125,7 @@ public class Pipeline {
     }
 
     @Nonnull
-    public Optional<StageDefinition> popNextStage() {
+    public Optional<EnqueuedStage> popNextStage() {
         if (this.enqueuedStages != null && !this.enqueuedStages.isEmpty()) {
             return Optional.ofNullable(this.enqueuedStages.remove(0));
         } else {
@@ -139,14 +138,18 @@ public class Pipeline {
     }
 
     public void enqueueStage(@Nonnull StageDefinition definition) {
+        this.enqueueStage(definition, Action.Execute);
+    }
+
+    public void enqueueStage(@Nonnull StageDefinition definition, @Nonnull Action action) {
         if (this.enqueuedStages == null) {
             this.enqueuedStages = new ArrayList<>();
         }
-        this.enqueuedStages.add(definition);
+        this.enqueuedStages.add(new EnqueuedStage(definition, action));
     }
 
     @Nonnull
-    public Optional<StageDefinition> removeEnqueuedStage(int index) {
+    public Optional<EnqueuedStage> removeEnqueuedStage(int index) {
         if (this.enqueuedStages != null && this.enqueuedStages.size() > index) {
             return Optional.of(this.enqueuedStages.remove(index));
         } else {
@@ -155,7 +158,7 @@ public class Pipeline {
     }
 
     @Nonnull
-    public Stream<StageDefinition> getEnqueuedStages() {
+    public Stream<EnqueuedStage> getEnqueuedStages() {
         if (this.enqueuedStages == null) {
             return Stream.empty();
         } else {

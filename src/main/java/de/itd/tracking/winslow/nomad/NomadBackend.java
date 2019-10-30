@@ -8,6 +8,8 @@ import com.hashicorp.nomad.javasdk.*;
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
+import de.itd.tracking.winslow.pipeline.Stage;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

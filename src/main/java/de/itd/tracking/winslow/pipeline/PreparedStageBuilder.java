@@ -1,4 +1,4 @@
-package de.itd.tracking.winslow;
+package de.itd.tracking.winslow.pipeline;
 
 import javax.annotation.Nonnull;
 import java.util.*;

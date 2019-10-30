@@ -1,10 +1,16 @@
 package de.itd.tracking.winslow.web;
 
-import de.itd.tracking.winslow.*;
+import de.itd.tracking.winslow.BaseRepository;
+import de.itd.tracking.winslow.LogEntry;
+import de.itd.tracking.winslow.OrchestratorException;
+import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.Image;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.fs.LockException;
+import de.itd.tracking.winslow.pipeline.EnqueuedStage;
+import de.itd.tracking.winslow.pipeline.Pipeline;
+import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.project.Project;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +18,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -91,7 +96,9 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .stream()
-                        .flatMap(Pipeline::getEnqueuedStages));
+                        .flatMap(Pipeline::getEnqueuedStages)
+                        .map(EnqueuedStage::getDefinition) // TODO does not expose Action information
+                );
     }
 
     @DeleteMapping("/projects/{projectId}/enqueued/{index}/{controlSize}")
