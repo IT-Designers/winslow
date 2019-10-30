@@ -1,7 +1,7 @@
 import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {HistoryEntry, ImageInfo, LogEntry, LogSource, Project, ProjectApiService, State, StateInfo} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MatDialog, MatSelect, MatTabGroup} from '@angular/material';
+import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
@@ -57,7 +57,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
-              private pipelinesApi: PipelineApiService, private createDialog: MatDialog,
+              private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
               private dialog: DialogService) {
   }
 
@@ -107,7 +107,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.pauseReason = info.pauseReason;
     this.progress = info.stageProgress;
 
-    this.paused =  this.stateValue === State.Paused;
+    this.paused = this.stateValue === State.Paused;
 
     this.stateEmitter.emit(this.stateValue);
     this.pollWatched();
@@ -240,25 +240,27 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   enqueueGroup(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
-    this.longLoading.increase();
     this.api.listProjects()
       .then(projects => {
-        return this.createDialog.open(GroupSettingsDialogComponent, {
-          data: {
-            projects,
-            availableTags: this.api.cachedTags,
-          } as GroupSettingsDialogData
-        }).afterClosed().toPromise().then(result => {
-          if (result) {
-            this.dialog.openLoadingIndicator(
-              new Promise(resolve => setTimeout(resolve, 2000))
-                .then(r => Promise.reject('Not yet implemented')),
-              `Applying settings on all selected projects`,
-            );
-          }
-        });
-      })
-      .finally(() => this.longLoading.decrease());
+        return this.matDialog
+          .open(GroupSettingsDialogComponent, {
+            data: {
+              projects,
+              availableTags: this.api.cachedTags,
+            } as GroupSettingsDialogData
+          })
+          .afterClosed()
+          .toPromise()
+          .then(result => {
+            if (result) {
+              this.dialog.openLoadingIndicator(
+                new Promise(resolve => setTimeout(resolve, 2000))
+                  .then(r => Promise.reject('Not yet implemented ' + JSON.stringify(result))),
+                `Applying settings on all selected projects`,
+              );
+            }
+          });
+      });
   }
 
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
