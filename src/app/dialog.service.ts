@@ -29,7 +29,7 @@ export class DialogService {
         Swal.clickCancel();
         Swal.fire({
           type: 'error',
-          text: err != null ? '' + err : null,
+          text: err != null ? JSON.stringify(err) : null,
         });
         return false;
       });

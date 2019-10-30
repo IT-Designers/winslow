@@ -240,27 +240,30 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   enqueueGroup(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
-    this.api.listProjects()
-      .then(projects => {
-        return this.matDialog
-          .open(GroupSettingsDialogComponent, {
-            data: {
-              projects,
-              availableTags: this.api.cachedTags,
-            } as GroupSettingsDialogData
-          })
-          .afterClosed()
-          .toPromise()
-          .then(result => {
-            if (result) {
-              this.dialog.openLoadingIndicator(
-                new Promise(resolve => setTimeout(resolve, 2000))
-                  .then(r => Promise.reject('Not yet implemented ' + JSON.stringify(result))),
-                `Applying settings on all selected projects`,
-              );
-            }
+    for (let i = 0; i < pipeline.stages.length; ++i) {
+      if (stage.name === pipeline.stages[i].name) {
+        return this.api.listProjects()
+          .then(projects => {
+            return this.matDialog
+              .open(GroupSettingsDialogComponent, {
+                data: {
+                  projects,
+                  availableTags: this.api.cachedTags,
+                } as GroupSettingsDialogData
+              })
+              .afterClosed()
+              .toPromise()
+              .then(result => {
+                if (result) {
+                  return this.dialog.openLoadingIndicator(
+                    this.api.configureGroup(result, pipeline.id, i, env, image),
+                    `Applying settings on all selected projects`,
+                  );
+                }
+              });
           });
-      });
+      }
+    }
   }
 
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
