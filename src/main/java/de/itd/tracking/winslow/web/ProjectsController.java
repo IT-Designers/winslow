@@ -13,6 +13,8 @@ import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.project.Project;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
@@ -466,6 +468,44 @@ public class ProjectsController {
                 }).orElse(Boolean.FALSE);
     }
 
+    @DeleteMapping("projects/{projectId}")
+    public ResponseEntity<String> delete(User user, @PathVariable("projectId") String projectId) {
+        var project = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(p -> canUserAccessProject(user, p));
+
+        if (project.isPresent()) {
+            var exclusive = winslow.getProjectRepository().getProject(projectId).exclusive();
+
+            if (exclusive.isPresent()) {
+                try (var container = exclusive.get()) {
+                    if (winslow.getOrchestrator().deletePipeline(project.get())) {
+                        if (!container.deleteOmitExceptions()) {
+                            LOG.log(Level.SEVERE, "Deleted Pipeline but failed to delete Project " + projectId);
+                            return ResponseEntity
+                                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body("Deleted corresponding Pipeline but failed to delete the Project. Please contact the system administrator!");
+                        }
+                    }
+                } catch (OrchestratorException e) {
+                    LOG.log(
+                            Level.SEVERE,
+                            "Failed to delete Pipeline for Project " + project.get().getName() + "/" + projectId,
+                            e
+                    );
+                    return ResponseEntity
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Dependency error: Failed to delete the Pipeline: " + e.getMessage());
+                }
+            }
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PutMapping("projects/{projectId}/enqueued")
     public void enqueueStage(
             User user,
@@ -633,9 +673,10 @@ public class ProjectsController {
             this.finishTime  = stage.getFinishTime();
             this.state       = stage.getState();
             this.action      = stage.getAction();
-            this.stageName   = stage.getDefinition().getName();
+            this.stageName   = Optional.ofNullable(stage.getDefinition()).map(StageDefinition::getName).orElse(null);
             this.workspace   = stage.getWorkspace();
-            this.imageInfo   = stage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
+            this.imageInfo   = Optional.ofNullable(stage.getDefinition()).flatMap(StageDefinition::getImage).map(
+                    ImageInfo::new).orElse(null);
             this.env         = new TreeMap<>(stage.getEnv());
             this.envInternal = new TreeMap<>(stage.getEnvInternal());
         }

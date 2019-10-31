@@ -270,21 +270,25 @@ public class Orchestrator {
 
     private static void forcePurgeWorkspace(@Nonnull Path workspace) {
         try {
-            for (int i = 0; i < 3 && workspace.toFile().exists(); ++i) {
+            var maxRetries = 3;
+            for (int i = 0; i < maxRetries && workspace.toFile().exists(); ++i) {
+                var index = i;
                 try (var stream = Files.walk(workspace)) {
                     stream.forEach(entry -> {
                         try {
                             Files.deleteIfExists(entry);
                         } catch (NoSuchFileException ignored) {
                         } catch (IOException e) {
-                            LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
+                            if (index + 1 == maxRetries) {
+                                LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
+                            }
                         }
                     });
                 }
             }
             Files.deleteIfExists(workspace);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to get rid of worksapce directory " + workspace, e);
+            LOG.log(Level.SEVERE, "Failed to get rid of workspace directory " + workspace, e);
         }
     }
 
@@ -438,6 +442,28 @@ public class Orchestrator {
                         && !pipeline.isPauseRequested()
                         && getLogRedirectionState(pipeline) != SimpleState.Running
                 );
+    }
+
+    public boolean deletePipeline(@Nonnull Project project) throws OrchestratorException {
+        if (this.pipelines.getPipeline(project.getId()).unsafe().isEmpty()) {
+            throw new PipelineNotFoundException(project);
+        }
+
+        try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
+            var pipeline = container.get().orElseThrow(() -> new PipelineNotFoundException(project));
+
+            if (pipeline.getRunningStage().isPresent()) {
+                throw new OrchestratorException(
+                        "Pipeline is still running. Deleting a running Pipeline is not (yet) supported");
+            }
+
+            var workspace = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
+            workspace.ifPresent(Orchestrator::forcePurgeWorkspace);
+            return workspace.isPresent() && container.deleteOmitExceptions();
+
+        } catch (LockException e) {
+            throw new OrchestratorException("Failed to maintain lock", e);
+        }
     }
 
     @Nonnull
@@ -709,8 +735,12 @@ public class Orchestrator {
         );
     }
 
+    private static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
+        return Path.of(pipeline.getProjectId());
+    }
+
     private static Path getWorkspacePathForStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        return Path.of(pipeline.getProjectId(), stage.getWorkspace());
+        return getWorkspacePathForPipeline(pipeline).resolve(stage.getWorkspace());
     }
 
     private void copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
@@ -725,7 +755,8 @@ public class Orchestrator {
                                       .filter(stage -> stage.getAction() == Action.Execute)
                                       .reduce((first, second) -> second) // get the last successful stage
                                       .map(stage -> getWorkspacePathForStage(pipeline, stage))
-                                      .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())));
+                                      .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())))
+                .flatMap(environment.getResourceManager()::getWorkspace);
 
         if (workDirBefore.isPresent()) {
             var dirBefore = workDirBefore.get();
