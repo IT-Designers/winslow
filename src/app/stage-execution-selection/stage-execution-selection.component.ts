@@ -31,6 +31,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   defaultEnvironmentVariablesValue = new Map<string, string>();
 
   formGroupEnv = new FormGroup({});
+
   static deepClone(image: ImageInfo) {
     return JSON.parse(JSON.stringify(image));
   }
@@ -99,6 +100,8 @@ export class StageExecutionSelectionComponent implements OnInit {
       if (pipeline.id === pipelineId) {
         this.selectedPipeline = pipeline;
         this.selectedPipelineEmitter.emit(pipeline);
+        this.selectedStage = null;
+        this.selectedStageEmitter.emit(null);
         break;
       }
     }

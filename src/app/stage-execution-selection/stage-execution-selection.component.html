@@ -16,7 +16,7 @@
   <mat-form-field>
     <mat-select
       (selectionChange)="loadEnvForStageName($event.value)"
-      [value]="selectedPipeline"> <!-- get triggered when the pipeline changes -->
+      [value]="selectedStage?.name"> <!-- get triggered when the pipeline changes -->
       <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.name">{{stage.name}}</mat-option>
     </mat-select>
   </mat-form-field>
@@ -47,13 +47,13 @@
   <div class="action-row">
     <mat-label class="title">Image Args</mat-label>
     <mat-form-field>
-      <input #imageArgs matInput required [value]="getSelectedImageArgs()"
+      <input #imageArgs matInput required [value]="selectedStage.image?.args?.join(' ')"
              (change)="updateImageArgs($event.target.value)">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"
-              [disabled]="imageArgs.value == getSelectedImageArgs()"
-              (click)="imageArgs.value = getSelectedImageArgs()">
+              [disabled]="imageArgs.value == selectedStage.image?.args?.join(' ')"
+              (click)="imageArgs.value = selectedStage.image?.args?.join(' ')">
         Reset
       </button>
     </div>
