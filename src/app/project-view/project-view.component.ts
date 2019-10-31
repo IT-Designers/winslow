@@ -33,6 +33,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   private projectValue: Project;
   @Output('state') private stateEmitter = new EventEmitter<State>();
+  @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
 
   filesAdditionalRoot: string = null;
   filesNavigationTarget: string = null;
@@ -386,9 +387,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.dialog.openAreYouSure(
       `Project being deleted: ${this.project.name}`,
       () => this.api.delete(this.project.id).then(result => {
-        if (result) {
-          this.projectValue = null;
-        }
+        this.deletedEmitter.emit(true);
       })
     );
   }
