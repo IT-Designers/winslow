@@ -59,7 +59,7 @@ export class DialogService {
         withSuccessNotification ? this.fireWithSuccessNotification(options) : Swal.fire(options);
         Swal.clickConfirm();
       }
-    }, 150); // try to prevent the first popup from being displayed if it would only be visible for a really short moment
+    }, 500); // try to prevent the first popup from being displayed if it would only be visible for a really short moment
   }
 
   openAreYouSure(text: string, onSure: () => Promise<void>) {
