@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import Swal, {SweetAlertOptions, SweetAlertResult} from 'sweetalert2';
 
 @Injectable({
@@ -6,7 +6,8 @@ import Swal, {SweetAlertOptions, SweetAlertResult} from 'sweetalert2';
 })
 export class DialogService {
 
-  constructor() { }
+  constructor() {
+  }
 
   private fireWithSuccessNotification(options: SweetAlertOptions): Promise<SweetAlertResult> {
     return Swal
@@ -15,7 +16,7 @@ export class DialogService {
         if (result.value) {
           return Swal.fire({
             type: 'success',
-            timer: 1000,
+            timer: 700,
           });
         }
         return result;
@@ -51,15 +52,21 @@ export class DialogService {
       preConfirm: this.preConfirmPromiseWithErrorCatcher(() => toExecute),
     };
 
-    const promiseState = { done: false };
-    toExecute.finally(() => promiseState.done = true);
+    const state = {showed: false};
 
-    setTimeout(() => {
-      if (!promiseState.done || withSuccessNotification) {
+    // try to prevent the loading popup from being displayed if it would only be visible for a really short moment
+    toExecute.finally(() => this.show(options, withSuccessNotification, state, true));
+    setTimeout(() => this.show(options, withSuccessNotification, state), 500);
+  }
+
+  private show(options: SweetAlertOptions, withSuccessNotification: boolean, state, done = false) {
+    if (state && !state.showed) {
+      state.showed = true;
+      if (!done || withSuccessNotification) {
         withSuccessNotification ? this.fireWithSuccessNotification(options) : Swal.fire(options);
         Swal.clickConfirm();
       }
-    }, 500); // try to prevent the first popup from being displayed if it would only be visible for a really short moment
+    }
   }
 
   openAreYouSure(text: string, onSure: () => Promise<void>) {
