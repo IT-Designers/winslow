@@ -15,7 +15,7 @@
     <div class="server-details">
       <span><strong>CPU</strong> {{node.cpuInfo.modelName}}</span>
       <span><strong>MEM</strong> {{getTotalMemoryFormatted()}}</span>
-      <span><strong>GPU</strong> 4x ToasterX</span>
+      <span *ngFor="let gpu of node.gpuInfo"><strong>GPU</strong> {{gpu.vendor.toUpperCase()}} {{gpu.name}}</span>
     </div>
   </div>
 
