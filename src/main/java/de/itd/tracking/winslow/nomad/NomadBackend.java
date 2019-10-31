@@ -5,21 +5,22 @@ import com.hashicorp.nomad.apimodel.JobListStub;
 import com.hashicorp.nomad.apimodel.NodeListStub;
 import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.*;
-import de.itd.tracking.winslow.*;
+import de.itd.tracking.winslow.Backend;
+import de.itd.tracking.winslow.CombinedIterator;
+import de.itd.tracking.winslow.LogEntry;
 import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.node.GpuInfo;
 import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
 import de.itd.tracking.winslow.pipeline.Stage;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class NomadBackend implements Backend {
@@ -78,6 +79,54 @@ public class NomadBackend implements Backend {
 
                  */
 
+
+    private List<GpuInfo> listGpus() throws IOException {
+        return listGpus(this.client);
+    }
+
+    @Nonnull
+    protected static List<GpuInfo> listGpus(@Nonnull NomadApiClient client) throws IOException {
+        try {
+            var ids = client
+                    .getNodesApi()
+                    .list()
+                    .getValue()
+                    .stream()
+                    .map(NodeListStub::getId)
+                    .collect(Collectors.toList());
+
+            var gpuInfo = new ArrayList<GpuInfo>();
+
+            for (var id : ids) {
+                Optional.ofNullable(
+                        client
+                                .getNodesApi()
+                                .info(id)
+                                .getValue()
+                                .getUnmappedProperties()
+                )
+                        .stream()
+                        .flatMap(Stream::ofNullable)
+                        .flatMap(map -> Stream.ofNullable((Map<String, Map<String, Object>>) map.get("NodeResources")))
+                        .flatMap(map -> Stream.ofNullable((List<Map<String, Object>>) map.get("Devices")))
+                        .flatMap(Collection::stream)
+                        .filter(device -> "gpu".equals(device.get("Type")))
+                        .flatMap(device -> {
+                            var vendor = (String) device.get("Vendor");
+                            var name   = (String) device.get("Name");
+                            return ((List<Object>) device.get("Instances"))
+                                    .stream()
+                                    .map(instance -> new GpuInfo(vendor, name));
+                        })
+                        .forEach(gpuInfo::add);
+            }
+
+            return gpuInfo;
+
+        } catch (NomadException e) {
+            throw new IOException("Failed to contact Nomad instance", e);
+        }
+    }
 
     @Override
     @Nonnull

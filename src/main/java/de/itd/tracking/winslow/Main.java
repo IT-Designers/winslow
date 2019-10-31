@@ -5,7 +5,10 @@ import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
+import de.itd.tracking.winslow.node.NodeInfoUpdater;
+import de.itd.tracking.winslow.node.unix.UnixNode;
 import de.itd.tracking.winslow.nomad.NomadBackend;
+import de.itd.tracking.winslow.nomad.NomadGpuDetectorNodeWrapper;
 import de.itd.tracking.winslow.project.LogRepository;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.PathConfiguration;
@@ -88,6 +91,12 @@ public class Main {
 
             LOG.info("Assembling Winslow");
             var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects);
+
+
+            // TODO
+            var unixNode = new UnixNode(nodeName);
+            var nomadGpuDetectorNode = new NomadGpuDetectorNodeWrapper(unixNode, nomadClient);
+            NodeInfoUpdater.spawn(config.getNodesDirectory(), nomadGpuDetectorNode);
 
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);
