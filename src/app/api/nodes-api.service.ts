@@ -24,6 +24,7 @@ export class NodeInfo {
   memInfo: MemInfo;
   netInfo: NetInfo;
   diskInfo: DiskInfo;
+  gpuInfo: GpuInfo[];
 
   // local only
   update: (node: NodeInfo) => void;
@@ -50,4 +51,9 @@ export class NetInfo {
 export class DiskInfo {
   reading: number;
   writing: number;
+}
+
+export class GpuInfo {
+  vendor: string;
+  name: string;
 }
