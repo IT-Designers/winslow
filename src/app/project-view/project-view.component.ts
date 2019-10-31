@@ -385,8 +385,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   delete() {
     this.dialog.openAreYouSure(
       `Project being deleted: ${this.project.name}`,
-      () => new Promise(resolve => setTimeout(resolve, 1000))
-        .then(result => Promise.reject('Not yet implemented')),
+      () => this.api.delete(this.project.id).then(result => {
+        if (result) {
+          this.projectValue = null;
+        }
+      })
     );
   }
 
