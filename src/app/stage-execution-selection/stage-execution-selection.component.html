@@ -34,7 +34,7 @@
     <mat-label class="title">Image Name</mat-label>
     <mat-form-field>
       <input #imageName matInput required [value]="selectedStage.image.name"
-             (change)="image.name = $event.target.value">
+             (change)="image.name = $event.target.value; updateValid()">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"
@@ -74,6 +74,7 @@
              [required]="envVar.value[0]"
              [value]="envVar.value[1]"
              [formControlName]="envVar.key"
+             (keyup)="updateValid()"
              name="{{envVar.key}}">
     </mat-form-field>
     <div class="controls">

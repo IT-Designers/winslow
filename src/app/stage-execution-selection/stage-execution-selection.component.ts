@@ -176,5 +176,6 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   updateImageArgs(value: string) {
     this.image.args = parseArgsStringToArgv(value);
+    this.updateValid();
   }
 }
