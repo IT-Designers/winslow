@@ -168,6 +168,10 @@ export class ProjectApiService {
   setPipelineDefinition(projectId: string, pipelineId: string) {
     return this.client.post<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), new FormData()).toPromise();
   }
+
+  delete(projectId: string) {
+    return this.client.delete(ProjectApiService.getUrl(`${projectId}`)).toPromise();
+  }
 }
 
 export enum State {
