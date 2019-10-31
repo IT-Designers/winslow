@@ -109,4 +109,24 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  onDeleted(project: Project) {
+    for (let i = 0; i < this.projects.length; ++i) {
+      if (this.projects[i].id === project.id) {
+        this.projects.splice(i, 1);
+        this.projects = this.projects.sort();
+        if (this.selectedProject != null && this.selectedProject.id === project.id) {
+          if (this.projects.length > 0) {
+            if (i >= this.projects.length) {
+              i -= 1;
+            }
+            this.selectedProject = this.projects[i];
+          } else {
+            this.selectedProject = null;
+          }
+        }
+        break;
+      }
+    }
+  }
 }

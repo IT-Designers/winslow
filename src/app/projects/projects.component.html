@@ -21,9 +21,11 @@
       </mat-list>
       <div style="padding-top: 2.5em">
       </div>
-        <div style="position: sticky; margin-left: calc(100% - 4em); bottom: 1em">
-          <button mat-mini-fab color="primary" (click)="createNewProject()"><mat-icon>add</mat-icon></button>
-        </div>
+      <div style="position: sticky; margin-left: calc(100% - 4em); bottom: 1em">
+        <button mat-mini-fab color="primary" (click)="createNewProject()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
     </mat-card>
   </div>
 
@@ -34,7 +36,11 @@
       </div>
 
       <ng-container *ngIf="selectedProject != null">
-        <app-project-view [project]="selectedProject" [state]="stateInfo?.get(selectedProject.id)"></app-project-view>
+        <app-project-view
+          [project]="selectedProject"
+          [state]="stateInfo?.get(selectedProject.id)"
+          (deleted)="onDeleted(selectedProject)">
+        </app-project-view>
       </ng-container>
     </mat-card>
   </div>
