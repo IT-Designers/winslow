@@ -4,10 +4,7 @@ import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.UserRepository;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
-import de.itd.tracking.winslow.node.NodeInfoUpdater;
 import de.itd.tracking.winslow.node.NodeRepository;
-import de.itd.tracking.winslow.node.unix.UnixNode;
-import de.itd.tracking.winslow.nomad.NomadGpuDetectorNodeWrapper;
 import de.itd.tracking.winslow.project.LogRepository;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import de.itd.tracking.winslow.resource.ResourceManager;
@@ -46,6 +43,35 @@ public class Winslow implements Runnable {
         this.nodeRepository     = new NodeRepository(lockBus, configuration);
     }
 
+    public void run() {
+        try (Scanner scanner = new Scanner(System.in)) {
+            String line;
+            while ((line = scanner.nextLine()) != null) {
+                if ("exit".equals(line) || "stop".equals(line)) {
+                    break;
+                } else if ("reload".equals(line)) {
+                    getProjectRepository()
+                            .getProjects()
+                            .map(BaseRepository.Handle::unsafe)
+                            .flatMap(Optional::stream)
+                            .filter(project -> orchestrator.getPipeline(project).isEmpty())
+                            .forEach(project -> {
+                                try {
+                                    orchestrator.createPipeline(project);
+                                    System.out.println(" - recreated pipeline for " + project.getId());
+                                } catch (OrchestratorException e) {
+                                    System.out.println(" - failed for " + project.getId() + ": " + e.getMessage());
+                                    e.printStackTrace(System.err);
+                                }
+                            });
+
+                } else if (!line.isEmpty()) {
+                    System.out.println("Unknown command");
+                }
+            }
+        }
+    }
+
     @Nonnull
     public Orchestrator getOrchestrator() {
         return orchestrator;
@@ -81,43 +107,17 @@ public class Winslow implements Runnable {
         return getOrchestrator().getLogRepository();
     }
 
-    public void run() {
-        try (Scanner scanner = new Scanner(System.in)) {
-            String line;
-            while ((line = scanner.nextLine()) != null) {
-                if ("exit".equals(line) || "stop".equals(line)) {
-                    break;
-                } else if ("reload".equals(line)) {
-                    getProjectRepository()
-                            .getProjects()
-                            .map(BaseRepository.Handle::unsafe)
-                            .flatMap(Optional::stream)
-                            .filter(project -> orchestrator.getPipeline(project).isEmpty())
-                            .forEach(project -> {
-                                try {
-                                    orchestrator.createPipeline(project);
-                                    System.out.println(" - recreated pipeline for " + project.getId());
-                                } catch (OrchestratorException e) {
-                                    System.out.println(" - failed for " + project.getId() + ": " + e.getMessage());
-                                    e.printStackTrace(System.err);
-                                }
-                            });
-
-                } else if (!line.isEmpty()) {
-                    System.out.println("Unknown command");
-                }
-            }
-        }
-    }
-
+    @Nonnull
     public UserRepository getUserRepository() {
         return this.userRepository;
     }
 
+    @Nonnull
     public GroupRepository getGroupRepository() {
         return groupRepository;
     }
 
+    @Nonnull
     public PipelineDefinitionRepository getPipelineRepository() {
         return pipelineRepository;
     }
