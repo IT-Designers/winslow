@@ -53,11 +53,10 @@ public class Orchestrator {
     @Nonnull private final LogRepository      logs;
     @Nonnull private final String             nodeName;
 
-    @Nonnull private final Map<String, Executor> executors = new ConcurrentHashMap<>();
+    @Nonnull private final Map<String, Executor> executors         = new ConcurrentHashMap<>();
+    @Nonnull private final DelayedExecutor       delayedExecutions = new DelayedExecutor();
 
-    private boolean isRunning     = false;
-    private boolean shouldRun     = false;
-    private boolean executeStages = true;
+    private boolean executeStages;
 
 
     public Orchestrator(
@@ -68,29 +67,42 @@ public class Orchestrator {
             @Nonnull PipelineRepository pipelines,
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
-            @Nonnull String nodeName) {
-        this.lockBus     = lockBus;
-        this.environment = environment;
-        this.backend     = backend;
-        this.projects    = projects;
-        this.pipelines   = pipelines;
-        this.hints       = hints;
-        this.logs        = logs;
-        this.nodeName    = nodeName;
+            @Nonnull String nodeName,
+            boolean executeStages) {
+        this.lockBus       = lockBus;
+        this.environment   = environment;
+        this.backend       = backend;
+        this.projects      = projects;
+        this.pipelines     = pipelines;
+        this.hints         = hints;
+        this.logs          = logs;
+        this.nodeName      = nodeName;
+        this.executeStages = executeStages;
 
-        this.lockBus.registerEventListener(Event.Command.KILL, event -> {
-            if (null != this.executors.remove(event.getSubject())) {
-                try {
-                    backend.kill(event.getSubject());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        this.lockBus.registerEventListener(Event.Command.KILL, this::handleKillEvent);
+        this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
+
+        this.pollAllPipelinesForUpdate();
     }
 
-    public void disableStageExecution() {
-        this.executeStages = false;
+    private void handleReleaseEvent(@Nonnull Event event) {
+        var project = this.projects.getProjectIdForLockSubject(event.getSubject());
+        if (project.isPresent()) {
+            LOG.info("Going to check project for changes: " + project.get());
+            this.delayedExecutions.executeRandomlyDelayed(project.get(), 10, 100, () -> {
+                this.pollPipelineForUpdate(project.get());
+            });
+        }
+    }
+
+    private void handleKillEvent(@Nonnull Event event) {
+        if (null != this.executors.remove(event.getSubject())) {
+            try {
+                this.backend.kill(event.getSubject());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void kill(@Nonnull Stage stage) throws LockException {
@@ -112,81 +124,57 @@ public class Orchestrator {
         return backend;
     }
 
-    public synchronized void start() {
-        if (!this.shouldRun) {
-            this.shouldRun = true;
-            var thread = new Thread(this::pipelineUpdaterLoop);
-            thread.setDaemon(true);
-            thread.setName(getClass().getSimpleName());
-            thread.start();
-        }
-    }
-
-    public synchronized void stop() {
-        this.shouldRun = false;
-    }
-
-    public synchronized boolean isGoingToStop() {
-        return !this.shouldRun;
-    }
-
-    public synchronized boolean isRunning() {
-        return this.isRunning;
-    }
-
-    private void pipelineUpdaterLoop() {
-        this.isRunning = true;
-        try {
-            while (!isGoingToStop()) {
-                try {
-                    pollAllPipelinesForUpdate();
-                    // TODO
-                    Thread.sleep(5_000);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }
-        } finally {
-            this.isRunning = false;
-        }
+    private void pollPipelineForUpdate(@Nonnull String id) {
+        this.checkPipelinesForUpdate(Stream.of(this.pipelines.getPipeline(id)));
     }
 
     private void pollAllPipelinesForUpdate() {
-        this.pipelines.getAllPipelines().filter(handle -> {
-            try {
-                var locked       = handle.isLocked();
-                var pipe         = handle.unsafe();
-                var projectId    = pipe.map(Pipeline::getProjectId);
-                var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
-                var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
-                var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
+        this.checkPipelinesForUpdate(this.pipelines.getAllPipelines());
+    }
 
-                LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", inconsistent=" + inconsistent + " projectId=" + projectId);
+    private void checkPipelinesForUpdate(@Nonnull Stream<BaseRepository.Handle<Pipeline>> pipelines) {
+        pipelines
+                .filter(this::pipelineUpdatable)
+                .map(BaseRepository.Handle::exclusive)
+                .flatMap(Optional::stream)
+                .forEach(this::updatePipeline);
+    }
 
-                return !locked && ((hasUpdate && capable) || inconsistent);
-            } catch (Throwable t) {
-                LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
-                return false;
+    private boolean pipelineUpdatable(@Nonnull BaseRepository.Handle<Pipeline> handle) {
+        try {
+            var locked       = handle.isLocked();
+            var pipe         = handle.unsafe();
+            var projectId    = pipe.map(Pipeline::getProjectId);
+            var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
+            var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
+            var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
+
+            LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", inconsistent=" + inconsistent + " projectId=" + projectId);
+
+            return !locked && ((hasUpdate && capable) || inconsistent);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
+            return false;
+        }
+    }
+
+    private void updatePipeline(@Nonnull LockedContainer<Pipeline> container) {
+        var projectId = container.getNoThrow().map(Pipeline::getProjectId);
+        var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
+
+        try {
+            if (project.isPresent()) {
+                updatePipeline(project.get().getPipelineDefinition(), container);
+            } else {
+                LOG.warning("Failed to load project for project " + projectId + ", " + container.getLock());
             }
-        }).map(BaseRepository.Handle::exclusive).flatMap(Optional::stream).forEach(container -> {
-            var projectId = container.getNoThrow().map(Pipeline::getProjectId);
-            var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
-
-            try {
-                if (project.isPresent()) {
-                    updatePipeline(project.get().getPipelineDefinition(), container);
-                } else {
-                    LOG.warning("Failed to load project for project " + projectId + ", " + container.getLock());
-                }
-            } catch (OrchestratorException e) {
-                LOG.log(
-                        Level.SEVERE,
-                        "Failed to update pipeline " + container.getNoThrow().map(Pipeline::getProjectId),
-                        e
-                );
-            }
-
-        });
+        } catch (OrchestratorException e) {
+            LOG.log(
+                    Level.SEVERE,
+                    "Failed to update pipeline " + container.getNoThrow().map(Pipeline::getProjectId),
+                    e
+            );
+        }
     }
 
     private Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
@@ -860,7 +848,9 @@ public class Orchestrator {
             @Nonnull String pipeline,
             @Nonnull String stage,
             @Nonnull Consumer<LogEntry> consumer) throws LockException, FileNotFoundException {
-        var executor = new Executor(pipeline, stage, this, () -> this.executors.remove(stage));
+        var executor = new Executor(pipeline, stage, this);
+        executor.addShutdownListener(() -> this.executors.remove(stage));
+        executor.addShutdownListener(() -> this.pollPipelineForUpdate(pipeline));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stage, executor);
         return executor;

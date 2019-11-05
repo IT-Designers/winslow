@@ -30,6 +30,18 @@ public class ProjectRepository extends BaseRepository {
         super(lockBus, workDirectoryConfiguration);
     }
 
+    public Optional<String> getProjectIdForLockSubject(@Nonnull String lockSubject) {
+        var absolute = workDirectoryConfiguration.getPath().resolve(lockSubject);
+        var prefix = getRepositoryDirectory().relativize(absolute).toString();
+        var index = prefix.indexOf('.');
+
+        if (index > 0) {
+            return Optional.of(prefix.substring(0, index));
+        } else {
+            return Optional.empty();
+        }
+    }
+
     @Nonnull
     @Override
     protected Path getRepositoryDirectory() {

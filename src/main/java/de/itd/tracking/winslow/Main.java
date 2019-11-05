@@ -78,16 +78,13 @@ public class Main {
                     repository,
                     attributes,
                     logs,
-                    nodeName
+                    nodeName,
+                    !Env.isNoStageExecutionSet()
             );
 
             if (Env.isNoStageExecutionSet()) {
-                LOG.info("Disabling stage execution as requested by ENV");
-                orchestrator.disableStageExecution();
+                LOG.info("Stage execution is disabled, as requested by ENV");
             }
-
-            LOG.info("Starting orchestrator");
-            orchestrator.start();
 
             LOG.info("Assembling Winslow");
             var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects);
@@ -109,9 +106,6 @@ public class Main {
         } finally {
             if (webApi != null) {
                 webApi.stop();
-            }
-            if (orchestrator != null) {
-                orchestrator.stop();
             }
         }
     }

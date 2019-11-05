@@ -27,11 +27,11 @@ public class Executor {
     @Nonnull private final String             pipeline;
     @Nonnull private final String             stage;
     @Nonnull private final Orchestrator       orchestrator;
-    @Nonnull private final Runnable           onFinished;
     @Nonnull private final LockedOutputStream logOutput;
     @Nonnull private final LockHeart          lockHeart;
 
-    @Nonnull private final List<Consumer<LogEntry>> logConsumer = new ArrayList<>();
+    @Nonnull private final List<Consumer<LogEntry>> logConsumer       = new ArrayList<>();
+    @Nonnull private final List<Runnable>           shutdownListeners = new ArrayList<>();
 
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
@@ -39,12 +39,10 @@ public class Executor {
     public Executor(
             @Nonnull String pipeline,
             @Nonnull String stage,
-            @Nonnull Orchestrator orchestrator,
-            @Nonnull Runnable onFinished) throws LockException, FileNotFoundException {
+            @Nonnull Orchestrator orchestrator) throws LockException, FileNotFoundException {
         this.pipeline     = pipeline;
         this.stage        = stage;
         this.orchestrator = orchestrator;
-        this.onFinished   = onFinished;
         this.logOutput    = orchestrator.getLogRepository().getRawOutputStream(pipeline, stage);
         this.lockHeart    = new LockHeart(logOutput.getLock());
 
@@ -133,7 +131,7 @@ public class Executor {
             LOG.log(Level.SEVERE, "Log writer failed", e);
         } finally {
             this.logBuffer = null;
-            this.onFinished.run();
+            this.notifyShutdownListeners();
             this.logOutput.getLock().release();
         }
     }
@@ -164,5 +162,24 @@ public class Executor {
 
     public synchronized void addLogEntryConsumer(@Nonnull Consumer<LogEntry> consumer) {
         this.logConsumer.add(consumer);
+    }
+
+    private synchronized void notifyShutdownListeners() {
+        for (var runnable : this.shutdownListeners) {
+            try {
+                runnable.run();
+            } catch (Throwable t) {
+                LOG.log(Level.WARNING, "Shutdown listener failed", t);
+            }
+        }
+        this.shutdownListeners.clear();
+    }
+
+    public synchronized void addShutdownListener(@Nonnull Runnable runnable) {
+        if (this.logBuffer == null) {
+            runnable.run();
+        } else {
+            this.shutdownListeners.add(runnable);
+        }
     }
 }
