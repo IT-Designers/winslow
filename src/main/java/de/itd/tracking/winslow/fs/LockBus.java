@@ -69,7 +69,8 @@ public class LockBus {
     private void watchForNewEvents(WatchService ws) {
         while (true) {
             try {
-                var key = ws.poll(1, TimeUnit.MINUTES);
+                var sleepTimeMillis = getMillisUntilNextLockExpires().orElse(60 * 1_000L);
+                var key             = ws.poll(Math.max(10, sleepTimeMillis), TimeUnit.MILLISECONDS);
                 if (key != null) {
                     if (!key.reset() || !key.isValid()) {
                         key.cancel();
@@ -91,12 +92,8 @@ public class LockBus {
                         }
                     }
                 }
-                try {
-                    this.deleteOldLocks();
-                    this.tryDeleteOldFiles();
-                } catch (IOException e) {
-                    LOG.log(Level.WARNING, "Failed to delete old events", e);
-                }
+                this.checkForExpiredLocks();
+                this.deleteOldEventFiles();
             } catch (InterruptedException ignored) {
             } catch (ClosedWatchServiceException e) {
                 LOG.log(Level.SEVERE, "Watch service closed", e);
@@ -105,14 +102,45 @@ public class LockBus {
         }
     }
 
-    private synchronized void deleteOldLocks() {
-        var toDelete = this.locks
-                .values()
-                .stream()
-                .filter(e -> e.getTime() + e.getDuration() + LOCK_DURATION_OFFSET < System.currentTimeMillis())
-                .map(Event::getSubject)
-                .collect(Collectors.toUnmodifiableList());
-        toDelete.forEach(this.locks::remove);
+    private synchronized Optional<Long> getMillisUntilNextLockExpires() {
+        var expiresNext = Optional.<Long>empty();
+        for (var entry : this.locks.entrySet()) {
+            var expiresAt = entry.getValue().getTime() + entry
+                    .getValue()
+                    .getDuration() + LOCK_DURATION_OFFSET + DURATION_SURELY_OUT_OF_DATE;
+            if (expiresAt < System.currentTimeMillis()) {
+                return Optional.of(0L);
+            } else {
+                if (expiresNext.isEmpty() || expiresNext.get() > expiresAt) {
+                    expiresNext = Optional.of(expiresAt);
+                }
+            }
+        }
+        return expiresNext.map(v -> Math.max(0, v - System.currentTimeMillis()));
+    }
+
+    private synchronized void checkForExpiredLocks() {
+        var expired = new ArrayList<Event>(this.locks.size());
+        for (var entry : this.locks.entrySet()) {
+            if (isSurelyOutOfDate(entry.getValue())) {
+                LOG.warning("Detected surely expired " + entry.getValue());
+                expired.add(entry.getValue());
+            }
+        }
+        expired.forEach(event -> {
+            try {
+                this.publishEvent(id -> new Event(
+                        event.getId(),
+                        Event.Command.RELEASE,
+                        System.currentTimeMillis(),
+                        0,
+                        event.getSubject(),
+                        this.name
+                ));
+            } catch (LockException e) {
+                LOG.log(Level.WARNING, "Failed to publish command to release expired event", e);
+            }
+        });
     }
 
     public boolean release(Token token) {
@@ -236,8 +264,15 @@ public class LockBus {
                 LOG.fine("ADD/UPDATE lock for subject " + event.getSubject());
                 break;
             case RELEASE:
-                this.locks.remove(event.getSubject());
-                LOG.fine("REMOVE lock for subject " + event.getSubject());
+                var lock = this.locks.get(event.getSubject());
+                if (lock != null && Objects.equals(lock.getId(), event.getId())) {
+                    this.locks.remove(event.getSubject());
+                    LOG.fine("REMOVE lock for subject " + event.getSubject());
+                } else {
+                    LOG.warning("RELEASE REFUSED for subject " + event.getSubject() + " because " + (lock != null
+                                                                                                     ? "id mismatch"
+                                                                                                     : "unknown"));
+                }
                 break;
             case KILL:
                 break;
@@ -318,7 +353,15 @@ public class LockBus {
         return path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000;
     }
 
-    private void tryDeleteOldFiles() throws IOException {
+    private void deleteOldEventFiles() {
+        try {
+            this.tryDeleteOldEventFiles();
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to delete old events", e);
+        }
+    }
+
+    private void tryDeleteOldEventFiles() throws IOException {
         var list = sortedEventFileList();
         var diff = list.size() - MAX_OLD_EVENT_FILE_COUNT;
 

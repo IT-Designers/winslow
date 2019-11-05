@@ -18,6 +18,11 @@ public class Event {
         this.issuer   = issuer;
     }
 
+    /**
+     * @return The id of the {@link Event}, which is re-used on continues operations, such as {@link Command#EXTEND} or
+     *         {@link Command#RELEASE} and can therefore be used to map requests and responses unambiguously and
+     *         identify clashes on a subject
+     */
     public String getId() {
         return id;
     }
@@ -34,10 +39,16 @@ public class Event {
         return duration;
     }
 
+    /**
+     * @return What this event is about
+     */
     public String getSubject() {
         return subject;
     }
 
+    /**
+     * @return Who issued this command, for debugging purposes only
+     */
     public String getIssuer() {
         return issuer;
     }
