@@ -39,49 +39,7 @@ public class NomadBackend implements Backend {
 
     public NomadBackend(@Nonnull NomadApiClient client) throws IOException {
         this.client = client;
-        // killAnyRunningStage();
-
-        try {
-            getNewClient()
-                    .getNodesApi()
-                    .list()
-                    .getValue()
-                    .stream()
-                    .forEach(stub -> {
-                        try {
-                            System.out.println(stub.getUnmappedProperties());
-                            System.out.println("reserved " + getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue()
-                                    .getReserved());
-                            System.out.println("resources " + getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue());
-                            System.out.println("unmapped " + ((List<Map<String, Object>>) ((Map<String, Object>) getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue()
-                                    .getUnmappedProperties()
-                                    .get("NodeResources"))
-                                    .get("Devices"))
-                                    .get(0)
-                            );
-                            System.out.println("attributes " + getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue()
-                                    .getAttributes());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (NomadException e) {
-                            e.printStackTrace();
-                        }
-                    });
-        } catch (NomadException e) {
-            e.printStackTrace();
-        }
+        killAnyRunningStage();
     }
 
     private void killAnyRunningStage() throws IOException {
