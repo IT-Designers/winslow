@@ -20,7 +20,7 @@ public class PipelineDefinitionTests {
 
         assertEquals("Name of the pipeline", pipeline.getName());
         assertEquals("Description of the pipeline", pipeline.getDescription().get());
-        assertTrue(pipeline.getUserInput().isEmpty());
+        assertTrue(pipeline.getRequires().isEmpty());
         assertTrue(pipeline.getStages().isEmpty());
     }
 
@@ -34,8 +34,8 @@ public class PipelineDefinitionTests {
 
         assertNull(pipeline.getName());
         assertTrue(pipeline.getDescription().isEmpty());
-        assertTrue(pipeline.getUserInput().isPresent());
-        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getUserInput().get().getEnvironment());
+        assertTrue(pipeline.getRequires().isPresent());
+        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getRequires().get().getEnvironment());
         assertTrue(pipeline.getStages().isEmpty());
     }
 }

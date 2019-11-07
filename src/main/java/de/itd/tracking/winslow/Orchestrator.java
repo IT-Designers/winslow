@@ -686,7 +686,7 @@ public class Orchestrator {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull PreparedStageBuilder builder) {
         return Stream.concat(
-                pipelineDefinition.getUserInput().stream().flatMap(u -> u.getEnvironment().stream()),
+                pipelineDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream()),
                 stageDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream())
         ).anyMatch(k -> builder.getEnvVariable(k).isEmpty());
     }
@@ -696,7 +696,7 @@ public class Orchestrator {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Pipeline pipeline) {
         return Stream
-                .concat(stageDefinition.getRequires().stream(), pipelineDefinition.getUserInput().stream())
+                .concat(stageDefinition.getRequires().stream(), pipelineDefinition.getRequires().stream())
                 .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
                 .anyMatch(u -> !(u.getConfirmation() == UserInput.Confirmation.Once && pipeline
                         .getAllStages()

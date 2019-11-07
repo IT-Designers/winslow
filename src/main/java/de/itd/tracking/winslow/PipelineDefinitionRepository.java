@@ -67,7 +67,7 @@ public class PipelineDefinitionRepository extends BaseRepository {
             return new PipelineDefinition(
                     pipe.getName(),
                     pipe.getDescription().orElse(null),
-                    pipe.getUserInput().orElse(null),
+                    pipe.getRequires().orElse(null),
                     stages
             );
         };
@@ -82,7 +82,7 @@ public class PipelineDefinitionRepository extends BaseRepository {
                     new PipelineDefinition(
                             pipeline.getName(),
                             pipeline.getDescription().orElse(null),
-                            pipeline.getUserInput().orElse(null),
+                            pipeline.getRequires().orElse(null),
                             Collections.emptyList()
                     )
             );

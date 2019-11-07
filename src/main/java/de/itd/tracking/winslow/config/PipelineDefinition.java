@@ -17,11 +17,11 @@ public class PipelineDefinition {
     public PipelineDefinition(
             @Nonnull String name,
             @Nullable String description,
-            @Nullable UserInput userInput,
+            @Nullable UserInput requires,
             @Nonnull List<StageDefinition> stageDefinitions) {
         this.name      = name;
         this.desc      = description;
-        this.userInput = userInput;
+        this.userInput = requires;
         this.stages    = stageDefinitions;
         this.check();
     }
@@ -42,7 +42,7 @@ public class PipelineDefinition {
     }
 
     @Nonnull
-    public Optional<UserInput> getUserInput() {
+    public Optional<UserInput> getRequires() {
         return Optional.ofNullable(userInput);
     }
 

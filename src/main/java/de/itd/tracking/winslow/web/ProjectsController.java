@@ -415,7 +415,7 @@ public class ProjectsController {
                 .flatMap(project -> Stream.concat(
                         project
                                 .getPipelineDefinition()
-                                .getUserInput()
+                                .getRequires()
                                 .stream()
                                 .flatMap(u -> u.getEnvironment().stream()),
                         project
