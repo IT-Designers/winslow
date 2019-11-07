@@ -22,7 +22,7 @@ export class PipelineApiService {
   checkPipelineDefinition(raw: string) {
     const form = new FormData();
     form.set('raw', raw);
-    return this.client.post<string>(PipelineApiService.getUrl(`check-toml`), form).toPromise();
+    return this.client.post<string>(PipelineApiService.getUrl(`check`), form).toPromise();
   }
 
   updatePipelineDefinition(pipeline: string, raw: string) {
