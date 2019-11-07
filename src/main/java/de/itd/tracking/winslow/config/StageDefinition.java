@@ -18,18 +18,18 @@ public class StageDefinition {
 
     public StageDefinition(
             @Nonnull String name,
-            @Nullable String desc,
+            @Nullable String description,
             @Nullable Image image,
-            @Nullable Requirements requires,
+            @Nullable Requirements requirements,
             @Nullable UserInput userInput,
-            @Nullable Map<String, String> env,
+            @Nullable Map<String, String> environment,
             @Nullable Highlight highlight) {
         this.name      = name;
-        this.desc      = desc;
+        this.desc      = description;
         this.image     = image;
-        this.requires  = requires;
+        this.requires  = requirements;
         this.userInput = userInput;
-        this.env       = env;
+        this.env       = environment;
         this.highlight = highlight;
         this.check();
     }
