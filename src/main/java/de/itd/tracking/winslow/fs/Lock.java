@@ -1,10 +1,13 @@
 package de.itd.tracking.winslow.fs;
 
 import java.io.Closeable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Lock implements Closeable {
 
-    public static final int DEFAULT_LOCK_DURATION_MS = 5_000;
+    public static final int    DEFAULT_LOCK_DURATION_MS = 5_000;
+    public static final Logger LOG                      = Logger.getLogger(Lock.class.getSimpleName());
 
     private final LockBus lockBus;
     private final long    durationMs;
@@ -55,8 +58,12 @@ public class Lock implements Closeable {
     }
 
     public synchronized void release() {
-        this.released = true;
-        this.lockBus.release(this.token);
+        if (!this.released) {
+            this.lockBus.release(this.token);
+            this.released = true;
+        } else {
+            LOG.log(Level.WARNING, "Tried to release an already released lock", new RuntimeException());
+        }
     }
 
     public boolean isReleased() {
