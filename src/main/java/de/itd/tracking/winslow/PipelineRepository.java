@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 public class PipelineRepository extends BaseRepository {
 
-    public static final String FILE_SUFFIX = ".pipeline.toml";
+    public static final String FILE_SUFFIX = ".pipeline" + FILE_EXTENSION;
 
 
     public PipelineRepository(

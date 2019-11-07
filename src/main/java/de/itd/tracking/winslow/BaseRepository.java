@@ -1,7 +1,9 @@
 package de.itd.tracking.winslow;
 
-import com.moandjiezana.toml.Toml;
-import com.moandjiezana.toml.TomlWriter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import de.itd.tracking.winslow.fs.*;
 
 import javax.annotation.Nonnull;
@@ -17,7 +19,8 @@ import java.util.stream.Stream;
 
 public abstract class BaseRepository {
 
-    public static final Logger LOG = Logger.getLogger(BaseRepository.class.getSimpleName());
+    public static final String FILE_EXTENSION = ".yml";
+    public static final Logger LOG            = Logger.getLogger(BaseRepository.class.getSimpleName());
 
     protected final LockBus                    lockBus;
     protected final WorkDirectoryConfiguration workDirectoryConfiguration;
@@ -60,21 +63,31 @@ public abstract class BaseRepository {
         }
     }
 
+    @Nonnull
     public static <T> Reader<T> defaultReader(Class<T> clazz) {
         return inputStream -> {
             try {
-                return new Toml().read(inputStream).to(clazz);
+                return new ObjectMapper(new YAMLFactory())
+                        .registerModule(new ParameterNamesModule())
+                        .registerModule(new Jdk8Module())
+                        .readValue(inputStream, clazz);
+            } catch (IOException e) {
+                throw e;
             } catch (Throwable t) {
-                throw new IOException("Failed to parse TOML", t);
+                throw new IOException("Failed to load " + clazz, t);
             }
         };
     }
 
     public static <T> Writer<T> defaultWriter() {
-        return (outputStream, value) -> new TomlWriter().write(value, outputStream);
+        return (outputStream, value) ->
+                new ObjectMapper(new YAMLFactory())
+                        .registerModule(new Jdk8Module())
+                        .writeValue(outputStream, value);
     }
 
-    protected <T> Optional<T> getUnsafe(Path path, Reader<T> reader) {
+    @Nonnull
+    protected static <T> Optional<T> getUnsafe(Path path, Reader<T> reader) {
         try (InputStream inputStream = new FileInputStream(path.toFile())) {
             return Optional.of(reader.load(inputStream));
         } catch (IOException e) {
@@ -85,7 +98,8 @@ public abstract class BaseRepository {
         }
     }
 
-    protected Optional<String> getUnsafeString(Path path) {
+    @Nonnull
+    protected static Optional<String> getUnsafeString(Path path) {
         try {
             return Optional.ofNullable(Files.readString(path));
         } catch (IOException e) {
@@ -101,17 +115,9 @@ public abstract class BaseRepository {
     }
 
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
-        Lock lock = null;
-        try {
-            lock = getLockForPath(path);
+        try (var lock = getLockForPath(path)) {
             return Optional.of(new LockedContainer<>(lock, lockedReader(path, reader), lockedWriter(path, writer)));
-        } catch (LockException | IOException e) {
-            if (lock != null) {
-                lock.release(); // only release on error, otherwise the returned value will hold the lock
-            }
-            if (!(e instanceof FileNotFoundException)) {
-                LOG.log(Level.SEVERE, "Failed to load file", e);
-            }
+        } catch (LockException e) {
             return Optional.empty();
         }
     }
@@ -194,12 +200,12 @@ public abstract class BaseRepository {
          */
         @Nonnull
         public Optional<T> unsafe() {
-            return BaseRepository.this.getUnsafe(path, reader);
+            return BaseRepository.getUnsafe(path, reader);
         }
 
         @Nonnull
         public Optional<String> unsafeRaw() {
-            return BaseRepository.this.getUnsafeString(path);
+            return BaseRepository.getUnsafeString(path);
         }
 
         @Nonnull

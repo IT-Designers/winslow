@@ -1,8 +1,5 @@
 package de.itd.tracking.winslow.web;
 
-import com.moandjiezana.toml.Toml;
-import com.moandjiezana.toml.TomlWriter;
-import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.PipelineDefinitionRepository;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.config.*;
@@ -13,7 +10,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +64,9 @@ public class PipelinesController {
         PipelineDefinition definition = null;
 
         try {
-            definition = new Toml().read(raw).to(PipelineDefinition.class);
+            definition = PipelineDefinitionRepository
+                    .defaultReader(PipelineDefinition.class)
+                    .load(new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8)));
             definition.check();
         } catch (Throwable t) {
             return Optional.of(t.getMessage());

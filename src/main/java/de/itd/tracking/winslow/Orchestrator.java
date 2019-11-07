@@ -319,9 +319,7 @@ public class Orchestrator {
                     pipeline,
                     stage
             ) + " for " + stage.getId());
-            Supplier<Stage.State> finishStateOrFailed = () -> stage.getFinishTime() != null
-                                                              ? stage.getState()
-                                                              : Stage.State.Failed;
+            Supplier<Stage.State> finishStateOrFailed = () -> stage.getFinishState().orElse(Stage.State.Failed);
             switch (getStateOmitExceptions(pipeline, stage).orElseGet(finishStateOrFailed)) {
                 case Running:
                     if (getLogRedirectionState(pipeline) != SimpleState.Failed) {

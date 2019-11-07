@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 public class ProjectRepository extends BaseRepository {
 
     private static final Logger LOG         = Logger.getLogger(ProjectRepository.class.getSimpleName());
-    private static final String FILE_SUFFIX = ".toml";
 
     public ProjectRepository(
             LockBus lockBus,
@@ -60,7 +59,7 @@ public class ProjectRepository extends BaseRepository {
             @Nonnull PipelineDefinition pipeline,
             @Nonnull Consumer<Project> customizer) {
         var id   = UUID.randomUUID().toString();
-        var path = workDirectoryConfiguration.getProjectsDirectory().resolve(id + FILE_SUFFIX);
+        var path = workDirectoryConfiguration.getProjectsDirectory().resolve(id + FILE_EXTENSION);
         return getProject(path).exclusive().flatMap(storable -> {
             try (storable) {
                 // it should not yet exist, otherwise the UUID has clashed o.O
@@ -87,12 +86,12 @@ public class ProjectRepository extends BaseRepository {
 
     @Nonnull
     public Handle<Project> getProject(String id) {
-        return getProject(getRepositoryDirectory().resolve(Path.of(id).getFileName() + FILE_SUFFIX));
+        return getProject(getRepositoryDirectory().resolve(Path.of(id).getFileName() + FILE_EXTENSION));
     }
 
     @Nonnull
     public Stream<Handle<Project>> getProjects() {
-        return listAll(FILE_SUFFIX)
+        return listAll(FILE_EXTENSION)
                 .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX))
                 .map(this::getProject);
     }
@@ -102,7 +101,7 @@ public class ProjectRepository extends BaseRepository {
     }
 
     public boolean deleteProject(String id) {
-        var path = getRepositoryDirectory().resolve(Path.of(id).getFileName() + FILE_SUFFIX);
+        var path = getRepositoryDirectory().resolve(Path.of(id).getFileName() + FILE_EXTENSION);
         return getProject(path).exclusive().map(LockedContainer::deleteOmitExceptions).orElse(false);
     }
 }

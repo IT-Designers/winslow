@@ -24,12 +24,17 @@ public class LockedContainer<T> implements Closeable {
     public LockedContainer(
             @Nonnull Lock lock,
             @Nonnull Reader<T> reader,
-            @Nonnull Writer<T> writer) throws IOException {
+            @Nonnull Writer<T> writer) {
         this.lock   = lock;
         this.reader = reader;
         this.writer = writer;
 
-        this.value = this.reader.read(this.lock);
+        try {
+            this.value = this.reader.read(this.lock);
+        } catch (Throwable t) {
+            this.value = null;
+            LOG.log(Level.WARNING, "Failed to load initial value", t);
+        }
     }
 
     @Nonnull
