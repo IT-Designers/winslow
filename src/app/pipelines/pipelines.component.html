@@ -27,8 +27,8 @@
         </mat-panel-description>
       </mat-expansion-panel-header>
       <div class="toml-pipeline">
-        <h5>TOML Definition</h5>
-        <textarea #text style="width: 100%" cdkTextareaAutosize>{{raw.get(pipeline.id)}}</textarea>
+        <h5>Definition</h5>
+        <textarea #text>{{raw.get(pipeline.id)}}</textarea>
         <pre *ngIf="this.error.get(pipeline.id) != null" class="check check-error">{{this.error.get(pipeline.id)}}</pre>
         <pre *ngIf="this.success.get(pipeline.id) != null" class="check check-success">{{this.success.get(pipeline.id)}}</pre>
         <div class="controls">
