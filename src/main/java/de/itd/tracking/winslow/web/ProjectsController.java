@@ -670,7 +670,7 @@ public class ProjectsController {
         public HistoryEntry(Stage stage) {
             this.stageId     = stage.getId();
             this.startTime   = stage.getStartTime();
-            this.finishTime  = stage.getFinishTime();
+            this.finishTime  = stage.getFinishTime().orElse(null);
             this.state       = stage.getState();
             this.action      = stage.getAction();
             this.stageName   = Optional.ofNullable(stage.getDefinition()).map(StageDefinition::getName).orElse(null);

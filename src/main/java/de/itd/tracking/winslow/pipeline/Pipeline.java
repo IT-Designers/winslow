@@ -4,6 +4,7 @@ import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
 public class Pipeline {
 
     @Nonnull private final String      projectId;
-    @Nonnull private final List<Stage> stages = new ArrayList<>();
+    @Nonnull private final List<Stage> stages;
 
     private           boolean             pauseRequested     = false;
     @Nullable private PauseReason         pauseReason        = null;
@@ -24,7 +25,27 @@ public class Pipeline {
 
     public Pipeline(@Nonnull String projectId) {
         this.projectId = projectId;
+        this.stages    = new ArrayList<>();
         this.strategy  = Strategy.MoveForwardUntilEnd;
+    }
+
+    public Pipeline(
+            @Nonnull String projectId,
+            boolean pauseRequested,
+            @Nullable PauseReason pauseReason,
+            @Nullable ResumeNotification resumeNotification,
+            @Nullable List<EnqueuedStage> enqueuedStages,
+            @Nullable List<Stage> completedStages,
+            @Nonnull Strategy strategy,
+            @Nullable Stage runningStage) {
+        this.projectId          = projectId;
+        this.pauseRequested     = pauseRequested;
+        this.pauseReason        = pauseReason;
+        this.resumeNotification = resumeNotification;
+        this.enqueuedStages     = enqueuedStages;
+        this.stages             = completedStages != null ? completedStages : new ArrayList<>();
+        this.strategy           = strategy;
+        this.stage              = runningStage;
     }
 
     @Nonnull
@@ -45,6 +66,7 @@ public class Pipeline {
     }
 
     @Nonnull
+    @Transient
     public Optional<Stage> getMostRecentStage() {
         return getRunningStage().or(() -> {
             if (stages.isEmpty()) {
@@ -55,12 +77,14 @@ public class Pipeline {
         });
     }
 
+    @Transient
     public int getStageCount() {
         return this.stages.size() + (getRunningStage().isPresent() ? 1 : 0);
     }
 
 
     @Nonnull
+    @Transient
     public Stream<Stage> getAllStages() {
         return Stream.concat(getCompletedStages(), getRunningStage().stream());
     }

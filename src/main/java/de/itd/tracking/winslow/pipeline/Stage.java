@@ -4,6 +4,8 @@ import de.itd.tracking.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.ConstructorProperties;
+import java.beans.Transient;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +39,28 @@ public class Stage {
         this.finishState = null;
     }
 
+    @ConstructorProperties({"id, definition", "action", "startTime", "workspace", "finishTime", "finishState", "env", "envInternal"})
+    public Stage(
+            @Nonnull String id,
+            @Nonnull StageDefinition definition,
+            @Nonnull Action action,
+            @Nonnull Date startTime,
+            @Nonnull String workspace,
+            @Nullable Date finishTime,
+            @Nullable State finishState,
+            @Nullable Map<String, String> env,
+            @Nullable Map<String, String> envInternal) {
+        this.id          = id;
+        this.definition  = definition;
+        this.action      = action;
+        this.startTime   = startTime;
+        this.workspace   = workspace;
+        this.finishTime  = finishTime;
+        this.finishState = finishState;
+        this.env         = env;
+        this.envInternal = envInternal;
+    }
+
     @Nonnull
     public String getId() {
         return this.id;
@@ -62,14 +86,20 @@ public class Stage {
         return startTime;
     }
 
-    @Nullable
-    public Date getFinishTime() {
-        return this.finishTime;
+    @Nonnull
+    public Optional<Date> getFinishTime() {
+        return Optional.ofNullable(this.finishTime);
     }
 
     @Nonnull
+    public Optional<State> getFinishState() {
+        return Optional.ofNullable(this.finishState);
+    }
+
+    @Nonnull
+    @Transient
     public State getState() {
-        return Optional.ofNullable(finishState).orElse(State.Running);
+        return getFinishState().orElse(State.Running);
     }
 
     @Nonnull

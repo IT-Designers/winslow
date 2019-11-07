@@ -4,6 +4,7 @@ import de.itd.tracking.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.ConstructorProperties;
 import java.util.*;
 
 public class Project {
@@ -17,23 +18,35 @@ public class Project {
     @Nonnull private PipelineDefinition pipeline;
     @Nonnull private String             name;
 
-    public Project(@Nonnull String id, @Nonnull String owner, @Nonnull PipelineDefinition pipeline) {
-        this(id, owner, null, null, pipeline, "");
+    Project(@Nonnull String id, @Nonnull String owner, @Nonnull PipelineDefinition pipeline) {
+        this.id       = id;
+        this.owner    = owner;
+        this.pipeline = pipeline;
+        this.name     = "[no name]";
     }
 
+    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "pipelineDefinition"})
     public Project(
             @Nonnull String id,
             @Nonnull String owner,
-            @Nullable List<String> groups,
-            @Nullable List<String> tags,
-            @Nonnull PipelineDefinition pipelineDefinition,
-            @Nonnull String name) {
+            @Nullable Iterable<String> groups,
+            @Nullable Iterable<String> tags,
+            @Nonnull String name,
+            @Nonnull PipelineDefinition pipelineDefinition) {
         this.id       = id;
         this.owner    = owner;
-        this.groups   = groups;
-        this.tags     = tags;
+        this.groups   = null;
+        this.tags     = null;
         this.pipeline = pipelineDefinition;
         this.name     = name;
+
+        if (groups != null) {
+            groups.forEach(this::addGroup);
+        }
+
+        if (tags != null) {
+            tags.forEach(this::addTag);
+        }
     }
 
     @Nonnull
