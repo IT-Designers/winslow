@@ -60,7 +60,7 @@ public abstract class BaseRepository {
         }
     }
 
-    protected <T> Reader<T> defaultReader(Class<T> clazz) {
+    public static <T> Reader<T> defaultReader(Class<T> clazz) {
         return inputStream -> {
             try {
                 return new Toml().read(inputStream).to(clazz);
@@ -70,13 +70,24 @@ public abstract class BaseRepository {
         };
     }
 
-    protected <T> Writer<T> defaultWriter() {
+    public static <T> Writer<T> defaultWriter() {
         return (outputStream, value) -> new TomlWriter().write(value, outputStream);
     }
 
     protected <T> Optional<T> getUnsafe(Path path, Reader<T> reader) {
         try (InputStream inputStream = new FileInputStream(path.toFile())) {
             return Optional.of(reader.load(inputStream));
+        } catch (IOException e) {
+            if (!(e instanceof FileNotFoundException)) {
+                LOG.log(Level.SEVERE, "Failed to load file " + path, e);
+            }
+            return Optional.empty();
+        }
+    }
+
+    protected Optional<String> getUnsafeString(Path path) {
+        try {
+            return Optional.ofNullable(Files.readString(path));
         } catch (IOException e) {
             if (!(e instanceof FileNotFoundException)) {
                 LOG.log(Level.SEVERE, "Failed to load file " + path, e);
@@ -146,11 +157,11 @@ public abstract class BaseRepository {
         return workDirectoryConfiguration.getPath().relativize(path).toString();
     }
 
-    protected interface Reader<T> {
+    public interface Reader<T> {
         T load(InputStream inputStream) throws IOException;
     }
 
-    protected interface Writer<T> {
+    public interface Writer<T> {
         void store(OutputStream outputStream, T value) throws IOException;
     }
 
@@ -184,6 +195,11 @@ public abstract class BaseRepository {
         @Nonnull
         public Optional<T> unsafe() {
             return BaseRepository.this.getUnsafe(path, reader);
+        }
+
+        @Nonnull
+        public Optional<String> unsafeRaw() {
+            return BaseRepository.this.getUnsafeString(path);
         }
 
         @Nonnull

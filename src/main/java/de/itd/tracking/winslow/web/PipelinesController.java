@@ -2,6 +2,7 @@ package de.itd.tracking.winslow.web;
 
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
+import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.PipelineDefinitionRepository;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.config.*;
@@ -10,7 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +58,7 @@ public class PipelinesController {
         return winslow
                 .getPipelineRepository()
                 .getPipeline(pipeline)
-                .unsafe()
-                .map(p -> new TomlWriter().write(p));
+                .unsafeRaw();
     }
 
     @PutMapping("pipelines/{pipeline}/raw")
@@ -88,10 +91,13 @@ public class PipelinesController {
         return Optional.empty();
     }
 
-    @PostMapping("pipelines/check-toml")
-    public Optional<String> checkPipelineDefToml(@RequestParam("raw") String raw) {
+    @PostMapping("pipelines/check")
+    public Optional<String> checkPipelineDef(@RequestParam("raw") String raw) {
         try {
-            new Toml().read(raw).to(PipelineDefinition.class).check();
+            PipelineDefinitionRepository
+                    .defaultReader(PipelineDefinition.class)
+                    .load(new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8)))
+                    .check();
             return Optional.empty();
         } catch (Throwable t) {
             return Optional.of(t.getMessage());
