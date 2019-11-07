@@ -21,14 +21,14 @@ public class StageDefinition {
             @Nullable String description,
             @Nullable Image image,
             @Nullable Requirements requirements,
-            @Nullable UserInput userInput,
+            @Nullable UserInput requires,
             @Nullable Map<String, String> environment,
             @Nullable Highlight highlight) {
         this.name      = name;
         this.desc      = description;
         this.image     = image;
         this.requires  = requirements;
-        this.userInput = userInput;
+        this.userInput = requires;
         this.env       = environment;
         this.highlight = highlight;
         this.check();

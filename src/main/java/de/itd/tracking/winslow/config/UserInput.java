@@ -9,9 +9,9 @@ public class UserInput {
     private final Confirmation confirmation;
     private final List<String> valueFor;
 
-    public UserInput(Confirmation confirmation, List<String> valueFor) {
+    public UserInput(Confirmation confirmation, List<String> environment) {
         this.confirmation = confirmation;
-        this.valueFor     = valueFor;
+        this.valueFor     = environment;
     }
 
     @Nonnull

@@ -6,11 +6,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class Requirements {
-    private final       long ram;
+    private final           long ram;
     private final @Nullable Gpu  gpu;
 
-    public Requirements(long ram, @Nullable Gpu gpu) {
-        this.ram = ram;
+    public Requirements(long megabytesOfRam, @Nullable Gpu gpu) {
+        this.ram = megabytesOfRam;
         this.gpu = gpu;
     }
 
