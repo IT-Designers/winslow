@@ -43,8 +43,8 @@ public class StagesController {
             this.name                 = definition.getName();
             this.image                = definition.getImage().map(ProjectsController.ImageInfo::new).orElse(null);
             this.requiredEnvVariables = definition
-                    .getUserInput()
-                    .map(UserInput::getValueFor)
+                    .getRequires()
+                    .map(UserInput::getEnvironment)
                     .orElseGet(Collections::emptyList);
         }
     }

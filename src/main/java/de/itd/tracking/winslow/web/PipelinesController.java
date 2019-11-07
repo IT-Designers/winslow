@@ -169,7 +169,7 @@ public class PipelinesController {
             this.desc                 = pipeline.getDescription().orElse(null);
             this.requiredEnvVariables = pipeline
                     .getUserInput()
-                    .map(UserInput::getValueFor)
+                    .map(UserInput::getEnvironment)
                     .orElseGet(Collections::emptyList);
             this.stages               = pipeline
                     .getStages()

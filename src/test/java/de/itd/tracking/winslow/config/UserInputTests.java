@@ -16,8 +16,8 @@ public class UserInputTests {
                 .getTable("userInput")
                 .to(UserInput.class);
 
-        assertTrue(userInput.getValueFor().isEmpty());
-        assertEquals(UserInput.Confirmation.Never, userInput.requiresConfirmation());
+        assertTrue(userInput.getEnvironment().isEmpty());
+        assertEquals(UserInput.Confirmation.Never, userInput.getConfirmation());
     }
 
     @Test
@@ -26,8 +26,8 @@ public class UserInputTests {
                 .getTable("userInput")
                 .to(UserInput.class);
 
-        assertTrue(userInput.getValueFor().isEmpty());
-        assertEquals(UserInput.Confirmation.Never, userInput.requiresConfirmation());
+        assertTrue(userInput.getEnvironment().isEmpty());
+        assertEquals(UserInput.Confirmation.Never, userInput.getConfirmation());
     }
 
     @Test
@@ -38,7 +38,7 @@ public class UserInputTests {
                 .getTable("userInput")
                 .to(UserInput.class);
 
-        assertTrue(userInput.getValueFor().isEmpty());
-        assertEquals(UserInput.Confirmation.Always, userInput.requiresConfirmation());
+        assertTrue(userInput.getEnvironment().isEmpty());
+        assertEquals(UserInput.Confirmation.Always, userInput.getConfirmation());
     }
 }

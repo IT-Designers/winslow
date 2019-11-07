@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.config;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -13,11 +14,13 @@ public class UserInput {
         this.valueFor     = valueFor;
     }
 
-    public Confirmation requiresConfirmation() {
+    @Nonnull
+    public Confirmation getConfirmation() {
         return confirmation != null ? confirmation : Confirmation.Never;
     }
 
-    public List<String> getValueFor() {
+    @Nonnull
+    public List<String> getEnvironment() {
         return valueFor != null ? Collections.unmodifiableList(valueFor) : Collections.emptyList();
     }
 

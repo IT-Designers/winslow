@@ -35,7 +35,7 @@ public class PipelineDefinitionTests {
         assertNull(pipeline.getName());
         assertTrue(pipeline.getDescription().isEmpty());
         assertTrue(pipeline.getUserInput().isPresent());
-        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getUserInput().get().getValueFor());
+        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getUserInput().get().getEnvironment());
         assertTrue(pipeline.getStages().isEmpty());
     }
 }

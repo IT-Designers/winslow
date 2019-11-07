@@ -55,7 +55,7 @@ public class StageDefinition {
         return Optional.ofNullable(requires);
     }
 
-    public Optional<UserInput> getUserInput() {
+    public Optional<UserInput> getRequires() {
         return Optional.ofNullable(userInput);
     }
 

@@ -417,16 +417,16 @@ public class ProjectsController {
                                 .getPipelineDefinition()
                                 .getUserInput()
                                 .stream()
-                                .flatMap(u -> u.getValueFor().stream()),
+                                .flatMap(u -> u.getEnvironment().stream()),
                         project
                                 .getPipelineDefinition()
                                 .getStages()
                                 .stream()
                                 .skip(stageIndex)
                                 .findFirst()
-                                .flatMap(StageDefinition::getUserInput)
+                                .flatMap(StageDefinition::getRequires)
                                 .stream()
-                                .flatMap(u -> u.getValueFor().stream())
+                                .flatMap(u -> u.getEnvironment().stream())
                 ));
     }
 
@@ -596,7 +596,7 @@ public class ProjectsController {
                 stageDef.getDescription().orElse(null),
                 stageDef.getImage().orElse(null),
                 stageDef.getRequirements().orElse(null),
-                stageDef.getUserInput().orElse(null),
+                stageDef.getRequires().orElse(null),
                 env,
                 stageDef.getHighlight().orElse(null)
         );
