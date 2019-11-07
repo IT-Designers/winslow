@@ -76,7 +76,7 @@ public class PipelineDefinitionRepository extends BaseRepository {
     private Writer<PipelineDefinition> pipelineWriter() {
         return (outputStream, pipeline) -> {
             var toml = new HashMap<String, Object>();
-            toml.put("stage", pipeline.getStageDefinitions());
+            toml.put("stage", pipeline.getStages());
             toml.put(
                     "pipeline",
                     new PipelineDefinition(

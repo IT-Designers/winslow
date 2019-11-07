@@ -47,7 +47,7 @@ public class PipelineDefinition {
     }
 
     @Nonnull
-    public List<StageDefinition> getStageDefinitions() {
+    public List<StageDefinition> getStages() {
         return stages != null ? Collections.unmodifiableList(stages) : Collections.emptyList();
     }
 

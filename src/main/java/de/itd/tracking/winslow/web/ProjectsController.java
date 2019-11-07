@@ -387,7 +387,7 @@ public class ProjectsController {
                             Map<String, String> map = new TreeMap<>();
                             project
                                     .getPipelineDefinition()
-                                    .getStageDefinitions()
+                                    .getStages()
                                     .stream()
                                     .skip(stageIndex)
                                     .findFirst()
@@ -420,7 +420,7 @@ public class ProjectsController {
                                 .flatMap(u -> u.getValueFor().stream()),
                         project
                                 .getPipelineDefinition()
-                                .getStageDefinitions()
+                                .getStages()
                                 .stream()
                                 .skip(stageIndex)
                                 .findFirst()
@@ -561,7 +561,7 @@ public class ProjectsController {
         LOG.info("   » image.args " + Arrays.toString(imageArgs));
 
         winslow.getPipelineRepository().getPipeline(pipelineId).unsafe().ifPresent(pipelineDefinition -> {
-            var stages   = pipelineDefinition.getStageDefinitions();
+            var stages   = pipelineDefinition.getStages();
             var stageDef = stages.stream().skip(stageIndex).findFirst();
 
             LOG.info("     » pipeline name " + pipelineDefinition.getName());
@@ -620,8 +620,8 @@ public class ProjectsController {
 
     @Nonnull
     private static Optional<StageDefinition> getStageDefinitionNoClone(@Nonnull Project project, int index) {
-        if (project.getPipelineDefinition().getStageDefinitions().size() > index) {
-            return Optional.of(project.getPipelineDefinition().getStageDefinitions().get(index));
+        if (project.getPipelineDefinition().getStages().size() > index) {
+            return Optional.of(project.getPipelineDefinition().getStages().get(index));
         }
         return Optional.empty();
     }

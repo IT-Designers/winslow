@@ -30,7 +30,7 @@ public class StagesController {
                 .unsafe()
                 .stream()
                 .flatMap(p -> p
-                        .getStageDefinitions()
+                        .getStages()
                         .stream()).map(StageInfo::new);
     }
 

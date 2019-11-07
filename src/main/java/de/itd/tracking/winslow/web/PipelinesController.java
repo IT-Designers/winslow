@@ -172,7 +172,7 @@ public class PipelinesController {
                     .map(UserInput::getValueFor)
                     .orElseGet(Collections::emptyList);
             this.stages               = pipeline
-                    .getStageDefinitions()
+                    .getStages()
                     .stream()
                     .map(StagesController.StageInfo::new)
                     .collect(Collectors.toUnmodifiableList());
