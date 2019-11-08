@@ -39,7 +39,8 @@ public class NomadBackend implements Backend {
 
     public NomadBackend(@Nonnull NomadApiClient client) throws IOException {
         this.client = client;
-        // killAnyRunningStage();
+        killAnyRunningStage();
+        /*
 
         try {
             getNewClient()
@@ -82,6 +83,7 @@ public class NomadBackend implements Backend {
         } catch (NomadException e) {
             e.printStackTrace();
         }
+         */
     }
 
     private void killAnyRunningStage() throws IOException {
