@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.node;
 
+import com.moandjiezana.toml.Toml;
 import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
@@ -56,6 +57,7 @@ public class NodeRepository extends BaseRepository {
         return listActiveNodePaths()
                 .filter(p -> p.getFileName().toString().startsWith(name))
                 .findFirst()
-                .flatMap(p -> getUnsafe(p, defaultReader(NodeInfo.class)));
+                // hardcoded Toml because NodeInfoUpdate also uses hardcoded Toml...
+                .map(p -> new Toml().read(p.toFile()).<NodeInfo>to(NodeInfo.class));
     }
 }

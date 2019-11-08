@@ -47,7 +47,8 @@ public class NodeInfoUpdater implements Runnable {
                 var info = node.loadInfo();
                 var file = getFilePath();
                 var tmp  = getTmpPath();
-                new TomlWriter().write(info, tmp.toFile());
+                // update NodeRepository which also has hardcoded Toml
+                new TomlWriter().write(info, tmp.toFile()); // TODO  do this through the repository
                 Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, ATOMIC_MOVE);
             } catch (IOException e) {
                 e.printStackTrace();
