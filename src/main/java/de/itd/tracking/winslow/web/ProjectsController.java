@@ -535,6 +535,9 @@ public class ProjectsController {
 
 
                     if (stageDef.isPresent()) {
+                        if (!pipeline.hasEnqueuedStages()) {
+                            pipeline.clearPauseReason();
+                        }
                         maybeUpdateImageInfo(imageName, imageArgs, stageDef.get());
                         pipeline.enqueueStage(createStageDefinition(env, stageDef.get()));
                     }
