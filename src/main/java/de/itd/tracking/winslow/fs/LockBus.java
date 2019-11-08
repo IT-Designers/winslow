@@ -70,7 +70,7 @@ public class LockBus {
         while (true) {
             try {
                 var sleepTimeMillis = getMillisUntilNextLockExpires().orElse(60 * 1_000L);
-                var key             = ws.poll(Math.max(10, sleepTimeMillis), TimeUnit.MILLISECONDS);
+                var key             = ws.poll(Math.min(10_000, Math.max(10, sleepTimeMillis)), TimeUnit.MILLISECONDS);
                 if (key != null) {
                     if (!key.reset() || !key.isValid()) {
                         key.cancel();

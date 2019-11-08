@@ -62,7 +62,11 @@ public class Lock implements Closeable {
             this.lockBus.release(this.token);
             this.released = true;
         } else {
-            LOG.log(Level.WARNING, "Tried to release an already released lock", new RuntimeException());
+            LOG.log(
+                    Level.WARNING,
+                    "Tried to release an already released lock",
+                    new RuntimeException("See the the stack trace")
+            );
         }
     }
 

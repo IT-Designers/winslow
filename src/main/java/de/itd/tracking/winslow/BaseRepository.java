@@ -115,8 +115,12 @@ public abstract class BaseRepository {
     }
 
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
-        try (var lock = getLockForPath(path)) {
-            return Optional.of(new LockedContainer<>(lock, lockedReader(path, reader), lockedWriter(path, writer)));
+        try {
+            return Optional.of(new LockedContainer<>(
+                    getLockForPath(path),
+                    lockedReader(path, reader),
+                    lockedWriter(path, writer)
+            ));
         } catch (LockException e) {
             return Optional.empty();
         }
