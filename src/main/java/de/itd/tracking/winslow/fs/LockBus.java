@@ -60,6 +60,8 @@ public class LockBus {
         var ws = fs.newWatchService();
         eventDirectory.register(ws, ENTRY_MODIFY);
 
+
+
         var thread = new Thread(() -> this.watchForNewEvents(ws));
         thread.setName(getClass().getSimpleName() + ".WatchService");
         thread.setDaemon(true);
@@ -70,7 +72,7 @@ public class LockBus {
         while (true) {
             try {
                 var sleepTimeMillis = getMillisUntilNextLockExpires().orElse(60 * 1_000L);
-                var key             = ws.poll(Math.min(10_000, Math.max(10, sleepTimeMillis)), TimeUnit.MILLISECONDS);
+                var key             = ws.poll(Math.min(1_000, Math.max(10, sleepTimeMillis)), TimeUnit.MILLISECONDS);
                 if (key != null) {
                     if (!key.reset() || !key.isValid()) {
                         key.cancel();
@@ -92,6 +94,20 @@ public class LockBus {
                         }
                     }
                 }
+
+                try {
+                    while (true) {
+                        var path = nextEventPath();
+                        if (Files.exists(path)) {
+                            loadNextEvent(5);
+                        } else {
+                            break;
+                        }
+                    }
+                } catch (LockException | IOException e) {
+                    e.printStackTrace();
+                }
+
                 this.checkForExpiredLocks();
                 this.deleteOldEventFiles();
             } catch (InterruptedException ignored) {
