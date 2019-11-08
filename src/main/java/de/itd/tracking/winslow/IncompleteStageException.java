@@ -6,6 +6,8 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class IncompleteStageException extends OrchestratorException {
@@ -13,8 +15,8 @@ public class IncompleteStageException extends OrchestratorException {
     @Nullable private final Stage stage;
     @Nullable private final Path  workspace;
 
-    private final boolean requiresConfirmation;
-    private final boolean missingEnvVariables;
+    private final           boolean      requiresConfirmation;
+    @Nullable private final List<String> missingEnvVariables;
 
     private IncompleteStageException(
             @Nonnull String message,
@@ -22,7 +24,7 @@ public class IncompleteStageException extends OrchestratorException {
             @Nullable Stage stage,
             @Nullable Path workspace,
             boolean requiresConfirmation,
-            boolean missingEnvVariables) {
+            @Nullable List<String> missingEnvVariables) {
         super(message, cause);
         this.stage                = stage;
         this.workspace            = workspace;
@@ -45,16 +47,23 @@ public class IncompleteStageException extends OrchestratorException {
     }
 
     public boolean isMissingEnvVariables() {
-        return missingEnvVariables;
+        return !missingEnvVariables.isEmpty();
+    }
+
+    @Nonnull
+    public List<String> getMissingEnvVariables() {
+        return missingEnvVariables != null
+               ? Collections.unmodifiableList(this.missingEnvVariables)
+               : Collections.emptyList();
     }
 
     public static class Builder {
-        @Nonnull private final String     message;
-        private                Stage stage;
-        private                Path       workspace;
-        private                Throwable  cause;
-        private                boolean    requiresConfirmation;
-        private                boolean    missingEnvVariables;
+        @Nonnull private final String       message;
+        private                Stage        stage;
+        private                Path         workspace;
+        private                Throwable    cause;
+        private                boolean      requiresConfirmation;
+        @Nullable private      List<String> missingEnvVariables;
 
         private Builder(@Nonnull String message) {
             this.message = message;
@@ -103,15 +112,8 @@ public class IncompleteStageException extends OrchestratorException {
 
         @Nonnull
         @CheckReturnValue
-        public Builder maybeMissingEnvVariables(boolean missingEnvVariables) {
+        public Builder withMissingEnvVariables(@Nonnull List<String> missingEnvVariables) {
             this.missingEnvVariables = missingEnvVariables;
-            return this;
-        }
-
-        @Nonnull
-        @CheckReturnValue
-        public Builder missingEnvVariables() {
-            this.missingEnvVariables = true;
             return this;
         }
 

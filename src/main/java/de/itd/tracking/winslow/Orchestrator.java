@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Orchestrator {
@@ -133,11 +134,13 @@ public class Orchestrator {
     }
 
     private void checkPipelinesForUpdate(@Nonnull Stream<BaseRepository.Handle<Pipeline>> pipelines) {
-        pipelines
-                .filter(this::pipelineUpdatable)
-                .map(BaseRepository.Handle::exclusive)
-                .flatMap(Optional::stream)
-                .forEach(this::updatePipeline);
+        if (this.executeStages) {
+            pipelines
+                    .filter(this::pipelineUpdatable)
+                    .map(BaseRepository.Handle::exclusive)
+                    .flatMap(Optional::stream)
+                    .forEach(this::updatePipeline);
+        }
     }
 
     private boolean pipelineUpdatable(@Nonnull BaseRepository.Handle<Pipeline> handle) {
@@ -223,6 +226,7 @@ public class Orchestrator {
             }
             if (e.isMissingEnvVariables()) {
                 pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
+                LOG.info("Pipeline " + pipeline.getProjectId() + " requires further env variables to be set: " + e.getMissingEnvVariables());
                 tryUpdateContainer(container, pipeline);
             }
         }
@@ -614,18 +618,22 @@ public class Orchestrator {
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
 
 
-        boolean requiresConfirmation = isConfirmationRequiredForNextStage(definition, stageDefinition, pipeline);
-        boolean hasMissingUserInput  = hasMissingUserInput(definition, stageDefinition, builder);
+        var requiresConfirmation = isConfirmationRequiredForNextStage(definition, stageDefinition, pipeline);
+        var missingUserInput  = hasMissingUserInput(
+                definition,
+                stageDefinition,
+                builder
+        ).collect(Collectors.toList());
 
         if (requiresConfirmation && isConfirmed(pipeline)) {
             requiresConfirmation = false;
         }
 
-        if (requiresConfirmation || hasMissingUserInput) {
+        if (requiresConfirmation || !missingUserInput.isEmpty()) {
             throw IncompleteStageException.Builder
                     .create("Stage requires further user input")
                     .withWorkspace(workspace.get())
-                    .maybeMissingEnvVariables(hasMissingUserInput)
+                    .withMissingEnvVariables(missingUserInput)
                     .maybeRequiresConfirmation(requiresConfirmation)
                     .build();
         }
@@ -679,14 +687,14 @@ public class Orchestrator {
         return Pipeline.ResumeNotification.Confirmation == pipeline.getResumeNotification().orElse(null);
     }
 
-    private static boolean hasMissingUserInput(
+    private static Stream<String> hasMissingUserInput(
             @Nonnull PipelineDefinition pipelineDefinition,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull PreparedStageBuilder builder) {
         return Stream.concat(
                 pipelineDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream()),
                 stageDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream())
-        ).anyMatch(k -> builder.getEnvVariable(k).isEmpty());
+        ).filter(k -> builder.getEnvVariable(k).isEmpty());
     }
 
     private static boolean isConfirmationRequiredForNextStage(
