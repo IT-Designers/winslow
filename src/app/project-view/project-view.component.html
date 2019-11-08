@@ -230,7 +230,6 @@
         </mat-select>
       </mat-form-field>
       <button mat-stroked-button color="primary" #tagsButton
-              [disabled]="pipelineSelection.value == this.project.pipelineDefinition.id"
               (click)="setPipeline(pipelineSelection.value)">
         Update
       </button>
