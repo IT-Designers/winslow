@@ -38,7 +38,15 @@ public class ResourceManager {
     public Optional<Path> createWorkspace(Path path, boolean failIfAlreadyExists) {
         return getWorkspacesDirectory()
                 .map(p -> p.resolve(path))
-                .filter(p -> p.toFile().mkdirs() || (!failIfAlreadyExists && p.toFile().exists()));
+                .filter(p -> {
+                    if (p.toFile().mkdirs()) {
+                        return true;
+                    } else if (failIfAlreadyExists) {
+                        return false;
+                    } else {
+                        return p.toFile().exists() && p.toFile().isDirectory();
+                    }
+                });
     }
 
     public Optional<Path> getResourceDirectory() {
