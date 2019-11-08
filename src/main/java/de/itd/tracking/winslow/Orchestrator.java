@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow;
 
+import de.itd.tracking.winslow.asblr.*;
 import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
@@ -8,7 +9,6 @@ import de.itd.tracking.winslow.fs.Event;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
-import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
 import de.itd.tracking.winslow.pipeline.Stage;
@@ -19,13 +19,11 @@ import de.itd.tracking.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +33,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Orchestrator {
@@ -161,6 +158,19 @@ public class Orchestrator {
         }
     }
 
+    private Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
+        return pipeline.peekNextStage().map(enqueued -> {
+            switch (enqueued.getAction()) {
+                case Execute:
+                    return this.backend.isCapableOfExecuting(enqueued.getDefinition());
+                default:
+                    LOG.warning("Unexpected Action for enqueued Stage: " + enqueued.getAction());
+                case Configure:
+                    return true;
+            }
+        });
+    }
+
     private void updatePipeline(@Nonnull LockedContainer<Pipeline> container) {
         var projectId = container.getNoThrow().map(Pipeline::getProjectId);
         var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
@@ -178,19 +188,6 @@ public class Orchestrator {
                     e
             );
         }
-    }
-
-    private Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
-        return pipeline.peekNextStage().map(enqueued -> {
-            switch (enqueued.getAction()) {
-                case Execute:
-                    return this.backend.isCapableOfExecuting(enqueued.getDefinition());
-                default:
-                    LOG.warning("Unexpected Action for enqueued Stage: " + enqueued.getAction());
-                case Configure:
-                    return true;
-            }
-        });
     }
 
     private void updatePipeline(
@@ -214,89 +211,23 @@ public class Orchestrator {
             @Nonnull LockedContainer<Pipeline> container,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
         try {
-            var stage = startNextStageIfReady(definition, pipeline);
-
-            if (stage.isPresent()) {
-                tryUpdateContainer(container, pipeline, stage.get());
-            }
-        } catch (IncompleteStageException e) {
-            if (e.isConfirmationRequired()) {
-                pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+            if (startNextStageIfReady(definition, pipeline)) {
                 tryUpdateContainer(container, pipeline);
             }
-            if (e.isMissingEnvVariables()) {
-                pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
-                LOG.info("Pipeline " + pipeline.getProjectId() + " requires further env variables to be set: " + e.getMissingEnvVariables());
-                tryUpdateContainer(container, pipeline);
-            }
+        } catch (UserInputChecker.MissingUserInputException e) {
+            pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
+            tryUpdateContainer(container, pipeline);
+        } catch (UserInputChecker.MissingUserConfirmationException e) {
+            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+            tryUpdateContainer(container, pipeline);
+        } catch (AssemblyException e) {
+            throw new OrchestratorException("Failed to assemble stage for execution", e);
         }
     }
 
-    private void cleanupIncompleteStage(Pipeline pipeline, IncompleteStageException e) {
-        LOG.log(Level.SEVERE, "Failed to start new stage", e);
-        e.getStage().ifPresent(s -> this.forcePurgeJob(pipeline, s));
-        e.getWorkspace().ifPresent(Orchestrator::forcePurgeWorkspace);
-    }
-
-    private void forcePurgeStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        forcePurgeJob(pipeline, stage);
-        forcePurgeWorkspace(pipeline, stage);
-        forcePurgeExecutor(pipeline, stage);
-    }
-
-    private void forcePurgeExecutor(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        var executor = this.executors.remove(stage.getId());
-        if (executor != null) {
-            executor.logErr("Startup failed, force purge");
-            executor.flush();
-            executor.stop();
-        }
-    }
-
-    private void forcePurgeWorkspace(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        environment
-                .getResourceManager()
-                .getWorkspace(getWorkspacePathForStage(pipeline, stage))
-                .ifPresent(Orchestrator::forcePurgeWorkspace);
-    }
-
-    private static void forcePurgeWorkspace(@Nonnull Path workspace) {
-        try {
-            var maxRetries = 3;
-            for (int i = 0; i < maxRetries && workspace.toFile().exists(); ++i) {
-                var index = i;
-                try (var stream = Files.walk(workspace)) {
-                    stream.forEach(entry -> {
-                        try {
-                            Files.deleteIfExists(entry);
-                        } catch (NoSuchFileException ignored) {
-                        } catch (IOException e) {
-                            if (index + 1 == maxRetries) {
-                                LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
-                            }
-                        }
-                    });
-                }
-            }
-            Files.deleteIfExists(workspace);
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to get rid of workspace directory " + workspace, e);
-        }
-    }
-
-    private void forcePurgeJob(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        try {
-            this.backend.delete(pipeline.getProjectId(), stage.getId());
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to deregister job for " + pipeline.getProjectId() + "/" + stage.getId(), e);
-        }
-    }
-
-    @Nonnull
-    private Optional<Stage> startNextStageIfReady(
+    private boolean startNextStageIfReady(
             @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) throws OrchestratorException {
-
+            @Nonnull Pipeline pipeline) throws AssemblyException {
         var noneRunning = pipeline.getRunningStage().isEmpty();
         var paused      = pipeline.isPauseRequested();
         var hasNext     = pipeline.peekNextStage().isPresent();
@@ -307,13 +238,72 @@ public class Orchestrator {
                 case MoveForwardOnce:
                     pipeline.requestPause();
                 case MoveForwardUntilEnd:
-                    var stage = startNextPipelineStageAutoCleanupOnFailure(definition, pipeline);
-                    pipeline.pushStage(stage);
-                    pipeline.clearPauseReason();
-                    return Optional.of(stage);
+                    if (startNextPipelineStage(definition, pipeline)) {
+                        pipeline.clearPauseReason();
+                        return true;
+                    }
             }
         }
-        return Optional.empty();
+        return false;
+    }
+
+    private boolean startNextPipelineStage(
+            @Nonnull PipelineDefinition definition,
+            @Nonnull Pipeline pipeline) throws AssemblyException {
+        var nextStage = pipeline.peekNextStage();
+
+        if (nextStage.isEmpty()) {
+            LOG.warning("Got commanded to start next stage but there is none!");
+            return false;
+        }
+
+        var stageEnqueued = nextStage.get();
+        var projectId     = pipeline.getProjectId();
+        var stageId       = getStageId(pipeline, stageEnqueued.getDefinition());
+        var assembler     = new StageAssembler();
+        var executor      = (Executor) null;
+
+        try {
+            executor = startExecutor(
+                    pipeline.getProjectId(),
+                    stageId,
+                    getProgressHintMatcher(pipeline.getProjectId())
+            );
+
+            assembler
+                    .add(new UserInputChecker())
+                    .add(new WorkspaceCreator(environment.getResourceManager()))
+                    .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
+                    .add(new DockerImageAppender())
+                    .add(new GpuRequirementAppender())
+                    .add(new InternalEnvironmentVariableAppender())
+                    .add(new BuildAndSubmit(this.nodeName))
+                    .assemble(new Context(
+                            pipeline,
+                            definition,
+                            executor,
+                            stageEnqueued,
+                            stageId,
+                            backend.newStageBuilder(projectId, stageId, stageEnqueued.getDefinition())
+                    ));
+            return true;
+        } catch (AssemblyException | LockException | FileNotFoundException e) {
+            LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
+            if (executor != null) {
+                executor.logErr("Assembly failed");
+                executor.flush();
+                executor.stop();
+            }
+            try {
+                this.backend.delete(pipeline.getProjectId(), stageId);
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Force purging on the Backend failed", ex);
+            }
+            if (e instanceof AssemblyException) {
+                throw (AssemblyException) e;
+            }
+            return false;
+        }
     }
 
     @Nonnull
@@ -456,6 +446,30 @@ public class Orchestrator {
         }
     }
 
+    private static void forcePurgeWorkspace(@Nonnull Path workspace) {
+        try {
+            var maxRetries = 3;
+            for (int i = 0; i < maxRetries && workspace.toFile().exists(); ++i) {
+                var index = i;
+                try (var stream = Files.walk(workspace)) {
+                    stream.forEach(entry -> {
+                        try {
+                            Files.deleteIfExists(entry);
+                        } catch (NoSuchFileException ignored) {
+                        } catch (IOException e) {
+                            if (index + 1 == maxRetries) {
+                                LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
+                            }
+                        }
+                    });
+                }
+            }
+            Files.deleteIfExists(workspace);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to get rid of workspace directory " + workspace, e);
+        }
+    }
+
     @Nonnull
     public Pipeline createPipeline(@Nonnull Project project) throws OrchestratorException {
         if (this.pipelines.getPipeline(project.getId()).unsafe().isPresent()) {
@@ -489,188 +503,11 @@ public class Orchestrator {
         }
     }
 
-    private Pipeline tryUpdateContainer(
-            @Nonnull LockedContainer<Pipeline> container,
-            @Nonnull Pipeline pipeline,
-            @Nonnull Stage stage) throws OrchestratorException {
-        try {
-            container.update(pipeline);
-            return pipeline;
-        } catch (IOException e) {
-            this.forcePurgeStage(pipeline, stage);
-            throw new OrchestratorException("Failed to update pipeline", e);
-        }
-    }
-
-    private Stage startNextPipelineStageAutoCleanupOnFailure(
-            @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) throws OrchestratorException {
-        try {
-            return this.startNextPipelineStage(definition, pipeline);
-        } catch (IncompleteStageException e) {
-            cleanupIncompleteStage(pipeline, e);
-            throw e;
-        }
-    }
-
     private LockedContainer<Pipeline> exclusivePipelineContainer(@Nonnull Project project) throws OrchestratorException {
         return this.pipelines
                 .getPipeline(project.getId())
                 .exclusive()
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
-    }
-
-    private Stage startNextPipelineStage(
-            @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) throws IncompleteStageException {
-        var stageEnqueued = pipeline
-                .peekNextStage()
-                .orElseThrow(() -> IncompleteStageException.Builder
-                        .create("A pipeline requires at least one stage")
-                        .build());
-
-        var stageDefinition = stageEnqueued.getDefinition();
-        var stageId         = getStageId(pipeline, stageDefinition);
-        var workspacePath   = createWorkspacePathFor(pipeline, stageDefinition);
-        var builder         = backend.newStageBuilder(pipeline.getProjectId(), stageId, stageDefinition);
-
-        var resources = environment.getResourceManager().getResourceDirectory();
-        var workspace = environment.getResourceManager().createWorkspace(workspacePath, true);
-
-        if (resources.isEmpty() || workspace.isEmpty()) {
-            workspace.map(Path::toFile).map(File::delete);
-            throw IncompleteStageException.Builder
-                    .create("The workspace and resources directory must exit, but at least one isn't. workspacePath=" + workspacePath + ",workspace=" + workspace + ",resources=" + resources)
-                    .withWorkspace(workspace
-                                           .or(() -> environment.getResourceManager().getWorkspace(workspacePath))
-                                           .orElse(null))
-                    .build();
-        }
-
-        if (stageDefinition.getImage().isPresent()) {
-            builder = builder
-                    .withDockerImage(stageDefinition.getImage().get().getName())
-                    .withDockerImageArguments(stageDefinition.getImage().get().getArgs());
-        }
-
-        if (environment.getWorkDirectoryConfiguration() instanceof NfsWorkDirectory) {
-            var config = (NfsWorkDirectory) environment.getWorkDirectoryConfiguration();
-
-            var exportedResources = resources.flatMap(config::toExportedPath);
-            var exportedWorkspace = workspace.flatMap(config::toExportedPath);
-
-            if (exportedResources.isEmpty() || exportedWorkspace.isEmpty()) {
-                workspace.map(Path::toFile).map(File::delete);
-                throw IncompleteStageException.Builder
-                        .create("The workspace and resource path must be exported, but at least one isn't. workspace=" + exportedWorkspace + ",resources=" + exportedResources)
-                        .withWorkspace(workspace.get())
-                        .build();
-            }
-
-            var targetDirResources = "/resources";
-            var targetDirWorkspace = "/workspace";
-
-            builder = builder
-                    .addNfsVolume(
-                            "winslow-" + stageId + "-resources",
-                            targetDirResources,
-                            true,
-                            config.getOptions(),
-                            exportedResources.get().toAbsolutePath().toString()
-                    )
-                    .addNfsVolume(
-                            "winslow-" + stageId + "-workspace",
-                            targetDirWorkspace,
-                            false,
-                            config.getOptions(),
-                            exportedWorkspace.get().toAbsolutePath().toString()
-                    )
-                    .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_RESOURCES", targetDirResources)
-                    .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_WORKSPACE", targetDirWorkspace)
-                    .withWorkspaceWithinPipeline(workspace.get().getFileName().toString());
-        } else {
-            throw IncompleteStageException.Builder
-                    .create("Unknown WorkDirectoryConfiguration: " + environment.getWorkDirectoryConfiguration())
-                    .withWorkspace(workspace.get())
-                    .build();
-        }
-
-        if (stageDefinition.getRequirements().isPresent()) {
-            var requirements = stageDefinition.getRequirements().get();
-
-            if (requirements.getGpu().isPresent()) {
-                builder = addGpuRequirement(builder, requirements.getGpu().get());
-            }
-        }
-
-        var timeMs = System.currentTimeMillis();
-        var timeS  = timeMs / 1_000;
-        builder = builder
-                .withEnvVariables(stageDefinition.getEnvironment())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_NAME", definition.getName())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", stageId)
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.getName())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER", Integer.toString(pipeline.getStageCount() + 1))
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_DATE_TIME", new Date(timeS).toString())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
-
-
-        var requiresConfirmation = isConfirmationRequiredForNextStage(definition, stageDefinition, pipeline);
-        var missingUserInput  = hasMissingUserInput(
-                definition,
-                stageDefinition,
-                builder
-        ).collect(Collectors.toList());
-
-        if (requiresConfirmation && isConfirmed(pipeline)) {
-            requiresConfirmation = false;
-        }
-
-        if (requiresConfirmation || !missingUserInput.isEmpty()) {
-            throw IncompleteStageException.Builder
-                    .create("Stage requires further user input")
-                    .withWorkspace(workspace.get())
-                    .withMissingEnvVariables(missingUserInput)
-                    .maybeRequiresConfirmation(requiresConfirmation)
-                    .build();
-        }
-
-
-        try {
-            var stage    = (Stage) null;
-            var prepared = builder.build();
-            switch (stageEnqueued.getAction()) {
-                case Execute:
-                    copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(pipeline, workspace.get());
-                    stage = prepared.execute();
-
-                    startExecutor(
-                            pipeline.getProjectId(),
-                            stage.getId(),
-                            getProgressHintMatcher(pipeline.getProjectId())
-                    ).logInf("Stage execution started on " + this.nodeName);
-
-                    break;
-
-                case Configure:
-                    stage = prepared.configure();
-            }
-
-            pipeline.resetResumeNotification();
-            pipeline.popNextStage();
-
-            return stage;
-
-        } catch (OrchestratorException | LockException | FileNotFoundException e) {
-            throw IncompleteStageException.Builder
-                    .create("Failed to start stage")
-                    .withCause(e)
-                    .withWorkspace(workspace.get())
-                    .build();
-        }
     }
 
     @Nonnull
@@ -731,63 +568,6 @@ public class Orchestrator {
 
     private static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
         return Path.of(pipeline.getProjectId());
-    }
-
-    private static Path getWorkspacePathForStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        return getWorkspacePathForPipeline(pipeline).resolve(stage.getWorkspace());
-    }
-
-    private void copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
-            @Nonnull Pipeline pipeline,
-            @Nonnull Path workspace) throws IncompleteStageException {
-
-        var workDirBefore = environment
-                .getResourceManager()
-                .getWorkspace(pipeline
-                                      .getAllStages()
-                                      .filter(stage -> stage.getState() == Stage.State.Succeeded)
-                                      .filter(stage -> stage.getAction() == Action.Execute)
-                                      .reduce((first, second) -> second) // get the last successful stage
-                                      .map(stage -> getWorkspacePathForStage(pipeline, stage))
-                                      .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())))
-                .flatMap(environment.getResourceManager()::getWorkspace);
-
-        if (workDirBefore.isPresent()) {
-            var dirBefore = workDirBefore.get();
-            var failure   = Optional.<IOException>empty();
-
-            LOG.fine("Source workspace directory: " + workDirBefore.get());
-
-            try (var walk = Files.walk(workDirBefore.get())) {
-                failure = walk.flatMap(path -> {
-                    try {
-                        var file = path.toFile();
-                        var dst  = workspace.resolve(dirBefore.relativize(path));
-                        if (file.isDirectory()) {
-                            Files.createDirectories(dst);
-                        } else {
-                            Files.copy(path, dst);
-                        }
-                        return Stream.empty();
-                    } catch (IOException e) {
-                        return Stream.of(e);
-                    }
-                }).findFirst();
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Failed to source workspace from " + workDirBefore.get() + ": " + e);
-                failure = Optional.of(e);
-            }
-
-            if (failure.isPresent()) {
-                throw IncompleteStageException.Builder
-                        .create("Failed to prepare workspace")
-                        .withWorkspace(workspace)
-                        .withCause(failure.get())
-                        .build();
-            }
-        } else {
-            LOG.info("No previous valid workspace directory found for " + pipeline.getProjectId());
-        }
     }
 
     private static String getStageId(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
@@ -863,7 +643,7 @@ public class Orchestrator {
     }
 
 
-    private static String replaceInvalidCharactersInJobName(@Nonnull String jobName) {
+    public static String replaceInvalidCharactersInJobName(@Nonnull String jobName) {
         return MULTI_UNDERSCORE
                 .matcher(INVALID_NOMAD_CHARACTER.matcher(jobName.toLowerCase()).replaceAll("_"))
                 .replaceAll("_");
