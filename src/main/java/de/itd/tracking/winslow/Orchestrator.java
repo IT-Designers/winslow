@@ -612,7 +612,7 @@ public class Orchestrator {
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_NAME", definition.getName())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", stageId)
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.getName())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER", Integer.toString(pipeline.getStageCount()))
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER", Integer.toString(pipeline.getStageCount() + 1))
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_DATE_TIME", new Date(timeS).toString())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
