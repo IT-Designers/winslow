@@ -519,12 +519,12 @@ public class ProjectsController {
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
-                .ifPresent(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
                     var stageFromPipeline = getStageDefinitionNoClone(project, index);
-                    var stageDef = stageFromPipeline;
+                    var stageDef          = stageFromPipeline;
 
                     stageDef = stageDef.map(def -> pipeline
                             .getAllStages()
@@ -550,10 +550,14 @@ public class ProjectsController {
                         }
                         maybeUpdateImageInfo(imageName, imageArgs, stageDef.get());
                         pipeline.enqueueStage(createStageDefinition(env, stageDef.get()));
-                    }
 
-                    return pipeline;
-                }));
+                        return Boolean.TRUE;
+                    } else {
+                        return Boolean.FALSE;
+                    }
+                }))
+                .filter(v -> v)
+                .orElseThrow();
     }
 
     @PutMapping("projects/configuration")
@@ -675,7 +679,7 @@ public class ProjectsController {
         @Nonnull public final  Stage.State         state;
         @Nonnull public final  Action              action;
         @Nonnull public final  String              stageName;
-        @Nullable public final  String              workspace;
+        @Nullable public final String              workspace;
         @Nullable public final ImageInfo           imageInfo;
         @Nonnull public final  Map<String, String> env;
         @Nonnull public final  Map<String, String> envInternal;
