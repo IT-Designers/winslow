@@ -595,21 +595,9 @@ public class Orchestrator {
     }
 
     @Nonnull
-    public <T> Optional<T> updatePipelineOmitExceptions(
-            @Nonnull Project project,
-            @Nonnull Function<Pipeline, T> updater) {
-        try {
-            return updatePipeline(project, updater);
-        } catch (OrchestratorException e) {
-            e.printStackTrace();
-            return Optional.empty();
-        }
-    }
-
-    @Nonnull
     public <T> Optional<T> updatePipeline(
             @Nonnull Project project,
-            @Nonnull Function<Pipeline, T> updater) throws OrchestratorException {
+            @Nonnull Function<Pipeline, T> updater) {
         return pipelines.getPipeline(project.getId()).exclusive().flatMap(container -> {
             try (container) {
                 var result   = Optional.<T>empty();

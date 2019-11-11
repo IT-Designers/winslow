@@ -118,7 +118,7 @@ public class ProjectsController {
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow
                         .getOrchestrator()
-                        .updatePipelineOmitExceptions(project, pipeline -> {
+                        .updatePipeline(project, pipeline -> {
                             if (pipeline.getEnqueuedStages().count() == controlSize) {
                                 return pipeline.removeEnqueuedStage(index).isPresent();
                             } else {
@@ -289,7 +289,7 @@ public class ProjectsController {
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
-                .flatMap(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     if (paused) {
                         pipeline.requestPause();
                     } else {
@@ -519,7 +519,7 @@ public class ProjectsController {
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
-                .ifPresent(project -> winslow.getOrchestrator().updatePipelineOmitExceptions(project, pipeline -> {
+                .ifPresent(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
@@ -585,7 +585,7 @@ public class ProjectsController {
                         )
                         .forEach(project -> winslow
                                 .getOrchestrator()
-                                .updatePipelineOmitExceptions(project, pipeline -> {
+                                .updatePipeline(project, pipeline -> {
                                     pipeline.enqueueStage(definition, Action.Configure);
                                     return null;
                                 }));
