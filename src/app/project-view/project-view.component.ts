@@ -188,14 +188,28 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   requestLogs() {
-    if (this.watchLatestLogs) {
+    if (this.watchLatestLogs || this.isStageRunning(this.watchLogsId)) {
       const skipLines = this.logs != null ? this.logs.length : 0;
       const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
       return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId);
     } else {
-      this.logs = [];
-      return this.api.getLog(this.project.id, this.watchLogsId);
+      console.log(this.logs ? (this.logs.length > 0 ? (this.logs[0].stageId + ' ' + this.watchLogsId) : null) : null);
+      if (this.logs != null && this.logs.length > 0 && this.logs[0].stageId === this.watchLogsId) {
+        return Promise.reject('already loaded');
+      } else {
+        this.logs = [];
+        return this.api.getLog(this.project.id, this.watchLogsId);
+      }
     }
+  }
+
+  isStageRunning(stageId: string) {
+    for (const entry of this.history) {
+      if (entry.stageId === stageId) {
+        return entry.state === State.Running;
+      }
+    }
+    return false;
   }
 
   loadHistory() {
