@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -124,8 +125,18 @@ public class WorkspaceCreator implements AssemblerStep {
                                       .getAllStages()
                                       .filter(stage -> stage.getState() == Stage.State.Succeeded)
                                       .filter(stage -> stage.getAction() == Action.Execute)
-                                      .map(stage -> getWorkspacePathForStage(pipeline, stage))
-                                      .filter(path -> path.toFile().exists())
+                                      .flatMap(stage -> {
+                                          var path = getWorkspacePathForStage(pipeline, stage);
+                                          if (path.toFile().exists()) {
+                                              return Stream.of(path);
+                                          } else {
+                                              context.log(
+                                                      Level.FINE,
+                                                      "Ignoring missing workspace: " + path
+                                              );
+                                              return Stream.empty();
+                                          }
+                                      })
                                       .reduce((first, second) -> second) // get the last successful stage
                                       .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())))
                 .flatMap(resourceManager::getWorkspace);
@@ -134,13 +145,10 @@ public class WorkspaceCreator implements AssemblerStep {
             var dirBefore = workDirBefore.get();
             var failure   = Optional.<IOException>empty();
 
-            context.log(
-                    Level.INFO,
-                    "Source workspace directory: " + resourceManager
-                            .getWorkspacesDirectory()
-                            .map(dir -> dir.getParent().relativize(workDirBefore.get()))
-                            .orElse(workDirBefore.get())
-            );
+            context.log(Level.INFO, "Source workspace directory: " + resourceManager
+                    .getWorkspacesDirectory()
+                    .map(dir -> dir.getParent().relativize(dirBefore))
+                    .orElse(dirBefore));
 
             try (var walk = Files.walk(workDirBefore.get())) {
                 failure = walk.flatMap(path -> {
