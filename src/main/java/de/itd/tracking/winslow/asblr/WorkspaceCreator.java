@@ -116,7 +116,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
     private void copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
             @Nonnull Context context,
-            @Nonnull Path workspace) throws AssemblyException {
+            @Nonnull Path workspaceTarget) throws AssemblyException {
 
         var pipeline = context.getPipeline();
         var workDirBefore = resourceManager
@@ -124,8 +124,9 @@ public class WorkspaceCreator implements AssemblerStep {
                                       .getAllStages()
                                       .filter(stage -> stage.getState() == Stage.State.Succeeded)
                                       .filter(stage -> stage.getAction() == Action.Execute)
-                                      .reduce((first, second) -> second) // get the last successful stage
                                       .map(stage -> getWorkspacePathForStage(pipeline, stage))
+                                      .filter(path -> path.toFile().exists())
+                                      .reduce((first, second) -> second) // get the last successful stage
                                       .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())))
                 .flatMap(resourceManager::getWorkspace);
 
@@ -133,13 +134,19 @@ public class WorkspaceCreator implements AssemblerStep {
             var dirBefore = workDirBefore.get();
             var failure   = Optional.<IOException>empty();
 
-            context.log(Level.INFO, "Source workspace directory: " + workDirBefore.get());
+            context.log(
+                    Level.INFO,
+                    "Source workspace directory: " + resourceManager
+                            .getWorkspacesDirectory()
+                            .map(dir -> dir.getParent().relativize(workDirBefore.get()))
+                            .orElse(workDirBefore.get())
+            );
 
             try (var walk = Files.walk(workDirBefore.get())) {
                 failure = walk.flatMap(path -> {
                     try {
                         var file = path.toFile();
-                        var dst  = workspace.resolve(dirBefore.relativize(path));
+                        var dst  = workspaceTarget.resolve(dirBefore.relativize(path));
                         if (file.isDirectory()) {
                             Files.createDirectories(dst);
                         } else {
