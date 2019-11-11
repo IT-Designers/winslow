@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 public class Lock implements Closeable {
 
-    public static final int    DEFAULT_LOCK_DURATION_MS = 5_000;
+    public static final int    DEFAULT_LOCK_DURATION_MS = 60_000;
     public static final Logger LOG                      = Logger.getLogger(Lock.class.getSimpleName());
 
     private final LockBus lockBus;

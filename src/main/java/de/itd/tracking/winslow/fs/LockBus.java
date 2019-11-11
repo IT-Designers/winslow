@@ -61,7 +61,6 @@ public class LockBus {
         eventDirectory.register(ws, ENTRY_MODIFY);
 
 
-
         var thread = new Thread(() -> this.watchForNewEvents(ws));
         thread.setName(getClass().getSimpleName() + ".WatchService");
         thread.setDaemon(true);
@@ -293,10 +292,15 @@ public class LockBus {
             case KILL:
                 break;
         }
-        Stream
-                .ofNullable(this.listener.get(event.getCommand()))
-                .flatMap(List::stream)
-                .forEach(consumer -> consumer.accept(event));
+        var listeners = this.listener.get(event.getCommand());
+        if (listeners != null) {
+            var listenersCopy = new ArrayList<>(listeners);
+            new Thread(() -> {
+                for (Consumer<Event> consumer : listenersCopy) {
+                    consumer.accept(event);
+                }
+            }).start();
+        }
     }
 
     private Path nextEventPath() throws IOException {

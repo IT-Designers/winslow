@@ -137,24 +137,12 @@ public class Executor {
     }
 
     private synchronized boolean keepRunning() {
-        return this.keepRunning;
-    }
-
-    public synchronized void flush() {
-        while (!this.logBuffer.isEmpty()) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        return this.keepRunning || !this.logBuffer.isEmpty();
     }
 
     public synchronized void stop() {
         this.keepRunning = false;
-        this.logOutput.getLock().release();
     }
-
 
     private synchronized void notifyLogConsumer(@Nonnull LogEntry entry) {
         this.logConsumer.forEach(consumer -> consumer.accept(entry));

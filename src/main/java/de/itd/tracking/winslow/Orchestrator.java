@@ -197,7 +197,10 @@ public class Orchestrator {
             var pipelineOpt = container.get();
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
-                if (this.executeStages) {
+                if (this.executeStages && pipeline
+                        .getRunningStage()
+                        .map(Stage::getState)
+                        .orElse(null) != Stage.State.Running) {
                     tryStartNextPipelineStage(definition, container, pipeline);
                 }
             }
@@ -291,7 +294,6 @@ public class Orchestrator {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
             if (executor != null) {
                 executor.logErr("Assembly failed");
-                executor.flush();
                 executor.stop();
                 var stage = new Stage(
                         stageId,
@@ -582,7 +584,7 @@ public class Orchestrator {
         return replaceInvalidCharactersInJobName(String.format(
                 "%s_%04d_%s",
                 pipeline.getProjectId(),
-                pipeline.getStageCount(),
+                pipeline.getStageCount() + 1,
                 stage.getName()
         ));
     }

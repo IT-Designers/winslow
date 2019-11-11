@@ -145,10 +145,15 @@ public class WorkspaceCreator implements AssemblerStep {
             var dirBefore = workDirBefore.get();
             var failure   = Optional.<IOException>empty();
 
+            LOG.info("Copying into workspace " + workspaceTarget + " ...");
             context.log(Level.INFO, "Source workspace directory: " + resourceManager
                     .getWorkspacesDirectory()
                     .map(dir -> dir.getParent().relativize(dirBefore))
                     .orElse(dirBefore));
+            context.log(Level.INFO, "Target workspace directory: " + resourceManager
+                    .getWorkspacesDirectory()
+                    .map(dir -> dir.getParent().relativize(workspaceTarget))
+                    .orElse(workspaceTarget));
 
             try (var walk = Files.walk(workDirBefore.get())) {
                 failure = walk.flatMap(path -> {

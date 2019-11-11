@@ -15,7 +15,7 @@ import java.nio.file.Path;
 
 public class LogRepository extends BaseRepository {
 
-    private static final int LOCK_DURATION_MS = 10_000;
+    private static final int LOCK_DURATION_MS = 60_000;
 
     public LogRepository(
             @Nonnull LockBus lockBus,
