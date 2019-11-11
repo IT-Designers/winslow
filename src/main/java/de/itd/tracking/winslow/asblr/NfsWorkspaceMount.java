@@ -43,7 +43,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
                        exportedWorkspace.get().toAbsolutePath().toString()
                )
                .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_RESOURCES", TARGET_PATH_RESOURCES)
-               .withDockerImageArguments(Env.SELF_PREFIX + "_DIR_WORKSPACE", TARGET_PATH_WORKSPACE)
+               .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_WORKSPACE", TARGET_PATH_WORKSPACE)
                .withWorkspaceWithinPipeline(config.getWorkspaceDirectory().toString());
 
     }
