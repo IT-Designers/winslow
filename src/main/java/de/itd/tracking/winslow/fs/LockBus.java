@@ -292,15 +292,13 @@ public class LockBus {
             case KILL:
                 break;
         }
-        var listeners = this.listener.get(event.getCommand());
-        if (listeners != null) {
-            var listenersCopy = new ArrayList<>(listeners);
-            new Thread(() -> {
-                for (Consumer<Event> consumer : listenersCopy) {
-                    consumer.accept(event);
-                }
-            }).start();
-        }
+
+        // TODO performance is crying :(
+        // it needs  to be async to this thread and separating each listener
+        // from the other might be reasonable...?
+        Stream.ofNullable(this.listener.get(event.getCommand()))
+              .flatMap(List::stream)
+              .forEach(listener -> new Thread(() -> listener.accept(event)).start());
     }
 
     private Path nextEventPath() throws IOException {
