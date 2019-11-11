@@ -9,6 +9,7 @@ import de.itd.tracking.winslow.fs.Event;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
+import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
 import de.itd.tracking.winslow.pipeline.Stage;
@@ -253,7 +254,7 @@ public class Orchestrator {
     private boolean startNextPipelineStage(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) throws AssemblyException {
-        var nextStage = pipeline.peekNextStage();
+        var nextStage = pipeline.popNextStage();
 
         if (nextStage.isEmpty()) {
             LOG.warning("Got commanded to start next stage but there is none!");
@@ -267,53 +268,85 @@ public class Orchestrator {
         var executor      = (Executor) null;
 
         try {
-            executor = startExecutor(
+            final var exec = executor = startExecutor(
                     pipeline.getProjectId(),
                     stageId,
                     getProgressHintMatcher(pipeline.getProjectId())
             );
 
-            assembler
-                    .add(new UserInputChecker())
-                    .add(new DockerImageAppender())
-                    .add(new RequirementAppender())
-                    .add(new InternalEnvironmentVariableAppender())
-                    .add(new WorkspaceCreator(environment.getResourceManager()))
-                    .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
-                    .add(new EnvLogger())
-                    .add(new BuildAndSubmit(this.nodeName))
-                    .assemble(new Context(
-                            pipeline,
-                            definition,
-                            executor,
-                            stageEnqueued,
-                            stageId,
-                            backend.newStageBuilder(projectId, stageId, stageEnqueued.getDefinition())
-                    ));
-            return true;
-        } catch (AssemblyException | LockException | FileNotFoundException e) {
-            LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
-            if (executor != null) {
-                executor.logErr("Assembly failed");
-                executor.stop();
-                var stage = new Stage(
-                        stageId,
-                        stageEnqueued.getDefinition(),
-                        stageEnqueued.getAction(),
-                        null
-                );
-                stage.finishNow(Stage.State.Failed);
+            final var stage = new Stage(
+                    stageId,
+                    stageEnqueued.getDefinition(),
+                    stageEnqueued.getAction(),
+                    null
+            );
+            pipeline.resetResumeNotification();
+            pipeline.pushStage(stage);
 
-                pipeline.popNextStage();
-                pipeline.pushStage(stage);
-                pipeline.pushStage(null);
-            }
-            try {
-                this.backend.delete(pipeline.getProjectId(), stageId);
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Force purging on the Backend failed", ex);
-            }
+            startAssembly(definition, pipeline, stageEnqueued, projectId, stageId, assembler, exec, stage);
             return true;
+        } catch (LockException | FileNotFoundException e) {
+            LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
+            pipeline.finishRunningStage(Stage.State.Failed);
+            cleanupOnAssembleError(pipeline.getProjectId(), stageId, executor);
+            return true;
+        }
+    }
+
+    private void startAssembly(
+            @Nonnull PipelineDefinition definition,
+            @Nonnull Pipeline pipeline,
+            EnqueuedStage stageEnqueued,
+            String projectId,
+            String stageId,
+            StageAssembler assembler, Executor executor, Stage stage) {
+        new Thread(() -> {
+            try {
+                assembler
+                        .add(new UserInputChecker())
+                        .add(new DockerImageAppender())
+                        .add(new RequirementAppender())
+                        .add(new InternalEnvironmentVariableAppender())
+                        .add(new WorkspaceCreator(environment.getResourceManager()))
+                        .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
+                        .add(new EnvLogger())
+                        .add(new BuildAndSubmit(this.nodeName, builtStage -> {
+                            updatePipeline(projectId, pipelineToUpdate -> {
+                                pipelineToUpdate.updateStage(builtStage);
+                                return null;
+                            });
+                        }))
+                        .assemble(new Context(
+                                pipeline,
+                                definition,
+                                executor,
+                                stageEnqueued,
+                                stageId,
+                                backend.newStageBuilder(pipeline.getProjectId(), stageId, stageEnqueued.getDefinition())
+                        ));
+            } catch (AssemblyException e) {
+                LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, e);
+                updatePipeline(projectId, pipelineToUpdate -> {
+                    pipelineToUpdate.finishRunningStage(Stage.State.Failed);
+                    return null;
+                });
+                cleanupOnAssembleError(projectId, stageId, executor);
+            }
+        }).start();
+    }
+
+    private void cleanupOnAssembleError(
+            @Nonnull String projectId,
+            @Nonnull String stageId,
+            @Nullable Executor executor) {
+        if (executor != null) {
+            executor.logErr("Assembly failed");
+            executor.stop();
+        }
+        try {
+            this.backend.delete(projectId, stageId);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Force purging on the Backend failed", ex);
         }
     }
 
@@ -599,7 +632,14 @@ public class Orchestrator {
     public <T> Optional<T> updatePipeline(
             @Nonnull Project project,
             @Nonnull Function<Pipeline, T> updater) {
-        return pipelines.getPipeline(project.getId()).exclusive().flatMap(container -> {
+        return updatePipeline(project.getId(), updater);
+    }
+
+    @Nonnull
+    private <T> Optional<T> updatePipeline(
+            @Nonnull String projectId,
+            @Nonnull Function<Pipeline, T> updater) {
+        return pipelines.getPipeline(projectId).exclusive().flatMap(container -> {
             try (container) {
                 var result   = Optional.<T>empty();
                 var pipeline = container.get();

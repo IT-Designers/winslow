@@ -4,14 +4,19 @@ import de.itd.tracking.winslow.OrchestratorException;
 import de.itd.tracking.winslow.pipeline.Stage;
 
 import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class BuildAndSubmit implements AssemblerStep {
 
-    @Nonnull private final String nodeName;
+    @Nonnull private final String          nodeName;
+    @Nonnull private final Consumer<Stage> stageConsumer;
 
-    public BuildAndSubmit(@Nonnull String nodeName) {
-        this.nodeName = nodeName;
+    public BuildAndSubmit(
+            @Nonnull String nodeName,
+            @Nonnull Consumer<Stage> stageConsumer) {
+        this.nodeName      = nodeName;
+        this.stageConsumer = stageConsumer;
     }
 
     @Override
@@ -40,13 +45,11 @@ public class BuildAndSubmit implements AssemblerStep {
             throw new AssemblyException("Failed to execute action", e);
         }
 
-        pipeline.resetResumeNotification();
-        pipeline.popNextStage();
-        pipeline.pushStage(stage);
+        this.stageConsumer.accept(stage);
     }
 
     @Override
     public void revert(@Nonnull Context context) {
-        
+
     }
 }

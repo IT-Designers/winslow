@@ -13,10 +13,10 @@ import java.util.Optional;
 
 public class Stage {
 
-    @Nonnull private final String          id;
-    @Nonnull private final StageDefinition definition;
-    @Nonnull private final Action          action;
-    @Nonnull private final Date            startTime;
+    @Nonnull private final  String          id;
+    @Nonnull private final  StageDefinition definition;
+    @Nonnull private final  Action          action;
+    @Nonnull private final  Date            startTime;
     @Nullable private final String          workspace;
 
     @Nullable private Date                finishTime;

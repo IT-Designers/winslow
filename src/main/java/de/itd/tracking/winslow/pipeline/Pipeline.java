@@ -60,9 +60,25 @@ public class Pipeline {
         this.stage = stage;
     }
 
+    public boolean updateStage(@Nonnull Stage stage) {
+        if (this.stage != null && this.stage.getId().equals(stage.getId())) {
+            this.stage = stage;
+            return true;
+        }
+        return false;
+    }
+
     @Nonnull
     public Optional<Stage> getRunningStage() {
         return Optional.ofNullable(this.stage);
+    }
+
+    public boolean finishRunningStage(@Nonnull Stage.State finishState) {
+        return getRunningStage().map(stage -> {
+            stage.finishNow(finishState);
+            this.pushStage(null);
+            return stage;
+        }).isPresent();
     }
 
     @Nonnull
