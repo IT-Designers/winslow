@@ -523,7 +523,8 @@ public class ProjectsController {
 
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
-                    var stageDef = getStageDefinitionNoClone(project, index);
+                    var stageFromPipeline = getStageDefinitionNoClone(project, index);
+                    var stageDef = stageFromPipeline;
 
                     stageDef = stageDef.map(def -> pipeline
                             .getAllStages()
@@ -533,8 +534,17 @@ public class ProjectsController {
                             .orElse(def)
                     );
 
-
                     if (stageDef.isPresent()) {
+                        stageDef = Optional.of(new StageDefinition(
+                                stageDef.get().getName(),
+                                stageDef.get().getDescription().orElse(null),
+                                stageDef.get().getImage().orElse(null),
+                                stageFromPipeline.get().getRequirements().orElse(null),
+                                stageFromPipeline.get().getRequires().orElse(null),
+                                stageDef.get().getEnvironment(),
+                                stageDef.get().getHighlight().orElse(null)
+                        ));
+
                         if (!pipeline.hasEnqueuedStages()) {
                             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
                         }

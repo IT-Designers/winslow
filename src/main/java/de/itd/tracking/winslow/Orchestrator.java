@@ -275,11 +275,11 @@ public class Orchestrator {
 
             assembler
                     .add(new UserInputChecker())
-                    .add(new WorkspaceCreator(environment.getResourceManager()))
-                    .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                     .add(new DockerImageAppender())
                     .add(new RequirementAppender())
                     .add(new InternalEnvironmentVariableAppender())
+                    .add(new WorkspaceCreator(environment.getResourceManager()))
+                    .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                     .add(new BuildAndSubmit(this.nodeName))
                     .assemble(new Context(
                             pipeline,
