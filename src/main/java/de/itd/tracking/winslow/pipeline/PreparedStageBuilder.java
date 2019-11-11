@@ -44,6 +44,9 @@ public interface PreparedStageBuilder {
     PreparedStageBuilder withGpuVendor(@Nonnull String vendor);
 
     @Nonnull
+    PreparedStageBuilder withMegabytesOfRam(int megabytesOfRam);
+
+    @Nonnull
     PreparedStage build();
 
     @Nonnull

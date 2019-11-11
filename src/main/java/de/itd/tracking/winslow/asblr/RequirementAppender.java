@@ -2,7 +2,7 @@ package de.itd.tracking.winslow.asblr;
 
 import javax.annotation.Nonnull;
 
-public class GpuRequirementAppender implements AssemblerStep
+public class RequirementAppender implements AssemblerStep
 {
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
@@ -14,6 +14,10 @@ public class GpuRequirementAppender implements AssemblerStep
                     builder = builder.withGpuVendor(gpu.getVendor().get());
                 }
             });
+
+            if (requirements.getMegabytesOfRam() > 0) {
+                context.getBuilder().withMegabytesOfRam((int)requirements.getMegabytesOfRam());
+            }
         });
     }
 

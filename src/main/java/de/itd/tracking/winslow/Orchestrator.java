@@ -278,7 +278,7 @@ public class Orchestrator {
                     .add(new WorkspaceCreator(environment.getResourceManager()))
                     .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                     .add(new DockerImageAppender())
-                    .add(new GpuRequirementAppender())
+                    .add(new RequirementAppender())
                     .add(new InternalEnvironmentVariableAppender())
                     .add(new BuildAndSubmit(this.nodeName))
                     .assemble(new Context(

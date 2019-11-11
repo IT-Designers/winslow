@@ -143,6 +143,12 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
         return this;
     }
 
+    @Nonnull
+    public NomadPreparedStageBuilder withMegabytesOfRam(int megabytesOfRam) {
+        this.resources.setMemoryMb(megabytesOfRam);
+        return this;
+    }
+
     private void ensureGpuDeviceAdded() {
         if (this.deviceGpu == null) {
             this.deviceGpu = new HashMap<>();
