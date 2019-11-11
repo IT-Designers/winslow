@@ -193,7 +193,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
       return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId);
     } else {
-      console.log(this.logs ? (this.logs.length > 0 ? (this.logs[0].stageId + ' ' + this.watchLogsId) : null) : null);
       if (this.logs != null && this.logs.length > 0 && this.logs[0].stageId === this.watchLogsId) {
         return Promise.reject('already loaded');
       } else {
