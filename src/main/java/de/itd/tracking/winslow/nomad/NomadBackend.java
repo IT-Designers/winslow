@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -306,17 +307,26 @@ public class NomadBackend implements Backend {
 
     @Nonnull
     public List<AllocationListStub> getAllocations() throws IOException {
-        if (this.cachedAllocs == null || this.cachedAllocsTime + CACHE_TIME_MS < System.currentTimeMillis()) {
+        Supplier<Boolean> condition = () -> this.cachedAllocs == null || this.cachedAllocsTime + CACHE_TIME_MS < System.currentTimeMillis();
+
+        // cheap check without lock
+        if (condition.get()) {
             synchronized (cachedAllocsSync) {
-                try {
-                    this.cachedAllocs     = getNewAllocationsApi().list().getValue();
-                    this.cachedAllocsTime = System.currentTimeMillis();
-                    this.cachedAllocsSync.notifyAll();
-                } catch (NomadException e) {
-                    throw new IOException("Failed to list allocations", e);
+                // check again to ensure it has not changed since acquiring the lock
+                // this could be the case if some other thread had the same thought and already has loaded
+                // the new allocations list
+                if (condition.get()) {
+                    try {
+                        this.cachedAllocs     = getNewAllocationsApi().list().getValue();
+                        this.cachedAllocsTime = System.currentTimeMillis();
+                        this.cachedAllocsSync.notifyAll();
+                    } catch (NomadException e) {
+                        throw new IOException("Failed to list allocations", e);
+                    }
                 }
             }
         }
+
         return this.cachedAllocs;
     }
 
