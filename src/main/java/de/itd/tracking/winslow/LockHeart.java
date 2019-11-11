@@ -16,6 +16,7 @@ public class LockHeart implements AutoCloseable {
     private                boolean failed      = false;
     private                boolean keepBeating = true;
     private                boolean isBeating   = true;
+    private final          Object  sleepSync   = new Object();
 
     public LockHeart(@Nonnull Lock lock) {
         this.lock   = lock;
@@ -27,16 +28,18 @@ public class LockHeart implements AutoCloseable {
 
     private void beatIt() {
         try {
-            while (this.keepBeating && !lock.isReleased()) {
-                var sleepTimeMs = lock.getTimeUntilRenewalOnHeartbeat();
-                if (sleepTimeMs > 0) {
-                    try {
-                        Thread.sleep(sleepTimeMs);
-                    } catch (InterruptedException e) {
-                        LOG.log(Level.WARNING, "Sleep got interrupted, might cause performance issues", e);
+            synchronized (sleepSync) {
+                while (this.keepBeating && !lock.isReleased()) {
+                    var sleepTimeMs = lock.getTimeUntilRenewalOnHeartbeat();
+                    if (sleepTimeMs > 0) {
+                        try {
+                            sleepSync.wait(sleepTimeMs);
+                        } catch (InterruptedException e) {
+                            LOG.log(Level.WARNING, "Sleep got interrupted, might cause performance issues", e);
+                        }
                     }
+                    lock.heartbeatIfNotReleased();
                 }
-                lock.heartbeatIfNotReleased();
             }
         } catch (LockException e) {
             LOG.log(Level.SEVERE, "Heart stopped beating unexpectedly", e);
@@ -47,7 +50,10 @@ public class LockHeart implements AutoCloseable {
     }
 
     public void stop() {
-        this.keepBeating = false;
+        synchronized (sleepSync) {
+            this.keepBeating = false;
+            this.sleepSync.notifyAll();
+        }
     }
 
     public boolean stopAndJoin() {
