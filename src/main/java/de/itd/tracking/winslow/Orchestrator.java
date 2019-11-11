@@ -198,11 +198,10 @@ public class Orchestrator {
             var pipelineOpt = container.get();
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
-                if (this.executeStages && pipeline
-                        .getRunningStage()
-                        .map(Stage::getState)
-                        .orElse(null) != Stage.State.Running) {
-                    tryStartNextPipelineStage(definition, container, pipeline);
+                if (this.executeStages && hasNoRunningStage(pipeline)) {
+                    if (startNextStageIfReady(definition, pipeline)) {
+                        tryUpdateContainer(container, pipeline);
+                    }
                 }
             }
         } catch (LockException e) {
@@ -210,28 +209,16 @@ public class Orchestrator {
         }
     }
 
-    private void tryStartNextPipelineStage(
-            @Nonnull PipelineDefinition definition,
-            @Nonnull LockedContainer<Pipeline> container,
-            @Nonnull Pipeline pipeline) throws OrchestratorException {
-        try {
-            if (startNextStageIfReady(definition, pipeline)) {
-                tryUpdateContainer(container, pipeline);
-            }
-        } catch (UserInputChecker.MissingUserInputException e) {
-            pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
-            tryUpdateContainer(container, pipeline);
-        } catch (UserInputChecker.MissingUserConfirmationException e) {
-            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
-            tryUpdateContainer(container, pipeline);
-        } catch (AssemblyException e) {
-            throw new OrchestratorException("Failed to assemble stage for execution", e);
-        }
+    private static boolean hasNoRunningStage(Pipeline pipeline) {
+        return pipeline
+                .getRunningStage()
+                .map(Stage::getState)
+                .orElse(null) != Stage.State.Running;
     }
 
     private boolean startNextStageIfReady(
             @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) throws AssemblyException {
+            @Nonnull Pipeline pipeline) {
         var noneRunning = pipeline.getRunningStage().isEmpty();
         var paused      = pipeline.isPauseRequested();
         var hasNext     = pipeline.peekNextStage().isPresent();
@@ -253,7 +240,7 @@ public class Orchestrator {
 
     private boolean startNextPipelineStage(
             @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) throws AssemblyException {
+            @Nonnull Pipeline pipeline) {
         var nextStage = pipeline.popNextStage();
 
         if (nextStage.isEmpty()) {
@@ -262,9 +249,7 @@ public class Orchestrator {
         }
 
         var stageEnqueued = nextStage.get();
-        var projectId     = pipeline.getProjectId();
         var stageId       = getStageId(pipeline, stageEnqueued.getDefinition());
-        var assembler     = new StageAssembler();
         var executor      = (Executor) null;
 
         try {
@@ -283,7 +268,7 @@ public class Orchestrator {
             pipeline.resetResumeNotification();
             pipeline.pushStage(stage);
 
-            startAssembly(definition, pipeline, stageEnqueued, projectId, stageId, assembler, exec, stage);
+            startStageAssembler(definition, pipeline, stageEnqueued, stageId, exec);
             return true;
         } catch (LockException | FileNotFoundException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
@@ -293,14 +278,16 @@ public class Orchestrator {
         }
     }
 
-    private void startAssembly(
+    private void startStageAssembler(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline,
-            EnqueuedStage stageEnqueued,
-            String projectId,
-            String stageId,
-            StageAssembler assembler, Executor executor, Stage stage) {
+            @Nonnull EnqueuedStage stageEnqueued,
+            @Nonnull String stageId,
+            @Nonnull Executor executor) {
         new Thread(() -> {
+            var projectId = pipeline.getProjectId();
+            var assembler = new StageAssembler();
+
             try {
                 assembler
                         .add(new UserInputChecker())
@@ -313,7 +300,6 @@ public class Orchestrator {
                         .add(new BuildAndSubmit(this.nodeName, builtStage -> {
                             updatePipeline(projectId, pipelineToUpdate -> {
                                 pipelineToUpdate.updateStage(builtStage);
-                                return null;
                             });
                         }))
                         .assemble(new Context(
@@ -324,11 +310,21 @@ public class Orchestrator {
                                 stageId,
                                 backend.newStageBuilder(pipeline.getProjectId(), stageId, stageEnqueued.getDefinition())
                         ));
+
+            } catch (UserInputChecker.MissingUserInputException e) {
+                cleanupOnAssembleError(projectId, stageId, executor);
+                updatePipeline(projectId, toUpdate -> {
+                    toUpdate.requestPause(Pipeline.PauseReason.FurtherInputRequired);
+                });
+            } catch (UserInputChecker.MissingUserConfirmationException e) {
+                cleanupOnAssembleError(projectId, stageId, executor);
+                updatePipeline(projectId, toUpdate -> {
+                    toUpdate.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                });
             } catch (AssemblyException e) {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, e);
                 updatePipeline(projectId, pipelineToUpdate -> {
                     pipelineToUpdate.finishRunningStage(Stage.State.Failed);
-                    return null;
                 });
                 cleanupOnAssembleError(projectId, stageId, executor);
             }
@@ -523,8 +519,7 @@ public class Orchestrator {
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             Pipeline pipeline = new Pipeline(project.getId());
             tryCreateInitDirectory(pipeline);
-            tryUpdateContainer(container, pipeline);
-            tryStartNextPipelineStage(project.getPipelineDefinition(), container, pipeline);
+            updatePipeline(project.getPipelineDefinition(), container);
             return pipeline;
         }
     }
@@ -633,6 +628,16 @@ public class Orchestrator {
             @Nonnull Project project,
             @Nonnull Function<Pipeline, T> updater) {
         return updatePipeline(project.getId(), updater);
+    }
+
+    @Nonnull
+    private void updatePipeline(
+            @Nonnull String projectId,
+            @Nonnull Consumer<Pipeline> updater) {
+        this.updatePipeline(projectId, pipeline -> {
+            updater.accept(pipeline);
+            return null;
+        });
     }
 
     @Nonnull

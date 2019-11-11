@@ -24,7 +24,6 @@ public class BuildAndSubmit implements AssemblerStep {
         var stage         = (Stage) null;
         var prepared      = context.getBuilder().build();
         var stageEnqueued = context.getEnqueuedStage();
-        var pipeline      = context.getPipeline();
 
         try {
             switch (stageEnqueued.getAction()) {
