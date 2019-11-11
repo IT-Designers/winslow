@@ -2,7 +2,6 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.StreamFrame;
-import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
 import com.hashicorp.nomad.javasdk.NomadException;
@@ -151,6 +150,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
                 return true;
             }
         } else {
+            framedStream.close();
             framedStream = null;
         }
         return false;
