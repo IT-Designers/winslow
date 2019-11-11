@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 public class NfsWorkspaceMount implements AssemblerStep {
 
     private static final String TARGET_PATH_RESOURCES = "/resources";
-    private static final String TARGET_PATH_WORKSPACE = "/worksapce";
+    private static final String TARGET_PATH_WORKSPACE = "/workspace";
 
     @Nonnull private final NfsWorkDirectory nfsWorkDirectory;
 
