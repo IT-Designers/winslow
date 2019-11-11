@@ -4,11 +4,15 @@ import de.itd.tracking.winslow.Env;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 
 import javax.annotation.Nonnull;
+import java.util.logging.Level;
 
 public class NfsWorkspaceMount implements AssemblerStep {
 
     private static final String TARGET_PATH_RESOURCES = "/resources";
     private static final String TARGET_PATH_WORKSPACE = "/workspace";
+
+    private static final String ENV_DIR_RESOURCES = Env.SELF_PREFIX + "_DIR_RESOURCES";
+    private static final String ENV_DIR_WORKSPACE = Env.SELF_PREFIX + "_DIR_WORKSPACE";
 
     @Nonnull private final NfsWorkDirectory nfsWorkDirectory;
 
@@ -42,10 +46,9 @@ public class NfsWorkspaceMount implements AssemblerStep {
                        nfsWorkDirectory.getOptions(),
                        exportedWorkspace.get().toAbsolutePath().toString()
                )
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_RESOURCES", TARGET_PATH_RESOURCES)
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_DIR_WORKSPACE", TARGET_PATH_WORKSPACE)
+               .withInternalEnvVariable(ENV_DIR_RESOURCES, TARGET_PATH_RESOURCES)
+               .withInternalEnvVariable(ENV_DIR_WORKSPACE, TARGET_PATH_WORKSPACE)
                .withWorkspaceWithinPipeline(config.getWorkspaceDirectory().toString());
-
     }
 
     @Override

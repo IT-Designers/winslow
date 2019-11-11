@@ -29,6 +29,9 @@ public interface PreparedStageBuilder {
             @Nonnull String serverExport);
 
     @Nonnull
+    Iterable<String> getEnvVariableKeys();
+
+    @Nonnull
     Optional<String> getEnvVariable(@Nonnull String key);
 
     @Nonnull

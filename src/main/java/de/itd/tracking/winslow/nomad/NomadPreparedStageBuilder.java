@@ -2,11 +2,13 @@ package de.itd.tracking.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.JobsApi;
-import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
 import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
@@ -102,8 +104,16 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     }
 
     @Nonnull
+    @Override
+    public Iterable<String> getEnvVariableKeys() {
+        return Stream
+                .concat(this.envVars.keySet().stream(), this.envVarsInternal.keySet().stream())
+                .collect(Collectors.toSet());
+    }
+
+    @Nonnull
     public Optional<String> getEnvVariable(@Nonnull String key) {
-        return Optional.ofNullable(this.envVars.get(key));
+        return Optional.ofNullable(this.envVarsInternal.get(key)).or(() -> Optional.ofNullable(this.envVars.get(key)));
     }
 
     @Nonnull

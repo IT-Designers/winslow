@@ -280,6 +280,7 @@ public class Orchestrator {
                     .add(new InternalEnvironmentVariableAppender())
                     .add(new WorkspaceCreator(environment.getResourceManager()))
                     .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
+                    .add(new EnvLogger())
                     .add(new BuildAndSubmit(this.nodeName))
                     .assemble(new Context(
                             pipeline,
