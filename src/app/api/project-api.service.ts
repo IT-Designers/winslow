@@ -126,7 +126,12 @@ export class ProjectApiService {
   }
 
   getLog(projectId: string, stageId: string) {
-    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`)).toPromise();
+    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`))
+      .toPromise()
+      .then(logs => logs.map(e => {
+        e.stageId = stageId;
+        return e;
+      }));
   }
 
   getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
