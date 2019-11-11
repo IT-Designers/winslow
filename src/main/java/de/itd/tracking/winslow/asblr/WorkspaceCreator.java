@@ -125,8 +125,8 @@ public class WorkspaceCreator implements AssemblerStep {
                                       .getAllStages()
                                       .filter(stage -> stage.getState() == Stage.State.Succeeded)
                                       .filter(stage -> stage.getAction() == Action.Execute)
-                                      .flatMap(stage -> {
-                                          var path = getWorkspacePathForStage(pipeline, stage);
+                                      .flatMap(stage -> getWorkspacePathForStage(pipeline, stage).stream())
+                                      .flatMap(path -> {
                                           if (path.toFile().exists()) {
                                               return Stream.of(path);
                                           } else {
@@ -181,8 +181,8 @@ public class WorkspaceCreator implements AssemblerStep {
         return Path.of(pipeline.getProjectId());
     }
 
-    private static Path getWorkspacePathForStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        return getWorkspacePathForPipeline(pipeline).resolve(stage.getWorkspace());
+    private static Optional<Path> getWorkspacePathForStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
+        return stage.getWorkspace().map(ws -> getWorkspacePathForPipeline(pipeline).resolve(ws));
     }
 
 }

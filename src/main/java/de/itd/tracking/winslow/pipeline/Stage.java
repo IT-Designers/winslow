@@ -17,7 +17,7 @@ public class Stage {
     @Nonnull private final StageDefinition definition;
     @Nonnull private final Action          action;
     @Nonnull private final Date            startTime;
-    @Nonnull private final String          workspace;
+    @Nullable private final String          workspace;
 
     @Nullable private Date                finishTime;
     @Nullable private State               finishState;
@@ -28,7 +28,7 @@ public class Stage {
             @Nonnull String id,
             @Nonnull StageDefinition definition,
             @Nonnull Action action,
-            @Nonnull String workspace) {
+            @Nullable String workspace) {
         this.id         = id;
         this.definition = definition;
         this.action     = action;
@@ -45,7 +45,7 @@ public class Stage {
             @Nonnull StageDefinition definition,
             @Nonnull Action action,
             @Nonnull Date startTime,
-            @Nonnull String workspace,
+            @Nullable String workspace,
             @Nullable Date finishTime,
             @Nullable State finishState,
             @Nullable Map<String, String> env,
@@ -103,8 +103,8 @@ public class Stage {
     }
 
     @Nonnull
-    public String getWorkspace() {
-        return workspace;
+    public Optional<String> getWorkspace() {
+        return Optional.ofNullable(workspace);
     }
 
     @Nonnull

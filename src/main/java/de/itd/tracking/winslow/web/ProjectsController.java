@@ -665,7 +665,7 @@ public class ProjectsController {
         @Nonnull public final  Stage.State         state;
         @Nonnull public final  Action              action;
         @Nonnull public final  String              stageName;
-        @Nonnull public final  String              workspace;
+        @Nullable public final  String              workspace;
         @Nullable public final ImageInfo           imageInfo;
         @Nonnull public final  Map<String, String> env;
         @Nonnull public final  Map<String, String> envInternal;
@@ -677,7 +677,7 @@ public class ProjectsController {
             this.state       = stage.getState();
             this.action      = stage.getAction();
             this.stageName   = Optional.ofNullable(stage.getDefinition()).map(StageDefinition::getName).orElse(null);
-            this.workspace   = stage.getWorkspace();
+            this.workspace   = stage.getWorkspace().orElse(null);
             this.imageInfo   = Optional.ofNullable(stage.getDefinition()).flatMap(StageDefinition::getImage).map(
                     ImageInfo::new).orElse(null);
             this.env         = new TreeMap<>(stage.getEnv());

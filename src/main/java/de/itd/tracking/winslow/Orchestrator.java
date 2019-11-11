@@ -293,16 +293,24 @@ public class Orchestrator {
                 executor.logErr("Assembly failed");
                 executor.flush();
                 executor.stop();
+                var stage = new Stage(
+                        stageId,
+                        stageEnqueued.getDefinition(),
+                        stageEnqueued.getAction(),
+                        null
+                );
+                stage.finishNow(Stage.State.Failed);
+
+                pipeline.popNextStage();
+                pipeline.pushStage(stage);
+                pipeline.pushStage(null);
             }
             try {
                 this.backend.delete(pipeline.getProjectId(), stageId);
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Force purging on the Backend failed", ex);
             }
-            if (e instanceof AssemblyException) {
-                throw (AssemblyException) e;
-            }
-            return false;
+            return true;
         }
     }
 
