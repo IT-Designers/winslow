@@ -146,11 +146,12 @@ public class WorkspaceCreator implements AssemblerStep {
             var failure   = Optional.<IOException>empty();
 
             LOG.info("Copying into workspace " + workspaceTarget + " ...");
-            context.log(Level.INFO, "Source workspace directory: " + resourceManager
+            context.log(Level.INFO, "Copying workspace...");
+            context.log(Level.INFO, " - Source directory: " + resourceManager
                     .getWorkspacesDirectory()
                     .map(dir -> dir.getParent().relativize(dirBefore))
                     .orElse(dirBefore));
-            context.log(Level.INFO, "Target workspace directory: " + resourceManager
+            context.log(Level.INFO, " - Target directory: " + resourceManager
                     .getWorkspacesDirectory()
                     .map(dir -> dir.getParent().relativize(workspaceTarget))
                     .orElse(workspaceTarget));
