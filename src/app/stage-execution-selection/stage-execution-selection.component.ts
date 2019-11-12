@@ -29,6 +29,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   defaultEnvironmentVariablesValue = new Map<string, string>();
   requiredEnvironmentVariables: string[];
   envSubmitValue: any = null;
+  envValid = false;
 
 
   static deepClone(image: ImageInfo) {
@@ -52,12 +53,12 @@ export class StageExecutionSelectionComponent implements OnInit {
     this.defaultEnvironmentVariablesValue = map;
   }
 
-  updateValid(envValid: boolean) {
-    this.valid = this.isValid() && envValid;
+  updateValid() {
+    this.valid = this.isValid();
   }
 
   isValid(): boolean {
-    return this.selectedPipeline != null && this.selectedStage != null;
+    return this.selectedPipeline != null && this.selectedStage != null && this.envValid;
   }
 
   getEnv() {
@@ -108,6 +109,11 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   updateImageArgs(value: string) {
     this.image.args = parseArgsStringToArgv(value);
+    this.updateValid();
+  }
+
+  updateValidEnv(valid: boolean) {
+    this.envValid = valid;
     this.updateValid();
   }
 }

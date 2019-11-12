@@ -72,7 +72,7 @@
     [env]="environmentVariables"
     [defaults]="defaultEnvironmentVariablesValue"
     [required]="requiredEnvironmentVariables"
-    (valid)="updateValid($event)"
+    (valid)="updateValidEnv($event)"
     (value)="envSubmitValue = $event"
   >
   </app-env-variables>
