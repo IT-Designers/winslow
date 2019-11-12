@@ -95,10 +95,6 @@ public class Context {
         baos.toString(StandardCharsets.UTF_8).lines().forEach(line -> log(level, line));
     }
 
-    public void logEnv(@Nonnull String env) {
-        this.log(Level.INFO, env + "=" + this.getBuilder().getEnvVariable(env).orElse(null));
-    }
-
     public void log(@Nonnull Level level, @Nonnull String message) {
         if (level.intValue() == Level.INFO.intValue()) {
             this.executor.logInf(message);
