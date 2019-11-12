@@ -5,10 +5,7 @@ import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.config.UserInput;
-import de.itd.tracking.winslow.fs.Event;
-import de.itd.tracking.winslow.fs.LockBus;
-import de.itd.tracking.winslow.fs.LockException;
-import de.itd.tracking.winslow.fs.NfsWorkDirectory;
+import de.itd.tracking.winslow.fs.*;
 import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
@@ -199,7 +196,7 @@ public class Orchestrator {
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
                 if (this.executeStages && hasNoRunningStage(pipeline)) {
-                    if (startNextStageIfReady(definition, pipeline)) {
+                    if (startNextStageIfReady(container.getLock(), definition, pipeline)) {
                         tryUpdateContainer(container, pipeline);
                     }
                 }
@@ -217,6 +214,7 @@ public class Orchestrator {
     }
 
     private boolean startNextStageIfReady(
+            @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
         var noneRunning = pipeline.getRunningStage().isEmpty();
@@ -229,7 +227,7 @@ public class Orchestrator {
                 case MoveForwardOnce:
                     pipeline.requestPause();
                 case MoveForwardUntilEnd:
-                    if (startNextPipelineStage(definition, pipeline)) {
+                    if (startNextPipelineStage(lock, definition, pipeline)) {
                         pipeline.clearPauseReason();
                         return true;
                     }
@@ -239,6 +237,7 @@ public class Orchestrator {
     }
 
     private boolean startNextPipelineStage(
+            @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
         var nextStage = pipeline.popNextStage();
@@ -268,7 +267,7 @@ public class Orchestrator {
             pipeline.resetResumeNotification();
             pipeline.pushStage(stage);
 
-            startStageAssembler(definition, pipeline, stageEnqueued, stageId, exec);
+            startStageAssembler(lock, definition, pipeline, stageEnqueued, stageId, exec);
             return true;
         } catch (LockException | FileNotFoundException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
@@ -279,6 +278,7 @@ public class Orchestrator {
     }
 
     private void startStageAssembler(
+            @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline,
             @Nonnull EnqueuedStage stageEnqueued,
@@ -298,6 +298,7 @@ public class Orchestrator {
                         .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                         .add(new EnvLogger())
                         .add(new BuildAndSubmit(this.nodeName, builtStage -> {
+                            lock.waitForRelease();
                             updatePipeline(projectId, pipelineToUpdate -> {
                                 pipelineToUpdate.updateStage(builtStage);
                             });
