@@ -1,13 +1,17 @@
 <div class="topbar">
-  <a [routerLink]="['about']">
+  <a [routerLink]="['']">
     <img src="favicon.png" alt="Winslow Icon">
   </a>
+  <!--
   <a [routerLink]="['']" class="button fancy-button">
     <i class="material-icons">home</i>Home
   </a>
+  -->
+  <!--
   <a [routerLink]="['actions']" class="button fancy-button">
     <i class="material-icons material-icons-outlined">assessment</i>Actions
   </a>
+  -->
   <a [routerLink]="['projects']" class="button fancy-button">
     <i class="material-icons material-icons-outlined">book</i>Projects
   </a>
@@ -20,7 +24,13 @@
   <a [routerLink]="['servers']" class="button fancy-button">
     <i class="material-icons">storage</i>Servers
   </a>
-  <a style="margin-left: auto; margin-right: 7em" [routerLink]="['about']" class="button fancy-button">
+  <a style="margin-left: auto" [routerLink]="['about']" class="button fancy-button">
+    <i class="material-icons">people</i>Users and Groups
+  </a>
+  <a [routerLink]="['about']" class="button fancy-button">
+    <i class="material-icons">build</i>System
+  </a>
+  <a style="margin-right: 0.51em" [routerLink]="['about']" class="button fancy-button">
     <i class="material-icons">info</i>About
   </a>
 </div>
