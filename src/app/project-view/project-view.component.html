@@ -168,7 +168,10 @@
             Stick to the Bottom
           </mat-slide-toggle>
         </div>
-        <div>
+        <div class="console-scroll-up-down">
+          <button mat-stroked-button (click)="scrollConsoleToTop()">
+            <mat-icon>arrow_upward</mat-icon>
+          </button>
           <button mat-stroked-button (click)="scrollConsoleToBottom(true)">
             <mat-icon>arrow_downward</mat-icon>
           </button>
