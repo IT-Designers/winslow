@@ -4,8 +4,10 @@ import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -83,7 +85,7 @@ public class LockBus {
                             int id   = Integer.parseInt(path.getFileName().toString());
 
                             while (id > eventCounter) {
-                                if (!loadNextEvent(0)) {
+                                if (loadNextEvent(0).isEmpty()) {
                                     break;
                                 }
                             }
@@ -212,7 +214,7 @@ public class LockBus {
         while (true) {
             try {
                 // ensure all events have been loaded
-                if (!loadNextEvent()) {
+                if (loadNextEvent().isEmpty()) {
                     break;
                 }
             } catch (LockException e) {
@@ -231,7 +233,9 @@ public class LockBus {
     private synchronized void ensureSubjectLockUnknown(String subject) throws LockAlreadyExistsException {
         Event event = this.locks.get(subject);
         if (event != null) {
-            var lockedUntil = event.getTime() + event.getDuration() + LOCK_DURATION_OFFSET;
+            var lockedUntil = event.getTime() + event.getDuration() + (event.getDuration() > 0
+                                                                       ? LOCK_DURATION_OFFSET
+                                                                       : 0);
             if (lockedUntil >= System.currentTimeMillis()) {
                 throw new LockAlreadyExistsException(subject, lockedUntil);
             }
@@ -244,25 +248,42 @@ public class LockBus {
 
     private synchronized Token publishEvent(@Nonnull EventSupplier supplier) throws LockException {
         try {
-            var path  = this.nextEventPath();
-            var event = supplier.getCheckedEvent(UUID.randomUUID().toString());
-            var token = new Token(event.getId(), path, event.getSubject(), event.getTime());
+            var path     = this.nextEventPath();
+            var pathLock = path.resolveSibling(".lock"); // TODO
+            var event    = supplier.getCheckedEvent(UUID.randomUUID().toString());
+            var token    = new Token(event.getId(), path, event.getSubject(), event.getTime());
 
-            Files.write(
-                    path,
-                    Collections.singleton(new TomlWriter().write(event)),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE_NEW
-            );
-            try {
-                this.processEvent(event);
-            } catch (Throwable t) {
-                LOG.log(Level.SEVERE, "Failed to process event, it will be ignored, source: " + path, t);
+            try (var channel = FileChannel.open(pathLock, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+                try (var lock = channel.lock()) {
+                    try {
+                        Files.write(
+                                path,
+                                Collections.singleton(new TomlWriter().write(event)),
+                                StandardCharsets.UTF_8,
+                                StandardOpenOption.CREATE_NEW
+                        );
+                    } finally {
+                        Files.deleteIfExists(pathLock);
+                    }
+                }
             }
-            this.eventCounter += 1;
-            return token;
+
+            // always returns a valid event
+            var read = this.loadNextEvent();
+
+            if (read.isEmpty()) {
+                throw new LockException("Failed to read written event");
+
+            } else if (read.get().equals(event)) {
+                // it was me all along!
+                return token;
+
+            } else {
+                // someone else interfered... well, lets try again
+                return this.publishEvent(supplier);
+            }
         } catch (IOException e) {
-            if (this.loadNextEvent()) {
+            if (this.loadNextEvent().isPresent()) {
                 return this.publishEvent(supplier);
             } else {
                 throw new LockException("Internal communication error, failed to lock", e);
@@ -322,33 +343,41 @@ public class LockBus {
         return String.format("%08d", eventCounter);
     }
 
-    private boolean loadNextEvent() throws LockException {
+    @Nonnull
+    private Optional<Event> loadNextEvent() throws LockException {
         return this.loadNextEvent(10);
     }
 
-    private synchronized boolean loadNextEvent(int retryCount) throws LockException {
+    @Nonnull
+    private synchronized Optional<Event> loadNextEvent(int retryCount) throws LockException {
         for (int i = 0; i < retryCount; ++i) {
-            Path path = null;
+            Path  path  = null;
+            Event event = null;
             try {
-                path = this.nextEventPath();
+                path  = this.nextEventPath();
+                event = loadEvent(path);
+                event.check();
 
-                this.processEvent(loadEvent(path));
+                this.processEvent(event);
 
                 this.eventCounter += 1;
-                return true;
+                return Optional.of(event);
             } catch (NoSuchFileException | FileNotFoundException e) {
                 LOG.fine("Failed to read next event because there is none");
-                return false;
+                return Optional.empty();
             } catch (Throwable e) {
                 if (i + 1 == retryCount || !fileJustCreated(path)) {
                     // max retries exceeded or file probably not actively written to
+                    if (path != null && Files.exists(path)) {
+                        this.eventCounter += 1; // do not try again
+                    }
                     throw new LockException("Failed to parse event file: " + path, e);
                 } else {
                     ensureSleepMs(100);
                 }
             }
         }
-        return false;
+        return Optional.empty();
     }
 
     private static void ensureSleepMs(long ms) {
@@ -367,7 +396,7 @@ public class LockBus {
         }
     }
 
-    private static boolean fileJustCreated(Path path) {
+    private static boolean fileJustCreated(@Nullable Path path) {
         return path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000;
     }
 

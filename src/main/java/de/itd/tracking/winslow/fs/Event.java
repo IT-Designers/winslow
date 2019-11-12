@@ -1,5 +1,7 @@
 package de.itd.tracking.winslow.fs;
 
+import java.util.Objects;
+
 public class Event {
 
     private final String  id;
@@ -16,6 +18,23 @@ public class Event {
         this.duration = duration;
         this.subject  = subject;
         this.issuer   = issuer;
+        this.check();
+    }
+
+    public void check() throws NullPointerException {
+        Objects.requireNonNull(this.id);
+        Objects.requireNonNull(this.command);
+        Objects.requireNonNull(this.subject);
+        Objects.requireNonNull(this.issuer);
+    }
+
+    public boolean isValid() {
+        try {
+            this.check();
+            return true;
+        } catch (NullPointerException e) {
+            return false;
+        }
     }
 
     /**
@@ -51,6 +70,28 @@ public class Event {
      */
     public String getIssuer() {
         return issuer;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Event event = (Event) o;
+        return getTime() == event.getTime() &&
+                getDuration() == event.getDuration() &&
+                getId().equals(event.getId()) &&
+                getCommand() == event.getCommand() &&
+                getSubject().equals(event.getSubject()) &&
+                getIssuer().equals(event.getIssuer());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getCommand(), getTime(), getDuration(), getSubject(), getIssuer());
     }
 
     @Override
