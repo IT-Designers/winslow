@@ -57,10 +57,21 @@ public class Lock implements Closeable {
         }
     }
 
+    public synchronized void waitForRelease() {
+        while (!this.released) {
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public synchronized void release() {
         if (!this.released) {
             this.lockBus.release(this.token);
             this.released = true;
+            this.notifyAll();
         } else {
             LOG.log(
                     Level.WARNING,
