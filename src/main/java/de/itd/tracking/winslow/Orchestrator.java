@@ -290,13 +290,13 @@ public class Orchestrator {
 
             try {
                 assembler
-                        .add(new UserInputChecker())
+                        .add(new EnvironmentVariableAppender())
                         .add(new DockerImageAppender())
                         .add(new RequirementAppender())
-                        .add(new InternalEnvironmentVariableAppender())
+                        .add(new EnvLogger())
+                        .add(new UserInputChecker())
                         .add(new WorkspaceCreator(environment.getResourceManager()))
                         .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
-                        .add(new EnvLogger())
                         .add(new BuildAndSubmit(this.nodeName, builtStage -> {
                             lock.waitForRelease();
                             updatePipeline(projectId, pipelineToUpdate -> {

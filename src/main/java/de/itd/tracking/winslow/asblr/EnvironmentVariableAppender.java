@@ -5,7 +5,7 @@ import de.itd.tracking.winslow.Env;
 import javax.annotation.Nonnull;
 import java.util.Date;
 
-public class InternalEnvironmentVariableAppender implements AssemblerStep {
+public class EnvironmentVariableAppender implements AssemblerStep {
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var pipeline = context.getPipeline();

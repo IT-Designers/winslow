@@ -12,8 +12,13 @@ public class EnvLogger implements AssemblerStep {
 
         builder.getEnvVariableKeys().forEach(tree::add);
 
-        context.log(Level.INFO, " The following environment variables are set");
-        tree.forEach(env -> context.log(Level.INFO, "   - " + env + "=" + builder.getEnvVariable(env).orElse(null)));
+
+        if (tree.size() > 0) {
+            context.log(Level.INFO, " The following environment variables are set");
+            tree.forEach(env -> context.log(Level.INFO, "   - " + env + "=" + builder.getEnvVariable(env).orElse(null)));
+        } else {
+            context.log(Level.INFO, " No environment variables set");
+        }
 
     }
 
