@@ -214,7 +214,7 @@ export class HistoryEntry {
   state: State;
   action: Action;
   stageName: string;
-  workspace: string;
+  workspace?: string;
   imageInfo?: ImageInfo;
   env: Map<string, string>;
   envInternal: Map<string, string>;
