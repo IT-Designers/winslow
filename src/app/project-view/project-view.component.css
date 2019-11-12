@@ -111,7 +111,7 @@
   flex-shrink: 0;
 }
 
-.console-controls *:not(:last-child) {
+.console-controls > *:not(:last-child) {
   margin-right: 2em;
 }
 
@@ -189,4 +189,13 @@
 .console .no-word-wrap {
   word-break: unset !important;
   white-space: pre !important;
+}
+
+.console-scroll-up-down {
+  display: flex;
+  flex-direction: row;
+}
+
+.console-scroll-up-down > *:not(:last-child) {
+  margin-right: 0.1em;
 }
