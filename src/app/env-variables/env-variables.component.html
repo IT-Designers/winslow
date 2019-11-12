@@ -21,7 +21,7 @@
 </div>
 <div class="action-row">
   <mat-form-field class="title">
-    <input matInput placeholder="Name" #name>
+    <input matInput placeholder="Name" #name (keyup.enter)="name.value.length > 0 && value.focus()">
   </mat-form-field>
   <mat-form-field>
     <input matInput placeholder="Value" #value (keyup.enter)="button.disabled || submit(name, value)">
