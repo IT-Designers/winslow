@@ -55,6 +55,9 @@ import {ProjectListComponent} from './project-list/project-list.component';
 import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settings-dialog.component';
 import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
+import {SystemViewComponent} from './system-view/system-view.component';
+import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component';
+import { EnvVariablesComponent } from './env-variables/env-variables.component';
 
 @NgModule({
   declarations: [
@@ -82,6 +85,9 @@ import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
     GroupSettingsDialogComponent,
     ProjectListComponent,
     TagFilterComponent,
+    SystemViewComponent,
+    SystemCfgEnvComponent,
+    EnvVariablesComponent,
   ],
   imports: [
     SweetAlert2Module.forRoot(),
@@ -98,7 +104,8 @@ import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
       {path: 'pipelines', component: PipelinesComponent},
       {path: 'files', component: FilesComponent},
       {path: 'servers', component: ServersComponent},
-      {path: 'about', component: AboutComponent}
+      {path: 'about', component: AboutComponent},
+      {path: 'system', component: SystemViewComponent},
     ]),
 
     BrowserModule,
@@ -144,4 +151,5 @@ import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
     GroupSettingsDialogComponent,
   ]
 })
-export class AppModule { }
+export class AppModule {
+}

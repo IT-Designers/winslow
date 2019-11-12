@@ -1,0 +1,10 @@
+<mat-card-title>Global System Environment Variables</mat-card-title>
+
+<div style="display: flex; flex-direction: column">
+  <app-env-variables
+    [env]="environmentVariables"
+    [defaults]="defaultEnvironmentVariablesValue"
+    (value)="envSubmitValue = $event"
+  >
+  </app-env-variables>
+</div>

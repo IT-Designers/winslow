@@ -1,0 +1,39 @@
+<div *ngFor="let envVar of environmentVariables | keyvalue" class="action-row">
+  <mat-label class="title">{{envVar.key}}</mat-label>
+  <mat-form-field [formGroup]="formGroupEnv">
+    <input #value matInput
+           [required]="envVar.value[0]"
+           [value]="envVar.value[1]"
+           [formControlName]="envVar.key"
+           (keyup)="updateValid()"
+           name="{{envVar.key}}">
+  </mat-form-field>
+  <div class="controls">
+    <button mat-stroked-button color="primary" (click)="browseForValue(value)">
+      <mat-icon class="material-icons-outlined">folder</mat-icon>
+    </button>
+    <button mat-button color="warn" [disabled]="envVar.value[0]"
+            [matTooltip]="envVar.value[0] ? 'This value is required' : null"
+            (click)="environmentVariables.delete(envVar.key)">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>
+<div class="action-row">
+  <mat-form-field class="title">
+    <input matInput placeholder="Name" #name>
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Value" #value (keyup.enter)="button.disabled || submit(name, value)">
+  </mat-form-field>
+  <div class="controls">
+    <button mat-stroked-button color="primary" (click)="browseForValue(value)">
+      <mat-icon class="material-icons-outlined">folder</mat-icon>
+    </button>
+    <button dense mat-raised-button color="primary" #button
+            [disabled]="name.value.trim().length == 0 || value.value.trim().length == 0"
+            (click)="submit(name, value)">
+      Add
+    </button>
+  </div>
+</div>

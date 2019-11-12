@@ -1,0 +1,25 @@
+
+
+<div class="vmenu-host auto-full-height">
+  <div class="vmenu-selection-container">
+    <mat-card class="vmenu-selection">
+      <mat-list>
+        <mat-list-item
+          (click)="selection = 'env'"
+          [class.selected]="selection == 'env'"
+        ><mat-icon>list</mat-icon>Environment Variables</mat-list-item>
+      </mat-list>
+    </mat-card>
+  </div>
+
+  <div class="vmenu-container">
+    <mat-card class="vmenu-container-selection">
+      <ng-container [ngSwitch]="selection">
+        <app-system-cfg-env *ngSwitchCase="'env'"></app-system-cfg-env>
+        <ng-container *ngSwitchDefault>
+          <i>Nothing selected</i>
+        </ng-container>
+      </ng-container>
+    </mat-card>
+  </div>
+</div>

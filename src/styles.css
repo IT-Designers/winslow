@@ -157,3 +157,94 @@ body {
   margin-top: auto;
   margin-bottom: auto;
 }
+
+.vmenu-host {
+  display: flex;
+  flex-direction: row;
+}
+
+.vmenu-selection-container {
+  display: flex;
+  max-width: 30vw;
+  padding: 0.5em;
+}
+
+.vmenu-selection {
+  overflow: auto;
+}
+
+.vmenu-selection mat-list-item {
+  transition: 0.15s;
+}
+
+.vmenu-selection .selected {
+  background-color: #6495ED20;
+  border-left: 1px solid cornflowerblue;
+}
+/* --- Mat-Design Fixes --- */
+.vmenu-selection mat-list-item:not(:last-child) {
+  /* same color as the Mat-Design uses */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.vmenu-selection mat-list-item:hover {
+  /* same color as the Mat-Design uses */
+  background-color: rgba(0, 0, 0, 0.04);
+}
+/* --- Mat-Design Fixes --- */
+
+.vmenu-container {
+  display: flex;
+  flex-grow: 1;
+  overflow: auto;
+  padding: 0.5em;
+}
+
+.vmenu-container-selection {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  overflow: auto;
+}
+
+
+
+
+.action-row {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}
+
+.action-row > * {
+  flex-grow: 1;
+}
+
+.action-row .title {
+  margin-top: auto;
+  margin-bottom: auto;
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10em;
+  width: 10em;
+  overflow: auto;
+  padding: 0 1em 0 0;
+}
+
+.action-row .controls {
+  display: flex;
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10em;
+  width: 10em;
+  overflow: auto;
+  padding: 0 1em;
+}
+
+.action-row .controls > * {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.action-row .controls > *:not(:first-child) {
+  margin-left: 1em;
+}
