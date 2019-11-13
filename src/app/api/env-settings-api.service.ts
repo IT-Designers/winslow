@@ -21,4 +21,14 @@ export class EnvSettingsApiService {
       .toPromise();
   }
 
+  setGlobalEnvironmentVariables(env: any): Promise<void> {
+    const form = new FormData();
+    form.set('env', JSON.stringify(env));
+    return this.client.post<any>(EnvSettingsApiService.getUrl('global-env'), form)
+      .pipe(map(v => {
+        return;
+      }))
+      .toPromise();
+  }
+
 }
