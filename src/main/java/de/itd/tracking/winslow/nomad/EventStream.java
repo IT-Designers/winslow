@@ -16,9 +16,10 @@ public class EventStream implements Iterator<LogEntry> {
     private final NomadBackend backend;
     private final String       stage;
 
-    private TaskState       state         = null;
-    private int             previousIndex = 0;
-    private Queue<LogEntry> logs          = new ArrayDeque<>();
+    private TaskState       state                    = null;
+    private int             previousIndex            = 0;
+    private Queue<LogEntry> logs                     = new ArrayDeque<>();
+    private boolean         loadedOnceSinceTaskEnded = false;
 
     public EventStream(NomadBackend backend, String stage) {
         this.backend = backend;
@@ -36,7 +37,8 @@ public class EventStream implements Iterator<LogEntry> {
 
     @Override
     public boolean hasNext() {
-        return !this.logs.isEmpty() || this.state == null || !NomadBackend.hasTaskFinished(this.state);
+        return !loadedOnceSinceTaskEnded || !this.logs.isEmpty() || this.state == null
+                || !NomadBackend.hasTaskFinished(this.state);
     }
 
     @Override
@@ -44,15 +46,18 @@ public class EventStream implements Iterator<LogEntry> {
         if (!this.logs.isEmpty()) {
             return this.logs.poll();
         }
-        if (state == null) {
-            try {
-                if (backend.getTaskState(this.stage)
-                           .map(this::stateUpdated)
-                           .orElse(Boolean.FALSE)) {
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+        try {
+            if (state == null) {
+                backend.getTaskState(this.stage).map(this::stateUpdated);
             }
+            if (state != null && NomadBackend.hasTaskFinished(state) && !loadedOnceSinceTaskEnded){
+                backend.getTaskState(this.stage)
+                       .map(this::stateUpdated)
+                       .ifPresent(v -> this.loadedOnceSinceTaskEnded = true);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return tryParseNext().orElse(null);
     }
