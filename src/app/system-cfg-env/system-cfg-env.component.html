@@ -1,10 +1,22 @@
-<mat-card-title>Global System Environment Variables</mat-card-title>
+<app-loading-info [error]="loadError?.message"
+                  [loading]="!longLoadingExternallySet && longLoadingValue.isLongLoading()"></app-loading-info>
 
-<div style="display: flex; flex-direction: column">
-  <app-env-variables
-    [env]="environmentVariables"
-    [defaults]="defaultEnvironmentVariablesValue"
-    (value)="envSubmitValue = $event"
-  >
-  </app-env-variables>
-</div>
+<ng-container *ngIf="loadError == null">
+  <div>
+    <mat-card-title>Global System Environment Variables</mat-card-title>
+    <button mat-raised-button color="primary" style="margin-left: auto">Save</button>
+  </div>
+
+  <div style="display: flex; flex-direction: column">
+
+    <div style="overflow: auto;">
+      <app-env-variables
+        [env]="environmentVariables"
+        [defaults]="defaultEnvironmentVariablesValue"
+        (value)="envSubmitValue = $event"
+      >
+      </app-env-variables>
+    </div>
+  </div>
+
+</ng-container>
