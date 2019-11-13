@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {EnvSettingsApiService} from '../api/env-settings-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
+import {DialogService} from '../dialog.service';
 
 @Component({
   selector: 'app-system-cfg-env',
@@ -18,7 +19,7 @@ export class SystemCfgEnvComponent implements OnInit {
   longLoadingExternallySet = false;
   loadError = null;
 
-  constructor(private api: EnvSettingsApiService) {
+  constructor(private api: EnvSettingsApiService, private dialog: DialogService) {
   }
 
   ngOnInit() {
@@ -35,5 +36,18 @@ export class SystemCfgEnvComponent implements OnInit {
   set longLoading(longLoading: LongLoadingDetector) {
     this.longLoadingValue = longLoading;
     this.longLoadingExternallySet = true;
+  }
+
+  save() {
+    this.dialog.openLoadingIndicator(
+      this.api
+        .setGlobalEnvironmentVariables(this.envSubmitValue)
+        .then(r => {
+          const defaults = new Map();
+          Object.keys(this.envSubmitValue).forEach(key => defaults.set(key, this.envSubmitValue[key]));
+          this.defaultEnvironmentVariablesValue = defaults;
+        }),
+      `Submitting new set of global environment variables`
+    );
   }
 }
