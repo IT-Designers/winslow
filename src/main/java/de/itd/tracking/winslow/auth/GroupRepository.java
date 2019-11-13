@@ -8,10 +8,12 @@ import java.util.stream.Stream;
 
 public class GroupRepository {
 
+    public static final String SUPERGROUP = "root";
+
     private final Map<String, Group> groups = new HashMap<>();
 
     public GroupRepository() {
-        this.withGroup(new Group("supersecretproject").withUser("michael"));
+        this.withGroup(new Group(SUPERGROUP).withUser(UserRepository.SUPERUSER));
     }
 
     @Nonnull

@@ -15,7 +15,7 @@ public class UserRepository implements GroupAssignmentResolver {
 
     public UserRepository(GroupRepository groups) {
         this.groups = groups;
-        this.withUser(new User(SUPERUSER, this)).withUser(new User("michael", this));
+        this.withUser(new User(SUPERUSER, this));
 
     }
 
