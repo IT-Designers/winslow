@@ -48,4 +48,9 @@ public interface WorkDirectoryConfiguration {
     default Path getNodesDirectory() {
         return getRunDirectory().resolve("nodes");
     }
+
+    @Nonnull
+    default Path getSettingsDirectory() {
+        return getPath().resolve("settings");
+    }
 }

@@ -63,6 +63,7 @@ public class Main {
             var environment     = new Environment(config, resourceManager);
             var logs            = new LogRepository(lockBus, config);
             var projects        = new ProjectRepository(lockBus, config);
+            var settings        = new SettingsRepository(lockBus, config);
 
             LOG.info("Preparing the orchestrator");
             var repository  = new PipelineRepository(lockBus, config);
@@ -91,7 +92,7 @@ public class Main {
 
 
             // TODO
-            var unixNode = new UnixNode(nodeName);
+            var unixNode             = new UnixNode(nodeName);
             var nomadGpuDetectorNode = new NomadGpuDetectorNodeWrapper(unixNode, nomadClient);
             NodeInfoUpdater.spawn(config.getNodesDirectory(), nomadGpuDetectorNode);
 
