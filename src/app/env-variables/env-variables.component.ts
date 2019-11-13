@@ -16,6 +16,7 @@ export class EnvVariablesComponent implements OnInit {
 
   @Output() private valid = new EventEmitter<boolean>();
   @Output() private value = new EventEmitter<any>();
+  @Output() private hasChanges = new EventEmitter<boolean>();
 
   constructor(private dialog: MatDialog) {
     this.initFormGroup();
@@ -94,13 +95,26 @@ export class EnvVariablesComponent implements OnInit {
     }
     this.updateValid();
   }
-
   updateValid() {
     this.valid.emit(this.isValid());
+    this.hasChanges.emit(this.lookForChanges());
   }
 
   isValid(): boolean {
     return this.formGroupEnv && this.formGroupEnv.valid;
+  }
+
+  private lookForChanges() {
+    let changesDetected = this.environmentVariables != null && Object.keys(this.formGroupEnv.value).length !== this.environmentVariables.size;
+    if (!changesDetected && this.environmentVariables != null) {
+      for (const key of Object.keys(this.formGroupEnv.value)) {
+        if (!this.environmentVariables.has(key) || this.environmentVariables.get(key)[1] !== this.formGroupEnv.value[key]) {
+          changesDetected = true;
+          break;
+        }
+      }
+    }
+    return changesDetected;
   }
 
   browseForValue(valueReceiver: HTMLInputElement) {
