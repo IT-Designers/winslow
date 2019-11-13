@@ -12,7 +12,9 @@
     <button mat-icon-button color="primary" (click)="browseForValue(value)">
       <mat-icon class="material-icons-outlined">folder</mat-icon>
     </button>
-    <button mat-icon-button color="primary" (click)="value.value = envVar.value[1]" [disabled]="value.value == envVar.value[1]">
+    <button mat-icon-button color="primary"
+            (click)="value.value = envVar.value[1]; formGroupEnv.value[value.name] = envVar.value[1]; updateValid()"
+            [disabled]="value.value == envVar.value[1]">
       <mat-icon class="material-icons-outlined">undo</mat-icon>
     </button>
     <button mat-icon-button color="warn" [disabled]="envVar.value[0]"
