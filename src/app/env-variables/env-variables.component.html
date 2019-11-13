@@ -9,10 +9,13 @@
            name="{{envVar.key}}">
   </mat-form-field>
   <div class="controls">
-    <button mat-stroked-button color="primary" (click)="browseForValue(value)">
+    <button mat-icon-button color="primary" (click)="browseForValue(value)">
       <mat-icon class="material-icons-outlined">folder</mat-icon>
     </button>
-    <button mat-button color="warn" [disabled]="envVar.value[0]"
+    <button mat-icon-button color="primary" (click)="value.value = envVar.value[1]" [disabled]="value.value == envVar.value[1]">
+      <mat-icon class="material-icons-outlined">undo</mat-icon>
+    </button>
+    <button mat-icon-button color="warn" [disabled]="envVar.value[0]"
             [matTooltip]="envVar.value[0] ? 'This value is required' : null"
             (click)="environmentVariables.delete(envVar.key)">
       <mat-icon>delete</mat-icon>
@@ -27,7 +30,7 @@
     <input matInput placeholder="Value" #value (keyup.enter)="button.disabled || submit(name, value)">
   </mat-form-field>
   <div class="controls">
-    <button mat-stroked-button color="primary" (click)="browseForValue(value)">
+    <button dense mat-icon-button color="primary" (click)="browseForValue(value)">
       <mat-icon class="material-icons-outlined">folder</mat-icon>
     </button>
     <button dense mat-raised-button color="primary" #button
