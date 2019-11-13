@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -19,13 +20,17 @@ import java.util.stream.Stream;
 
 public abstract class BaseRepository {
 
-    public static final String FILE_EXTENSION = ".yml";
-    public static final Logger LOG            = Logger.getLogger(BaseRepository.class.getSimpleName());
+    public static final String FILE_EXTENSION      = ".yml";
+    public static final Logger LOG                 = Logger.getLogger(BaseRepository.class.getSimpleName());
+    public static final int    SLEEP_BEFORE_RETRY  = 100;
+    public static final int    DEFAULT_RETRY_COUNT = 1;
 
     protected final LockBus                    lockBus;
     protected final WorkDirectoryConfiguration workDirectoryConfiguration;
 
-    public BaseRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+    public BaseRepository(
+            @Nonnull LockBus lockBus,
+            @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         this.lockBus                    = lockBus;
         this.workDirectoryConfiguration = workDirectoryConfiguration;
 
@@ -115,15 +120,34 @@ public abstract class BaseRepository {
     }
 
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
-        try {
-            return Optional.of(new LockedContainer<>(
-                    getLockForPath(path),
-                    lockedReader(path, reader),
-                    lockedWriter(path, writer)
-            ));
-        } catch (LockException e) {
-            return Optional.empty();
+        return getLocked(path, reader, writer, DEFAULT_RETRY_COUNT, e -> {
+        });
+    }
+
+    protected <T> Optional<LockedContainer<T>> getLocked(
+            Path path,
+            Reader<T> reader,
+            Writer<T> writer,
+            int retry,
+            Consumer<LockException> logger) {
+        for (int i = 0; i < Math.max(retry, 1); ++i) {
+            try {
+                return Optional.of(new LockedContainer<>(
+                        getLockForPath(path),
+                        lockedReader(path, reader),
+                        lockedWriter(path, writer)
+                ));
+            } catch (LockException e) {
+                logger.accept(e);
+                if (i + 1 >= retry) {
+                    return Optional.empty();
+                } else {
+                    LockBus.ensureSleepMs(SLEEP_BEFORE_RETRY);
+                }
+            }
         }
+        // actually, this should be unreachable
+        return Optional.empty();
     }
 
     private <T> LockedContainer.Writer<T> lockedWriter(Path path, Writer<T> writer) {
