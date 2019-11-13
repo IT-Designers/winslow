@@ -19,7 +19,7 @@
     </button>
     <button mat-icon-button color="warn" [disabled]="envVar.value[0]"
             [matTooltip]="envVar.value[0] ? 'This value is required' : null"
-            (click)="environmentVariables.delete(envVar.key)">
+            (click)="delete(envVar.key)">
       <mat-icon>delete</mat-icon>
     </button>
   </div>
@@ -29,7 +29,7 @@
     <input matInput placeholder="Name" #name (keyup.enter)="name.value.length > 0 && value.focus()">
   </mat-form-field>
   <mat-form-field>
-    <input matInput placeholder="Value" #value (keyup.enter)="button.disabled || submit(name, value)">
+    <input matInput placeholder="Value" #value (keyup.enter)="button.disabled || add(name, value)">
   </mat-form-field>
   <div class="controls">
     <button dense mat-icon-button color="primary" (click)="browseForValue(value)">
@@ -37,7 +37,7 @@
     </button>
     <button dense mat-raised-button color="primary" #button
             [disabled]="name.value.trim().length == 0 || value.value.trim().length == 0"
-            (click)="submit(name, value)">
+            (click)="add(name, value)">
       Add
     </button>
   </div>
