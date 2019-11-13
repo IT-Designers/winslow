@@ -1,9 +1,7 @@
 package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.Winslow;
-import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.User;
-import de.itd.tracking.winslow.auth.UserRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,7 +29,6 @@ public class SettingsController {
     }
 
     private static boolean canUserAccess(@Nonnull User user) {
-        return UserRepository.SUPERUSER.equals(user.getName())
-                || user.getGroups().anyMatch(GroupRepository.SUPERGROUP::equals);
+        return user.hasSuperPrivileges();
     }
 }

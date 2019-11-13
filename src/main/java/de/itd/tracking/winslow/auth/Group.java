@@ -6,14 +6,20 @@ import java.util.List;
 public class Group {
 
     private final String       name;
+    private final boolean      superGroup;
     private final List<String> users = new ArrayList<>();
 
-    public Group(String name) {
-        this.name = name;
+    public Group(String name, boolean superGroup) {
+        this.name       = name;
+        this.superGroup = superGroup;
     }
 
     public String getName() {
         return name;
+    }
+
+    public boolean isSuperGroup() {
+        return superGroup;
     }
 
     public boolean isMember(String name) {

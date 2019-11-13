@@ -15,7 +15,7 @@ public class UserRepository implements GroupAssignmentResolver {
 
     public UserRepository(GroupRepository groups) {
         this.groups = groups;
-        this.withUser(new User(SUPERUSER, this));
+        this.withUser(new User(SUPERUSER, true, this));
 
     }
 
@@ -33,13 +33,20 @@ public class UserRepository implements GroupAssignmentResolver {
 
     @Override
     public boolean canAccessGroup(@Nonnull String user, @Nonnull String group) {
-        return SUPERUSER.equals(user) || user.equals(group) || groups.getGroup(group).map(g -> g.isMember(user)).orElse(
-                false);
+        return SUPERUSER.equals(user)
+                || user.equals(group)
+                || groups.getGroup(group).map(g -> g.isMember(user)).orElse(false);
     }
 
     @Nonnull
     @Override
-    public Stream<String> getAssignedGroups(String user) {
+    public Stream<String> getAssignedGroups(@Nonnull String user) {
         return Stream.concat(Stream.of(user), this.groups.getGroupsWithMember(user).map(Group::getName));
+    }
+
+    @Nonnull
+    @Override
+    public Optional<Group> getGroup(@Nonnull String name) {
+        return this.groups.getGroup(name);
     }
 }

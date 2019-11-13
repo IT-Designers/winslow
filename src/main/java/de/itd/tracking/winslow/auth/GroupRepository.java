@@ -13,7 +13,7 @@ public class GroupRepository {
     private final Map<String, Group> groups = new HashMap<>();
 
     public GroupRepository() {
-        this.withGroup(new Group(SUPERGROUP).withUser(UserRepository.SUPERUSER));
+        this.withGroup(new Group(SUPERGROUP, true).withUser(UserRepository.SUPERUSER));
     }
 
     @Nonnull
