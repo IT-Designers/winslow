@@ -662,14 +662,16 @@ public class ProjectsController {
     }
 
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
-        return project.getOwner().equals(user.getName()) || user.getGroups().anyMatch(g -> {
-            for (String group : project.getGroups()) {
-                if (group.equals(g)) {
-                    return true;
-                }
-            }
-            return false;
-        });
+        return user.hasSuperPrivileges() || project.getOwner().equals(user.getName()) || user
+                .getGroups()
+                .anyMatch(g -> {
+                    for (String group : project.getGroups()) {
+                        if (group.equals(g)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
     }
 
     static class HistoryEntry {
