@@ -4,14 +4,18 @@
 <ng-container *ngIf="loadError == null">
   <div class="header">
     <mat-card-title>Global System Environment Variables</mat-card-title>
-    <button mat-raised-button color="primary" class="align-right-using-margin">Save</button>
+    <button mat-raised-button color="primary" class="align-right-using-margin" #save>
+      Save
+    </button>
   </div>
 
   <div class="whitespace-separator-top env-list">
     <app-env-variables
       [env]="environmentVariables"
       [defaults]="defaultEnvironmentVariablesValue"
-      (value)="envSubmitValue = $event">
+      (value)="envSubmitValue = $event"
+      (hasChanges)="save.disabled = !$event"
+    >
     </app-env-variables>
   </div>
 
