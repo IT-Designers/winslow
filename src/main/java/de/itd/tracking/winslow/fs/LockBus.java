@@ -51,6 +51,32 @@ public class LockBus {
         this.startEventDirWatchService(eventDirectory);
     }
 
+    public void registerEventListener(
+            @Nonnull Event.Command command,
+            @Nonnull Consumer<Event> consumer,
+            RegistrationOption... options) {
+        for (var option : options) {
+            switch (option) {
+                case NOTIFY_ONLY_IF_ISSUER_IS_NOT_US:
+                    var consumerOld = consumer;
+                    consumer = event -> {
+                        if (!event.getIssuer().equals(this.name)) {
+                            consumerOld.accept(event);
+                        }
+                    };
+                    break;
+                default:
+                    LOG.log(
+                            Level.WARNING,
+                            "Unexpected RegistrationOption variant will be ignored: " + option,
+                            new Exception("see this stack trace")
+                    );
+                    break;
+            }
+        }
+        this.registerEventListener(command, consumer);
+    }
+
     public synchronized void registerEventListener(@Nonnull Event.Command command, @Nonnull Consumer<Event> consumer) {
         this.listener
                 .computeIfAbsent(command, c -> new ArrayList<>())
@@ -380,7 +406,7 @@ public class LockBus {
         return Optional.empty();
     }
 
-    private static void ensureSleepMs(long ms) {
+    public static void ensureSleepMs(long ms) {
         var start = System.currentTimeMillis();
         while (true) {
             var now = System.currentTimeMillis();
@@ -458,5 +484,9 @@ public class LockBus {
 
     interface EventSupplier {
         Event getCheckedEvent(String id) throws LockException;
+    }
+
+    public enum RegistrationOption {
+        NOTIFY_ONLY_IF_ISSUER_IS_NOT_US
     }
 }
