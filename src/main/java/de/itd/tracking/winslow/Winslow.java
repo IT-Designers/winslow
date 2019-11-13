@@ -24,6 +24,7 @@ public class Winslow implements Runnable {
     @Nonnull private final PipelineDefinitionRepository pipelineRepository;
     @Nonnull private final ProjectRepository            projectRepository;
     @Nonnull private final NodeRepository               nodeRepository;
+    @Nonnull private final SettingsRepository           settingsRepository;
 
     public Winslow(
             @Nonnull String nodeName,
@@ -41,6 +42,7 @@ public class Winslow implements Runnable {
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = projectRepository;
         this.nodeRepository     = new NodeRepository(lockBus, configuration);
+        this.settingsRepository = new SettingsRepository(lockBus, configuration);
     }
 
     public void run() {
@@ -120,5 +122,10 @@ public class Winslow implements Runnable {
     @Nonnull
     public PipelineDefinitionRepository getPipelineRepository() {
         return pipelineRepository;
+    }
+
+    @Nonnull
+    public SettingsRepository getSettingsRepository() {
+        return settingsRepository;
     }
 }
