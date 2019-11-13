@@ -19,7 +19,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   stateInfo: Map<string, StateInfo> = null;
   loadError = null;
   interval;
-  selectedProject: Project = null;;
+  selectedProject: Project = null;
 
   constructor(private api: ProjectApiService,
               private createDialog: MatDialog,

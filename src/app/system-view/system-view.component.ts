@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {LongLoadingDetector} from '../long-loading-detector';
 
 @Component({
   selector: 'app-system-view',
@@ -7,6 +8,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SystemViewComponent implements OnInit {
   selection?: string;
+  longLoading = new LongLoadingDetector();
 
   constructor() { }
 

@@ -1,4 +1,4 @@
-
+<app-loading-info [loading]="longLoading.isLongLoading()"></app-loading-info>
 
 <div class="vmenu-host auto-full-height">
   <div class="vmenu-selection-container">
@@ -15,7 +15,7 @@
   <div class="vmenu-container">
     <mat-card class="vmenu-container-selection">
       <ng-container [ngSwitch]="selection">
-        <app-system-cfg-env *ngSwitchCase="'env'"></app-system-cfg-env>
+        <app-system-cfg-env *ngSwitchCase="'env'" [longLoading]="longLoading"></app-system-cfg-env>
         <ng-container *ngSwitchDefault>
           <i>Nothing selected</i>
         </ng-container>

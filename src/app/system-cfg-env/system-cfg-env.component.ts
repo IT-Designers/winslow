@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
+import {EnvSettingsApiService} from '../api/env-settings-api.service';
+import {LongLoadingDetector} from '../long-loading-detector';
 
 @Component({
   selector: 'app-system-cfg-env',
@@ -12,8 +14,26 @@ export class SystemCfgEnvComponent implements OnInit {
   defaultEnvironmentVariablesValue = new Map<string, string>();
   envSubmitValue: any = null;
 
-  constructor() { }
+  longLoadingValue = new LongLoadingDetector();
+  longLoadingExternallySet = false;
+  loadError = null;
+
+  constructor(private api: EnvSettingsApiService) {
+  }
 
   ngOnInit() {
+    this.longLoadingValue.increase();
+    this.api.getGlobalEnvironmentVariables()
+      .then(result => {
+        this.defaultEnvironmentVariablesValue = result;
+      })
+      .catch(error => this.loadError = error)
+      .finally(() => this.longLoadingValue.decrease());
+  }
+
+  @Input()
+  set longLoading(longLoading: LongLoadingDetector) {
+    this.longLoadingValue = longLoading;
+    this.longLoadingExternallySet = true;
   }
 }
