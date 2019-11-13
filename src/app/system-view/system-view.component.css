@@ -1,1 +1,10 @@
 
+.vmenu-container-selection {
+  display: flex;
+  flex-direction: column;
+}
+
+.vmenu-container-selection > * {
+  overflow: hidden;
+  max-height: 100%;
+}
