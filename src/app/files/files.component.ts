@@ -15,7 +15,6 @@ export class FilesComponent implements OnInit {
   files: Map<string, FileInfo[]> = null;
   longLoading = new LongLoadingDetector();
   loadError = null;
-  loadedSuccessfullyOnce = false;
 
   latestPath = '/resources'; // IMPORTANT: starts with a slash, but never ends with one: '/resources/ab/cd/ef'
   @Output('selection') selectedPath = new EventEmitter<string>();
@@ -56,7 +55,6 @@ export class FilesComponent implements OnInit {
         if (this.navigationTarget != null) {
           return this.navigateDirectlyTo(this.navigationTarget);
         }
-        this.loadedSuccessfullyOnce = true;
       }).catch(error => {
       this.loadError = error;
     }).finally(() => this.longLoading.decrease());
