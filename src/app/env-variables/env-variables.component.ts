@@ -105,10 +105,11 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   private lookForChanges() {
-    let changesDetected = this.environmentVariables != null && Object.keys(this.formGroupEnv.value).length !== this.environmentVariables.size;
-    if (!changesDetected && this.environmentVariables != null) {
+    const defaults = this.defaultEnvironmentVariablesValue;
+    let changesDetected = defaults != null && Object.keys(this.formGroupEnv.value).length !== defaults.size;
+    if (!changesDetected && defaults != null) {
       for (const key of Object.keys(this.formGroupEnv.value)) {
-        if (!this.environmentVariables.has(key) || this.environmentVariables.get(key)[1] !== this.formGroupEnv.value[key]) {
+        if (!defaults.has(key) || defaults.get(key) !== this.formGroupEnv.value[key]) {
           changesDetected = true;
           break;
         }
@@ -132,10 +133,17 @@ export class EnvVariablesComponent implements OnInit {
       });
   }
 
-  submit(name: HTMLInputElement, value: HTMLInputElement) {
+  add(name: HTMLInputElement, value: HTMLInputElement) {
     this.setEnvValue(name.value.trim(), value.value.trim());
     name.value = null;
     value.value = null;
     name.focus();
+  }
+
+  delete(key: string) {
+    this.environmentVariables.delete(key);
+    this.formGroupEnv.removeControl(key);
+    this.formGroupEnv.markAllAsTouched();
+    this.updateValid();
   }
 }
