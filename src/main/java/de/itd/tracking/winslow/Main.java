@@ -63,6 +63,7 @@ public class Main {
             var environment     = new Environment(config, resourceManager);
             var logs            = new LogRepository(lockBus, config);
             var projects        = new ProjectRepository(lockBus, config);
+            var settings        = new SettingsRepository(lockBus, config);
 
             LOG.info("Preparing the orchestrator");
             var repository  = new PipelineRepository(lockBus, config);
@@ -78,6 +79,7 @@ public class Main {
                     repository,
                     attributes,
                     logs,
+                    settings,
                     nodeName,
                     !Env.isNoStageExecutionSet()
             );
@@ -87,7 +89,7 @@ public class Main {
             }
 
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects);
+            var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects, settings);
 
 
             // TODO

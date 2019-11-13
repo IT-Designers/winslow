@@ -129,6 +129,13 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     }
 
     @Nonnull
+    @Override
+    public PreparedStageBuilder withInternalEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
+        this.envVarsInternal.putAll(variables);
+        return this;
+    }
+
+    @Nonnull
     public NomadPreparedStageBuilder withEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.envVars.putAll(variables);
         return this;

@@ -38,6 +38,9 @@ public interface PreparedStageBuilder {
     PreparedStageBuilder withInternalEnvVariable(@Nonnull String key, @Nonnull String value);
 
     @Nonnull
+    PreparedStageBuilder withInternalEnvVariables(@Nonnull Map<? extends String, ? extends String> variables);
+
+    @Nonnull
     PreparedStageBuilder withEnvVariables(@Nonnull Map<? extends String, ? extends String> variables);
 
     @Nonnull

@@ -32,7 +32,8 @@ public class Winslow implements Runnable {
             @Nonnull WorkDirectoryConfiguration configuration,
             @Nonnull LockBus lockBus,
             @Nonnull ResourceManager resourceManager,
-            @Nonnull ProjectRepository projectRepository) throws IOException {
+            @Nonnull ProjectRepository projectRepository,
+            @Nonnull SettingsRepository settingsRepository) throws IOException {
         this.orchestrator    = orchestrator;
         this.configuration   = configuration;
         this.resourceManager = resourceManager;
@@ -42,7 +43,7 @@ public class Winslow implements Runnable {
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = projectRepository;
         this.nodeRepository     = new NodeRepository(lockBus, configuration);
-        this.settingsRepository = new SettingsRepository(lockBus, configuration);
+        this.settingsRepository = settingsRepository;
     }
 
     public void run() {

@@ -47,6 +47,7 @@ public class Orchestrator {
     @Nonnull private final PipelineRepository pipelines;
     @Nonnull private final RunInfoRepository  hints;
     @Nonnull private final LogRepository      logs;
+    @Nonnull private final SettingsRepository settings;
     @Nonnull private final String             nodeName;
 
     @Nonnull private final Map<String, Executor> executors         = new ConcurrentHashMap<>();
@@ -63,7 +64,7 @@ public class Orchestrator {
             @Nonnull PipelineRepository pipelines,
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
-            @Nonnull String nodeName,
+            @Nonnull SettingsRepository settings, @Nonnull String nodeName,
             boolean executeStages) {
         this.lockBus       = lockBus;
         this.environment   = environment;
@@ -72,6 +73,7 @@ public class Orchestrator {
         this.pipelines     = pipelines;
         this.hints         = hints;
         this.logs          = logs;
+        this.settings      = settings;
         this.nodeName      = nodeName;
         this.executeStages = executeStages;
 
@@ -252,6 +254,7 @@ public class Orchestrator {
         var executor      = (Executor) null;
 
         try {
+            final var env = settings.getGlobalEnvironmentVariables();
             final var exec = executor = startExecutor(
                     pipeline.getProjectId(),
                     stageId,
@@ -267,9 +270,9 @@ public class Orchestrator {
             pipeline.resetResumeNotification();
             pipeline.pushStage(stage);
 
-            startStageAssembler(lock, definition, pipeline, stageEnqueued, stageId, exec);
+            startStageAssembler(lock, definition, pipeline, stageEnqueued, stageId, exec, env);
             return true;
-        } catch (LockException | FileNotFoundException e) {
+        } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
             pipeline.finishRunningStage(Stage.State.Failed);
             cleanupOnAssembleError(pipeline.getProjectId(), stageId, executor);
@@ -283,14 +286,15 @@ public class Orchestrator {
             @Nonnull Pipeline pipeline,
             @Nonnull EnqueuedStage stageEnqueued,
             @Nonnull String stageId,
-            @Nonnull Executor executor) {
+            @Nonnull Executor executor,
+            @Nonnull Map<String, String> globalEnvironmentVariables) {
         new Thread(() -> {
             var projectId = pipeline.getProjectId();
             var assembler = new StageAssembler();
 
             try {
                 assembler
-                        .add(new EnvironmentVariableAppender())
+                        .add(new EnvironmentVariableAppender(globalEnvironmentVariables))
                         .add(new DockerImageAppender())
                         .add(new RequirementAppender())
                         .add(new EnvLogger())
