@@ -158,6 +158,10 @@ body {
   margin-bottom: auto;
 }
 
+.align-right-using-margin {
+  margin-left: auto !important;
+}
+
 .vmenu-host {
   display: flex;
   flex-direction: row;
@@ -199,6 +203,11 @@ body {
   overflow: auto;
   padding: 0.5em;
 }
+/* --- Mat-Design Fixes --- */
+mat-card.vmenu-container-selection {
+  display: flex !important;
+}
+/* --- Mat-Design Fixes --- */
 
 .vmenu-container-selection {
   display: flex;
@@ -245,6 +254,6 @@ body {
   margin-top: auto;
   margin-bottom: auto;
 }
-.action-row .controls > *:not(:first-child) {
+.action-row .controls > *:last-child {
   margin-left: 1em;
 }
