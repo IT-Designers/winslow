@@ -73,7 +73,7 @@
     [defaults]="defaultEnvironmentVariablesValue"
     [required]="requiredEnvironmentVariables"
     (valid)="updateValidEnv($event)"
-    (value)="envSubmitValue = $event"
+    (value)="envSubmitValue = $event; updateValid();"
   >
   </app-env-variables>
 </ng-container>
