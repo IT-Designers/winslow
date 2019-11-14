@@ -59,6 +59,7 @@ export class EnvVariablesComponent implements OnInit {
   set env(env: Map<string, [boolean, string]>) {
     this.initFormGroup();
     this.environmentVariables = env;
+    this.environmentVariables.forEach((value, key) => this.prepareEnvFormControl(key, value[1]));
     setTimeout(() => {
       this.formGroupEnv.markAllAsTouched();
       this.updateValid();
@@ -69,6 +70,8 @@ export class EnvVariablesComponent implements OnInit {
   set required(keys: string[]) {
     if (keys != null) {
       keys.forEach(key => this.setEnvRequired(key));
+      this.formGroupEnv.markAllAsTouched();
+      this.updateValid();
     }
   }
 
@@ -95,6 +98,7 @@ export class EnvVariablesComponent implements OnInit {
     }
     this.updateValid();
   }
+
   updateValid() {
     this.valid.emit(this.isValid());
     this.hasChanges.emit(this.lookForChanges());
