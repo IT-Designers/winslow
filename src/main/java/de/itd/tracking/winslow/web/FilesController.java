@@ -201,6 +201,10 @@ public class FilesController {
             @Nonnull Path workDir,
             @Nonnull Path path,
             boolean wantsCreateDirectory) {
+        if (user != null && user.hasSuperPrivileges()) {
+            return  true;
+        }
+
         var p = workDir.relativize(path);
 
         //  TODO
