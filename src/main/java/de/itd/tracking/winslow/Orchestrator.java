@@ -99,6 +99,9 @@ public class Orchestrator {
             try {
                 executor.logErr("Received KILL signal");
                 this.backend.kill(event.getSubject());
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, "Failed to request the backend to kill stage " + event.getSubject(), e);
+            } finally {
                 new Thread(() -> {
                     LockBus.ensureSleepMs(30_000);
                     if (executor.isRunning()) {
@@ -107,8 +110,6 @@ public class Orchestrator {
                         executor.stop();
                     }
                 }).start();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
