@@ -1,25 +1,26 @@
 package de.itd.tracking.winslow.nomad;
 
+import com.hashicorp.nomad.apimodel.TaskEvent;
 import com.hashicorp.nomad.apimodel.TaskState;
 import de.itd.tracking.winslow.LogEntry;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Stream;
 
 public class EventStream implements Iterator<LogEntry> {
 
-    public static final String MESSAGE_PREFIX = "[nomad] ";
+    public static final String MESSAGE_PREFIX      = "[nomad] ";
+    public static final int    LONG_TIME_THRESHOLD = 5_000;
 
     private final NomadBackend backend;
     private final String       stage;
 
     private TaskState       state                    = null;
     private int             previousIndex            = 0;
-    private Queue<LogEntry> logs                     = new ArrayDeque<>();
-    private boolean         loadedOnceSinceTaskEnded = false;
+    private Deque<LogEntry> logs                     = new ArrayDeque<>();
+    private boolean         terminatedEventProcessed = false;
+    private Long            finishTime               = null;
 
     public EventStream(NomadBackend backend, String stage) {
         this.backend = backend;
@@ -29,7 +30,9 @@ public class EventStream implements Iterator<LogEntry> {
     private void maybeEnqueue(long time, boolean err, @Nonnull String message) {
         if (message.length() > 0) {
             message = MESSAGE_PREFIX + message;
-            if (logs.isEmpty() || !(message.equals(logs.peek().getMessage()) && time == logs.peek().getTime())) {
+            if (logs.isEmpty() || !(message.equals(logs.peekLast().getMessage()) && time == logs
+                    .peekLast()
+                    .getTime())) {
                 logs.add(new LogEntry(time, LogEntry.Source.MANAGEMENT_EVENT, err, message));
             }
         }
@@ -37,8 +40,13 @@ public class EventStream implements Iterator<LogEntry> {
 
     @Override
     public boolean hasNext() {
-        return !loadedOnceSinceTaskEnded || !this.logs.isEmpty() || this.state == null
-                || !NomadBackend.hasTaskFinished(this.state);
+        if (!logs.isEmpty()) {
+            return true;
+        }
+        if (this.hasFinishedLongTimeAgo()) {
+            return false;
+        }
+        return !terminatedEventProcessed;
     }
 
     @Override
@@ -50,11 +58,8 @@ public class EventStream implements Iterator<LogEntry> {
             if (state == null) {
                 backend.getTaskState(this.stage).map(this::stateUpdated);
             }
-            if (state != null && NomadBackend.hasTaskFinished(state) && !loadedOnceSinceTaskEnded){
-                backend.getTaskState(this.stage)
-                       .map(this::stateUpdated)
-                       .ifPresent(v -> this.loadedOnceSinceTaskEnded = true);
-
+            if (state != null && NomadBackend.hasTaskFinished(state) && !terminatedEventProcessed) {
+                backend.getTaskState(this.stage).map(this::stateUpdated);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,39 +67,14 @@ public class EventStream implements Iterator<LogEntry> {
         return tryParseNext().orElse(null);
     }
 
-    @Nullable
-    private LogEntry nextNonNull() {
-        while (true) {
-            if (!this.logs.isEmpty()) {
-                return this.logs.poll();
-            }
-            if (state == null) {
-                try {
-                    awaitNextEvent();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    continue;
-                }
-            }
-            var next = tryParseNext();
-            if (next.isPresent()) {
-                return next.get();
-            }
-        }
-    }
-
     private Optional<LogEntry> tryParseNext() {
         if (this.state != null) {
-            if (previousIndex < state.getEvents().size()) {
+            while (previousIndex < state.getEvents().size()) {
                 parseNextLogEntries();
-                return Optional.ofNullable(logs.poll());
-            } else if (NomadBackend.hasTaskFinished(state)) {
-                return Optional.empty();
-            } else {
-                this.state = null;
             }
+            this.state = null;
         }
-        return Optional.empty();
+        return Optional.ofNullable(this.logs.poll());
     }
 
     private void parseNextLogEntries() {
@@ -116,28 +96,30 @@ public class EventStream implements Iterator<LogEntry> {
         maybeEnqueue(time, err, next.getSetupError());
         maybeEnqueue(time, err, next.getValidationError());
         maybeEnqueue(time, err, next.getVaultError());
+
+        this.terminatedEventProcessed |= isTerminated(next);
     }
 
-    private void awaitNextEvent() throws IOException {
-        backend.getTaskStatePollRepeatedlyUntil(this.stage, s -> s.map(this::stateUpdated).orElse(Boolean.FALSE));
-    }
-
-    private boolean stateUpdated(TaskState state) {
+    private boolean stateUpdated(@Nonnull TaskState state) {
         boolean news = state.getEvents().size() > previousIndex || NomadBackend.hasTaskFinished(state);
         if (news) {
             this.state = state;
         }
+        if (this.finishTime == null && state.getFinishedAt() != null && state.getFinishedAt().after(new Date(1))) {
+            this.finishTime = System.currentTimeMillis(); // use local timestamp as soon as finished has been detected
+        }
         return news;
     }
 
-    public static Stream<LogEntry> stream(@Nonnull NomadBackend backend, @Nonnull String stage) {
-        var stream = new EventStream(backend, stage);
-        return Stream
-                .iterate(
-                        new LogEntry(0, LogEntry.Source.MANAGEMENT_EVENT, false, ""),
-                        Objects::nonNull,
-                        v -> stream.nextNonNull()
-                )
-                .skip(1);
+    public static boolean isTerminated(@Nonnull TaskEvent event) {
+        return isTerminated(event.getType());
+    }
+
+    public static boolean isTerminated(@Nonnull String type) {
+        return "Terminated".equalsIgnoreCase(type);
+    }
+
+    private boolean hasFinishedLongTimeAgo() {
+        return this.finishTime != null && System.currentTimeMillis() > this.finishTime + LONG_TIME_THRESHOLD;
     }
 }
