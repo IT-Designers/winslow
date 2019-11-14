@@ -264,7 +264,10 @@ public class ProjectsController {
                                         .getPauseReason()
                                         .map(Pipeline.PauseReason::toString)
                                         .orElse(null),
-                                winslow.getOrchestrator().getProgressHint(p.get()).orElse(null),
+                                pipeline.getRunningStage()
+                                        .map(Stage::getId)
+                                        .flatMap(winslow.getRunInfoRepository()::getProgressHint)
+                                        .orElse(null),
                                 pipeline.hasEnqueuedStages()
                         ))
                         .orElse(null));

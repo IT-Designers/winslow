@@ -126,7 +126,7 @@ public class Executor {
                     .runInForeground();
 
             logOutput.flush();
-            orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(pipeline, stage);
+            orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(stage);
         } catch (Throwable e) {
             LOG.log(Level.SEVERE, "Log writer failed", e);
         } finally {

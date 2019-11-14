@@ -269,7 +269,7 @@ public class Orchestrator {
             final var exec = executor = startExecutor(
                     pipeline.getProjectId(),
                     stageId,
-                    getProgressHintMatcher(pipeline.getProjectId())
+                    getProgressHintMatcher(stageId)
             );
 
             final var stage = new Stage(
@@ -438,7 +438,7 @@ public class Orchestrator {
             var projectId = pipeline.getProjectId();
             var stageId   = stage.getId();
 
-            if (hints.hasLogRedirectionCompletedSuccessfullyHint(projectId, stageId)) {
+            if (hints.hasLogRedirectionCompletedSuccessfullyHint(stageId)) {
                 return SimpleState.Succeeded;
             } else if (!logs.isLocked(projectId, stageId)) {
                 LOG.warning("Detected log redirect which has been aborted! " + stageId + "@" + projectId);
@@ -449,11 +449,11 @@ public class Orchestrator {
         }
     }
 
-    private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String projectId) {
+    private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String stageId) {
         return entry -> {
             var matcher = PROGRESS_HINT_PATTERN.matcher(entry.getMessage());
             if (matcher.find()) {
-                this.hints.setProgressHint(projectId, Math.round(Float.parseFloat(matcher.group(1))));
+                this.hints.setProgressHint(stageId, Math.round(Float.parseFloat(matcher.group(1))));
                 LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
             }
         };
@@ -685,11 +685,6 @@ public class Orchestrator {
         }
     }
 
-    @Nonnull
-    public Optional<Integer> getProgressHint(@Nonnull Project project) {
-        return hints.getProgressHint(project.getId());
-    }
-
     private Executor startExecutor(
             @Nonnull String pipeline,
             @Nonnull String stage,
@@ -697,9 +692,18 @@ public class Orchestrator {
         var executor = new Executor(pipeline, stage, this);
         executor.addShutdownListener(() -> this.executors.remove(stage));
         executor.addShutdownListener(() -> this.pollPipelineForUpdate(pipeline));
+        executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stage));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stage, executor);
         return executor;
+    }
+
+    private void cleanupAfterStageExecution(@Nonnull String stageId) {
+        try {
+            getRunInfoRepository().removeAllProperties(stageId);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to cleanup stage " + stageId, e);
+        }
     }
 
 
