@@ -368,13 +368,13 @@ public class NomadBackend implements Backend {
                 .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
                 .findFirst()
                 // append allocation failure state if allocation failed
-                .or(() -> allocationFailedNoThrow(stage)
+                .or(() -> hasAllocationFailed(stage)
                         .filter(e -> e)
                         .map(e -> allocationFailureTaskState())
                 );
     }
 
-    private Optional<Boolean> allocationFailedNoThrow(@Nonnull String stage) {
+    private Optional<Boolean> hasAllocationFailed(@Nonnull String stage) {
         try {
             return Optional.of(allocationFailed(stage));
         } catch (IOException e) {

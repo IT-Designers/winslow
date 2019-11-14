@@ -21,16 +21,19 @@ public class EnvironmentVariableAppender implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var pipeline   = context.getPipeline();
-        var definition = context.getEnqueuedStage().getDefinition();
-        var timeMs     = System.currentTimeMillis();
-        var timeS      = timeMs / 1_000;
+        var pipeline           = context.getPipeline();
+        var pipelineDefinition = context.getPipelineDefinition();
+        var stageDefinition    = context.getEnqueuedStage().getDefinition();
+        var timeMs             = System.currentTimeMillis();
+        var timeS              = timeMs / 1_000;
+
         context.getBuilder()
-               .withEnvVariables(definition.getEnvironment())
+               .withEnvVariables(stageDefinition.getEnvironment())
                .withInternalEnvVariables(globalEnvironmentVariables)
+               .withInternalEnvVariables(pipelineDefinition.getEnvironment())
                .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
                .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_NAME", context.getPipelineDefinition().getName())
+               .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_NAME", pipelineDefinition.getName())
                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", context.getStageId())
                .withInternalEnvVariable(
                        Env.SELF_PREFIX + "_STAGE_NAME",

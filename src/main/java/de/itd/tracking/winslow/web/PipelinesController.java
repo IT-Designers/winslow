@@ -146,7 +146,8 @@ public class PipelinesController {
                                             new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
                                             Map.of("GIMME", "MOAR RAM"),
                                             null
-                                    ))
+                                    )),
+                                    Map.of("some-key", "some-value", "another-key", "another-value")
                             );
                             container.update(def);
                             return Optional.of(new PipelineInfo(id, def));

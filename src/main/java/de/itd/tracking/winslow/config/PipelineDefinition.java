@@ -2,27 +2,27 @@ package de.itd.tracking.winslow.config;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class PipelineDefinition {
-    @Nonnull private final  String                name;
-    @Nullable private final String                desc;
-    @Nullable private final UserInput             userInput;
-    @Nullable private final List<StageDefinition> stages;
+    private final @Nonnull  String                name;
+    private final @Nullable String                desc;
+    private final @Nullable UserInput             userInput;
+    private final @Nullable List<StageDefinition> stages;
+    private final @Nullable Map<String, String>   env;
 
     public PipelineDefinition(
             @Nonnull String name,
             @Nullable String description,
             @Nullable UserInput requires,
-            @Nonnull List<StageDefinition> stageDefinitions) {
+            @Nonnull List<StageDefinition> stageDefinitions,
+            @Nullable Map<String, String> environment) {
         this.name      = name;
         this.desc      = description;
         this.userInput = requires;
         this.stages    = stageDefinitions;
+        this.env       = environment;
         this.check();
     }
 
@@ -52,10 +52,19 @@ public class PipelineDefinition {
     }
 
     @Nonnull
+    public Map<String, String> getEnvironment() {
+        return env != null ? env : Collections.emptyMap();
+    }
+
+    @Nonnull
     @Override
     public String toString() {
         return getClass().getSimpleName()
-                + "@{name='" + this.name + "',desc='" + this.desc + "',userInput=" + this.userInput + ",stages=" + this.stages + "}#"
+                + "@{name='" + this.name
+                + "',desc='" + this.desc
+                + "',userInput=" + this.userInput
+                + ",stages=" + this.stages
+                + ",env=" + this.env + "}#"
                 + this.hashCode();
     }
 
@@ -66,12 +75,15 @@ public class PipelineDefinition {
         if (o == null || getClass() != o.getClass())
             return false;
         PipelineDefinition pipelineDefinition = (PipelineDefinition) o;
-        return Objects.equals(name, pipelineDefinition.name) && Objects.equals(desc, pipelineDefinition.desc) && Objects
-                .equals(userInput, pipelineDefinition.userInput) && Objects.equals(stages, pipelineDefinition.stages);
+        return Objects.equals(name, pipelineDefinition.name)
+                && Objects.equals(desc, pipelineDefinition.desc)
+                && Objects.equals(userInput, pipelineDefinition.userInput)
+                && Objects.equals(stages, pipelineDefinition.stages)
+                && Objects.equals(env, pipelineDefinition.env);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, desc, userInput, stages);
+        return Objects.hash(name, desc, userInput, stages, env);
     }
 }
