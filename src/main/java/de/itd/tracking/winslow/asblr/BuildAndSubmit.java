@@ -29,7 +29,7 @@ public class BuildAndSubmit implements AssemblerStep {
             switch (stageEnqueued.getAction()) {
                 case Execute:
                     stage = prepared.execute();
-                    context.log(Level.INFO, "Stage execution started on node " + this.nodeName);
+                    context.log(Level.INFO, "Stage execution scheduled on node " + this.nodeName);
                     break;
 
                 case Configure:

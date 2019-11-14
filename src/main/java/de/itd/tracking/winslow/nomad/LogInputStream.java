@@ -13,15 +13,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class LogInputStream extends InputStream implements AutoCloseable {
 
-    @Nonnull private final ClientApi                              api;
-    @Nonnull private final String                                 taskName;
-    @Nonnull private final Supplier<Optional<AllocationListStub>> stateSupplier;
-    @Nonnull private final String                                 logType;
-    private final          boolean                                follow;
+    @Nonnull private final ClientApi    api;
+    @Nonnull private final String       stageId;
+    @Nonnull private final NomadBackend backend;
+    @Nonnull private final String       logType;
+    private final          boolean      follow;
 
     private long   offset = 0;
     private String file   = null;
@@ -33,16 +32,16 @@ public class LogInputStream extends InputStream implements AutoCloseable {
 
     public LogInputStream(
             @Nonnull ClientApi api,
-            @Nonnull String taskName,
-            @Nonnull Supplier<Optional<AllocationListStub>> stateSupplier,
+            @Nonnull String stageId,
+            @Nonnull NomadBackend backend,
             @Nonnull String logType,
             boolean follow) throws IOException {
-        this.api           = api;
-        this.taskName      = taskName;
-        this.stateSupplier = stateSupplier;
-        this.logType       = logType;
-        this.follow        = follow;
-        this.framedStream  = this.tryOpen();
+        this.api          = api;
+        this.stageId      = stageId;
+        this.backend      = backend;
+        this.logType      = logType;
+        this.follow       = follow;
+        this.framedStream = this.tryOpen();
     }
 
     @Nullable
@@ -53,7 +52,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
                 if (file == null) {
                     return api.logsAsFrames(
                             allocationBeingPresentOnlyIfHasStarted.get().getId(),
-                            taskName,
+                            stageId,
                             false,
                             logType
                     );
@@ -72,12 +71,12 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private Optional<AllocationListStub> getAllocationBeingPresentOnlyIfHasStarted() {
-        return this.stateSupplier
-                .get()
-                .filter(allocation -> NomadBackend
-                        .hasTaskStarted(allocation, taskName)
-                        .orElse(Boolean.FALSE)
-                );
+        try {
+            return backend.getAllocation(stageId);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     private boolean tryOpenIfNotOpened() throws IOException {
@@ -90,18 +89,24 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private boolean isAlive() {
-        return this.stateSupplier
-                .get()
-                .flatMap(allocation -> NomadBackend.hasTaskFinished(allocation, taskName))
-                .map(v -> {
-                    if (v) {
-                        return Boolean.FALSE;
-                    } else {
-                        lastSuccess = System.currentTimeMillis();
-                        return Boolean.TRUE;
-                    }
-                })
-                .orElse(Boolean.TRUE) || (System.currentTimeMillis() - lastSuccess) < 5_000;
+        try {
+            return this.backend
+                    .getTaskState(stageId)
+                    .map(NomadBackend::hasTaskFinished)
+                    .map(v -> {
+                        if (v) {
+                            return Boolean.FALSE;
+                        } else {
+                            lastSuccess = System.currentTimeMillis();
+                            return Boolean.TRUE;
+                        }
+                    })
+                    .orElse(Boolean.TRUE)
+                    || (System.currentTimeMillis() - lastSuccess) < 5_000;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     interface CallableIOException {

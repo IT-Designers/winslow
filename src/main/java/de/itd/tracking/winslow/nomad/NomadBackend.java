@@ -1,9 +1,6 @@
 package de.itd.tracking.winslow.nomad;
 
-import com.hashicorp.nomad.apimodel.AllocationListStub;
-import com.hashicorp.nomad.apimodel.JobListStub;
-import com.hashicorp.nomad.apimodel.NodeListStub;
-import com.hashicorp.nomad.apimodel.TaskState;
+import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.*;
 import de.itd.tracking.winslow.Backend;
 import de.itd.tracking.winslow.CombinedIterator;
@@ -37,10 +34,15 @@ public class NomadBackend implements Backend {
     private       long                     cachedAllocsTime;
     private       List<AllocationListStub> cachedAllocs;
     private final Object                   cachedAllocsSync = new Object();
+    private       long                     cachedEvalsTime;
+    private       List<Evaluation>         cachedEvals;
+    private final Object                   cachedEvalsSync  = new Object();
 
     public NomadBackend(@Nonnull NomadApiClient client) throws IOException {
         this.client = client;
         killAnyRunningStage();
+
+
         /*
 
         try {
@@ -107,24 +109,6 @@ public class NomadBackend implements Backend {
         }
     }
 
-
-
-                /*
-                var missing_devices = getClient()
-                        .getEvaluationsApi()
-                        .list()
-                        .getValue()
-                        .stream()
-                        .filter(e -> stage.getJobId().equals(e.getJobId()))
-                        .flatMap(e -> e.getFailedTgAllocs().values().stream())
-                        .findFirst()
-                        .stream()
-                        .flatMap(tg -> tg.getConstraintFiltered().entrySet().stream())
-                        .collect(Collectors.toUnmodifiableList());
-
-                 */
-
-
     private List<GpuInfo> listGpus() throws IOException {
         return listGpus(this.client);
     }
@@ -190,13 +174,7 @@ public class NomadBackend implements Backend {
     @Nonnull
     @Override
     public Optional<Stage.State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        var allocations = getAllocations();
-        return allocations
-                .stream()
-                .filter(alloc -> stage.equals(alloc.getJobId()))
-                .findFirst()
-                .flatMap(alloc -> getTask(alloc, stage))
-                .map(NomadBackend::toRunningStageState);
+        return getTaskState(stage).map(NomadBackend::toRunningStageState);
     }
 
     @Override
@@ -221,17 +199,10 @@ public class NomadBackend implements Backend {
     @Override
     public Iterator<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
         return new CombinedIterator<>(
-                LogStream.stdOutIter(
-                        getNewClientApi(),
-                        stage,
-                        () -> this.getAllocationListStubForOmitException(pipeline, stage)
-                ),
-                LogStream.stdErrIter(
-                        getNewClientApi(),
-                        stage,
-                        () -> this.getAllocationListStubForOmitException(pipeline, stage)
-                ),
-                new EventStream(this, stage)
+                LogStream.stdOutIter(getNewClientApi(), stage, this),
+                LogStream.stdErrIter(getNewClientApi(), stage, this),
+                new EventStream(this, stage),
+                new EvaluationLogger(this, stage)
         );
     }
 
@@ -331,6 +302,21 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
+    public List<Evaluation> getEvaluations() throws IOException {
+        synchronized (this.cachedEvalsSync) {
+            if (this.cachedEvals == null || cachedEvalsTime + CACHE_TIME_MS < System.currentTimeMillis()) {
+                try {
+                    this.cachedEvals     = getNewClient().getEvaluationsApi().list().getValue();
+                    this.cachedEvalsTime = System.currentTimeMillis();
+                } catch (NomadException e) {
+                    throw new IOException("Failed to update evaluations", e);
+                }
+            }
+            return this.cachedEvals;
+        }
+    }
+
+    @Nonnull
     public List<AllocationListStub> getAllocationsPollRepeatedlyUntil(@Nonnull Predicate<List<AllocationListStub>> predicate) throws IOException {
         synchronized (this.cachedAllocsSync) {
             do {
@@ -349,12 +335,10 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    public Optional<TaskState> getTaskState(@Nonnull String stage) throws IOException {
+    public Optional<AllocationListStub> getAllocation(@Nonnull String stage) throws IOException {
         return getAllocations()
                 .stream()
                 .filter(alloc -> alloc.getJobId().equals(stage))
-                .filter(alloc -> alloc.getTaskStates() != null)
-                .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
                 .findFirst();
     }
 
@@ -375,6 +359,33 @@ public class NomadBackend implements Backend {
                 .filter(alloc -> alloc.getTaskStates() != null)
                 .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
                 .findFirst();
+    }
+
+    @Nonnull
+    public Optional<TaskState> getTaskState(@Nonnull String stage) throws IOException {
+        return getAllocation(stage)
+                .stream()
+                .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
+                .findFirst()
+                // append allocation failure state if allocation failed
+                .or(() -> allocationFailedNoThrow(stage)
+                        .filter(e -> e)
+                        .map(e -> allocationFailureTaskState())
+                );
+    }
+
+    private Optional<Boolean> allocationFailedNoThrow(@Nonnull String stage) {
+        try {
+            return Optional.of(allocationFailed(stage));
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to load allocations", e);
+            return Optional.empty();
+        }
+    }
+
+    private boolean allocationFailed(@Nonnull String stage) throws IOException {
+        return getEvaluations(stage)
+                .anyMatch(e -> (e.getFailedTgAllocs() != null) && "complete".equalsIgnoreCase(e.getStatus()));
     }
 
     @Nonnull
@@ -419,33 +430,35 @@ public class NomadBackend implements Backend {
         }
     }
 
-    @Nonnull
-    public static Optional<Boolean> hasTaskStarted(AllocationListStub allocation, String taskName) {
-        return getTask(allocation, taskName).map(NomadBackend::hasTaskStarted);
-    }
-
     public static boolean hasTaskStarted(TaskState state) {
         return state.getStartedAt().after(new Date(1));
     }
 
-    @Nonnull
-    public static Optional<Boolean> hasTaskFinished(AllocationListStub allocation, String taskName) {
-        return getTask(allocation, taskName).map(NomadBackend::hasTaskFinished);
-    }
-
     public static boolean hasTaskFinished(TaskState state) {
-        return state.getFinishedAt().after(new Date(1))
-                || state.getState().toLowerCase().contains("dead");
-    }
-
-    @Nonnull
-    public static Optional<Boolean> hasTaskFailed(AllocationListStub allocation, String taskName) {
-        return getTask(allocation, taskName).map(NomadBackend::hasTaskFailed);
+        return state.getFinishedAt().after(new Date(1)) || state.getState().toLowerCase().contains("dead");
     }
 
     public static boolean hasTaskFailed(TaskState state) {
         return state.getFailed() || (
                 hasTaskFinished(state) && state.getEvents().stream().anyMatch(e -> e.getExitCode() != 0)
         );
+    }
+
+    @Nonnull
+    public Stream<Evaluation> getEvaluations(@Nonnull String stage) throws IOException {
+        return getEvaluations()
+                .stream()
+                .filter(e -> stage.equals(e.getJobId()));
+    }
+
+    @Nonnull
+    private static TaskState allocationFailureTaskState() {
+        var state = new TaskState();
+        state.setFailed(true);
+        state.setEvents(Collections.emptyList());
+        state.setStartedAt(new Date());
+        state.setFinishedAt(new Date());
+        state.setState("dead");
+        return state;
     }
 }

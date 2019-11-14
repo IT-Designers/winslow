@@ -101,7 +101,9 @@ public class EventStream implements Iterator<LogEntry> {
     }
 
     private boolean stateUpdated(@Nonnull TaskState state) {
-        boolean news = state.getEvents().size() > previousIndex || NomadBackend.hasTaskFinished(state);
+        boolean news = state.getEvents() != null && state
+                .getEvents()
+                .size() > previousIndex || NomadBackend.hasTaskFinished(state);
         if (news) {
             this.state = state;
         }
