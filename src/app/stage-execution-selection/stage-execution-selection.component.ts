@@ -22,7 +22,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageInfo = null;
   image = new ImageInfo();
-  valid = false;
+  @Output() valid = new EventEmitter<boolean>();
 
   // env cache
   environmentVariables: Map<string, [boolean, string]> = null;
@@ -37,6 +37,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   constructor(private dialog: MatDialog) {
+    this.valid.emit(false);
   }
 
   ngOnInit() {
@@ -51,10 +52,20 @@ export class StageExecutionSelectionComponent implements OnInit {
   @Input()
   set defaultEnvironmentVariables(map: Map<string, string>) {
     this.defaultEnvironmentVariablesValue = map;
+    if (map != null) {
+      if (this.environmentVariables == null) {
+        this.environmentVariables = new Map();
+        map.forEach((value, key) => this.environmentVariables.set(key, [false, value]));
+      }
+      if (this.requiredEnvironmentVariables == null) {
+        this.requiredEnvironmentVariables = [];
+      }
+    }
+    this.updateValid();
   }
 
   updateValid() {
-    this.valid = this.isValid();
+    this.valid.emit(this.isValid());
   }
 
   isValid(): boolean {
