@@ -36,14 +36,14 @@ public class RunInfoRepository extends BaseRepository {
     protected Path getPropertyPath(@Nonnull String stageId, @Nonnull String property) throws IOException {
         var stageDir = getRepositoryFile(stageId);
         Files.createDirectories(stageDir);
-        return stageDir.resolve(property);
+        return stageDir.resolve(Path.of(property).getFileName());
     }
 
     @Nonnull
     protected Optional<Path> getPropertyPathIfExists(@Nonnull String stageId, @Nonnull String property) {
         var stageDir = getRepositoryFile(stageId);
         if (Files.exists(stageDir)) {
-            return Optional.of(stageDir);
+            return Optional.of(stageDir.resolve(Path.of(property).getFileName()));
         } else {
             return Optional.empty();
         }
@@ -70,27 +70,57 @@ public class RunInfoRepository extends BaseRepository {
         Files.deleteIfExists(directory);
     }
 
+    public void setPropertyNoThrows(
+            @Nonnull String stageId,
+            @Nonnull String property,
+            @Nonnull Iterable<? extends CharSequence> lines) {
+        try {
+            this.setProperty(stageId, property, lines);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to set property " + stageId + "." + property);
+        }
+    }
+
+    public void setProperty(
+            @Nonnull String stageId,
+            @Nonnull String property,
+            @Nonnull Iterable<? extends CharSequence> lines) throws IOException {
+        Files.write(getPropertyPath(stageId, property), lines);
+    }
+
+    @Nonnull
+    public Optional<String> getProperty(@Nonnull String stageId, @Nonnull String property) throws IOException {
+        var path = getPropertyPathIfExists(stageId, property);
+        if (path.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(Files.readString(path.get()));
+        }
+    }
+
+    @Nonnull
+    public Optional<String> getPropertyNoThrows(@Nonnull String stageId, @Nonnull String property) {
+        try {
+            return getProperty(stageId, property);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to get property " + stageId + "." + property);
+            return Optional.empty();
+        }
+    }
+
 
     public void setProgressHint(@Nonnull String stageId, int progress) {
         try {
-            Files.write(
-                    getPropertyPath(stageId, PROPERTY_FILE_PROGRESS),
-                    Collections.singletonList(Integer.toString(progress))
-            );
+            setProperty(stageId, PROPERTY_FILE_PROGRESS, Collections.singleton(Integer.toString(progress)));
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to save progress hint [" + progress + "] for " + stageId, e);
         }
     }
 
+    @Nonnull
     public Optional<Integer> getProgressHint(@Nonnull String stageId) {
         try {
-            var path = getPropertyPathIfExists(stageId, PROPERTY_FILE_PROGRESS);
-            if (path.isEmpty()) {
-                return Optional.empty();
-            } else {
-                var content = Files.readString(path.get()).trim();
-                return Optional.of(Integer.parseInt(content));
-            }
+            return getProperty(stageId, PROPERTY_FILE_PROGRESS).map(String::trim).map(Integer::parseInt);
         } catch (NoSuchFileException | FileNotFoundException e) {
             LOG.log(Level.FINER, "There is no progress for the stage " + stageId, e);
             return Optional.empty();
