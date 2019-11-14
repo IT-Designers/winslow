@@ -170,4 +170,8 @@ public class Executor {
             this.shutdownListeners.add(runnable);
         }
     }
+
+    public boolean isRunning() {
+        return this.logBuffer != null;
+    }
 }

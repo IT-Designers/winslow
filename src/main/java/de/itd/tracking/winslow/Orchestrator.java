@@ -94,9 +94,19 @@ public class Orchestrator {
     }
 
     private void handleKillEvent(@Nonnull Event event) {
-        if (null != this.executors.remove(event.getSubject())) {
+        var executor = this.executors.remove(event.getSubject());
+        if (null != executor) {
             try {
+                executor.logErr("Received KILL signal");
                 this.backend.kill(event.getSubject());
+                new Thread(() -> {
+                    LockBus.ensureSleepMs(30_000);
+                    if (executor.isRunning()) {
+                        executor.logErr("Timeout reached: going to stop running executor");
+                        LockBus.ensureSleepMs(5_000);
+                        executor.stop();
+                    }
+                }).start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
