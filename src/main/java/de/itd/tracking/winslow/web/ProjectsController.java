@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -340,11 +341,14 @@ public class ProjectsController {
                             if (stageId != null && !stageId.equals(stage.getId())) {
                                 skip = 0;
                             }
+
+                            var line = new AtomicLong(skip);
+
                             return winslow
                                     .getOrchestrator()
-                                    .getLogs(project, stage.getId())
-                                    .map(entry -> new LogEntryInfo(stage.getId(), entry))
-                                    .skip(skip);
+                                    .getLogs(project, stage.getId())  // do not stream in parallel!
+                                    .skip(skip)
+                                    .map(entry -> new LogEntryInfo(line.incrementAndGet(), stage.getId(), entry));
                         }));
     }
 
@@ -739,10 +743,12 @@ public class ProjectsController {
 
     static class LogEntryInfo extends LogEntry {
 
+        public final long   line;
         public final String stageId;
 
-        public LogEntryInfo(String stageId, LogEntry entry) {
+        public LogEntryInfo(long line, String stageId, LogEntry entry) {
             super(entry.getTime(), entry.getSource(), entry.isError(), entry.getMessage());
+            this.line    = line;
             this.stageId = stageId;
         }
     }
