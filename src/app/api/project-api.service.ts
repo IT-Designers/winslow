@@ -135,12 +135,7 @@ export class ProjectApiService {
   }
 
   getLog(projectId: string, stageId: string) {
-    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`))
-      .toPromise()
-      .then(logs => logs.map(e => {
-        e.stageId = stageId;
-        return e;
-      }));
+    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`)).toPromise();
   }
 
   getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
@@ -242,6 +237,7 @@ export enum LogSource {
 }
 
 export class LogEntry {
+  line: number;
   time: number;
   source: LogSource;
   error: boolean;

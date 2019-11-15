@@ -196,9 +196,9 @@
         <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
           <code *ngIf="logs != null" class="console"
-          ><ng-container *ngFor="let log of logs; index as i"
+          ><ng-container *ngFor="let log of logs"
           ><span
-          ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{i + 1}}</span
+          ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{log.line}}</span
           ><span [class.console-err]="log.error"
                  [class.console-mgmt]="sourceIsManagement(log.source)"
           >{{log.message}}</span
