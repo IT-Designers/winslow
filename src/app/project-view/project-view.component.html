@@ -52,7 +52,8 @@
               <div class="history-list-column history-item-no">{{history.length - i}}</div>
               <div
                 class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
-              <div class="history-list-column">{{isConfigure(entry.action) ? '[Configured] ' : ''}}{{entry.stageName}}</div>
+              <div
+                class="history-list-column">{{isConfigure(entry.action) ? '[Configured] ' : ''}}{{entry.stageName}}</div>
               <div class="history-list-column history-control-icons">
                 <mat-icon *ngIf="isEnqueued(entry.state) && paused && entry.enqueueIndex == 0"
                           matTooltip="Resume only this stage" class="clickable"
@@ -115,9 +116,23 @@
                 *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo.args|json}}"></ng-template>
 
 
-              <h3>Environment Variables</h3>
+              <h3>Stage Environment Variables</h3>
               <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
               <ng-container *ngFor="let e of entry.env | keyvalue">
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                </ng-template>
+              </ng-container>
+
+              <h3>Pipeline Environment Variables</h3>
+              <i *ngIf="entry.envPipeline == null || entry.envPipeline.size == 0">none</i>
+              <ng-container *ngFor="let e of entry.envPipeline | keyvalue">
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                </ng-template>
+              </ng-container>
+
+              <h3>System Environment Variables</h3>
+              <i *ngIf="entry.envSystem == null || entry.envSystem.size == 0">none</i>
+              <ng-container *ngFor="let e of entry.envSystem | keyvalue">
                 <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
                 </ng-template>
               </ng-container>

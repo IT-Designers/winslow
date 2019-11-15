@@ -60,8 +60,10 @@ export class ProjectApiService {
       .toPromise()
       .then(result => {
         return result.map(entry => {
-          entry.env = new Map(Object.keys(entry.env).map(key => [key, entry.env[key]]));
-          entry.envInternal = new Map(Object.keys(entry.envInternal).map(key => [key, entry.envInternal[key]]));
+          entry.env = this.toMap(entry.env);
+          entry.envPipeline = this.toMap(entry.envPipeline);
+          entry.envSystem = this.toMap(entry.envSystem);
+          entry.envInternal = this.toMap(entry.envInternal);
           return entry;
         });
       });
@@ -75,12 +77,16 @@ export class ProjectApiService {
           history.state = State.Enqueued;
           history.stageName = entry.name;
           history.imageInfo = entry.image;
-          history.env = entry.env != null ? entry.env : new Map();
+          history.env = this.toMap(entry);
           history.envInternal = new Map();
           return history;
         });
       }))
       .toPromise();
+  }
+
+  private toMap(entry) {
+    return entry != null ? new Map(Object.keys(entry).map(key => [key, entry[key]])) : new Map();
   }
 
   deleteEnqueued(projectId: string, index: number, controlSize) {
@@ -122,7 +128,10 @@ export class ProjectApiService {
   }
 
   resume(projectId: string, paused: boolean, singleStageOnly = false) {
-    return this.client.post(ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`), new FormData()).toPromise();
+    return this.client.post(
+      ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`),
+      new FormData()
+    ).toPromise();
   }
 
   getLog(projectId: string, stageId: string) {
@@ -135,7 +144,9 @@ export class ProjectApiService {
   }
 
   getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
-    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)).toPromise();
+    return this.client.get<LogEntry[]>(
+      ProjectApiService.getUrl(`${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)
+    ).toPromise();
   }
 
   getPauseReason(projectId: string) {
@@ -217,6 +228,8 @@ export class HistoryEntry {
   workspace?: string;
   imageInfo?: ImageInfo;
   env: Map<string, string>;
+  envPipeline: Map<string, string>;
+  envSystem: Map<string, string>;
   envInternal: Map<string, string>;
   // local only
   enqueueIndex?: number;
