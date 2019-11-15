@@ -13,8 +13,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public class LogInputStream extends InputStream implements AutoCloseable {
+
+    private static final Logger LOG = Logger.getLogger(LogInputStream.class.getSimpleName());
 
     @Nonnull private final ClientApi    api;
     @Nonnull private final String       stageId;
@@ -42,6 +45,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         this.logType      = logType;
         this.follow       = follow;
         this.framedStream = this.tryOpen();
+        this.lastSuccess  = System.currentTimeMillis();
     }
 
     @Nullable
@@ -90,19 +94,25 @@ public class LogInputStream extends InputStream implements AutoCloseable {
 
     private boolean isAlive() {
         try {
-            return this.backend
+            var hasHadRecentSuccess = (System.currentTimeMillis() - lastSuccess) < 5_000;
+            var taskRunning = this.backend
                     .getTaskState(stageId)
                     .map(NomadBackend::hasTaskFinished)
                     .map(v -> {
                         if (v) {
+                            LOG.info("NomadBackend::hasTaskFinished returned true");
                             return Boolean.FALSE;
                         } else {
                             lastSuccess = System.currentTimeMillis();
                             return Boolean.TRUE;
                         }
                     })
-                    .orElse(Boolean.TRUE)
-                    || (System.currentTimeMillis() - lastSuccess) < 5_000;
+                    .orElse(Boolean.TRUE);
+            var alive = taskRunning || hasHadRecentSuccess;
+            if (!alive) {
+                LOG.info("No longer alive, running=" + taskRunning + ", recentUpdate=" + hasHadRecentSuccess);
+            }
+            return alive;
         } catch (IOException e) {
             e.printStackTrace();
             return false;

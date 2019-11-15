@@ -368,9 +368,15 @@ public class NomadBackend implements Backend {
                 .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
                 .findFirst()
                 // append allocation failure state if allocation failed
-                .or(() -> hasAllocationFailed(stage)
-                        .filter(e -> e)
-                        .map(e -> allocationFailureTaskState())
+                .or(() -> {
+                        var state = hasAllocationFailed(stage)
+                                .filter(e -> e)
+                                .map(e -> allocationFailureTaskState());
+                        if (state.isPresent()) {
+                            LOG.info("Allocation failed for " + stage);
+                        }
+                        return state;
+                    }
                 );
     }
 

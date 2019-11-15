@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogStream implements Iterator<String> {
@@ -32,19 +31,10 @@ public class LogStream implements Iterator<String> {
     }
 
     @Nullable
-    private String getNextLineOmitExceptions() {
-        try {
-            return getNextLine();
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to read line", e);
-            return null;
-        }
-    }
-
-    @Nullable
     private String getNextLine() throws IOException {
         String line = this.reader.readLine();
         if (line == null) {
+            LOG.info("read line is null");
             this.reader = null;
         }
         return line;
