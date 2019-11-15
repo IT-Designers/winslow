@@ -13,12 +13,15 @@ import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.project.Project;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -366,6 +369,36 @@ public class ProjectsController {
                 .stream()
                 .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId))
                 .map(entry -> new LogEntryInfo(line.incrementAndGet(), stageId, entry));
+    }
+
+    @GetMapping("projects/{projectId}/raw-logs/{stageId}")
+    public ResponseEntity<InputStreamResource> getProjectRawLogs(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("stageId") String stageId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> {
+                    try {
+                        return Optional.of(winslow
+                                                   .getLogRepository()
+                                                   .getRawInputStreamNonExclusive(
+                                                           projectId,
+                                                           stageId
+                                                   ));
+                    } catch (FileNotFoundException e) {
+                        return Optional.empty();
+                    }
+                })
+                .map(e -> ResponseEntity
+                        .ok()
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .body(new InputStreamResource(e))
+                )
+                .orElse(null);
     }
 
     @GetMapping("projects/{projectId}/pause-reason")
