@@ -353,17 +353,19 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/logs/{stageId}")
-    public Stream<LogEntry> getProjectStgetProjectStageLogs(
+    public Stream<LogEntryInfo> getProjectStageLogs(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId) {
+        var line = new AtomicLong(0);
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
                 .stream()
-                .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId));
+                .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId))
+                .map(entry -> new LogEntryInfo(line.incrementAndGet(), stageId, entry));
     }
 
     @GetMapping("projects/{projectId}/pause-reason")
