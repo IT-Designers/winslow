@@ -49,8 +49,16 @@ export class FilesApiService {
       );
   }
 
+  filesUrl(pathToFile: string): string {
+    return `${environment.apiLocation}files/${pathToFile}`;
+  }
+
+  workspaceUrl(pathToFile: string): string {
+    return this.filesUrl(`workspaces/${pathToFile}`);
+  }
+
   downloadFile(pathToFile: string) {
-    window.open(environment.apiLocation + 'files/' + pathToFile);
+    window.open(this.filesUrl(pathToFile));
   }
 
   delete(path: string) {

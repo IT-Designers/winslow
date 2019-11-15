@@ -1,6 +1,7 @@
 import {AfterViewInit, Component, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {Project, State} from '../api/project-api.service';
 import {StateIconComponent} from '../state-icon/state-icon.component';
+import {FilesApiService} from '../api/files-api.service';
 
 @Component({
   selector: 'app-project-view-header',
@@ -21,7 +22,7 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   state: State = null;
   stage: string = null;
 
-  constructor() {
+  constructor(private files: FilesApiService) {
   }
 
   @Input()
@@ -46,4 +47,7 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
     this.iconState = this.state;
   }
 
+  thumbnailUrl() {
+    return this.files.workspaceUrl(`${this.project.id}/thumbnail.png`);
+  }
 }
