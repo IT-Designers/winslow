@@ -22,6 +22,12 @@
   margin: auto 0;
 }
 
+.title img {
+  max-height: 1.5em;
+  max-width: 1.5em;
+  margin: auto 1em;
+}
+
 .description-tags {
   max-height: 2.2em; /* TODO */
   overflow: hidden;
