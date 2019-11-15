@@ -19,6 +19,14 @@ public class UserRepository implements GroupAssignmentResolver {
 
     }
 
+    @Nonnull
+    public User createUser(@Nonnull String name, boolean superUser) {
+        var user = new User(name, superUser, this);
+        this.withUser(user);
+        return user;
+    }
+
+    @Nonnull
     private UserRepository withUser(@Nonnull User user) {
         if (!this.users.containsKey(user.getName())) {
             this.users.put(user.getName(), user);

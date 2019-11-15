@@ -17,6 +17,13 @@ public class GroupRepository {
     }
 
     @Nonnull
+    public Group createGroup(@Nonnull String name, boolean superGroup) {
+        var group = new Group(name, superGroup);
+        this.withGroup(group);
+        return group;
+    }
+
+    @Nonnull
     private GroupRepository withGroup(@Nonnull Group group) {
         if (!this.groups.containsKey(group.getName())) {
             this.groups.put(group.getName(), group);
