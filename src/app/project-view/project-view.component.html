@@ -184,6 +184,11 @@
           </mat-slide-toggle>
         </div>
         <div class="console-scroll-up-down">
+          <button mat-icon-button>
+            <mat-icon class="material-icons-outlined">
+              <a href="{{downloadUrl()}}" target="_blank">cloud_download</a>
+            </mat-icon>
+          </button>
           <button mat-stroked-button (click)="scrollConsoleToTop()">
             <mat-icon>arrow_upward</mat-icon>
           </button>

@@ -569,5 +569,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+  downloadUrl() {
+    if (this.logs != null && this.logs.length > 0)  {
+      return this.api.getLogRawUrl(this.project.id, this.logs[0].stageId);
+    } else {
+      return '';
+    }
+  }
 }
 
