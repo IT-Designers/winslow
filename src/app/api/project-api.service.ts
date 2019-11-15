@@ -252,6 +252,7 @@ export class LogEntry {
 export class StateInfo {
   state: State;
   pauseReason?: string;
+  runningStage?: string;
   stageProgress?: number;
   hasEnqueuedStages: boolean;
 
