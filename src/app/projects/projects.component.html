@@ -15,7 +15,8 @@
                                    [iconState]="stateInfo?.get(project.id)?.actualState()"
                                    [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
                                    [progress]="stateInfo?.get(project.id)?.stageProgress"
-                                   [running]="stateInfo?.get(project.id)?.isRunning()">
+                                   [running]="stateInfo?.get(project.id)?.isRunning()"
+                                   [runningStage]="stateInfo?.get(project.id)?.runningStage">
           </app-project-view-header>
         </mat-list-item>
       </mat-list>

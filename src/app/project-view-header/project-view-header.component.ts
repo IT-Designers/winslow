@@ -19,6 +19,7 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   icon: StateIconComponent;
 
   state: State = null;
+  stage: string = null;
 
   constructor() {
   }
@@ -29,6 +30,11 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
     if (this.icon != null) {
       this.icon.state = value;
     }
+  }
+
+  @Input()
+  set runningStage(stage: string) {
+    this.stage = stage;
   }
 
   ngOnInit() {

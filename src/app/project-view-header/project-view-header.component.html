@@ -8,7 +8,7 @@
 </mat-panel-description>
 
 <mat-panel-description class="description-etc">
-  {{pauseReason}}
+  {{pauseReason}} {{stage}}
   <mat-progress-bar class="description-progress-bar"
                     *ngIf="progress != null && running"
                     [value]="progress">
