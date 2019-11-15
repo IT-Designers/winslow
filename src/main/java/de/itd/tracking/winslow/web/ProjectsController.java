@@ -678,16 +678,18 @@ public class ProjectsController {
     }
 
     static class HistoryEntry {
-        @Nonnull public final  String              stageId;
-        @Nonnull public final  Date                startTime;
-        @Nullable public final Date                finishTime;
-        @Nonnull public final  Stage.State         state;
-        @Nonnull public final  Action              action;
-        @Nonnull public final  String              stageName;
-        @Nullable public final String              workspace;
-        @Nullable public final ImageInfo           imageInfo;
-        @Nonnull public final  Map<String, String> env;
-        @Nonnull public final  Map<String, String> envInternal;
+        public final @Nonnull  String              stageId;
+        public final @Nonnull  Date                startTime;
+        public final @Nullable Date                finishTime;
+        public final @Nonnull  Stage.State         state;
+        public final @Nonnull  Action              action;
+        public final @Nonnull  String              stageName;
+        public final @Nullable String              workspace;
+        public final @Nullable ImageInfo           imageInfo;
+        public final @Nonnull  Map<String, String> env;
+        public final @Nonnull  Map<String, String> envPipeline;
+        public final @Nonnull  Map<String, String> envSystem;
+        public final @Nonnull  Map<String, String> envInternal;
 
         public HistoryEntry(Stage stage) {
             this.stageId     = stage.getId();
@@ -700,6 +702,8 @@ public class ProjectsController {
             this.imageInfo   = Optional.ofNullable(stage.getDefinition()).flatMap(StageDefinition::getImage).map(
                     ImageInfo::new).orElse(null);
             this.env         = new TreeMap<>(stage.getEnv());
+            this.envPipeline = new TreeMap<>(stage.getEnvPipeline());
+            this.envSystem   = new TreeMap<>(stage.getEnvSystem());
             this.envInternal = new TreeMap<>(stage.getEnvInternal());
         }
     }

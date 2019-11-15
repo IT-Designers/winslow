@@ -24,6 +24,8 @@ public class NomadPreparedStage implements PreparedStage {
     private Stage               stage;
     private String              workspace;
     private Map<String, String> envVariables;
+    private Map<String, String> envVariablesPipeline;
+    private Map<String, String> envVariablesSystem;
     private Map<String, String> envVariablesInternal;
 
     public NomadPreparedStage(
@@ -32,12 +34,16 @@ public class NomadPreparedStage implements PreparedStage {
             @Nonnull StageDefinition definition,
             @Nonnull String workspace,
             @Nonnull Map<String, String> envVariables,
+            @Nonnull Map<String, String> envVariablesPipeline,
+            @Nonnull Map<String, String> envVariablesSystem,
             @Nonnull Map<String, String> envVariablesInternal) {
         this.job                  = job;
         this.jobsApi              = jobsApi;
         this.definition           = definition;
         this.workspace            = workspace;
         this.envVariables         = envVariables;
+        this.envVariablesPipeline = envVariablesPipeline;
+        this.envVariablesSystem   = envVariablesSystem;
         this.envVariablesInternal = envVariablesInternal;
     }
 
@@ -93,6 +99,8 @@ public class NomadPreparedStage implements PreparedStage {
 
             var stage = new Stage(jobId, definition, action, workspace);
             stage.getEnv().putAll(envVariables);
+            stage.getEnvPipeline().putAll(envVariablesPipeline);
+            stage.getEnvSystem().putAll(envVariablesSystem);
             stage.getEnvInternal().putAll(envVariablesInternal);
 
             return stage;

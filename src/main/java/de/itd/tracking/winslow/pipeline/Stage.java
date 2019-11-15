@@ -22,6 +22,8 @@ public class Stage {
     @Nullable private Date                finishTime;
     @Nullable private State               finishState;
     @Nullable private Map<String, String> env;
+    @Nullable private Map<String, String> envPipeline;
+    @Nullable private Map<String, String> envSystem;
     @Nullable private Map<String, String> envInternal;
 
     public Stage(
@@ -49,6 +51,8 @@ public class Stage {
             @Nullable Date finishTime,
             @Nullable State finishState,
             @Nullable Map<String, String> env,
+            @Nullable Map<String, String> envPipeline,
+            @Nullable Map<String, String> envSystem,
             @Nullable Map<String, String> envInternal) {
         this.id          = id;
         this.definition  = definition;
@@ -58,6 +62,8 @@ public class Stage {
         this.finishTime  = finishTime;
         this.finishState = finishState;
         this.env         = env;
+        this.envPipeline = envPipeline;
+        this.envSystem   = envSystem;
         this.envInternal = envInternal;
     }
 
@@ -113,6 +119,22 @@ public class Stage {
             this.env = new HashMap<>();
         }
         return this.env;
+    }
+
+    @Nonnull
+    public Map<String, String> getEnvPipeline() {
+        if (this.envPipeline == null) {
+            this.envPipeline = new HashMap<>();
+        }
+        return this.envPipeline;
+    }
+
+    @Nonnull
+    public Map<String, String> getEnvSystem() {
+        if (this.envSystem == null) {
+            this.envSystem = new HashMap<>();
+        }
+        return this.envSystem;
     }
 
     @Nonnull

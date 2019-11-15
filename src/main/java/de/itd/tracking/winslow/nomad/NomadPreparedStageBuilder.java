@@ -20,6 +20,8 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     @Nonnull private final StageDefinition         stageDefinition;
     @Nonnull private final Map<String, Object>     config          = new HashMap<>();
     @Nonnull private final Map<String, String>     envVars         = new HashMap<>();
+    @Nonnull private final Map<String, String>     envVarsPipeline = new HashMap<>();
+    @Nonnull private final Map<String, String>     envVarsSystem   = new HashMap<>();
     @Nonnull private final Map<String, String>     envVarsInternal = new HashMap<>();
     private                String                  stage;
     private                String                  driver;
@@ -107,19 +109,19 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     @Override
     public Iterable<String> getEnvVariableKeys() {
         return Stream
-                .concat(this.envVars.keySet().stream(), this.envVarsInternal.keySet().stream())
+                .of(
+                        this.envVarsSystem.keySet().stream(),
+                        this.envVarsPipeline.keySet().stream(),
+                        this.envVars.keySet().stream(),
+                        this.envVarsInternal.keySet().stream()
+                )
+                .flatMap(v -> v)
                 .collect(Collectors.toSet());
     }
 
     @Nonnull
     public Optional<String> getEnvVariable(@Nonnull String key) {
         return Optional.ofNullable(this.envVarsInternal.get(key)).or(() -> Optional.ofNullable(this.envVars.get(key)));
-    }
-
-    @Nonnull
-    public NomadPreparedStageBuilder withEnvVariableUnset(@Nonnull String key) {
-        this.envVars.remove(key);
-        return this;
     }
 
     @Nonnull
@@ -130,8 +132,15 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     @Nonnull
     @Override
-    public PreparedStageBuilder withInternalEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
-        this.envVarsInternal.putAll(variables);
+    public PreparedStageBuilder withPipelineEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
+        this.envVarsPipeline.putAll(variables);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public PreparedStageBuilder withSystemEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
+        this.envVarsSystem.putAll(variables);
         return this;
     }
 
@@ -185,6 +194,8 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     @Nonnull
     public NomadPreparedStage build() {
         var env = new HashMap<String, String>();
+        env.putAll(this.envVarsSystem);
+        env.putAll(this.envVarsPipeline);
         env.putAll(this.envVars);
         env.putAll(this.envVarsInternal);
         return new NomadPreparedStage(
@@ -207,6 +218,8 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                 stageDefinition,
                 workspaceWithinPipeline,
                 envVars,
+                envVarsPipeline,
+                envVarsSystem,
                 envVarsInternal
         );
     }
