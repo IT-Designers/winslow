@@ -232,6 +232,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             }
           });
       })
+      .catch(e => {
+        this.dialog.error(e);
+        console.log(e);
+      })
       .finally(() => this.longLoading.decrease());
   }
 
