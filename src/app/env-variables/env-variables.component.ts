@@ -59,7 +59,9 @@ export class EnvVariablesComponent implements OnInit {
   set env(env: Map<string, [boolean, string]>) {
     this.initFormGroup();
     this.environmentVariables = env;
-    this.environmentVariables.forEach((value, key) => this.prepareEnvFormControl(key, value[1]));
+    if (this.environmentVariables != null) {
+      this.environmentVariables.forEach((value, key) => this.prepareEnvFormControl(key, value[1]));
+    }
     setTimeout(() => {
       this.formGroupEnv.markAllAsTouched();
       this.updateValid();
