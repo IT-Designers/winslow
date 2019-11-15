@@ -268,6 +268,11 @@ public class ProjectsController {
                                         .getPauseReason()
                                         .map(Pipeline.PauseReason::toString)
                                         .orElse(null),
+                                pipeline
+                                        .getRunningStage()
+                                        .map(Stage::getDefinition)
+                                        .map(StageDefinition::getName)
+                                        .orElse(null),
                                 pipeline.getRunningStage()
                                         .map(Stage::getId)
                                         .flatMap(winslow.getRunInfoRepository()::getProgressHint)
@@ -750,6 +755,7 @@ public class ProjectsController {
     static class StateInfo {
         @Nullable public final Stage.State state;
         @Nullable public final String      pauseReason;
+        @Nullable public final String      runningStage;
         @Nullable public final Integer     stageProgress;
         public final           boolean     hasEnqueuedStages;
 
@@ -757,10 +763,12 @@ public class ProjectsController {
         StateInfo(
                 @Nullable Stage.State state,
                 @Nullable String pauseReason,
+                @Nullable String runningStage,
                 @Nullable Integer stageProgress,
                 boolean hasEnqueuedStages) {
             this.state             = state;
             this.pauseReason       = pauseReason;
+            this.runningStage      = runningStage;
             this.stageProgress     = stageProgress;
             this.hasEnqueuedStages = hasEnqueuedStages;
         }
