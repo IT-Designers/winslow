@@ -26,6 +26,9 @@ import {DialogService} from '../dialog.service';
 })
 export class ProjectViewComponent implements OnInit, OnDestroy {
 
+  static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
+  static TRUNCATE_TO_MAX_LINES = 5000;
+
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
   @ViewChild('console', {static: false}) htmlConsole: ElementRef<HTMLElement>;
   @ViewChild('scrollBottomTarget', {static: false}) scrollBottomTarget: ElementRef<HTMLElement>;
@@ -175,6 +178,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           return this.loadLogs();
         } else {
           logs.forEach(entry => this.logs.push(entry));
+          if (this.logs.length > ProjectViewComponent.TRUNCATE_TO_MAX_LINES) {
+            this.logs.splice(
+              ProjectViewComponent.ALWAYS_INCLUDE_FIRST_N_LINES,
+              this.logs.length - ProjectViewComponent.TRUNCATE_TO_MAX_LINES
+            );
+          }
           if (logs.length > 0) {
             // execute it after the DOM update
             setTimeout(() => this.scrollConsoleToBottom());
@@ -189,7 +198,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   requestLogs() {
     if (this.watchLatestLogs || this.isStageRunning(this.watchLogsId)) {
-      const skipLines = this.logs != null ? this.logs.length : 0;
+      const skipLines = this.logs != null && this.logs.length > 0 ? this.logs[this.logs.length - 1].line : 0;
       const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
       return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId);
     } else {
