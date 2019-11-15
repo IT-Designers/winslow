@@ -185,7 +185,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             );
           }
           if (logs.length > 0) {
-            // execute it after the DOM update
+            this.scrollConsoleToBottom();
+            // execute it also after the DOM update
             setTimeout(() => this.scrollConsoleToBottom());
           }
         }
