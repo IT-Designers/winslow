@@ -23,27 +23,23 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     @Nonnull private final String       stageId;
     @Nonnull private final NomadBackend backend;
     @Nonnull private final String       logType;
-    private final          boolean      follow;
 
-    private long   offset = 0;
-    private String file   = null;
+    private long offset = 0;
 
     private FramedStream         framedStream;
     private ByteArrayInputStream currentFrame;
     private boolean              closed;
-    private long                 lastSuccess = 0;
+    private long                 lastSuccess;
 
     public LogInputStream(
             @Nonnull ClientApi api,
             @Nonnull String stageId,
             @Nonnull NomadBackend backend,
-            @Nonnull String logType,
-            boolean follow) throws IOException {
+            @Nonnull String logType) throws IOException {
         this.api          = api;
         this.stageId      = stageId;
         this.backend      = backend;
         this.logType      = logType;
-        this.follow       = follow;
         this.framedStream = this.tryOpen();
         this.lastSuccess  = System.currentTimeMillis();
     }
@@ -53,19 +49,13 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         var allocationBeingPresentOnlyIfHasStarted = getAllocationBeingPresentOnlyIfHasStarted();
         if (allocationBeingPresentOnlyIfHasStarted.isPresent()) {
             try {
-                if (file == null) {
-                    return api.logsAsFrames(
-                            allocationBeingPresentOnlyIfHasStarted.get().getId(),
-                            stageId,
-                            false,
-                            logType
-                    );
-                } else if (follow) {
-                    return api.stream(allocationBeingPresentOnlyIfHasStarted.get().getId(), file, offset);
-                } else {
-                    closed = true;
-                    return null;
-                }
+                return api.logsAsFrames(
+                        allocationBeingPresentOnlyIfHasStarted.get().getId(),
+                        stageId,
+                        false,
+                        logType,
+                        offset
+                );
             } catch (NomadException e) {
                 throw new IOException("NomadException while trying to access log", e);
             }
@@ -159,10 +149,12 @@ public class LogInputStream extends InputStream implements AutoCloseable {
             StreamFrame frame = framedStream.nextFrame();
             if (frame != null && frame.getData() != null && frame.getData().length > 0) {
                 this.offset += frame.getData().length;
-                this.file         = frame.getFile();
                 this.currentFrame = new ByteArrayInputStream(frame.getData());
                 this.lastSuccess  = System.currentTimeMillis();
                 return true;
+            } else {
+                framedStream.close();
+                framedStream = null;
             }
         } else {
             framedStream.close();

@@ -103,6 +103,6 @@ public class LogStream implements Iterator<String> {
             @Nonnull String taskName,
             @Nonnull NomadBackend backend,
             @Nonnull String logType) throws IOException {
-        return new LogStream(new LogInputStream(api, taskName, backend, logType, true));
+        return new LogStream(new LogInputStream(api, taskName, backend, logType));
     }
 }
