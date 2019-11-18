@@ -186,7 +186,7 @@ public class Orchestrator {
         var projectId = container.getNoThrow().map(Pipeline::getProjectId);
         var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
 
-        try {
+        try (container) {
             if (project.isPresent()) {
                 updatePipeline(project.get().getPipelineDefinition(), container);
             } else {
@@ -204,7 +204,7 @@ public class Orchestrator {
     private void updatePipeline(
             @Nonnull PipelineDefinition definition,
             @Nonnull LockedContainer<Pipeline> container) throws OrchestratorException {
-        try (container; var heart = new LockHeart(container.getLock())) {
+        try {
             var pipelineOpt = container.get();
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
@@ -536,6 +536,7 @@ public class Orchestrator {
             Pipeline pipeline = new Pipeline(project.getId());
             tryCreateInitDirectory(pipeline);
             updatePipeline(project.getPipelineDefinition(), container);
+            tryUpdateContainer(container, pipeline);
             return pipeline;
         }
     }
