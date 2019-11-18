@@ -58,6 +58,7 @@ import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 import {SystemViewComponent} from './system-view/system-view.component';
 import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component';
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
+import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
 
 @NgModule({
   declarations: [
@@ -88,6 +89,7 @@ import { EnvVariablesComponent } from './env-variables/env-variables.component';
     SystemViewComponent,
     SystemCfgEnvComponent,
     EnvVariablesComponent,
+    PipelineEditorComponent,
   ],
   imports: [
     SweetAlert2Module.forRoot(),
