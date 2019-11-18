@@ -238,6 +238,7 @@ mat-card.vmenu-container-selection {
   width: 10em;
   overflow: auto;
   padding: 0 1em 0 0;
+  margin-right: 1em;
 }
 
 .action-row .controls {
