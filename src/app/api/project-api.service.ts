@@ -52,7 +52,7 @@ export class ProjectApiService {
     return this.client
       .get<StateInfo[]>(ProjectApiService.getUrl(`states?projectIds=${projectIds.join(',')}`))
       .toPromise()
-      .then(result => result.map(r => new StateInfo(r)));
+      .then(result => result.map(r => r != null ? new StateInfo(r) : null));
   }
 
   getProjectHistory(projectId: string) {
