@@ -365,7 +365,8 @@ public class NomadBackend implements Backend {
     public Optional<TaskState> getTaskState(@Nonnull String stage) throws IOException {
         return getAllocation(stage)
                 .stream()
-                .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
+                .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates()))
+                .flatMap(states -> Stream.ofNullable(states.get(stage)))
                 .findFirst()
                 // append allocation failure state if allocation failed
                 .or(() -> {
