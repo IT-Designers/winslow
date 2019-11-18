@@ -431,7 +431,7 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .map(pipeline -> {
-                            Map<String, String> map = new TreeMap<>();
+                            Map<String, String> map = new TreeMap<>(project.getPipelineDefinition().getEnvironment());
                             project
                                     .getPipelineDefinition()
                                     .getStages()

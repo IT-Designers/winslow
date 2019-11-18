@@ -103,6 +103,10 @@ public class NomadPreparedStage implements PreparedStage {
             stage.getEnvSystem().putAll(envVariablesSystem);
             stage.getEnvInternal().putAll(envVariablesInternal);
 
+            stage.getEnvPipeline().forEach((key, value) -> stage.getEnv().remove(key, value));
+            stage.getEnvSystem().forEach((key, value) -> stage.getEnv().remove(key, value));
+            stage.getEnvInternal().forEach((key, value) -> stage.getEnv().remove(key, value));
+
             return stage;
         } else {
             return null;
