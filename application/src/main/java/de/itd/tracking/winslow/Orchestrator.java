@@ -77,10 +77,12 @@ public class Orchestrator {
         this.nodeName      = nodeName;
         this.executeStages = executeStages;
 
-        this.lockBus.registerEventListener(Event.Command.KILL, this::handleKillEvent);
-        this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
+        if (executeStages) {
+            this.lockBus.registerEventListener(Event.Command.KILL, this::handleKillEvent);
+            this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
 
-        this.pollAllPipelinesForUpdate();
+            this.pollAllPipelinesForUpdate();
+        }
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {
@@ -534,17 +536,17 @@ public class Orchestrator {
 
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             Pipeline pipeline = new Pipeline(project.getId());
-            tryCreateInitDirectory(pipeline);
+            tryCreateInitDirectory(pipeline, false);
             updatePipeline(project.getPipelineDefinition(), container);
             tryUpdateContainer(container, pipeline);
             return pipeline;
         }
     }
 
-    private void tryCreateInitDirectory(@Nonnull Pipeline pipeline) throws OrchestratorException {
+    private void tryCreateInitDirectory(@Nonnull Pipeline pipeline, boolean failIfAlreadyExists) throws OrchestratorException {
         environment
                 .getResourceManager()
-                .createWorkspace(createWorkspaceInitPath(pipeline.getProjectId()), true)
+                .createWorkspace(createWorkspaceInitPath(pipeline.getProjectId()), failIfAlreadyExists)
                 .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
     }
 

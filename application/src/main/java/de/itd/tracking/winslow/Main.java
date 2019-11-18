@@ -16,9 +16,12 @@ import de.itd.tracking.winslow.resource.ResourceManager;
 import de.itd.tracking.winslow.web.WebApi;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main {
@@ -100,6 +103,8 @@ public class Main {
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);
 
+            tryFixMissingPipelinesOfProjects(orchestrator, projects);
+
             LOG.info("Letting Winslow run freely");
             winslow.run();
 
@@ -110,6 +115,27 @@ public class Main {
                 webApi.stop();
             }
         }
+    }
+
+    private static void tryFixMissingPipelinesOfProjects(
+            @Nonnull Orchestrator orchestrator,
+            @Nonnull ProjectRepository projects) {
+        projects.getProjects().map(BaseRepository.Handle::unsafe).flatMap(Optional::stream).forEach(project -> {
+            var pipeline = orchestrator.getPipeline(project);
+            if (pipeline.isEmpty()) {
+                LOG.warning("Found Project without Pipeline, trying to create: " + project.getId() + "... ");
+                try {
+                    orchestrator.createPipeline(project);
+                    LOG.warning("Found Project without Pipeline, trying to create: " + project.getId() + "... done");
+                } catch (OrchestratorException e) {
+                    LOG.log(
+                            Level.SEVERE,
+                            "Found Project without Pipeline, trying to create: " + project.getId() + "... failed",
+                            e
+                    );
+                }
+            }
+        });
     }
 
     private static void configureLogger() {
