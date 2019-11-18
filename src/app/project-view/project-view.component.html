@@ -261,5 +261,12 @@
       <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
     </div>
   </mat-tab>
+
+
+  <mat-tab label="Pipeline Definition">
+    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+    <app-pipeline-editor>
+    </app-pipeline-editor>
+  </mat-tab>
 </mat-tab-group>
 <div #scrollBottomTarget></div>

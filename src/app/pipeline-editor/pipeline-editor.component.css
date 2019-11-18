@@ -1,0 +1,32 @@
+
+
+textarea {
+  width: 100%;
+  min-height: 50vh;
+}
+
+
+.check {
+  display: flex;
+  overflow: auto;
+  padding: 0.5em 1em;
+  border-radius: 0.2em;
+}
+
+.check.check-error {
+  border: 1px solid red;
+  background-color: rgba(255, 0, 0, .2);
+}
+.check.check-success {
+  border: 1px solid green;
+  background-color: rgba(0, 255, 0, .2);
+}
+
+.controls {
+  margin-top: 1em;
+  text-align: end;
+}
+
+.controls *:not(:first-child) {
+  margin-left: 1em;
+}
