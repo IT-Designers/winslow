@@ -1,9 +1,6 @@
 package de.itd.tracking.winslow.web;
 
-import de.itd.tracking.winslow.BaseRepository;
-import de.itd.tracking.winslow.LogEntry;
-import de.itd.tracking.winslow.OrchestratorException;
-import de.itd.tracking.winslow.Winslow;
+import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.Image;
 import de.itd.tracking.winslow.config.StageDefinition;
@@ -431,7 +428,13 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .map(pipeline -> {
-                            Map<String, String> map = new TreeMap<>(project.getPipelineDefinition().getEnvironment());
+                            Map<String, String> map = new TreeMap<>();
+                            try {
+                                map.putAll(winslow.getSettingsRepository().getGlobalEnvironmentVariables());
+                            } catch (IOException e) {
+                                LOG.log(Level.WARNING, "Failed to load system environment variables", e);
+                            }
+                            map.putAll(project.getPipelineDefinition().getEnvironment());
                             project
                                     .getPipelineDefinition()
                                     .getStages()
