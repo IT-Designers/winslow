@@ -1,12 +1,13 @@
 <div class="editor" (keydown.control.s)="$event.preventDefault(); update.emit(raw);">
-  <ngx-monaco-editor style="height: 100%"
+  <ngx-monaco-editor
       #text
+      style="height: 100%"
       [options]="editorOptions"
       [(ngModel)]="raw"
-                     (onInit)="onInit($event)"
+      (onInit)="onInit($event)"
   ></ngx-monaco-editor>
 </div>
-<pre *ngIf="this.errorV != null" class="check check-error" >{{this.errorV}}</pre>
+<pre *ngIf="this.errorV != null" class="check check-error">{{this.errorV}}</pre>
 <pre *ngIf="this.successV != null" class="check check-success">{{this.successV}}</pre>
 <div class="controls">
   <button *ngIf="enableOnOthers" mat-stroked-button color="warn" (click)="others.emit(raw)">
