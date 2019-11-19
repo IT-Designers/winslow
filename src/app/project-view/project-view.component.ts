@@ -164,7 +164,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     } else if (this.watchLogsInterval) {
       clearInterval(this.watchLogsInterval);
       this.watchLogsInterval = null;
-    } else if (this.watchDefinition) {
+    } else if (this.watchDefinition && this.rawPipelineDefinition == null) {
       this.loadRawPipelineDefinition();
     }
   }
@@ -622,7 +622,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       ).then(r => {
           this.rawPipelineDefinitionError = null;
           this.rawPipelineDefinitionSuccess = null;
-          this.rawPipelineDefinition = null;
           this.loadRawPipelineDefinition();
       }),
       `Saving Pipeline Definition`,
