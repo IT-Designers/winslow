@@ -155,7 +155,15 @@ export class ProjectApiService {
   setProjectRawPipelineDefinition(projectId: string, raw: string) {
     const form = new FormData();
     form.set('raw', raw);
-    return this.client.post<any>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), form).toPromise();
+    return this.client.post<ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), form)
+      .toPromise()
+      .then(r => {
+        if (r != null && Object.keys(r).length !== 0) {
+          return Promise.reject(r);
+        } else {
+          return Promise.resolve(null);
+        }
+      });
   }
 
   getPauseReason(projectId: string) {
@@ -300,4 +308,17 @@ export class StateInfo {
 export class ImageInfo {
   name?: string;
   args?: string[];
+}
+
+export class ParseError {
+  line: number;
+  column: number;
+  message: string;
+
+  static canShadow(obj: any): boolean {
+    return obj != null
+      && obj.line != null
+      && obj.column != null
+      && obj.message != null;
+  }
 }

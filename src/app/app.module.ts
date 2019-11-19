@@ -94,6 +94,7 @@ import {MonacoEditorModule} from 'ngx-monaco-editor';
   ],
   imports: [
     SweetAlert2Module.forRoot(),
+    MonacoEditorModule.forRoot(),
     HttpClientModule,
     HttpClientXsrfModule.withOptions({
       cookieName: 'XSRF-TOKEN',
@@ -142,8 +143,6 @@ import {MonacoEditorModule} from 'ngx-monaco-editor';
     ScrollingModule,
     MatAutocompleteModule,
     MatChipsModule,
-
-    MonacoEditorModule.forRoot(),
 
   ],
   providers: [
