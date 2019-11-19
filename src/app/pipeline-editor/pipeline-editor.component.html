@@ -1,4 +1,4 @@
-<div class="editor">
+<div class="editor" (keydown.control.s)="$event.preventDefault(); update.emit(raw);">
   <ngx-monaco-editor style="height: 100%"
       #text
       [options]="editorOptions"
