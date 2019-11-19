@@ -5,7 +5,7 @@
   overflow: hidden;
 }
 
-textarea {
+.editor {
   flex-grow: 1;
   flex-shrink: 1;
   width: 99%;
@@ -15,6 +15,11 @@ textarea {
 
 .check {
   display: flex;
+  flex-grow: initial;
+  flex-shrink: 1;
+  flex-basis: fit-content;
+  max-height: fit-content;
+  min-height: fit-content;
   overflow: auto;
   padding: 0.5em 1em;
   border-radius: 0.2em;
