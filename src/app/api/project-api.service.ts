@@ -138,14 +138,24 @@ export class ProjectApiService {
     return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`)).toPromise();
   }
 
-  getLogRawUrl(projectId: string, stageId: string) {
-    return ProjectApiService.getUrl(`${projectId}/raw-logs/${stageId}`);
-  }
-
   getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
     return this.client.get<LogEntry[]>(
       ProjectApiService.getUrl(`${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)
     ).toPromise();
+  }
+
+  getLogRawUrl(projectId: string, stageId: string) {
+    return ProjectApiService.getUrl(`${projectId}/raw-logs/${stageId}`);
+  }
+
+  getProjectRawPipelineDefinition(projectId: string) {
+    return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`)).toPromise();
+  }
+
+  setProjectRawPipelineDefinition(projectId: string, raw: string) {
+    const form = new FormData();
+    form.set('raw', raw);
+    return this.client.post<any>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), form).toPromise();
   }
 
   getPauseReason(projectId: string) {
