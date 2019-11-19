@@ -1,8 +1,12 @@
 package de.itd.tracking.winslow.web;
 
-import de.itd.tracking.winslow.*;
+import de.itd.tracking.winslow.BaseRepository;
+import de.itd.tracking.winslow.LogEntry;
+import de.itd.tracking.winslow.OrchestratorException;
+import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.Image;
+import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.pipeline.Action;
@@ -10,6 +14,7 @@ import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.project.Project;
+import de.itd.tracking.winslow.project.ProjectRepository;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,8 +23,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -401,6 +409,60 @@ public class ProjectsController {
                         .body(new InputStreamResource(e))
                 )
                 .orElse(null);
+    }
+
+    @GetMapping("projects/{projectId}/pipeline-definition-raw")
+    public Optional<String> getProjectRawDefinition(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> {
+                    try (var baos = new ByteArrayOutputStream()) {
+                        ProjectRepository.defaultWriter().store(baos, project.getPipelineDefinition());
+                        return Optional.of(baos.toString(StandardCharsets.UTF_8));
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Failed to serialize PipelineDefinition only", e);
+                        return Optional.empty();
+                    }
+                });
+    }
+
+    @PostMapping("projects/{projectId}/pipeline-definition-raw")
+    public ResponseEntity<String> getProjectRawDefinition(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam("raw") String raw) throws IOException, LockException {
+
+        var definition = (PipelineDefinition)null;
+
+        try (var bais = new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8))) {
+            definition = ProjectRepository.defaultReader(PipelineDefinition.class).load(bais);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to deserialize PipelineDefinition", e);
+            return ResponseEntity.ok(e.getMessage());
+        }
+
+        var containerOptional = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive();
+
+        if (containerOptional.isPresent()) {
+            var container = containerOptional.get();
+            try (container) {
+                var maybeProject = container.get();
+                if (!maybeProject.map(p -> canUserAccessProject(user, p)).orElse(Boolean.FALSE)) {
+                    return ResponseEntity.notFound().build();
+                } else {
+                    var project    = maybeProject.get();
+                    project.setPipelineDefinition(definition);
+                    container.update(project);
+                }
+            }
+        }
+        return ResponseEntity.ok(null);
     }
 
     @GetMapping("projects/{projectId}/pause-reason")
