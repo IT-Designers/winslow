@@ -171,6 +171,8 @@ body {
   display: flex;
   max-width: 30vw;
   padding: 0.5em;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .vmenu-selection {
