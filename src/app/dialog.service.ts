@@ -28,10 +28,17 @@ export class DialogService {
       .then(r => true)
       .catch(err => {
         Swal.clickCancel();
-        Swal.fire({
-          type: 'error',
-          text: err != null ? JSON.stringify(err) : null,
-        });
+        if (err && err.error && err.error.text) {
+          Swal.fire({
+            type: 'error',
+            html: `<pre style="overflow: auto">${err.error.text}</pre>`,
+          });
+        } else {
+          Swal.fire({
+            type: 'error',
+            text: err != null ? JSON.stringify(err) : null,
+          });
+        }
         return false;
       });
   }
