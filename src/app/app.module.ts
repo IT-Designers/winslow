@@ -59,6 +59,7 @@ import {SystemViewComponent} from './system-view/system-view.component';
 import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component';
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
 import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
+import {MonacoEditorModule} from 'ngx-monaco-editor';
 
 @NgModule({
   declarations: [
@@ -116,6 +117,7 @@ import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.compo
     FormsModule,
     ReactiveFormsModule,
 
+
     MatDialogModule,
     MatInputModule,
     MatButtonModule,
@@ -139,7 +141,9 @@ import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.compo
     MatCardModule,
     ScrollingModule,
     MatAutocompleteModule,
-    MatChipsModule
+    MatChipsModule,
+
+    MonacoEditorModule.forRoot(),
 
   ],
   providers: [
