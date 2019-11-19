@@ -224,13 +224,14 @@
     <ng-template matTabContent>
       <div class="flex-grow flex-grow-column max-height">
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-        <app-pipeline-editor [raw]="rawPipelineDefinition"
+        <app-pipeline-editor #editor
+                             [raw]="rawPipelineDefinition"
                              [error]="rawPipelineDefinitionError"
                              [success]="rawPipelineDefinitionSuccess"
                              [enableOnOthers]="true"
                              (others)="updatePipelineDefinitionOnOthers($event)"
                              (check)="checkPipelineDefinition($event)"
-                             (update)="updatePipelineDefinition($event)">
+                             (update)="updatePipelineDefinition($event, editor)">
         </app-pipeline-editor>
       </div>
     </ng-template>

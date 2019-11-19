@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {ImageInfo} from './project-api.service';
+import {ImageInfo, ParseError} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +27,7 @@ export class PipelineApiService {
   updatePipelineDefinition(pipeline: string, raw: string) {
     const form = new FormData();
     form.set('raw', raw);
-    return this.client.put<string>(PipelineApiService.getUrl(`${pipeline}/raw`), form).toPromise();
+    return this.client.put<string|ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), form).toPromise();
   }
 
   getPipelineDefinition(pipeline: string) {
