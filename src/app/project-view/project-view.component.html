@@ -216,6 +216,18 @@
     </div>
   </mat-tab>
 
+  <mat-tab label="Pipeline Definition">
+    <div class="flex-grow flex-grow-column max-height">
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+      <app-pipeline-editor [raw]="rawPipelineDefinition"
+                           [error]="rawPipelineDefinitionError"
+                           [success]="rawPipelineDefinitionSuccess"
+                           (check)="checkPipelineDefinition($event)"
+                           (update)="updatePipelineDefinition($event)">
+      </app-pipeline-editor>
+    </div>
+  </mat-tab>
+
   <mat-tab label="Settings">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
     <div class="stage-control-item">
@@ -259,19 +271,6 @@
     </div>
     <div class="stage-control-item">
       <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
-    </div>
-  </mat-tab>
-
-
-  <mat-tab label="Pipeline Definition">
-    <div class="flex-grow flex-grow-column max-height">
-      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-      <app-pipeline-editor [raw]="rawPipelineDefinition"
-                           [error]="rawPipelineDefinitionError"
-                           [success]="rawPipelineDefinitionSuccess"
-                           (check)="checkPipelineDefinition($event)"
-                           (update)="updatePipelineDefinition($event)">
-      </app-pipeline-editor>
     </div>
   </mat-tab>
 </mat-tab-group>

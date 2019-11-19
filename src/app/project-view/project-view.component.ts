@@ -352,7 +352,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.watchPaused = this.conditionally(0 === index, () => this.loadPaused());
     this.watchHistory = this.conditionally(1 === index, () => this.loadHistory());
     this.watchLogs = this.conditionally(3 === index, () => this.loadLogs());
-    this.watchDefinition = this.conditionally(5 === index, () => this.loadRawPipelineDefinition());
+    this.watchDefinition = this.conditionally(4 === index, () => this.loadRawPipelineDefinition());
   }
 
   conditionally(condition: boolean, fn): boolean {
