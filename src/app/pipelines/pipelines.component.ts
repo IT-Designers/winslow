@@ -4,6 +4,7 @@ import {NotificationService} from '../notification.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {MatDialog, MatDialogRef} from '@angular/material';
 import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-create-dialog/create-pipeline-dialog.component';
+import {ParseError} from '../api/project-api.service';
 
 @Component({
   selector: 'app-pipelines',
@@ -15,6 +16,7 @@ export class PipelinesComponent implements OnInit {
   loadError = null;
 
   raw: Map<string, string> = new Map();
+  parseError: Map<string, ParseError[]> = new Map();
   error: Map<string, string> = new Map();
   success: Map<string, string> = new Map();
 
@@ -54,6 +56,7 @@ export class PipelinesComponent implements OnInit {
           this.error.set(pipeline, result);
         } else {
           this.error.delete(pipeline);
+          this.parseError.delete(pipeline);
           this.success.set(pipeline, 'Looks fine!');
         }
       })
@@ -66,11 +69,17 @@ export class PipelinesComponent implements OnInit {
     this.api
       .updatePipelineDefinition(pipeline, value)
       .then(result => {
+        this.success.delete(pipeline);
+        this.error.delete(pipeline);
+        this.parseError.set(pipeline, []);
+
         if (result != null) {
-          this.success.delete(pipeline);
-          this.error.set(pipeline, result);
+          if (ParseError.canShadow(result)) {
+            this.parseError.set(pipeline, [result as ParseError]);
+          } else {
+            this.error.set(pipeline, result as string);
+          }
         } else {
-          this.error.delete(pipeline);
           this.success.set(pipeline, 'Saved!');
           return this.api
             .getPipelineDefinition(pipeline)

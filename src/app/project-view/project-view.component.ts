@@ -5,6 +5,7 @@ import {
   ImageInfo,
   LogEntry,
   LogSource,
+  ParseError,
   Project,
   ProjectApiService,
   State,
@@ -17,6 +18,7 @@ import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.s
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
 import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
 import {DialogService} from '../dialog.service';
+import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 
 
 @Component({
@@ -614,12 +616,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     );
   }
 
-  updatePipelineDefinition(raw: string) {
+  updatePipelineDefinition(raw: string, editor: PipelineEditorComponent) {
     this.dialog.openLoadingIndicator(
-      this.api.setProjectRawPipelineDefinition(
-        this.project.id,
-        raw
-      ),
+      this.api.setProjectRawPipelineDefinition(this.project.id, raw)
+        .catch(e => {
+          if (ParseError.canShadow(e)) {
+            editor.parseError = [e];
+            return Promise.reject('Failed to parse input, see marked area(s) for more details');
+          } else {
+            editor.parseError = [];
+            return Promise.reject(e);
+          }
+        })
+        .then(r => {
+          editor.parseError = [];
+        }),
       `Saving Pipeline Definition`,
       true
     );

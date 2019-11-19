@@ -33,6 +33,7 @@
           [raw]="raw.get(pipeline.id)"
           [error]="error.get(pipeline.id)"
           [success]="success.get(pipeline.id)"
+          [parseError]="parseError.get(pipeline.id)"
           (update)="update(pipeline.id, $event)"
           (check)="check(pipeline.id, $event)">
         </app-pipeline-editor>
