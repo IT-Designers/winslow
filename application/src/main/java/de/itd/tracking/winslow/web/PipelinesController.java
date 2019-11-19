@@ -1,9 +1,17 @@
 package de.itd.tracking.winslow.web;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException;
 import de.itd.tracking.winslow.PipelineDefinitionRepository;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.config.*;
 import de.itd.tracking.winslow.fs.LockException;
+import de.itd.tracking.winslow.project.ProjectRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
@@ -58,18 +66,18 @@ public class PipelinesController {
     }
 
     @PutMapping("pipelines/{pipeline}/raw")
-    public Optional<String> setPipeline(
+    public ResponseEntity<String> setPipeline(
             @PathVariable("pipeline") String pipeline,
             @RequestParam("raw") String raw) throws IOException {
         PipelineDefinition definition = null;
 
         try {
-            definition = PipelineDefinitionRepository
-                    .defaultReader(PipelineDefinition.class)
-                    .load(new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8)));
+            definition = tryParsePipelineDef(raw);
             definition.check();
+        } catch (ParseErrorException e) {
+            return toJsonResponseEntity(e.getParseError());
         } catch (Throwable t) {
-            return Optional.of(t.getMessage());
+            return ResponseEntity.ok(t.getMessage());
         }
 
 
@@ -86,19 +94,59 @@ public class PipelinesController {
             }
         }
 
-        return Optional.empty();
+        return ResponseEntity.ok(null);
     }
 
     @PostMapping("pipelines/check")
-    public Optional<String> checkPipelineDef(@RequestParam("raw") String raw) {
+    public ResponseEntity<String> checkPipelineDef(@RequestParam("raw") String raw) throws JsonProcessingException {
         try {
-            PipelineDefinitionRepository
-                    .defaultReader(PipelineDefinition.class)
-                    .load(new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8)))
-                    .check();
-            return Optional.empty();
+            tryParsePipelineDef(raw);
+            return ResponseEntity.ok(null);
+        } catch (ParseErrorException e) {
+            return toJsonResponseEntity(e.getParseError());
         } catch (Throwable t) {
-            return Optional.of(t.getMessage());
+            return ResponseEntity.ok(t.getMessage());
+        }
+    }
+
+    @Nonnull
+    public static ResponseEntity<String> toJsonResponseEntity(@Nonnull ParseError error) throws JsonProcessingException {
+        var response = new ObjectMapper(new JsonFactory()).writeValueAsString(error);
+        return ResponseEntity.ok(response);
+    }
+
+    @Nonnull
+    public static PipelineDefinition tryParsePipelineDef(@Nonnull String raw) throws IOException, ParseErrorException {
+        try (var bais = new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8))) {
+            return ProjectRepository.defaultReader(PipelineDefinition.class).load(bais);
+        } catch (JsonMappingException e) {
+            if (e.getCause() instanceof MarkedYAMLException) {
+                var cause = (MarkedYAMLException) e.getCause();
+                var mark  = cause.getProblemMark();
+                throw new ParseErrorException(
+                        e,
+                        new ParseError(
+                                mark.getLine(),
+                                mark.getColumn(),
+                                cause.getMessage()
+                        )
+                );
+            } else if (e instanceof MismatchedInputException) {
+                var cause    = (MismatchedInputException) e;
+                var location = cause.getLocation();
+                throw new ParseErrorException(e, new ParseError(
+                        location.getLineNr(),
+                        location.getColumnNr(),
+                        cause.getMessage()
+                ));
+            }
+            throw e;
+        } catch (MarkedYAMLException e) {
+            throw new ParseErrorException(e, new ParseError(
+                    e.getProblemMark().getLine(),
+                    e.getProblemMark().getColumn(),
+                    e.getMessage()
+            ));
         }
     }
 
@@ -181,6 +229,32 @@ public class PipelinesController {
                     .stream()
                     .map(StagesController.StageInfo::new)
                     .collect(Collectors.toUnmodifiableList());
+        }
+    }
+
+    public static class ParseError {
+        public final int    line;
+        public final int    column;
+        public final String message;
+
+        ParseError(int line, int column, String message) {
+            this.line    = line;
+            this.column  = column;
+            this.message = message;
+        }
+    }
+
+    public static class ParseErrorException extends IOException {
+        @Nonnull private final ParseError error;
+
+        public ParseErrorException(@Nonnull Throwable cause, @Nonnull ParseError error) {
+            super(cause);
+            this.error = error;
+        }
+
+        @Nonnull
+        public ParseError getParseError() {
+            return error;
         }
     }
 }

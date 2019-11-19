@@ -1,5 +1,8 @@
 package de.itd.tracking.winslow.web;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.LogEntry;
 import de.itd.tracking.winslow.OrchestratorException;
@@ -23,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -435,10 +437,12 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @RequestParam("raw") String raw) throws IOException, LockException {
 
-        var definition = (PipelineDefinition)null;
+        var definition = (PipelineDefinition) null;
 
-        try (var bais = new ByteArrayInputStream(raw.getBytes(StandardCharsets.UTF_8))) {
-            definition = ProjectRepository.defaultReader(PipelineDefinition.class).load(bais);
+        try {
+            definition = PipelinesController.tryParsePipelineDef(raw);
+        } catch (PipelinesController.ParseErrorException e) {
+            return PipelinesController.toJsonResponseEntity(e.getParseError());
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to deserialize PipelineDefinition", e);
             return ResponseEntity.ok(e.getMessage());
@@ -456,7 +460,7 @@ public class ProjectsController {
                 if (!maybeProject.map(p -> canUserAccessProject(user, p)).orElse(Boolean.FALSE)) {
                     return ResponseEntity.notFound().build();
                 } else {
-                    var project    = maybeProject.get();
+                    var project = maybeProject.get();
                     project.setPipelineDefinition(definition);
                     container.update(project);
                 }
