@@ -1,4 +1,4 @@
-<textarea #text>{{raw}}</textarea>
+<textarea #text [value]="raw"></textarea>
 <pre *ngIf="this.error != null" class="check check-error">{{this.error}}</pre>
 <pre *ngIf="this.success != null" class="check check-success">{{this.success}}</pre>
 <div class="controls">
