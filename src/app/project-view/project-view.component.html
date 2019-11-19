@@ -161,7 +161,7 @@
   </mat-tab>
 
   <mat-tab label="Logs">
-    <div class="logs-tab-content flex-grow flex-grow-column">
+    <div class="flex-grow flex-grow-column max-height">
       <app-loading-info [loading]="isLongLoading()"></app-loading-info>
       <div class="console-controls">
         <button mat-raised-button color="accent"
@@ -264,9 +264,11 @@
 
 
   <mat-tab label="Pipeline Definition">
-    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-    <app-pipeline-editor>
-    </app-pipeline-editor>
+    <div class="flex-grow flex-grow-column max-height">
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+      <app-pipeline-editor>
+      </app-pipeline-editor>
+    </div>
   </mat-tab>
 </mat-tab-group>
 <div #scrollBottomTarget></div>
