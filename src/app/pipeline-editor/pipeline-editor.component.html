@@ -1,10 +1,17 @@
-<textarea #text [value]="raw"></textarea>
-<pre *ngIf="this.error != null" class="check check-error">{{this.error}}</pre>
-<pre *ngIf="this.success != null" class="check check-success">{{this.success}}</pre>
+<div class="editor">
+  <ngx-monaco-editor style="height: 100%"
+      #text
+      [options]="editorOptions"
+      [(ngModel)]="raw"
+                     (onInit)="onInit($event)"
+  ></ngx-monaco-editor>
+</div>
+<pre *ngIf="this.errorV != null" class="check check-error" >{{this.errorV}}</pre>
+<pre *ngIf="this.successV != null" class="check check-success">{{this.successV}}</pre>
 <div class="controls">
-  <button *ngIf="enableOnOthers" mat-stroked-button color="warn" (click)="others.emit(text.value)">
+  <button *ngIf="enableOnOthers" mat-stroked-button color="warn" (click)="others.emit(raw)">
     Set on other Projects
   </button>
-  <button mat-raised-button color="primary" (click)="update.emit(text.value)">Save</button>
-  <button mat-stroked-button color="primary" (click)="check.emit(text.value)">Check</button>
+  <button mat-raised-button color="primary" (click)="update.emit(raw)">Save</button>
+  <button mat-stroked-button color="primary" (click)="check.emit(raw)">Check</button>
 </div>
