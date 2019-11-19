@@ -363,14 +363,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   loadRawPipelineDefinition() {
-    if (this.rawPipelineDefinition === null) {
-      this.dialog.openLoadingIndicator(
-        this.api.getProjectRawPipelineDefinition(this.project.id)
-          .then(result => this.rawPipelineDefinition = result),
-        `Loading Pipeline Definition`,
-        false
-      );
-    }
+    this.dialog.openLoadingIndicator(
+      this.api.getProjectRawPipelineDefinition(this.project.id)
+        .then(result => this.rawPipelineDefinition = result),
+      `Loading Pipeline Definition`,
+      false
+    );
   }
 
   isLongLoading() {
@@ -630,6 +628,37 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       `Saving Pipeline Definition`,
       true
     );
+  }
+
+  updatePipelineDefinitionOnOthers(raw: string) {
+    this.api.listProjects()
+      .then(projects => {
+        return this.matDialog
+          .open(GroupSettingsDialogComponent, {
+            data: {
+              projects,
+              availableTags: this.api.cachedTags,
+            } as GroupSettingsDialogData
+          })
+          .afterClosed()
+          .toPromise()
+          .then(result => {
+            if (result) {
+              const promises = [];
+              for (const projectId of result) {
+                promises.push(this.api.setProjectRawPipelineDefinition(
+                  projectId,
+                  raw
+                ).catch(e => 'At least one update failed: ' + e));
+              }
+              this.dialog.openLoadingIndicator(
+                Promise.all(promises),
+                `Updating Projects`,
+                true
+              );
+            }
+          });
+      });
   }
 }
 

@@ -222,6 +222,8 @@
       <app-pipeline-editor [raw]="rawPipelineDefinition"
                            [error]="rawPipelineDefinitionError"
                            [success]="rawPipelineDefinitionSuccess"
+                           [enableOnOthers]="true"
+                           (others)="updatePipelineDefinitionOnOthers($event)"
                            (check)="checkPipelineDefinition($event)"
                            (update)="updatePipelineDefinition($event)">
       </app-pipeline-editor>

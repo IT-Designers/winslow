@@ -2,6 +2,9 @@
 <pre *ngIf="this.error != null" class="check check-error">{{this.error}}</pre>
 <pre *ngIf="this.success != null" class="check check-success">{{this.success}}</pre>
 <div class="controls">
+  <button *ngIf="enableOnOthers" mat-stroked-button color="warn" (click)="others.emit(text.value)">
+    Set on other Projects
+  </button>
   <button mat-raised-button color="primary" (click)="update.emit(text.value)">Save</button>
   <button mat-stroked-button color="primary" (click)="check.emit(text.value)">Check</button>
 </div>

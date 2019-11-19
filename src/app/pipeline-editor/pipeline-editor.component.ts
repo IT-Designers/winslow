@@ -11,7 +11,9 @@ export class PipelineEditorComponent implements OnInit {
   @Input() raw: string;
   @Input() error: string = null;
   @Input() success: string = null;
+  @Input() enableOnOthers = false;
 
+  @Output() others = new EventEmitter<string>();
   @Output() update = new EventEmitter<string>();
   @Output() check = new EventEmitter<string>();
 
