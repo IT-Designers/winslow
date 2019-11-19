@@ -619,11 +619,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.api.setProjectRawPipelineDefinition(
         this.project.id,
         raw
-      ).then(r => {
-          this.rawPipelineDefinitionError = null;
-          this.rawPipelineDefinitionSuccess = null;
-          this.loadRawPipelineDefinition();
-      }),
+      ),
       `Saving Pipeline Definition`,
       true
     );
