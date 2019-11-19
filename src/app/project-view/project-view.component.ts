@@ -54,6 +54,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   watchLogsInterval: any = null;
   watchLogsId?: string = null;
   watchLatestLogs = true;
+  watchDefinition = false;
 
   loadLogsOnceAnyway = false;
 
@@ -68,6 +69,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageInfo = null;
   defaultEnvVars: Map<string, string> = null;
+
+  rawPipelineDefinition: string = null;
+  rawPipelineDefinitionError: string = null;
+  rawPipelineDefinitionSuccess: string = null;
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
@@ -103,6 +108,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
     this.logs = null;
     this.history = null;
+    this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
     this.pollWatched(true);
     this.setupFiles();
   }
@@ -158,6 +164,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     } else if (this.watchLogsInterval) {
       clearInterval(this.watchLogsInterval);
       this.watchLogsInterval = null;
+    } else if (this.watchDefinition) {
+      this.loadRawPipelineDefinition();
     }
   }
 
@@ -344,6 +352,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.watchPaused = this.conditionally(0 === index, () => this.loadPaused());
     this.watchHistory = this.conditionally(1 === index, () => this.loadHistory());
     this.watchLogs = this.conditionally(3 === index, () => this.loadLogs());
+    this.watchDefinition = this.conditionally(5 === index, () => this.loadRawPipelineDefinition());
   }
 
   conditionally(condition: boolean, fn): boolean {
@@ -351,6 +360,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       fn();
     }
     return condition;
+  }
+
+  loadRawPipelineDefinition() {
+    if (this.rawPipelineDefinition === null) {
+      this.dialog.openLoadingIndicator(
+        this.api.getProjectRawPipelineDefinition(this.project.id)
+          .then(result => this.rawPipelineDefinition = result),
+        `Loading Pipeline Definition`,
+        false
+      );
+    }
   }
 
   isLongLoading() {
@@ -572,11 +592,44 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   downloadUrl() {
-    if (this.logs != null && this.logs.length > 0)  {
+    if (this.logs != null && this.logs.length > 0) {
       return this.api.getLogRawUrl(this.project.id, this.logs[0].stageId);
     } else {
       return '';
     }
+  }
+
+  checkPipelineDefinition(raw: string) {
+    this.dialog.openLoadingIndicator(
+      this.pipelinesApi.checkPipelineDefinition(raw)
+        .then(result => {
+          if (result != null) {
+            this.rawPipelineDefinitionSuccess = null;
+            this.rawPipelineDefinitionError = result;
+          } else {
+            this.rawPipelineDefinitionSuccess = 'Looks good!';
+            this.rawPipelineDefinitionError = null;
+          }
+        }),
+      `Checking Pipeline Definition`,
+      false
+    );
+  }
+
+  updatePipelineDefinition(raw: string) {
+    this.dialog.openLoadingIndicator(
+      this.api.setProjectRawPipelineDefinition(
+        this.project.id,
+        raw
+      ).then(r => {
+          this.rawPipelineDefinitionError = null;
+          this.rawPipelineDefinitionSuccess = null;
+          this.rawPipelineDefinition = null;
+          this.loadRawPipelineDefinition();
+      }),
+      `Saving Pipeline Definition`,
+      true
+    );
   }
 }
 
