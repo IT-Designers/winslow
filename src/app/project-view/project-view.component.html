@@ -38,116 +38,118 @@
   </mat-tab>
 
   <mat-tab label="Status">
-    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+    <ng-template matTabContent>
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
-    <ng-container *ngIf="history != null">
-      <i *ngIf="history.length == 0">This project has no history yet</i>
-      <mat-accordion>
-        <mat-expansion-panel *ngFor="let entry of history; index as i" class="history-list-item">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <div class="history-list-column">
-                <app-state-icon [state]="entry.state"></app-state-icon>
+      <ng-container *ngIf="history != null">
+        <i *ngIf="history.length == 0">This project has no history yet</i>
+        <mat-accordion>
+          <mat-expansion-panel *ngFor="let entry of history; index as i" class="history-list-item">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <div class="history-list-column">
+                  <app-state-icon [state]="entry.state"></app-state-icon>
+                </div>
+                <div class="history-list-column history-item-no">{{history.length - i}}</div>
+                <div
+                  class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
+                <div
+                  class="history-list-column">{{isConfigure(entry.action) ? '[Configured] ' : ''}}{{entry.stageName}}</div>
+                <div class="history-list-column history-control-icons">
+                  <mat-icon *ngIf="isEnqueued(entry.state) && paused && entry.enqueueIndex == 0"
+                            matTooltip="Resume only this stage" class="clickable"
+                            (click)="$event.stopPropagation(); updateRequestPause(false, true)">
+                    skip_next
+                  </mat-icon>
+                  <mat-icon *ngIf="isEnqueued(entry.state) && paused" matTooltip="Resume Pipeline" class="clickable"
+                            (click)="$event.stopPropagation(); updateRequestPause(false, false)">
+                    play_circle_outlined
+                  </mat-icon>
+                  <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Delete" class="clickable"
+                            (click)="$event.stopPropagation(); cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)">
+                    pan_tool
+                  </mat-icon>
+                  <mat-icon *ngIf="!paused && (isRunning(entry.state) || (i == 0 && !isEnqueued(entry.state)))"
+                            matTooltip="Pause Pipeline after this" class="clickable"
+                            (click)="$event.stopPropagation(); updateRequestPause(true)">
+                    pause_circle_outlined
+                  </mat-icon>
+                  <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable"
+                            (click)="$event.stopPropagation(); killCurrentStage()">
+                    pan_tool
+                  </mat-icon>
+                  <mat-icon matTooltip="Use as blueprint" class="clickable"
+                            (click)="$event.stopPropagation(); prepareEnqueue(entry)">
+                    replay
+                  </mat-icon>
+                  <mat-icon *ngIf="entry.stageId" matTooltip="Open Logs" class="clickable"
+                            (click)="$event.stopPropagation(); openLogs(entry)">list_alt
+                  </mat-icon>
+                  <mat-icon *ngIf="entry.workspace" matTooltip="Open Directory" class="clickable"
+                            (click)="$event.stopPropagation(); openFolder(project, entry)">folder_open
+                  </mat-icon>
+                </div>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-template matExpansionPanelContent>
+              <div class="history-item-detail">
+                <ng-template #detailItem let-keyvalue>
+                  <p class="history-item-detail-item mat-highlight-hover">
+                    <label>{{keyvalue.key}}</label>
+                    <label>{{keyvalue.value}}</label>
+                  </p>
+                </ng-template>
+
+                <h3>Status Information</h3>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Unique Stage Id', value: entry.stageId}}"></ng-template>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Based on Stage Definition', value: entry.stageName}}"></ng-template>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: entry.startTime != null ? toDate(entry.startTime) : 'not yet started'}}"></ng-template>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet finished'}}"></ng-template>
+
+                <h3>Image Information</h3>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo.name}}"></ng-template>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo.args|json}}"></ng-template>
+
+
+                <h3>Stage Environment Variables</h3>
+                <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
+                <ng-container *ngFor="let e of entry.env | keyvalue">
+                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                  </ng-template>
+                </ng-container>
+
+                <h3>Pipeline Environment Variables</h3>
+                <i *ngIf="entry.envPipeline == null || entry.envPipeline.size == 0">none</i>
+                <ng-container *ngFor="let e of entry.envPipeline | keyvalue">
+                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                  </ng-template>
+                </ng-container>
+
+                <h3>System Environment Variables</h3>
+                <i *ngIf="entry.envSystem == null || entry.envSystem.size == 0">none</i>
+                <ng-container *ngFor="let e of entry.envSystem | keyvalue">
+                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                  </ng-template>
+                </ng-container>
+
+                <h3>Internal Environment Variables</h3>
+                <i *ngIf="entry.envInternal == null || entry.envInternal.size == 0">none</i>
+                <ng-container *ngFor="let e of entry.envInternal | keyvalue">
+                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
+                  </ng-template>
+                </ng-container>
               </div>
-              <div class="history-list-column history-item-no">{{history.length - i}}</div>
-              <div
-                class="history-list-column history-item-date">{{toDate(entry.finishTime === null ? entry.startTime : entry.finishTime)}}</div>
-              <div
-                class="history-list-column">{{isConfigure(entry.action) ? '[Configured] ' : ''}}{{entry.stageName}}</div>
-              <div class="history-list-column history-control-icons">
-                <mat-icon *ngIf="isEnqueued(entry.state) && paused && entry.enqueueIndex == 0"
-                          matTooltip="Resume only this stage" class="clickable"
-                          (click)="$event.stopPropagation(); updateRequestPause(false, true)">
-                  skip_next
-                </mat-icon>
-                <mat-icon *ngIf="isEnqueued(entry.state) && paused" matTooltip="Resume Pipeline" class="clickable"
-                          (click)="$event.stopPropagation(); updateRequestPause(false, false)">
-                  play_circle_outlined
-                </mat-icon>
-                <mat-icon *ngIf="isEnqueued(entry.state)" matTooltip="Delete" class="clickable"
-                          (click)="$event.stopPropagation(); cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)">
-                  pan_tool
-                </mat-icon>
-                <mat-icon *ngIf="!paused && (isRunning(entry.state) || (i == 0 && !isEnqueued(entry.state)))"
-                          matTooltip="Pause Pipeline after this" class="clickable"
-                          (click)="$event.stopPropagation(); updateRequestPause(true)">
-                  pause_circle_outlined
-                </mat-icon>
-                <mat-icon *ngIf="isRunning(entry.state)" matTooltip="Stop" class="clickable"
-                          (click)="$event.stopPropagation(); killCurrentStage()">
-                  pan_tool
-                </mat-icon>
-                <mat-icon matTooltip="Use as blueprint" class="clickable"
-                          (click)="$event.stopPropagation(); prepareEnqueue(entry)">
-                  replay
-                </mat-icon>
-                <mat-icon *ngIf="entry.stageId" matTooltip="Open Logs" class="clickable"
-                          (click)="$event.stopPropagation(); openLogs(entry)">list_alt
-                </mat-icon>
-                <mat-icon *ngIf="entry.workspace" matTooltip="Open Directory" class="clickable"
-                          (click)="$event.stopPropagation(); openFolder(project, entry)">folder_open
-                </mat-icon>
-              </div>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <ng-template matExpansionPanelContent>
-            <div class="history-item-detail">
-              <ng-template #detailItem let-keyvalue>
-                <p class="history-item-detail-item mat-highlight-hover">
-                  <label>{{keyvalue.key}}</label>
-                  <label>{{keyvalue.value}}</label>
-                </p>
-              </ng-template>
-
-              <h3>Status Information</h3>
-              <ng-template
-                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Unique Stage Id', value: entry.stageId}}"></ng-template>
-              <ng-template
-                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Based on Stage Definition', value: entry.stageName}}"></ng-template>
-              <ng-template
-                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: entry.startTime != null ? toDate(entry.startTime) : 'not yet started'}}"></ng-template>
-              <ng-template
-                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet finished'}}"></ng-template>
-
-              <h3>Image Information</h3>
-              <ng-template
-                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo.name}}"></ng-template>
-              <ng-template
-                *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo.args|json}}"></ng-template>
-
-
-              <h3>Stage Environment Variables</h3>
-              <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
-              <ng-container *ngFor="let e of entry.env | keyvalue">
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                </ng-template>
-              </ng-container>
-
-              <h3>Pipeline Environment Variables</h3>
-              <i *ngIf="entry.envPipeline == null || entry.envPipeline.size == 0">none</i>
-              <ng-container *ngFor="let e of entry.envPipeline | keyvalue">
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                </ng-template>
-              </ng-container>
-
-              <h3>System Environment Variables</h3>
-              <i *ngIf="entry.envSystem == null || entry.envSystem.size == 0">none</i>
-              <ng-container *ngFor="let e of entry.envSystem | keyvalue">
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                </ng-template>
-              </ng-container>
-
-              <h3>Internal Environment Variables</h3>
-              <i *ngIf="entry.envInternal == null || entry.envInternal.size == 0">none</i>
-              <ng-container *ngFor="let e of entry.envInternal | keyvalue">
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                </ng-template>
-              </ng-container>
-            </div>
-          </ng-template>
-        </mat-expansion-panel>
-      </mat-accordion>
-    </ng-container>
+            </ng-template>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </ng-container>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="Files">
@@ -161,44 +163,45 @@
   </mat-tab>
 
   <mat-tab label="Logs">
-    <div class="flex-grow flex-grow-column max-height">
-      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-      <div class="console-controls">
-        <button mat-raised-button color="accent"
-                [disabled]="watchLatestLogs"
-                (click)="showLatestLogs(null)">Show log of most recent Stage
-        </button>
-        <button mat-stroked-button
-                (click)="forceReloadLogs()"
-        >
-          <mat-icon>loop</mat-icon>
-          Force Reload
-        </button>
+    <ng-template matTabContent>
+      <div class="flex-grow flex-grow-column max-height">
+        <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+        <div class="console-controls">
+          <button mat-raised-button color="accent"
+                  [disabled]="watchLatestLogs"
+                  (click)="showLatestLogs(null)">Show log of most recent Stage
+          </button>
+          <button mat-stroked-button
+                  (click)="forceReloadLogs()"
+          >
+            <mat-icon>loop</mat-icon>
+            Force Reload
+          </button>
 
-        <div class="vertical-center-with-margin">
-          <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
-                            labelPosition="before"
-                            [checked]="stickConsole"
-                            (change)="this.scrollConsoleToBottomTimeout($event.checked)">
-            Stick to the Bottom
-          </mat-slide-toggle>
+          <div class="vertical-center-with-margin">
+            <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
+                              labelPosition="before"
+                              [checked]="stickConsole"
+                              (change)="this.scrollConsoleToBottomTimeout($event.checked)">
+              Stick to the Bottom
+            </mat-slide-toggle>
+          </div>
+          <div class="console-scroll-up-down">
+            <button mat-icon-button>
+              <mat-icon class="material-icons-outlined">
+                <a href="{{downloadUrl()}}" target="_blank">cloud_download</a>
+              </mat-icon>
+            </button>
+            <button mat-stroked-button (click)="scrollConsoleToTop()">
+              <mat-icon>arrow_upward</mat-icon>
+            </button>
+            <button mat-stroked-button (click)="scrollConsoleToBottom(true)">
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
+          </div>
         </div>
-        <div class="console-scroll-up-down">
-          <button mat-icon-button>
-            <mat-icon class="material-icons-outlined">
-              <a href="{{downloadUrl()}}" target="_blank">cloud_download</a>
-            </mat-icon>
-          </button>
-          <button mat-stroked-button (click)="scrollConsoleToTop()">
-            <mat-icon>arrow_upward</mat-icon>
-          </button>
-          <button mat-stroked-button (click)="scrollConsoleToBottom(true)">
-            <mat-icon>arrow_downward</mat-icon>
-          </button>
-        </div>
-      </div>
-      <div class="logs-container">
-        <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
+        <div class="logs-container">
+          <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
           <code *ngIf="logs != null" class="console"
           ><ng-container *ngFor="let log of logs"
@@ -211,9 +214,10 @@
           ></ng-container
           ></code>
         </pre>
+          </div>
         </div>
       </div>
-    </div>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="Pipeline Definition">
@@ -233,49 +237,51 @@
   </mat-tab>
 
   <mat-tab label="Settings">
-    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-    <div class="stage-control-item">
-      <label>Project Name</label>
-      <mat-form-field>
-        <input #nameOriginal hidden [value]="project.name">
-        <input #nameEntered matInput name="name" [value]="project.name"
-               (input)="updateName.disabled = $event.target.value == nameOriginal.value"
-               (keydown.enter)="setName(nameEntered.value)">
-      </mat-form-field>
-      <button #updateName mat-stroked-button disabled color="primary" (click)="setName(nameEntered.value)">
-        Update
-      </button>
-    </div>
-    <div class="stage-control-item">
-      <label>Project Tags</label>
-      <app-tags-with-autocomplete #tags
-                                  [sort]="false"
-                                  [tags]="project.tags"
-                                  [proposals]="api.cachedTags">
-      </app-tags-with-autocomplete>
-      <button mat-stroked-button color="primary" #tagsButton
-              [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
-              (click)="setTags(tags.selectedTags)">
-        Update
-      </button>
-    </div>
-    <div class="stage-control-item">
-      <label>Project Pipeline</label>
-      <mat-form-field>
-        <mat-select #pipelineSelection [value]="this.project.pipelineDefinition.id">
-          <ng-container *ngFor="let pipeline of pipelines">
-            <mat-option [value]="pipeline.id">{{pipeline.name}}</mat-option>
-          </ng-container>
-        </mat-select>
-      </mat-form-field>
-      <button mat-stroked-button color="primary" #tagsButton
-              (click)="setPipeline(pipelineSelection.value)">
-        Update
-      </button>
-    </div>
-    <div class="stage-control-item">
-      <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
-    </div>
+    <ng-template matTabContent>
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+      <div class="stage-control-item">
+        <label>Project Name</label>
+        <mat-form-field>
+          <input #nameOriginal hidden [value]="project.name">
+          <input #nameEntered matInput name="name" [value]="project.name"
+                 (input)="updateName.disabled = $event.target.value == nameOriginal.value"
+                 (keydown.enter)="setName(nameEntered.value)">
+        </mat-form-field>
+        <button #updateName mat-stroked-button disabled color="primary" (click)="setName(nameEntered.value)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <label>Project Tags</label>
+        <app-tags-with-autocomplete #tags
+                                    [sort]="false"
+                                    [tags]="project.tags"
+                                    [proposals]="api.cachedTags">
+        </app-tags-with-autocomplete>
+        <button mat-stroked-button color="primary" #tagsButton
+                [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
+                (click)="setTags(tags.selectedTags)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <label>Project Pipeline</label>
+        <mat-form-field>
+          <mat-select #pipelineSelection [value]="this.project.pipelineDefinition.id">
+            <ng-container *ngFor="let pipeline of pipelines">
+              <mat-option [value]="pipeline.id">{{pipeline.name}}</mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button color="primary" #tagsButton
+                (click)="setPipeline(pipelineSelection.value)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
+      </div>
+    </ng-template>
   </mat-tab>
 </mat-tab-group>
 <div #scrollBottomTarget></div>
