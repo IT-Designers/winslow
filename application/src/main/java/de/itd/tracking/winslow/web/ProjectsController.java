@@ -496,9 +496,7 @@ public class ProjectsController {
                                 winslow
                                         .getSettingsRepository()
                                         .getGlobalEnvironmentVariables()
-                                        .forEach((key, value) -> {
-                                            map.put(key, new EnvVariable(key).inherited(value));
-                                        });
+                                        .forEach((key, value) -> map.put(key, new EnvVariable(key).inherited(value)));
                             } catch (IOException e) {
                                 LOG.log(Level.WARNING, "Failed to load system environment variables", e);
                             }
@@ -511,24 +509,20 @@ public class ProjectsController {
                                     .stream()
                                     .skip(stageIndex)
                                     .findFirst()
-                                    .ifPresent(stageDef -> {
-                                        stageDef.getEnvironment().forEach((key, value) -> {
-                                            map.computeIfAbsent(
-                                                    key,
-                                                    k -> new EnvVariable(key)
-                                            ).updateValue(value);
-                                        });
-                                    });
+                                    .ifPresent(stageDef -> stageDef.getEnvironment().forEach((key, value) -> {
+                                        map.computeIfAbsent(
+                                                key,
+                                                k -> new EnvVariable(key)
+                                        ).updateValue(value);
+                                    }));
                             pipeline
                                     .getMostRecentStage()
-                                    .ifPresent(stage -> {
-                                        stage.getEnv().forEach((key, value) -> {
-                                            map.computeIfAbsent(
-                                                    key,
-                                                    k -> new EnvVariable(key)
-                                            ).updateValue(value);
-                                        });
-                                    });
+                                    .ifPresent(stage -> stage.getEnv().forEach((key, value) -> {
+                                        map.computeIfAbsent(
+                                                key,
+                                                k -> new EnvVariable(key)
+                                        ).updateValue(value);
+                                    }));
                             return map;
                         })
                 )
