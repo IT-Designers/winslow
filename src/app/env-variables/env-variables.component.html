@@ -20,7 +20,7 @@
       <mat-icon class="material-icons-outlined">undo</mat-icon>
     </button>
     <button mat-icon-button color="warn"
-            [disabled]="requiredEnvVariables.has(key) || formGroupEnv?.get(key)?.value == null"
+            [disabled]="requiredEnvVariables.has(key) || formControls[key]?.value == null"
             [matTooltip]="requiredEnvVariables.has(key) ? 'This value is required' : null"
             (click)="delete(key)">
       <mat-icon>delete</mat-icon>

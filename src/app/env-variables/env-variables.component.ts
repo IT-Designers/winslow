@@ -20,7 +20,8 @@ export class EnvVariablesComponent implements OnInit {
   formGroupEnv: FormGroup = null;
 
   // caches for angular
-  undoTarget: any = new Object();
+  undoTarget: any = {};
+  formControls: any = {};
 
   @Output() private valid = new EventEmitter<boolean>();
   @Output() private value = new EventEmitter<any>();
@@ -52,9 +53,12 @@ export class EnvVariablesComponent implements OnInit {
     this.formGroupEnv = new FormGroup({});
     this.formGroupEnv.valueChanges.subscribe(value => this.value.emit(value));
     if (this.keys != null) {
+      const controls = {};
       this.keys.forEach(key => {
         this.prepareEnvFormControl(key, this.valueOf(key));
+        controls[key] = this.formGroupEnv.get(key);
       });
+      this.formControls = controls;
     }
   }
 
@@ -108,6 +112,7 @@ export class EnvVariablesComponent implements OnInit {
     const control = this.formGroupEnv.get(key);
     if (control == null) {
       this.formGroupEnv.setControl(key, new FormControl(value));
+      this.formControls[key] = control;
     } else {
       control.setValue(value);
       control.updateValueAndValidity();
@@ -182,6 +187,7 @@ export class EnvVariablesComponent implements OnInit {
       this.formGroupEnv.get(key).setValue(null);
     } else {
       this.formGroupEnv.removeControl(key);
+      this.formControls[key] = null;
       this.keys.delete(key);
     }
     this.formGroupEnv.markAllAsTouched();
