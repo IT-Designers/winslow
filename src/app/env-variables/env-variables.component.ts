@@ -2,6 +2,7 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {MatDialog} from '@angular/material';
+import {EnvVariable} from '../api/project-api.service';
 
 @Component({
   selector: 'app-env-variables',
@@ -10,8 +11,12 @@ import {MatDialog} from '@angular/material';
 })
 export class EnvVariablesComponent implements OnInit {
 
-  environmentVariables: Map<string, [boolean, string]> = null;
-  defaultEnvironmentVariablesValue = new Map<string, string>();
+  keys: Set<string> = new Set();
+
+  environmentVariables: Map<string, EnvVariable> = null;
+  requiredEnvVariables: Set<string> = new Set();
+  defaultValues: Map<string, string> = null;
+
   formGroupEnv: FormGroup = null;
 
   @Output() private valid = new EventEmitter<boolean>();
@@ -19,49 +24,62 @@ export class EnvVariablesComponent implements OnInit {
   @Output() private hasChanges = new EventEmitter<boolean>();
 
   constructor(private dialog: MatDialog) {
-    this.initFormGroup();
   }
 
   ngOnInit() {
+    this.rebuildKeys();
+    this.rebuildEnvControl();
   }
 
-  private initFormGroup() {
+  private rebuildKeys() {
+    const keys = new Set<string>();
+    if (this.environmentVariables != null) {
+      this.environmentVariables.forEach((value, key) => keys.add(key));
+    }
+    if (this.requiredEnvVariables != null) {
+      this.requiredEnvVariables.forEach(key => keys.add(key));
+    }
+    if (this.defaultValues != null) {
+      this.defaultValues.forEach((value, key) => keys.add(key));
+    }
+    this.keys = keys;
+  }
+
+  private rebuildEnvControl() {
     this.formGroupEnv = new FormGroup({});
     this.formGroupEnv.valueChanges.subscribe(value => this.value.emit(value));
-  }
-
-  @Input()
-  set defaults(defaults: Map<string, string>) {
-    this.defaultEnvironmentVariablesValue = defaults;
-    if (defaults != null) {
-      defaults.forEach((value, key) => this.setEnvValue(key, value));
-      setTimeout(() => {
-        this.formGroupEnv.markAllAsTouched();
-        this.updateValid();
+    if (this.keys != null) {
+      this.keys.forEach(key => {
+        this.prepareEnvFormControl(key, this.valueOf(key));
       });
     }
   }
 
-  setEnvValue(key: string, value: string) {
-    this.prepareEnvFormControl(key, value);
-    if (this.environmentVariables == null) {
-      this.environmentVariables = new Map();
-    }
-    const current = this.environmentVariables.get(key);
-    if (current != null) {
-      this.environmentVariables.set(key, [current[0], value]);
+  private valueOf(key: string) {
+    const variable = this.environmentVariables != null ? this.environmentVariables.get(key) : null;
+    if (variable != null) {
+      return variable.value;
     } else {
-      this.environmentVariables.set(key, [false, value]);
+      return this.defaultValues != null ? this.defaultValues.get(key) : null;
     }
   }
 
   @Input()
-  set env(env: Map<string, [boolean, string]>) {
-    this.initFormGroup();
+  set defaults(defaults: Map<string, string>) {
+    this.defaultValues = defaults;
+    this.rebuildKeys();
+    this.rebuildEnvControl();
+    setTimeout(() => {
+      this.formGroupEnv.markAllAsTouched();
+      this.updateValid();
+    });
+  }
+
+  @Input()
+  set env(env: Map<string, EnvVariable>) {
     this.environmentVariables = env;
-    if (this.environmentVariables != null) {
-      this.environmentVariables.forEach((value, key) => this.prepareEnvFormControl(key, value[1]));
-    }
+    this.rebuildKeys();
+    this.rebuildEnvControl();
     setTimeout(() => {
       this.formGroupEnv.markAllAsTouched();
       this.updateValid();
@@ -70,24 +88,17 @@ export class EnvVariablesComponent implements OnInit {
 
   @Input()
   set required(keys: string[]) {
+    const set = new Set<string>();
     if (keys != null) {
-      keys.forEach(key => this.setEnvRequired(key));
+      keys.forEach(key => set.add(key));
+    }
+    this.requiredEnvVariables = set;
+    this.rebuildKeys();
+    this.rebuildEnvControl();
+    setTimeout(() => {
       this.formGroupEnv.markAllAsTouched();
       this.updateValid();
-    }
-  }
-
-  setEnvRequired(key: string) {
-    this.prepareEnvFormControl(key, null);
-    if (this.environmentVariables == null) {
-      this.environmentVariables = new Map();
-    }
-    const value = this.environmentVariables.get(key);
-    if (value != null) {
-      this.environmentVariables.set(key, [true, value[1]]);
-    } else {
-      this.environmentVariables.set(key, [true, null]);
-    }
+    });
   }
 
   prepareEnvFormControl(key: string, value: string) {
@@ -98,7 +109,6 @@ export class EnvVariablesComponent implements OnInit {
       control.setValue(value);
       control.updateValueAndValidity();
     }
-    this.updateValid();
   }
 
   updateValid() {
@@ -111,7 +121,7 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   private lookForChanges() {
-    const defaults = this.defaultEnvironmentVariablesValue;
+    const defaults = this.defaultValues;
     let changesDetected = defaults != null && Object.keys(this.formGroupEnv.value).length !== defaults.size;
     if (!changesDetected && defaults != null) {
       for (const key of Object.keys(this.formGroupEnv.value)) {
@@ -141,15 +151,54 @@ export class EnvVariablesComponent implements OnInit {
 
   add(name: HTMLInputElement, value: HTMLInputElement) {
     this.setEnvValue(name.value.trim(), value.value.trim());
+    this.updateValid();
     name.value = null;
     value.value = null;
     name.focus();
   }
 
+  private setEnvValue(key: string, value: string) {
+    this.prepareEnvFormControl(key, value);
+    if (this.environmentVariables == null) {
+      this.environmentVariables = new Map();
+    }
+    let current = this.environmentVariables.get(key);
+    if (current == null) {
+      current = new EnvVariable();
+      this.environmentVariables.set(key, current);
+    }
+    current.value = value;
+    if (!this.keys.has(key)) {
+      setTimeout(() => this.keys.add(key));
+    }
+  }
+
   delete(key: string) {
-    this.environmentVariables.delete(key);
-    this.formGroupEnv.removeControl(key);
+    if (this.environmentVariables != null && this.environmentVariables.has(key) && this.environmentVariables.get(key).valueInherited != null) {
+      this.environmentVariables.get(key).value = null;
+      this.formGroupEnv.get(key).setValue(null);
+    } else {
+      if (this.environmentVariables != null) {
+        this.environmentVariables.delete(key);
+      }
+      this.formGroupEnv.removeControl(key);
+      this.keys.delete(key);
+    }
     this.formGroupEnv.markAllAsTouched();
     this.updateValid();
+  }
+
+  valueOrInherited(key: string, value: string) {
+    if (value != null && value.length === 0) {
+      value = null;
+    }
+
+    const env = this.environmentVariables != null ? this.environmentVariables.get(key) : null;
+    const envValue = env != null ? env.value : (this.defaultValues != null ? this.defaultValues.get(key) : null);
+    const envInherited = env != null ? env.valueInherited : null;
+
+    const result = (value !== envValue || envInherited == null ? envValue : envInherited);
+    console.log(result);
+    return result;
   }
 }

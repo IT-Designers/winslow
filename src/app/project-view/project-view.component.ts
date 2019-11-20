@@ -1,6 +1,6 @@
 import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
-  Action,
+  Action, EnvVariable,
   HistoryEntry,
   ImageInfo,
   LogEntry,
@@ -70,7 +70,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageInfo = null;
-  defaultEnvVars: Map<string, string> = null;
+  environmentVariables: Map<string, EnvVariable> = null;
+  defaultEnvironmentVariables: Map<string, string> = null;
 
   rawPipelineDefinition: string = null;
   rawPipelineDefinitionError: string = null;
@@ -491,7 +492,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
     this.executionSelection.image = stageInfo.image;
     this.executionSelection.selectedStage = stageInfo;
-    this.defaultEnvVars = entry.env;
+    this.environmentVariables = new Map();
+    this.defaultEnvironmentVariables = entry.env;
     this.tabs.selectedIndex = 0;
   }
 
@@ -548,7 +550,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           this.api
             .getEnvironment(this.project.id, index)
             .then(result => {
-              this.defaultEnvVars = result;
+              this.environmentVariables = result;
             }),
           `Loading environment variables`,
           false
