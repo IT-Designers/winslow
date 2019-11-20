@@ -170,7 +170,7 @@ export class ProjectApiService {
     return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pause-reason`)).toPromise();
   }
 
-  getEnvironment(projectId: string, stageIndex: number) {
+  getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
     return this.client
       .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
       .pipe(map(response => new Map(Object.entries(response))))
@@ -321,4 +321,10 @@ export class ParseError {
       && obj.column != null
       && obj.message != null;
   }
+}
+
+export class EnvVariable {
+  key: string;
+  value?: string;
+  valueInherited?: null;
 }

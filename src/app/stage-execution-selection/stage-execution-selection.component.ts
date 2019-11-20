@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 import {MatDialog} from '@angular/material';
-import {ImageInfo} from '../api/project-api.service';
+import {EnvVariable, ImageInfo} from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
 
 @Component({
@@ -25,7 +25,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   @Output() valid = new EventEmitter<boolean>();
 
   // env cache
-  environmentVariables: Map<string, [boolean, string]> = null;
+  environmentVariablesValue: Map<string, EnvVariable> = null;
   defaultEnvironmentVariablesValue = new Map<string, string>();
   requiredEnvironmentVariables: string[];
   envSubmitValue: any = null;
@@ -50,17 +50,15 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
+  set environmentVariables(map: Map<string, EnvVariable>) {
+    this.environmentVariablesValue = map;
+    this.updateValid();
+  }
+
+
+  @Input()
   set defaultEnvironmentVariables(map: Map<string, string>) {
     this.defaultEnvironmentVariablesValue = map;
-    if (map != null) {
-      if (this.environmentVariables == null) {
-        this.environmentVariables = new Map();
-        map.forEach((value, key) => this.environmentVariables.set(key, [false, value]));
-      }
-      if (this.requiredEnvironmentVariables == null) {
-        this.requiredEnvironmentVariables = [];
-      }
-    }
     this.updateValid();
   }
 

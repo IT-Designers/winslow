@@ -1,25 +1,26 @@
-<div *ngFor="let envVar of environmentVariables | keyvalue" class="action-row">
-  <mat-label class="title">{{envVar.key}}</mat-label>
+<div *ngFor="let key of keys" class="action-row">
+  <mat-label class="title" *ngIf="!((value?.value?.length) == 0)">{{key}}</mat-label>
+  <mat-label class="title" *ngIf="(value?.value?.length) == 0"><s>{{key}}</s></mat-label>
   <mat-form-field [formGroup]="formGroupEnv">
     <input #value matInput
-           [required]="envVar.value[0]"
-           [value]="envVar.value[1]"
-           [formControlName]="envVar.key"
+           [required]="requiredEnvVariables.has(key)"
+           [value]="valueOf(key)"
+           [formControlName]="key"
            (keyup)="updateValid()"
-           name="{{envVar.key}}">
+           name="{{key}}">
   </mat-form-field>
   <div class="controls">
     <button mat-icon-button color="primary" (click)="browseForValue(value)">
       <mat-icon class="material-icons-outlined">folder</mat-icon>
     </button>
     <button mat-icon-button color="primary"
-            (click)="value.value = envVar.value[1]; formGroupEnv.value[value.name] = envVar.value[1]; updateValid()"
-            [disabled]="value.value == envVar.value[1]">
+            (click)="value.value = formGroupEnv.value[value.name] = valueOrInherited(key, value.value); updateValid()"
+            [disabled]="value.value == valueOrInherited(key, value.value)">
       <mat-icon class="material-icons-outlined">undo</mat-icon>
     </button>
-    <button mat-icon-button color="warn" [disabled]="envVar.value[0]"
-            [matTooltip]="envVar.value[0] ? 'This value is required' : null"
-            (click)="delete(envVar.key)">
+    <button mat-icon-button color="warn" [disabled]="requiredEnvVariables.has(key)"
+            [matTooltip]="requiredEnvVariables.has(key) ? 'This value is required' : null"
+            (click)="delete(key)">
       <mat-icon>delete</mat-icon>
     </button>
   </div>
