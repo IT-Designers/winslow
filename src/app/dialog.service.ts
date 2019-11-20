@@ -15,7 +15,7 @@ export class DialogService {
       .then(result => {
         if (result.value) {
           return Swal.fire({
-            type: 'success',
+            icon: 'success',
             timer: 700,
           });
         }
@@ -30,12 +30,12 @@ export class DialogService {
         Swal.clickCancel();
         if (err && err.error && err.error.text) {
           Swal.fire({
-            type: 'error',
+            icon: 'error',
             html: `<pre style="overflow: auto">${err.error.text}</pre>`,
           });
         } else {
           Swal.fire({
-            type: 'error',
+            icon: 'error',
             text: err != null ? JSON.stringify(err) : null,
           });
         }
@@ -49,7 +49,7 @@ export class DialogService {
 
   openLoadingIndicator(toExecute: Promise<any>, text?: string, withSuccessNotification = true) {
     const options: SweetAlertOptions = {
-      type: 'info',
+      icon: 'info',
       titleText: 'Please wait',
       text,
       showConfirmButton: true,
@@ -78,7 +78,7 @@ export class DialogService {
 
   openAreYouSure(text: string, onSure: () => Promise<void>) {
     this.fireWithSuccessNotification({
-      type: 'warning',
+      icon: 'warning',
       titleText: 'Are you sure?',
       text,
       showConfirmButton: true,
@@ -103,7 +103,7 @@ export class DialogService {
 
   error(text: string) {
     Swal.fire({
-      type: 'error',
+      icon: 'error',
       titleText: 'An error occurred',
       text,
       showConfirmButton: true,
