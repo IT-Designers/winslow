@@ -515,7 +515,7 @@ public class ProjectsController {
                                         stageDef.getEnvironment().forEach((key, value) -> {
                                             map.computeIfAbsent(
                                                     key,
-                                                    k -> new EnvVariable(key, value)
+                                                    k -> new EnvVariable(key)
                                             ).updateValue(value);
                                         });
                                     });
@@ -525,7 +525,7 @@ public class ProjectsController {
                                         stage.getEnv().forEach((key, value) -> {
                                             map.computeIfAbsent(
                                                     key,
-                                                    k -> new EnvVariable(key, value)
+                                                    k -> new EnvVariable(key)
                                             ).updateValue(value);
                                         });
                                     });
@@ -889,12 +889,8 @@ public class ProjectsController {
         public @Nullable      String valueInherited;
 
         EnvVariable(@Nonnull String key) {
-            this(key, null);
-        }
-
-        EnvVariable(@Nonnull String key, @Nullable String value) {
             this.key            = key;
-            this.value          = value;
+            this.value          = null;
             this.valueInherited = null;
         }
 
