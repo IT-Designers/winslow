@@ -95,28 +95,31 @@ public class FilesController {
             User user,
             @RequestParam("file") MultipartFile file,
             @Nonnull Optional<Path> directory) {
-        normalizedPath(request).flatMap(path -> directory.flatMap(dir -> {
-            var resolved = dir.resolve(path);
-            if (canAccess(winslow, user, dir, resolved)) {
-                return Optional.of(resolved);
-            } else {
-                return Optional.empty();
-            }
-        })).map(path -> {
-            var parent = path.getParent();
-            if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
-                try {
-                    file.transferTo(path);
-                    return true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        }).map(result -> result ? Optional.of(true) : Optional.empty()).orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND));
+        normalizedPath(request)
+                .flatMap(path -> directory.flatMap(dir -> {
+                    var resolved = dir.resolve(path);
+                    if (canAccess(winslow, user, dir, resolved)) {
+                        return Optional.of(resolved);
+                    } else {
+                        return Optional.empty();
+                    }
+                }))
+                .map(path -> {
+                    var parent = path.getParent();
+                    if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
+                        try {
+                            file.transferTo(path);
+                            return true;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                })
+                .flatMap(result -> result ? Optional.of(true) : Optional.empty())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
@@ -202,7 +205,7 @@ public class FilesController {
             @Nonnull Path path,
             boolean wantsCreateDirectory) {
         if (user != null && user.hasSuperPrivileges()) {
-            return  true;
+            return true;
         }
 
         var p = workDir.relativize(path);

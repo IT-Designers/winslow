@@ -116,12 +116,24 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                         this.envVarsInternal.keySet().stream()
                 )
                 .flatMap(v -> v)
+                .filter(key -> getEnvVariable(key).isPresent())
                 .collect(Collectors.toSet());
     }
 
     @Nonnull
     public Optional<String> getEnvVariable(@Nonnull String key) {
-        return Optional.ofNullable(this.envVarsInternal.get(key)).or(() -> Optional.ofNullable(this.envVars.get(key)));
+        // enable null-overwrite
+        if (this.envVarsInternal.containsKey(key)) {
+            return Optional.ofNullable(this.envVarsInternal.get(key));
+        } else if (this.envVars.containsKey(key)) {
+            return Optional.ofNullable(this.envVars.get(key));
+        } else if (this.envVarsPipeline.containsKey(key)) {
+            return Optional.ofNullable(this.envVarsPipeline.get(key));
+        } else if (this.envVarsSystem.containsKey(key)) {
+            return Optional.ofNullable(this.envVarsSystem.get(key));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Nonnull
@@ -193,11 +205,20 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     @Nonnull
     public NomadPreparedStage build() {
+        // do not remember deletion entries without an actual origin being overwritten
+        envVars
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() == null)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet()) // this caches all key that want to overwrite a value with null
+                .stream()
+                .filter(key -> !envVarsPipeline.containsKey(key) && !envVarsSystem.containsKey(key))
+                .forEach(envVars::remove); // keys that want to overwrite a value with null but there is no value to overwrite
+
         var env = new HashMap<String, String>();
-        env.putAll(this.envVarsSystem);
-        env.putAll(this.envVarsPipeline);
-        env.putAll(this.envVars);
-        env.putAll(this.envVarsInternal);
+        getEnvVariableKeys().forEach(key -> getEnvVariable(key).ifPresent(value -> env.put(key, value)));
+
         return new NomadPreparedStage(
                 new Job()
                         .setId(this.stage)
