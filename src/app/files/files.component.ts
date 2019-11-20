@@ -49,7 +49,7 @@ export class FilesComponent implements OnInit {
       .listFiles('/resources')
       .toPromise()
       .then(res => {
-        this.files.set('/resources', res);
+        this.insertListResourceResult('/resources', res);
         return this.loadDirectory(this.latestPath);
       })
       .then(result => {
@@ -203,7 +203,7 @@ export class FilesComponent implements OnInit {
       name => {
         if (name != null && name.length > 0) {
           const path = this.absoluteDirectoryPath(this.latestPath + '/' + name);
-          return this.api.createDirectory(path).then(r => this.navigateDirectlyTo(path));
+          return this.api.createDirectory(path).then(r => this.navigateDirectlyTo(this.latestPath));
         }
       }
     );
