@@ -19,6 +19,9 @@ export class EnvVariablesComponent implements OnInit {
 
   formGroupEnv: FormGroup = null;
 
+  // caches for angular
+  undoTarget: any = new Object();
+
   @Output() private valid = new EventEmitter<boolean>();
   @Output() private value = new EventEmitter<any>();
   @Output() private hasChanges = new EventEmitter<boolean>();
@@ -109,6 +112,7 @@ export class EnvVariablesComponent implements OnInit {
       control.setValue(value);
       control.updateValueAndValidity();
     }
+    this.updateUndoTarget(key);
   }
 
   updateValid() {
@@ -169,18 +173,14 @@ export class EnvVariablesComponent implements OnInit {
     }
     current.value = value;
     if (!this.keys.has(key)) {
-      setTimeout(() => this.keys.add(key));
+      this.keys.add(key);
     }
   }
 
   delete(key: string) {
     if (this.environmentVariables != null && this.environmentVariables.has(key) && this.environmentVariables.get(key).valueInherited != null) {
-      this.environmentVariables.get(key).value = null;
       this.formGroupEnv.get(key).setValue(null);
     } else {
-      if (this.environmentVariables != null) {
-        this.environmentVariables.delete(key);
-      }
       this.formGroupEnv.removeControl(key);
       this.keys.delete(key);
     }
@@ -188,17 +188,15 @@ export class EnvVariablesComponent implements OnInit {
     this.updateValid();
   }
 
-  valueOrInherited(key: string, value: string) {
-    if (value != null && value.length === 0) {
-      value = null;
-    }
-
+  valueOrInherited(key: string) {
     const env = this.environmentVariables != null ? this.environmentVariables.get(key) : null;
     const envValue = env != null ? env.value : (this.defaultValues != null ? this.defaultValues.get(key) : null);
     const envInherited = env != null ? env.valueInherited : null;
 
-    const result = (value !== envValue || envInherited == null ? envValue : envInherited);
-    console.log(result);
-    return result;
+    return envValue != null || envInherited == null ? envValue : envInherited;
+  }
+
+  private updateUndoTarget(key: string) {
+    this.undoTarget[key] = this.valueOrInherited(key);
   }
 }

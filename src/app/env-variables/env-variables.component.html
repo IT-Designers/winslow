@@ -1,24 +1,26 @@
 <div *ngFor="let key of keys" class="action-row">
-  <mat-label class="title" *ngIf="!((value?.value?.length) == 0)">{{key}}</mat-label>
-  <mat-label class="title" *ngIf="(value?.value?.length) == 0"><s>{{key}}</s></mat-label>
+  <mat-label class="title" *ngIf="!((input?.value?.length) == 0)">{{key}}</mat-label>
+  <mat-label class="title" *ngIf="(input?.value?.length) == 0"><s>{{key}}</s></mat-label>
   <mat-form-field [formGroup]="formGroupEnv">
-    <input #value matInput
+    <input #input matInput
            [required]="requiredEnvVariables.has(key)"
            [value]="valueOf(key)"
+           (change)="updateValid()"
            [formControlName]="key"
            (keyup)="updateValid()"
            name="{{key}}">
   </mat-form-field>
   <div class="controls">
-    <button mat-icon-button color="primary" (click)="browseForValue(value)">
+    <button mat-icon-button color="primary" (click)="browseForValue(input)">
       <mat-icon class="material-icons-outlined">folder</mat-icon>
     </button>
     <button mat-icon-button color="primary"
-            (click)="value.value = formGroupEnv.value[value.name] = valueOrInherited(key, value.value); updateValid()"
-            [disabled]="value.value == valueOrInherited(key, value.value)">
+            [disabled]="input.value == undoTarget[key]"
+            (click)="formGroupEnv.get(key).setValue(input.value = undoTarget[key])">
       <mat-icon class="material-icons-outlined">undo</mat-icon>
     </button>
-    <button mat-icon-button color="warn" [disabled]="requiredEnvVariables.has(key)"
+    <button mat-icon-button color="warn"
+            [disabled]="requiredEnvVariables.has(key) || formGroupEnv.get(key).value == null"
             [matTooltip]="requiredEnvVariables.has(key) ? 'This value is required' : null"
             (click)="delete(key)">
       <mat-icon>delete</mat-icon>
