@@ -10,7 +10,8 @@
           [pipelines]="pipelines"
           (selectedPipeline)="onSelectedPipelineChanged($event)"
           (selectedStage)="onSelectedStageChanged($event)"
-          [defaultEnvironmentVariables]="defaultEnvVars">
+          [environmentVariables]="environmentVariables"
+          [defaultEnvironmentVariables]="defaultEnvironmentVariables">
       </app-stage-execution-selection>
     </div>
     <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
@@ -95,7 +96,8 @@
               <div class="history-item-detail">
                 <ng-template #detailItem let-keyvalue>
                   <p class="history-item-detail-item mat-highlight-hover">
-                    <label>{{keyvalue.key}}</label>
+                    <label *ngIf="keyvalue.value != null">{{keyvalue.key}}</label>
+                    <label *ngIf="keyvalue.value == null"><s>{{keyvalue.key}}</s></label>
                     <label>{{keyvalue.value}}</label>
                   </p>
                 </ng-template>

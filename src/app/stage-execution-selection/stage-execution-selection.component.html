@@ -60,7 +60,7 @@
   </div>
 </ng-container>
 
-<ng-container *ngIf="environmentVariables != null">
+<ng-container *ngIf="environmentVariablesValue != null">
   <div>
     <mat-divider></mat-divider>
   </div>
@@ -69,7 +69,7 @@
     <mat-card-subtitle>Environment Variables</mat-card-subtitle>
   </div>
   <app-env-variables
-    [env]="environmentVariables"
+    [env]="environmentVariablesValue"
     [defaults]="defaultEnvironmentVariablesValue"
     [required]="requiredEnvironmentVariables"
     (valid)="updateValidEnv($event)"
