@@ -60,7 +60,11 @@
   </div>
   <swal #swalUpload title="Uploading your files"
         [icon]="dataUpload != null ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
-        (afterClose)="dataUpload = null">
+        (afterClose)="dataUpload = null"
+        [allowOutsideClick]="false"
+        [showCancelButton]="false"
+        [showConfirmButton]="true"
+        [showCloseButton]="false">
     <div *swalPortal="swalTargets.content">
       <mat-list *ngIf="dataUpload != null">
         <mat-list *ngFor="let upload of dataUpload.uploads">

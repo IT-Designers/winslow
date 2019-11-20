@@ -4,6 +4,7 @@ import {FileInfo, FilesApiService} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-files',
@@ -71,6 +72,7 @@ export class FilesComponent implements OnInit {
     this.files.set(additional.path, []);
     this.navigationTarget = additional.path;
   }
+
   @Input()
   public set navigationTarget(target: string) {
     if (target != null) {
@@ -256,9 +258,14 @@ export class FilesComponent implements OnInit {
       }
     };
 
+    setTimeout(() => Swal.getConfirmButton().setAttribute('disabled', ''));
     instance
       .uploader(0)
-      .finally(() => this.dataUpload.closable = true);
+      .finally(() => {
+        this.dataUpload.closable = true;
+        this.swalUpload.showConfirmButton = true;
+        Swal.getConfirmButton().removeAttribute('disabled');
+      });
   }
 
   private prepareDataUpload(files: FileList) {
