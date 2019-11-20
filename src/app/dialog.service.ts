@@ -92,7 +92,7 @@ export class DialogService {
   }
 
   createAThing(thing: string, placeholder: string, action: (input: string) => Promise<void>) {
-    this.fireWithSuccessNotification({
+    return this.fireWithSuccessNotification({
       title: 'Create a ' + thing,
       input: 'text',
       inputPlaceholder: placeholder,
