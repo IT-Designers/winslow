@@ -1,8 +1,5 @@
 package de.itd.tracking.winslow.web;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.itd.tracking.winslow.BaseRepository;
 import de.itd.tracking.winslow.LogEntry;
 import de.itd.tracking.winslow.OrchestratorException;
@@ -481,7 +478,7 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/{stageIndex}/environment")
-    public Map<String, String> getLatestEnvironment(
+    public Map<String, EnvVariable> getLatestEnvironment(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageIndex") int stageIndex) {
@@ -494,23 +491,44 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .map(pipeline -> {
-                            Map<String, String> map = new TreeMap<>();
+                            Map<String, EnvVariable> map = new TreeMap<>();
                             try {
-                                map.putAll(winslow.getSettingsRepository().getGlobalEnvironmentVariables());
+                                winslow
+                                        .getSettingsRepository()
+                                        .getGlobalEnvironmentVariables()
+                                        .forEach((key, value) -> {
+                                            map.put(key, new EnvVariable(key).inherited(value));
+                                        });
                             } catch (IOException e) {
                                 LOG.log(Level.WARNING, "Failed to load system environment variables", e);
                             }
-                            map.putAll(project.getPipelineDefinition().getEnvironment());
+                            project.getPipelineDefinition().getEnvironment().forEach((key, value) -> {
+                                map.computeIfAbsent(key, k -> new EnvVariable(key)).inherited(value);
+                            });
                             project
                                     .getPipelineDefinition()
                                     .getStages()
                                     .stream()
                                     .skip(stageIndex)
                                     .findFirst()
-                                    .ifPresent(stageDef -> map.putAll(stageDef.getEnvironment()));
+                                    .ifPresent(stageDef -> {
+                                        stageDef.getEnvironment().forEach((key, value) -> {
+                                            map.computeIfAbsent(
+                                                    key,
+                                                    k -> new EnvVariable(key, value)
+                                            ).updateValue(value);
+                                        });
+                                    });
                             pipeline
                                     .getMostRecentStage()
-                                    .ifPresent(stage -> map.putAll(stage.getEnv()));
+                                    .ifPresent(stage -> {
+                                        stage.getEnv().forEach((key, value) -> {
+                                            map.computeIfAbsent(
+                                                    key,
+                                                    k -> new EnvVariable(key, value)
+                                            ).updateValue(value);
+                                        });
+                                    });
                             return map;
                         })
                 )
@@ -862,6 +880,34 @@ public class ProjectsController {
             super(entry.getTime(), entry.getSource(), entry.isError(), entry.getMessage());
             this.line    = line;
             this.stageId = stageId;
+        }
+    }
+
+    static class EnvVariable {
+        public final @Nonnull String key;
+        public @Nullable      String value;
+        public @Nullable      String valueInherited;
+
+        EnvVariable(@Nonnull String key) {
+            this(key, null);
+        }
+
+        EnvVariable(@Nonnull String key, @Nullable String value) {
+            this.key            = key;
+            this.value          = value;
+            this.valueInherited = null;
+        }
+
+        EnvVariable inherited(@Nullable String value) {
+            this.valueInherited = value;
+            return this;
+        }
+
+        void updateValue(@Nullable String value) {
+            if (this.value != null) {
+                this.valueInherited = this.value;
+            }
+            this.value = value;
         }
     }
 }
