@@ -59,7 +59,7 @@
     </ul>
   </div>
   <swal #swalUpload title="Uploading your files"
-        [type]="dataUpload != null ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
+        [icon]="dataUpload != null ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
         (afterClose)="dataUpload = null">
     <div *swalPortal="swalTargets.content">
       <mat-list *ngIf="dataUpload != null">
