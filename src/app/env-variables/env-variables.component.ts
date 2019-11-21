@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {MatDialog} from '@angular/material';
 import {EnvVariable} from '../api/project-api.service';
@@ -34,6 +34,7 @@ export class EnvVariablesComponent implements OnInit {
   ngOnInit() {
     this.rebuildKeys();
     this.rebuildEnvControl();
+    this.updateValid();
   }
 
   private rebuildKeys() {
@@ -103,6 +104,7 @@ export class EnvVariablesComponent implements OnInit {
     this.requiredEnvVariables = set;
     this.rebuildKeys();
     this.rebuildEnvControl();
+    this.updateValid();
     setTimeout(() => {
       this.formGroupEnv.markAllAsTouched();
       this.updateValid();
@@ -110,14 +112,18 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   prepareEnvFormControl(key: string, value: string) {
-    const control = this.formGroupEnv.get(key);
+    let control = this.formGroupEnv.get(key);
     if (control == null) {
-      this.formGroupEnv.setControl(key, new FormControl(value));
+      control = new FormControl(value);
+      this.formGroupEnv.setControl(key, control);
       this.formControls[key] = control;
     } else {
       control.setValue(value);
-      control.updateValueAndValidity();
     }
+    if (this.requiredEnvVariables.has(key)) {
+      control.setValidators(Validators.required);
+    }
+    control.updateValueAndValidity();
     this.updateUndoTarget(key);
   }
 
