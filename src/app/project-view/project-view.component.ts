@@ -313,10 +313,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
               })
               .afterClosed()
               .toPromise()
-              .then(result => {
-                if (result) {
+              .then(selectedProjects => {
+                if (selectedProjects) {
                   return this.dialog.openLoadingIndicator(
-                    this.api.configureGroup(result, pipeline.id, i, env, image),
+                    this.api.configureGroup(this.project.id, i, selectedProjects, env, image)
+                      .then(configureResult => {
+                        const failed = [];
+                        for (let n = 0; n < configureResult.length && n < selectedProjects.length; ++n) {
+                          if (!configureResult[n]) {
+                            failed.push(selectedProjects[n]);
+                          }
+                        }
+                        if (failed.length === 0) {
+                          return Promise.resolve();
+                        } else {
+                          return Promise.reject('The operation failed for at least one project: ' + (failed.join(', ')));
+                        }
+                      }),
                     `Applying settings on all selected projects`,
                   );
                 }
