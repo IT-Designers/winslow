@@ -21,6 +21,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -248,7 +249,23 @@ public class Orchestrator {
             return pipeline
                     .getMostRecentStage()
                     .flatMap(recent -> getNextStageIndex(definition, recent).map(index -> {
-                        pipeline.enqueueStage(definition.getStages().get(index));
+                        var base              = definition.getStages().get(index);
+                        var env               = new TreeMap<>(base.getEnvironment());
+                        var recentUpdatesBase = base.getName().equals(recent.getDefinition().getName());
+
+                        env.putAll(recent.getEnv());
+
+                        pipeline.enqueueStage(new StageDefinition(
+                                base.getName(),
+                                base.getDescription().orElse(null),
+                                (recentUpdatesBase
+                                 ? recent.getDefinition().getImage().or(base::getImage)
+                                 : base.getImage()).orElse(null),
+                                base.getRequirements().orElse(null),
+                                base.getRequires().orElse(null),
+                                env,
+                                base.getHighlight().orElse(null)
+                        ));
                         return Boolean.TRUE;
                     })).orElse(Boolean.FALSE);
         } else {
@@ -257,15 +274,18 @@ public class Orchestrator {
     }
 
     private Optional<Integer> getNextStageIndex(@Nonnull PipelineDefinition definition, Stage recent) {
-        var index = -1;
+        var index     = -1;
+        var increment = recent.getAction() == Action.Configure ? 0 : 1;
+
         for (int i = 0; i < definition.getStages().size(); ++i) {
             if (definition.getStages().get(i).getName().equals(recent.getDefinition().getName())) {
                 index = i;
                 break;
             }
         }
-        if (index >= 0 && index + 1 < definition.getStages().size()) {
-            return Optional.of(index + (recent.getAction() == Action.Configure ? 0 : 1));
+
+        if (index >= 0 && index + increment < definition.getStages().size()) {
+            return Optional.of(index + increment);
         } else {
             return Optional.empty();
         }
