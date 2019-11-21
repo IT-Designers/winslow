@@ -2,9 +2,7 @@ package de.itd.tracking.winslow.web;
 
 import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
-import de.itd.tracking.winslow.config.Image;
-import de.itd.tracking.winslow.config.PipelineDefinition;
-import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.config.*;
 import de.itd.tracking.winslow.fs.LockException;
 import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.EnqueuedStage;
@@ -618,6 +616,163 @@ public class ProjectsController {
                 }).orElse(Boolean.FALSE);
     }
 
+    @PutMapping("projects/{projectId}/enqueued")
+    public void enqueueStageToExecute(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam("env") Map<String, String> env,
+            @RequestParam("stageIndex") int index,
+            @RequestParam(value = "imageName", required = false) @Nullable String imageName,
+            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs) {
+        winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+
+                    // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
+                    // so changes will not be written back
+                    return getStageDefinitionNoClone(project, index)
+                            .map(stageDef -> {
+                                executeStage(
+                                        pipeline,
+                                        stageDef,
+                                        env,
+                                        imageName,
+                                        imageArgs
+                                );
+                                return Boolean.TRUE;
+                            })
+                            .orElse(Boolean.FALSE);
+                }))
+                .filter(v -> v)
+                .orElseThrow();
+    }
+
+    @PutMapping("projects/{projectId}/enqueued-on-others")
+    public Stream<Boolean> enqueueStageOnOthersToConfigure(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam("stageIndex") int index,
+            @RequestParam("projectIds") String[] projectIds,
+            @RequestParam("env") Map<String, String> env,
+            @RequestParam(value = "imageName", required = false) @Nullable String imageName,
+            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs
+    ) {
+        var stageDefinitionBase = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
+                    // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
+                    // so changes will not be written back
+                    return getStageDefinitionNoClone(project, index);
+                }))
+                .orElseThrow()
+                .orElseThrow();
+
+        return Stream
+                .of(projectIds)
+                .map(id -> winslow.getProjectRepository().getProject(id).unsafe())
+                .map(maybeProject -> maybeProject
+                        .filter(project -> canUserAccessProject(user, project))
+                        .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+                            configureStage(
+                                    pipeline,
+                                    stageDefinitionBase,
+                                    env,
+                                    imageName,
+                                    imageArgs
+                            );
+                            return Boolean.TRUE;
+                        }))
+                        .orElse(Boolean.FALSE));
+    }
+
+    private static void configureStage(
+            @Nonnull Pipeline pipeline,
+            @Nonnull StageDefinition base,
+            @Nonnull Map<String, String> env,
+            @Nullable String imageName,
+            @Nullable String[] imageArgs) {
+        enqueueStage(pipeline, base, env, imageName, imageArgs, Action.Configure);
+    }
+
+    private static void executeStage(
+            @Nonnull Pipeline pipeline,
+            @Nonnull StageDefinition base,
+            @Nonnull Map<String, String> env,
+            @Nullable String imageName,
+            @Nullable String[] imageArgs) {
+        enqueueStage(pipeline, base, env, imageName, imageArgs, Action.Execute);
+    }
+
+    private static void enqueueStage(
+            @Nonnull Pipeline pipeline,
+            @Nonnull StageDefinition base,
+            @Nonnull Map<String, String> env,
+            @Nullable String imageName,
+            @Nullable String[] imageArgs,
+            @Nonnull Action action) {
+
+        var recentBase = Optional
+                .of(base)
+                .flatMap(def -> pipeline
+                        .getAllStages()
+                        .filter(stage -> stage.getDefinition().getName().equals(def.getName()))
+                        .map(Stage::getDefinition)
+                        .reduce((first, second) -> second)
+                )
+                .orElse(base); // none before, so take the given as origin
+
+        var resultDefinition = createStageDefinition(
+                recentBase,
+                base.getRequirements().orElse(null),
+                base.getRequires().orElse(null),
+                env
+        );
+
+        if (!pipeline.hasEnqueuedStages()) {
+            pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+        }
+        maybeUpdateImageInfo(imageName, imageArgs, resultDefinition);
+        pipeline.enqueueStage(resultDefinition, action);
+    }
+
+    private static StageDefinition createStageDefinition(
+            @Nonnull StageDefinition template,
+            @Nullable Requirements requirements,
+            @Nullable UserInput requires,
+            @Nonnull Map<String, String> env) {
+        return new StageDefinition(
+                template.getName(),
+                template.getDescription().orElse(null),
+                template.getImage().orElse(null),
+                requirements,
+                requires,
+                env,
+                template.getHighlight().orElse(null)
+        );
+    }
+
+    private static void maybeUpdateImageInfo(
+            @Nullable String imageName,
+            @Nullable String[] imageArgs,
+            @Nonnull StageDefinition stageDef) {
+        if ((imageName != null || imageArgs != null)) {
+            stageDef.getImage().ifPresent(image -> {
+                if (imageName != null) {
+                    image.setName(imageName);
+                }
+                if (imageArgs != null) {
+                    image.setArgs(imageArgs);
+                }
+            });
+        }
+    }
+
     @DeleteMapping("projects/{projectId}")
     public ResponseEntity<String> delete(User user, @PathVariable("projectId") String projectId) {
         var project = winslow
@@ -656,135 +811,6 @@ public class ProjectsController {
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PutMapping("projects/{projectId}/enqueued")
-    public void enqueueStage(
-            User user,
-            @PathVariable("projectId") String projectId,
-            @RequestParam("env") Map<String, String> env,
-            @RequestParam("stageIndex") int index,
-            @RequestParam(value = "imageName", required = false) @Nullable String imageName,
-            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs) {
-        winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
-                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-
-                    // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
-                    // so changes will not be written back
-                    var stageFromPipeline = getStageDefinitionNoClone(project, index);
-                    var stageDef          = stageFromPipeline;
-
-                    stageDef = stageDef.map(def -> pipeline
-                            .getAllStages()
-                            .filter(stage -> stage.getDefinition().getName().equals(def.getName()))
-                            .map(Stage::getDefinition)
-                            .reduce((first, second) -> second)
-                            .orElse(def)
-                    );
-
-                    if (stageDef.isPresent()) {
-                        stageDef = Optional.of(new StageDefinition(
-                                stageDef.get().getName(),
-                                stageDef.get().getDescription().orElse(null),
-                                stageDef.get().getImage().orElse(null),
-                                stageFromPipeline.get().getRequirements().orElse(null),
-                                stageFromPipeline.get().getRequires().orElse(null),
-                                stageDef.get().getEnvironment(),
-                                stageDef.get().getHighlight().orElse(null)
-                        ));
-
-                        if (!pipeline.hasEnqueuedStages()) {
-                            pipeline.resume(Pipeline.ResumeNotification.Confirmation);
-                        }
-                        maybeUpdateImageInfo(imageName, imageArgs, stageDef.get());
-                        pipeline.enqueueStage(createStageDefinition(env, stageDef.get()));
-
-                        return Boolean.TRUE;
-                    } else {
-                        return Boolean.FALSE;
-                    }
-                }))
-                .filter(v -> v)
-                .orElseThrow();
-    }
-
-    @PutMapping("projects/configuration")
-    public void enqueueConfigure(
-            User user, @RequestParam("projectIds") String[] projectIds,
-            @RequestParam("env") Map<String, String> env,
-            @RequestParam("pipelineId") String pipelineId,
-            @RequestParam("stageIndex") int stageIndex,
-            @RequestParam(value = "image.name", required = false) @Nullable String imageName,
-            @RequestParam(value = "image.args", required = false) @Nullable String[] imageArgs) {
-
-
-        LOG.info("To configure: " + Arrays.toString(projectIds));
-        LOG.info("   » env        " + env);
-        LOG.info("   » pipelineId " + pipelineId);
-        LOG.info("   » stageIndex " + stageIndex);
-        LOG.info("   » image.name " + imageName);
-        LOG.info("   » image.args " + Arrays.toString(imageArgs));
-
-        winslow.getPipelineRepository().getPipeline(pipelineId).unsafe().ifPresent(pipelineDefinition -> {
-            var stages   = pipelineDefinition.getStages();
-            var stageDef = stages.stream().skip(stageIndex).findFirst();
-
-            LOG.info("     » pipeline name " + pipelineDefinition.getName());
-            LOG.info("     » stage name    " + stageDef.map(StageDefinition::getName).orElse(null));
-
-            if (stageDef.isPresent()) {
-                maybeUpdateImageInfo(imageName, imageArgs, stageDef.get());
-                var definition = createStageDefinition(env, stageDef.get());
-
-                Stream
-                        .of(projectIds)
-                        .flatMap(id -> winslow
-                                .getProjectRepository()
-                                .getProject(id)
-                                .unsafe()
-                                .filter(project -> canUserAccessProject(user, project))
-                                .stream()
-                        )
-                        .forEach(project -> winslow
-                                .getOrchestrator()
-                                .updatePipeline(project, pipeline -> {
-                                    pipeline.enqueueStage(definition, Action.Configure);
-                                    return null;
-                                }));
-            }
-        });
-    }
-
-    private StageDefinition createStageDefinition(@Nonnull Map<String, String> env, @Nonnull StageDefinition stageDef) {
-        return new StageDefinition(
-                stageDef.getName(),
-                stageDef.getDescription().orElse(null),
-                stageDef.getImage().orElse(null),
-                stageDef.getRequirements().orElse(null),
-                stageDef.getRequires().orElse(null),
-                env,
-                stageDef.getHighlight().orElse(null)
-        );
-    }
-
-    private void maybeUpdateImageInfo(
-            @Nullable String imageName,
-            @Nullable String[] imageArgs,
-            @Nonnull StageDefinition stageDef) {
-        if ((imageName != null || imageArgs != null)) {
-            stageDef.getImage().ifPresent(image -> {
-                if (imageName != null) {
-                    image.setName(imageName);
-                }
-                if (imageArgs != null) {
-                    image.setArgs(imageArgs);
-                }
-            });
         }
     }
 
