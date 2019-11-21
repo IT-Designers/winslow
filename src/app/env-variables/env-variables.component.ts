@@ -22,6 +22,7 @@ export class EnvVariablesComponent implements OnInit {
   // caches for angular
   undoTarget: any = {};
   formControls: any = {};
+  values: any = {};
 
   @Output() private valid = new EventEmitter<boolean>();
   @Output() private value = new EventEmitter<any>();
