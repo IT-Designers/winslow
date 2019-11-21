@@ -23,10 +23,14 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
 public class FilesController {
+
+    private static final Logger LOG = Logger.getLogger(FilesController.class.getSimpleName());
 
     private final Winslow winslow;
 
@@ -157,7 +161,7 @@ public class FilesController {
                                            .contentType(media)
                                            .body(new InputStreamResource(is, file.getName())));
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                LOG.log(Level.FINE, "FileNotFound " + path, e);
                 return Optional.empty();
             }
         })).orElse(null);
