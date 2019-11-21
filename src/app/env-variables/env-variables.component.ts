@@ -67,9 +67,9 @@ export class EnvVariablesComponent implements OnInit {
   valueOf(key: string) {
     const variable = this.environmentVariables != null ? this.environmentVariables.get(key) : null;
     if (variable != null) {
-      return variable.value;
+      return this.values[key] = variable.value;
     } else {
-      return this.defaultValues != null ? this.defaultValues.get(key) : null;
+      return this.values[key] = (this.defaultValues != null ? this.defaultValues.get(key) : null);
     }
   }
 
