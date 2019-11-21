@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Project} from '../api/project-api.service';
+import {ProjectInfo} from '../api/project-api.service';
 
 @Component({
   selector: 'app-tag-filter',
@@ -9,9 +9,9 @@ import {Project} from '../api/project-api.service';
 export class TagFilterComponent implements OnInit {
 
   availableTagsValue: string[];
-  projectsValue: Project[];
+  projectsValue: ProjectInfo[];
 
-  @Output('filtered') filtered = new EventEmitter<Project[]>();
+  @Output('filtered') filtered = new EventEmitter<ProjectInfo[]>();
 
   includeTags: string[] = [];
   includeEmpty = false;
@@ -26,7 +26,7 @@ export class TagFilterComponent implements OnInit {
   }
 
   @Input('projects')
-  set projects(projects: Project[]) {
+  set projects(projects: ProjectInfo[]) {
     this.projectsValue = projects;
     this.updateFilter();
   }
