@@ -491,38 +491,38 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .map(pipeline -> {
-                            Map<String, EnvVariable> map = new TreeMap<>();
+                            Map<String, EnvVariable> map   = new TreeMap<>();
+                            Map<String, String>      local = new TreeMap<>();
+
                             try {
                                 winslow
                                         .getSettingsRepository()
                                         .getGlobalEnvironmentVariables()
-                                        .forEach((key, value) -> map.put(key, new EnvVariable(key).inherited(value)));
+                                        .forEach((key, value) -> {
+                                            map.computeIfAbsent(key, k -> new EnvVariable(key, value)).pushValue(value);
+                                        });
                             } catch (IOException e) {
                                 LOG.log(Level.WARNING, "Failed to load system environment variables", e);
                             }
+
                             project.getPipelineDefinition().getEnvironment().forEach((key, value) -> {
-                                map.computeIfAbsent(key, k -> new EnvVariable(key)).inherited(value);
+                                map.computeIfAbsent(key, k -> new EnvVariable(key, value)).pushValue(value);
                             });
+
                             project
                                     .getPipelineDefinition()
                                     .getStages()
                                     .stream()
                                     .skip(stageIndex)
                                     .findFirst()
-                                    .ifPresent(stageDef -> stageDef.getEnvironment().forEach((key, value) -> {
-                                        map.computeIfAbsent(
-                                                key,
-                                                k -> new EnvVariable(key)
-                                        ).updateValue(value);
-                                    }));
+                                    .ifPresent(stageDef -> local.putAll(stageDef.getEnvironment()));
                             pipeline
                                     .getMostRecentStage()
-                                    .ifPresent(stage -> stage.getEnv().forEach((key, value) -> {
-                                        map.computeIfAbsent(
-                                                key,
-                                                k -> new EnvVariable(key)
-                                        ).updateValue(value);
-                                    }));
+                                    .ifPresent(stage -> local.putAll(stage.getEnv()));
+
+                            local.forEach((key, value) -> map
+                                    .computeIfAbsent(key, k -> new EnvVariable(key))
+                                    .pushValue(value));
                             return map;
                         })
                 )
@@ -882,22 +882,21 @@ public class ProjectsController {
         public @Nullable      String value;
         public @Nullable      String valueInherited;
 
+        EnvVariable(@Nonnull String key, @Nullable String value) {
+            this.key            = key;
+            this.value          = value;
+            this.valueInherited = value;
+        }
+
         EnvVariable(@Nonnull String key) {
             this.key            = key;
             this.value          = null;
             this.valueInherited = null;
         }
 
-        EnvVariable inherited(@Nullable String value) {
-            this.valueInherited = value;
-            return this;
-        }
-
-        void updateValue(@Nullable String value) {
-            if (this.value != null) {
-                this.valueInherited = this.value;
-            }
-            this.value = value;
+        void pushValue(@Nullable String value) {
+            this.valueInherited = this.value;
+            this.value          = value;
         }
     }
 }
