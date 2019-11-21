@@ -1,13 +1,14 @@
 import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
-  Action, EnvVariable,
+  Action,
+  EnvVariable,
   HistoryEntry,
   ImageInfo,
   LogEntry,
   LogSource,
   ParseError,
-  Project,
   ProjectApiService,
+  ProjectInfo,
   State,
   StateInfo
 } from '../api/project-api.service';
@@ -36,7 +37,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   @ViewChild('scrollBottomTarget', {static: false}) scrollBottomTarget: ElementRef<HTMLElement>;
   @ViewChild('executionSelection', {static: false}) executionSelection: StageExecutionSelectionComponent;
 
-  private projectValue: Project;
+  private projectValue: ProjectInfo;
+
   @Output('state') private stateEmitter = new EventEmitter<State>();
   @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
 
@@ -93,8 +95,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     window.addEventListener('scroll', this.scrollCallback, true);
     this.pipelinesApi.getPipelineDefinitions().then(result => {
       this.pipelines = result;
-      this.executionSelection.pipelines = result;
       this.project = this.project;
+
     });
   }
 
@@ -103,20 +105,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  public set project(value: Project) {
+  public set project(value: ProjectInfo) {
     this.projectValue = value;
-    if (this.pipelines != null) {
-      this.projectValue.pipelineDefinition.id = this.getProjectPipelineId();
-      this.executionSelection.defaultPipelineId = this.projectValue.pipelineDefinition.id;
-    }
     this.logs = null;
     this.history = null;
     this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
     this.pollWatched(true);
     this.setupFiles();
+
+    if (this.executionSelection != null) {
+      this.executionSelection.pipelines = [this.project.pipelineDefinition];
+      this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
+    }
   }
 
-  public get project(): Project {
+  public get project(): ProjectInfo {
     return this.projectValue;
   }
 
@@ -378,7 +381,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     return this.longLoading.isLongLoading();
   }
 
-  openFolder(project: Project, entry: HistoryEntry) {
+  openFolder(project: ProjectInfo, entry: HistoryEntry) {
     this.tabs.selectedIndex = 2;
     this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${project.id}/${entry.workspace}/`;
@@ -559,17 +562,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  getProjectPipelineId(): string {
-    if (this.pipelines != null) {
-      for (const pipeline of this.pipelines) {
-        if (this.project.pipelineDefinition.name === pipeline.name) {
-          return pipeline.id;
-        }
-      }
-    }
-    return null;
-  }
-
   setPipeline(pipelineId: string) {
     for (const pipeline of this.pipelines) {
       if (pipelineId === pipeline.id) {
@@ -578,8 +570,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             .setPipelineDefinition(this.project.id, pipelineId)
             .then(successful => {
               if (successful) {
-                this.project.pipelineDefinition = pipeline;
-                this.executionSelection.defaultPipelineId = pipelineId;
+                this.setProjectPipeline(pipeline);
                 return Promise.resolve();
               } else {
                 return Promise.reject();
@@ -591,6 +582,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         break;
       }
     }
+  }
+
+  private setProjectPipeline(pipeline: PipelineInfo) {
+    const p = this.project;
+    const pid = p.pipelineDefinition.id;
+    p.pipelineDefinition = ProjectViewComponent.deepClone(pipeline);
+    p.pipelineDefinition.id = pid;
+    this.project = p;
   }
 
   downloadUrl() {
@@ -632,6 +631,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         })
         .then(r => {
           editor.parseError = [];
+          return this.api
+            .getProjectPipelineDefinition(this.project.id)
+            .then(definition => {
+              this.setProjectPipeline(definition);
+            });
         }),
       `Saving Pipeline Definition`,
       true

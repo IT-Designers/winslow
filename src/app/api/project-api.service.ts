@@ -36,12 +36,16 @@ export class ProjectApiService {
 
   listProjects() {
     return this.client
-      .get<Project[]>(ProjectApiService.getUrl(null))
+      .get<ProjectInfo[]>(ProjectApiService.getUrl(null))
       .pipe(map(projects => {
         projects.forEach(project => this.cacheTags(project.tags));
         return projects;
       }))
       .toPromise();
+  }
+
+  getProjectPipelineDefinition(projectId: string) {
+    return this.client.get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`)).toPromise();
   }
 
   getProjectState(projectId: string) {
@@ -222,7 +226,7 @@ export enum Action {
   Configure = 'Configure',
 }
 
-export class Project {
+export class ProjectInfo {
   id: string;
   owner: string;
   groups: string[];

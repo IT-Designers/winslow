@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material';
-import {Project, ProjectApiService, StateInfo} from '../api/project-api.service';
+import {ProjectInfo, ProjectApiService, StateInfo} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
@@ -15,11 +15,11 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
 
-  projects: Project[] = null;
+  projects: ProjectInfo[] = null;
   stateInfo: Map<string, StateInfo> = null;
   loadError = null;
   interval;
-  selectedProject: Project = null;
+  selectedProject: ProjectInfo = null;
 
   constructor(private api: ProjectApiService,
               private createDialog: MatDialog,
@@ -86,7 +86,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
   }
 
-  stopLoading(project: Project) {
+  stopLoading(project: ProjectInfo) {
     if (project != null) {
       this.views.forEach(view => {
         if (view.project.id === project.id) {
@@ -96,7 +96,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  startLoading(project: Project) {
+  startLoading(project: ProjectInfo) {
     if (project != null) {
       this.views.forEach(view => {
         if (view.project.id === project.id) {
@@ -110,7 +110,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDeleted(project: Project) {
+  onDeleted(project: ProjectInfo) {
     for (let i = 0; i < this.projects.length; ++i) {
       if (this.projects[i].id === project.id) {
         this.projects.splice(i, 1);

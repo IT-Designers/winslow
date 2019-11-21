@@ -1,5 +1,5 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {Project} from '../api/project-api.service';
+import {ProjectInfo} from '../api/project-api.service';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 
 @Component({
@@ -10,8 +10,8 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 export class GroupSettingsDialogComponent implements OnInit {
 
   availableTags: string[];
-  projects: Project[];
-  filtered: Project[];
+  projects: ProjectInfo[];
+  filtered: ProjectInfo[];
 
   constructor(
     public dialogRef: MatDialogRef<GroupSettingsDialogComponent>,
@@ -33,6 +33,6 @@ export class GroupSettingsDialogComponent implements OnInit {
 }
 
 export class GroupSettingsDialogData {
-  projects: Project[];
+  projects: ProjectInfo[];
   availableTags: string[];
 }

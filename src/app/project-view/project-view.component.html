@@ -7,7 +7,6 @@
       <app-stage-execution-selection
           #executionSelection
           [pipelineSelectionDisabled]="true"
-          [pipelines]="pipelines"
           (selectedPipeline)="onSelectedPipelineChanged($event)"
           (selectedStage)="onSelectedStageChanged($event)"
           [environmentVariables]="environmentVariables"

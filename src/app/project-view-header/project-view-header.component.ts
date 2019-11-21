@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {Project, State} from '../api/project-api.service';
+import {ProjectInfo, State} from '../api/project-api.service';
 import {StateIconComponent} from '../state-icon/state-icon.component';
 import {FilesApiService} from '../api/files-api.service';
 
@@ -10,7 +10,7 @@ import {FilesApiService} from '../api/files-api.service';
 })
 export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
 
-  @Input() project: Project;
+  @Input() project: ProjectInfo;
   @Input() pauseReason: string = null;
   @Input() progress: number = null;
   @Input() running = false;
