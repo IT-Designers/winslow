@@ -250,12 +250,10 @@ public class Orchestrator {
         if (noneRunning && !paused && !hasNext && successful) {
             return pipeline
                     .getMostRecentStage()
-                    .flatMap(recent -> {
-                        return getNextStageIndex(definition, recent).map(index -> {
-                            pipeline.enqueueStage(definition.getStages().get(index));
-                            return Boolean.TRUE;
-                        });
-                    }).orElse(Boolean.FALSE);
+                    .flatMap(recent -> getNextStageIndex(definition, recent).map(index -> {
+                        pipeline.enqueueStage(definition.getStages().get(index));
+                        return Boolean.TRUE;
+                    })).orElse(Boolean.FALSE);
         } else {
             return false;
         }
