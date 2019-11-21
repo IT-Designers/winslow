@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {Project, ProjectApiService} from '../api/project-api.service';
+import {ProjectInfo, ProjectApiService} from '../api/project-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
 
@@ -10,8 +10,8 @@ import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.s
 })
 export class GroupActionsComponent implements OnInit {
 
-  projects: Project[];
-  filtered: Project[];
+  projects: ProjectInfo[];
+  filtered: ProjectInfo[];
 
   projectsLoadError = null;
   projectsLongLoading = new LongLoadingDetector();

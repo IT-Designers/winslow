@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {Project, State, StateInfo} from '../api/project-api.service';
+import {ProjectInfo, State, StateInfo} from '../api/project-api.service';
 
 @Component({
   selector: 'app-project-list',
@@ -8,7 +8,7 @@ import {Project, State, StateInfo} from '../api/project-api.service';
 })
 export class ProjectListComponent implements OnInit {
 
-  @Input() projects: Project[];
+  @Input() projects: ProjectInfo[];
   @Input() stateInfo: Map<string, StateInfo>;
 
   constructor() {
@@ -17,19 +17,19 @@ export class ProjectListComponent implements OnInit {
   ngOnInit() {
   }
 
-  isRunning(project: Project) {
+  isRunning(project: ProjectInfo) {
     return this.stateInfoCheck(false, project, state => state.state === State.Running);
   }
 
-  getProgress(project: Project) {
+  getProgress(project: ProjectInfo) {
     return this.stateInfoCheck(null, project, state => state.stageProgress);
   }
 
-  getPauseReason(project: Project) {
+  getPauseReason(project: ProjectInfo) {
     return this.stateInfoCheck(null, project, state => state.pauseReason);
   }
 
-  stateInfoCheck<T>(df: T, project: Project, callback: (stateInfo: StateInfo) => T) {
+  stateInfoCheck<T>(df: T, project: ProjectInfo, callback: (stateInfo: StateInfo) => T) {
     if (project != null && this.stateInfo != null) {
       const info = this.stateInfo.get(project.id);
       if (info != null) {
