@@ -118,18 +118,17 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  configureGroup(projectIds: string[], pipelineId: string, stageIndex: number, env: any, image: ImageInfo = null) {
+  configureGroup(projectId: string, stageIndex: number, projectIds: string[], env: any, image: ImageInfo = null) {
     const form = new FormData();
-    form.set('projectIds', JSON.stringify(projectIds));
-    form.set('pipelineId', pipelineId);
     form.set('stageIndex', '' + stageIndex);
+    form.set('projectIds', JSON.stringify(projectIds));
     form.set('env', JSON.stringify(env));
     if (image != null) {
-      form.set('image.name', image.name);
-      form.set('image.args', JSON.stringify(image.args));
+      form.set('imageName', image.name);
+      form.set('imageArgs', JSON.stringify(image.args));
     }
-    return this.client.put(
-      ProjectApiService.getUrl(`configuration`),
+    return this.client.put<boolean[]>(
+      ProjectApiService.getUrl(`${projectId}/enqueued-on-others`),
       form
     ).toPromise();
   }
