@@ -45,35 +45,41 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects")
-    public Stream<Project> listProjects(User user) {
+    public Stream<ProjectInfo> listProjects(User user) {
         return winslow
                 .getProjectRepository()
                 .getProjects()
                 .flatMap(handle -> handle.unsafe().stream())
-                .filter(project -> canUserAccessProject(user, project));
+                .filter(project -> canUserAccessProject(user, project))
+                .map(ProjectInfo::new);
     }
 
     @PostMapping("/projects")
-    public Optional<Project> createProject(
+    public Optional<ProjectInfo> createProject(
             User user,
             @RequestParam("name") String name,
             @RequestParam("pipeline") String pipelineId) {
-        return winslow.getPipelineRepository().getPipeline(pipelineId).unsafe().flatMap(pipelineDefinition -> winslow
-                .getProjectRepository()
-                .createProject(user, pipelineDefinition, project -> project.setName(name))
-                .filter(project -> {
-                    try {
-                        winslow.getOrchestrator().createPipeline(project);
-                        return true;
-                    } catch (OrchestratorException e) {
-                        LOG.log(Level.WARNING, "Failed to create pipeline for project", e);
-                        if (!winslow.getProjectRepository().deleteProject(project.getId())) {
-                            LOG.severe(
-                                    "Failed to delete project for which no pipeline could be created, this leads to inconsistency!");
-                        }
-                        return false;
-                    }
-                }));
+        return winslow
+                .getPipelineRepository()
+                .getPipeline(pipelineId)
+                .unsafe()
+                .flatMap(pipelineDefinition -> winslow
+                        .getProjectRepository()
+                        .createProject(user, pipelineDefinition, project -> project.setName(name))
+                        .filter(project -> {
+                            try {
+                                winslow.getOrchestrator().createPipeline(project);
+                                return true;
+                            } catch (OrchestratorException e) {
+                                LOG.log(Level.WARNING, "Failed to create pipeline for project", e);
+                                if (!winslow.getProjectRepository().deleteProject(project.getId())) {
+                                    LOG.severe(
+                                            "Failed to delete project for which no pipeline could be created, this leads to inconsistency!");
+                                }
+                                return false;
+                            }
+                        }))
+                .map(ProjectInfo::new);
     }
 
     @GetMapping("/projects/{projectId}/history")
@@ -212,6 +218,19 @@ public class ProjectsController {
                 }
             }
         }
+    }
+
+    @GetMapping("/projects/{projectId}/pipeline-definition")
+    public Optional<PipelinesController.PipelineInfo> getProjectPipelineDefinition(
+            User user,
+            @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .map(Project::getPipelineDefinition)
+                .map(definition -> new PipelinesController.PipelineInfo(projectId, definition));
     }
 
     @GetMapping("/projects/{projectId}/state")
@@ -800,6 +819,27 @@ public class ProjectsController {
                     }
                     return false;
                 });
+    }
+
+    static class ProjectInfo {
+        public final @Nonnull String                           id;
+        public final @Nonnull String                           owner;
+        public final @Nonnull List<String>                     groups;
+        public final @Nonnull List<String>                     tags;
+        public final @Nonnull String                           name;
+        public final @Nonnull PipelinesController.PipelineInfo pipelineDefinition;
+
+        public ProjectInfo(@Nonnull Project project) {
+            this.id                 = project.getId();
+            this.owner              = project.getOwner();
+            this.groups             = project.getGroups();
+            this.tags               = project.getTags();
+            this.name               = project.getName();
+            this.pipelineDefinition = new PipelinesController.PipelineInfo(
+                    project.getId(),
+                    project.getPipelineDefinition()
+            );
+        }
     }
 
     static class HistoryEntry {

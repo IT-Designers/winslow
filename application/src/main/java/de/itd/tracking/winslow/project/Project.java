@@ -80,7 +80,7 @@ public class Project {
     }
 
     @Nonnull
-    public Iterable<String> getGroups() {
+    public List<String> getGroups() {
         if (this.groups != null) {
             return Collections.unmodifiableList(this.groups);
         } else {
@@ -102,7 +102,7 @@ public class Project {
     }
 
     @Nonnull
-    public Iterable<String> getTags() {
+    public List<String> getTags() {
         if (this.tags != null) {
             return Collections.unmodifiableList(this.tags);
         } else {
