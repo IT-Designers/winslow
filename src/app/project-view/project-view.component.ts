@@ -61,6 +61,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   watchDefinition = false;
 
   loadLogsOnceAnyway = false;
+  loadHistoryAnyway = false;
 
   longLoading = new LongLoadingDetector();
 
@@ -156,7 +157,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   pollWatched(forceUpdateOnWatched = false): void {
-    if (this.watchHistory && (this.isRunning() || forceUpdateOnWatched)) {
+    if (this.watchHistory && (this.isRunning() || this.loadHistoryAnyway || forceUpdateOnWatched)) {
+      this.loadHistoryAnyway = false;
       this.loadHistory();
     }
     if (this.watchPaused && (this.isRunning() || forceUpdateOnWatched)) {
@@ -248,6 +250,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
               enqueued[i].enqueueIndex = i;
               enqueued[i].enqueueControlSize = enqueued.length;
             }
+
+            this.loadHistoryAnyway = (enqueued.length > 0 && this.stateValue !== State.Paused)
+              || (history.length > 0 && history[0].state === State.Running);
 
             const latest = enqueued.reverse();
             history.forEach(h => latest.push(h));
