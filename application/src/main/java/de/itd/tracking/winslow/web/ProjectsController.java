@@ -1,9 +1,6 @@
 package de.itd.tracking.winslow.web;
 
-import de.itd.tracking.winslow.BaseRepository;
-import de.itd.tracking.winslow.LogEntry;
-import de.itd.tracking.winslow.OrchestratorException;
-import de.itd.tracking.winslow.Winslow;
+import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.Image;
 import de.itd.tracking.winslow.config.PipelineDefinition;
@@ -58,14 +55,20 @@ public class ProjectsController {
     public Optional<ProjectInfo> createProject(
             User user,
             @RequestParam("name") String name,
-            @RequestParam("pipeline") String pipelineId) {
+            @RequestParam("pipeline") String pipelineId,
+            @RequestParam(value = "tags", required = false) List<String> tags) {
         return winslow
                 .getPipelineRepository()
                 .getPipeline(pipelineId)
                 .unsafe()
                 .flatMap(pipelineDefinition -> winslow
                         .getProjectRepository()
-                        .createProject(user, pipelineDefinition, project -> project.setName(name))
+                        .createProject(user, pipelineDefinition, project -> {
+                            project.setName(name);
+                            if (tags != null && tags.size() > 0) {
+                                project.setTags(tags.toArray(new String[0]));
+                            }
+                        })
                         .filter(project -> {
                             try {
                                 winslow.getOrchestrator().createPipeline(project);
@@ -628,13 +631,16 @@ public class ProjectsController {
 
             if (exclusive.isPresent()) {
                 try (var container = exclusive.get()) {
-                    if (winslow.getOrchestrator().deletePipeline(project.get())) {
-                        if (!container.deleteOmitExceptions()) {
-                            LOG.log(Level.SEVERE, "Deleted Pipeline but failed to delete Project " + projectId);
-                            return ResponseEntity
-                                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                    .body("Deleted corresponding Pipeline but failed to delete the Project. Please contact the system administrator!");
-                        }
+                    try {
+                        winslow.getOrchestrator().deletePipeline(project.get());
+                    } catch (PipelineNotFoundException e) {
+                        // this is fine
+                    }
+                    if (!container.deleteOmitExceptions()) {
+                        LOG.log(Level.SEVERE, "Deleted Pipeline but failed to delete Project " + projectId);
+                        return ResponseEntity
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Deleted corresponding Pipeline but failed to delete the Project. Please contact the system administrator!");
                     }
                 } catch (OrchestratorException e) {
                     LOG.log(
