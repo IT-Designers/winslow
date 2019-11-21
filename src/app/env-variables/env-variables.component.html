@@ -1,6 +1,6 @@
 <div *ngFor="let key of keys" class="action-row">
-  <mat-label class="title" *ngIf="(values[key]?.length)">{{key}}</mat-label>
-  <mat-label class="title" *ngIf="!(values[key]?.length)"><s>{{key}}</s></mat-label>
+  <mat-label class="title" *ngIf="(values[key]?.length > 0)">{{key}}</mat-label>
+  <mat-label class="title" *ngIf="!(values[key]?.length > 0)"><s>{{key}}</s></mat-label>
   <mat-form-field [formGroup]="formGroupEnv">
     <input #input matInput
            [required]="requiredEnvVariables.has(key)"
