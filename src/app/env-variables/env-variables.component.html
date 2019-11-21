@@ -1,13 +1,13 @@
 <div *ngFor="let key of keys" class="action-row">
-  <mat-label class="title" *ngIf="!((input?.value?.length) == 0)">{{key}}</mat-label>
-  <mat-label class="title" *ngIf="(input?.value?.length) == 0"><s>{{key}}</s></mat-label>
+  <mat-label class="title" *ngIf="(values[key]?.length)">{{key}}</mat-label>
+  <mat-label class="title" *ngIf="!(values[key]?.length)"><s>{{key}}</s></mat-label>
   <mat-form-field [formGroup]="formGroupEnv">
     <input #input matInput
            [required]="requiredEnvVariables.has(key)"
            [value]="valueOf(key)"
-           (change)="updateValid()"
+           (change)="values[key] = input.value; updateValid()"
            [formControlName]="key"
-           (keyup)="updateValid()"
+           (keyup)="values[key] = input.value; updateValid()"
            name="{{key}}">
   </mat-form-field>
   <div class="controls">
@@ -20,7 +20,7 @@
       <mat-icon class="material-icons-outlined">undo</mat-icon>
     </button>
     <button mat-icon-button color="warn"
-            [disabled]="requiredEnvVariables.has(key) || formControls[key]?.value == null"
+            [disabled]="requiredEnvVariables.has(key) || (formControls[key] != null && formControls[key].value == null)"
             [matTooltip]="requiredEnvVariables.has(key) ? 'This value is required' : null"
             (click)="delete(key)">
       <mat-icon>delete</mat-icon>
