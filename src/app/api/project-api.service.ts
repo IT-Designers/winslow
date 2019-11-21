@@ -27,10 +27,13 @@ export class ProjectApiService {
     this.cachedTags = this.cachedTags.sort();
   }
 
-  createProject(name: string, pipeline: PipelineInfo) {
+  createProject(name: string, pipeline: PipelineInfo, tags?: string[]) {
     const form = new FormData();
     form.append('name', name);
     form.append('pipeline', pipeline.id);
+    if (tags != null) {
+      form.set('tags', JSON.stringify(tags));
+    }
     return this.client.post<any>(ProjectApiService.getUrl(null), form).toPromise();
   }
 

@@ -1,10 +1,12 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 
-interface CreateProjectData {
+export interface CreateProjectData {
   name: string;
   pipeline: PipelineInfo;
+  tags: string[];
 }
 
 @Component({
@@ -19,7 +21,8 @@ export class ProjectsCreateDialog implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<ProjectsCreateDialog>,
     @Inject(MAT_DIALOG_DATA) public data: CreateProjectData,
-    private api: PipelineApiService) {
+    private api: PipelineApiService,
+    private projectApi: ProjectApiService) {
   }
 
   ngOnInit() {
