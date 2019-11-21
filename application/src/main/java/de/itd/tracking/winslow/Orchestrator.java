@@ -86,7 +86,9 @@ public class Orchestrator {
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {
-        var project = this.projects.getProjectIdForLockSubject(event.getSubject());
+        var project = this.projects
+                .getProjectIdForLockSubject(event.getSubject())
+                .or(() -> this.logs.getProjectIdForLogPath(Path.of(event.getSubject())));
         if (project.isPresent()) {
             LOG.info("Going to check project for changes: " + project.get());
             this.delayedExecutions.executeRandomlyDelayed(project.get(), 10, 100, () -> {
@@ -135,12 +137,12 @@ public class Orchestrator {
         return backend;
     }
 
-    private void pollPipelineForUpdate(@Nonnull String id) {
-        this.checkPipelinesForUpdate(Stream.of(this.pipelines.getPipeline(id)));
-    }
-
     private void pollAllPipelinesForUpdate() {
         this.checkPipelinesForUpdate(this.pipelines.getAllPipelines());
+    }
+
+    private void pollPipelineForUpdate(@Nonnull String id) {
+        this.checkPipelinesForUpdate(Stream.of(this.pipelines.getPipeline(id)));
     }
 
     private void checkPipelinesForUpdate(@Nonnull Stream<BaseRepository.Handle<Pipeline>> pipelines) {
@@ -158,13 +160,17 @@ public class Orchestrator {
             var locked       = handle.isLocked();
             var pipe         = handle.unsafe();
             var projectId    = pipe.map(Pipeline::getProjectId);
+            var project      = projectId.map(projects::getProject).flatMap(BaseRepository.Handle::unsafe);
+            var definition   = project.map(Project::getPipelineDefinition);
             var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
             var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
             var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
+            var hasNext = pipe.flatMap(p -> definition.map(d -> maybeEnqueueNextStageOfPipeline(d, p)))
+                              .orElse(false);
 
-            LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", inconsistent=" + inconsistent + " projectId=" + projectId);
+            LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", inconsistent=" + inconsistent + ", hasNext=" + hasNext + " projectId=" + projectId);
 
-            return !locked && ((hasUpdate && capable) || inconsistent);
+            return !locked && ((hasUpdate && capable) || inconsistent || hasNext);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
             return false;
@@ -211,6 +217,7 @@ public class Orchestrator {
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
                 if (this.executeStages && hasNoRunningStage(pipeline)) {
+                    maybeEnqueueNextStageOfPipeline(definition, pipeline);
                     if (startNextStageIfReady(container.getLock(), definition, pipeline)) {
                         tryUpdateContainer(container, pipeline);
                     }
@@ -226,6 +233,47 @@ public class Orchestrator {
                 .getRunningStage()
                 .map(Stage::getState)
                 .orElse(null) != Stage.State.Running;
+    }
+
+    private boolean maybeEnqueueNextStageOfPipeline(
+            @Nonnull PipelineDefinition definition,
+            @Nonnull Pipeline pipeline) {
+        var noneRunning = pipeline.getRunningStage().isEmpty();
+        var paused      = pipeline.isPauseRequested();
+        var hasNext     = pipeline.peekNextStage().isPresent();
+        var successful = pipeline
+                .getMostRecentStage()
+                .map(Stage::getState)
+                .map(state -> state == Stage.State.Succeeded)
+                .orElse(Boolean.FALSE);
+
+        if (noneRunning && !paused && !hasNext && successful) {
+            return pipeline
+                    .getMostRecentStage()
+                    .flatMap(recent -> {
+                        return getNextStageIndex(definition, recent).map(index -> {
+                            pipeline.enqueueStage(definition.getStages().get(index));
+                            return Boolean.TRUE;
+                        });
+                    }).orElse(Boolean.FALSE);
+        } else {
+            return false;
+        }
+    }
+
+    private Optional<Integer> getNextStageIndex(@Nonnull PipelineDefinition definition, Stage recent) {
+        var index = -1;
+        for (int i = 0; i < definition.getStages().size(); ++i) {
+            if (definition.getStages().get(i).getName().equals(recent.getDefinition().getName())) {
+                index = i;
+                break;
+            }
+        }
+        if (index >= 0 && index + 1 < definition.getStages().size()) {
+            return Optional.of(index + 1);
+        } else {
+            return Optional.empty();
+        }
     }
 
     private boolean startNextStageIfReady(
@@ -306,28 +354,36 @@ public class Orchestrator {
             var assembler = new StageAssembler();
 
             try {
-                assembler
-                        .add(new EnvironmentVariableAppender(globalEnvironmentVariables))
-                        .add(new DockerImageAppender())
-                        .add(new RequirementAppender())
-                        .add(new EnvLogger())
-                        .add(new UserInputChecker())
-                        .add(new WorkspaceCreator(environment.getResourceManager()))
-                        .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
-                        .add(new BuildAndSubmit(this.nodeName, builtStage -> {
-                            lock.waitForRelease();
-                            updatePipeline(projectId, pipelineToUpdate -> {
-                                pipelineToUpdate.updateStage(builtStage);
-                            });
-                        }))
-                        .assemble(new Context(
-                                pipeline,
-                                definition,
-                                executor,
-                                stageEnqueued,
-                                stageId,
-                                backend.newStageBuilder(pipeline.getProjectId(), stageId, stageEnqueued.getDefinition())
-                        ));
+                try {
+                    assembler
+                            .add(new EnvironmentVariableAppender(globalEnvironmentVariables))
+                            .add(new DockerImageAppender())
+                            .add(new RequirementAppender())
+                            .add(new EnvLogger())
+                            .add(new UserInputChecker())
+                            .add(new WorkspaceCreator(environment.getResourceManager()))
+                            .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
+                            .add(new BuildAndSubmit(this.nodeName, builtStage -> {
+                                lock.waitForRelease();
+                                updatePipeline(projectId, pipelineToUpdate -> {
+                                    pipelineToUpdate.updateStage(builtStage);
+                                });
+                            }))
+                            .assemble(new Context(
+                                    pipeline,
+                                    definition,
+                                    executor,
+                                    stageEnqueued,
+                                    stageId,
+                                    backend.newStageBuilder(
+                                            pipeline.getProjectId(),
+                                            stageId,
+                                            stageEnqueued.getDefinition()
+                                    )
+                            ));
+                } finally {
+                    lock.waitForRelease();
+                }
 
             } catch (UserInputChecker.MissingUserInputException e) {
                 cleanupOnAssembleError(projectId, stageId, executor);
@@ -543,7 +599,9 @@ public class Orchestrator {
         }
     }
 
-    private void tryCreateInitDirectory(@Nonnull Pipeline pipeline, boolean failIfAlreadyExists) throws OrchestratorException {
+    private void tryCreateInitDirectory(
+            @Nonnull Pipeline pipeline,
+            boolean failIfAlreadyExists) throws OrchestratorException {
         environment
                 .getResourceManager()
                 .createWorkspace(createWorkspaceInitPath(pipeline.getProjectId()), failIfAlreadyExists)
@@ -689,13 +747,13 @@ public class Orchestrator {
     }
 
     private Executor startExecutor(
-            @Nonnull String pipeline,
+            @Nonnull String projectId,
             @Nonnull String stage,
             @Nonnull Consumer<LogEntry> consumer) throws LockException, FileNotFoundException {
-        var executor = new Executor(pipeline, stage, this);
+        var executor = new Executor(projectId, stage, this);
         executor.addShutdownListener(() -> this.executors.remove(stage));
-        executor.addShutdownListener(() -> this.pollPipelineForUpdate(pipeline));
         executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stage));
+        executor.addShutdownListener(() -> this.pollPipelineForUpdate(projectId));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stage, executor);
         return executor;

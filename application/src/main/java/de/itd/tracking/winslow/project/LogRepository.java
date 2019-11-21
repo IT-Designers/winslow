@@ -12,10 +12,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class LogRepository extends BaseRepository {
 
-    private static final int LOCK_DURATION_MS = 60_000;
+    private static final int  LOCK_DURATION_MS        = 60_000;
+    public static final  char PROJECT_STAGE_SEPARATOR = '.';
 
     public LogRepository(
             @Nonnull LockBus lockBus,
@@ -51,6 +53,17 @@ public class LogRepository extends BaseRepository {
     }
 
     private Path getLogFile(@Nonnull String projectId, @Nonnull String stageId) {
-        return getRepositoryFile(projectId + "." + stageId);
+        return getRepositoryFile(projectId + PROJECT_STAGE_SEPARATOR + stageId);
+    }
+
+    @Nonnull
+    public Optional<String> getProjectIdForLogPath(@Nonnull Path path) {
+        var name  = path.getFileName().toString();
+        var index = name.indexOf(PROJECT_STAGE_SEPARATOR);
+        if (index >= 0) {
+            return Optional.of(name.substring(0, index));
+        } else {
+            return Optional.empty();
+        }
     }
 }

@@ -121,6 +121,7 @@ public abstract class BaseRepository {
 
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
         return getLocked(path, reader, writer, DEFAULT_RETRY_COUNT, e -> {
+            e.printStackTrace();
         });
     }
 
