@@ -17,12 +17,14 @@ export interface CreateProjectData {
 export class ProjectsCreateDialog implements OnInit {
 
   pipelines: PipelineInfo[];
+  cachedTags: string[];
 
   constructor(
     public dialogRef: MatDialogRef<ProjectsCreateDialog>,
     @Inject(MAT_DIALOG_DATA) public data: CreateProjectData,
     private api: PipelineApiService,
     private projectApi: ProjectApiService) {
+    this.cachedTags = projectApi.cachedTags;
   }
 
   ngOnInit() {
