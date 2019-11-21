@@ -6,10 +6,7 @@ import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.config.UserInput;
 import de.itd.tracking.winslow.fs.*;
-import de.itd.tracking.winslow.pipeline.EnqueuedStage;
-import de.itd.tracking.winslow.pipeline.Pipeline;
-import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
-import de.itd.tracking.winslow.pipeline.Stage;
+import de.itd.tracking.winslow.pipeline.*;
 import de.itd.tracking.winslow.project.LogReader;
 import de.itd.tracking.winslow.project.LogRepository;
 import de.itd.tracking.winslow.project.Project;
@@ -268,7 +265,7 @@ public class Orchestrator {
             }
         }
         if (index >= 0 && index + 1 < definition.getStages().size()) {
-            return Optional.of(index + 1);
+            return Optional.of(index + (recent.getAction() == Action.Configure ? 0 : 1));
         } else {
             return Optional.empty();
         }
