@@ -102,4 +102,8 @@ public class Context {
             this.executor.logErr(message);
         }
     }
+
+    public void finishedEarly() {
+        this.executor.stop();
+    }
 }

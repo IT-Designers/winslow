@@ -35,6 +35,7 @@ public class BuildAndSubmit implements AssemblerStep {
                 case Configure:
                     stage = prepared.configure();
                     context.log(Level.INFO, "Stage configured on node " + this.nodeName);
+                    context.finishedEarly();
                     break;
 
                 default:
