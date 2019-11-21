@@ -895,8 +895,10 @@ public class ProjectsController {
         }
 
         void pushValue(@Nullable String value) {
-            this.valueInherited = this.value;
-            this.value          = value;
+            if (this.value != null) {
+                this.valueInherited = this.value;
+            }
+            this.value = value;
         }
     }
 }
