@@ -14,12 +14,13 @@
       </mat-select>
     </mat-form-field>
 
-    <p>Also permit access from the following groups</p>
-    <mat-selection-list disabled>
-      <mat-list-option>Group A</mat-list-option>
-      <mat-list-option>Group B</mat-list-option>
-      <mat-list-option>Group C</mat-list-option>
-    </mat-selection-list>
+    <label>Project Tags</label>
+    <app-tags-with-autocomplete
+      [sort]="false"
+      [tags]="data.tags"
+      (tags)="data.tags = $event"
+      [proposals]="projectApi.cachedTags">
+    </app-tags-with-autocomplete>
 
     <div mat-dialog-actions align="end">
       <button mat-raised-button (click)="dialogRef.close()">Cancel</button>
