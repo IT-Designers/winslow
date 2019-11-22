@@ -281,6 +281,32 @@
         </button>
       </div>
       <div class="stage-control-item">
+        <label>Limit of workspaces of successful stages to keep</label>
+        <mat-form-field>
+          <input #limit matInput type="number"
+                 [disabled]="deletionPolicy == null"
+                 [value]="deletionPolicy?.numberOfWorkspacesOfSucceededStagesToKeep" [min]="1">
+        </mat-form-field>
+        <button mat-stroked-button color="primary"
+                [disabled]="deletionPolicy == null || (deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value"
+                (click)="
+                setLimitOfWorkspacesOfSuccessfulStagesToKeep(limit.value)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <label>Keep workspaces of failed stages</label>
+        <mat-slide-toggle #keep
+          [disabled]="deletionPolicy == null"
+          [checked]="deletionPolicy?.keepWorkspaceOfFailedStage"
+        ></mat-slide-toggle>
+        <button mat-stroked-button color="primary"
+                [disabled]="deletionPolicy == null || deletionPolicy.keepWorkspaceOfFailedStage == keep.checked"
+                (click)="setKeepWorkspaceOfFailedStages(keep.checked)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
         <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
       </div>
     </ng-template>
