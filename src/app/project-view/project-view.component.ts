@@ -1,6 +1,6 @@
 import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
-  Action,
+  Action, DeletionPolicy,
   EnvVariable,
   HistoryEntry,
   ImageInfo,
@@ -51,6 +51,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   paused: boolean = null;
   pauseReason?: string = null;
   progress?: number;
+  deletionPolicy?: DeletionPolicy;
 
   watchHistory = false;
   watchPaused = false;
@@ -97,7 +98,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.pipelinesApi.getPipelineDefinitions().then(result => {
       this.pipelines = result;
       this.project = this.project;
-
     });
   }
 
@@ -111,6 +111,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.logs = null;
     this.history = null;
     this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
+    this.deletionPolicy = null;
     this.pollWatched(true);
     this.setupFiles();
 
@@ -118,6 +119,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.executionSelection.pipelines = [this.project.pipelineDefinition];
       this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
     }
+
+    this.api.getDeletionPolicy(this.project.id).then(policy => this.deletionPolicy = policy);
   }
 
   public get project(): ProjectInfo {
@@ -689,6 +692,25 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
             }
           });
       });
+  }
+
+  setLimitOfWorkspacesOfSuccessfulStagesToKeep(value: string) {
+    if (value != null && value.length === 0) {
+      value = null;
+    }
+    this.dialog.openLoadingIndicator(
+      this.api.setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(this.project.id, Number(value))
+        .then(result => this.deletionPolicy = result),
+      `Updating limit`
+    );
+  }
+
+  setKeepWorkspaceOfFailedStages(checked: boolean) {
+    this.dialog.openLoadingIndicator(
+      this.api.setDeletionPolicyKeepWorkspaceOfFailedStage(this.project.id, checked)
+        .then(result => this.deletionPolicy = result),
+      'Updating flag'
+    );
   }
 }
 
