@@ -20,6 +20,9 @@ build:
 
 deploy:
   stage: deploy
+  only:
+    refs:
+      - master
   tags:
     - dockerbuilder
   script:
