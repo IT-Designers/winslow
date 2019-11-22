@@ -14,8 +14,10 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -511,39 +513,38 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .map(pipeline -> {
-                            Map<String, EnvVariable> map   = new TreeMap<>();
-                            Map<String, String>      local = new TreeMap<>();
+                            var resolver = new EnvVariableResolver()
+                                    .withExecutionHistory(pipeline::getAllStages)
+                                    .withInPipelineDefinitionDefinedVariables(
+                                            project
+                                                    .getPipelineDefinition()
+                                                    .getEnvironment());
+
 
                             try {
-                                winslow
-                                        .getSettingsRepository()
-                                        .getGlobalEnvironmentVariables()
-                                        .forEach((key, value) -> {
-                                            map.computeIfAbsent(key, k -> new EnvVariable(key, value)).pushValue(value);
-                                        });
+                                resolver = resolver.withGlobalVariables(
+                                        winslow
+                                                .getSettingsRepository()
+                                                .getGlobalEnvironmentVariables()
+                                );
                             } catch (IOException e) {
                                 LOG.log(Level.WARNING, "Failed to load system environment variables", e);
                             }
 
-                            project.getPipelineDefinition().getEnvironment().forEach((key, value) -> {
-                                map.computeIfAbsent(key, k -> new EnvVariable(key, value)).pushValue(value);
-                            });
-
-                            project
+                            var stageDef = project
                                     .getPipelineDefinition()
                                     .getStages()
                                     .stream()
                                     .skip(stageIndex)
-                                    .findFirst()
-                                    .ifPresent(stageDef -> local.putAll(stageDef.getEnvironment()));
-                            pipeline
-                                    .getMostRecentStage()
-                                    .ifPresent(stage -> local.putAll(stage.getEnv()));
+                                    .findFirst();
 
-                            local.forEach((key, value) -> map
-                                    .computeIfAbsent(key, k -> new EnvVariable(key))
-                                    .pushValue(value));
-                            return map;
+                            if (stageDef.isPresent()) {
+                                resolver = resolver
+                                        .withStageName(stageDef.get().getName())
+                                        .withInStageDefinitionDefinedVariables(stageDef.get().getEnvironment());
+                            }
+
+                            return resolver.resolve();
                         })
                 )
                 .orElseGet(Collections::emptyMap);
@@ -964,24 +965,24 @@ public class ProjectsController {
         }
     }
 
-    static class EnvVariable {
+    public static class EnvVariable {
         public final @Nonnull String key;
         public @Nullable      String value;
         public @Nullable      String valueInherited;
 
-        EnvVariable(@Nonnull String key, @Nullable String value) {
+        public EnvVariable(@Nonnull String key, @Nullable String value) {
             this.key            = key;
             this.value          = value;
             this.valueInherited = value;
         }
 
-        EnvVariable(@Nonnull String key) {
+        public EnvVariable(@Nonnull String key) {
             this.key            = key;
             this.value          = null;
             this.valueInherited = null;
         }
 
-        void pushValue(@Nullable String value) {
+        public void pushValue(@Nullable String value) {
             if (this.value != null) {
                 this.valueInherited = this.value;
             }
