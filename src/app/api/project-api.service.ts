@@ -242,10 +242,10 @@ export class ProjectInfo {
 }
 
 export class HistoryEntry {
-  stageId: string;
-  startTime: number;
+  stageId?: string;
+  startTime?: number;
   finishTime?: number;
-  state: State;
+  state?: State;
   action: Action;
   stageName: string;
   workspace?: string;
