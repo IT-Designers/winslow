@@ -211,6 +211,30 @@ export class ProjectApiService {
   delete(projectId: string) {
     return this.client.delete(ProjectApiService.getUrl(`${projectId}`)).toPromise();
   }
+
+  getDeletionPolicy(projectId: string) {
+    return this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`)).toPromise();
+  }
+
+  setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(projectId: string, value?: number) {
+    const form = new FormData();
+    if (value !== null) {
+      form.set('value', '' + value);
+    }
+    return this.client.post<DeletionPolicy>(
+      ProjectApiService.getUrl(`${projectId}/deletion-policy/number-of-workspaces-of-succeeded-stages-to-keep`),
+      form
+    ).toPromise();
+  }
+
+  setDeletionPolicyKeepWorkspaceOfFailedStage(projectId: string, value: boolean) {
+    const form = new FormData();
+    form.set('value', '' + value);
+    return this.client.post<DeletionPolicy>(
+      ProjectApiService.getUrl(`${projectId}/deletion-policy/keep-workspace-of-failed-stage`),
+      form
+    ).toPromise();
+  }
 }
 
 export enum State {
@@ -333,4 +357,9 @@ export class EnvVariable {
   key: string;
   value?: string;
   valueInherited?: null;
+}
+
+export class DeletionPolicy {
+  keepWorkspaceOfFailedStage: boolean;
+  numberOfWorkspacesOfSucceededStagesToKeep?: number;
 }
