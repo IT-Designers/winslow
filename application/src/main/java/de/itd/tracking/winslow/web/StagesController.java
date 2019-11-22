@@ -39,7 +39,7 @@ public class StagesController {
         @Nullable public final ProjectsController.ImageInfo image;
         @Nonnull public final  List<String>                 requiredEnvVariables;
 
-        StageInfo(StageDefinition definition) {
+        public StageInfo(StageDefinition definition) {
             this.name                 = definition.getName();
             this.image                = definition.getImage().map(ProjectsController.ImageInfo::new).orElse(null);
             this.requiredEnvVariables = definition

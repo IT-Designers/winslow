@@ -103,7 +103,7 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/enqueued")
-    public Stream<StageDefinition> getEnqueued(User user, @PathVariable("projectId") String projectId) {
+    public Stream<HistoryEntry> getEnqueued(User user, @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -115,8 +115,8 @@ public class ProjectsController {
                         .getPipeline(project)
                         .stream()
                         .flatMap(Pipeline::getEnqueuedStages)
-                        .map(EnqueuedStage::getDefinition) // TODO does not expose Action information
-                );
+                )
+                .map(HistoryEntry::new);
     }
 
     @DeleteMapping("/projects/{projectId}/enqueued/{index}/{controlSize}")
@@ -875,10 +875,10 @@ public class ProjectsController {
     }
 
     static class HistoryEntry {
-        public final @Nonnull  String              stageId;
-        public final @Nonnull  Date                startTime;
+        public final @Nullable String              stageId;
+        public final @Nullable Date                startTime;
         public final @Nullable Date                finishTime;
-        public final @Nonnull  Stage.State         state;
+        public final @Nullable Stage.State         state;
         public final @Nonnull  Action              action;
         public final @Nonnull  String              stageName;
         public final @Nullable String              workspace;
@@ -902,6 +902,21 @@ public class ProjectsController {
             this.envPipeline = new TreeMap<>(stage.getEnvPipeline());
             this.envSystem   = new TreeMap<>(stage.getEnvSystem());
             this.envInternal = new TreeMap<>(stage.getEnvInternal());
+        }
+
+        public HistoryEntry(EnqueuedStage enqueuedStage) {
+            this.stageId     = null;
+            this.startTime   = null;
+            this.finishTime  = null;
+            this.state       = null;
+            this.action      = enqueuedStage.getAction();
+            this.stageName   = enqueuedStage.getDefinition().getName();
+            this.workspace   = null;
+            this.imageInfo   = enqueuedStage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
+            this.env         = new TreeMap<>(enqueuedStage.getDefinition().getEnvironment());
+            this.envPipeline = null;
+            this.envSystem   = null;
+            this.envInternal = null;
         }
     }
 
