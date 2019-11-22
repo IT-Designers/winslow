@@ -113,9 +113,9 @@
 
                 <h3>Image Information</h3>
                 <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo.name}}"></ng-template>
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo?.name}}"></ng-template>
                 <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo.args|json}}"></ng-template>
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo?.args|json}}"></ng-template>
 
 
                 <h3>Stage Environment Variables</h3>
