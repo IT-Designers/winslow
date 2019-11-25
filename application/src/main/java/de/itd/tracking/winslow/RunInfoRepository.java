@@ -50,24 +50,7 @@ public class RunInfoRepository extends BaseRepository {
     }
 
     public void removeAllProperties(@Nonnull String stageId) throws IOException {
-        var directory  = getRepositoryFile(stageId);
-        var maxRetries = 3;
-        for (int i = 0; i < maxRetries && directory.toFile().exists(); ++i) {
-            var index = i;
-            try (var stream = Files.walk(directory)) {
-                stream.forEach(entry -> {
-                    try {
-                        Files.deleteIfExists(entry);
-                    } catch (NoSuchFileException ignored) {
-                    } catch (IOException e) {
-                        if (index + 1 == maxRetries) {
-                            LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
-                        }
-                    }
-                });
-            }
-        }
-        Files.deleteIfExists(directory);
+        Orchestrator.forcePurge(getRepositoryFile(stageId));
     }
 
     public void setPropertyNoThrows(

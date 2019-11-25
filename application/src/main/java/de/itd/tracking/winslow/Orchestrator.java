@@ -2,9 +2,7 @@ package de.itd.tracking.winslow;
 
 import de.itd.tracking.winslow.asblr.*;
 import de.itd.tracking.winslow.config.PipelineDefinition;
-import de.itd.tracking.winslow.config.Requirements;
 import de.itd.tracking.winslow.config.StageDefinition;
-import de.itd.tracking.winslow.config.UserInput;
 import de.itd.tracking.winslow.fs.*;
 import de.itd.tracking.winslow.pipeline.*;
 import de.itd.tracking.winslow.project.LogReader;
@@ -242,6 +240,7 @@ public class Orchestrator {
         var hasNext     = pipeline.peekNextStage().isPresent();
         var successful = pipeline
                 .getMostRecentStage()
+                .filter(stage -> stage.getAction() == Action.Execute)
                 .map(Stage::getState)
                 .map(state -> state == Stage.State.Succeeded)
                 .orElse(Boolean.FALSE);
@@ -568,7 +567,7 @@ public class Orchestrator {
             }
 
             var workspace = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
-            workspace.ifPresent(Orchestrator::forcePurgeWorkspace);
+            workspace.ifPresent(Orchestrator::forcePurgeNoThrows);
             return workspace.isPresent() && container.deleteOmitExceptions();
 
         } catch (LockException e) {
@@ -576,28 +575,44 @@ public class Orchestrator {
         }
     }
 
-    private static void forcePurgeWorkspace(@Nonnull Path workspace) {
+    public static void forcePurgeNoThrows(@Nonnull Path directory) {
         try {
-            var maxRetries = 3;
-            for (int i = 0; i < maxRetries && workspace.toFile().exists(); ++i) {
-                var index = i;
-                try (var stream = Files.walk(workspace)) {
-                    stream.forEach(entry -> {
-                        try {
-                            Files.deleteIfExists(entry);
-                        } catch (NoSuchFileException ignored) {
-                        } catch (IOException e) {
-                            if (index + 1 == maxRetries) {
-                                LOG.log(Level.WARNING, "Failed to delete: " + entry, e);
-                            }
-                        }
-                    });
-                }
-            }
-            Files.deleteIfExists(workspace);
+            forcePurge(directory);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to get rid of workspace directory " + workspace, e);
+            LOG.log(Level.SEVERE, "Failed to get rid of directory " + directory, e);
         }
+    }
+
+    public static void forcePurge(@Nonnull Path directory) throws IOException {
+        var maxRetries = 3;
+        if (!directory.normalize().equals(directory)) {
+            LOG.warning("Ignoring deletion request of path that is not normalized correctly: " + directory);
+            return;
+        }
+        for (int i = 0; i < directory.getNameCount(); ++i) {
+            if (directory.getName(i).getFileName().toString().equals("..")) {
+                LOG.warning("Ignoring deletion request of path that is not normalized correctly: " + directory);
+                return;
+            }
+        }
+        for (int i = 0; i < maxRetries && directory.toFile().exists(); ++i) {
+            var index = i;
+            try (var stream = Files.walk(directory)) {
+                stream.forEach(entry -> {
+                    try {
+                        Files.deleteIfExists(entry);
+                    } catch (NoSuchFileException ignored) {
+                    } catch (IOException e) {
+                        if (index + 1 == maxRetries) {
+                            throw new RuntimeException("Failed to delete: " + entry, e);
+                        }
+                    }
+                });
+            } catch (RuntimeException re) {
+                throw new IOException(re);
+            }
+        }
+        Files.deleteIfExists(directory);
     }
 
     @Nonnull
@@ -747,7 +762,7 @@ public class Orchestrator {
                     .flatMap(Optional::stream)
                     .filter(Files::exists)
                     .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
-                    .forEach(Orchestrator::forcePurgeWorkspace);
+                    .forEach(Orchestrator::forcePurgeNoThrows);
         });
     }
 
