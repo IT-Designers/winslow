@@ -5,8 +5,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class OrchestratorTest {
 
@@ -17,11 +16,11 @@ public class OrchestratorTest {
 
         var path = temp.toAbsolutePath();
 
-        var subDir = path.resolve("someDir");
+        var subDir = path.resolve("someRootDir/someProjectDir");
         Files.createDirectories(subDir);
 
         assertTrue(Files.exists(subDir));
-        Orchestrator.forcePurge(subDir);
+        Orchestrator.forcePurge(path, subDir);
         assertFalse(Files.exists(subDir));
         assertTrue(Files.exists(path));
 
@@ -31,9 +30,9 @@ public class OrchestratorTest {
         assertTrue(Files.exists(subDir2));
         assertTrue(Files.exists(subDir2.resolve("abc")));
 
-
-        Orchestrator.forcePurge(subDir2.resolve("abc/../.."));
-        Orchestrator.forcePurge(subDir2.resolve(".."));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("abc/../..")));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("..")));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, path));
 
         // nothing should have been deleted!
         assertTrue(Files.exists(subDir2));

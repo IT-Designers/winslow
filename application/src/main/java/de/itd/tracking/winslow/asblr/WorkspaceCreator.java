@@ -111,9 +111,9 @@ public class WorkspaceCreator implements AssemblerStep {
         );
     }
 
-    private static void forcePurgeWorkspace(@Nonnull Context context, @Nonnull Path workspace) {
+    private void forcePurgeWorkspace(@Nonnull Context context, @Nonnull Path workspace) {
         try {
-            Orchestrator.forcePurge(workspace);
+            Orchestrator.forcePurge(this.environment.getWorkDirectoryConfiguration().getPath(), workspace);
         } catch (IOException e) {
             context.log(Level.SEVERE, "Failed to get rid of workspace directory " + workspace, e);
         }

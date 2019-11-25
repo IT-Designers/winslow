@@ -567,7 +567,7 @@ public class Orchestrator {
             }
 
             var workspace = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
-            workspace.ifPresent(Orchestrator::forcePurgeNoThrows);
+            workspace.ifPresent(this::forcePurgeNoThrows);
             return workspace.isPresent() && container.deleteOmitExceptions();
 
         } catch (LockException e) {
@@ -575,7 +575,7 @@ public class Orchestrator {
         }
     }
 
-    public static void forcePurgeNoThrows(@Nonnull Path directory) {
+    public void forcePurgeNoThrows(@Nonnull Path directory) {
         try {
             forcePurge(directory);
         } catch (IOException e) {
@@ -583,21 +583,34 @@ public class Orchestrator {
         }
     }
 
-    public static void forcePurge(@Nonnull Path directory) throws IOException {
+    public void forcePurge(@Nonnull Path pathToDelete) throws IOException {
+        Orchestrator.forcePurge(this.environment.getWorkDirectoryConfiguration().getPath(), pathToDelete);
+    }
+
+    public static void forcePurge(@Nonnull Path workDirectory, @Nonnull Path path) throws IOException {
+        if (!path.normalize().equals(path)) {
+            throw new IOException("Path not normalized properly: " + path);
+        }
+
+        if (!path.startsWith(workDirectory)) {
+            throw new IOException("Path[" + path + "] not within working directory[" + workDirectory + "]");
+        }
+
+        if (workDirectory.getNameCount() + 1 >= path.getNameCount()) {
+            //
+            // this matches the a path like this:
+            //
+            // /some/path/on/the/fs/winslow/workspaces/my-pipeline
+            // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA               forbidden
+            //                                        AAAAAAAAAAAA   fine
+            //
+            throw new IOException("Path[" + path + "] too close to the working directory[" + workDirectory + "]");
+        }
+
         var maxRetries = 3;
-        if (!directory.normalize().equals(directory)) {
-            LOG.warning("Ignoring deletion request of path that is not normalized correctly: " + directory);
-            return;
-        }
-        for (int i = 0; i < directory.getNameCount(); ++i) {
-            if (directory.getName(i).getFileName().toString().equals("..")) {
-                LOG.warning("Ignoring deletion request of path that is not normalized correctly: " + directory);
-                return;
-            }
-        }
-        for (int i = 0; i < maxRetries && directory.toFile().exists(); ++i) {
+        for (int i = 0; i < maxRetries && path.toFile().exists(); ++i) {
             var index = i;
-            try (var stream = Files.walk(directory)) {
+            try (var stream = Files.walk(path)) {
                 stream.forEach(entry -> {
                     try {
                         Files.deleteIfExists(entry);
@@ -612,7 +625,7 @@ public class Orchestrator {
                 throw new IOException(re);
             }
         }
-        Files.deleteIfExists(directory);
+        Files.deleteIfExists(path);
     }
 
     @Nonnull
@@ -762,7 +775,7 @@ public class Orchestrator {
                     .flatMap(Optional::stream)
                     .filter(Files::exists)
                     .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
-                    .forEach(Orchestrator::forcePurgeNoThrows);
+                    .forEach(this::forcePurgeNoThrows);
         });
     }
 
