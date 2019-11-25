@@ -307,7 +307,27 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  enqueueGroup(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
+  configure(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
+    if (pipeline.name === this.project.pipelineDefinition.name) {
+      let index = null;
+      for (let i = 0; i < pipeline.stages.length; ++i) {
+        if (pipeline.stages[i].name === stage.name) {
+          index = i;
+          break;
+        }
+      }
+      if (index !== null) {
+        this.dialog.openLoadingIndicator(
+          this.api.configureGroup(this.project.id, index, [this.project.id], env, image),
+          `Submitting selections`
+        );
+      }
+    } else {
+      this.dialog.error('Changing the Pipeline is not yet supported!');
+    }
+  }
+
+  configureGroup(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
     for (let i = 0; i < pipeline.stages.length; ++i) {
       if (stage.name === pipeline.stages[i].name) {
         return this.api.listProjects()
@@ -357,7 +377,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
           if (!this.paused) {
             this.stateEmitter.emit(this.stateValue = State.Running);
             this.pauseReason = null;
-            this.openLogs(null, true);
           }
         })
         .catch(err => {
