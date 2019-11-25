@@ -1,10 +1,10 @@
 package de.itd.tracking.winslow.asblr;
 
+import de.itd.tracking.winslow.Environment;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.Stage;
-import de.itd.tracking.winslow.resource.ResourceManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -23,21 +22,21 @@ import static de.itd.tracking.winslow.Orchestrator.replaceInvalidCharactersInJob
 
 public class WorkspaceCreator implements AssemblerStep {
 
-    private static final   Logger          LOG = Logger.getLogger(WorkspaceCreator.class.getSimpleName());
-    @Nonnull private final ResourceManager resourceManager;
+    private static final   Logger      LOG = Logger.getLogger(WorkspaceCreator.class.getSimpleName());
+    @Nonnull private final Environment environment;
 
-    public WorkspaceCreator(@Nonnull ResourceManager resourceManager) {
-        this.resourceManager = resourceManager;
+    public WorkspaceCreator(@Nonnull Environment environment) {
+        this.environment = environment;
     }
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var path = createWorkspacePathFor(
+        var path = getWorkspacePathOf(
                 context.getPipeline(),
                 context.getEnqueuedStage().getDefinition()
         );
-        var resources = resourceManager.getResourceDirectory();
-        var workspace = resourceManager.createWorkspace(path, true);
+        var resources = environment.getResourceManager().getResourceDirectory();
+        var workspace = environment.getResourceManager().createWorkspace(path, true);
 
         if (resources.isEmpty() || workspace.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
@@ -58,7 +57,21 @@ public class WorkspaceCreator implements AssemblerStep {
                 case Configure:
                     break;
             }
-            context.store(new WorkspaceConfiguration(resources.get(), workspace.get()));
+
+
+            var workspacesRootDir = environment.getResourceManager().getWorkspacesDirectory().get();
+            var resourcesAbsolute = resources.get();
+            var workspaceAbsolute = workspace.get();
+
+            var resourcesRelative = workspacesRootDir.relativize(resourcesAbsolute);
+            var workspaceRelative = workspacesRootDir.relativize(workspaceAbsolute);
+
+            context.store(new WorkspaceConfiguration(
+                    resourcesRelative,
+                    workspaceRelative,
+                    resourcesAbsolute,
+                    workspaceAbsolute
+            ));
         }
     }
 
@@ -66,19 +79,22 @@ public class WorkspaceCreator implements AssemblerStep {
     public void revert(@Nonnull Context context) {
         context
                 .load(WorkspaceConfiguration.class)
-                .map(WorkspaceConfiguration::getWorkspaceDirectory)
+                .map(WorkspaceConfiguration::getWorkspaceDirectoryAbsolute)
                 .ifPresent(path -> forcePurgeWorkspace(context, path));
     }
 
-    private static Path createWorkspacePathFor(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
-        return createWorkspacePathFor(pipeline.getProjectId(), pipeline.getStageCount() + 1, stage.getName());
+    @Nonnull
+    private static Path getWorkspacePathOf(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
+        return getWorkspacePathOf(pipeline.getProjectId(), pipeline.getStageCount(), stage.getName());
     }
 
-    private static Path createWorkspaceInitPath(@Nonnull String projectId) {
-        return createWorkspacePathFor(projectId, 0, null);
+    @Nonnull
+    public static Path getInitWorkspacePath(@Nonnull String projectId) {
+        return getWorkspacePathOf(projectId, 0, null);
     }
 
-    private static Path createWorkspacePathFor(@Nonnull String projectId, int stageNumber, @Nullable String suffix) {
+    @Nonnull
+    private static Path getWorkspacePathOf(@Nonnull String projectId, int stageNumber, @Nullable String suffix) {
         return Path.of(
                 projectId,
                 replaceInvalidCharactersInJobName(String.format(
@@ -120,26 +136,27 @@ public class WorkspaceCreator implements AssemblerStep {
             @Nonnull Path workspaceTarget) throws AssemblyException {
 
         var pipeline = context.getPipeline();
-        var workDirBefore = resourceManager
-                .getWorkspace(pipeline
-                                      .getAllStages()
-                                      .filter(stage -> stage.getState() == Stage.State.Succeeded)
-                                      .filter(stage -> stage.getAction() == Action.Execute)
-                                      .flatMap(stage -> getWorkspacePathForStage(pipeline, stage).stream())
-                                      .flatMap(path -> {
-                                          if (path.toFile().exists()) {
-                                              return Stream.of(path);
-                                          } else {
-                                              context.log(
-                                                      Level.FINE,
-                                                      "Ignoring missing workspace: " + path
-                                              );
-                                              return Stream.empty();
-                                          }
-                                      })
-                                      .reduce((first, second) -> second) // get the last successful stage
-                                      .orElseGet(() -> createWorkspaceInitPath(pipeline.getProjectId())))
-                .flatMap(resourceManager::getWorkspace);
+        var workDirBefore = pipeline
+                .getAllStages()
+                .filter(stage -> stage.getState() == Stage.State.Succeeded)
+                .filter(stage -> stage.getAction() == Action.Execute)
+                .flatMap(stage -> stage.getWorkspace().stream())
+                .flatMap(workspace -> {
+                    var path = environment.getResourceManager().getWorkspace(Path.of(workspace));
+                    if (path.isPresent()) {
+                        return Stream.of(path.get());
+                    } else {
+                        context.log(
+                                Level.FINE,
+                                "Ignoring missing workspace: " + workspace
+                        );
+                        return Stream.empty();
+                    }
+                })
+                .reduce((first, second) -> second) // get the last successful stage
+                .or(() -> environment
+                        .getResourceManager()
+                        .getWorkspace(getInitWorkspacePath(pipeline.getProjectId())));
 
         if (workDirBefore.isPresent()) {
             var dirBefore = workDirBefore.get();
@@ -176,13 +193,4 @@ public class WorkspaceCreator implements AssemblerStep {
             context.log(Level.WARNING, "No previous valid workspace directory found");
         }
     }
-
-    private static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
-        return Path.of(pipeline.getProjectId());
-    }
-
-    private static Optional<Path> getWorkspacePathForStage(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        return stage.getWorkspace().map(ws -> getWorkspacePathForPipeline(pipeline).resolve(ws));
-    }
-
 }

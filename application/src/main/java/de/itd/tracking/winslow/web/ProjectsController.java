@@ -4,20 +4,15 @@ import de.itd.tracking.winslow.*;
 import de.itd.tracking.winslow.auth.User;
 import de.itd.tracking.winslow.config.*;
 import de.itd.tracking.winslow.fs.LockException;
-import de.itd.tracking.winslow.pipeline.Action;
-import de.itd.tracking.winslow.pipeline.EnqueuedStage;
-import de.itd.tracking.winslow.pipeline.Pipeline;
-import de.itd.tracking.winslow.pipeline.Stage;
+import de.itd.tracking.winslow.pipeline.*;
 import de.itd.tracking.winslow.project.Project;
 import de.itd.tracking.winslow.project.ProjectRepository;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -497,6 +492,56 @@ public class ProjectsController {
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project))
                 .flatMap(Pipeline::getPauseReason);
+    }
+
+    @GetMapping("projects/{projectId}/deletion-policy")
+    public DeletionPolicy getDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().getPipeline(project))
+                .flatMap(Pipeline::getDeletionPolicy)
+                .orElseGet(Orchestrator::defaultDeletionPolicy);
+    }
+
+    @PostMapping("projects/{projectId}/deletion-policy/number-of-workspaces-of-succeeded-stages-to-keep")
+    public DeletionPolicy setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam(value = "value", required = false) Integer value) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+                    var policy = pipeline.getDeletionPolicy().orElseGet(Orchestrator::defaultDeletionPolicy);
+                    policy.setNumberOfWorkspacesOfSucceededStagesToKeep(value != null && value > 0 ? value : null);
+                    pipeline.setDeletionPolicy(policy);
+                    return policy;
+                }))
+                .orElseThrow();
+    }
+
+    @PostMapping("projects/{projectId}/deletion-policy/keep-workspace-of-failed-stage")
+    public DeletionPolicy setDeletionPolicyKeepWorkspaceOfFailedStage(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam(value = "value", required = false) Boolean value) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+                    var policy = pipeline.getDeletionPolicy().orElseGet(Orchestrator::defaultDeletionPolicy);
+                    policy.setKeepWorkspaceOfFailedStage(value != null ? value : true);
+                    pipeline.setDeletionPolicy(policy);
+                    return policy;
+                }))
+                .orElseThrow();
     }
 
     @GetMapping("projects/{projectId}/{stageIndex}/environment")

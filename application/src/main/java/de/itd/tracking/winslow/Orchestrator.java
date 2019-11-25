@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Orchestrator {
@@ -376,7 +377,7 @@ public class Orchestrator {
                             .add(new RequirementAppender())
                             .add(new EnvLogger())
                             .add(new UserInputChecker())
-                            .add(new WorkspaceCreator(environment.getResourceManager()))
+                            .add(new WorkspaceCreator(environment))
                             .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                             .add(new BuildAndSubmit(this.nodeName, builtStage -> {
                                 lock.waitForRelease();
@@ -619,7 +620,7 @@ public class Orchestrator {
             boolean failIfAlreadyExists) throws OrchestratorException {
         environment
                 .getResourceManager()
-                .createWorkspace(createWorkspaceInitPath(pipeline.getProjectId()), failIfAlreadyExists)
+                .createWorkspace(WorkspaceCreator.getInitWorkspacePath(pipeline.getProjectId()), failIfAlreadyExists)
                 .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
     }
 
@@ -641,62 +642,6 @@ public class Orchestrator {
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
     }
 
-    @Nonnull
-    private static PreparedStageBuilder addGpuRequirement(PreparedStageBuilder builder, Requirements.Gpu gpu) {
-        builder = builder.withGpuCount(gpu.getCount());
-
-        if (gpu.getVendor().isPresent()) {
-            builder = builder.withGpuVendor(gpu.getVendor().get());
-        }
-        return builder;
-    }
-
-    private static boolean isConfirmed(@Nonnull Pipeline pipeline) {
-        return Pipeline.ResumeNotification.Confirmation == pipeline.getResumeNotification().orElse(null);
-    }
-
-    private static Stream<String> hasMissingUserInput(
-            @Nonnull PipelineDefinition pipelineDefinition,
-            @Nonnull StageDefinition stageDefinition,
-            @Nonnull PreparedStageBuilder builder) {
-        return Stream.concat(
-                pipelineDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream()),
-                stageDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream())
-        ).filter(k -> builder.getEnvVariable(k).isEmpty());
-    }
-
-    private static boolean isConfirmationRequiredForNextStage(
-            @Nonnull PipelineDefinition pipelineDefinition,
-            @Nonnull StageDefinition stageDefinition,
-            @Nonnull Pipeline pipeline) {
-        return Stream
-                .concat(stageDefinition.getRequires().stream(), pipelineDefinition.getRequires().stream())
-                .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
-                .anyMatch(u -> !(u.getConfirmation() == UserInput.Confirmation.Once && pipeline
-                        .getAllStages()
-                        .anyMatch(s -> s.getDefinition().equals(stageDefinition))));
-    }
-
-    private static Path createWorkspacePathFor(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
-        return createWorkspacePathFor(pipeline.getProjectId(), pipeline.getStageCount() + 1, stage.getName());
-    }
-
-    private static Path createWorkspaceInitPath(@Nonnull String projectId) {
-        return createWorkspacePathFor(projectId, 0, null);
-    }
-
-    private static Path createWorkspacePathFor(@Nonnull String projectId, int stageNumber, @Nullable String suffix) {
-        return Path.of(
-                projectId,
-                replaceInvalidCharactersInJobName(String.format(
-                        "%04d%s%s",
-                        stageNumber,
-                        suffix != null ? "_" : "",
-                        suffix != null ? suffix : ""
-                ))
-        );
-    }
-
     private static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
         return Path.of(pipeline.getProjectId());
     }
@@ -712,7 +657,12 @@ public class Orchestrator {
 
     @Nonnull
     public Optional<Pipeline> getPipeline(@Nonnull Project project) {
-        return pipelines.getPipeline(project.getId()).unsafe();
+        return getPipeline(project.getId());
+    }
+
+    @Nonnull
+    private Optional<Pipeline> getPipeline(@Nonnull String projectId) {
+        return pipelines.getPipeline(projectId).unsafe();
     }
 
     @Nonnull
@@ -769,6 +719,7 @@ public class Orchestrator {
         executor.addShutdownListener(() -> this.executors.remove(stage));
         executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stage));
         executor.addShutdownListener(() -> this.pollPipelineForUpdate(projectId));
+        executor.addShutdownListener(() -> this.discardObsoleteWorkspaces(projectId));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stage, executor);
         return executor;
@@ -782,6 +733,28 @@ public class Orchestrator {
         }
     }
 
+    private void discardObsoleteWorkspaces(@Nonnull String projectId) {
+        getPipeline(projectId).ifPresent(pipeline -> {
+            var policy     = pipeline.getDeletionPolicy().orElseGet(Orchestrator::defaultDeletionPolicy);
+            var history    = pipeline.getCompletedStages().collect(Collectors.toList());
+            var finder     = new ObsoleteWorkspaceFinder(policy).withExecutionHistory(history);
+            var obsolete   = finder.collectObsoleteWorkspaces();
+            var workspaces = environment.getResourceManager();
+
+            obsolete.stream()
+                    .map(Path::of)
+                    .map(workspaces::getWorkspace)
+                    .flatMap(Optional::stream)
+                    .filter(Files::exists)
+                    .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
+                    .forEach(Orchestrator::forcePurgeWorkspace);
+        });
+    }
+
+    @Nonnull
+    public static DeletionPolicy defaultDeletionPolicy() {
+        return new DeletionPolicy();
+    }
 
     public static String replaceInvalidCharactersInJobName(@Nonnull String jobName) {
         return MULTI_UNDERSCORE

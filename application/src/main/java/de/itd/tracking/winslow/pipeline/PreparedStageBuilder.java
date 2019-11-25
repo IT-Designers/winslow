@@ -59,5 +59,5 @@ public interface PreparedStageBuilder {
     PreparedStage build();
 
     @Nonnull
-    PreparedStageBuilder withWorkspaceWithinPipeline(@Nonnull String viewAsPipeline);
+    PreparedStageBuilder withWorkspaceDirectory(@Nonnull String viewAsPipeline);
 }

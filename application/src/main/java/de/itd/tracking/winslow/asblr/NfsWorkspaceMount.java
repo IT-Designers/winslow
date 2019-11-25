@@ -4,7 +4,6 @@ import de.itd.tracking.winslow.Env;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
 
 import javax.annotation.Nonnull;
-import java.util.logging.Level;
 
 public class NfsWorkspaceMount implements AssemblerStep {
 
@@ -24,8 +23,8 @@ public class NfsWorkspaceMount implements AssemblerStep {
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var config = context.loadOrThrow(WorkspaceConfiguration.class);
 
-        var exportedResources = nfsWorkDirectory.toExportedPath(config.getResourcesDirectory());
-        var exportedWorkspace = nfsWorkDirectory.toExportedPath(config.getWorkspaceDirectory());
+        var exportedResources = nfsWorkDirectory.toExportedPath(config.getResourcesDirectoryAbsolute());
+        var exportedWorkspace = nfsWorkDirectory.toExportedPath(config.getWorkspaceDirectoryAbsolute());
 
         if (exportedResources.isEmpty() || exportedWorkspace.isEmpty()) {
             throw new AssemblyException("Failed to retrieve exported path for workspace or resources directory");
@@ -48,7 +47,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
                )
                .withInternalEnvVariable(ENV_DIR_RESOURCES, TARGET_PATH_RESOURCES)
                .withInternalEnvVariable(ENV_DIR_WORKSPACE, TARGET_PATH_WORKSPACE)
-               .withWorkspaceWithinPipeline(config.getWorkspaceDirectory().toString());
+               .withWorkspaceDirectory(config.getWorkspaceDirectory().toString());
     }
 
     @Override
