@@ -283,6 +283,10 @@ export class FilesComponent implements OnInit {
     this.api.downloadFile(file.path);
   }
 
+  downloadUrl(file: FileInfo): string {
+    return this.api.downloadUrl(file.path);
+  }
+
   delete(file: FileInfo) {
     this.dialog.openAreYouSure(
       `Deleting ${file.directory ? 'directory' : 'file'} ${file.name}`,
