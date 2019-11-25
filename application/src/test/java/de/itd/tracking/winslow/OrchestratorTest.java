@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
@@ -33,6 +34,8 @@ public class OrchestratorTest {
         assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("abc/../..")));
         assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("..")));
         assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, path));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, Path.of("/../../tmp/123/path-does-not-exist")));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, Path.of("../../tmp/123/path-does-not-exist")));
 
         // nothing should have been deleted!
         assertTrue(Files.exists(subDir2));
