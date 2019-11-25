@@ -50,6 +50,9 @@ export class FilesApiService {
   }
 
   filesUrl(pathToFile: string): string {
+    while (pathToFile.startsWith('/')) {
+      pathToFile = pathToFile.substr(1);
+    }
     return `${environment.apiLocation}files/${pathToFile}`;
   }
 
@@ -57,8 +60,12 @@ export class FilesApiService {
     return this.filesUrl(`workspaces/${pathToFile}`);
   }
 
+  downloadUrl(pathToFile: string) {
+    return this.filesUrl(pathToFile);
+  }
+
   downloadFile(pathToFile: string) {
-    window.open(this.filesUrl(pathToFile));
+    window.location.href = this.downloadUrl(pathToFile);
   }
 
   delete(path: string) {
