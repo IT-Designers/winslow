@@ -34,7 +34,7 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   }
 
   @Input()
-  set runningStage(stage: string) {
+  set mostRecentStage(stage: string) {
     this.stage = stage;
   }
 
