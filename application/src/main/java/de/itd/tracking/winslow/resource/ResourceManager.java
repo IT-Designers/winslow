@@ -30,15 +30,7 @@ public class ResourceManager {
     @Nonnull
     public Optional<Path> getWorkspace(@Nonnull Path path) {
         return getWorkspacesDirectory()
-                .flatMap(p -> {
-                    var resolved = p.resolve(path);
-                    var normalized = resolved.normalize();
-                    if (normalized.startsWith(p) && !normalized.toString().contains("..")) {
-                        return Optional.of(normalized);
-                    } else {
-                        return Optional.empty();
-                    }
-                })
+                .flatMap(dir -> saveResolve(dir, path))
                 .filter(p -> p.toFile().exists());
     }
 
@@ -49,7 +41,7 @@ public class ResourceManager {
      */
     public Optional<Path> createWorkspace(Path path, boolean failIfAlreadyExists) {
         return getWorkspacesDirectory()
-                .map(p -> p.resolve(path))
+                .flatMap(dir -> saveResolve(dir, path))
                 .filter(p -> {
                     if (p.toFile().mkdirs()) {
                         return true;
@@ -62,8 +54,17 @@ public class ResourceManager {
     }
 
     public Optional<Path> getResourceDirectory() {
-        return Optional.of(configuration.resolvePathOfResources(workDirectory)).filter(p -> p.toFile().exists() || p
-                .toFile()
-                .mkdirs());
+        return Optional
+                .of(configuration.resolvePathOfResources(workDirectory))
+                .filter(p -> p.toFile().exists() || p.toFile().mkdirs());
+    }
+
+    public static Optional<Path> saveResolve(@Nonnull Path base, @Nonnull Path path) {
+        var resolved = base.resolve(path.normalize());
+        if (resolved.startsWith(base)) {
+            return Optional.of(resolved);
+        } else {
+            return Optional.empty();
+        }
     }
 }
