@@ -34,8 +34,8 @@ public class OrchestratorTest {
         assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("abc/../..")));
         assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("..")));
         assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, path));
-        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, Path.of("/../../tmp/123/path-does-not-exist")));
-        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, Path.of("../../tmp/123/path-does-not-exist")));
+        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(path, Path.of("/../../tmp/123/path-does-not-exist")));
+        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(path, Path.of("../../tmp/123/path-does-not-exist")));
 
         // nothing should have been deleted!
         assertTrue(Files.exists(subDir2));

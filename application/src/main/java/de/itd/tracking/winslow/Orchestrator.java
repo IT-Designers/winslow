@@ -588,25 +588,7 @@ public class Orchestrator {
     }
 
     public static void forcePurge(@Nonnull Path workDirectory, @Nonnull Path path) throws IOException {
-        if (!path.normalize().equals(path)) {
-            throw new IOException("Path not normalized properly: " + path);
-        }
-
-        if (!path.startsWith(workDirectory)) {
-            throw new IOException("Path[" + path + "] not within working directory[" + workDirectory + "]");
-        }
-
-        if (workDirectory.getNameCount() + 1 >= path.getNameCount()) {
-            //
-            // this matches the a path like this:
-            //
-            // /some/path/on/the/fs/winslow/workspaces/my-pipeline
-            // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA               forbidden
-            //                                        AAAAAAAAAAAA   fine
-            //
-            throw new IOException("Path[" + path + "] too close to the working directory[" + workDirectory + "]");
-        }
-
+        ensurePathToPurgeIsValid(workDirectory, path);
         var maxRetries = 3;
         for (int i = 0; i < maxRetries && path.toFile().exists(); ++i) {
             var index = i;
@@ -626,6 +608,29 @@ public class Orchestrator {
             }
         }
         Files.deleteIfExists(path);
+    }
+
+    public static void ensurePathToPurgeIsValid(
+            @Nonnull Path workDirectory,
+            @Nonnull Path path) throws IOException {
+        if (!path.normalize().equals(path)) {
+            throw new IOException("Path not normalized properly: " + path);
+        }
+
+        if (!path.startsWith(workDirectory)) {
+            throw new IOException("Path[" + path + "] not within working directory[" + workDirectory + "]");
+        }
+
+        if (workDirectory.getNameCount() + 1 >= path.getNameCount()) {
+            //
+            // this matches the a path like this:
+            //
+            // /some/path/on/the/fs/winslow/workspaces/my-pipeline
+            // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA               forbidden
+            //                                        AAAAAAAAAAAA   fine
+            //
+            throw new IOException("Path[" + path + "] too close to the working directory[" + workDirectory + "]");
+        }
     }
 
     @Nonnull
