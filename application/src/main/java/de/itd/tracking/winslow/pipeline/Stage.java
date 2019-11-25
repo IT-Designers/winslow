@@ -108,6 +108,9 @@ public class Stage {
         return getFinishState().orElse(State.Running);
     }
 
+    /**
+     * @return The relative path to the workspaces root directory to locate the workspace of this stage
+     */
     @Nonnull
     public Optional<String> getWorkspace() {
         return Optional.ofNullable(workspace);

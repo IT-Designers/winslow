@@ -27,7 +27,7 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     private                String                  driver;
     private final          Resources               resources       = new Resources();
     private                HashMap<String, Object> deviceGpu       = null;
-    private                String                  workspaceWithinPipeline;
+    private                String                  workspaceDirectory;
 
     public NomadPreparedStageBuilder(
             @Nonnull String id,
@@ -237,7 +237,7 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                                                         .setEnv(env))),
                 jobsApi,
                 stageDefinition,
-                workspaceWithinPipeline,
+                workspaceDirectory,
                 envVars,
                 envVarsPipeline,
                 envVarsSystem,
@@ -247,8 +247,8 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     @Nonnull
     @Override
-    public PreparedStageBuilder withWorkspaceWithinPipeline(@Nonnull String workspace) {
-        this.workspaceWithinPipeline = workspace;
+    public PreparedStageBuilder withWorkspaceDirectory(@Nonnull String workspace) {
+        this.workspaceDirectory = workspace;
         return this;
     }
 

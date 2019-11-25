@@ -16,12 +16,13 @@ public class Pipeline {
     @Nonnull private final List<Stage> stages;
 
     private           boolean             pauseRequested     = false;
-    @Nullable private PauseReason         pauseReason        = null;
-    @Nullable private ResumeNotification  resumeNotification = null;
-    @Nullable private List<EnqueuedStage> enqueuedStages     = new ArrayList<>();
+    private @Nullable PauseReason         pauseReason        = null;
+    private @Nullable ResumeNotification  resumeNotification = null;
+    private @Nullable List<EnqueuedStage> enqueuedStages     = new ArrayList<>();
 
-    @Nonnull private  Strategy strategy;
-    @Nullable private Stage    stage;
+    private @Nullable DeletionPolicy deletionPolicy;
+    private @Nonnull  Strategy       strategy;
+    private @Nullable Stage          stage;
 
     public Pipeline(@Nonnull String projectId) {
         this.projectId = projectId;
@@ -36,6 +37,7 @@ public class Pipeline {
             @Nullable ResumeNotification resumeNotification,
             @Nullable List<EnqueuedStage> enqueuedStages,
             @Nullable List<Stage> completedStages,
+            @Nullable DeletionPolicy deletionPolicy,
             @Nonnull Strategy strategy,
             @Nullable Stage runningStage) {
         this.projectId          = projectId;
@@ -44,6 +46,7 @@ public class Pipeline {
         this.resumeNotification = resumeNotification;
         this.enqueuedStages     = enqueuedStages;
         this.stages             = completedStages != null ? completedStages : new ArrayList<>();
+        this.deletionPolicy     = deletionPolicy;
         this.strategy           = strategy;
         this.stage              = runningStage;
     }
@@ -209,6 +212,15 @@ public class Pipeline {
     @Nonnull
     public Strategy getStrategy() {
         return this.strategy;
+    }
+
+    @Nonnull
+    public Optional<DeletionPolicy> getDeletionPolicy() {
+        return Optional.ofNullable(this.deletionPolicy);
+    }
+
+    public void setDeletionPolicy(@Nullable DeletionPolicy policy) {
+        this.deletionPolicy = policy;
     }
 
     public void setStrategy(@Nonnull Strategy strategy) {

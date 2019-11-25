@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.resource;
 
+import javax.annotation.Nonnull;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -24,10 +25,21 @@ public class ResourceManager {
 
     /**
      * @param path Path within the directory to resolve
-     * @return The {@link Path} to the workspace for the given job id if it exists
+     * @return The path to the workspace for the given job id if it exists
      */
-    public Optional<Path> getWorkspace(Path path) {
-        return getWorkspacesDirectory().map(p -> p.resolve(path)).filter(p -> p.toFile().exists());
+    @Nonnull
+    public Optional<Path> getWorkspace(@Nonnull Path path) {
+        return getWorkspacesDirectory()
+                .flatMap(p -> {
+                    var resolved = p.resolve(path);
+                    var normalized = resolved.normalize();
+                    if (normalized.startsWith(p) && !normalized.toString().contains("..")) {
+                        return Optional.of(normalized);
+                    } else {
+                        return Optional.empty();
+                    }
+                })
+                .filter(p -> p.toFile().exists());
     }
 
     /**
