@@ -16,15 +16,25 @@
     <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
       <button mat-stroked-button color="warn"
               [disabled]="!executionSelection.valid"
-              (click)="enqueueGroup(
+              (click)="configureGroup(
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-        Set on other Projects
+        <mat-icon>group</mat-icon> Set on other Projects
       </button>
       <button mat-stroked-button color="primary"
+              [disabled]="!executionSelection.valid"
+              (click)="configure(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getImage()
+                )">
+        <mat-icon>save</mat-icon> Save configuration
+      </button>
+      <button mat-raised-button color="primary"
               [disabled]="!executionSelection.valid"
               (click)="enqueue(
                   executionSelection.selectedPipeline,
@@ -32,7 +42,7 @@
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-        Apply and Enqueue
+        <mat-icon>send</mat-icon> Enqueue
       </button>
     </div>
   </mat-tab>
