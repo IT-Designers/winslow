@@ -16,6 +16,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -194,7 +195,13 @@ public class FilesController {
                                         .toString()
                         )
                         .resolve(dir.relativize(file.toPath()))
-                        .toString()))
+                        .toString(),
+                                          Optional.of(file)
+                                                  .filter(f -> !f.isDirectory())
+                                                  .map(File::length)
+                                                  .orElse(null)
+
+                ))
                 .collect(Collectors.toUnmodifiableList()))).orElse(Collections.emptyList());
     }
 
@@ -248,26 +255,16 @@ public class FilesController {
     }
 
     public static class FileInfo {
-        private final String  name;
-        private final boolean isDirectory;
-        private final String  path;
+        public final @Nonnull  String  name;
+        public final           boolean directory;
+        public final @Nonnull  String  path;
+        public final @Nullable Long    fileSize;
 
-        public FileInfo(String name, boolean isDirectory, String path) {
-            this.name        = name;
-            this.isDirectory = isDirectory;
-            this.path        = path;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public boolean isDirectory() {
-            return isDirectory;
-        }
-
-        public String getPath() {
-            return path;
+        public FileInfo(String name, boolean isDirectory, String path, @Nullable Long fileSize) {
+            this.name      = name;
+            this.directory = isDirectory;
+            this.path      = path;
+            this.fileSize  = fileSize;
         }
     }
 }
