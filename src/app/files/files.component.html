@@ -47,11 +47,12 @@
       <li class="file" *ngFor="let file of this.currentDirectory()" (click)="onItemSelected(file)">
         <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}</i>
         <label>{{ file.name }}</label>
-          <i *ngIf="!file.directory" class="material-icons-outlined action-area">
-            <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">
+        <label class="action-area file-size file-size-human-readable">{{ file.fileSizeHumanReadable }}</label>
+        <i *ngIf="!file.directory" class="material-icons-outlined action-area">
+          <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">
             cloud_download
-            </a>
-          </i>
+          </a>
+        </i>
         <i class="material-icons-outlined action-area" (click)="delete(file)">delete</i>
       </li>
     </ul>

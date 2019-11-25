@@ -16,7 +16,9 @@ export class FilesApiService {
       path = path.substr(1);
     }
     return this.client
-      .options<FileInfo[]>(environment.apiLocation + 'files/' + path);
+      .options<FileInfo[]>(environment.apiLocation + 'files/' + path)
+      .toPromise()
+      .then(files => files.map(f => new FileInfo(f)));
   }
 
   createDirectory(path: string): Promise<any> {
@@ -84,4 +86,48 @@ export class FileInfo {
   name: string;
   directory: boolean;
   path: string;
+  fileSize?: number;
+  // local only
+  fileSizeHumanReadable?: string;
+
+  constructor(info: FileInfo = null) {
+    if (info != null) {
+      this.name = info.name;
+      this.directory = info.directory;
+      this.path = info.path;
+      this.fileSize = info.fileSize;
+      this.fileSizeHumanReadable = FileInfo.getFileSizeHumanReadable(info.fileSize);
+    }
+  }
+
+  private static getFileSizeHumanReadable(fileSize?: number): string {
+    if (fileSize != null) {
+      let suffix = 0;
+      let value = fileSize;
+
+      while (value >= 1024) {
+        suffix += 1;
+        value /= 1024;
+      }
+      const prefix = value.toFixed(1);
+      switch (suffix) {
+        case 0:
+          return prefix + ' bytes';
+        case 1:
+          return prefix + ' KiB';
+        case 2:
+          return prefix + ' MiB';
+        case 3:
+          return prefix + ' GiB';
+        case 4:
+          return prefix + ' TiB';
+        case 5:
+          return prefix + ' PiB';
+        default:
+          return fileSize + ' bytes';
+      }
+    } else {
+      return null;
+    }
+  }
 }

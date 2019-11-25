@@ -47,7 +47,6 @@ export class FilesComponent implements OnInit {
     this.longLoading.increase();
     this.api
       .listFiles('/resources')
-      .toPromise()
       .then(res => {
         this.insertListResourceResult('/resources', res);
         return this.loadDirectory(this.latestPath);
@@ -115,7 +114,7 @@ export class FilesComponent implements OnInit {
 
   private loadDirectory(path: string) {
     this.longLoading.increase();
-    return this.api.listFiles(path).toPromise().then(res => {
+    return this.api.listFiles(path).then(res => {
       this.insertListResourceResult(path, res);
     }).finally(() => this.longLoading.decrease());
   }
@@ -159,7 +158,7 @@ export class FilesComponent implements OnInit {
     if (currentIndex < pathSplit.length) {
       const before = combined;
       combined += '/' + pathSplit[currentIndex];
-      return this.api.listFiles(combined).toPromise().then(res => {
+      return this.api.listFiles(combined).then(res => {
         if (res != null) {
 
           this.insertListResourceResult(combined, res);

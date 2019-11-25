@@ -131,6 +131,15 @@ ul.files-browser-navigation > li > p {
 .files-browser-view .file > label {
   padding: 0 0.5em;
   flex-grow: 1;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.file-size {}
+.file-size-human-readable {
+  min-width: 5em;
+  margin-right: 1em;
+  text-align: end;
 }
 
 
