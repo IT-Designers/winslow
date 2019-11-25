@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow;
 
+import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.web.ProjectsController;
 import org.springframework.lang.NonNull;
@@ -8,7 +9,6 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
@@ -22,11 +22,12 @@ import java.util.stream.Stream;
  */
 public class EnvVariableResolver {
 
-    private @Nullable Map<String, String>     globalVariables;
-    private @Nullable Map<String, String>     pipelineDefinitionVariables;
-    private @Nullable Map<String, String>     stageDefinitionVariables;
-    private @Nullable Supplier<Stream<Stage>> executionHistory;
-    private @Nullable String                  stageName;
+    private @Nullable Map<String, String>             globalVariables;
+    private @Nullable Map<String, String>             pipelineDefinitionVariables;
+    private @Nullable Map<String, String>             stageDefinitionVariables;
+    private @Nullable Supplier<Stream<Stage>>         executionHistory;
+    private @Nullable Supplier<Stream<EnqueuedStage>> enqueuedStages;
+    private @Nullable String                          stageName;
 
     @NonNull
     @CheckReturnValue
@@ -53,6 +54,13 @@ public class EnvVariableResolver {
     @CheckReturnValue
     public EnvVariableResolver withExecutionHistory(@Nullable Supplier<Stream<Stage>> history) {
         this.executionHistory = history;
+        return this;
+    }
+
+    @NonNull
+    @CheckReturnValue
+    public EnvVariableResolver withEnqueuedStages(@Nullable Supplier<Stream<EnqueuedStage>> enqueued) {
+        this.enqueuedStages = enqueued;
         return this;
     }
 
@@ -101,34 +109,41 @@ public class EnvVariableResolver {
             result.putAll(this.stageDefinitionVariables);
         }
 
-        // once a stage has been executed successful, its configuration
+        // once a stage has been executed, its configuration
         // has a higher relevance and therefore it overwrites the configuration
         // from the definition
-        result.putAll(retrieveMostRecentSuccessfulExecutedStageEnvironmentVariables());
+        result.putAll(retrieveMostRecentExecutedStageEnvironmentVariables());
+
+        // an enqueued stage is even more recent and therefore even more important
+        result.putAll(retrieveMostRecentEnqueuedStageEnvironmentVariables());
         return result;
     }
 
     @NonNull
     @CheckReturnValue
-    private Map<String, String> retrieveMostRecentSuccessfulExecutedStageEnvironmentVariables() {
+    private Map<String, String> retrieveMostRecentExecutedStageEnvironmentVariables() {
         if (this.executionHistory != null && this.stageName != null) {
             return this.executionHistory
                     .get()
-                    .filter(s -> s.getFinishState().map(state -> Stage.State.Succeeded == state).orElse(Boolean.FALSE))
+                    //.filter(s -> s.getFinishState().map(state -> Stage.State.Succeeded == state).orElse(Boolean.FALSE))
                     .filter(s -> this.stageName.equals(s.getDefinition().getName()))
-                    .reduce((first, second) -> {
-                        var timeFirst  = first.getFinishTime().map(Date::getTime).orElse(0L);
-                        var timeSecond = second.getFinishTime().map(Date::getTime).orElse(0L);
-
-                        // '>' causes to fallback to the second entry if both are equal,
-                        // which is most likely the more recent entry
-                        if (timeFirst > timeSecond) {
-                            return first;
-                        } else {
-                            return second;
-                        }
-                    })
+                    .reduce((first, second) -> second) // expect in order
                     .map(Stage::getEnv)
+                    .orElseGet(Collections::emptyMap);
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
+    @NonNull
+    @CheckReturnValue
+    private Map<String, String> retrieveMostRecentEnqueuedStageEnvironmentVariables() {
+        if (this.enqueuedStages != null && this.stageName != null) {
+            return this.enqueuedStages
+                    .get()
+                    .filter(s -> this.stageName.equals(s.getDefinition().getName()))
+                    .reduce((first, second) -> second) // expect in order
+                    .map(enqueued -> enqueued.getDefinition().getEnvironment())
                     .orElseGet(Collections::emptyMap);
         } else {
             return Collections.emptyMap();

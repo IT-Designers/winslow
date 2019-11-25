@@ -28,8 +28,10 @@ public class StageAssembler {
         context.log(Level.INFO, "Starting to assemble stage");
         for (int i = 0; i < this.steps.size(); ++i) {
             try {
-                context.log(Level.INFO, "Assembly step " + this.steps.get(i).getClass().getSimpleName());
-                this.steps.get(i).assemble(context);
+                if (this.steps.get(i).applicable(context)) {
+                    context.log(Level.INFO, "Assembly step " + this.steps.get(i).getClass().getSimpleName());
+                    this.steps.get(i).assemble(context);
+                }
             } catch (AssemblyException e) {
                 context.log(Level.SEVERE, "Assembly failed at index " + i, e);
                 LOG.log(Level.SEVERE, "Assembly failed at index " + i, e);

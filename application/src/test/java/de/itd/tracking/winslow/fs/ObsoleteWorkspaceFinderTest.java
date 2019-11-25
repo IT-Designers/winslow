@@ -77,6 +77,22 @@ public class ObsoleteWorkspaceFinderTest {
         assertEquals(List.of("workspace1", "workspace4", "workspace6"), list);
     }
 
+    @Test
+    public void testIgnoresConfigureStages() {
+        var history = List.of(
+                constructFinishedStage("workspace1", Stage.State.Succeeded),
+                constructFinishedConfigureStage("configure1", Stage.State.Succeeded),
+                constructFinishedConfigureStage("configure2", Stage.State.Failed)
+        );
+
+        assertTrue(new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+                           .withExecutionHistory(history)
+                           .collectObsoleteWorkspaces()
+                           .isEmpty()
+        );
+    }
+
+
     @NonNull
     private static Stage constructFinishedStage(
             @NonNull String workspace,
@@ -93,6 +109,33 @@ public class ObsoleteWorkspaceFinderTest {
                         null
                 ),
                 Action.Execute,
+                new Date(0L),
+                workspace,
+                new Date(),
+                finishState,
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
+    @NonNull
+    private static Stage constructFinishedConfigureStage(
+            @NonNull String workspace,
+            @NonNull Stage.State finishState) {
+        return new Stage(
+                "some-id",
+                new StageDefinition(
+                        "some-definition",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                Action.Configure,
                 new Date(0L),
                 workspace,
                 new Date(),

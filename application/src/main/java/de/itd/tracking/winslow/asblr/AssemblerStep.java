@@ -4,6 +4,10 @@ import javax.annotation.Nonnull;
 
 public interface AssemblerStep {
 
+    default boolean applicable(@Nonnull Context context) {
+        return true;
+    }
+
     /**
      * Instructs this step to assemble itself or throw an
      * {@link AssemblyException} if pre-conditions are not met

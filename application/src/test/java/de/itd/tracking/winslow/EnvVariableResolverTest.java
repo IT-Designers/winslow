@@ -2,12 +2,14 @@ package de.itd.tracking.winslow;
 
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.pipeline.Action;
+import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.web.ProjectsController;
 import org.junit.Test;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -40,7 +42,7 @@ public class EnvVariableResolverTest {
 
     @Test
     public void testHistoryOverwritesVariablesOfStageDefinition() {
-        var resolved = new EnvVariableResolver()
+        var resolver = new EnvVariableResolver()
                 .withInPipelineDefinitionDefinedVariables(Map.of("variable", "pipeline"))
                 .withInStageDefinitionDefinedVariables(Map.of("variable", "stage")) // this is expected to 'disappear'
                 .withStageName("some-stage-name")
@@ -57,10 +59,43 @@ public class EnvVariableResolverTest {
                                 "some-stage-name",
                                 Stage.State.Failed,
                                 Map.of("variable", "history-entry-which-failed")
-                        )))
-                .resolve();
+                        )));
 
-        assertEnvVariable(resolved.get("variable"), "variable", "history", "pipeline");
+        assertEnvVariable(resolver.resolve().get("variable"), "variable", "history-entry-which-failed", "pipeline");
+    }
+
+    @Test
+    public void testEnQueuedOverwritesHistoryOverwritesVariablesOfStageDefinition() {
+        var resolver = new EnvVariableResolver()
+                .withInPipelineDefinitionDefinedVariables(Map.of("variable", "pipeline"))
+                .withInStageDefinitionDefinedVariables(Map.of("variable", "stage")) // this is expected to 'disappear'
+                .withStageName("some-stage-name")
+                .withExecutionHistory(() -> Stream
+                        .of(constructFinishedStage(
+                                "some-stage-name",
+                                Stage.State.Succeeded,
+                                Map.of("variable", "history")
+                        )));
+
+        resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedStage(
+                "some-stage-name",
+                Action.Execute,
+                Map.of("variable", "enqueued-stage-to-execute")
+        )));
+
+        assertEnvVariable(resolver.resolve().get("variable"), "variable", "enqueued-stage-to-execute", "pipeline");
+
+        resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedStage(
+                "some-stage-name",
+                Action.Execute,
+                Map.of("variable", "enqueued-stage-to-execute")
+        ), constructEnqueuedStage(
+                "some-stage-name",
+                Action.Configure,
+                Map.of("variable", "enqueued-stage-to-configure")
+        )));
+
+        assertEnvVariable(resolver.resolve().get("variable"), "variable", "enqueued-stage-to-configure", "pipeline");
     }
 
     @Test
@@ -85,7 +120,7 @@ public class EnvVariableResolverTest {
             assertEnvVariable(resolved.get(check), check, check, null);
         }
     }
-    
+
     private static void assertEnvVariable(
             ProjectsController.EnvVariable variable,
             String key,
@@ -122,6 +157,25 @@ public class EnvVariableResolverTest {
                 null,
                 null,
                 null
+        );
+    }
+
+    @NonNull
+    private static EnqueuedStage constructEnqueuedStage(
+            @NonNull String name,
+            @Nonnull Action action,
+            @Nullable Map<String, String> env) {
+        return new EnqueuedStage(
+                new StageDefinition(
+                        name,
+                        null,
+                        null,
+                        null,
+                        null,
+                        env,
+                        null
+                ),
+                action
         );
     }
 }

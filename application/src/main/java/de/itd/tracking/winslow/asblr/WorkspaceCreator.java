@@ -1,6 +1,7 @@
 package de.itd.tracking.winslow.asblr;
 
 import de.itd.tracking.winslow.Environment;
+import de.itd.tracking.winslow.Orchestrator;
 import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.Pipeline;
@@ -11,7 +12,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -27,6 +27,11 @@ public class WorkspaceCreator implements AssemblerStep {
 
     public WorkspaceCreator(@Nonnull Environment environment) {
         this.environment = environment;
+    }
+
+    @Override
+    public boolean applicable(@Nonnull Context context) {
+        return context.getEnqueuedStage().getAction() != Action.Configure;
     }
 
     @Override
@@ -108,23 +113,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
     private static void forcePurgeWorkspace(@Nonnull Context context, @Nonnull Path workspace) {
         try {
-            var maxRetries = 3;
-            for (int i = 0; i < maxRetries && workspace.toFile().exists(); ++i) {
-                var index = i;
-                try (var stream = Files.walk(workspace)) {
-                    stream.forEach(entry -> {
-                        try {
-                            Files.deleteIfExists(entry);
-                        } catch (NoSuchFileException ignored) {
-                        } catch (IOException e) {
-                            if (index + 1 == maxRetries) {
-                                context.log(Level.WARNING, "Failed to delete: " + entry, e);
-                            }
-                        }
-                    });
-                }
-            }
-            Files.deleteIfExists(workspace);
+            Orchestrator.forcePurge(workspace);
         } catch (IOException e) {
             context.log(Level.SEVERE, "Failed to get rid of workspace directory " + workspace, e);
         }

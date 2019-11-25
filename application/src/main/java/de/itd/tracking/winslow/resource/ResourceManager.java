@@ -60,7 +60,7 @@ public class ResourceManager {
     }
 
     public static Optional<Path> saveResolve(@Nonnull Path base, @Nonnull Path path) {
-        var resolved = base.resolve(path.normalize());
+        var resolved = base.resolve(path.normalize()).normalize();
         if (resolved.startsWith(base)) {
             return Optional.of(resolved);
         } else {

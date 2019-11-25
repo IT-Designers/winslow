@@ -560,6 +560,7 @@ public class ProjectsController {
                         .map(pipeline -> {
                             var resolver = new EnvVariableResolver()
                                     .withExecutionHistory(pipeline::getAllStages)
+                                    .withEnqueuedStages(pipeline::getEnqueuedStages)
                                     .withInPipelineDefinitionDefinedVariables(
                                             project
                                                     .getPipelineDefinition()
@@ -780,9 +781,15 @@ public class ProjectsController {
                 env
         );
 
-        if (!pipeline.hasEnqueuedStages()) {
+        /*
+        // configurations can slip through even if paused
+        if (!pipeline.hasEnqueuedStages() && action == Action.Configure) {
+            if (pipeline.isPauseRequested()) {
+                pipeline.setStrategy(Pipeline.Strategy.MoveForwardOnce);
+            }
             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
         }
+         */
         maybeUpdateImageInfo(imageName, imageArgs, resultDefinition);
         pipeline.enqueueStage(resultDefinition, action);
     }

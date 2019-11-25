@@ -1,5 +1,6 @@
 package de.itd.tracking.winslow.fs;
 
+import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.DeletionPolicy;
 import de.itd.tracking.winslow.pipeline.Stage;
 import org.springframework.lang.NonNull;
@@ -32,17 +33,18 @@ public class ObsoleteWorkspaceFinder {
     public List<String> collectObsoleteWorkspaces() {
         var obsolete = new ArrayList<String>();
 
-        appendWorkspaceOfFailedStagesIfapplicable(obsolete);
+        appendWorkspaceOfFailedStagesIfApplicable(obsolete);
         appendWorkspacesOfSuccessfulStagesThatExceedTheLimit(obsolete);
 
         return obsolete;
     }
 
-    private void appendWorkspaceOfFailedStagesIfapplicable(@NonNull List<String> obsolete) {
+    private void appendWorkspaceOfFailedStagesIfApplicable(@NonNull List<String> obsolete) {
         if (!policy.getKeepWorkspaceOfFailedStage() && this.executionHistory != null) {
             this.executionHistory
                     .stream()
                     .filter(stage -> stage.getFinishState().orElse(Stage.State.Running) == Stage.State.Failed)
+                    .filter(stage -> stage.getAction() == Action.Execute)
                     .filter(stage -> stage.getWorkspace().isPresent())
                     .forEach(stage -> obsolete.add(stage.getWorkspace().get()));
         }
@@ -54,6 +56,7 @@ public class ObsoleteWorkspaceFinder {
             var successfulStages = this.executionHistory
                     .stream()
                     .filter(stage -> stage.getFinishState().orElse(Stage.State.Running) == Stage.State.Succeeded)
+                    .filter(stage -> stage.getAction() == Action.Execute)
                     .collect(Collectors.toList());
 
             for (int i = 0; i < successfulStages.size(); ++i) {

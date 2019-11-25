@@ -2,6 +2,7 @@ package de.itd.tracking.winslow.asblr;
 
 import de.itd.tracking.winslow.Env;
 import de.itd.tracking.winslow.fs.NfsWorkDirectory;
+import de.itd.tracking.winslow.pipeline.Action;
 
 import javax.annotation.Nonnull;
 
@@ -17,6 +18,11 @@ public class NfsWorkspaceMount implements AssemblerStep {
 
     public NfsWorkspaceMount(@Nonnull NfsWorkDirectory nfsWorkDirectory) {
         this.nfsWorkDirectory = nfsWorkDirectory;
+    }
+
+    @Override
+    public boolean applicable(@Nonnull Context context) {
+        return context.getEnqueuedStage().getAction() != Action.Configure;
     }
 
     @Override
