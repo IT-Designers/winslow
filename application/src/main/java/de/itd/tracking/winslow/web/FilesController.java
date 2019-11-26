@@ -150,7 +150,10 @@ public class FilesController {
                             // Otherwise the download might result in a "f.txt" named file
                             // https://stackoverflow.com/questions/41364732/zip-file-downloaded-as-f-txt-file-springboot
                             // https://pivotal.io/security/cve-2015-5211
-                            .header("content-disposition", "inline; filename=\"" + file.getName() + "\"")
+                            .header(
+                                    "content-disposition",
+                                    "inline; filename=\"" + file.getName().replaceAll("\"", "") + "\""
+                            )
                             .contentLength(file.length())
                             .contentType(MediaType.APPLICATION_OCTET_STREAM)
                             .body(new FileSystemResource(file))
