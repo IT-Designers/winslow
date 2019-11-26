@@ -80,13 +80,12 @@ export class ProjectApiService {
     return this.client.get<any[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
       .pipe(map(enqueued => {
         return enqueued.map(entry => {
-          const history = new HistoryEntry();
-          history.state = State.Enqueued;
-          history.stageName = entry.name;
-          history.imageInfo = entry.image;
-          history.env = this.toMap(entry);
-          history.envInternal = new Map();
-          return history;
+          entry.state = State.Enqueued;
+          entry.env = this.toMap(entry.env);
+          entry.envPipeline = this.toMap(entry.envPipeline);
+          entry.envSystem = this.toMap(entry.envSystem);
+          entry.envInternal = this.toMap(entry.envInternal);
+          return entry;
         });
       }))
       .toPromise();
