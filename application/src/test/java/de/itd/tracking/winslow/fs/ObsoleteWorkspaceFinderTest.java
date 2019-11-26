@@ -7,22 +7,28 @@ import de.itd.tracking.winslow.pipeline.Stage;
 import org.junit.Test;
 import org.springframework.lang.NonNull;
 
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 
 public class ObsoleteWorkspaceFinderTest {
 
     @Test
     public void testNoThrowWithoutHistory() {
-        assertTrue(new ObsoleteWorkspaceFinder(new DeletionPolicy()).collectObsoleteWorkspaces().isEmpty());
-        assertTrue(new ObsoleteWorkspaceFinder(new DeletionPolicy())
-                           .withExecutionHistory(Collections.emptyList())
-                           .collectObsoleteWorkspaces()
-                           .isEmpty());
+        assertEquals(
+                Collections.emptyList(),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy()).collectObsoleteWorkspaces()
+        );
+        assertEquals(
+                Collections.emptyList(),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy())
+                        .withExecutionHistory(Collections.emptyList())
+                        .collectObsoleteWorkspaces()
+        );
     }
 
     @Test
@@ -35,11 +41,11 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedStage("workspace5", Stage.State.Failed)
         );
 
-        assertTrue(
+        assertEquals(
+                Collections.emptyList(),
                 new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
-                        .isEmpty()
         );
 
         var list = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, null))
@@ -62,11 +68,11 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedStage("workspace7", Stage.State.Succeeded)
         );
 
-        assertTrue(
+        assertEquals(
+                Collections.emptyList(),
                 new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
-                        .isEmpty()
         );
 
         var list = new ObsoleteWorkspaceFinder(new DeletionPolicy(true, 1))
@@ -85,10 +91,60 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedConfigureStage("configure2", Stage.State.Failed)
         );
 
-        assertTrue(new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+        assertEquals(
+                Collections.emptyList(),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
                            .withExecutionHistory(history)
                            .collectObsoleteWorkspaces()
-                           .isEmpty()
+        );
+    }
+
+    @Test
+    public void testProperlyConsidersDiscardable() {
+        var history = List.of(
+                constructFinishedDiscardableStage("workspace1", Action.Execute, Stage.State.Succeeded),
+                constructFinishedDiscardableStage("workspace2", Action.Execute, Stage.State.Succeeded),
+                constructFinishedDiscardableStage("workspace3", Action.Execute, Stage.State.Failed),
+                constructFinishedDiscardableStage("workspace4", Action.Execute, Stage.State.Succeeded)
+        );
+
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+                .withExecutionHistory(history)
+                .collectObsoleteWorkspaces();
+
+        var expected = new ArrayList<>(List.of("workspace1", "workspace2", "workspace3"));
+        assertEquals(expected.size(), obsolete.size());
+        expected.removeAll(obsolete);
+        assertEquals(Collections.emptyList(), expected);
+    }
+
+    @Test
+    public void testProperlyConsidersDiscardableAndDoesNotDeleteStagesWithoutSuccessfulFollowups() {
+        var history = List.of(
+                constructFinishedDiscardableStage("workspace1", Action.Execute, Stage.State.Succeeded),
+                constructFinishedDiscardableStage("workspace2", Action.Execute, Stage.State.Failed)
+        );
+
+        assertEquals(
+                Collections.emptyList(),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+                        .withExecutionHistory(history)
+                        .collectObsoleteWorkspaces()
+        );
+    }
+
+    @Test
+    public void testProperlyConsidersDiscardableAndDoesNotDeleteWhenFollowUpIsAConfigureStage() {
+        var history = List.of(
+                constructFinishedDiscardableStage("workspace1", Action.Execute, Stage.State.Succeeded),
+                constructFinishedDiscardableStage("workspace2", Action.Configure, Stage.State.Succeeded)
+        );
+
+        assertEquals(
+                Collections.emptyList(),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+                        .withExecutionHistory(history)
+                        .collectObsoleteWorkspaces()
         );
     }
 
@@ -101,6 +157,7 @@ public class ObsoleteWorkspaceFinderTest {
                 "some-id",
                 new StageDefinition(
                         "some-definition",
+                        null,
                         null,
                         null,
                         null,
@@ -133,9 +190,39 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         null,
+                        null,
                         null
                 ),
                 Action.Configure,
+                new Date(0L),
+                workspace,
+                new Date(),
+                finishState,
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
+    @NonNull
+    private static Stage constructFinishedDiscardableStage(
+            @NonNull String workspace,
+            @Nonnull Action action,
+            @NonNull Stage.State finishState) {
+        return new Stage(
+                "some-id",
+                new StageDefinition(
+                        "some-definition",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        Boolean.TRUE
+                ),
+                action,
                 new Date(0L),
                 workspace,
                 new Date(),

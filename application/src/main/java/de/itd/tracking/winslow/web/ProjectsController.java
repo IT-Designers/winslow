@@ -799,15 +799,12 @@ public class ProjectsController {
             @Nullable Requirements requirements,
             @Nullable UserInput requires,
             @Nonnull Map<String, String> env) {
-        return new StageDefinition(
-                template.getName(),
-                template.getDescription().orElse(null),
-                template.getImage().orElse(null),
-                requirements,
-                requires,
-                env,
-                template.getHighlight().orElse(null)
-        );
+        return new StageDefinitionBuilder()
+                .withBase(template)
+                .withRequirements(requirements)
+                .withUserInput(requires)
+                .withEnvironment(env)
+                .build();
     }
 
     private static void maybeUpdateImageInfo(

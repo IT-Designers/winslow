@@ -3,6 +3,7 @@ package de.itd.tracking.winslow;
 import de.itd.tracking.winslow.asblr.*;
 import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.config.StageDefinition;
+import de.itd.tracking.winslow.config.StageDefinitionBuilder;
 import de.itd.tracking.winslow.fs.*;
 import de.itd.tracking.winslow.pipeline.*;
 import de.itd.tracking.winslow.project.LogReader;
@@ -255,17 +256,15 @@ public class Orchestrator {
 
                         env.putAll(recent.getEnv());
 
-                        pipeline.enqueueStage(new StageDefinition(
-                                base.getName(),
-                                base.getDescription().orElse(null),
-                                (recentUpdatesBase
-                                 ? recent.getDefinition().getImage().or(base::getImage)
-                                 : base.getImage()).orElse(null),
-                                base.getRequirements().orElse(null),
-                                base.getRequires().orElse(null),
-                                env,
-                                base.getHighlight().orElse(null)
-                        ));
+                        var builder = new StageDefinitionBuilder()
+                                .withBase(base)
+                                .withEnvironment(env);
+
+                        if (recentUpdatesBase && recent.getDefinition().getImage().isPresent()) {
+                            builder = builder.withImage(recent.getDefinition().getImage().get());
+                        }
+
+                        pipeline.enqueueStage(builder.build());
                         return Boolean.TRUE;
                     })).orElse(Boolean.FALSE);
         } else {
