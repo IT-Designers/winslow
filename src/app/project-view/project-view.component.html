@@ -58,7 +58,7 @@
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <div class="history-list-column">
-                  <app-state-icon [state]="entry.state"></app-state-icon>
+                  <app-state-icon [state]="entry.state" [configured]="isConfigure(entry.action)"></app-state-icon>
                 </div>
                 <div class="history-list-column history-item-no">{{history.length - i}}</div>
                 <div

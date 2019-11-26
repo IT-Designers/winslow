@@ -27,6 +27,18 @@
   color: orange;
 }
 
+.state-icon-configured {
+  color: rgba(0, 0, 139, 0.85); /* darkblue ..% */
+  font-size: 0.8em;
+  text-align: center;
+  border: 2px solid;
+  border-radius: 5em;
+  width: 0.9em;
+  height: 0.9em;
+  padding: 0.27em;
+  margin: 0.1em
+}
+
 .state-icon-unknown {
-  color: silver;;
+  color: silver;
 }
