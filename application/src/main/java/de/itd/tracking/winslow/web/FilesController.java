@@ -3,7 +3,8 @@ package de.itd.tracking.winslow.web;
 import de.itd.tracking.winslow.Winslow;
 import de.itd.tracking.winslow.auth.User;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +18,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -128,43 +126,35 @@ public class FilesController {
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
-    public ResponseEntity<InputStreamResource> downloadResourceFile(HttpServletRequest request, User user) {
+    public ResponseEntity<? extends Resource> downloadResourceFile(HttpServletRequest request, User user) {
         return downloadFile(request, user, winslow.getResourceManager().getResourceDirectory());
     }
 
     @RequestMapping(value = {"/files/workspaces/**"}, method = RequestMethod.GET)
-    public ResponseEntity<InputStreamResource> downloadWorkspaceFile(HttpServletRequest request, User user) {
+    public ResponseEntity<? extends Resource> downloadWorkspaceFile(HttpServletRequest request, User user) {
         return downloadFile(request, user, winslow.getResourceManager().getWorkspacesDirectory());
     }
 
-    public ResponseEntity<InputStreamResource> downloadFile(
+    public ResponseEntity<? extends Resource> downloadFile(
             HttpServletRequest request, User user, @Nonnull Optional<Path> directory) {
         return normalizedPath(request).flatMap(path -> directory.flatMap(dir -> {
-            try {
-                var file = dir.resolve(path.normalize()).toFile();
+            var file = dir.resolve(path.normalize()).toFile();
 
-                if (!canAccess(winslow, user, dir, file.toPath())) {
-                    return Optional.empty();
-                }
-
-                var       is = new FileInputStream(file);
-                MediaType media;
-
-                try {
-                    media = MediaType.parseMediaType(file.getName());
-                } catch (Throwable t) {
-                    media = MediaType.APPLICATION_OCTET_STREAM;
-                }
-
-                return Optional.of(ResponseEntity
-                                           .ok()
-                                           .contentLength(file.length())
-                                           .contentType(media)
-                                           .body(new InputStreamResource(is, file.getName())));
-            } catch (FileNotFoundException e) {
-                LOG.log(Level.FINE, "FileNotFound " + path, e);
+            if (!canAccess(winslow, user, dir, file.toPath())) {
                 return Optional.empty();
             }
+
+            return Optional.of(
+                    ResponseEntity
+                            .ok()
+                            // Otherwise the download might result in a "f.txt" named file
+                            // https://stackoverflow.com/questions/41364732/zip-file-downloaded-as-f-txt-file-springboot
+                            // https://pivotal.io/security/cve-2015-5211
+                            .header("content-disposition", "inline; filename=\"" + file.getName() + "\"")
+                            .contentLength(file.length())
+                            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                            .body(new FileSystemResource(file))
+            );
         })).orElse(null);
     }
 
