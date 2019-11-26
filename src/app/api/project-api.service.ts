@@ -66,13 +66,7 @@ export class ProjectApiService {
     return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
       .then(result => {
-        return result.map(entry => {
-          entry.env = this.toMap(entry.env);
-          entry.envPipeline = this.toMap(entry.envPipeline);
-          entry.envSystem = this.toMap(entry.envSystem);
-          entry.envInternal = this.toMap(entry.envInternal);
-          return entry;
-        });
+        return result.map(entry => this.fixRemoteHistoryEntry(entry));
       });
   }
 
@@ -80,15 +74,20 @@ export class ProjectApiService {
     return this.client.get<any[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
       .pipe(map(enqueued => {
         return enqueued.map(entry => {
+          this.fixRemoteHistoryEntry(entry);
           entry.state = State.Enqueued;
-          entry.env = this.toMap(entry.env);
-          entry.envPipeline = this.toMap(entry.envPipeline);
-          entry.envSystem = this.toMap(entry.envSystem);
-          entry.envInternal = this.toMap(entry.envInternal);
           return entry;
         });
       }))
       .toPromise();
+  }
+
+  private fixRemoteHistoryEntry(entry) {
+    entry.env = this.toMap(entry.env);
+    entry.envPipeline = this.toMap(entry.envPipeline);
+    entry.envSystem = this.toMap(entry.envSystem);
+    entry.envInternal = this.toMap(entry.envInternal);
+    return entry;
   }
 
   private toMap(entry) {
