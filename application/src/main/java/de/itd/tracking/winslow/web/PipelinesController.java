@@ -174,7 +174,8 @@ public class PipelinesController {
                                             null,
                                             new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
                                             Map.of("SOME", "VALUE"),
-                                            null
+                                            null,
+                                            false
                                     ), new StageDefinition(
                                             "Auto Nvidia Stage",
                                             "Automatically generated stage description",
@@ -185,7 +186,8 @@ public class PipelinesController {
                                             ),
                                             new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
                                             Map.of("ANOTHER", "VALUE"),
-                                            null
+                                            null,
+                                            true
                                     ), new StageDefinition(
                                             "Auto Stage 3",
                                             "Downloading more RAM for speedup",
@@ -193,6 +195,7 @@ public class PipelinesController {
                                             new Requirements(10240, null),
                                             new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
                                             Map.of("GIMME", "MOAR RAM"),
+                                            null,
                                             null
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value")

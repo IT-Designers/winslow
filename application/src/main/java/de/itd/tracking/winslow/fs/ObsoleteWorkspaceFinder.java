@@ -35,6 +35,7 @@ public class ObsoleteWorkspaceFinder {
 
         appendWorkspaceOfFailedStagesIfApplicable(obsolete);
         appendWorkspacesOfSuccessfulStagesThatExceedTheLimit(obsolete);
+        appendWorkspacesOfDiscardedStages(obsolete);
 
         return obsolete;
     }
@@ -66,6 +67,24 @@ public class ObsoleteWorkspaceFinder {
                 } else {
                     break;
                 }
+            }
+        }
+    }
+
+    private void appendWorkspacesOfDiscardedStages(List<String> obsolete) {
+        if (this.executionHistory != null) {
+            var hasSuccessfulExecution = false;
+            for (int i = this.executionHistory.size() - 1; i >= 0; --i) {
+                var stage = this.executionHistory.get(i);
+
+                if (stage.getDefinition().isDiscardable() && hasSuccessfulExecution) {
+                    if (stage.getWorkspace().isPresent() && !obsolete.contains(stage.getWorkspace().get())) {
+                        obsolete.add(stage.getWorkspace().get());
+                    }
+                }
+
+                hasSuccessfulExecution |= stage.getAction() == Action.Execute
+                        && stage.getFinishState().orElse(Stage.State.Running) == Stage.State.Succeeded;
             }
         }
     }

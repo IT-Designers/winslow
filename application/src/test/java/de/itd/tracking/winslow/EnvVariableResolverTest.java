@@ -146,6 +146,7 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         null,
+                        null,
                         null
                 ),
                 Action.Execute,
@@ -173,6 +174,7 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         env,
+                        null,
                         null
                 ),
                 action
