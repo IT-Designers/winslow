@@ -104,10 +104,10 @@ public class RunInfoRepository extends BaseRepository {
     public Optional<Integer> getProgressHint(@Nonnull String stageId) {
         try {
             return getProperty(stageId, PROPERTY_FILE_PROGRESS).map(String::trim).map(Integer::parseInt);
-        } catch (NoSuchFileException | FileNotFoundException e) {
+        } catch (NumberFormatException | NoSuchFileException | FileNotFoundException e) {
             LOG.log(Level.FINER, "There is no progress for the stage " + stageId, e);
             return Optional.empty();
-        } catch (NumberFormatException | IOException e) {
+        } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to read progress hint for " + stageId, e);
             return Optional.empty();
         }
