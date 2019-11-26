@@ -10,6 +10,7 @@ export class StateIconComponent implements OnInit {
 
   @Input() state: State;
   @Input() animation = false;
+  @Input() configured = false;
 
   constructor() { }
 
@@ -17,7 +18,11 @@ export class StateIconComponent implements OnInit {
   }
 
   stateString() {
-    return this.state != null ? (this.state + '').toLowerCase() : null;
+    if (this.configured && this.state !== State.Failed) {
+      return 'configured';
+    } else {
+      return this.state != null ? (this.state + '').toLowerCase() : null;
+    }
   }
 
 }
