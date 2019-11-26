@@ -964,9 +964,9 @@ public class ProjectsController {
             this.workspace   = null;
             this.imageInfo   = enqueuedStage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
             this.env         = new TreeMap<>(enqueuedStage.getDefinition().getEnvironment());
-            this.envPipeline = null;
-            this.envSystem   = null;
-            this.envInternal = null;
+            this.envPipeline = Collections.emptyMap();
+            this.envSystem   = Collections.emptyMap();
+            this.envInternal = Collections.emptyMap();
         }
     }
 
