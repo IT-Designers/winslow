@@ -205,17 +205,6 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     @Nonnull
     public NomadPreparedStage build() {
-        // do not remember deletion entries without an actual origin being overwritten
-        envVars
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue() == null)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet()) // this caches all key that want to overwrite a value with null
-                .stream()
-                .filter(key -> !envVarsPipeline.containsKey(key) && !envVarsSystem.containsKey(key))
-                .forEach(envVars::remove); // keys that want to overwrite a value with null but there is no value to overwrite
-
         var env = new HashMap<String, String>();
         getEnvVariableKeys().forEach(key -> getEnvVariable(key).ifPresent(value -> env.put(key, value)));
 
@@ -238,7 +227,20 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                 jobsApi,
                 stageDefinition,
                 workspaceDirectory,
-                envVars,
+                envVars
+                        .entrySet()
+                        .stream()
+                        .filter(e -> {
+                            var key   = e.getKey();
+                            var value = e.getValue();
+                            if (value == null) {
+                                // do not remember deletion entries without an actual origin being overwritten
+                                return envVarsPipeline.containsKey(key) || envVarsSystem.containsKey(key);
+                            } else {
+                                return true;
+                            }
+                        })
+                        .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue)),
                 envVarsPipeline,
                 envVarsSystem,
                 envVarsInternal
