@@ -233,12 +233,8 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                         .filter(e -> {
                             var key   = e.getKey();
                             var value = e.getValue();
-                            if (value == null) {
-                                // do not remember deletion entries without an actual origin being overwritten
-                                return envVarsPipeline.containsKey(key) || envVarsSystem.containsKey(key);
-                            } else {
-                                return true;
-                            }
+                            return !Objects.equals(value, envVarsPipeline.get(key))
+                                && !Objects.equals(value, envVarsSystem.get(key));
                         })
                         .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue)),
                 envVarsPipeline,
