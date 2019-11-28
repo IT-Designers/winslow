@@ -707,7 +707,7 @@ public class ProjectsController {
                     // so changes will not be written back
                     return getStageDefinitionNoClone(project, index)
                             .map(stageDef -> {
-                                executeStage(
+                                enqueueExecutionStage(
                                         pipeline,
                                         stageDef,
                                         env,
@@ -751,7 +751,7 @@ public class ProjectsController {
                 .map(maybeProject -> maybeProject
                         .filter(project -> canUserAccessProject(user, project))
                         .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-                            configureStage(
+                            enqueueConfigureStage(
                                     pipeline,
                                     stageDefinitionBase,
                                     env,
@@ -763,7 +763,7 @@ public class ProjectsController {
                         .orElse(Boolean.FALSE));
     }
 
-    private static void configureStage(
+    private static void enqueueConfigureStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
@@ -772,7 +772,7 @@ public class ProjectsController {
         enqueueStage(pipeline, base, env, imageName, imageArgs, Action.Configure);
     }
 
-    private static void executeStage(
+    private static void enqueueExecutionStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
@@ -817,6 +817,13 @@ public class ProjectsController {
          */
         maybeUpdateImageInfo(imageName, imageArgs, resultDefinition);
         pipeline.enqueueStage(resultDefinition, action);
+        resumeIfPausedByStageFailure(pipeline);
+    }
+
+    private static void resumeIfPausedByStageFailure(@Nonnull Pipeline pipeline) {
+        if (Optional.of(Pipeline.PauseReason.StageFailure).equals(pipeline.getPauseReason())) {
+            pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+        }
     }
 
     private static StageDefinition createStageDefinition(
