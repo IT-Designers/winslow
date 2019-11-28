@@ -11,9 +11,9 @@ import java.nio.file.Path;
 public class NfsWorkspaceMount implements AssemblerStep {
 
     private static final String TARGET_PATH_RESOURCES          = "/resources";
-    private static final String TARGET_PATH_PIPELINE_RESOURCES = "/pipeline/resources";
-    private static final String TARGET_PATH_PIPELINE_WORKSPACE = "/pipeline/workspace";
-    private static final String TARGET_PATH_PIPELINE_UNSTAGED  = "/pipeline/unstaged";
+    private static final String TARGET_PATH_PIPELINE_RESOURCES = "/input";
+    private static final String TARGET_PATH_PIPELINE_WORKSPACE = "/workspace";
+    private static final String TARGET_PATH_PIPELINE_UNSTAGED  = "/unstaged";
 
     private static final String ENV_DIR_RESOURCES          = Env.SELF_PREFIX + "_DIR_RESOURCES";
     private static final String ENV_DIR_PIPELINE_RESOURCES = Env.SELF_PREFIX + "_DIR_PIPELINE_RESOURCES";
