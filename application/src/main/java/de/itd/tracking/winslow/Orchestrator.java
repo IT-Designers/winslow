@@ -785,7 +785,7 @@ public class Orchestrator {
 
     @Nonnull
     public static DeletionPolicy defaultDeletionPolicy() {
-        return new DeletionPolicy();
+        return new DeletionPolicy(false, null);
     }
 
     public static String replaceInvalidCharactersInJobName(@Nonnull String jobName) {
