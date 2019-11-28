@@ -373,11 +373,36 @@ public class ProjectsController {
 
                             var line = new AtomicLong(skip);
 
-                            return winslow
-                                    .getOrchestrator()
-                                    .getLogs(project, stage.getId())  // do not stream in parallel!
-                                    .skip(skip)
-                                    .map(entry -> new LogEntryInfo(line.incrementAndGet(), stage.getId(), entry));
+                            return Stream.concat(
+                                    winslow
+                                            .getOrchestrator()
+                                            .getLogs(project, stage.getId())  // do not stream in parallel!
+                                            .skip(skip)
+                                            .sequential()
+                                            .map(entry -> new LogEntryInfo(
+                                                    line.incrementAndGet(),
+                                                    stage.getId(),
+                                                    entry
+                                            )),
+                                    Stream
+                                            .of(0L)
+                                            .flatMap(dummy -> {
+                                                if (line.get() == 0L) {
+                                                    return Stream.of(new LogEntryInfo(
+                                                            1L,
+                                                            stage.getId() + "_temp",
+                                                            new LogEntry(
+                                                                    System.currentTimeMillis(),
+                                                                    LogEntry.Source.MANAGEMENT_EVENT,
+                                                                    false,
+                                                                    "Loading..."
+                                                            )
+                                                    ));
+                                                } else {
+                                                    return Stream.empty();
+                                                }
+                                            })
+                            );
                         }));
     }
 
