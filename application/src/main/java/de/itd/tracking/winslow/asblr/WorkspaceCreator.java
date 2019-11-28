@@ -36,17 +36,33 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var path = getWorkspacePathOf(
+        var pathOfWorkspace = getWorkspacePathOf(
                 context.getPipeline(),
                 context.getEnqueuedStage().getDefinition()
         );
-        var resources = environment.getResourceManager().getResourceDirectory();
-        var workspace = environment.getResourceManager().createWorkspace(path, true);
+        var pathOfPipelineResources = getPipelineResourcesPathOf(context.getPipeline());
+        var pathOfPipelineUnstaged  = getPipelineUnstagedPathOf(context.getPipeline());
 
-        if (resources.isEmpty() || workspace.isEmpty()) {
+        var workspacesRoot    = environment.getResourceManager().getWorkspacesDirectory();
+        var resources         = environment.getResourceManager().getResourceDirectory();
+        var workspace         = environment.getResourceManager().createWorkspace(pathOfWorkspace, true);
+        var pipelineResources = environment.getResourceManager().createWorkspace(pathOfPipelineResources, false);
+        var pipelineUnstaged  = environment.getResourceManager().createWorkspace(pathOfPipelineUnstaged, false);
+
+        if (workspacesRoot.isEmpty()
+                || resources.isEmpty()
+                || workspace.isEmpty()
+                || pipelineResources.isEmpty()
+                || pipelineUnstaged.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
             throw new AssemblyException(
-                    "The workspace and resources directory must exit, but at least one isn't. workspacePath=" + path + ",workspace=" + workspace + ",resources=" + resources
+                    "The workspace and resources directory must exit, but at least one isn't."
+                            + " workspacesRoot=" + workspacesRoot
+                            + ",workspacePath=" + pathOfWorkspace
+                            + ",workspace=" + workspace
+                            + ",resources=" + resources
+                            + ",pipelineResources=" + pipelineResources
+                            + ",pipelineUnstaged=" + pipelineUnstaged
             );
         } else {
             switch (context.getEnqueuedStage().getAction()) {
@@ -64,18 +80,21 @@ public class WorkspaceCreator implements AssemblerStep {
             }
 
 
-            var workspacesRootDir = environment.getResourceManager().getWorkspacesDirectory().get();
-            var resourcesAbsolute = resources.get();
-            var workspaceAbsolute = workspace.get();
-
-            var resourcesRelative = workspacesRootDir.relativize(resourcesAbsolute);
-            var workspaceRelative = workspacesRootDir.relativize(workspaceAbsolute);
+            var workspacesRootDir         = workspacesRoot.get();
+            var resourcesAbsolute         = resources.get();
+            var workspaceAbsolute         = workspace.get();
+            var pipelineResourcesAbsolute = pipelineResources.get();
+            var pipelineUnstagedAbsolute  = pipelineUnstaged.get();
 
             context.store(new WorkspaceConfiguration(
-                    resourcesRelative,
-                    workspaceRelative,
+                    workspacesRootDir.relativize(resourcesAbsolute),
+                    workspacesRootDir.relativize(workspaceAbsolute),
+                    workspacesRootDir.relativize(pipelineResourcesAbsolute),
+                    workspacesRootDir.relativize(pipelineUnstagedAbsolute),
                     resourcesAbsolute,
-                    workspaceAbsolute
+                    workspaceAbsolute,
+                    pipelineResourcesAbsolute,
+                    pipelineUnstagedAbsolute
             ));
         }
     }
@@ -86,6 +105,16 @@ public class WorkspaceCreator implements AssemblerStep {
                 .load(WorkspaceConfiguration.class)
                 .map(WorkspaceConfiguration::getWorkspaceDirectoryAbsolute)
                 .ifPresent(path -> forcePurgeWorkspace(context, path));
+    }
+
+    @Nonnull
+    private static Path getPipelineResourcesPathOf(@Nonnull Pipeline pipeline) {
+        return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("resources");
+    }
+
+    @Nonnull
+    private static Path getPipelineUnstagedPathOf(@Nonnull Pipeline pipeline) {
+        return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("unstaged");
     }
 
     @Nonnull
@@ -100,8 +129,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Nonnull
     private static Path getWorkspacePathOf(@Nonnull String projectId, int stageNumber, @Nullable String suffix) {
-        return Path.of(
-                projectId,
+        return getProjectWorkspacesDirectory(projectId).resolve(
                 replaceInvalidCharactersInJobName(String.format(
                         "%04d%s%s",
                         stageNumber,
@@ -109,6 +137,11 @@ public class WorkspaceCreator implements AssemblerStep {
                         suffix != null ? suffix : ""
                 ))
         );
+    }
+
+    @Nonnull
+    private static Path getProjectWorkspacesDirectory(@Nonnull String projectId) {
+        return Path.of(projectId);
     }
 
     private void forcePurgeWorkspace(@Nonnull Context context, @Nonnull Path workspace) {

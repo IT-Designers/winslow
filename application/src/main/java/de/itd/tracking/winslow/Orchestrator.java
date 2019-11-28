@@ -377,6 +377,7 @@ public class Orchestrator {
                             .add(new UserInputChecker())
                             .add(new WorkspaceCreator(environment))
                             .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
+                            .add(new EnvLogger())
                             .add(new BuildAndSubmit(this.nodeName, builtStage -> {
                                 lock.waitForRelease();
                                 updatePipeline(projectId, pipelineToUpdate -> {
