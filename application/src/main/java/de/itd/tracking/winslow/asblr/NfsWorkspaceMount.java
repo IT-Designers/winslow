@@ -11,14 +11,14 @@ import java.nio.file.Path;
 public class NfsWorkspaceMount implements AssemblerStep {
 
     private static final String TARGET_PATH_RESOURCES          = "/resources";
-    private static final String TARGET_PATH_PIPELINE_RESOURCES = "/input";
+    private static final String TARGET_PATH_PIPELINE_INPUT     = "/input";
     private static final String TARGET_PATH_PIPELINE_WORKSPACE = "/workspace";
-    private static final String TARGET_PATH_PIPELINE_UNSTAGED  = "/output";
+    private static final String TARGET_PATH_PIPELINE_OUTPUT    = "/output";
 
     private static final String ENV_DIR_RESOURCES          = Env.SELF_PREFIX + "_DIR_RESOURCES";
-    private static final String ENV_DIR_PIPELINE_RESOURCES = Env.SELF_PREFIX + "_DIR_PIPELINE_RESOURCES";
-    private static final String ENV_DIR_PIPELINE_WORKSPACE = Env.SELF_PREFIX + "_DIR_PIPELINE_WORKSPACE";
-    private static final String ENV_DIR_PIPELINE_UNSTAGED  = Env.SELF_PREFIX + "_DIR_PIPELINE_UNSTAGED";
+    private static final String ENV_DIR_PIPELINE_INPUT     = Env.SELF_PREFIX + "_DIR_INPUT";
+    private static final String ENV_DIR_PIPELINE_WORKSPACE = Env.SELF_PREFIX + "_DIR_WORKSPACE";
+    private static final String ENV_DIR_PIPELINE_OUTPUT    = Env.SELF_PREFIX + "_DIR_OUTPUT";
     private static final String ENV_DIR_WORKSPACE          = Env.SELF_PREFIX + "_DIR_WORKSPACE";
 
     @Nonnull private final NfsWorkDirectory nfsWorkDirectory;
@@ -52,9 +52,9 @@ public class NfsWorkspaceMount implements AssemblerStep {
         addNfsVolume(
                 builder,
                 stageId,
-                ENV_DIR_PIPELINE_RESOURCES,
-                config.getPipelineResourcesDirectoryAbsolute(),
-                TARGET_PATH_PIPELINE_RESOURCES,
+                ENV_DIR_PIPELINE_INPUT,
+                config.getPipelineInputDirectoryAbsolute(),
+                TARGET_PATH_PIPELINE_INPUT,
                 true
         );
         addNfsVolume(
@@ -68,9 +68,9 @@ public class NfsWorkspaceMount implements AssemblerStep {
         addNfsVolume(
                 builder,
                 stageId,
-                ENV_DIR_PIPELINE_UNSTAGED,
-                config.getPipelineUnstagedDirectoryAbsolute(),
-                TARGET_PATH_PIPELINE_UNSTAGED,
+                ENV_DIR_PIPELINE_OUTPUT,
+                config.getPipelineOutputDirectoryAbsolute(),
+                TARGET_PATH_PIPELINE_OUTPUT,
                 false
         );
     }

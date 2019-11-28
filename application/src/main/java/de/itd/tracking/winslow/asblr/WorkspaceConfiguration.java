@@ -8,31 +8,31 @@ public class WorkspaceConfiguration {
 
     @Nonnull private final Path resourcesRelative;
     @Nonnull private final Path workspaceRelative;
-    @Nonnull private final Path pipelineResourcesRelative;
-    @Nonnull private final Path pipelineUnstagedRelative;
+    @Nonnull private final Path pipelineInputRelative;
+    @Nonnull private final Path pipelineOutputRelative;
 
     @Nonnull private final Path resourcesAbsolute;
     @Nonnull private final Path workspaceAbsolute;
-    @Nonnull private final Path pipelineResourcesAbsolute;
-    @Nonnull private final Path pipelineUnstagedAbsolute;
+    @Nonnull private final Path pipelineInputAbsolute;
+    @Nonnull private final Path pipelineOutputAbsolute;
 
     public WorkspaceConfiguration(
             @Nonnull Path resourcesRelative,
             @Nonnull Path workspaceRelative,
-            @Nonnull Path pipelineResourcesRelative,
-            @Nonnull Path pipelineUnstagedRelative,
+            @Nonnull Path pipelineInputRelative,
+            @Nonnull Path pipelineOutputRelative,
             @Nonnull Path resourcesAbsolute,
             @Nonnull Path workspaceAbsolute,
-            @Nonnull Path pipelineResourcesAbsolute,
-            @Nonnull Path pipelineUnstagedAbsolute) {
-        this.resourcesRelative         = resourcesRelative;
-        this.workspaceRelative         = workspaceRelative;
-        this.pipelineResourcesRelative = pipelineResourcesRelative;
-        this.pipelineUnstagedRelative  = pipelineUnstagedRelative;
-        this.resourcesAbsolute         = resourcesAbsolute;
-        this.workspaceAbsolute         = workspaceAbsolute;
-        this.pipelineResourcesAbsolute = pipelineResourcesAbsolute;
-        this.pipelineUnstagedAbsolute  = pipelineUnstagedAbsolute;
+            @Nonnull Path pipelineInputAbsolute,
+            @Nonnull Path pipelineOutputAbsolute) {
+        this.resourcesRelative      = resourcesRelative;
+        this.workspaceRelative      = workspaceRelative;
+        this.pipelineInputRelative  = pipelineInputRelative;
+        this.pipelineOutputRelative = pipelineOutputRelative;
+        this.resourcesAbsolute      = resourcesAbsolute;
+        this.workspaceAbsolute      = workspaceAbsolute;
+        this.pipelineInputAbsolute  = pipelineInputAbsolute;
+        this.pipelineOutputAbsolute = pipelineOutputAbsolute;
     }
 
     @Nonnull
@@ -46,13 +46,13 @@ public class WorkspaceConfiguration {
     }
 
     @Nonnull
-    public Path getPipelineResourcesDirectory() {
-        return pipelineResourcesRelative;
+    public Path getPipelineInputDirectory() {
+        return pipelineInputRelative;
     }
 
     @Nonnull
-    public Path getPipelineResourcesDirectoryAbsolute() {
-        return pipelineResourcesAbsolute;
+    public Path getPipelineInputDirectoryAbsolute() {
+        return pipelineInputAbsolute;
     }
 
     @Nonnull
@@ -66,12 +66,12 @@ public class WorkspaceConfiguration {
     }
 
     @Nonnull
-    public Path getPipelineUnstagedDirectory() {
-        return pipelineUnstagedRelative;
+    public Path getPipelineOutputDirectory() {
+        return pipelineOutputRelative;
     }
 
     @Nonnull
-    public Path getPipelineUnstagedDirectoryAbsolute() {
-        return pipelineUnstagedAbsolute;
+    public Path getPipelineOutputDirectoryAbsolute() {
+        return pipelineOutputAbsolute;
     }
 }

@@ -40,20 +40,28 @@ public class WorkspaceCreator implements AssemblerStep {
                 context.getPipeline(),
                 context.getEnqueuedStage().getDefinition()
         );
-        var pathOfPipelineResources = getPipelineResourcesPathOf(context.getPipeline());
-        var pathOfPipelineUnstaged  = getPipelineUnstagedPathOf(context.getPipeline());
+        var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
+        var pathOfPipelineOutput = getPipelineOutputPathOf(context.getPipeline());
 
-        var workspacesRoot    = environment.getResourceManager().getWorkspacesDirectory();
-        var resources         = environment.getResourceManager().getResourceDirectory();
-        var workspace         = environment.getResourceManager().createWorkspace(pathOfWorkspace, true);
-        var pipelineResources = environment.getResourceManager().createWorkspace(pathOfPipelineResources, false);
-        var pipelineUnstaged  = environment.getResourceManager().createWorkspace(pathOfPipelineUnstaged, false);
+        {
+            var pathOfPipelineLegacyInput  = getPipelineLegacyInputPathOf(context.getPipeline());
+            var pathOfPipelineLegacyOutput = getPipelineLegacyOutputPathOf(context.getPipeline());
+
+            upgradePipelineDirectory(context, pathOfPipelineInput, pathOfPipelineLegacyInput, "input");
+            upgradePipelineDirectory(context, pathOfPipelineOutput, pathOfPipelineLegacyOutput, "output");
+        }
+
+        var workspacesRoot = environment.getResourceManager().getWorkspacesDirectory();
+        var resources      = environment.getResourceManager().getResourceDirectory();
+        var workspace      = environment.getResourceManager().createWorkspace(pathOfWorkspace, true);
+        var pipelineInput  = environment.getResourceManager().createWorkspace(pathOfPipelineInput, false);
+        var pipelineOutput = environment.getResourceManager().createWorkspace(pathOfPipelineOutput, false);
 
         if (workspacesRoot.isEmpty()
                 || resources.isEmpty()
                 || workspace.isEmpty()
-                || pipelineResources.isEmpty()
-                || pipelineUnstaged.isEmpty()) {
+                || pipelineInput.isEmpty()
+                || pipelineOutput.isEmpty()) {
             workspace.map(Path::toFile).map(File::delete);
             throw new AssemblyException(
                     "The workspace and resources directory must exit, but at least one isn't."
@@ -61,8 +69,8 @@ public class WorkspaceCreator implements AssemblerStep {
                             + ",workspacePath=" + pathOfWorkspace
                             + ",workspace=" + workspace
                             + ",resources=" + resources
-                            + ",pipelineResources=" + pipelineResources
-                            + ",pipelineUnstaged=" + pipelineUnstaged
+                            + ",pipelineInput=" + pipelineInput
+                            + ",pipelineOutput=" + pipelineOutput
             );
         } else {
             switch (context.getEnqueuedStage().getAction()) {
@@ -80,22 +88,42 @@ public class WorkspaceCreator implements AssemblerStep {
             }
 
 
-            var workspacesRootDir         = workspacesRoot.get();
-            var resourcesAbsolute         = resources.get();
-            var workspaceAbsolute         = workspace.get();
-            var pipelineResourcesAbsolute = pipelineResources.get();
-            var pipelineUnstagedAbsolute  = pipelineUnstaged.get();
+            var workspacesRootDir      = workspacesRoot.get();
+            var resourcesAbsolute      = resources.get();
+            var workspaceAbsolute      = workspace.get();
+            var pipelineInputAbsolute  = pipelineInput.get();
+            var pipelineOutputAbsolute = pipelineOutput.get();
 
             context.store(new WorkspaceConfiguration(
                     workspacesRootDir.relativize(resourcesAbsolute),
                     workspacesRootDir.relativize(workspaceAbsolute),
-                    workspacesRootDir.relativize(pipelineResourcesAbsolute),
-                    workspacesRootDir.relativize(pipelineUnstagedAbsolute),
+                    workspacesRootDir.relativize(pipelineInputAbsolute),
+                    workspacesRootDir.relativize(pipelineOutputAbsolute),
                     resourcesAbsolute,
                     workspaceAbsolute,
-                    pipelineResourcesAbsolute,
-                    pipelineUnstagedAbsolute
+                    pipelineInputAbsolute,
+                    pipelineOutputAbsolute
             ));
+        }
+    }
+
+    private void upgradePipelineDirectory(
+            @Nonnull Context context,
+            @Nonnull Path latest,
+            @Nonnull Path legacy,
+            @Nonnull String displayName) {
+        if (Files.exists(legacy) && !Files.exists(latest)) {
+            context.log(Level.INFO, "Detected legacy pipeline " + displayName + " directory, upgrading...");
+            try {
+                Files.move(legacy, latest);
+                context.log(Level.INFO, "Detected legacy pipeline " + displayName + " directory, upgrading... done");
+            } catch (IOException e) {
+                context.log(
+                        Level.WARNING,
+                        "Detected legacy pipeline " + displayName + " directory, upgrading... failed " + e.getMessage()
+                );
+                LOG.log(Level.WARNING, "Failed to move legacy " + displayName + " directory", e);
+            }
         }
     }
 
@@ -108,12 +136,22 @@ public class WorkspaceCreator implements AssemblerStep {
     }
 
     @Nonnull
-    private static Path getPipelineResourcesPathOf(@Nonnull Pipeline pipeline) {
+    private static Path getPipelineInputPathOf(@Nonnull Pipeline pipeline) {
+        return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("input");
+    }
+
+    @Nonnull
+    private static Path getPipelineLegacyInputPathOf(@Nonnull Pipeline pipeline) {
         return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("resources");
     }
 
     @Nonnull
-    private static Path getPipelineUnstagedPathOf(@Nonnull Pipeline pipeline) {
+    private static Path getPipelineOutputPathOf(@Nonnull Pipeline pipeline) {
+        return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("output");
+    }
+
+    @Nonnull
+    private static Path getPipelineLegacyOutputPathOf(@Nonnull Pipeline pipeline) {
         return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("unstaged");
     }
 
