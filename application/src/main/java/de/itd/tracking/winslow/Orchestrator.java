@@ -750,8 +750,8 @@ public class Orchestrator {
         var executor = new Executor(projectId, stage, this);
         executor.addShutdownListener(() -> this.executors.remove(stage));
         executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stage));
-        executor.addShutdownListener(() -> this.pollPipelineForUpdate(projectId));
         executor.addShutdownListener(() -> this.discardObsoleteWorkspaces(projectId));
+        executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(projectId));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stage, executor);
         return executor;

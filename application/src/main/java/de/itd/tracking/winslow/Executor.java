@@ -30,8 +30,9 @@ public class Executor {
     @Nonnull private final LockedOutputStream logOutput;
     @Nonnull private final LockHeart          lockHeart;
 
-    @Nonnull private final List<Consumer<LogEntry>> logConsumer       = new ArrayList<>();
-    @Nonnull private final List<Runnable>           shutdownListeners = new ArrayList<>();
+    @Nonnull private final List<Consumer<LogEntry>> logConsumer                = new ArrayList<>();
+    @Nonnull private final List<Runnable>           shutdownListeners          = new ArrayList<>();
+    @Nonnull private final List<Runnable>           shutdownCompletedListeners = new ArrayList<>();
 
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
@@ -97,42 +98,46 @@ public class Executor {
     }
 
     private void run() {
-        try (lockHeart; logOutput) {
-            var iter    = getIterator();
-            var backoff = new Backoff(250, 950, 2f);
+        try (lockHeart) {
+            try (logOutput) {
+                var iter    = getIterator();
+                var backoff = new Backoff(250, 950, 2f);
 
-            LogWriter
-                    .writeTo(logOutput)
-                    .source(Stream.concat(
-                            Stream.<LogEntry>iterate(
-                                    null,
-                                    p -> this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed(),
-                                    p -> {
-                                        var next = iter.next();
-                                        if (next == null) {
-                                            backoff.sleep();
-                                            next = iter.next();
-                                        } else {
-                                            backoff.reset();
+                LogWriter
+                        .writeTo(logOutput)
+                        .source(Stream.concat(
+                                Stream.<LogEntry>iterate(
+                                        null,
+                                        p -> this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed(),
+                                        p -> {
+                                            var next = iter.next();
+                                            if (next == null) {
+                                                backoff.sleep();
+                                                next = iter.next();
+                                            } else {
+                                                backoff.reset();
+                                            }
+                                            return next;
                                         }
-                                        return next;
-                                    }
-                            ).filter(Objects::nonNull),
-                            Stream
-                                    .of((Supplier<LogEntry>) () -> createLogEntry(false, "Done"))
-                                    .map(Supplier::get)
-                    ))
-                    .addConsumer(this::notifyLogConsumer)
-                    .runInForeground();
+                                ).filter(Objects::nonNull),
+                                Stream
+                                        .of((Supplier<LogEntry>) () -> createLogEntry(false, "Done"))
+                                        .map(Supplier::get)
+                        ))
+                        .addConsumer(this::notifyLogConsumer)
+                        .runInForeground();
 
-            logOutput.flush();
-            orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(stage);
-        } catch (Throwable e) {
-            LOG.log(Level.SEVERE, "Log writer failed", e);
+                logOutput.flush();
+                orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(stage);
+            } catch (Throwable e) {
+                LOG.log(Level.SEVERE, "Log writer failed", e);
+            } finally {
+                this.logBuffer = null;
+                this.notifyShutdownListeners();
+                this.logOutput.getLock().release();
+            }
         } finally {
-            this.logBuffer = null;
-            this.notifyShutdownListeners();
-            this.logOutput.getLock().release();
+            this.notifyShutdownCompletedListeners();
         }
     }
 
@@ -163,11 +168,38 @@ public class Executor {
         this.shutdownListeners.clear();
     }
 
+    private synchronized void notifyShutdownCompletedListeners() {
+        for (var runnable : this.shutdownCompletedListeners) {
+            try {
+                runnable.run();
+            } catch (Throwable t) {
+                LOG.log(Level.WARNING, "Shutdown listener failed", t);
+            }
+        }
+        this.shutdownCompletedListeners.clear();
+    }
+
+    /**
+     * @param runnable Listener being called immediately if already shutdown or when the executor is stopping
+     *                 but while the stage is still locked
+     */
     public synchronized void addShutdownListener(@Nonnull Runnable runnable) {
         if (this.logBuffer == null) {
             runnable.run();
         } else {
             this.shutdownListeners.add(runnable);
+        }
+    }
+
+    /**
+     * @param runnable Listener being called immediately if already shutdown or when the executor is stopping
+     *                 and after the lock of the stage has been released
+     */
+    public synchronized void addShutdownCompletedListener(@Nonnull Runnable runnable) {
+        if (this.logBuffer == null) {
+            runnable.run();
+        } else {
+            this.shutdownCompletedListeners.add(runnable);
         }
     }
 
