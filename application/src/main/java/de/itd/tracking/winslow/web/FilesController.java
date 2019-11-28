@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -161,6 +162,7 @@ public class FilesController {
         return normalizedPath(request)
                 .map(directory::resolve)
                 .filter(path -> checker.isAllowedToAccessPath(user, path))
+                .filter(Files::exists)
                 .map(Path::toFile)
                 .map(file -> ResponseEntity
                         .ok()
