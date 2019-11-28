@@ -7,16 +7,17 @@ import de.itd.tracking.winslow.config.PipelineDefinition;
 import de.itd.tracking.winslow.project.Project;
 import de.itd.tracking.winslow.resource.PathConfiguration;
 import de.itd.tracking.winslow.resource.ResourceManager;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.annotation.Nonnull;
 import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,6 +69,342 @@ public class FilesControllerTest {
 
         Files.createDirectories(workspaces.resolve("my-project-id/stage1"));
         Files.writeString(workspaces.resolve("my-project-id/stage1/some.file"), SOME_FILE);
+    }
+
+    @Test
+    public void testResourceDeletion() {
+        String file      = "abc.txt";
+        String directory = "sub";
+        assertTrue(controller.deleteInResource(constructRequest(file), getRoot()));
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve(file)
+        ));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve(directory)
+        ));
+        assertTrue(controller.deleteInResource(constructRequest(directory), getRoot()));
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testResourceDeletionInvalid() {
+        assertFalse(controller.deleteInResource(constructRequest("some-invalid-path"), getRoot()));
+    }
+
+    @Test
+    public void testResourceDeletionUnauthorized() {
+        String file      = "abc.txt";
+        String directory = "sub";
+        assertFalse(controller.deleteInResource(constructRequest(file), null));
+        assertFalse(controller.deleteInResource(constructRequest(directory), null));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve(file)
+        ));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceDeletion() {
+        String file      = "my-project-id/stage1/some.file";
+        String directory = "my-project-id/stage1";
+        assertTrue(controller.deleteInWorkspace(constructRequest(file), getRoot()));
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(file)
+        ));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+
+        assertTrue(controller.deleteInWorkspace(constructRequest(directory), getRoot()));
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceDeletionUnauthorized() {
+        String file      = "my-project-id/stage1/some.file";
+        String directory = "my-project-id/stage1";
+        assertFalse(controller.deleteInWorkspace(constructRequest(file), null));
+        assertFalse(controller.deleteInWorkspace(constructRequest(directory), null));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(file)
+        ));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceDeletionNotAllowed() {
+        String file      = "my-project-id/stage1/some.file";
+        String directory = "my-project-id/stage1";
+        assertFalse(controller.deleteInWorkspace(constructRequest(file), getUser("random-guy", false)));
+        assertFalse(controller.deleteInWorkspace(constructRequest(directory), getUser("random-guy", false)));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(file)
+        ));
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceDeletionProjectOwner() {
+        String file      = "my-project-id/stage1/some.file";
+        String directory = "my-project-id/stage1";
+        assertTrue(controller.deleteInWorkspace(constructRequest(file), getProjectOwner()));
+        assertTrue(controller.deleteInWorkspace(constructRequest(directory), getProjectOwner()));
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(file)
+        ));
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testResourceCreateDirectory() {
+        String directory = "the-new-shit";
+        assertEquals(
+                Optional.of("/resources/" + directory),
+                controller.createResourceDirectory(constructRequest(directory), getRoot())
+        );
+        assertEquals(
+                Optional.of("/resources/" + directory),
+                controller.createResourceDirectory(constructRequest(directory), getRoot())
+        );
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testResourceCreateDirectoryUnauthorized() {
+        String directory = "the-new-shit";
+        assertEquals(
+                Optional.empty(),
+                controller.createResourceDirectory(constructRequest(directory), null)
+        );
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceCreateDirectory() {
+        var directory = "my-project-id/next-lvl-stage";
+        assertEquals(
+                Optional.of("/workspaces/" + directory),
+                controller.createWorkspaceDirectory(constructRequest(directory), getRoot())
+        );
+        assertEquals(
+                Optional.of("/workspaces/" + directory),
+                controller.createWorkspaceDirectory(constructRequest(directory), getRoot())
+        );
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceCreateDirectoryUnauthorized() {
+        String directory = "my-project-id/next-lvl-stage";
+        assertEquals(
+                Optional.empty(),
+                controller.createWorkspaceDirectory(constructRequest(directory), null)
+        );
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceCreateDirectoryNotAllowed() {
+        String directory = "my-project-id/next-lvl-stage";
+        assertEquals(
+                Optional.empty(),
+                controller.createWorkspaceDirectory(
+                        constructRequest(directory),
+                        getUser("random-guy", false)
+                )
+        );
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testWorkspaceCreateDirectoryProjectOwner() {
+        String directory = "my-project-id/next-lvl-stage";
+        assertEquals(
+                Optional.of("/workspaces/" + directory),
+                controller.createWorkspaceDirectory(
+                        constructRequest(directory),
+                        getProjectOwner()
+                )
+        );
+        assertTrue(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve(directory)
+        ));
+    }
+
+    @Test
+    public void testResourceUpload() throws IOException {
+        controller.uploadResourceFile(
+                constructRequest("bitcoin.privatekey"),
+                getRoot(),
+                constructUploadFile(ABC_TXT)
+        );
+        String content = Files.readString(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve("bitcoin.privatekey")
+        );
+        assertEquals(ABC_TXT, content);
+    }
+
+    @Test
+    public void testResourceUploadOverwrite() throws IOException {
+        controller.uploadResourceFile(
+                constructRequest("abc.txt"),
+                getRoot(),
+                constructUploadFile(DEF_TXT)
+        );
+        String content = Files.readString(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve("abc.txt")
+        );
+        assertEquals(DEF_TXT, content);
+    }
+
+    @Test
+    public void testResourceUploadUnauthorized() {
+        Assert.assertThrows(
+                "404 NOT_FOUND",
+                ResponseStatusException.class,
+                () -> controller.uploadResourceFile(
+                        constructRequest("bitcoin.privatekey"),
+                        null,
+                        constructUploadFile(ABC_TXT)
+                )
+        );
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve("bitcoin.privatekey")
+        ));
+    }
+
+    @Test
+    public void testWorkspaceUpload() throws IOException {
+        controller.uploadWorkspaceFile(
+                constructRequest("my-project-id/bitcoin.privatekey"),
+                getRoot(),
+                constructUploadFile(ABC_TXT)
+        );
+        String content = Files.readString(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve("my-project-id/bitcoin.privatekey")
+        );
+        assertEquals(ABC_TXT, content);
+    }
+
+    @Test
+    public void testWorkspaceUploadUnauthorized() {
+        Assert.assertThrows(
+                "404 NOT_FOUND",
+                ResponseStatusException.class,
+                () -> controller.uploadWorkspaceFile(
+                        constructRequest("my-project-id/bitcoin.privatekey"),
+                        null,
+                        constructUploadFile(ABC_TXT)
+                )
+        );
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve("my-project-id/bitcoin.privatekey")
+        ));
+    }
+
+    @Test
+    public void testWorkspaceUploadNotAllowed() {
+        Assert.assertThrows(
+                "404 NOT_FOUND",
+                ResponseStatusException.class,
+                () -> controller.uploadWorkspaceFile(
+                        constructRequest("my-project-id/bitcoin.privatekey"),
+                        getUser("random-guy", false),
+                        constructUploadFile(ABC_TXT)
+                )
+        );
+        assertFalse(Files.exists(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfResources())
+                        .resolve("my-project-id/bitcoin.privatekey")
+        ));
+    }
+
+    @Test
+    public void testWorkspaceUploadProjectOwner() throws IOException {
+        controller.uploadWorkspaceFile(
+                constructRequest("my-project-id/bitcoin.privatekey"),
+                getProjectOwner(),
+                constructUploadFile(ABC_TXT)
+        );
+        String content = Files.readString(
+                workDirectory
+                        .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                        .resolve("my-project-id/bitcoin.privatekey")
+        );
+        assertEquals(ABC_TXT, content);
     }
 
     @Test
@@ -251,6 +588,50 @@ public class FilesControllerTest {
                 Optional.of(Path.of("some/very/clever/path")),
                 FilesController.normalizedPath(constructRequest("/some/api/**", "/some/api/some/very/clever/path"))
         );
+    }
+
+    private static MultipartFile constructUploadFile(@Nonnull String content) {
+        return new MultipartFile() {
+            @Override
+            public String getName() {
+                return null;
+            }
+
+            @Override
+            public String getOriginalFilename() {
+                return null;
+            }
+
+            @Override
+            public String getContentType() {
+                return null;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return false;
+            }
+
+            @Override
+            public long getSize() {
+                return 0;
+            }
+
+            @Override
+            public byte[] getBytes() throws IOException {
+                return new byte[0];
+            }
+
+            @Override
+            public InputStream getInputStream() throws IOException {
+                return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+            }
+
+            @Override
+            public void transferTo(File file) throws IOException, IllegalStateException {
+                this.transferTo(file.toPath());
+            }
+        };
     }
 
     private static HttpServletRequest constructRequest(@Nonnull String path) {

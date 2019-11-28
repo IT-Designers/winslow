@@ -54,7 +54,7 @@ public class FilesController {
     public boolean deleteInResource(HttpServletRequest request, User user) {
         return resourceManager
                 .getResourceDirectory()
-                .map(dir -> delete(request, user, dir))
+                .map(dir -> delete(request, user, dir, false))
                 .orElse(Boolean.FALSE);
     }
 
@@ -62,15 +62,15 @@ public class FilesController {
     public boolean deleteInWorkspace(HttpServletRequest request, User user) {
         return resourceManager
                 .getWorkspacesDirectory()
-                .map(dir -> delete(request, user, dir))
+                .map(dir -> delete(request, user, dir, true))
                 .orElse(Boolean.FALSE);
     }
 
-    public boolean delete(HttpServletRequest request, User user, @Nonnull Path directory) {
+    public boolean delete(HttpServletRequest request, User user, @Nonnull Path directory, boolean protectTopLevel) {
         return normalizedPath(request)
                 .flatMap(path -> Optional
                         .of(directory.resolve(path))
-                        .filter(p -> path.getNameCount() > 1) // prevent deletion of top level directories
+                        .filter(p -> !protectTopLevel || path.getNameCount() > 1) // prevent deletion of top level directories
                         .filter(p -> checker.isAllowedToAccessPath(user, p)))
                 .map(path -> {
                     try {
@@ -87,7 +87,10 @@ public class FilesController {
     public Optional<String> createResourceDirectory(HttpServletRequest request, User user) {
         return resourceManager
                 .getResourceDirectory()
-                .flatMap(dir -> createDirectory(request, user, dir).map(dir::relativize))
+                .flatMap(dir -> createDirectory(request, user, dir)
+                        .map(dir::relativize)
+                        .map(Path.of("/resources/")::resolve)
+                )
                 .map(Path::toString);
     }
 
@@ -95,7 +98,10 @@ public class FilesController {
     public Optional<String> createWorkspaceDirectory(HttpServletRequest request, User user) {
         return resourceManager
                 .getWorkspacesDirectory()
-                .flatMap(dir -> createDirectory(request, user, dir).map(dir::relativize))
+                .flatMap(dir -> createDirectory(request, user, dir)
+                        .map(dir::relativize)
+                        .map(Path.of("/workspaces/")::resolve)
+                )
                 .map(Path::toString);
     }
 
