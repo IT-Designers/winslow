@@ -3,12 +3,25 @@
 <div class="vmenu-host auto-full-height">
   <div *ngIf="projects != null" class="vmenu-selection-container">
     <mat-card class="vmenu-selection">
-      <app-tag-filter #filter
-        [availableTags]="api.cachedTags"
-        [projects]="projects"
-        (filtered)="projectsFiltered = $event"
-      ></app-tag-filter>
-      <mat-divider></mat-divider>
+      <div style="position: sticky; top: 1em; z-index: 9999">
+        <mat-accordion>
+          <mat-expansion-panel #panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title class="mat-icon-container-auto-align-label">
+                <mat-icon>filter_list</mat-icon>
+                <label>Filter</label>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <app-tag-filter #filter
+                            [availableTags]="api.cachedTags"
+                            [projects]="projects"
+                            (filtered)="projectsFiltered = $event"
+            ></app-tag-filter>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+      <div style="padding-top: 1.5em">
+      </div>
 
       <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
         <i>There are no projects yet</i>
@@ -29,6 +42,7 @@
           ></app-project-view-header>
         </mat-list-item>
       </mat-list>
+
       <div style="padding-top: 2.5em">
       </div>
       <div style="position: sticky; margin-left: calc(100% - 4em); bottom: 1em">
