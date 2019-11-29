@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {ProjectInfo, State} from '../api/project-api.service';
 import {StateIconComponent} from '../state-icon/state-icon.component';
 import {FilesApiService} from '../api/files-api.service';
@@ -14,6 +14,9 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   @Input() pauseReason: string = null;
   @Input() progress: number = null;
   @Input() running = false;
+
+  @Output() tagActionPrimary = new EventEmitter<string>();
+  @Output() tagActionSecondary = new EventEmitter<string>();
 
   @Output()
   @ViewChild('icon', {static: false})
