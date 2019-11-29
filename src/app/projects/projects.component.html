@@ -3,19 +3,20 @@
 <div class="vmenu-host auto-full-height">
   <div *ngIf="projects != null" class="vmenu-selection-container">
     <mat-card class="vmenu-selection">
-      <div style="position: sticky; top: 1em; z-index: 9999">
+      <div style="position: sticky; top: 1em; z-index: 1">
         <mat-accordion>
-          <mat-expansion-panel #panel>
+          <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title class="mat-icon-container-auto-align-label">
                 <mat-icon>filter_list</mat-icon>
                 <label>Filter</label>
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <app-tag-filter #filter
-                            [availableTags]="api.cachedTags"
-                            [projects]="projects"
-                            (filtered)="projectsFiltered = $event"
+            <app-tag-filter
+                #filter
+                [availableTags]="api.cachedTags"
+                [projects]="projects"
+                (filtered)="projectsFiltered = $event"
             ></app-tag-filter>
           </mat-expansion-panel>
         </mat-accordion>
