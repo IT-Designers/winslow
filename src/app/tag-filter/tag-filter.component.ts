@@ -25,6 +25,24 @@ export class TagFilterComponent implements OnInit {
 
   }
 
+  addIncludedTag(tag: string) {
+    if (this.includeTags != null && this.includeTags.indexOf(tag) < 0) {
+      const tags = this.includeTags.map(t => t);
+      tags.push(tag);
+      this.includeTags = tags; // notify the bindings
+      this.updateFilter();
+    }
+  }
+
+  addExcludedTag(tag: string) {
+    if (this.excludeTags != null && this.excludeTags.indexOf(tag) < 0) {
+      const tags = this.excludeTags.map(t => t);
+      tags.push(tag);
+      this.excludeTags = tags; // notify the bindings
+      this.updateFilter();
+    }
+  }
+
   @Input('projects')
   set projects(projects: ProjectInfo[]) {
     this.projectsValue = projects;

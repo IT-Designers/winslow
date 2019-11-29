@@ -1,8 +1,10 @@
 <div class="flex-grow-row tag-filter">
   <div>
     <mat-card-subtitle>Projects that <strong>include</strong> the following tags</mat-card-subtitle>
-    <app-tags-with-autocomplete [proposals]="availableTagsValue"
-                                (tags)="this.includeTags = $event; updateFilter()"
+    <app-tags-with-autocomplete
+      [tags]="includeTags"
+      [proposals]="availableTagsValue"
+      (tags)="this.includeTags = $event; updateFilter()"
     ></app-tags-with-autocomplete>
     <mat-slide-toggle (change)="includeEmpty = $event.checked; updateFilter()">
       Include with no Tags
@@ -10,8 +12,10 @@
   </div>
   <div>
     <mat-card-subtitle>Projects that <strong>exclude</strong> the following tags</mat-card-subtitle>
-    <app-tags-with-autocomplete [proposals]="availableTagsValue"
-                                (tags)="this.excludeTags = $event; updateFilter()"
+    <app-tags-with-autocomplete
+      [tags]="excludeTags"
+      [proposals]="availableTagsValue"
+      (tags)="this.excludeTags = $event; updateFilter()"
     ></app-tags-with-autocomplete>
     <mat-slide-toggle (change)="excludeEmpty = $event.checked; updateFilter()">
       Exclude with no Tags
