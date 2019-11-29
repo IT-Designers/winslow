@@ -46,7 +46,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   pollAllProjectsForChanges() {
     this.views.forEach(view => view.longLoading.increase());
-    const projectIds = this.projects.map(project => project.id);
+    const projectIds = this.projectsFiltered.map(project => project.id);
     if (projectIds != null && projectIds.length > 0) {
       this.api.getProjectStates(projectIds)
         .then(result => {
