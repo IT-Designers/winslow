@@ -5,7 +5,12 @@
 </mat-panel-title>
 
 <mat-panel-description class="description-tags">
-  <app-tags-with-autocomplete [readonly]="true" [tags]="project.tags"></app-tags-with-autocomplete>
+  <app-tags-with-autocomplete
+    [readonly]="true"
+    [tags]="project.tags"
+    (tagActionPrimary)="tagActionPrimary.emit($event)"
+    (tagActionSecondary)="tagActionSecondary.emit($event)"
+  ></app-tags-with-autocomplete>
 </mat-panel-description>
 
 <mat-panel-description class="description-etc">
