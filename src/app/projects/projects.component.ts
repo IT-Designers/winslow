@@ -22,7 +22,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   interval;
   selectedProject: ProjectInfo = null;
 
-  constructor(private api: ProjectApiService,
+  constructor(protected api: ProjectApiService,
               private createDialog: MatDialog,
               private notification: NotificationService,
               private dialog: DialogService) {
