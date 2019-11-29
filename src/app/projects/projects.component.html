@@ -27,6 +27,9 @@
       <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
         <i>There are no projects yet</i>
       </div>
+      <div *ngIf="projects != null && projects.length > 0 && projectsFiltered.length == 0" class="none-defined-yet">
+        <i>No project matches the filter</i>
+      </div>
       <mat-list>
         <mat-list-item *ngFor="let project of projectsFiltered" class="project-selection-sidebar-item"
                        (click)="selectedProject = project"
