@@ -41,7 +41,7 @@
             [progress]="stateInfo?.get(project.id)?.stageProgress"
             [running]="stateInfo?.get(project.id)?.isRunning()"
             [mostRecentStage]="stateInfo?.get(project.id)?.mostRecentStage"
-            (tagActionPrimary)="filter.addIncludedTag($event)"
+            (tagActionPrimary)="filter.toggleIncludedTag($event)"
             (tagActionSecondary)="filter.addExcludedTag($event)"
           ></app-project-view-header>
         </mat-list-item>

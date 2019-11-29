@@ -25,6 +25,23 @@ export class TagFilterComponent implements OnInit {
 
   }
 
+  toggleIncludedTag(tag: string) {
+    if (this.includeTags != null) {
+      const index = this.includeTags.indexOf(tag);
+      if (index < 0) {
+        const tags = this.includeTags.map(t => t);
+        tags.push(tag);
+        this.includeTags = tags; // notify the bindings
+        this.updateFilter();
+      } else {
+        const tags = this.includeTags.map(t => t);
+        tags.splice(index, 1);
+        this.includeTags = tags; // notify the bindings
+        this.updateFilter();
+      }
+    }
+  }
+
   addIncludedTag(tag: string) {
     if (this.includeTags != null && this.includeTags.indexOf(tag) < 0) {
       const tags = this.includeTags.map(t => t);
