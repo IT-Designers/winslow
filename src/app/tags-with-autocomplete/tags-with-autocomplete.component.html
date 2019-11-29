@@ -4,11 +4,14 @@
               [selectable]="selectable"
               [removable]="!readonly && removable"
               (removed)="remove(tag)"
+              (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
+              (auxclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
+              (dblclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
               [style.background-color]="colorful ? bgColor(tag) : ''">
       {{tag}}
       <mat-icon matChipRemove *ngIf="!readonly && removable">cancel</mat-icon>
     </mat-chip>
-    <input #tagInput
+    <input *ngIf="!readonly"
            [hidden]="readonly"
            [formControl]="tagsCtrl"
            [matAutocomplete]="auto"
