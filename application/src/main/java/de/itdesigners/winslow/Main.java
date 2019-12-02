@@ -15,7 +15,6 @@ import de.itdesigners.winslow.resource.PathConfiguration;
 import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.WebApi;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -25,7 +24,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@SpringBootApplication
 public class Main {
     private static final Logger LOG = Logger.getLogger(Main.class.getSimpleName());
 
