@@ -2,6 +2,7 @@ package de.itd.tracking.winslow;
 
 import de.itd.tracking.winslow.auth.GroupRepository;
 import de.itd.tracking.winslow.auth.UserRepository;
+import de.itd.tracking.winslow.cli.FixWorkspacePaths;
 import de.itd.tracking.winslow.fs.LockBus;
 import de.itd.tracking.winslow.fs.WorkDirectoryConfiguration;
 import de.itd.tracking.winslow.node.NodeRepository;
@@ -13,6 +14,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
 
@@ -67,12 +69,21 @@ public class Winslow implements Runnable {
                                     e.printStackTrace(System.err);
                                 }
                             });
-
+                } else if ("fix-workspace-paths".equals(line)) {
+                    fixWorkspacePaths();
                 } else if (!line.isEmpty()) {
                     System.out.println("Unknown command");
                 }
             }
         }
+    }
+
+    private void fixWorkspacePaths() {
+        new FixWorkspacePaths()
+                .withProjectIds(this.projectRepository.getProjectIds().collect(Collectors.toList()))
+                .searchForProjectsWithFixableWorkspaces(projectRepository, orchestrator)
+                .tryFixProjectsWithFixableWorkspacePaths(orchestrator)
+                .printResults(System.out);
     }
 
     @Nonnull
