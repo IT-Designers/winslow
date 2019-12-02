@@ -199,3 +199,8 @@
 .console-scroll-up-down > *:not(:last-child) {
   margin-right: 0.1em;
 }
+
+
+label.disabled {
+  color: rgba(0, 0, 0, 0.2);
+}

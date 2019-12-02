@@ -77,7 +77,7 @@ export class DialogService {
   }
 
   openAreYouSure(text: string, onSure: () => Promise<void>) {
-    this.fireWithSuccessNotification({
+    return this.fireWithSuccessNotification({
       icon: 'warning',
       titleText: 'Are you sure?',
       text,

@@ -1,6 +1,7 @@
 import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
-  Action, DeletionPolicy,
+  Action,
+  DeletionPolicy,
   EnvVariable,
   HistoryEntry,
   ImageInfo,
@@ -51,7 +52,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   paused: boolean = null;
   pauseReason?: string = null;
   progress?: number;
-  deletionPolicy?: DeletionPolicy;
+
+  deletionPolicyLocal?: DeletionPolicy;
+  deletionPolicyRemote?: DeletionPolicy;
 
   watchHistory = false;
   watchPaused = false;
@@ -111,7 +114,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.logs = null;
     this.history = null;
     this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
-    this.deletionPolicy = null;
+    this.deletionPolicyLocal = null;
+    this.deletionPolicyRemote = null;
     this.pollWatched(true);
     this.setupFiles();
 
@@ -120,7 +124,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
     }
 
-    this.api.getDeletionPolicy(this.project.id).then(policy => this.deletionPolicy = policy);
+    this.api.getDeletionPolicy(this.project.id).then(policy => {
+      this.deletionPolicyLocal = policy;
+      this.deletionPolicyRemote = policy;
+    });
   }
 
   public get project(): ProjectInfo {
@@ -713,22 +720,55 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       });
   }
 
-  setLimitOfWorkspacesOfSuccessfulStagesToKeep(value: string) {
-    if (value != null && value.length === 0) {
-      value = null;
+  maybeResetDeletionPolicy(reset: boolean) {
+    const reApplyCurrentState = () => {
+      const before = JSON.parse(JSON.stringify(this.deletionPolicyLocal));
+      this.deletionPolicyLocal = null;
+      if (before != null) {
+        setTimeout(() => {
+          this.deletionPolicyLocal = before;
+        });
+      }
+    };
+    if (reset) {
+      this.deletionPolicyLocal = null;
+    } else {
+      if (this.deletionPolicyLocal === null) {
+        this.dialog.openLoadingIndicator(
+          this.api.getDefaultDeletionPolicy(this.project.id)
+            .then(result => this.deletionPolicyLocal = result)
+            .catch(e => {
+              reApplyCurrentState();
+              return Promise.reject(e);
+            }),
+          'Loading default policy',
+          false
+        );
+      }
     }
-    this.dialog.openLoadingIndicator(
-      this.api.setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(this.project.id, Number(value))
-        .then(result => this.deletionPolicy = result),
-      `Updating limit`
-    );
   }
 
-  setKeepWorkspaceOfFailedStages(checked: boolean) {
+  updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean) {
+    let promise = null;
+    if (set) {
+      const policy = new DeletionPolicy();
+      policy.numberOfWorkspacesOfSucceededStagesToKeep = Number(limitStr) > 0 ? Number(limitStr) : null;
+      policy.keepWorkspaceOfFailedStage = keep;
+      promise = this.api.updateDeletionPolicy(this.project.id, policy)
+        .then(result => {
+          this.deletionPolicyLocal = result;
+          this.deletionPolicyRemote = result;
+        });
+    } else {
+      promise = this.api.resetDeletionPolicy(this.project.id)
+        .then(r => {
+          this.deletionPolicyLocal = null;
+          this.deletionPolicyRemote = null;
+        });
+    }
     this.dialog.openLoadingIndicator(
-      this.api.setDeletionPolicyKeepWorkspaceOfFailedStage(this.project.id, checked)
-        .then(result => this.deletionPolicy = result),
-      'Updating flag'
+      promise,
+      'Updating Deletion Policy'
     );
   }
 }
