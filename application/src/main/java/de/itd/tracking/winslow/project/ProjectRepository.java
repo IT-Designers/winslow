@@ -96,6 +96,16 @@ public class ProjectRepository extends BaseRepository {
                 .map(this::getProject);
     }
 
+    @Nonnull
+    public Stream<String> getProjectIds() {
+        return listAll(FILE_EXTENSION)
+                .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX))
+                .map(path -> {
+                    var fileName = path.getFileName().toString();
+                    return fileName.substring(0, fileName.length() - FILE_EXTENSION.length());
+                });
+    }
+
     private Handle<Project> getProject(Path path) {
         return createHandle(path, Project.class);
     }

@@ -38,7 +38,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
         var stageId = context.getStageId();
         var builder = context
                 .getBuilder()
-                .withWorkspaceDirectory(TARGET_PATH_PIPELINE_WORKSPACE)
+                .withWorkspaceDirectory(config.getWorkspaceDirectory().toString())
                 .withInternalEnvVariable(ENV_DIR_WORKSPACE, TARGET_PATH_PIPELINE_WORKSPACE);
 
         addNfsVolume(

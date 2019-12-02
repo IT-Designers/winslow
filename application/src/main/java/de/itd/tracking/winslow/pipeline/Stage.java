@@ -13,12 +13,12 @@ import java.util.Optional;
 
 public class Stage {
 
-    @Nonnull private final  String          id;
-    @Nonnull private final  StageDefinition definition;
-    @Nonnull private final  Action          action;
-    @Nonnull private final  Date            startTime;
-    @Nullable private final String          workspace;
+    @Nonnull private final String          id;
+    @Nonnull private final StageDefinition definition;
+    @Nonnull private final Action          action;
+    @Nonnull private final Date            startTime;
 
+    @Nullable private String              workspace;
     @Nullable private Date                finishTime;
     @Nullable private State               finishState;
     @Nullable private Map<String, String> env;
@@ -114,6 +114,10 @@ public class Stage {
     @Nonnull
     public Optional<String> getWorkspace() {
         return Optional.ofNullable(workspace);
+    }
+
+    public void setWorkspace(@Nullable String workspace) {
+        this.workspace = workspace;
     }
 
     @Nonnull
