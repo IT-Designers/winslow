@@ -21,7 +21,7 @@ public class OrchestratorTest {
         Files.createDirectories(subDir);
 
         assertTrue(Files.exists(subDir));
-        Orchestrator.forcePurge(path, subDir);
+        Orchestrator.forcePurge(path, path, subDir);
         assertFalse(Files.exists(subDir));
         assertTrue(Files.exists(path));
 
@@ -31,16 +31,25 @@ public class OrchestratorTest {
         assertTrue(Files.exists(subDir2));
         assertTrue(Files.exists(subDir2.resolve("abc")));
 
-        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("abc/../..")));
-        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, subDir2.resolve("..")));
-        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, path));
-        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(path, Path.of("/../../tmp/123/path-does-not-exist")));
-        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(path, Path.of("../../tmp/123/path-does-not-exist")));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, path, subDir2.resolve("abc/../..")));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, path, subDir2.resolve("..")));
+        assertThrows(IOException.class, () -> Orchestrator.forcePurge(path, path, path));
+        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(path, path, Path.of("/../../tmp/123/path-does-not-exist")));
+        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(path, path, Path.of("../../tmp/123/path-does-not-exist")));
 
         // nothing should have been deleted!
         assertTrue(Files.exists(subDir2));
         assertTrue(Files.exists(subDir2.resolve("abc")));
         assertTrue(Files.exists(path));
+    }
 
+    @Test
+    public void testEnsurePathToPurgeIsValidConsidersScopeProperly() throws IOException {
+        var dir = Path.of("/workspace");
+
+        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(dir, dir.resolve(".."), dir.resolve("doesn-not-matter")));
+        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(dir, dir.resolve("scoped"), dir.resolve("outside-scope")));
+        assertThrows(IOException.class, () -> Orchestrator.ensurePathToPurgeIsValid(dir, dir.resolve("scoped"), dir.resolve("scoped")));
+        Orchestrator.ensurePathToPurgeIsValid(dir, dir.resolve("scoped"), dir.resolve("scoped").resolve("inner"));
     }
 }

@@ -41,6 +41,7 @@ public class FileAccessCheckerTest {
                                 null,
                                 null,
                                 Collections.emptyList(),
+                                null,
                                 null
                         )
                 ))

@@ -198,7 +198,8 @@ public class PipelinesController {
                                             null,
                                             null
                                     )),
-                                    Map.of("some-key", "some-value", "another-key", "another-value")
+                                    Map.of("some-key", "some-value", "another-key", "another-value"),
+                                    null
                             );
                             container.update(def);
                             return Optional.of(new PipelineInfo(id, def));

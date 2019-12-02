@@ -375,7 +375,7 @@ public class Orchestrator {
                             .add(new RequirementAppender())
                             .add(new EnvLogger())
                             .add(new UserInputChecker())
-                            .add(new WorkspaceCreator(environment))
+                            .add(new WorkspaceCreator(this, environment))
                             .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
                             .add(new BuildAndSubmit(this.nodeName, builtStage -> {
@@ -567,7 +567,11 @@ public class Orchestrator {
             }
 
             var workspace = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
-            workspace.ifPresent(this::forcePurgeNoThrows);
+            workspace.ifPresent(w -> environment
+                    .getResourceManager()
+                    .getWorkspacesDirectory()
+                    .ifPresent(wd -> forcePurgeNoThrows(wd, w))
+            );
             return workspace.isPresent() && container.deleteOmitExceptions();
 
         } catch (LockException e) {
@@ -575,20 +579,39 @@ public class Orchestrator {
         }
     }
 
-    public void forcePurgeNoThrows(@Nonnull Path directory) {
+    public void forcePurgeNoThrows(@Nonnull Path mustBeWithin, @Nonnull Path directory) {
         try {
-            forcePurge(directory);
+            forcePurge(environment.getWorkDirectoryConfiguration().getPath(), mustBeWithin, directory);
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to get rid of directory " + directory, e);
         }
     }
 
-    public void forcePurge(@Nonnull Path pathToDelete) throws IOException {
-        Orchestrator.forcePurge(this.environment.getWorkDirectoryConfiguration().getPath(), pathToDelete);
+    public void forcePurgeWorkspaceNoThrows(@Nonnull String projectId, @Nonnull Path workspace) {
+        try {
+            forcePurgeWorkspace(projectId, workspace);
+        } catch (IOException e) {
+            LOG.log(
+                    Level.SEVERE,
+                    "Failed to get rid of workspace directory[" + workspace + "] of Project " + projectId,
+                    e
+            );
+        }
     }
 
-    public static void forcePurge(@Nonnull Path workDirectory, @Nonnull Path path) throws IOException {
-        ensurePathToPurgeIsValid(workDirectory, path);
+    public void forcePurgeWorkspace(@Nonnull String projectId, @Nonnull Path workspace) throws IOException {
+        var scope = this.environment
+                .getResourceManager()
+                .getWorkspace(getWorkspacePathForPipeline(projectId))
+                .orElseThrow(() -> new IOException("Failed to determine scope for ProjectId " + projectId));
+        Orchestrator.forcePurge(environment.getWorkDirectoryConfiguration().getPath(), scope, workspace);
+    }
+
+    public static void forcePurge(
+            @Nonnull Path workDirectory,
+            @Nonnull Path mustBeWithin,
+            @Nonnull Path path) throws IOException {
+        ensurePathToPurgeIsValid(workDirectory, mustBeWithin, path);
         var maxRetries = 3;
         for (int i = 0; i < maxRetries && path.toFile().exists(); ++i) {
             var index = i;
@@ -612,13 +635,22 @@ public class Orchestrator {
 
     public static void ensurePathToPurgeIsValid(
             @Nonnull Path workDirectory,
+            @Nonnull Path scope,
             @Nonnull Path path) throws IOException {
         if (!path.normalize().equals(path)) {
             throw new IOException("Path not normalized properly: " + path);
         }
 
+        if (!scope.normalize().equals(scope)) {
+            throw new IOException("Scope not normalized properly: " + path);
+        }
+
         if (!path.startsWith(workDirectory)) {
-            throw new IOException("Path[" + path + "] not within working directory[" + workDirectory + "]");
+            throw new IOException("Path[" + path + "] is not within working directory[" + workDirectory + "]");
+        }
+
+        if (!path.startsWith(scope)) {
+            throw new IOException("Path[" + path + "] is not within scope[" + scope + "]");
         }
 
         if (workDirectory.getNameCount() + 1 >= path.getNameCount()) {
@@ -676,7 +708,11 @@ public class Orchestrator {
     }
 
     private static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
-        return Path.of(pipeline.getProjectId());
+        return getWorkspacePathForPipeline(pipeline.getProjectId());
+    }
+
+    private static Path getWorkspacePathForPipeline(@Nonnull String projectId) {
+        return Path.of(projectId);
     }
 
     private static String getStageId(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
@@ -768,11 +804,25 @@ public class Orchestrator {
 
     private void discardObsoleteWorkspaces(@Nonnull String projectId) {
         getPipeline(projectId).ifPresent(pipeline -> {
-            var policy     = pipeline.getDeletionPolicy().orElseGet(Orchestrator::defaultDeletionPolicy);
+            var policy = pipeline
+                    .getDeletionPolicy()
+                    .or(() -> this.projects
+                            .getProject(projectId)
+                            .unsafe()
+                            .map(Project::getPipelineDefinition)
+                            .flatMap(PipelineDefinition::getDeletionPolicy)
+                    )
+                    .orElseGet(Orchestrator::defaultDeletionPolicy);
             var history    = pipeline.getCompletedStages().collect(Collectors.toList());
             var finder     = new ObsoleteWorkspaceFinder(policy).withExecutionHistory(history);
             var obsolete   = finder.collectObsoleteWorkspaces();
             var workspaces = environment.getResourceManager();
+            var purgeScope = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
+
+            if (purgeScope.isEmpty()) {
+                LOG.warning("Cannot determine purge scope for Pipeline with ProjectId " + pipeline.getProjectId());
+                return;
+            }
 
             obsolete.stream()
                     .map(Path::of)
@@ -780,7 +830,7 @@ public class Orchestrator {
                     .flatMap(Optional::stream)
                     .filter(Files::exists)
                     .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
-                    .forEach(this::forcePurgeNoThrows);
+                    .forEach(path -> forcePurgeNoThrows(purgeScope.get(), path));
         });
     }
 

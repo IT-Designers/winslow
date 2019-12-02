@@ -1,5 +1,7 @@
 package de.itd.tracking.winslow.config;
 
+import de.itd.tracking.winslow.pipeline.DeletionPolicy;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
@@ -11,18 +13,21 @@ public class PipelineDefinition {
     private final @Nullable UserInput             userInput;
     private final @Nullable List<StageDefinition> stages;
     private final @Nullable Map<String, String>   env;
+    private final @Nullable DeletionPolicy        deletionPolicy;
 
     public PipelineDefinition(
             @Nonnull String name,
             @Nullable String description,
             @Nullable UserInput requires,
             @Nonnull List<StageDefinition> stageDefinitions,
-            @Nullable Map<String, String> environment) {
-        this.name      = name;
-        this.desc      = description;
-        this.userInput = requires;
-        this.stages    = stageDefinitions;
-        this.env       = environment;
+            @Nullable Map<String, String> environment,
+            @Nullable DeletionPolicy deletionPolicy) {
+        this.name           = name;
+        this.desc           = description;
+        this.userInput      = requires;
+        this.stages         = stageDefinitions;
+        this.env            = environment;
+        this.deletionPolicy = deletionPolicy;
         this.check();
     }
 
@@ -57,6 +62,11 @@ public class PipelineDefinition {
     }
 
     @Nonnull
+    public Optional<DeletionPolicy> getDeletionPolicy() {
+        return Optional.ofNullable(this.deletionPolicy);
+    }
+
+    @Nonnull
     @Override
     public String toString() {
         return getClass().getSimpleName()
@@ -64,8 +74,9 @@ public class PipelineDefinition {
                 + "',desc='" + this.desc
                 + "',userInput=" + this.userInput
                 + ",stages=" + this.stages
-                + ",env=" + this.env + "}#"
-                + this.hashCode();
+                + ",env=" + this.env
+                + ",deletionPolicy=" + this.deletionPolicy
+                + "}#" + this.hashCode();
     }
 
     @Override
@@ -79,7 +90,8 @@ public class PipelineDefinition {
                 && Objects.equals(desc, pipelineDefinition.desc)
                 && Objects.equals(userInput, pipelineDefinition.userInput)
                 && Objects.equals(stages, pipelineDefinition.stages)
-                && Objects.equals(env, pipelineDefinition.env);
+                && Objects.equals(env, pipelineDefinition.env)
+                && Objects.equals(deletionPolicy, pipelineDefinition.deletionPolicy);
     }
 
     @Override

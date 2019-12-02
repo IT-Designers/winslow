@@ -50,7 +50,11 @@ public class RunInfoRepository extends BaseRepository {
     }
 
     public void removeAllProperties(@Nonnull String stageId) throws IOException {
-        Orchestrator.forcePurge(workDirectoryConfiguration.getPath(), getRepositoryFile(stageId));
+        Orchestrator.forcePurge(
+                workDirectoryConfiguration.getPath(),
+                workDirectoryConfiguration.getPath(),
+                getRepositoryFile(stageId)
+        );
     }
 
     public void setPropertyNoThrows(
