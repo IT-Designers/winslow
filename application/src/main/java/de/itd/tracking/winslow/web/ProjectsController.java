@@ -586,7 +586,8 @@ public class ProjectsController {
                                     .withInPipelineDefinitionDefinedVariables(
                                             project
                                                     .getPipelineDefinition()
-                                                    .getEnvironment());
+                                                    .getEnvironment()
+                                    );
 
 
                             try {
