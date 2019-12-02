@@ -249,20 +249,26 @@ public class Orchestrator {
         if (noneRunning && !paused && !hasNext && successful) {
             return pipeline
                     .getMostRecentStage()
-                    .flatMap(recent -> getNextStageIndex(definition, recent).map(index -> {
-                        var base              = definition.getStages().get(index);
-                        var env               = new TreeMap<>(base.getEnvironment());
-                        var recentUpdatesBase = base.getName().equals(recent.getDefinition().getName());
-
-                        env.putAll(recent.getEnv());
+                    .flatMap(_recent -> getNextStageIndex(definition, _recent).map(index -> {
+                        var base = definition.getStages().get(index);
+                        var env  = new TreeMap<>(base.getEnvironment());
 
                         var builder = new StageDefinitionBuilder()
                                 .withBase(base)
                                 .withEnvironment(env);
 
-                        if (recentUpdatesBase && recent.getDefinition().getImage().isPresent()) {
-                            builder = builder.withImage(recent.getDefinition().getImage().get());
-                        }
+                        // overwrite StageDefinition if there is already an
+                        // execution instance of it
+                        pipeline
+                                .getAllStages()
+                                .filter(stage -> stage.getFinishState().equals(Optional.of(Stage.State.Succeeded)))
+                                .filter(stage -> stage.getDefinition().getName().equals(base.getName()))
+                                .reduce((first, second) -> second)
+                                .ifPresent(recent -> {
+                                    env.clear();
+                                    env.putAll(recent.getEnv());
+                                    recent.getDefinition().getImage().ifPresent(builder::withImage);
+                                });
 
                         pipeline.enqueueStage(builder.build());
                         return Boolean.TRUE;
