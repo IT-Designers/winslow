@@ -18,9 +18,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>de.itdesigners</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>winslow-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
