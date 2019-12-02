@@ -410,8 +410,8 @@ public class Orchestrator {
                 updatePipeline(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 });
-            } catch (AssemblyException e) {
-                LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, e);
+            } catch (Throwable t) {
+                LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
                 updatePipeline(projectId, pipelineToUpdate -> {
                     pipelineToUpdate.finishRunningStage(Stage.State.Failed);
                 });
