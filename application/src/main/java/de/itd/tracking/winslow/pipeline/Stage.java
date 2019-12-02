@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class Stage {
+public class Stage implements Cloneable {
 
     @Nonnull private final String          id;
     @Nonnull private final StageDefinition definition;
@@ -150,6 +150,23 @@ public class Stage {
             this.envInternal = new HashMap<>();
         }
         return this.envInternal;
+    }
+
+    @Override
+    public Stage clone() {
+        return new Stage(
+                id,
+                definition,
+                action,
+                startTime,
+                workspace,
+                finishTime,
+                finishState,
+                env,
+                envPipeline,
+                envSystem,
+                envInternal
+        );
     }
 
     public enum State {
