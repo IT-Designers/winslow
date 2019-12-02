@@ -215,8 +215,9 @@ public class Orchestrator {
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
                 if (this.executeStages && hasNoRunningStage(pipeline)) {
-                    maybeEnqueueNextStageOfPipeline(definition, pipeline);
-                    if (startNextStageIfReady(container.getLock(), definition, pipeline)) {
+                    var enqueued = maybeEnqueueNextStageOfPipeline(definition, pipeline);
+                    var started  = startNextStageIfReady(container.getLock(), definition, pipeline);
+                    if (enqueued || started) {
                         tryUpdateContainer(container, pipeline);
                     }
                 }
@@ -249,23 +250,72 @@ public class Orchestrator {
         if (noneRunning && !paused && !hasNext && successful) {
             return pipeline
                     .getMostRecentStage()
-                    .flatMap(recent -> getNextStageIndex(definition, recent).map(index -> {
-                        var base              = definition.getStages().get(index);
-                        var env               = new TreeMap<>(base.getEnvironment());
-                        var recentUpdatesBase = base.getName().equals(recent.getDefinition().getName());
-
-                        env.putAll(recent.getEnv());
+                    .flatMap(_recent -> getNextStageIndex(definition, _recent).map(index -> {
+                        var base = definition.getStages().get(index);
+                        var env  = new TreeMap<>(base.getEnvironment());
 
                         var builder = new StageDefinitionBuilder()
                                 .withBase(base)
                                 .withEnvironment(env);
 
-                        if (recentUpdatesBase && recent.getDefinition().getImage().isPresent()) {
-                            builder = builder.withImage(recent.getDefinition().getImage().get());
-                        }
+                        // overwrite StageDefinition if there is already an
+                        // execution instance of it
+                        pipeline
+                                .getAllStages()
+                                .filter(stage -> stage.getFinishState().equals(Optional.of(Stage.State.Succeeded)))
+                                .filter(stage -> stage.getDefinition().getName().equals(base.getName()))
+                                .reduce((first, second) -> second)
+                                .ifPresent(recent -> {
+                                    env.clear();
+                                    env.putAll(recent.getEnv());
+                                    recent.getDefinition().getImage().ifPresent(builder::withImage);
+                                });
 
-                        pipeline.enqueueStage(builder.build());
-                        return Boolean.TRUE;
+
+                        var stageId         = "no-id-because-probing-execution-" + System.nanoTime();
+                        var stageDefinition = builder.build();
+                        var enqueuedStage   = new EnqueuedStage(stageDefinition, Action.Execute);
+
+                        try {
+                            // check whether assembling the stage would be possible
+                            new StageAssembler()
+                                    .add(new EnvironmentVariableAppender(settings.getGlobalEnvironmentVariables()))
+                                    .add(new DockerImageAppender())
+                                    .add(new RequirementAppender())
+                                    .add(new EnvLogger())
+                                    .add(new UserInputChecker())
+                                    .assemble(new Context(
+                                            pipeline,
+                                            definition,
+                                            null,
+                                            enqueuedStage,
+                                            stageId,
+                                            backend.newStageBuilder(
+                                                    pipeline.getProjectId(),
+                                                    stageId,
+                                                    stageDefinition
+                                            )
+                                    ));
+
+                            // enqueue the stage only if the execution would be possible
+                            pipeline.enqueueStage(stageDefinition);
+                            return Boolean.TRUE;
+                        } catch (UserInputChecker.MissingUserConfirmationException e) {
+                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                            return Boolean.TRUE;
+
+                        } catch (UserInputChecker.FurtherUserInputRequiredException e) {
+                            pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
+                            return Boolean.TRUE;
+                        } catch (Throwable t) {
+                            LOG.log(
+                                    Level.WARNING,
+                                    "Unexpected error when checking whether to enqueue the next stage automatically",
+                                    t
+                            );
+                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                            return Boolean.TRUE;
+                        }
                     })).orElse(Boolean.FALSE);
         } else {
             return false;
@@ -342,10 +392,12 @@ public class Orchestrator {
                     stageEnqueued.getAction(),
                     null
             );
+
+            startStageAssembler(lock, definition, pipeline.clone(), stageEnqueued, stageId, exec, env);
+
             pipeline.resetResumeNotification();
             pipeline.pushStage(stage);
 
-            startStageAssembler(lock, definition, pipeline, stageEnqueued, stageId, exec, env);
             return true;
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);

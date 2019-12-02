@@ -2,8 +2,7 @@ package de.itd.tracking.winslow.asblr;
 
 import javax.annotation.Nonnull;
 
-public class RequirementAppender implements AssemblerStep
-{
+public class RequirementAppender implements AssemblerStep {
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
         context.getEnqueuedStage().getDefinition().getRequirements().ifPresent(requirements -> {
@@ -16,7 +15,7 @@ public class RequirementAppender implements AssemblerStep
             });
 
             if (requirements.getMegabytesOfRam() > 0) {
-                context.getBuilder().withMegabytesOfRam((int)requirements.getMegabytesOfRam());
+                context.getBuilder().withMegabytesOfRam((int) requirements.getMegabytesOfRam());
             }
         });
     }

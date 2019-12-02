@@ -8,9 +8,10 @@ import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Pipeline {
+public class Pipeline implements Cloneable {
 
     @Nonnull private final String      projectId;
     @Nonnull private final List<Stage> stages;
@@ -225,6 +226,21 @@ public class Pipeline {
 
     public void setStrategy(@Nonnull Strategy strategy) {
         this.strategy = strategy;
+    }
+
+    @Override
+    public Pipeline clone() {
+        return new Pipeline(
+                this.projectId,
+                pauseRequested,
+                pauseReason,
+                resumeNotification,
+                enqueuedStages != null ? new ArrayList<>(enqueuedStages) : null,
+                stages.stream().map(Stage::clone).collect(Collectors.toList()),
+                deletionPolicy,
+                strategy,
+                stage
+        );
     }
 
     public enum Strategy {

@@ -7,6 +7,7 @@ import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.PreparedStageBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -17,20 +18,22 @@ import java.util.logging.Level;
 
 public class Context {
 
-    @Nonnull private final Pipeline             pipeline;
-    @Nonnull private final PipelineDefinition   pipelineDefinition;
-    @Nonnull private final Executor             executor;
-    @Nonnull private final EnqueuedStage        enqueuedStage;
-    @Nonnull private final String               stageId;
-    @Nonnull private final PreparedStageBuilder builder;
+    private final @Nonnull  Pipeline             pipeline;
+    private final @Nonnull  PipelineDefinition   pipelineDefinition;
+    private final @Nullable Executor             executor;
+    private final @Nonnull  EnqueuedStage        enqueuedStage;
+    private final @Nonnull  String               stageId;
+    private final @Nonnull  PreparedStageBuilder builder;
 
     @Nonnull private final Map<Class<?>, Object> intermediateResults = new HashMap<>();
 
     public Context(
             @Nonnull Pipeline pipeline,
-            @Nonnull PipelineDefinition definition, @Nonnull Executor executor,
+            @Nonnull PipelineDefinition definition,
+            @Nullable Executor executor,
             @Nonnull EnqueuedStage enqueuedStage,
-            @Nonnull String stageId, @Nonnull PreparedStageBuilder builder) {
+            @Nonnull String stageId,
+            @Nonnull PreparedStageBuilder builder) {
         this.pipeline      = pipeline;
         pipelineDefinition = definition;
         this.executor      = executor;
@@ -96,14 +99,18 @@ public class Context {
     }
 
     public void log(@Nonnull Level level, @Nonnull String message) {
-        if (level.intValue() == Level.INFO.intValue()) {
-            this.executor.logInf(message);
-        } else if (level.intValue() > Level.INFO.intValue()) {
-            this.executor.logErr(message);
+        if (this.executor != null) {
+            if (level.intValue() == Level.INFO.intValue()) {
+                this.executor.logInf(message);
+            } else if (level.intValue() > Level.INFO.intValue()) {
+                this.executor.logErr(message);
+            }
         }
     }
 
     public void finishedEarly() {
-        this.executor.stop();
+        if (this.executor != null) {
+            this.executor.stop();
+        }
     }
 }

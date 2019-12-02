@@ -227,20 +227,26 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                 jobsApi,
                 stageDefinition,
                 workspaceDirectory,
-                envVars
-                        .entrySet()
-                        .stream()
-                        .filter(e -> {
-                            var key   = e.getKey();
-                            var value = e.getValue();
-                            return !Objects.equals(value, envVarsPipeline.get(key))
-                                && !Objects.equals(value, envVarsSystem.get(key));
-                        })
-                        .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue)),
+                getReducedEnvVars(),
                 envVarsPipeline,
                 envVarsSystem,
                 envVarsInternal
         );
+    }
+
+    private TreeMap<String, String> getReducedEnvVars() {
+        var envVars = new TreeMap<String, String>();
+        this.envVars
+                .entrySet()
+                .stream()
+                .filter(e -> {
+                    var key   = e.getKey();
+                    var value = e.getValue();
+                    return (!envVarsPipeline.containsKey(key) || !Objects.equals(value, envVarsPipeline.get(key)))
+                            && (!envVarsSystem.containsKey(key) || !Objects.equals(value, envVarsSystem.get(key)));
+                })
+                .forEach(entry -> envVars.put(entry.getKey(), entry.getValue()));
+        return envVars;
     }
 
     @Nonnull
