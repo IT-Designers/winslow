@@ -22,11 +22,14 @@ import static de.itd.tracking.winslow.Orchestrator.replaceInvalidCharactersInJob
 
 public class WorkspaceCreator implements AssemblerStep {
 
-    private static final   Logger      LOG = Logger.getLogger(WorkspaceCreator.class.getSimpleName());
-    @Nonnull private final Environment environment;
+    private static final Logger LOG = Logger.getLogger(WorkspaceCreator.class.getSimpleName());
 
-    public WorkspaceCreator(@Nonnull Environment environment) {
-        this.environment = environment;
+    @Nonnull private final Orchestrator orchestrator;
+    @Nonnull private final Environment  environment;
+
+    public WorkspaceCreator(@Nonnull Orchestrator orchestrator, @Nonnull Environment environment) {
+        this.orchestrator = orchestrator;
+        this.environment  = environment;
     }
 
     @Override
@@ -189,7 +192,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
     private void forcePurgeWorkspace(@Nonnull Context context, @Nonnull Path workspace) {
         try {
-            Orchestrator.forcePurge(this.environment.getWorkDirectoryConfiguration().getPath(), workspace);
+            this.orchestrator.forcePurgeWorkspace(context.getPipeline().getProjectId(), workspace);
         } catch (IOException e) {
             context.log(Level.SEVERE, "Failed to get rid of workspace directory " + workspace, e);
         }

@@ -520,51 +520,48 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/deletion-policy")
-    public DeletionPolicy getDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
+    public Optional<DeletionPolicy> getDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project))
-                .flatMap(Pipeline::getDeletionPolicy)
-                .orElseGet(Orchestrator::defaultDeletionPolicy);
+                .flatMap(Pipeline::getDeletionPolicy);
     }
 
-    @PostMapping("projects/{projectId}/deletion-policy/number-of-workspaces-of-succeeded-stages-to-keep")
-    public DeletionPolicy setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(
-            User user,
-            @PathVariable("projectId") String projectId,
-            @RequestParam(value = "value", required = false) Integer value) {
-        return winslow
+    @GetMapping("projects/{projectId}/deletion-policy/default")
+    public DeletionPolicy getDeletionPolicyDefault(User user, @PathVariable("projectId") String projectId) {
+        return Orchestrator.defaultDeletionPolicy();
+    }
+
+    @DeleteMapping("projects/{projectId}/deletion-policy")
+    public void resetDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
+        winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-                    var policy = pipeline.getDeletionPolicy().orElseGet(Orchestrator::defaultDeletionPolicy);
-                    policy.setNumberOfWorkspacesOfSucceededStagesToKeep(value != null && value > 0 ? value : null);
-                    pipeline.setDeletionPolicy(policy);
-                    return policy;
+                    pipeline.setDeletionPolicy(null);
+                    return Boolean.TRUE; // just _some_ value
                 }))
                 .orElseThrow();
     }
 
-    @PostMapping("projects/{projectId}/deletion-policy/keep-workspace-of-failed-stage")
-    public DeletionPolicy setDeletionPolicyKeepWorkspaceOfFailedStage(
+    @PostMapping("projects/{projectId}/deletion-policy")
+    public DeletionPolicy setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam(value = "value", required = false) Boolean value) {
+            @RequestParam("value") DeletionPolicy policy) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-                    var policy = pipeline.getDeletionPolicy().orElseGet(Orchestrator::defaultDeletionPolicy);
-                    policy.setKeepWorkspaceOfFailedStage(value != null ? value : true);
                     pipeline.setDeletionPolicy(policy);
-                    return policy;
+                    return policy; // just _some_ value
                 }))
                 .orElseThrow();
     }
