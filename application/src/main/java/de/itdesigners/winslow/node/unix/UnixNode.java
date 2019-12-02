@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.node.unix;
 
+import de.itdesigners.winslow.api.node.*;
 import de.itdesigners.winslow.node.*;
 
 import javax.annotation.Nonnull;

@@ -1,11 +1,11 @@
-package de.itdesigners.winslow.node;
+package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
 
 public class GpuInfo {
 
-    @Nonnull private final String vendor;
-    @Nonnull private final String name;
+    private final @Nonnull String vendor;
+    private final @Nonnull String name;
 
     public GpuInfo(@Nonnull String vendor, @Nonnull String name) {
         this.vendor = vendor;

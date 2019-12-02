@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.file.FileInfo;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.resource.ResourceManager;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -17,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
@@ -253,17 +253,4 @@ public class FilesController {
         }
     }
 
-    public static class FileInfo {
-        public final @Nonnull  String  name;
-        public final           boolean directory;
-        public final @Nonnull  String  path;
-        public final @Nullable Long    fileSize;
-
-        public FileInfo(String name, boolean isDirectory, String path, @Nullable Long fileSize) {
-            this.name      = name;
-            this.directory = isDirectory;
-            this.path      = path;
-            this.fileSize  = fileSize;
-        }
-    }
 }

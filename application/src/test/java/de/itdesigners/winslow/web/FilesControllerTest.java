@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.web;
 
+import de.itdesigners.winslow.api.file.FileInfo;
 import de.itdesigners.winslow.auth.Group;
 import de.itdesigners.winslow.auth.GroupAssignmentResolver;
 import de.itdesigners.winslow.auth.User;
@@ -497,7 +498,7 @@ public class FilesControllerTest {
                 getRoot()
         );
         assertNotNull(listing);
-        var lookup = new HashMap<String, FilesController.FileInfo>();
+        var lookup = new HashMap<String, FileInfo>();
         listing.forEach(fi -> lookup.put(fi.path, fi));
 
         {
@@ -558,7 +559,7 @@ public class FilesControllerTest {
                 getRoot()
         );
         assertNotNull(listing);
-        var lookup = new HashMap<String, FilesController.FileInfo>();
+        var lookup = new HashMap<String, FileInfo>();
         listing.forEach(fi -> lookup.put(fi.path, fi));
 
         {

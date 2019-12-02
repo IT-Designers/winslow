@@ -1,5 +1,6 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.LockedOutputStream;
 import de.itdesigners.winslow.project.LogWriter;
@@ -30,8 +31,8 @@ public class Executor {
     @Nonnull private final LockedOutputStream logOutput;
     @Nonnull private final LockHeart          lockHeart;
 
-    @Nonnull private final List<Consumer<LogEntry>> logConsumer                = new ArrayList<>();
-    @Nonnull private final List<Runnable>           shutdownListeners          = new ArrayList<>();
+    @Nonnull private final List<Consumer<LogEntry>> logConsumer       = new ArrayList<>();
+    @Nonnull private final List<Runnable>           shutdownListeners = new ArrayList<>();
     @Nonnull private final List<Runnable>           shutdownCompletedListeners = new ArrayList<>();
 
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();

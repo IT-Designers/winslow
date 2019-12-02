@@ -1,5 +1,8 @@
 package de.itdesigners.winslow.pipeline;
 
+import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.project.DeletionPolicy;
+import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
@@ -77,7 +80,7 @@ public class Pipeline implements Cloneable {
         return Optional.ofNullable(this.stage);
     }
 
-    public boolean finishRunningStage(@Nonnull Stage.State finishState) {
+    public boolean finishRunningStage(@Nonnull State finishState) {
         return getRunningStage().map(stage -> {
             stage.finishNow(finishState);
             this.pushStage(null);

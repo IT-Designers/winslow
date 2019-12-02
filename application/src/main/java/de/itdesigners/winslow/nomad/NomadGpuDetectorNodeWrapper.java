@@ -1,9 +1,9 @@
 package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.javasdk.NomadApiClient;
-import de.itdesigners.winslow.node.GpuInfo;
+import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.node.Node;
-import de.itdesigners.winslow.node.NodeInfo;
+import de.itdesigners.winslow.api.node.NodeInfo;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

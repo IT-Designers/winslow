@@ -1,4 +1,4 @@
-package de.itdesigners.winslow;
+package de.itdesigners.winslow.api.project;
 
 import javax.annotation.Nonnull;
 import java.util.Date;
@@ -9,12 +9,12 @@ public class LogEntry {
         STANDARD_IO, MANAGEMENT_EVENT
     }
 
-    private final long    time;
-    private final Source  source;
-    private final boolean error;
-    private final String  message;
+    private final          long    time;
+    private final @Nonnull Source  source;
+    private final          boolean error;
+    private final @Nonnull String  message;
 
-    public LogEntry(long timeMs, Source source, boolean error, @Nonnull String message) {
+    public LogEntry(long timeMs, @Nonnull Source source, boolean error, @Nonnull String message) {
         this.time    = timeMs;
         this.source  = source;
         this.error   = error;

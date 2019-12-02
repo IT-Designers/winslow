@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.project;
 
-import de.itdesigners.winslow.LogEntry;
+import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.fs.LockedOutputStream;
 
 import javax.annotation.Nonnull;

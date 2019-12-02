@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.node;
+package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -6,12 +6,12 @@ import java.util.List;
 
 public class NodeInfo {
 
-    @Nonnull private final String        name;
-    @Nonnull private final CpuInfo       cpuInfo;
-    @Nonnull private final MemInfo       memInfo;
-    @Nonnull private final NetInfo       netInfo;
-    @Nonnull private final DiskInfo      diskInfo;
-    @Nonnull private final List<GpuInfo> gpuInfo;
+    private final @Nonnull String        name;
+    private final @Nonnull CpuInfo       cpuInfo;
+    private final @Nonnull MemInfo       memInfo;
+    private final @Nonnull NetInfo       netInfo;
+    private final @Nonnull DiskInfo      diskInfo;
+    private final @Nonnull List<GpuInfo> gpuInfo;
 
     public NodeInfo(
             @Nonnull String name,

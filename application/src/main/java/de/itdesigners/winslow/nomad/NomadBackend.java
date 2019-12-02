@@ -4,12 +4,12 @@ import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.*;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.CombinedIterator;
-import de.itdesigners.winslow.LogEntry;
+import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.node.GpuInfo;
+import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
-import de.itdesigners.winslow.pipeline.Stage;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -173,7 +173,7 @@ public class NomadBackend implements Backend {
 
     @Nonnull
     @Override
-    public Optional<Stage.State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
+    public Optional<State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
         return getTaskState(stage).map(NomadBackend::toRunningStageState);
     }
 
@@ -422,18 +422,18 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    public static Stage.State toRunningStageState(@Nonnull TaskState task) {
+    public static State toRunningStageState(@Nonnull TaskState task) {
         var failed   = hasTaskFailed(task);
         var started  = hasTaskStarted(task);
         var finished = hasTaskFinished(task);
 
 
         if (failed) {
-            return Stage.State.Failed;
+            return State.Failed;
         } else if (started && finished) {
-            return Stage.State.Succeeded;
+            return State.Succeeded;
         } else {
-            return Stage.State.Running;
+            return State.Running;
         }
     }
 

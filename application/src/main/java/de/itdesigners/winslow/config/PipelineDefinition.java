@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.config;
 
-import de.itdesigners.winslow.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.project.DeletionPolicy;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

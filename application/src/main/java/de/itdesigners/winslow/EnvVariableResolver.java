@@ -1,8 +1,8 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.project.EnvVariable;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Stage;
-import de.itdesigners.winslow.web.ProjectsController;
 import org.springframework.lang.NonNull;
 
 import javax.annotation.CheckReturnValue;
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 /**
  * This class resolves for a given environment, the most recent
  * values of applicable environment variables with proper inheritance
- * relation (see {@link ProjectsController.EnvVariable}).
+ * relation (see {@link EnvVariable}).
  */
 public class EnvVariableResolver {
 
@@ -74,8 +74,8 @@ public class EnvVariableResolver {
 
     @NonNull
     @CheckReturnValue
-    public Map<String, ProjectsController.EnvVariable> resolve() {
-        var result = new TreeMap<String, ProjectsController.EnvVariable>();
+    public Map<String, EnvVariable> resolve() {
+        var result = new TreeMap<String, EnvVariable>();
 
         // apply all the global environment variables first, so they can get overwritten
         // by any further appearing entry. Mark as inherited because their origin is outside
@@ -157,21 +157,21 @@ public class EnvVariableResolver {
     }
 
     private static void pushInherited(
-            @Nonnull Map<String, ProjectsController.EnvVariable> target,
+            @Nonnull Map<String, EnvVariable> target,
             @NonNull Map<String, String> source) {
-        push(target, source, ProjectsController.EnvVariable::new);
+        push(target, source, EnvVariable::new);
     }
 
     private static void pushValue(
-            @Nonnull Map<String, ProjectsController.EnvVariable> target,
+            @Nonnull Map<String, EnvVariable> target,
             @NonNull Map<String, String> source) {
-        push(target, source, (key, value) -> new ProjectsController.EnvVariable(key));
+        push(target, source, (key, value) -> new EnvVariable(key));
     }
 
     private static void push(
-            @Nonnull Map<String, ProjectsController.EnvVariable> target,
+            @Nonnull Map<String, EnvVariable> target,
             @NonNull Map<String, String> source,
-            @NonNull BiFunction<String, String, ProjectsController.EnvVariable> creator) {
+            @NonNull BiFunction<String, String, EnvVariable> creator) {
         source.forEach((key, value) -> target.computeIfAbsent(key, kl -> creator.apply(key, value)).pushValue(value));
     }
 

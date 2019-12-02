@@ -2,6 +2,7 @@ package de.itdesigners.winslow.node;
 
 import com.moandjiezana.toml.Toml;
 import de.itdesigners.winslow.BaseRepository;
+import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 

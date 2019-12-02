@@ -10,7 +10,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>de.itd.tracking</groupId>
+    <groupId>de.itdesigners</groupId>
     <artifactId>winslow</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -84,6 +84,7 @@
     <modules>
         <module>nomad-java-sdk/sdk</module>
         <module>application</module>
+        <module>api</module>
     </modules>
     <packaging>pom</packaging>
 

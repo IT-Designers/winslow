@@ -8,11 +8,19 @@
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>de.itd.tracking</groupId>
+        <groupId>de.itdesigners</groupId>
         <artifactId>winslow</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
     <name>winslow-application</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>de.itdesigners</groupId>
+            <artifactId>winslow-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

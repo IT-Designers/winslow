@@ -2,10 +2,10 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Environment;
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.pipeline.Pipeline;
-import de.itdesigners.winslow.pipeline.Stage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -204,7 +204,7 @@ public class WorkspaceCreator implements AssemblerStep {
         var pipeline = context.getPipeline();
         var workDirBefore = pipeline
                 .getAllStages()
-                .filter(stage -> stage.getState() == Stage.State.Succeeded)
+                .filter(stage -> stage.getState() == State.Succeeded)
                 .filter(stage -> stage.getAction() == Action.Execute)
                 .flatMap(stage -> stage.getWorkspace().stream())
                 .flatMap(workspace -> {

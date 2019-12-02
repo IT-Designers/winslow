@@ -1,10 +1,17 @@
 package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.*;
+import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.PipelineInfo;
+import de.itdesigners.winslow.api.project.EnvVariable;
+import de.itdesigners.winslow.api.project.LogEntryInfo;
+import de.itdesigners.winslow.api.project.*;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
-import de.itdesigners.winslow.pipeline.*;
+import de.itdesigners.winslow.api.project.DeletionPolicy;
+import de.itdesigners.winslow.pipeline.Pipeline;
+import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
 import org.springframework.core.io.InputStreamResource;
@@ -19,7 +26,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +53,7 @@ public class ProjectsController {
                 .getProjects()
                 .flatMap(handle -> handle.unsafe().stream())
                 .filter(project -> canUserAccessProject(user, project))
-                .map(ProjectInfo::new);
+                .map(ProjectInfoConverter::from);
     }
 
     @PostMapping("/projects")
@@ -77,7 +87,7 @@ public class ProjectsController {
                                 return false;
                             }
                         }))
-                .map(ProjectInfo::new);
+                .map(ProjectInfoConverter::from);
     }
 
     @GetMapping("/projects/{projectId}/history")
@@ -96,7 +106,8 @@ public class ProjectsController {
                                 pipeline.getCompletedStages(),
                                 pipeline.getRunningStage().stream()
                         ))
-                        .map(HistoryEntry::new));
+                        .map(HistoryEntryConverter::from)
+                );
     }
 
     @GetMapping("/projects/{projectId}/enqueued")
@@ -113,7 +124,7 @@ public class ProjectsController {
                         .stream()
                         .flatMap(Pipeline::getEnqueuedStages)
                 )
-                .map(HistoryEntry::new);
+                .map(HistoryEntryConverter::from);
     }
 
     @DeleteMapping("/projects/{projectId}/enqueued/{index}/{controlSize}")
@@ -219,7 +230,7 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/pipeline-definition")
-    public Optional<PipelinesController.PipelineInfo> getProjectPipelineDefinition(
+    public Optional<PipelineInfo> getProjectPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId) {
         return winslow
@@ -228,11 +239,11 @@ public class ProjectsController {
                 .unsafe()
                 .filter(project -> canUserAccessProject(user, project))
                 .map(Project::getPipelineDefinition)
-                .map(definition -> new PipelinesController.PipelineInfo(projectId, definition));
+                .map(definition -> PipelineInfoConverter.from(projectId, definition));
     }
 
     @GetMapping("/projects/{projectId}/state")
-    public Optional<Stage.State> getProjectState(User user, @PathVariable("projectId") String projectId) {
+    public Optional<State> getProjectState(User user, @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -244,14 +255,14 @@ public class ProjectsController {
                         .flatMap(this::getPipelineState));
     }
 
-    private Optional<Stage.State> getPipelineState(Pipeline pipeline) {
+    private Optional<State> getPipelineState(Pipeline pipeline) {
         return pipeline
                 .getRunningStage()
                 .map(Stage::getState)
                 .or(
                         () -> {
                             if (!pipeline.isPauseRequested() && pipeline.hasEnqueuedStages()) {
-                                return Optional.of(Stage.State.Running);
+                                return Optional.of(State.Running);
                             } else {
                                 return Optional.empty();
                             }
@@ -264,7 +275,7 @@ public class ProjectsController {
                             return state;
                         default:
                             if (pipeline.isPauseRequested()) {
-                                return Stage.State.Paused;
+                                return State.Paused;
                             } else {
                                 return state;
                             }
@@ -933,139 +944,4 @@ public class ProjectsController {
                 });
     }
 
-    static class ProjectInfo {
-        public final @Nonnull String                           id;
-        public final @Nonnull String                           owner;
-        public final @Nonnull List<String>                     groups;
-        public final @Nonnull List<String>                     tags;
-        public final @Nonnull String                           name;
-        public final @Nonnull PipelinesController.PipelineInfo pipelineDefinition;
-
-        public ProjectInfo(@Nonnull Project project) {
-            this.id                 = project.getId();
-            this.owner              = project.getOwner();
-            this.groups             = project.getGroups();
-            this.tags               = project.getTags();
-            this.name               = project.getName();
-            this.pipelineDefinition = new PipelinesController.PipelineInfo(
-                    project.getId(),
-                    project.getPipelineDefinition()
-            );
-        }
-    }
-
-    static class HistoryEntry {
-        public final @Nullable String              stageId;
-        public final @Nullable Date                startTime;
-        public final @Nullable Date                finishTime;
-        public final @Nullable Stage.State         state;
-        public final @Nonnull  Action              action;
-        public final @Nonnull  String              stageName;
-        public final @Nullable String              workspace;
-        public final @Nullable ImageInfo           imageInfo;
-        public final @Nonnull  Map<String, String> env;
-        public final @Nonnull  Map<String, String> envPipeline;
-        public final @Nonnull  Map<String, String> envSystem;
-        public final @Nonnull  Map<String, String> envInternal;
-
-        public HistoryEntry(Stage stage) {
-            this.stageId     = stage.getId();
-            this.startTime   = stage.getStartTime();
-            this.finishTime  = stage.getFinishTime().orElse(null);
-            this.state       = stage.getState();
-            this.action      = stage.getAction();
-            this.stageName   = Optional.ofNullable(stage.getDefinition()).map(StageDefinition::getName).orElse(null);
-            this.workspace   = stage.getWorkspace().orElse(null);
-            this.imageInfo   = Optional.ofNullable(stage.getDefinition()).flatMap(StageDefinition::getImage).map(
-                    ImageInfo::new).orElse(null);
-            this.env         = new TreeMap<>(stage.getEnv());
-            this.envPipeline = new TreeMap<>(stage.getEnvPipeline());
-            this.envSystem   = new TreeMap<>(stage.getEnvSystem());
-            this.envInternal = new TreeMap<>(stage.getEnvInternal());
-        }
-
-        public HistoryEntry(EnqueuedStage enqueuedStage) {
-            this.stageId     = null;
-            this.startTime   = null;
-            this.finishTime  = null;
-            this.state       = null;
-            this.action      = enqueuedStage.getAction();
-            this.stageName   = enqueuedStage.getDefinition().getName();
-            this.workspace   = null;
-            this.imageInfo   = enqueuedStage.getDefinition().getImage().map(ImageInfo::new).orElse(null);
-            this.env         = new TreeMap<>(enqueuedStage.getDefinition().getEnvironment());
-            this.envPipeline = Collections.emptyMap();
-            this.envSystem   = Collections.emptyMap();
-            this.envInternal = Collections.emptyMap();
-        }
-    }
-
-    static class StateInfo {
-        @Nullable public final Stage.State state;
-        @Nullable public final String      pauseReason;
-        @Nullable public final String      mostRecentStage;
-        @Nullable public final Integer     stageProgress;
-        public final           boolean     hasEnqueuedStages;
-
-
-        StateInfo(
-                @Nullable Stage.State state,
-                @Nullable String pauseReason,
-                @Nullable String mostRecentStage,
-                @Nullable Integer stageProgress,
-                boolean hasEnqueuedStages) {
-            this.state             = state;
-            this.pauseReason       = pauseReason;
-            this.mostRecentStage   = mostRecentStage;
-            this.stageProgress     = stageProgress;
-            this.hasEnqueuedStages = hasEnqueuedStages;
-        }
-    }
-
-    static class ImageInfo {
-        @Nullable public final String   name;
-        @Nullable public final String[] args;
-
-        public ImageInfo(@Nonnull Image image) {
-            this.name = image.getName();
-            this.args = image.getArgs();
-        }
-    }
-
-    static class LogEntryInfo extends LogEntry {
-
-        public final long   line;
-        public final String stageId;
-
-        public LogEntryInfo(long line, String stageId, LogEntry entry) {
-            super(entry.getTime(), entry.getSource(), entry.isError(), entry.getMessage());
-            this.line    = line;
-            this.stageId = stageId;
-        }
-    }
-
-    public static class EnvVariable {
-        public final @Nonnull String key;
-        public @Nullable      String value;
-        public @Nullable      String valueInherited;
-
-        public EnvVariable(@Nonnull String key, @Nullable String value) {
-            this.key            = key;
-            this.value          = value;
-            this.valueInherited = value;
-        }
-
-        public EnvVariable(@Nonnull String key) {
-            this.key            = key;
-            this.value          = null;
-            this.valueInherited = null;
-        }
-
-        public void pushValue(@Nullable String value) {
-            if (this.value != null) {
-                this.valueInherited = this.value;
-            }
-            this.value = value;
-        }
-    }
 }

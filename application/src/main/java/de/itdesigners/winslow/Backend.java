@@ -1,8 +1,9 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
-import de.itdesigners.winslow.pipeline.Stage;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -16,7 +17,7 @@ public interface Backend {
     Stream<String> listStages() throws IOException;
 
     @Nonnull
-    Optional<Stage.State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
+    Optional<State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
 
     void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
 

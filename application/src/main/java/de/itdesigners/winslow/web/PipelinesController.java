@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException;
 import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.pipeline.ParseError;
+import de.itdesigners.winslow.api.pipeline.PipelineInfo;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.project.ProjectRepository;
@@ -15,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RestController
@@ -45,7 +45,7 @@ public class PipelinesController {
                         .getPipeline(identifier)
                         .unsafe()
                         .stream()
-                        .map(p -> new PipelineInfo(identifier, p)));
+                        .map(p -> PipelineInfoConverter.from(identifier, p)));
     }
 
     @GetMapping("pipelines/{pipeline}")
@@ -54,7 +54,7 @@ public class PipelinesController {
                 .getPipelineRepository()
                 .getPipeline(pipeline)
                 .unsafe()
-                .map(p -> new PipelineInfo(pipeline, p));
+                .map(p -> PipelineInfoConverter.from(pipeline, p));
     }
 
     @GetMapping("pipelines/{pipeline}/raw")
@@ -202,7 +202,7 @@ public class PipelinesController {
                                     null
                             );
                             container.update(def);
-                            return Optional.of(new PipelineInfo(id, def));
+                            return Optional.of(PipelineInfoConverter.from(id, def));
                         } else {
                             return Optional.empty();
                         }
@@ -211,41 +211,6 @@ public class PipelinesController {
                         return Optional.empty();
                     }
                 });
-    }
-
-    public static class PipelineInfo {
-        @Nonnull public final  String                           id;
-        @Nonnull public final  String                           name;
-        @Nullable public final String                           desc;
-        @Nonnull public final  List<String>                     requiredEnvVariables;
-        @Nonnull public final  List<StagesController.StageInfo> stages;
-
-        public PipelineInfo(@Nonnull String id, @Nonnull PipelineDefinition pipeline) {
-            this.id                   = id;
-            this.name                 = pipeline.getName();
-            this.desc                 = pipeline.getDescription().orElse(null);
-            this.requiredEnvVariables = pipeline
-                    .getRequires()
-                    .map(UserInput::getEnvironment)
-                    .orElseGet(Collections::emptyList);
-            this.stages               = pipeline
-                    .getStages()
-                    .stream()
-                    .map(StagesController.StageInfo::new)
-                    .collect(Collectors.toUnmodifiableList());
-        }
-    }
-
-    public static class ParseError {
-        public final int    line;
-        public final int    column;
-        public final String message;
-
-        ParseError(int line, int column, String message) {
-            this.line    = line;
-            this.column  = column;
-            this.message = message;
-        }
     }
 
     public static class ParseErrorException extends IOException {

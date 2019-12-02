@@ -2,7 +2,7 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.fs.NfsWorkDirectory;
-import de.itdesigners.winslow.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
 
 import javax.annotation.Nonnull;

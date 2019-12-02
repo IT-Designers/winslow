@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.node;
+package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -6,7 +6,7 @@ import java.util.List;
 
 public class CpuUtilization {
 
-    @Nonnull private final List<Float> cpus;
+    private final @Nonnull List<Float> cpus;
 
     public CpuUtilization(@Nonnull List<Float> cpus) {
         this.cpus = cpus;

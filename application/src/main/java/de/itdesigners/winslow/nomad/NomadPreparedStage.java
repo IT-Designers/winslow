@@ -5,8 +5,9 @@ import com.hashicorp.nomad.javasdk.JobsApi;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.OrchestratorConnectionException;
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.pipeline.PreparedStage;
 import de.itdesigners.winslow.pipeline.Stage;
 
@@ -81,7 +82,7 @@ public class NomadPreparedStage implements PreparedStage {
             this.stage   = stage;
 
             // a configure is successful by being instantiated and has no lifetime
-            this.stage.finishNow(Stage.State.Succeeded);
+            this.stage.finishNow(State.Succeeded);
         }
 
         return this.stage;

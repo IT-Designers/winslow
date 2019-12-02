@@ -1,8 +1,9 @@
 package de.itdesigners.winslow.fs;
 
+import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.Action;
-import de.itdesigners.winslow.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.junit.Test;
 import org.springframework.lang.NonNull;
@@ -34,11 +35,11 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testFindsFailedWorkspaces() {
         var history = List.of(
-                constructFinishedStage("workspace1", Stage.State.Succeeded),
-                constructFinishedStage("workspace2", Stage.State.Failed),
-                constructFinishedStage("workspace3", Stage.State.Failed),
-                constructFinishedStage("workspace4", Stage.State.Succeeded),
-                constructFinishedStage("workspace5", Stage.State.Failed)
+                constructFinishedStage("workspace1", State.Succeeded),
+                constructFinishedStage("workspace2", State.Failed),
+                constructFinishedStage("workspace3", State.Failed),
+                constructFinishedStage("workspace4", State.Succeeded),
+                constructFinishedStage("workspace5", State.Failed)
         );
 
         assertEquals(
@@ -59,13 +60,13 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testFindsLimitExceedingWorkspaces() {
         var history = List.of(
-                constructFinishedStage("workspace1", Stage.State.Succeeded),
-                constructFinishedStage("workspace2", Stage.State.Failed),
-                constructFinishedStage("workspace3", Stage.State.Failed),
-                constructFinishedStage("workspace4", Stage.State.Succeeded),
-                constructFinishedStage("workspace5", Stage.State.Failed),
-                constructFinishedStage("workspace6", Stage.State.Succeeded),
-                constructFinishedStage("workspace7", Stage.State.Succeeded)
+                constructFinishedStage("workspace1", State.Succeeded),
+                constructFinishedStage("workspace2", State.Failed),
+                constructFinishedStage("workspace3", State.Failed),
+                constructFinishedStage("workspace4", State.Succeeded),
+                constructFinishedStage("workspace5", State.Failed),
+                constructFinishedStage("workspace6", State.Succeeded),
+                constructFinishedStage("workspace7", State.Succeeded)
         );
 
         assertEquals(
@@ -86,9 +87,9 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testIgnoresConfigureStages() {
         var history = List.of(
-                constructFinishedStage("workspace1", Stage.State.Succeeded),
-                constructFinishedConfigureStage("configure1", Stage.State.Succeeded),
-                constructFinishedConfigureStage("configure2", Stage.State.Failed)
+                constructFinishedStage("workspace1", State.Succeeded),
+                constructFinishedConfigureStage("configure1", State.Succeeded),
+                constructFinishedConfigureStage("configure2", State.Failed)
         );
 
         assertEquals(
@@ -102,10 +103,10 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testProperlyConsidersDiscardable() {
         var history = List.of(
-                constructFinishedDiscardableStage("workspace1", Action.Execute, Stage.State.Succeeded),
-                constructFinishedDiscardableStage("workspace2", Action.Execute, Stage.State.Succeeded),
-                constructFinishedDiscardableStage("workspace3", Action.Execute, Stage.State.Failed),
-                constructFinishedDiscardableStage("workspace4", Action.Execute, Stage.State.Succeeded)
+                constructFinishedDiscardableStage("workspace1", Action.Execute, State.Succeeded),
+                constructFinishedDiscardableStage("workspace2", Action.Execute, State.Succeeded),
+                constructFinishedDiscardableStage("workspace3", Action.Execute, State.Failed),
+                constructFinishedDiscardableStage("workspace4", Action.Execute, State.Succeeded)
         );
 
         var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
@@ -121,8 +122,8 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testProperlyConsidersDiscardableAndDoesNotDeleteStagesWithoutSuccessfulFollowups() {
         var history = List.of(
-                constructFinishedDiscardableStage("workspace1", Action.Execute, Stage.State.Succeeded),
-                constructFinishedDiscardableStage("workspace2", Action.Execute, Stage.State.Failed)
+                constructFinishedDiscardableStage("workspace1", Action.Execute, State.Succeeded),
+                constructFinishedDiscardableStage("workspace2", Action.Execute, State.Failed)
         );
 
         assertEquals(
@@ -136,8 +137,8 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testProperlyConsidersDiscardableAndDoesNotDeleteWhenFollowUpIsAConfigureStage() {
         var history = List.of(
-                constructFinishedDiscardableStage("workspace1", Action.Execute, Stage.State.Succeeded),
-                constructFinishedDiscardableStage("workspace2", Action.Configure, Stage.State.Succeeded)
+                constructFinishedDiscardableStage("workspace1", Action.Execute, State.Succeeded),
+                constructFinishedDiscardableStage("workspace2", Action.Configure, State.Succeeded)
         );
 
         assertEquals(
@@ -152,7 +153,7 @@ public class ObsoleteWorkspaceFinderTest {
     @NonNull
     private static Stage constructFinishedStage(
             @NonNull String workspace,
-            @NonNull Stage.State finishState) {
+            @NonNull State finishState) {
         return new Stage(
                 "some-id",
                 new StageDefinition(
@@ -180,7 +181,7 @@ public class ObsoleteWorkspaceFinderTest {
     @NonNull
     private static Stage constructFinishedConfigureStage(
             @NonNull String workspace,
-            @NonNull Stage.State finishState) {
+            @NonNull State finishState) {
         return new Stage(
                 "some-id",
                 new StageDefinition(
@@ -209,7 +210,7 @@ public class ObsoleteWorkspaceFinderTest {
     private static Stage constructFinishedDiscardableStage(
             @NonNull String workspace,
             @Nonnull Action action,
-            @NonNull Stage.State finishState) {
+            @NonNull State finishState) {
         return new Stage(
                 "some-id",
                 new StageDefinition(

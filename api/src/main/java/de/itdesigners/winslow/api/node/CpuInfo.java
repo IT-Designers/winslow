@@ -1,11 +1,11 @@
-package de.itdesigners.winslow.node;
+package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
 public class CpuInfo {
-    @Nonnull private final String      modelName;
-    @Nonnull private final List<Float> utilization;
+    private final @Nonnull String      modelName;
+    private final @Nonnull List<Float> utilization;
 
     public CpuInfo(@Nonnull String modelName, @Nonnull List<Float> utilization) {
         this.modelName   = modelName;

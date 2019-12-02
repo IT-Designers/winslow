@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Winslow;
-import de.itdesigners.winslow.node.NodeInfo;
+import de.itdesigners.winslow.api.node.NodeInfo;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;

@@ -1,10 +1,10 @@
 package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.storage.StorageInfo;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
@@ -79,15 +79,4 @@ public class StorageController {
         }
     }
 
-    private static class StorageInfo {
-        @Nonnull public final String name;
-        public final          long   bytesUsed;
-        public final          long   bytesFree;
-
-        private StorageInfo(@Nonnull String name, long bytesUsed, long bytesFree) {
-            this.name      = name;
-            this.bytesUsed = bytesUsed;
-            this.bytesFree = bytesFree;
-        }
-    }
 }

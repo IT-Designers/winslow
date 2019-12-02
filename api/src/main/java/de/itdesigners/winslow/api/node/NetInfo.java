@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.node;
+package de.itdesigners.winslow.api.node;
 
 /**
  * All units are bytes or bytes per second

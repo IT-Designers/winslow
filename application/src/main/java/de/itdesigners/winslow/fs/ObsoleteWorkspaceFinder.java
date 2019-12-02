@@ -1,7 +1,8 @@
 package de.itdesigners.winslow.fs;
 
-import de.itdesigners.winslow.pipeline.Action;
-import de.itdesigners.winslow.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.springframework.lang.NonNull;
 
@@ -44,7 +45,7 @@ public class ObsoleteWorkspaceFinder {
         if (!policy.getKeepWorkspaceOfFailedStage() && this.executionHistory != null) {
             this.executionHistory
                     .stream()
-                    .filter(stage -> stage.getFinishState().orElse(Stage.State.Running) == Stage.State.Failed)
+                    .filter(stage -> stage.getFinishState().orElse(State.Running) == State.Failed)
                     .filter(stage -> stage.getAction() == Action.Execute)
                     .filter(stage -> stage.getWorkspace().isPresent())
                     .forEach(stage -> obsolete.add(stage.getWorkspace().get()));
@@ -56,7 +57,7 @@ public class ObsoleteWorkspaceFinder {
             var numberToKeep = policy.getNumberOfWorkspacesOfSucceededStagesToKeep().get();
             var successfulStages = this.executionHistory
                     .stream()
-                    .filter(stage -> stage.getFinishState().orElse(Stage.State.Running) == Stage.State.Succeeded)
+                    .filter(stage -> stage.getFinishState().orElse(State.Running) == State.Succeeded)
                     .filter(stage -> stage.getAction() == Action.Execute)
                     .collect(Collectors.toList());
 
@@ -84,7 +85,7 @@ public class ObsoleteWorkspaceFinder {
                 }
 
                 hasSuccessfulExecution |= stage.getAction() == Action.Execute
-                        && stage.getFinishState().orElse(Stage.State.Running) == Stage.State.Succeeded;
+                        && stage.getFinishState().orElse(State.Running) == State.Succeeded;
             }
         }
     }

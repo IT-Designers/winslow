@@ -1,5 +1,9 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
@@ -231,7 +235,7 @@ public class Orchestrator {
         return pipeline
                 .getRunningStage()
                 .map(Stage::getState)
-                .orElse(null) != Stage.State.Running;
+                .orElse(null) != State.Running;
     }
 
     private boolean maybeEnqueueNextStageOfPipeline(
@@ -244,7 +248,7 @@ public class Orchestrator {
                 .getMostRecentStage()
                 .filter(stage -> stage.getAction() == Action.Execute)
                 .map(Stage::getState)
-                .map(state -> state == Stage.State.Succeeded)
+                .map(state -> state == State.Succeeded)
                 .orElse(Boolean.FALSE);
 
         if (noneRunning && !paused && !hasNext && successful) {
@@ -262,7 +266,7 @@ public class Orchestrator {
                         // execution instance of it
                         pipeline
                                 .getAllStages()
-                                .filter(stage -> stage.getFinishState().equals(Optional.of(Stage.State.Succeeded)))
+                                .filter(stage -> stage.getFinishState().equals(Optional.of(State.Succeeded)))
                                 .filter(stage -> stage.getDefinition().getName().equals(base.getName()))
                                 .reduce((first, second) -> second)
                                 .ifPresent(recent -> {
@@ -401,7 +405,7 @@ public class Orchestrator {
             return true;
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
-            pipeline.finishRunningStage(Stage.State.Failed);
+            pipeline.finishRunningStage(State.Failed);
             cleanupOnAssembleError(pipeline.getProjectId(), stageId, executor);
             return true;
         }
@@ -465,7 +469,7 @@ public class Orchestrator {
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
                 updatePipeline(projectId, pipelineToUpdate -> {
-                    pipelineToUpdate.finishRunningStage(Stage.State.Failed);
+                    pipelineToUpdate.finishRunningStage(State.Failed);
                 });
                 cleanupOnAssembleError(projectId, stageId, executor);
             }
@@ -494,7 +498,7 @@ public class Orchestrator {
                     pipeline,
                     stage
             ) + " for " + stage.getId());
-            Supplier<Stage.State> finishStateOrFailed = () -> stage.getFinishState().orElse(Stage.State.Failed);
+            Supplier<State> finishStateOrFailed = () -> stage.getFinishState().orElse(State.Failed);
             switch (getStateOmitExceptions(pipeline, stage).orElseGet(finishStateOrFailed)) {
                 case Running:
                     if (getLogRedirectionState(pipeline) != SimpleState.Failed) {
@@ -502,7 +506,7 @@ public class Orchestrator {
                     }
                 default:
                 case Failed:
-                    stage.finishNow(Stage.State.Failed);
+                    stage.finishNow(State.Failed);
                     pipeline.pushStage(null);
                     pipeline.requestPause(Pipeline.PauseReason.StageFailure);
                     try {
@@ -512,7 +516,7 @@ public class Orchestrator {
                     }
                     break;
                 case Succeeded:
-                    stage.finishNow(Stage.State.Succeeded);
+                    stage.finishNow(State.Succeeded);
                     pipeline.pushStage(null);
                     break;
             }
@@ -521,7 +525,7 @@ public class Orchestrator {
     }
 
     @Nonnull
-    private Optional<Stage.State> getStateOmitExceptions(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
+    private Optional<State> getStateOmitExceptions(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
         try {
             return getState(pipeline, stage);
         } catch (IOException e) {
@@ -531,12 +535,12 @@ public class Orchestrator {
     }
 
     @Nonnull
-    private Optional<Stage.State> getState(
+    private Optional<State> getState(
             @Nonnull Pipeline pipeline,
             @Nonnull Stage stage) throws IOException {
         // faster & cheaper than potentially causing a REST request on a new TcpConnection
         if (this.executors.get(stage.getId()) != null) {
-            return Optional.of(Stage.State.Running);
+            return Optional.of(State.Running);
         }
         return backend.getState(pipeline.getProjectId(), stage.getId());
     }

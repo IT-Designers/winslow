@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class Requirements {
+
     private final           long ram;
     private final @Nullable Gpu  gpu;
 

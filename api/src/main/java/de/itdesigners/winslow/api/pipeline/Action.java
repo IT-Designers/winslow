@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.pipeline;
+package de.itdesigners.winslow.api.pipeline;
 
 public enum Action {
     Execute,

@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.node.unix;
 
-import de.itdesigners.winslow.node.MemInfo;
+import de.itdesigners.winslow.api.node.MemInfo;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
