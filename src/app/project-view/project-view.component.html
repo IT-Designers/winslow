@@ -22,7 +22,8 @@
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-        <mat-icon>group</mat-icon> Set on other Projects
+        <mat-icon>group</mat-icon>
+        Set on other Projects
       </button>
       <button mat-stroked-button color="primary"
               [disabled]="!executionSelection.valid"
@@ -32,7 +33,8 @@
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-        <mat-icon>save</mat-icon> Save configuration
+        <mat-icon>save</mat-icon>
+        Save configuration
       </button>
       <button mat-raised-button color="primary"
               [disabled]="!executionSelection.valid"
@@ -42,7 +44,8 @@
                   executionSelection.getEnv(),
                   executionSelection.getImage()
                 )">
-        <mat-icon>send</mat-icon> Enqueue
+        <mat-icon>send</mat-icon>
+        Enqueue
       </button>
     </div>
   </mat-tab>
@@ -292,34 +295,52 @@
           Update
         </button>
       </div>
-      <div class="stage-control-item">
-        <label>Limit of workspaces of successful stages to keep</label>
-        <mat-form-field>
-          <input #limit matInput type="number"
-                 [disabled]="deletionPolicy == null"
-                 [value]="deletionPolicy?.numberOfWorkspacesOfSucceededStagesToKeep" [min]="1">
-        </mat-form-field>
-        <button mat-stroked-button color="primary"
-                [disabled]="deletionPolicy == null || (deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value"
-                (click)="
-                setLimitOfWorkspacesOfSuccessfulStagesToKeep(limit.value)">
-          Update
-        </button>
+
+      <div class="whitespace-separator-top">
+        <div class="whitespace-separator-top stage-control-item">
+          <mat-card-subtitle>
+            <mat-slide-toggle
+                #custom
+                [checked]="deletionPolicyLocal != null"
+                (change)="maybeResetDeletionPolicy(!$event.checked)">
+              Project specific Deletion Policy
+            </mat-slide-toggle>
+          </mat-card-subtitle>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+            Update
+          </button>
+        </div>
+        <div class="stage-control-item">
+          <label [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
+          <mat-form-field>
+            <input #limit matInput type="number"
+                   [disabled]="deletionPolicyLocal == null || !custom.checked"
+                   [value]="deletionPolicyLocal != null ? ''+deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : ''" [min]="1">
+          </mat-form-field>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+            Update
+          </button>
+        </div>
+        <div class="stage-control-item">
+          <label [class.disabled]="!custom.checked">Keep workspaces of failed stages</label>
+          <mat-slide-toggle #keep
+                            [disabled]="deletionPolicyLocal == null || !custom.checked"
+                            [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage"
+          ></mat-slide-toggle>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+            Update
+          </button>
+        </div>
       </div>
-      <div class="stage-control-item">
-        <label>Keep workspaces of failed stages</label>
-        <mat-slide-toggle #keep
-          [disabled]="deletionPolicy == null"
-          [checked]="deletionPolicy?.keepWorkspaceOfFailedStage"
-        ></mat-slide-toggle>
-        <button mat-stroked-button color="primary"
-                [disabled]="deletionPolicy == null || deletionPolicy.keepWorkspaceOfFailedStage == keep.checked"
-                (click)="setKeepWorkspaceOfFailedStages(keep.checked)">
-          Update
-        </button>
-      </div>
-      <div class="stage-control-item">
-        <button mat-stroked-button color="warn" (click)="delete()">Delete</button>
+
+      <div class="stage-control-item whitespace-separator-top">
+        <button class="whitespace-separator-top" mat-stroked-button color="warn" (click)="delete()">Delete</button>
       </div>
     </ng-template>
   </mat-tab>

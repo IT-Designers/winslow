@@ -210,28 +210,22 @@ export class ProjectApiService {
     return this.client.delete(ProjectApiService.getUrl(`${projectId}`)).toPromise();
   }
 
-  getDeletionPolicy(projectId: string) {
+  getDeletionPolicy(projectId: string): Promise<DeletionPolicy> {
     return this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`)).toPromise();
   }
 
-  setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(projectId: string, value?: number) {
-    const form = new FormData();
-    if (value !== null) {
-      form.set('value', '' + value);
-    }
-    return this.client.post<DeletionPolicy>(
-      ProjectApiService.getUrl(`${projectId}/deletion-policy/number-of-workspaces-of-succeeded-stages-to-keep`),
-      form
-    ).toPromise();
+  resetDeletionPolicy(projectId: string): Promise<any> {
+    return this.client.delete<any>(ProjectApiService.getUrl(`${projectId}/deletion-policy`)).toPromise();
   }
 
-  setDeletionPolicyKeepWorkspaceOfFailedStage(projectId: string, value: boolean) {
+  updateDeletionPolicy(projectId: string, policy: DeletionPolicy): Promise<DeletionPolicy> {
     const form = new FormData();
-    form.set('value', '' + value);
-    return this.client.post<DeletionPolicy>(
-      ProjectApiService.getUrl(`${projectId}/deletion-policy/keep-workspace-of-failed-stage`),
-      form
-    ).toPromise();
+    form.set('value', JSON.stringify(policy));
+    return this.client.post<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`), form).toPromise();
+  }
+
+  getDefaultDeletionPolicy(projectId: string): Promise<DeletionPolicy> {
+    return this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy/default`)).toPromise();
   }
 }
 
