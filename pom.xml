@@ -57,6 +57,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -83,8 +93,8 @@
 
     <modules>
         <module>nomad-java-sdk/sdk</module>
-        <module>application</module>
         <module>api</module>
+        <module>application</module>
     </modules>
     <packaging>pom</packaging>
 
