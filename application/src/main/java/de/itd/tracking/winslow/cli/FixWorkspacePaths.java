@@ -2,6 +2,7 @@ package de.itd.tracking.winslow.cli;
 
 import de.itd.tracking.winslow.Orchestrator;
 import de.itd.tracking.winslow.asblr.WorkspaceCreator;
+import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.Pipeline;
 import de.itd.tracking.winslow.pipeline.Stage;
 import de.itd.tracking.winslow.project.Project;
@@ -69,7 +70,7 @@ public class FixWorkspacePaths {
     }
 
     private Boolean hasFixableWorkspacePath(@Nonnull Stage stage) {
-        return stage
+        return stage.getAction() == Action.Execute && stage
                 .getWorkspace()
                 .map(path -> Path.of(path).isAbsolute() || WRONG_STATIC_PATH_LITERAL_USED.equals(path))
                 .orElse(Boolean.TRUE);
