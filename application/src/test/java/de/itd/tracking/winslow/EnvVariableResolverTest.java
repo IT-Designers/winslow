@@ -4,6 +4,7 @@ import de.itd.tracking.winslow.config.StageDefinition;
 import de.itd.tracking.winslow.pipeline.Action;
 import de.itd.tracking.winslow.pipeline.EnqueuedStage;
 import de.itd.tracking.winslow.pipeline.Stage;
+import de.itd.tracking.winslow.pipeline.Stage.State;
 import de.itd.tracking.winslow.web.ProjectsController;
 import org.junit.Test;
 import org.springframework.lang.NonNull;
@@ -15,8 +16,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.*;
 
 public class EnvVariableResolverTest {
 
@@ -47,17 +47,17 @@ public class EnvVariableResolverTest {
                 .withInStageDefinitionDefinedVariables(Map.of("variable", "stage")) // this is expected to 'disappear'
                 .withStageName("some-stage-name")
                 .withExecutionHistory(() -> Stream
-                        .of(constructFinishedStage(
+                        .of(constructFinishedExecutionStage(
                                 "some-stage-name",
-                                Stage.State.Succeeded,
+                                State.Succeeded,
                                 Map.of("variable", "history")
-                        ), constructFinishedStage(
+                        ), constructFinishedExecutionStage(
                                 "some-other-stage-name",
-                                Stage.State.Succeeded,
+                                State.Succeeded,
                                 Map.of("variable", "history-entry-with-wrong-name")
-                        ), constructFinishedStage(
+                        ), constructFinishedExecutionStage(
                                 "some-stage-name",
-                                Stage.State.Failed,
+                                State.Failed,
                                 Map.of("variable", "history-entry-which-failed")
                         )));
 
@@ -71,9 +71,9 @@ public class EnvVariableResolverTest {
                 .withInStageDefinitionDefinedVariables(Map.of("variable", "stage")) // this is expected to 'disappear'
                 .withStageName("some-stage-name")
                 .withExecutionHistory(() -> Stream
-                        .of(constructFinishedStage(
+                        .of(constructFinishedExecutionStage(
                                 "some-stage-name",
-                                Stage.State.Succeeded,
+                                State.Succeeded,
                                 Map.of("variable", "history")
                         )));
 
@@ -105,9 +105,9 @@ public class EnvVariableResolverTest {
                 .withInPipelineDefinitionDefinedVariables(Map.of("pipeline", "pipeline"))
                 .withInStageDefinitionDefinedVariables(Map.of("stage", "stage"))
                 .withStageName("some-stage-name")
-                .withExecutionHistory(() -> Stream.of(constructFinishedStage(
+                .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
                         "some-stage-name",
-                        Stage.State.Succeeded,
+                        State.Succeeded,
                         Map.of("history", "history")
                 )))
                 .resolve();
@@ -119,6 +119,48 @@ public class EnvVariableResolverTest {
         for (var check : Arrays.asList("stage", "history")) {
             assertEnvVariable(resolved.get(check), check, check, null);
         }
+    }
+
+    @Test
+    public void testConfiugreStageOverwritesExecutedStageWithRemovedVariables() {
+        var resolved = new EnvVariableResolver()
+                .withStageName("some-stage-name")
+                .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
+                        "some-stage-name",
+                        State.Succeeded,
+                        Map.of("executed", "executed")
+                ), constructFinishedStageWithAction(
+                        "some-stage-name",
+                        State.Succeeded,
+                        Map.of("configure", "configure"),
+                        Action.Configure
+                )))
+                .resolve();
+
+        assertEquals("configure", resolved.remove("configure").value);
+        assertNull(resolved.remove("executed"));
+        assertTrue(resolved.isEmpty());
+    }
+
+    @Test
+    public void testEnqueuedStageOverwritesExecutedStageWithRemovedVariables() {
+        var resolved = new EnvVariableResolver()
+                .withStageName("some-stage-name")
+                .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
+                        "some-stage-name",
+                        State.Succeeded,
+                        Map.of("executed", "executed")
+                )))
+                .withEnqueuedStages(() -> Stream.of(constructEnqueuedStage(
+                        "some-stage-name",
+                        Action.Configure,
+                        Map.of("enqueued", "enqueued")
+                )))
+                .resolve();
+
+        assertEquals("enqueued", resolved.remove("enqueued").value);
+        assertNull(resolved.remove("executed"));
+        assertTrue(resolved.isEmpty());
     }
 
     private static void assertEnvVariable(
@@ -133,10 +175,19 @@ public class EnvVariableResolverTest {
     }
 
     @NonNull
-    private static Stage constructFinishedStage(
+    private static Stage constructFinishedExecutionStage(
             @NonNull String name,
-            @NonNull Stage.State finishState,
+            @NonNull State finishState,
             @Nullable Map<String, String> env) {
+        return constructFinishedStageWithAction(name, finishState, env, Action.Execute);
+    }
+
+    @NonNull
+    private static Stage constructFinishedStageWithAction(
+            @NonNull String name,
+            @NonNull State finishState,
+            @Nullable Map<String, String> env,
+            @Nonnull Action action) {
         return new Stage(
                 "some-id",
                 new StageDefinition(
@@ -149,7 +200,7 @@ public class EnvVariableResolverTest {
                         null,
                         null
                 ),
-                Action.Execute,
+                action,
                 new Date(0L),
                 null,
                 new Date(),
