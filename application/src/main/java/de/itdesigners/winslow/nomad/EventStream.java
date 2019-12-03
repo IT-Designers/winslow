@@ -124,4 +124,12 @@ public class EventStream implements Iterator<LogEntry> {
     private boolean hasFinishedLongTimeAgo() {
         return this.finishTime != null && System.currentTimeMillis() > this.finishTime + LONG_TIME_THRESHOLD;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+"@{"
+                + "hasNext()=" + hasNext()
+                + "}#"
+                + hashCode();
+    }
 }

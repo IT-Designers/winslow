@@ -82,6 +82,9 @@ public class Executor {
     private Iterator<LogEntry> getIterator() throws IOException {
         var logs = this.orchestrator.getBackend().getLogs(pipeline, stage);
         return new Iterator<>() {
+            static final long TIMEOUT_NO_MESSAGE_MS = 60_000L;
+            long lastNotNullMs = System.currentTimeMillis();
+
             @Override
             public boolean hasNext() {
                 return !Executor.this.logBuffer.isEmpty() || logs.hasNext();
@@ -92,6 +95,12 @@ public class Executor {
                 var next = logBuffer.poll();
                 if (next == null && logs.hasNext()) {
                     next = logs.next();
+                }
+                if (next == null && lastNotNullMs + TIMEOUT_NO_MESSAGE_MS < System.currentTimeMillis()) {
+                    lastNotNullMs = System.currentTimeMillis();
+                    return createLogEntry(false, logs.toString());
+                } else if (next != null) {
+                    lastNotNullMs = System.currentTimeMillis();
                 }
                 return next;
             }

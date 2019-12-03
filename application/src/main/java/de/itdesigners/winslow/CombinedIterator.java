@@ -1,6 +1,7 @@
 package de.itdesigners.winslow;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -46,5 +47,14 @@ public class CombinedIterator<T> implements Iterator<T> {
             }
         }
         return next;
+    }
+
+    @Override
+    public String toString() {
+        return "CombinedIterator@{"
+                + "iterators=" + Arrays.toString(iterators) +
+                ",offset=" + offset
+                + "}#"
+                + hashCode();
     }
 }

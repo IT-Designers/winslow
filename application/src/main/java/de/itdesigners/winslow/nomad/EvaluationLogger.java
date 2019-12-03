@@ -62,9 +62,9 @@ public class EvaluationLogger implements Iterator<LogEntry> {
             if (!result.isEmpty()) {
                 return kill(
                         "Failed to start because of exhausted resource"
-                                    + (result.size() > 1 ? "s" : "")
-                                    + ": "
-                                    + String.join(", ", result)
+                                + (result.size() > 1 ? "s" : "")
+                                + ": "
+                                + String.join(", ", result)
                 );
             } else if (startTimeoutReached()) {
                 return kill("Start timeout reached");
@@ -100,5 +100,13 @@ public class EvaluationLogger implements Iterator<LogEntry> {
             e.printStackTrace();
             return timeout;
         }
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "@{"
+                + "hashNext()=" + hasNext()
+                + "}#"
+                + hashCode();
     }
 }

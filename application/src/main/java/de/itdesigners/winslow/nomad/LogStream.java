@@ -106,7 +106,11 @@ public class LogStream implements Iterator<String> {
 
             @Override
             public String toString() {
-                return getClass().getSimpleName() + "@{logType='" + logType + "'}#" + hashCode();
+                return iter.getClass().getSimpleName() + "@{"
+                        + "logType='" + logType + "',"
+                        + "hasNext()=" + hasNext()
+                        + "}#"
+                        + iter.hashCode();
             }
         };
     }
@@ -117,5 +121,13 @@ public class LogStream implements Iterator<String> {
             @Nonnull NomadBackend backend,
             @Nonnull String logType) throws IOException {
         return new LogStream(new LogInputStream(api, taskName, backend, logType));
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "@{"
+                + "hasNext()=" + hasNext()
+                + "}#"
+                + hashCode();
     }
 }
