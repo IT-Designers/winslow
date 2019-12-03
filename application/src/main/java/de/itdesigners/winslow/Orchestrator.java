@@ -112,6 +112,11 @@ public class Orchestrator {
                     LockBus.ensureSleepMs(30_000);
                     if (executor.isRunning()) {
                         executor.logErr("Timeout reached: going to stop running executor");
+                        this.updatePipeline(executor.getPipeline(), pipeline -> {
+                            if (pipeline.getRunningStage().map(Stage::getId).equals(Optional.of(executor.getStage()))) {
+                                pipeline.finishRunningStage(State.Failed);
+                            }
+                        });
                         LockBus.ensureSleepMs(5_000);
                         executor.fail();
                     }

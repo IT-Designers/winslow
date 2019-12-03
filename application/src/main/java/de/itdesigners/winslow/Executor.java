@@ -154,6 +154,16 @@ public class Executor {
         }
     }
 
+    @Nonnull
+    public String getPipeline() {
+        return pipeline;
+    }
+
+    @Nonnull
+    public String getStage() {
+        return stage;
+    }
+
     private synchronized boolean keepRunning() {
         return this.keepRunning || !this.logBuffer.isEmpty();
     }
