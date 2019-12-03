@@ -33,7 +33,7 @@ public class EvaluationLogger implements Iterator<LogEntry> {
             // - not started yet (empty)
             // - failed but not processed yet (potential error to log)
             return backend.getTaskState(this.stage)
-                          .map(s -> s.getFailed() ^ killSubmitted)
+                          .map(s -> (startTimeoutReached() || s.getFailed()) ^ killSubmitted)
                           .orElse(Boolean.TRUE);
         } catch (IOException e) {
             return false;
@@ -59,24 +59,15 @@ public class EvaluationLogger implements Iterator<LogEntry> {
                     })
                     .collect(Collectors.toList());
 
-            if (!result.isEmpty() || startTimeoutReached()) {
-                try {
-                    this.killSubmitted = true;
-                    backend.kill(stage);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    return new LogEntry(
-                            System.currentTimeMillis(),
-                            LogEntry.Source.MANAGEMENT_EVENT,
-                            true,
-                            Executor.PREFIX
-                                    + "Failed to start because of exhausted resource"
+            if (!result.isEmpty()) {
+                return kill(
+                        "Failed to start because of exhausted resource"
                                     + (result.size() > 1 ? "s" : "")
                                     + ": "
                                     + String.join(", ", result)
-                    );
-                }
+                );
+            } else if (startTimeoutReached()) {
+                return kill("Start timeout reached");
             } else {
                 return null;
             }
@@ -85,8 +76,24 @@ public class EvaluationLogger implements Iterator<LogEntry> {
         }
     }
 
+    private LogEntry kill(@Nonnull String message) {
+        try {
+            this.killSubmitted = true;
+            backend.kill(stage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            return new LogEntry(
+                    System.currentTimeMillis(),
+                    LogEntry.Source.MANAGEMENT_EVENT,
+                    true,
+                    Executor.PREFIX + message
+            );
+        }
+    }
+
     private boolean startTimeoutReached() {
-        boolean timeout = (startTimeMs + START_TIMEOUT_MS > System.currentTimeMillis());
+        boolean timeout = (startTimeMs + START_TIMEOUT_MS < System.currentTimeMillis());
         try {
             return backend.getTaskState(this.stage).isEmpty() && timeout;
         } catch (IOException e) {
