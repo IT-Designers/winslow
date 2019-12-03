@@ -25,6 +25,7 @@ export class NodeInfo {
   netInfo: NetInfo;
   diskInfo: DiskInfo;
   gpuInfo: GpuInfo[];
+  buildInfo: BuildInfo;
 
   // local only
   update: (node: NodeInfo) => void;
@@ -56,4 +57,10 @@ export class DiskInfo {
 export class GpuInfo {
   vendor: string;
   name: string;
+}
+
+export class BuildInfo {
+  date: string;
+  commitHashShort: string;
+  commitHashLong: string;
 }
