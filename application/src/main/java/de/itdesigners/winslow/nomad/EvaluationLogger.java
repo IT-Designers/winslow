@@ -12,14 +12,18 @@ import java.util.stream.Stream;
 
 public class EvaluationLogger implements Iterator<LogEntry> {
 
-    @Nonnull private final NomadBackend backend;
-    @Nonnull private final String       stage;
+    private static final long START_TIMEOUT_MS = 30_000;
+
+    private final @Nonnull NomadBackend backend;
+    private final @Nonnull String       stage;
+    private final          long         startTimeMs;
 
     private boolean killSubmitted = false;
 
     public EvaluationLogger(@Nonnull NomadBackend backend, @Nonnull String stage) {
-        this.backend = backend;
-        this.stage   = stage;
+        this.backend     = backend;
+        this.stage       = stage;
+        this.startTimeMs = System.currentTimeMillis();
     }
 
     @Override
@@ -55,7 +59,7 @@ public class EvaluationLogger implements Iterator<LogEntry> {
                     })
                     .collect(Collectors.toList());
 
-            if (!result.isEmpty()) {
+            if (!result.isEmpty() || startTimeoutReached()) {
                 try {
                     this.killSubmitted = true;
                     backend.kill(stage);
@@ -78,6 +82,16 @@ public class EvaluationLogger implements Iterator<LogEntry> {
             }
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    private boolean startTimeoutReached() {
+        boolean timeout = (startTimeMs + START_TIMEOUT_MS > System.currentTimeMillis());
+        try {
+            return backend.getTaskState(this.stage).isEmpty() && timeout;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return timeout;
         }
     }
 }
