@@ -35,7 +35,11 @@ public class LogStream implements Iterator<String> {
         String line = this.reader.readLine();
         if (line == null) {
             LOG.info("read line is null");
-            this.reader = null;
+            try {
+                this.reader.close();
+            } finally {
+                this.reader = null;
+            }
         }
         return line;
     }
@@ -53,6 +57,15 @@ public class LogStream implements Iterator<String> {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            try {
+                if (this.reader != null) {
+                    this.reader.close();
+                }
+            } catch (IOException ee) {
+                ee.printStackTrace();
+            } finally {
+                this.reader = null;
+            }
         }
         return null;
     }
