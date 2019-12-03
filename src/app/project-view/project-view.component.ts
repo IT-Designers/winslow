@@ -524,7 +524,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   scrollConsoleToBottom(overwrite = false) {
     if (this.stickConsole || overwrite) {
       this.stickConsole = true;
-      setTimeout(() => this.htmlConsole.nativeElement.scrollTop = 9_999_999_999);
+      setTimeout(() => {
+        if (this.htmlConsole) {
+          this.htmlConsole.nativeElement.scrollTop = 9_999_999_999
+        }
+      });
       setTimeout(() => this.scrollToBottomTarget());
     }
   }
