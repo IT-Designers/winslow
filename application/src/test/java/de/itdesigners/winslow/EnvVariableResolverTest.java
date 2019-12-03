@@ -1,13 +1,11 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.project.EnvVariable;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Stage;
-import de.itdesigners.winslow.pipeline.Stage.State;
-import de.itdesigners.winslow.web.ProjectsController;
 import org.junit.Test;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
