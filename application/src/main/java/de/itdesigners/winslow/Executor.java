@@ -31,12 +31,13 @@ public class Executor {
     @Nonnull private final LockedOutputStream logOutput;
     @Nonnull private final LockHeart          lockHeart;
 
-    @Nonnull private final List<Consumer<LogEntry>> logConsumer       = new ArrayList<>();
-    @Nonnull private final List<Runnable>           shutdownListeners = new ArrayList<>();
+    @Nonnull private final List<Consumer<LogEntry>> logConsumer                = new ArrayList<>();
+    @Nonnull private final List<Runnable>           shutdownListeners          = new ArrayList<>();
     @Nonnull private final List<Runnable>           shutdownCompletedListeners = new ArrayList<>();
 
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
+    private boolean                 failed      = true;
 
     public Executor(
             @Nonnull String pipeline,
@@ -138,7 +139,9 @@ public class Executor {
                         .runInForeground();
 
                 logOutput.flush();
-                orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(stage);
+                if (!failed) {
+                    orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(stage);
+                }
             } catch (Throwable e) {
                 LOG.log(Level.SEVERE, "Log writer failed", e);
             } finally {
@@ -156,6 +159,11 @@ public class Executor {
     }
 
     public synchronized void stop() {
+        this.keepRunning = false;
+    }
+
+    public synchronized void fail() {
+        this.failed      = true;
         this.keepRunning = false;
     }
 

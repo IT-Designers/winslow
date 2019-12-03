@@ -113,7 +113,7 @@ public class Orchestrator {
                     if (executor.isRunning()) {
                         executor.logErr("Timeout reached: going to stop running executor");
                         LockBus.ensureSleepMs(5_000);
-                        executor.stop();
+                        executor.fail();
                     }
                 }).start();
             }
