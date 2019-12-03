@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class CpuInfo {
+
     private final @Nonnull String      modelName;
     private final @Nonnull List<Float> utilization;
 

@@ -12,6 +12,7 @@ public class NodeInfo {
     private final @Nonnull NetInfo       netInfo;
     private final @Nonnull DiskInfo      diskInfo;
     private final @Nonnull List<GpuInfo> gpuInfo;
+    private final @Nonnull BuildInfo     buildInfo;
 
     public NodeInfo(
             @Nonnull String name,
@@ -20,12 +21,13 @@ public class NodeInfo {
             @Nonnull NetInfo netInfo,
             @Nonnull DiskInfo diskInfo,
             @Nonnull List<GpuInfo> gpuInfo) {
-        this.name     = name;
-        this.cpuInfo  = cpuInfo;
-        this.memInfo  = memInfo;
-        this.netInfo  = netInfo;
-        this.diskInfo = diskInfo;
-        this.gpuInfo  = Collections.unmodifiableList(gpuInfo);
+        this.name      = name;
+        this.cpuInfo   = cpuInfo;
+        this.memInfo   = memInfo;
+        this.netInfo   = netInfo;
+        this.diskInfo  = diskInfo;
+        this.gpuInfo   = Collections.unmodifiableList(gpuInfo);
+        this.buildInfo = new BuildInfo();
     }
 
     @Nonnull
@@ -56,5 +58,10 @@ public class NodeInfo {
     @Nonnull
     public List<GpuInfo> getGpuInfo() {
         return gpuInfo;
+    }
+
+    @Nonnull
+    public BuildInfo getBuildInfo() {
+        return buildInfo;
     }
 }

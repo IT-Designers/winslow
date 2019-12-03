@@ -7,6 +7,9 @@ build:
   tags:
     - docker
   script:
+    - sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+    - sed -i "s/external__COMMIT_HASH_LONG/$CI_COMMIT_SHA/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+    - sed -i "s/external__COMMIT_HASH_SHORT/$CI_COMMIT_SHORT_SHA/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
     - mvn clean test verify package
     - cp application/target/winslow*.jar .
     - mv application/target/site/jacoco coverage-report
