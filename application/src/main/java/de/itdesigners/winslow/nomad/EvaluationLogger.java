@@ -16,14 +16,12 @@ public class EvaluationLogger implements Iterator<LogEntry> {
 
     private final @Nonnull NomadBackend backend;
     private final @Nonnull String       stage;
-    private final          long         startTimeMs;
 
     private boolean killSubmitted = false;
 
     public EvaluationLogger(@Nonnull NomadBackend backend, @Nonnull String stage) {
         this.backend     = backend;
         this.stage       = stage;
-        this.startTimeMs = System.currentTimeMillis();
     }
 
     @Override
@@ -33,8 +31,8 @@ public class EvaluationLogger implements Iterator<LogEntry> {
             // - not started yet (empty)
             // - failed but not processed yet (potential error to log)
             return backend.getTaskState(this.stage)
-                          .map(s -> (startTimeoutReached() || s.getFailed()) ^ killSubmitted)
-                          .orElse(Boolean.TRUE);
+                          .map(s -> s.getFailed() ^ killSubmitted)
+                          .orElse(Boolean.FALSE);
         } catch (IOException e) {
             return false;
         }
@@ -66,8 +64,6 @@ public class EvaluationLogger implements Iterator<LogEntry> {
                                 + ": "
                                 + String.join(", ", result)
                 );
-            } else if (startTimeoutReached()) {
-                return kill("Start timeout reached");
             } else {
                 return null;
             }
@@ -89,16 +85,6 @@ public class EvaluationLogger implements Iterator<LogEntry> {
                     true,
                     Executor.PREFIX + message
             );
-        }
-    }
-
-    private boolean startTimeoutReached() {
-        boolean timeout = (startTimeMs + START_TIMEOUT_MS < System.currentTimeMillis());
-        try {
-            return backend.getTaskState(this.stage).isEmpty() && timeout;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return timeout;
         }
     }
 
