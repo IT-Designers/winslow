@@ -120,6 +120,15 @@ public class Orchestrator {
         }
     }
 
+    public void killLocallyNoThrows(@Nonnull String stage) {
+        try {
+            this.backend.kill(stage);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to kill stage " + stage, e);
+        }
+    }
+
+
     public void kill(@Nonnull Stage stage) throws LockException {
         this.lockBus.publishCommand(Event.Command.KILL, stage.getId());
     }
@@ -845,6 +854,7 @@ public class Orchestrator {
         executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stage));
         executor.addShutdownListener(() -> this.discardObsoleteWorkspaces(projectId));
         executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(projectId));
+        executor.addShutdownCompletedListener(() -> this.killLocallyNoThrows(stage));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stage, executor);
         return executor;
