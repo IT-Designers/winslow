@@ -17,6 +17,9 @@
       <span><strong>MEM</strong> {{getTotalMemoryFormatted()}}</span>
       <span *ngFor="let gpu of node.gpuInfo"><strong>GPU</strong> {{gpu.vendor.toUpperCase()}} {{gpu.name}}</span>
     </div>
+    <div *ngIf="node.buildInfo" class="server-details whitespace-separator-top">
+      <span>{{node.buildInfo.commitHashShort}}, {{node.buildInfo.date}}</span>
+    </div>
   </div>
 
   <div class="separator"></div>
