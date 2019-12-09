@@ -15,7 +15,7 @@ mkdir -p "$WINSLOW_WORK_DIRECTORY"
 
 if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
     echo "    :: Preparing NFS Storage"
-    mkdir /run/sendsigs.omit.d/
+    mkdir -p /run/sendsigs.omit.d/
     service rpcbind start
 #    mount.nfs -o vers=4,intr,soft "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
 #    mount.nfs -o intr,soft "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
