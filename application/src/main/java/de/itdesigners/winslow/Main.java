@@ -2,6 +2,7 @@ package de.itdesigners.winslow;
 
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
+import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.NfsWorkDirectory;
@@ -74,6 +75,14 @@ public class Main {
             var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder().build());
             var backend     = new NomadBackend(nomadClient);
 
+            // TODO
+            var unixNode             = new UnixNode(nodeName);
+            var nomadGpuDetectorNode = new NomadGpuDetectorNodeWrapper(unixNode, nomadClient);
+            var resourceMonitor      = new ResourceAllocationMonitor(toResourceSet(nomadGpuDetectorNode.loadInfo()));
+
+            // TODO
+            NodeInfoUpdater.spawn(config.getNodesDirectory(), nomadGpuDetectorNode);
+
             orchestrator = new Orchestrator(
                     lockBus,
                     environment,
@@ -84,6 +93,7 @@ public class Main {
                     logs,
                     settings,
                     nodeName,
+                    resourceMonitor,
                     !Env.isNoStageExecutionSet()
             );
 
@@ -94,11 +104,6 @@ public class Main {
             LOG.info("Assembling Winslow");
             var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects, settings);
 
-
-            // TODO
-            var unixNode             = new UnixNode(nodeName);
-            var nomadGpuDetectorNode = new NomadGpuDetectorNodeWrapper(unixNode, nomadClient);
-            NodeInfoUpdater.spawn(config.getNodesDirectory(), nomadGpuDetectorNode);
 
             LOG.info("Starting WebApi");
             webApi = WebApi.start(winslow);
@@ -115,6 +120,14 @@ public class Main {
                 webApi.stop();
             }
         }
+    }
+
+    @Nonnull
+    private static ResourceAllocationMonitor.Set<Long> toResourceSet(@Nonnull NodeInfo info) {
+        return new ResourceAllocationMonitor.Set<Long>()
+                .with(ResourceAllocationMonitor.StandardResources.CPU, (long) info.getCpuInfo().getUtilization().size())
+                .with(ResourceAllocationMonitor.StandardResources.RAM, info.getMemInfo().getMemoryTotal() * 1024 * 1024)
+                .with(ResourceAllocationMonitor.StandardResources.GPU, (long) info.getGpuInfo().size());
     }
 
     private static void tryFixMissingPipelinesOfProjects(

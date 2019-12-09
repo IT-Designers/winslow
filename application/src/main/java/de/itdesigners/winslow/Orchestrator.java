@@ -6,6 +6,7 @@ import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.PipelineDefinition;
+import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageDefinitionBuilder;
 import de.itdesigners.winslow.fs.*;
@@ -24,10 +25,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -54,8 +54,10 @@ public class Orchestrator {
     @Nonnull private final SettingsRepository settings;
     @Nonnull private final String             nodeName;
 
-    @Nonnull private final Map<String, Executor> executors         = new ConcurrentHashMap<>();
-    @Nonnull private final DelayedExecutor       delayedExecutions = new DelayedExecutor();
+    @Nonnull private final Map<String, Executor>     executors         = new ConcurrentHashMap<>();
+    @Nonnull private final Set<String>               missingResources  = new ConcurrentSkipListSet<>();
+    @Nonnull private final DelayedExecutor           delayedExecutions = new DelayedExecutor();
+    @Nonnull private final ResourceAllocationMonitor monitor;
 
     private boolean executeStages;
 
@@ -68,7 +70,9 @@ public class Orchestrator {
             @Nonnull PipelineRepository pipelines,
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
-            @Nonnull SettingsRepository settings, @Nonnull String nodeName,
+            @Nonnull SettingsRepository settings,
+            @Nonnull String nodeName,
+            @Nonnull ResourceAllocationMonitor monitor,
             boolean executeStages) {
         this.lockBus       = lockBus;
         this.environment   = environment;
@@ -79,6 +83,7 @@ public class Orchestrator {
         this.logs          = logs;
         this.settings      = settings;
         this.nodeName      = nodeName;
+        this.monitor       = monitor;
         this.executeStages = executeStages;
 
         if (executeStages) {
@@ -95,6 +100,7 @@ public class Orchestrator {
                 .or(() -> this.logs.getProjectIdForLogPath(Path.of(event.getSubject())));
         if (project.isPresent()) {
             LOG.info("Going to check project for changes: " + project.get());
+            this.missingResources.remove(project.get());
             this.delayedExecutions.executeRandomlyDelayed(project.get(), 10, 100, () -> {
                 this.pollPipelineForUpdate(project.get());
             });
@@ -183,16 +189,48 @@ public class Orchestrator {
             var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
             var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
             var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
+            var hasResources = pipe.flatMap(this::hasResourcesForNextStage).orElse(false);
             var hasNext = pipe.flatMap(p -> definition.map(d -> maybeEnqueueNextStageOfPipeline(d, p)))
                               .orElse(false);
 
-            LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", inconsistent=" + inconsistent + ", hasNext=" + hasNext + " projectId=" + projectId);
+            LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", hasResources=" + hasResources + ", inconsistent=" + inconsistent + ", hasNext=" + hasNext + " projectId=" + projectId);
 
-            return !locked && ((hasUpdate && capable) || inconsistent || hasNext);
+            if (!locked && hasUpdate && capable && !hasResources) {
+                // just missing free resources for now
+                this.missingResources.add(pipe.get().getProjectId());
+            }
+
+            return !locked && ((hasUpdate && capable && hasResources) || inconsistent || hasNext);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
             return false;
         }
+    }
+
+    @Nonnull
+    private Optional<Boolean> hasResourcesForNextStage(@Nonnull Pipeline pipeline) {
+        return pipeline.peekNextStage().flatMap(enqueued -> enqueued
+                .getDefinition()
+                .getRequirements()
+                .map(this::toResourceSet)
+                .map(this.monitor::couldReserveConsideringReservations));
+    }
+
+    @Nonnull
+    private ResourceAllocationMonitor.Set<Long> toResourceSet(@Nonnull Requirements requirements) {
+        return new ResourceAllocationMonitor.Set<Long>()
+                .with(
+                        ResourceAllocationMonitor.StandardResources.RAM,
+                        requirements.getMegabytesOfRam() * 1024 * 1024
+                )
+                .with(
+                        ResourceAllocationMonitor.StandardResources.GPU,
+                        requirements
+                                .getGpu()
+                                .map(Requirements.Gpu::getCount)
+                                .map(Number::longValue)
+                                .orElse(0L)
+                );
     }
 
     private Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
@@ -364,23 +402,45 @@ public class Orchestrator {
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        var noneRunning = pipeline.getRunningStage().isEmpty();
-        var paused      = pipeline.isPauseRequested();
-        var hasNext     = pipeline.peekNextStage().isPresent();
-        var isCapable   = isCapableOfExecutingNextStage(pipeline).orElse(false);
+        var noneRunning  = pipeline.getRunningStage().isEmpty();
+        var paused       = pipeline.isPauseRequested();
+        var hasNext      = pipeline.peekNextStage().isPresent();
+        var isCapable    = isCapableOfExecutingNextStage(pipeline).orElse(false);
+        var hasResources = hasResourcesForNextStage(pipeline).orElse(false);
 
-        if (noneRunning && !paused && hasNext && isCapable) {
+        if (noneRunning && !paused && hasNext && isCapable && hasResources) {
             switch (pipeline.getStrategy()) {
                 case MoveForwardOnce:
                     pipeline.requestPause();
                 case MoveForwardUntilEnd:
                     if (startNextPipelineStage(lock, definition, pipeline)) {
+                        registerResourceFreeingShutdownListener(pipeline);
                         pipeline.clearPauseReason();
                         return true;
                     }
             }
         }
         return false;
+    }
+
+    private void registerResourceFreeingShutdownListener(@Nonnull Pipeline pipeline) {
+        pipeline.getRunningStage().ifPresent(stage -> {
+            stage.getDefinition()
+                 .getRequirements()
+                 .map(this::toResourceSet)
+                 .ifPresent(set -> {
+                     var executor = this.executors.get(stage.getId());
+                     if (executor != null) {
+                         this.monitor.reserve(set);
+                         executor.addShutdownCompletedListener(() -> {
+                             this.monitor.free(set);
+                             var copy = new HashSet<>(this.missingResources);
+                             this.missingResources.removeAll(copy);
+                             copy.forEach(this::pollPipelineForUpdate);
+                         });
+                     }
+                 });
+        });
     }
 
     private boolean startNextPipelineStage(
