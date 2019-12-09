@@ -29,8 +29,6 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private boolean              closed;
     private long                 lastSuccess;
 
-    private boolean hasTriedOnceAfterFinished = false;
-
     public LogInputStream(
             @Nonnull ClientApi api,
             @Nonnull NomadStageHandle handle,
@@ -45,10 +43,8 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     @Nullable
     private FramedStream tryOpen() throws IOException {
         handle.pollNoThrows();
-        boolean tryOnce = !hasTriedOnceAfterFinished && handle.hasFinished();
-        if ((!handle.hasFinished() || (tryOnce && !hasTriedOnceAfterFinished)) && handle.getAllocationId().isPresent()) {
+        if (!handle.hasFinished() && handle.getAllocationId().isPresent()) {
             try {
-                this.hasTriedOnceAfterFinished = true;
                 return this.api.logsAsFrames(
                         handle.getAllocationId().get(),
                         handle.getStageId(),

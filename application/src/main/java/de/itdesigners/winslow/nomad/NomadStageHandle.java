@@ -21,6 +21,7 @@ public class NomadStageHandle implements StageHandle {
     private static final Logger LOG                              = Logger.getLogger(NomadStageHandle.class.getSimpleName());
     private static final int    PARTIAL_FAILURE_IS_STAGE_FAILURE = 2;
     private static final long   KILL_TIMEOUT_MS                  = 30_000;
+    private static final long   SHUTDOWN_DURATION_MS             = 15_000;
 
     private final @Nonnull NomadBackend backend;
     private final @Nonnull String       stageId;
@@ -29,8 +30,9 @@ public class NomadStageHandle implements StageHandle {
     private @Nullable TaskState taskState;
     private @Nullable State     state = null;
 
-    private boolean gone     = false;
-    private Long    killTime = null;
+    private boolean gone         = false;
+    private Long    killTime     = null;
+    private Long    shutdownTime = null;
 
     private int partialErrorCounter = 0;
 
@@ -77,6 +79,11 @@ public class NomadStageHandle implements StageHandle {
                         if (taskState != null) {
                             this.taskState = taskState;
                             this.state     = NomadBackend.toRunningStageState(taskState);
+
+                            if (NomadBackend.hasTaskFinished(taskState) && this.shutdownTime != null) {
+                                this.shutdownTime = System.currentTimeMillis() + SHUTDOWN_DURATION_MS;
+                            }
+
                         } else {
                             this.gone = true;
                         }
@@ -98,7 +105,11 @@ public class NomadStageHandle implements StageHandle {
 
     @Override
     public boolean hasFinished() {
-        return isGone() || hasFailed() || hasSucceeded();
+        if (shutdownTime != null && shutdownTime > System.currentTimeMillis()) {
+            return false;
+        } else {
+            return isGone() || hasFailed() || hasSucceeded();
+        }
     }
 
     @Override
