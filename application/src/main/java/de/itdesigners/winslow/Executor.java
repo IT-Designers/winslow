@@ -89,8 +89,6 @@ public class Executor {
 
     private Iterator<LogEntry> getIterator() {
         return new Iterator<>() {
-            static final long TIMEOUT_NO_MESSAGE_MS = 60_000L;
-            long lastNotNullMs = System.currentTimeMillis();
             Iterator<LogEntry> logs = null;
 
             private void retrieveLogs() {
@@ -115,12 +113,6 @@ public class Executor {
                 var next = logBuffer.poll();
                 if (next == null && logs != null && logs.hasNext()) {
                     next = logs.next();
-                }
-                if (next == null && lastNotNullMs + TIMEOUT_NO_MESSAGE_MS < System.currentTimeMillis()) {
-                    lastNotNullMs = System.currentTimeMillis();
-                    return createLogEntry(false, String.valueOf(logs));
-                } else if (next != null) {
-                    lastNotNullMs = System.currentTimeMillis();
                 }
                 return next;
             }
