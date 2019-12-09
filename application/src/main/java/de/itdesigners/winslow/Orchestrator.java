@@ -209,11 +209,13 @@ public class Orchestrator {
 
     @Nonnull
     private Optional<Boolean> hasResourcesForNextStage(@Nonnull Pipeline pipeline) {
-        return pipeline.peekNextStage().flatMap(enqueued -> enqueued
+        return pipeline.peekNextStage().map(enqueued -> enqueued
                 .getDefinition()
                 .getRequirements()
                 .map(this::toResourceSet)
-                .map(this.monitor::couldReserveConsideringReservations));
+                .map(this.monitor::couldReserveConsideringReservations)
+                .orElse(true)
+        );
     }
 
     @Nonnull
