@@ -104,7 +104,9 @@ public class Executor {
             @Override
             public boolean hasNext() {
                 retrieveLogs();
-                return !Executor.this.logBuffer.isEmpty() || (logs != null ? logs.hasNext() : Executor.this.keepRunning());
+                return !Executor.this.logBuffer.isEmpty() || (logs != null
+                                                              ? logs.hasNext()
+                                                              : Executor.this.keepRunning());
             }
 
             @Override
@@ -143,7 +145,12 @@ public class Executor {
                                         }
                                 ).filter(Objects::nonNull),
                                 Stream
-                                        .of((Supplier<LogEntry>) () -> createLogEntry(false, "Done"))
+                                        .of((Supplier<LogEntry>) () -> {
+                                            var failed  = stageHandle != null && stageHandle.hasFailed();
+                                            var gone    = stageHandle != null && stageHandle.isGone();
+                                            var message = failed ? "Failed" : (gone ? "Gone" : "Done");
+                                            return createLogEntry(failed || gone, message);
+                                        })
                                         .map(Supplier::get)
                         ))
                         .addConsumer(this::notifyLogConsumer)
