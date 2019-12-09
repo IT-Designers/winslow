@@ -1,10 +1,12 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.StageHandle;
 
 import javax.annotation.Nonnull;
 
 public interface PreparedStage {
+
     /**
      * Tries to actually execute this prepared {@link PreparedStage}. Once started successfully,
      * the return value of this method remains the same for all further calls: The started {@link Stage}
@@ -13,7 +15,7 @@ public interface PreparedStage {
      * @throws OrchestratorException If the start failed or already started
      */
     @Nonnull
-    Stage execute() throws OrchestratorException;
+    Result execute() throws OrchestratorException;
 
     /**
      * Uses the {@link PreparedStage} to configure the pipeline as if it would have
@@ -25,5 +27,25 @@ public interface PreparedStage {
      * @throws OrchestratorException If the configuration failed
      */
     @Nonnull
-    Stage configure() throws OrchestratorException;
+    Result configure() throws OrchestratorException;
+
+    class Result {
+        private final @Nonnull Stage       stage;
+        private final @Nonnull StageHandle handle;
+
+        public Result(@Nonnull Stage stage, @Nonnull StageHandle handle) {
+            this.stage  = stage;
+            this.handle = handle;
+        }
+
+        @Nonnull
+        public Stage getStage() {
+            return stage;
+        }
+
+        @Nonnull
+        public StageHandle getHandle() {
+            return handle;
+        }
+    }
 }

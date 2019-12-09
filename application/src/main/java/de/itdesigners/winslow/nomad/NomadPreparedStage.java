@@ -1,13 +1,12 @@
 package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.Job;
-import com.hashicorp.nomad.javasdk.JobsApi;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.OrchestratorConnectionException;
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.pipeline.PreparedStage;
 import de.itdesigners.winslow.pipeline.Stage;
 
@@ -19,10 +18,10 @@ import java.util.Objects;
 
 public class NomadPreparedStage implements PreparedStage {
 
+    private NomadBackend        backend;
     private Job                 job;
-    private JobsApi             jobsApi;
     private StageDefinition     definition;
-    private Stage               stage;
+    private Result              result;
     private String              workspace;
     private Map<String, String> envVariables;
     private Map<String, String> envVariablesPipeline;
@@ -30,16 +29,16 @@ public class NomadPreparedStage implements PreparedStage {
     private Map<String, String> envVariablesInternal;
 
     public NomadPreparedStage(
+            @Nonnull NomadBackend backend,
             @Nonnull Job job,
-            @Nonnull JobsApi jobsApi,
             @Nonnull StageDefinition definition,
             @Nonnull String workspace,
             @Nonnull Map<String, String> envVariables,
             @Nonnull Map<String, String> envVariablesPipeline,
             @Nonnull Map<String, String> envVariablesSystem,
             @Nonnull Map<String, String> envVariablesInternal) {
+        this.backend              = backend;
         this.job                  = job;
-        this.jobsApi              = jobsApi;
         this.definition           = definition;
         this.workspace            = workspace;
         this.envVariables         = envVariables;
@@ -49,21 +48,21 @@ public class NomadPreparedStage implements PreparedStage {
     }
 
     @Nonnull
-    public Stage execute() throws OrchestratorException {
+    public Result execute() throws OrchestratorException {
         try {
             var stage = prepare(Action.Execute);
 
             if (stage != null) {
                 // this one could fail
-                jobsApi.register(job);
+                backend.getNewJobsApi().register(job);
 
                 // therefore reset those once passed
-                this.jobsApi = null;
                 this.job     = null;
-                this.stage   = stage;
+                this.result  = new Result(stage, new NomadStageHandle(backend, stage.getId()));
+                this.backend = null;
             }
 
-            return this.stage;
+            return this.result;
         } catch (NomadException e) {
             throw new OrchestratorException("Failed to register job, invalid?", e);
         } catch (IOException e) {
@@ -73,24 +72,24 @@ public class NomadPreparedStage implements PreparedStage {
 
     @Nonnull
     @Override
-    public Stage configure() throws OrchestratorException {
+    public Result configure() throws OrchestratorException {
         var stage = prepare(Action.Configure);
 
         if (stage != null) {
-            this.jobsApi = null;
             this.job     = null;
-            this.stage   = stage;
+            this.result  = new Result(stage, new NomadStageHandle(backend, stage.getId()));
+            this.backend = null;
 
             // a configure is successful by being instantiated and has no lifetime
-            this.stage.finishNow(State.Succeeded);
+            this.result.getStage().finishNow(State.Succeeded);
         }
 
-        return this.stage;
+        return this.result;
     }
 
     @Nullable
     private Stage prepare(@Nonnull Action action) throws OrchestratorException {
-        if (jobsApi != null && job != null) {
+        if (backend != null && job != null) {
             var jobId    = job.getId();
             var taskName = job.getTaskGroups().get(0).getName();
 

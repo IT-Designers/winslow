@@ -72,25 +72,22 @@ public class LogStream implements Iterator<String> {
 
     public static Iterator<LogEntry> stdOutIter(
             @Nonnull ClientApi api,
-            @Nonnull String taskName,
-            @Nonnull NomadBackend backend) throws IOException {
-        return stdIter(api, taskName, backend, "stdout", LogEntry::stdout);
+            @Nonnull NomadStageHandle handle) throws IOException {
+        return stdIter(api, handle, "stdout", LogEntry::stdout);
     }
 
     public static Iterator<LogEntry> stdErrIter(
             @Nonnull ClientApi api,
-            @Nonnull String taskName,
-            @Nonnull NomadBackend backend) throws IOException {
-        return stdIter(api, taskName, backend, "stderr", LogEntry::stderr);
+            @Nonnull NomadStageHandle handle) throws IOException {
+        return stdIter(api, handle, "stderr", LogEntry::stderr);
     }
 
     public static Iterator<LogEntry> stdIter(
             @Nonnull ClientApi api,
-            @Nonnull String taskName,
-            @Nonnull NomadBackend backend,
+            @Nonnull NomadStageHandle handle,
             @Nonnull String logType,
             @Nonnull Function<String, LogEntry> mapper) throws IOException {
-        var iter = LogStream.iter(api, taskName, backend, logType);
+        var iter = LogStream.iter(api, handle, logType);
         return new Iterator<>() {
             @Override
             public boolean hasNext() {
@@ -117,10 +114,9 @@ public class LogStream implements Iterator<String> {
 
     private static Iterator<String> iter(
             @Nonnull ClientApi api,
-            @Nonnull String taskName,
-            @Nonnull NomadBackend backend,
+            @Nonnull NomadStageHandle handle,
             @Nonnull String logType) throws IOException {
-        return new LogStream(new LogInputStream(api, taskName, backend, logType));
+        return new LogStream(new LogInputStream(api, handle, logType));
     }
 
     @Override

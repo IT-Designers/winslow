@@ -12,39 +12,25 @@ import java.util.stream.Stream;
 
 public class EvaluationLogger implements Iterator<LogEntry> {
 
-    private static final long START_TIMEOUT_MS = 30_000;
+    private final @Nonnull NomadStageHandle handle;
 
-    private final @Nonnull NomadBackend backend;
-    private final @Nonnull String       stage;
-
-    private boolean killSubmitted = false;
-
-    public EvaluationLogger(@Nonnull NomadBackend backend, @Nonnull String stage) {
-        this.backend     = backend;
-        this.stage       = stage;
+    public EvaluationLogger(@Nonnull NomadStageHandle handle) {
+        this.handle = handle;
     }
 
     @Override
     public boolean hasNext() {
-        try {
-            // interesting states are
-            // - not started yet (empty)
-            // - failed but not processed yet (potential error to log)
-            return backend.getTaskState(this.stage)
-                          .map(s -> s.getFailed() ^ killSubmitted)
-                          .orElse(Boolean.FALSE);
-        } catch (IOException e) {
-            return false;
-        }
+        this.handle.pollNoThrows();
+        return !handle.hasFinished();
     }
 
     @Override
     public LogEntry next() {
         try {
-            List<String> result = backend
-                    .getEvaluations(stage)
+            List<String> result = handle
+                    .getEvaluations()
                     .flatMap(e -> Stream.ofNullable(e.getFailedTgAllocs()))
-                    .flatMap(e -> Stream.ofNullable(e.get(stage)))
+                    .flatMap(e -> Stream.ofNullable(e.get(handle.getStageId())))
                     .flatMap(e -> {
                         Stream<String> constraint = e.getConstraintFiltered() != null
                                                     ? e.getConstraintFiltered().keySet().stream()
@@ -74,8 +60,8 @@ public class EvaluationLogger implements Iterator<LogEntry> {
 
     private LogEntry kill(@Nonnull String message) {
         try {
-            this.killSubmitted = true;
-            backend.kill(stage);
+            this.handle.pollNoThrows();
+            this.handle.kill();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

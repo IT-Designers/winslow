@@ -1,9 +1,9 @@
 package de.itdesigners.winslow.fs;
 
-import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.project.DeletionPolicy;
+import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.junit.Test;
 import org.springframework.lang.NonNull;

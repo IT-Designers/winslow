@@ -2,9 +2,9 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Environment;
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.pipeline.Pipeline;
 
 import javax.annotation.Nonnull;

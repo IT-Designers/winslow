@@ -6,6 +6,7 @@ import de.itdesigners.winslow.fs.LockedOutputStream;
 import de.itdesigners.winslow.project.LogWriter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ public class Executor {
     @Nonnull private final List<Runnable>           shutdownListeners          = new ArrayList<>();
     @Nonnull private final List<Runnable>           shutdownCompletedListeners = new ArrayList<>();
 
+    @Nullable private StageHandle stageHandle;
+
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
     private boolean                 failed      = true;
@@ -53,6 +56,10 @@ public class Executor {
         thread.setName(pipeline + "." + stage + ".executor");
         thread.setDaemon(false);
         thread.start();
+    }
+
+    public void setStageHandle(@Nonnull StageHandle handle) {
+        this.stageHandle = handle;
     }
 
     public void logInf(@Nonnull String message) {
@@ -80,26 +87,38 @@ public class Executor {
         );
     }
 
-    private Iterator<LogEntry> getIterator() throws IOException {
-        var logs = this.orchestrator.getBackend().getLogs(pipeline, stage);
+    private Iterator<LogEntry> getIterator() {
         return new Iterator<>() {
             static final long TIMEOUT_NO_MESSAGE_MS = 60_000L;
             long lastNotNullMs = System.currentTimeMillis();
+            Iterator<LogEntry> logs = null;
+
+            private void retrieveLogs() {
+                if (logs == null && Executor.this.stageHandle != null) {
+                    try {
+                        logs = Executor.this.stageHandle.getLogs();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
 
             @Override
             public boolean hasNext() {
-                return !Executor.this.logBuffer.isEmpty() || logs.hasNext();
+                retrieveLogs();
+                return !Executor.this.logBuffer.isEmpty() || (logs != null ? logs.hasNext() : Executor.this.keepRunning());
             }
 
             @Override
             public LogEntry next() {
+                retrieveLogs();
                 var next = logBuffer.poll();
-                if (next == null && logs.hasNext()) {
+                if (next == null && logs != null && logs.hasNext()) {
                     next = logs.next();
                 }
                 if (next == null && lastNotNullMs + TIMEOUT_NO_MESSAGE_MS < System.currentTimeMillis()) {
                     lastNotNullMs = System.currentTimeMillis();
-                    return createLogEntry(false, logs.toString());
+                    return createLogEntry(false, String.valueOf(logs));
                 } else if (next != null) {
                     lastNotNullMs = System.currentTimeMillis();
                 }
