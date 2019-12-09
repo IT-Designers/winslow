@@ -1,7 +1,6 @@
 package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
-import com.hashicorp.nomad.javasdk.JobsApi;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
 
@@ -15,8 +14,8 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     @Nonnull private static final String DRIVER_DOCKER = "docker";
 
+    @Nonnull private final NomadBackend            backend;
     @Nonnull private final String                  id;
-    @Nonnull private final JobsApi                 jobsApi;
     @Nonnull private final StageDefinition         stageDefinition;
     @Nonnull private final Map<String, Object>     config          = new HashMap<>();
     @Nonnull private final Map<String, String>     envVars         = new HashMap<>();
@@ -30,13 +29,13 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     private                String                  workspaceDirectory;
 
     public NomadPreparedStageBuilder(
+            @Nonnull NomadBackend backend,
             @Nonnull String id,
             @Nonnull String stage,
-            @Nonnull JobsApi jobsApi,
             @Nonnull StageDefinition stageDefinition) {
+        this.backend         = backend;
         this.id              = id;
         this.stage           = stage;
-        this.jobsApi         = jobsApi;
         this.stageDefinition = stageDefinition;
     }
 
@@ -209,6 +208,7 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
         getEnvVariableKeys().forEach(key -> getEnvVariable(key).ifPresent(value -> env.put(key, value)));
 
         return new NomadPreparedStage(
+                backend,
                 new Job()
                         .setId(this.stage)
                         .addDatacenters("local")
@@ -224,7 +224,6 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
                                                         .setConfig(this.config)
                                                         .setResources(this.resources)
                                                         .setEnv(env))),
-                jobsApi,
                 stageDefinition,
                 workspaceDirectory,
                 getReducedEnvVars(),

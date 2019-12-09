@@ -1,15 +1,17 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageDefinitionBuilder;
 import de.itdesigners.winslow.fs.*;
-import de.itdesigners.winslow.pipeline.*;
+import de.itdesigners.winslow.pipeline.EnqueuedStage;
+import de.itdesigners.winslow.pipeline.Pipeline;
+import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.Project;
@@ -448,10 +450,11 @@ public class Orchestrator {
                             .add(new WorkspaceCreator(this, environment))
                             .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
-                            .add(new BuildAndSubmit(this.nodeName, builtStage -> {
+                            .add(new BuildAndSubmit(this.nodeName, result -> {
+                                executor.setStageHandle(result.getHandle());
                                 lock.waitForRelease();
                                 updatePipeline(projectId, pipelineToUpdate -> {
-                                    pipelineToUpdate.updateStage(builtStage);
+                                    pipelineToUpdate.updateStage(result.getStage());
                                 });
                             }))
                             .assemble(new Context(

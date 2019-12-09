@@ -1,6 +1,5 @@
 package de.itdesigners.winslow.nomad;
 
-import com.hashicorp.nomad.apimodel.AllocationListStub;
 import com.hashicorp.nomad.apimodel.StreamFrame;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
@@ -12,17 +11,16 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 public class LogInputStream extends InputStream implements AutoCloseable {
 
-    private static final Logger LOG = Logger.getLogger(LogInputStream.class.getSimpleName());
+    private static final Logger LOG         = Logger.getLogger(LogInputStream.class.getSimpleName());
+    public static final  int    COOLDOWN_MS = 5_000;
 
-    @Nonnull private final ClientApi    api;
-    @Nonnull private final String       stageId;
-    @Nonnull private final NomadBackend backend;
-    @Nonnull private final String       logType;
+    @Nonnull private final ClientApi        api;
+    @Nonnull private final NomadStageHandle handle;
+    @Nonnull private final String           logType;
 
     private long offset = 0;
 
@@ -31,14 +29,14 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private boolean              closed;
     private long                 lastSuccess;
 
+    private boolean hasTriedOnceAfterFinished = false;
+
     public LogInputStream(
             @Nonnull ClientApi api,
-            @Nonnull String stageId,
-            @Nonnull NomadBackend backend,
+            @Nonnull NomadStageHandle handle,
             @Nonnull String logType) throws IOException {
         this.api          = api;
-        this.stageId      = stageId;
-        this.backend      = backend;
+        this.handle       = handle;
         this.logType      = logType;
         this.framedStream = this.tryOpen();
         this.lastSuccess  = System.currentTimeMillis();
@@ -46,30 +44,31 @@ public class LogInputStream extends InputStream implements AutoCloseable {
 
     @Nullable
     private FramedStream tryOpen() throws IOException {
-        var allocationBeingPresentOnlyIfHasStarted = getAllocationBeingPresentOnlyIfHasStarted();
-        if (allocationBeingPresentOnlyIfHasStarted.isPresent()) {
+        handle.pollNoThrows();
+        boolean tryOnce = !hasTriedOnceAfterFinished && handle.hasFinished();
+        if ((!handle.hasFinished() || (tryOnce && !hasTriedOnceAfterFinished)) && handle.getAllocationId().isPresent()) {
             try {
-                return api.logsAsFrames(
-                        allocationBeingPresentOnlyIfHasStarted.get().getId(),
-                        stageId,
+                this.hasTriedOnceAfterFinished = true;
+                return this.api.logsAsFrames(
+                        handle.getAllocationId().get(),
+                        handle.getStageId(),
                         false,
                         logType,
                         offset
                 );
-            } catch (NomadException e) {
-                throw new IOException("NomadException while trying to access log", e);
+            } catch (NomadException ne) {
+                // handle.notifyAboutPartialFailure(ne);
+                // throw new IOException("NomadException while trying to access log stream: " + ne.getMessage(), ne);
+                return null;
+            } catch (IOException ioe) {
+                handle.notifyAboutPartialFailure(ioe);
+                throw ioe;
+            } catch (Throwable t) {
+                handle.notifyAboutPartialFailure(t);
+                throw new IOException("Caught unexpected throwable: " + t.getMessage(), t);
             }
         } else {
             return null;
-        }
-    }
-
-    private Optional<AllocationListStub> getAllocationBeingPresentOnlyIfHasStarted() {
-        try {
-            return backend.getAllocation(stageId);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return Optional.empty();
         }
     }
 
@@ -83,30 +82,14 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     }
 
     private boolean isAlive() {
-        try {
-            var hasHadRecentSuccess = (System.currentTimeMillis() - lastSuccess) < 5_000;
-            var taskRunning = this.backend
-                    .getTaskState(stageId)
-                    .map(NomadBackend::hasTaskFinished)
-                    .map(v -> {
-                        if (v) {
-                            LOG.info("NomadBackend::hasTaskFinished returned true");
-                            return Boolean.FALSE;
-                        } else {
-                            lastSuccess = System.currentTimeMillis();
-                            return Boolean.TRUE;
-                        }
-                    })
-                    .orElse(Boolean.TRUE);
-            var alive = taskRunning || hasHadRecentSuccess;
-            if (!alive) {
-                LOG.info("No longer alive, running=" + taskRunning + ", recentUpdate=" + hasHadRecentSuccess);
-            }
-            return alive;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+        handle.pollNoThrows();
+        var hasHadRecentSuccess = (System.currentTimeMillis() - lastSuccess) < COOLDOWN_MS;
+        var finished            = handle.hasFinished();
+        var alive               = !finished || hasHadRecentSuccess;
+        if (!alive) {
+            LOG.info("No longer alive, finished=" + finished + ", recentUpdate=" + hasHadRecentSuccess);
         }
+        return alive;
     }
 
     interface CallableIOException {

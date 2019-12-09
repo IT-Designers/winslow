@@ -3,18 +3,15 @@ package de.itdesigners.winslow.nomad;
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.*;
 import de.itdesigners.winslow.Backend;
-import de.itdesigners.winslow.CombinedIterator;
-import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -197,22 +194,11 @@ public class NomadBackend implements Backend {
 
     @Nonnull
     @Override
-    public Iterator<LogEntry> getLogs(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        return new CombinedIterator<>(
-                LogStream.stdOutIter(getNewClientApi(), stage, this),
-                LogStream.stdErrIter(getNewClientApi(), stage, this),
-                new EventStream(this, stage),
-                new EvaluationLogger(this, stage)
-        );
-    }
-
-    @Nonnull
-    @Override
     public PreparedStageBuilder newStageBuilder(
             @Nonnull String pipeline,
             @Nonnull String stage,
             @Nonnull StageDefinition stageDefinition) {
-        return new NomadPreparedStageBuilder(pipeline, stage, getNewJobsApi(), stageDefinition);
+        return new NomadPreparedStageBuilder(this, pipeline, stage, stageDefinition);
     }
 
     @Override
@@ -252,28 +238,6 @@ public class NomadBackend implements Backend {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public Optional<AllocationListStub> getAllocationListStubForOmitException(
-            @Nonnull String pipeline,
-            @Nonnull String stage) {
-        try {
-            return getAllocationListStubFor(pipeline, stage);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Failed to load allocations for " + pipeline + " / " + stage, e);
-            return Optional.empty();
-        }
-    }
-
-    public Optional<AllocationListStub> getAllocationListStubFor(
-            @Nonnull String pipeline,
-            @Nonnull String stage) throws IOException {
-        var allocs = getAllocations();
-        return allocs
-                .stream()
-                .filter(alloc -> stage.equals(alloc.getJobId()))
-                .filter(alloc -> alloc.getTaskStates() != null && alloc.getTaskStates().get(stage) != null)
-                .findFirst();
     }
 
     @Nonnull
@@ -317,24 +281,6 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    public List<AllocationListStub> getAllocationsPollRepeatedlyUntil(@Nonnull Predicate<List<AllocationListStub>> predicate) throws IOException {
-        synchronized (this.cachedAllocsSync) {
-            do {
-                var allocs = getAllocations();
-                if (!predicate.test(allocs)) {
-                    try {
-                        cachedAllocsSync.wait(CACHE_TIME_MS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    return allocs;
-                }
-            } while (true);
-        }
-    }
-
-    @Nonnull
     public Optional<AllocationListStub> getAllocation(@Nonnull String stage) throws IOException {
         return getAllocations()
                 .stream()
@@ -343,26 +289,7 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    public Optional<TaskState> getTaskStatePollRepeatedlyUntil(
-            @Nonnull String stage,
-            @Nonnull Predicate<Optional<TaskState>> predicate) throws IOException {
-        return getAllocationsPollRepeatedlyUntil(allocs -> predicate
-                .test(allocs
-                              .stream()
-                              .filter(alloc -> alloc.getJobId().equals(stage))
-                              .filter(alloc -> alloc.getTaskStates() != null)
-                              .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
-                              .findFirst()
-                ))
-                .stream()
-                .filter(alloc -> alloc.getJobId().equals(stage))
-                .filter(alloc -> alloc.getTaskStates() != null)
-                .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates().get(stage)))
-                .findFirst();
-    }
-
-    @Nonnull
-    public Optional<TaskState> getTaskState(@Nonnull String stage) throws IOException {
+    private Optional<TaskState> getTaskState(@Nonnull String stage) throws IOException {
         return getAllocation(stage)
                 .stream()
                 .flatMap(alloc -> Stream.ofNullable(alloc.getTaskStates()))
@@ -401,7 +328,7 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    private ClientApi getNewClientApi() {
+    protected ClientApi getNewClientApi() {
         return getNewClient().getClientApi(this.client.getConfig().getAddress());
     }
 
@@ -411,15 +338,10 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    private JobsApi getNewJobsApi() {
+    protected JobsApi getNewJobsApi() {
         return getNewClient().getJobsApi();
     }
 
-
-    @Nonnull
-    public static Optional<TaskState> getTask(AllocationListStub allocation, String taskName) {
-        return Optional.ofNullable(allocation.getTaskStates()).map(tasks -> tasks.get(taskName));
-    }
 
     @Nonnull
     public static State toRunningStageState(@Nonnull TaskState task) {

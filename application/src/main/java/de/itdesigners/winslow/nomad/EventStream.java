@@ -5,7 +5,6 @@ import com.hashicorp.nomad.apimodel.TaskState;
 import de.itdesigners.winslow.api.project.LogEntry;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.*;
 
 public class EventStream implements Iterator<LogEntry> {
@@ -13,8 +12,7 @@ public class EventStream implements Iterator<LogEntry> {
     public static final String MESSAGE_PREFIX      = "[nomad] ";
     public static final int    LONG_TIME_THRESHOLD = 5_000;
 
-    private final NomadBackend backend;
-    private final String       stage;
+    private final @Nonnull NomadStageHandle handle;
 
     private TaskState       state                    = null;
     private int             previousIndex            = 0;
@@ -22,9 +20,8 @@ public class EventStream implements Iterator<LogEntry> {
     private boolean         terminatedEventProcessed = false;
     private Long            finishTime               = null;
 
-    public EventStream(NomadBackend backend, String stage) {
-        this.backend = backend;
-        this.stage   = stage;
+    public EventStream(@Nonnull NomadStageHandle handle) {
+        this.handle = handle;
     }
 
     private void maybeEnqueue(long time, boolean err, @Nonnull String message) {
@@ -54,16 +51,20 @@ public class EventStream implements Iterator<LogEntry> {
         if (!this.logs.isEmpty()) {
             return this.logs.poll();
         }
-        try {
-            if (state == null) {
-                backend.getTaskState(this.stage).map(this::stateUpdated);
-            }
-            if (state != null && NomadBackend.hasTaskFinished(state) && !terminatedEventProcessed) {
-                backend.getTaskState(this.stage).map(this::stateUpdated);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        this.handle.pollNoThrows();
+
+        if (state == null) {
+            this.handle.getTaskState().map(this::stateUpdated);
         }
+
+        if (state != null && NomadBackend.hasTaskFinished(state) && !terminatedEventProcessed) {
+            this.handle.getTaskState().map(this::stateUpdated);
+        }
+
+        if (handle.hasFinished() && finishTime == null) {
+            finishTime = System.currentTimeMillis();
+        }
+
         return tryParseNext().orElse(null);
     }
 
@@ -127,7 +128,7 @@ public class EventStream implements Iterator<LogEntry> {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"@{"
+        return getClass().getSimpleName() + "@{"
                 + "hasNext()=" + hasNext()
                 + "}#"
                 + hashCode();

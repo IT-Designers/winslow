@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.node.unix;
 
 import de.itdesigners.winslow.api.node.*;
-import de.itdesigners.winslow.node.*;
+import de.itdesigners.winslow.node.Node;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

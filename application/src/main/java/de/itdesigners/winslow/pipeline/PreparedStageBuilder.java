@@ -1,7 +1,8 @@
 package de.itdesigners.winslow.pipeline;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
 
 public interface PreparedStageBuilder {
 
