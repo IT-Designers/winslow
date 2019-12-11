@@ -158,7 +158,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Nonnull
     private static Path getWorkspacePathOf(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
-        return getWorkspacePathOf(pipeline.getProjectId(), pipeline.getStageCount(), stage);
+        return getWorkspacePathOf(pipeline.getProjectId(), pipeline.getStageCount() + 1, stage);
     }
 
     @Nonnull
