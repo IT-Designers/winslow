@@ -186,6 +186,7 @@ public class NomadBackend implements Backend {
     @Override
     public void kill(@Nonnull String stage) throws IOException {
         try {
+            Thread.dumpStack();
             getNewJobsApi().deregister(stage).getValue();
         } catch (NomadException e) {
             throw new IOException("Failed to deregister job for " + stage, e);

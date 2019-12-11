@@ -22,6 +22,7 @@ public class NomadStageHandle implements StageHandle {
     private static final int    PARTIAL_FAILURE_IS_STAGE_FAILURE = 2;
     private static final long   KILL_TIMEOUT_MS                  = 30_000;
     private static final long   SHUTDOWN_DURATION_MS             = 15_000;
+    private static final long   GONE_TIMEOUT                     = 10_000;
 
     private final @Nonnull NomadBackend backend;
     private final @Nonnull String       stageId;
@@ -30,9 +31,10 @@ public class NomadStageHandle implements StageHandle {
     private @Nullable TaskState taskState;
     private @Nullable State     state = null;
 
-    private boolean gone         = false;
-    private Long    killTime     = null;
-    private Long    shutdownTime = null;
+    private boolean gone                = false;
+    private Long    goneTime            = null;
+    private Long    killTime            = null;
+    private Long    shutdownDelayedTime = null;
 
     private int partialErrorCounter = 0;
 
@@ -80,16 +82,27 @@ public class NomadStageHandle implements StageHandle {
                             this.taskState = taskState;
                             this.state     = NomadBackend.toRunningStageState(taskState);
 
-                            if (NomadBackend.hasTaskFinished(taskState) && this.shutdownTime != null) {
-                                this.shutdownTime = System.currentTimeMillis() + SHUTDOWN_DURATION_MS;
+                            if (NomadBackend.hasTaskFinished(taskState) && this.shutdownDelayedTime != null) {
+                                this.shutdownDelayedTime = System.currentTimeMillis() + SHUTDOWN_DURATION_MS;
                             }
 
+                            resetGoneIndicators();
                         } else {
-                            this.gone = true;
+                            this.detectedIndicatorForGone();
                         }
-                    }, () -> {
-                        this.gone |= hasStarted();
-                    });
+                    }, this::detectedIndicatorForGone);
+        }
+    }
+
+    private void resetGoneIndicators() {
+        this.goneTime = null;
+    }
+
+    private void detectedIndicatorForGone() {
+        if (hasStarted() && goneTime == null) {
+            this.goneTime = System.currentTimeMillis();
+        } else if (goneTime + GONE_TIMEOUT < System.currentTimeMillis()) {
+            this.gone = true;
         }
     }
 
@@ -105,7 +118,7 @@ public class NomadStageHandle implements StageHandle {
 
     @Override
     public boolean hasFinished() {
-        if (shutdownTime != null && shutdownTime > System.currentTimeMillis()) {
+        if (shutdownDelayedTime != null && shutdownDelayedTime > System.currentTimeMillis()) {
             return false;
         } else {
             return isGone() || hasFailed() || hasSucceeded();
@@ -114,9 +127,10 @@ public class NomadStageHandle implements StageHandle {
 
     @Override
     public boolean hasFailed() {
-        return isGone()
-                || State.Failed == this.state
-                || (partialErrorCounter > PARTIAL_FAILURE_IS_STAGE_FAILURE);
+        var gone    = isGone();
+        var failed  = State.Failed == this.state;
+        var counter = partialErrorCounter >= PARTIAL_FAILURE_IS_STAGE_FAILURE;
+        return gone || failed || counter;
     }
 
     @Override
@@ -130,8 +144,7 @@ public class NomadStageHandle implements StageHandle {
     }
 
     private boolean killTimeoutReached() {
-        return killTime != null
-                && killTime + KILL_TIMEOUT_MS < System.currentTimeMillis();
+        return killTime != null && killTime + KILL_TIMEOUT_MS < System.currentTimeMillis();
     }
 
     @Nonnull
@@ -155,6 +168,7 @@ public class NomadStageHandle implements StageHandle {
         if (this.killTime == null) {
             this.killTime = System.currentTimeMillis();
         }
+        LOG.info("Killing myself[" + stageId + "]");
         this.backend.kill(this.stageId);
     }
 
@@ -166,8 +180,11 @@ public class NomadStageHandle implements StageHandle {
     public void notifyAboutPartialFailure(@Nonnull Throwable t) {
         try {
             this.partialErrorCounter += 1;
-            LOG.log(Level.WARNING, "Got notified about partial failure, will escalate and kill stage", t);
-            this.backend.kill(stageId);
+            LOG.log(Level.WARNING, "Got notified about partial failure, counter=" + partialErrorCounter, t);
+            if (this.partialErrorCounter >= PARTIAL_FAILURE_IS_STAGE_FAILURE) {
+                LOG.warning("Counter above allowed value, will escalate and kill stage");
+                this.kill();
+            }
         } catch (IOException ioe) {
             LOG.log(Level.WARNING, "Failed to kill stage[" + stageId + "] caused by escalated partial failure", ioe);
         }
