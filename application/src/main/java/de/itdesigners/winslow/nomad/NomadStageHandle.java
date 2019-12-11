@@ -101,7 +101,7 @@ public class NomadStageHandle implements StageHandle {
     private void detectedIndicatorForGone() {
         if (hasStarted() && goneTime == null) {
             this.goneTime = System.currentTimeMillis();
-        } else if (goneTime + GONE_TIMEOUT < System.currentTimeMillis()) {
+        } else if (goneTime != null && goneTime + GONE_TIMEOUT < System.currentTimeMillis()) {
             this.gone = true;
         }
     }
