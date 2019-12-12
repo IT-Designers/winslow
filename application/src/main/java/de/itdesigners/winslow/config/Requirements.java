@@ -31,7 +31,11 @@ public class Requirements {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{ram=" + this.ram + ", gpu=" + this.gpu + "}#" + this.hashCode();
+        return getClass().getSimpleName()
+                + "@{cpu=" + this.cpu
+                + ", ram=" + this.ram
+                + ", gpu=" + this.gpu
+                + "}#" + this .hashCode();
     }
 
     @Override
