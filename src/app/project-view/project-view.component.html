@@ -284,7 +284,7 @@
       <div class="stage-control-item">
         <label>Project Pipeline</label>
         <mat-form-field>
-          <mat-select #pipelineSelection [value]="this.project.pipelineDefinition.id">
+          <mat-select #pipelineSelection [value]="this.probablyProjectPipelineId">
             <ng-container *ngFor="let pipeline of pipelines">
               <mat-option [value]="pipeline.id">{{pipeline.name}}</mat-option>
             </ng-container>
