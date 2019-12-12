@@ -27,7 +27,8 @@ export class PipelineEditorComponent implements OnInit {
     language: 'yaml'
   };
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit() {
   }
@@ -75,5 +76,11 @@ export class PipelineEditorComponent implements OnInit {
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
     this.editor.layout();
+  }
+
+  layout() {
+    if (this.editor) {
+      this.editor.layout();
+    }
   }
 }
