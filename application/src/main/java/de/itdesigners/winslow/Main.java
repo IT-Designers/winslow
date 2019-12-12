@@ -6,6 +6,7 @@ import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.NfsWorkDirectory;
+import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
 import de.itdesigners.winslow.node.unix.UnixNode;
 import de.itdesigners.winslow.nomad.NomadBackend;
@@ -75,13 +76,11 @@ public class Main {
             var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder().build());
             var backend     = new NomadBackend(nomadClient);
 
-            // TODO
-            var unixNode             = new UnixNode(nodeName);
-            var nomadGpuDetectorNode = new NomadGpuDetectorNodeWrapper(unixNode, nomadClient);
-            var resourceMonitor      = new ResourceAllocationMonitor(toResourceSet(nomadGpuDetectorNode.loadInfo()));
+            var node            = getNode(nodeName, nomadClient);
+            var resourceMonitor = new ResourceAllocationMonitor(toResourceSet(node.loadInfo()));
 
             // TODO
-            NodeInfoUpdater.spawn(config.getNodesDirectory(), nomadGpuDetectorNode);
+            NodeInfoUpdater.spawn(config.getNodesDirectory(), node);
 
             orchestrator = new Orchestrator(
                     lockBus,
@@ -105,8 +104,10 @@ public class Main {
             var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects, settings);
 
 
-            LOG.info("Starting WebApi");
-            webApi = WebApi.start(winslow);
+            if (!Env.isNoWebApiSet()) {
+                LOG.info("Starting WebApi");
+                webApi = WebApi.start(winslow);
+            }
 
             tryFixMissingPipelinesOfProjects(orchestrator, projects);
 
@@ -123,10 +124,21 @@ public class Main {
     }
 
     @Nonnull
+    private static Node getNode(@Nonnull String nodeName, @Nonnull NomadApiClient nomadClient) throws IOException {
+        // TODO
+        var unixNode = new UnixNode(nodeName);
+        if (Env.isNoGpuUsageSet()) {
+            return unixNode;
+        } else {
+            return new NomadGpuDetectorNodeWrapper(unixNode, nomadClient);
+        }
+    }
+
+    @Nonnull
     private static ResourceAllocationMonitor.Set<Long> toResourceSet(@Nonnull NodeInfo info) {
         return new ResourceAllocationMonitor.Set<Long>()
                 .with(ResourceAllocationMonitor.StandardResources.CPU, (long) info.getCpuInfo().getUtilization().size())
-                .with(ResourceAllocationMonitor.StandardResources.RAM, info.getMemInfo().getMemoryTotal() * 1024 * 1024)
+                .with(ResourceAllocationMonitor.StandardResources.RAM, info.getMemInfo().getMemoryTotal())
                 .with(ResourceAllocationMonitor.StandardResources.GPU, (long) info.getGpuInfo().size());
     }
 

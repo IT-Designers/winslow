@@ -5,9 +5,14 @@ import de.itdesigners.winslow.config.Requirements;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class ResourceAllocationMonitor {
+
+    private static final Set<Long> MINIMUM = new Set<Long>()
+            .with(StandardResources.CPU, 1L)
+            .with(StandardResources.RAM, 300L * 1024L * 1024L);
 
     private final @Nonnull Set<Long>  resources;
     private final @Nonnull Set<Float> affinity;
@@ -16,7 +21,7 @@ public class ResourceAllocationMonitor {
     private @Nonnull Set<Long> reserved;
 
     public ResourceAllocationMonitor(@Nonnull Set<Long> resources) {
-        this(resources, new Set<>(), new Set<>());
+        this(resources, defaultAffinity(resources), defaultAversion(resources));
     }
 
     public ResourceAllocationMonitor(
@@ -34,7 +39,7 @@ public class ResourceAllocationMonitor {
         for (Map.Entry<String, Long> entry : set.entries.entrySet()) {
             this.reserved.entries.put(
                     entry.getKey(),
-                    this.reserved.entries.getOrDefault(entry.getKey(), 0L) + entry.getValue()
+                    this.reserved.getOrDefault(entry.getKey(), 0L) + entry.getValue()
             );
         }
     }
@@ -43,7 +48,7 @@ public class ResourceAllocationMonitor {
         for (Map.Entry<String, Long> entry : set.entries.entrySet()) {
             this.reserved.entries.put(
                     entry.getKey(),
-                    this.reserved.entries.getOrDefault(entry.getKey(), entry.getValue()) - entry.getValue()
+                    this.reserved.getOrDefault(entry.getKey(), entry.getValue()) - entry.getValue()
             );
         }
     }
@@ -59,7 +64,7 @@ public class ResourceAllocationMonitor {
 
     public synchronized boolean couldReserveNotConsideringReservations(@Nonnull Set<Long> set) {
         for (Map.Entry<String, Long> entry : set.entries.entrySet()) {
-            if (entry.getValue() > resources.entries.getOrDefault(entry.getKey(), 0L)) {
+            if (entry.getValue() > resources.getOrDefault(entry.getKey(), 0L)) {
                 return false;
             }
         }
@@ -68,44 +73,68 @@ public class ResourceAllocationMonitor {
 
     @Nonnull
     private Long getAvailable(@Nonnull String resource) {
-        return this.resources.entries.getOrDefault(resource, 0L) - this.reserved.entries.getOrDefault(resource, 0L);
+        return this.resources.getOrDefault(resource, 0L) - this.reserved.getOrDefault(resource, 0L);
     }
 
     public float getAffinity(@Nonnull Set<Long> resources) {
         var result = 1.f;
 
-        for (Map.Entry<String, Long> entry : resources.entries.entrySet()) {
-            var resource  = entry.getKey();
-            var required  = entry.getValue();
-            var available = getAvailable(resource);
-            var affinity  = getAffinity(resource);
+        var combinedKeys = new HashSet<String>();
+        combinedKeys.addAll(resources.entries.keySet());
+        combinedKeys.addAll(this.resources.entries.keySet());
 
-            var ratio = required.floatValue() / available.floatValue() * affinity;
+        for (var resource : combinedKeys) {
+            var available = this.resources.getOrDefault(resource, 0L);
+            var required  = getResourceRequirement(resources, resource);
 
-            result = Math.min(result, ratio);
+            // skip if not available
+            if (available > 0L) {
+                var affinity = getAffinity(resource);
+                var ratio    = required.floatValue() / available.floatValue() * affinity;
+
+                result = Math.min(result, ratio);
+            } else if (required > 0L) {
+                return 0f; // insufficient resources
+            }
         }
 
         return result;
     }
 
+    private Long getResourceRequirement(
+            @Nonnull Set<Long> resources,
+            @Nonnull String resource) {
+        var required = resources.getOrDefault(resource, 0L);
+        var minimum  = MINIMUM.getOrDefault(resource, 0L);
+        return Math.max(required, minimum);
+    }
+
     @Nonnull
     private Float getAffinity(@Nonnull String resource) {
-        return this.affinity.entries.getOrDefault(resource, 1.0f);
+        return this.affinity.getOrDefault(resource, 1.0f);
     }
 
     public float getAversion(@Nonnull Set<Long> resources) {
         var result = 0.f;
 
-        for (Map.Entry<String, Long> entry : resources.entries.entrySet()) {
-            var resource  = entry.getKey();
-            var required  = entry.getValue();
-            var available = getAvailable(resource);
-            var unused    = (float) (available - required);
-            var aversion  = getAversion(resource);
+        var combinedKeys = new HashSet<String>();
+        combinedKeys.addAll(resources.entries.keySet());
+        combinedKeys.addAll(this.resources.entries.keySet());
 
-            var ratio = unused / available.floatValue() * aversion;
+        for (var resource : combinedKeys) {
+            var available = this.resources.getOrDefault(resource, 0L);
+            var required  = getResourceRequirement(resources, resource);
 
-            result = Math.max(result, ratio);
+            if (available > 0L) {
+                var unused   = (float) (available - required);
+                var aversion = getAversion(resource);
+
+                var ratio = unused / available.floatValue() * aversion;
+
+                result = Math.max(result, ratio);
+            } else if (required > 0L) {
+                return 1f; // insufficient resources
+            }
         }
 
         return result;
@@ -113,7 +142,7 @@ public class ResourceAllocationMonitor {
 
     @Nonnull
     private Float getAversion(@Nonnull String resource) {
-        return this.aversion.entries.getOrDefault(resource, 1.0f);
+        return this.aversion.getOrDefault(resource, 1.0f);
     }
 
     public enum StandardResources {
@@ -138,6 +167,18 @@ public class ResourceAllocationMonitor {
                             StandardResources.GPU,
                             requirements.getGpu().map(Requirements.Gpu::getCount).map(Number::longValue).orElse(0L)
                     );
+        }
+
+        @Nonnull
+        @CheckReturnValue
+        public T getOrDefault(@Nonnull StandardResources resources, T defaultValue) {
+            return this.getOrDefault(resources.name, defaultValue);
+        }
+
+        @Nonnull
+        @CheckReturnValue
+        public T getOrDefault(@Nonnull String name, T defaultValue) {
+            return this.entries.getOrDefault(name, defaultValue);
         }
 
         @Nonnull
@@ -171,5 +212,31 @@ public class ResourceAllocationMonitor {
 
             return builder.append("}#").append(hashCode()).toString();
         }
+    }
+
+    @Nonnull
+    private static Set<Float> defaultAffinity(@Nonnull Set<Long> resources) {
+        var set = new Set<Float>();
+        resources.entries.keySet().forEach(key -> set.entries.put(key, 1.0f));
+        return set;
+    }
+
+    @Nonnull
+    private static Set<Float> defaultAversion(@Nonnull Set<Long> resources) {
+        var set = new Set<Float>();
+        resources.entries.keySet().forEach(key -> set.entries.put(key, 1.0f));
+        if (set.entries.containsKey(StandardResources.GPU.name)) {
+            var clone           = new HashMap<>(set.entries);
+            var gpuCount        = resources.entries.get(StandardResources.GPU.name);
+            var gpuFactor       = set.entries.get(StandardResources.GPU.name);
+            var gpuAdjustFactor = gpuFactor / (gpuCount + 1.0f); // this ensures that the GPU has the greatest impact
+
+            for (var entry : clone.entrySet()) {
+                if (!entry.getKey().equals(StandardResources.GPU.name)) {
+                    set.entries.put(entry.getKey(), entry.getValue() * gpuAdjustFactor);
+                }
+            }
+        }
+        return set;
     }
 }

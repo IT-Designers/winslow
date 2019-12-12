@@ -7,7 +7,9 @@ public class RequirementAppender implements AssemblerStep {
     public void assemble(@Nonnull Context context) throws AssemblyException {
         context.getEnqueuedStage().getDefinition().getRequirements().ifPresent(requirements -> {
             requirements.getGpu().ifPresent(gpu -> {
-                var builder = context.getBuilder().withGpuCount(gpu.getCount());
+                var builder = context
+                        .getBuilder()
+                        .withGpuCount(gpu.getCount());
 
                 if (gpu.getVendor().isPresent()) {
                     builder = builder.withGpuVendor(gpu.getVendor().get());
@@ -16,6 +18,9 @@ public class RequirementAppender implements AssemblerStep {
 
             if (requirements.getMegabytesOfRam() > 0) {
                 context.getBuilder().withMegabytesOfRam((int) requirements.getMegabytesOfRam());
+            }
+            if (requirements.getCpu() > 0) {
+                context.getBuilder().withCpuCount(requirements.getCpu());
             }
         });
     }

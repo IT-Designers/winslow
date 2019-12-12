@@ -16,6 +16,8 @@ public class Env {
     public static final String STATIC_HTML        = SELF_PREFIX + "_STATIC_HTML";
     public static final String API_PATH           = SELF_PREFIX + "_API_PATH";
     public static final String NO_STAGE_EXECUTION = SELF_PREFIX + "_NO_STAGE_EXECUTION";
+    public static final String NO_GPU_USAGE       = SELF_PREFIX + "_NO_GPU_USAGE";
+    public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
 
     private Env() {
     }
@@ -43,6 +45,20 @@ public class Env {
     public static boolean isNoStageExecutionSet() {
         return !Optional
                 .ofNullable(System.getenv().get(NO_STAGE_EXECUTION))
+                .map(Boolean::parseBoolean)
+                .orElse(Boolean.TRUE);
+    }
+
+    public static boolean isNoGpuUsageSet() {
+        return !Optional
+                .ofNullable(System.getenv().get(NO_GPU_USAGE))
+                .map(Boolean::parseBoolean)
+                .orElse(Boolean.TRUE);
+    }
+
+    public static boolean isNoWebApiSet() {
+        return !Optional
+                .ofNullable(System.getenv().get(NO_WEB_API))
                 .map(Boolean::parseBoolean)
                 .orElse(Boolean.TRUE);
     }

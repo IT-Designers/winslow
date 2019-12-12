@@ -7,12 +7,18 @@ import java.util.Optional;
 
 public class Requirements {
 
+    private final           int  cpu;
     private final           long ram;
     private final @Nullable Gpu  gpu;
 
-    public Requirements(long megabytesOfRam, @Nullable Gpu gpu) {
+    public Requirements(int cpu, long megabytesOfRam, @Nullable Gpu gpu) {
+        this.cpu = cpu;
         this.ram = megabytesOfRam;
         this.gpu = gpu;
+    }
+
+    public int getCpu() {
+        return cpu;
     }
 
     public long getMegabytesOfRam() {

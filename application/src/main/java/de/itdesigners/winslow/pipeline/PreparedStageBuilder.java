@@ -48,6 +48,9 @@ public interface PreparedStageBuilder {
     PreparedStageBuilder withEnvVariables(@Nonnull Map<? extends String, ? extends String> variables);
 
     @Nonnull
+    PreparedStageBuilder withCpuCount(int count);
+
+    @Nonnull
     PreparedStageBuilder withGpuCount(int count);
 
     @Nonnull

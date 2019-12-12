@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
 
-public interface StageHandle {
+public interface StageHandle extends AutoCloseable {
 
     /**
      * Handles errors internally, might cause states to be
@@ -30,6 +30,9 @@ public interface StageHandle {
      */
     boolean hasStarted();
 
+    /**
+     * @return Whether the corresponding stage has finished executing. Might include a cool down propagation delay.
+     */
     boolean hasFinished();
 
     boolean hasFailed();
@@ -47,4 +50,7 @@ public interface StageHandle {
 
     @Nonnull
     Iterator<LogEntry> getLogs() throws IOException;
+
+    @Override
+    void close() throws IOException;
 }

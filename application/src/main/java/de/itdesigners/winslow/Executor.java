@@ -122,8 +122,9 @@ public class Executor {
     }
 
     private void run() {
+        var stageHandle = this.stageHandle;
         try (lockHeart) {
-            try (logOutput) {
+            try (logOutput; stageHandle) {
                 var iter    = getIterator();
                 var backoff = new Backoff(250, 950, 2f);
 
