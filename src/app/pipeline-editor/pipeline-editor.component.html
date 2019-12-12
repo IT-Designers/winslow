@@ -1,5 +1,6 @@
-<div class="editor" (keydown.control.s)="$event.preventDefault(); update.emit(raw);">
+<div #editorContainer class="editor" (keydown.control.s)="$event.preventDefault(); update.emit(raw);" (resize)="layout()">
   <ngx-monaco-editor
+      #editorComponent
       style="height: 100%"
       [options]="editorOptions"
       [(ngModel)]="raw"
@@ -13,5 +14,5 @@
     Set on other Projects
   </button>
   <button mat-raised-button color="primary" (click)="update.emit(raw)">Save</button>
-  <button mat-stroked-button color="primary" (click)="check.emit(raw)">Check</button>
+  <button mat-stroked-button color="primary" (click)="check.emit(raw); this.layout()">Check</button>
 </div>
