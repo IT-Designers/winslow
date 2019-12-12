@@ -58,6 +58,7 @@ public class Orchestrator {
     @Nonnull private final Set<String>               missingResources  = new ConcurrentSkipListSet<>();
     @Nonnull private final DelayedExecutor           delayedExecutions = new DelayedExecutor();
     @Nonnull private final ResourceAllocationMonitor monitor;
+    @Nonnull private final ElectionManager           electionManager;
 
     private boolean executeStages;
 
@@ -86,12 +87,57 @@ public class Orchestrator {
         this.monitor       = monitor;
         this.executeStages = executeStages;
 
+        this.electionManager = new ElectionManager(lockBus);
+
         if (executeStages) {
             this.lockBus.registerEventListener(Event.Command.KILL, this::handleKillEvent);
             this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
 
+            LockBusElectionManagerAdapter.setupAdapters(nodeName, electionManager, this, lockBus);
+
             this.pollAllPipelinesForUpdate();
         }
+    }
+
+    @Nonnull
+    Election.Participation judgeParticipationScore(@Nonnull ResourceAllocationMonitor.Set<Long> required) {
+        return new Election.Participation(
+                monitor.getAffinity(required),
+                monitor.getAversion(required)
+        );
+    }
+
+    @Nonnull
+    Optional<Project> getProjectUnsafe(@Nonnull String projectId) {
+        return projects.getProject(projectId).unsafe();
+    }
+
+    @Nonnull
+    Optional<LockedContainer<Pipeline>> getPipelineExclusive(@Nonnull Project project) {
+        return this.pipelines.getPipeline(project.getId()).exclusive();
+    }
+
+    @Nonnull
+    Optional<Pipeline> getPipelineUnsafe(@Nonnull String projectId) {
+        return pipelines.getPipeline(projectId).unsafe();
+    }
+
+    @Nonnull
+    ResourceAllocationMonitor.Set<Long> getRequiredResources(@Nonnull EnqueuedStage enqueued) {
+        return getRequiredResources(enqueued.getDefinition());
+    }
+
+    @Nonnull
+    ResourceAllocationMonitor.Set<Long> getRequiredResources(@Nonnull Stage stage) {
+        return getRequiredResources(stage.getDefinition());
+    }
+
+    @Nonnull
+    ResourceAllocationMonitor.Set<Long> getRequiredResources(@Nonnull StageDefinition definition) {
+        return definition
+                .getRequirements()
+                .map(this::toResourceSet)
+                .orElseGet(ResourceAllocationMonitor.Set::new);
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {
@@ -133,15 +179,6 @@ public class Orchestrator {
         }
     }
 
-    public void killLocallyNoThrows(@Nonnull String stage) {
-        try {
-            this.backend.kill(stage);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Failed to kill stage " + stage, e);
-        }
-    }
-
-
     public void kill(@Nonnull Stage stage) throws LockException {
         this.lockBus.publishCommand(Event.Command.KILL, stage.getId());
     }
@@ -154,11 +191,6 @@ public class Orchestrator {
     @Nonnull
     public LogRepository getLogRepository() {
         return logs;
-    }
-
-    @Nonnull
-    public Backend getBackend() {
-        return backend;
     }
 
     private void pollAllPipelinesForUpdate() {
@@ -184,6 +216,7 @@ public class Orchestrator {
             var locked       = handle.isLocked();
             var pipe         = handle.unsafe();
             var projectId    = pipe.map(Pipeline::getProjectId);
+            var hasElection  = projectId.flatMap(electionManager::getElection).isPresent();
             var project      = projectId.map(projects::getProject).flatMap(BaseRepository.Handle::unsafe);
             var definition   = project.map(Project::getPipelineDefinition);
             var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
@@ -193,14 +226,14 @@ public class Orchestrator {
             var hasNext = pipe.flatMap(p -> definition.map(d -> maybeEnqueueNextStageOfPipeline(d, p)))
                               .orElse(false);
 
-            LOG.info("Checking, locked=" + locked + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", hasResources=" + hasResources + ", inconsistent=" + inconsistent + ", hasNext=" + hasNext + " projectId=" + projectId);
+            LOG.info("Checking, locked=" + locked + ", hasElection=" + hasElection + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", hasResources=" + hasResources + ", inconsistent=" + inconsistent + ", hasNext=" + hasNext + " projectId=" + projectId);
 
-            if (!locked && hasUpdate && capable && !hasResources) {
+            if (!locked && !hasElection && hasUpdate && capable && !hasResources) {
                 // just missing free resources for now
                 this.missingResources.add(pipe.get().getProjectId());
             }
 
-            return !locked && ((hasUpdate && capable && hasResources) || inconsistent || hasNext);
+            return !locked && !hasElection && ((hasUpdate && capable && hasResources) || inconsistent || hasNext);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
             return false;
@@ -208,19 +241,20 @@ public class Orchestrator {
     }
 
     @Nonnull
-    private Optional<Boolean> hasResourcesForNextStage(@Nonnull Pipeline pipeline) {
-        return pipeline.peekNextStage().map(enqueued -> enqueued
-                .getDefinition()
-                .getRequirements()
-                .map(this::toResourceSet)
-                .map(this.monitor::couldReserveConsideringReservations)
-                .orElse(true)
-        );
+    protected Optional<Boolean> hasResourcesForNextStage(@Nonnull Pipeline pipeline) {
+        return pipeline
+                .peekNextStage()
+                .map(this::getRequiredResources)
+                .map(this.monitor::couldReserveConsideringReservations);
     }
 
     @Nonnull
     private ResourceAllocationMonitor.Set<Long> toResourceSet(@Nonnull Requirements requirements) {
         return new ResourceAllocationMonitor.Set<Long>()
+                .with(
+                        ResourceAllocationMonitor.StandardResources.CPU,
+                        (long) requirements.getCpu()
+                )
                 .with(
                         ResourceAllocationMonitor.StandardResources.RAM,
                         requirements.getMegabytesOfRam() * 1024 * 1024
@@ -235,7 +269,7 @@ public class Orchestrator {
                 );
     }
 
-    private Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
+    protected Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline.peekNextStage().map(enqueued -> {
             switch (enqueued.getAction()) {
                 case Execute:
@@ -251,20 +285,39 @@ public class Orchestrator {
     private void updatePipeline(@Nonnull LockedContainer<Pipeline> container) {
         var projectId = container.getNoThrow().map(Pipeline::getProjectId);
         var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
+        var pipeline  = Optional.<Pipeline>empty();
 
         try (container) {
             if (project.isPresent()) {
                 updatePipeline(project.get().getPipelineDefinition(), container);
+                pipeline = container.get();
             } else {
                 LOG.warning("Failed to load project for project " + projectId + ", " + container.getLock());
             }
-        } catch (OrchestratorException e) {
+        } catch (OrchestratorException | LockException e) {
             LOG.log(
                     Level.SEVERE,
                     "Failed to update pipeline " + container.getNoThrow().map(Pipeline::getProjectId),
                     e
             );
         }
+
+        pipeline.ifPresent(pipe -> {
+            if (pipe.getRunningStage().isEmpty()) {
+                new Thread(() -> {
+                    try {
+                        var duration = 2_000L;
+                        var puffer   = 100L;
+                        if (electionManager.maybeStartElection(pipe.getProjectId(), duration + puffer)) {
+                            LockBus.ensureSleepMs(duration);
+                            electionManager.closeElection(pipe.getProjectId());
+                        }
+                    } catch (LockException | IOException e) {
+                        LOG.log(Level.SEVERE, "Failed to start election for project " + pipe.getProjectId());
+                    }
+                }).start();
+            }
+        });
     }
 
     private void updatePipeline(
@@ -276,8 +329,8 @@ public class Orchestrator {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
                 if (this.executeStages && hasNoRunningStage(pipeline)) {
                     var enqueued = maybeEnqueueNextStageOfPipeline(definition, pipeline);
-                    var started  = startNextStageIfReady(container.getLock(), definition, pipeline);
-                    if (enqueued || started) {
+                    //var started  = startNextStageIfReady(container.getLock(), definition, pipeline);
+                    if (enqueued/* || started*/) {
                         tryUpdateContainer(container, pipeline);
                     }
                 }
@@ -400,7 +453,7 @@ public class Orchestrator {
         }
     }
 
-    private boolean startNextStageIfReady(
+    protected boolean startNextStageIfReady(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
@@ -416,7 +469,7 @@ public class Orchestrator {
                     pipeline.requestPause();
                 case MoveForwardUntilEnd:
                     if (startNextPipelineStage(lock, definition, pipeline)) {
-                        registerResourceFreeingShutdownListener(pipeline);
+                        setupResourceAllocationAndFreeingListener(pipeline);
                         pipeline.clearPauseReason();
                         return true;
                     }
@@ -425,23 +478,19 @@ public class Orchestrator {
         return false;
     }
 
-    private void registerResourceFreeingShutdownListener(@Nonnull Pipeline pipeline) {
+    private void setupResourceAllocationAndFreeingListener(@Nonnull Pipeline pipeline) {
         pipeline.getRunningStage().ifPresent(stage -> {
-            stage.getDefinition()
-                 .getRequirements()
-                 .map(this::toResourceSet)
-                 .ifPresent(set -> {
-                     var executor = this.executors.get(stage.getId());
-                     if (executor != null) {
-                         this.monitor.reserve(set);
-                         executor.addShutdownCompletedListener(() -> {
-                             this.monitor.free(set);
-                             var copy = new HashSet<>(this.missingResources);
-                             this.missingResources.removeAll(copy);
-                             copy.forEach(this::pollPipelineForUpdate);
-                         });
-                     }
-                 });
+            var requiredResources = getRequiredResources(stage);
+            var executor          = this.executors.get(stage.getId());
+            if (executor != null) {
+                this.monitor.reserve(requiredResources);
+                executor.addShutdownCompletedListener(() -> {
+                    this.monitor.free(requiredResources);
+                    var copy = new HashSet<>(this.missingResources);
+                    this.missingResources.removeAll(copy);
+                    copy.forEach(this::pollPipelineForUpdate);
+                });
+            }
         });
     }
 
@@ -589,6 +638,7 @@ public class Orchestrator {
                     pipeline.pushStage(null);
                     pipeline.requestPause(Pipeline.PauseReason.StageFailure);
                     try {
+                        LOG.info("Killing failed stage");
                         backend.kill(stage.getId());
                     } catch (IOException e) {
                         LOG.log(Level.WARNING, "Failed to request kill failed stage: " + stage.getId(), e);
@@ -667,7 +717,7 @@ public class Orchestrator {
         };
     }
 
-    private boolean isStageStateUpdateAvailable(Pipeline pipeline) {
+    protected boolean isStageStateUpdateAvailable(Pipeline pipeline) {
         return pipeline
                 .getRunningStage()
                 .flatMap(stage -> getStateOmitExceptions(pipeline, stage))
@@ -924,7 +974,6 @@ public class Orchestrator {
         executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stage));
         executor.addShutdownListener(() -> this.discardObsoleteWorkspaces(projectId));
         executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(projectId));
-        executor.addShutdownCompletedListener(() -> this.killLocallyNoThrows(stage));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stage, executor);
         return executor;

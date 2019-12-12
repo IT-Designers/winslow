@@ -164,11 +164,21 @@ public class NomadStageHandle implements StageHandle {
         );
     }
 
+    @Override
+    public void close() throws IOException {
+        LOG.info("Closing stage[" + this.stageId + "]");
+        this.killSilently();
+    }
+
     public void kill() throws IOException {
+        LOG.info("Killing myself[" + stageId + "]");
+        this.killSilently();
+    }
+
+    private void killSilently() throws IOException {
         if (this.killTime == null) {
             this.killTime = System.currentTimeMillis();
         }
-        LOG.info("Killing myself[" + stageId + "]");
         this.backend.kill(this.stageId);
     }
 

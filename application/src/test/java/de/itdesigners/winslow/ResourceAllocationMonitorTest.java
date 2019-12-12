@@ -75,4 +75,79 @@ public class ResourceAllocationMonitorTest {
         ));
     }
 
+    @Test
+    public void testAversionOfGpuNodeIsHigherThanWithoutGpuNodeOnJobWithoutGpuRequirement() {
+        var node    = createComputeNode();
+        var gpuNode = createGpuNode();
+
+        var computeTask = new ResourceAllocationMonitor.Set<Long>()
+                .with(ResourceAllocationMonitor.StandardResources.CPU, 1L)
+                .with(ResourceAllocationMonitor.StandardResources.RAM, 512 * 1024 * 1024L);
+
+        assertTrue(node.getAversion(computeTask) < gpuNode.getAversion(computeTask));
+    }
+
+    @Test
+    public void testAversionOfGpuNodeIsHigherThanWithoutGpuNodeOnJobWithoutGpuRequirementBeingEmpty() {
+        var node    = createComputeNode();
+        var gpuNode = createGpuNode();
+
+        var computeTask = new ResourceAllocationMonitor.Set<Long>();
+
+        assertTrue(node.getAversion(computeTask) < gpuNode.getAversion(computeTask));
+    }
+
+    @Test
+    public void testAversionOfGpuNodeIsLowerThanWithoutGpuNodeOnJobWithGpuRequirement() {
+        var node    = createComputeNode();
+        var gpuNode = createGpuNode();
+
+        var gpuTask = new ResourceAllocationMonitor.Set<Long>()
+                .with(ResourceAllocationMonitor.StandardResources.GPU, 1L);
+
+        assertTrue(node.getAversion(gpuTask) > gpuNode.getAversion(gpuTask));
+    }
+
+    @Test
+    public void testAversionOfGpuNodeIsLowerThanWithoutGpuNodeOnJobWithGpuRequirementWhenAllGPUsAreInUse() {
+        var node    = createComputeNode();
+        var gpuNode = createGpuNode();
+
+        var computeTask = new ResourceAllocationMonitor.Set<Long>();
+        var gpuTask = new ResourceAllocationMonitor.Set<Long>()
+                .with(ResourceAllocationMonitor.StandardResources.GPU, 1L);
+
+        // reserve all GPUs
+        gpuNode.reserve(new ResourceAllocationMonitor.Set<Long>().with(
+                ResourceAllocationMonitor.StandardResources.GPU,
+                100L
+        ));
+
+        // cannot reserve further GPUs
+        assertFalse(gpuNode.couldReserveConsideringReservations(
+                new ResourceAllocationMonitor.Set<Long>()
+                        .with(ResourceAllocationMonitor.StandardResources.GPU, 1L)
+        ));
+
+        // still needs to consider itself as GPU node
+        assertTrue(node.getAversion(gpuTask) > gpuNode.getAversion(gpuTask));
+        assertTrue(node.getAversion(computeTask) < gpuNode.getAversion(computeTask));
+    }
+
+    private ResourceAllocationMonitor createGpuNode() {
+        return new ResourceAllocationMonitor(
+                new ResourceAllocationMonitor.Set<Long>()
+                        .with(ResourceAllocationMonitor.StandardResources.CPU, 4L)
+                        .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L)
+                        .with(ResourceAllocationMonitor.StandardResources.GPU, 100L)
+        );
+    }
+
+    private ResourceAllocationMonitor createComputeNode() {
+        return new ResourceAllocationMonitor(
+                new ResourceAllocationMonitor.Set<Long>()
+                        .with(ResourceAllocationMonitor.StandardResources.CPU, 1L)
+                        .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L)
+        );
+    }
 }

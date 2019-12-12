@@ -132,7 +132,7 @@ public class PipelinesController {
                         )
                 );
             } else if (e instanceof MismatchedInputException) {
-                var cause    = (MismatchedInputException) e;
+                var cause = (MismatchedInputException) e;
                 var location = cause.getLocation();
                 throw new ParseErrorException(e, new ParseError(
                         location.getLineNr(),
@@ -182,6 +182,7 @@ public class PipelinesController {
                                             new Image("nvidia/cuda", new String[]{"nvidia-smi"}),
                                             new Requirements(
                                                     0,
+                                                    0,
                                                     new Requirements.Gpu(1, "nvidia", new String[]{"cuda"})
                                             ),
                                             new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
@@ -192,7 +193,7 @@ public class PipelinesController {
                                             "Auto Stage 3",
                                             "Downloading more RAM for speedup",
                                             new Image("library/hello-world", new String[]{}),
-                                            new Requirements(10240, null),
+                                            new Requirements(1, 10240, null),
                                             new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
                                             Map.of("GIMME", "MOAR RAM"),
                                             null,

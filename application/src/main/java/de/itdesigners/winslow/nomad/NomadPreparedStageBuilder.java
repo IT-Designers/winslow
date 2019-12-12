@@ -162,6 +162,17 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     }
 
     @Nonnull
+    @Override
+    public NomadPreparedStageBuilder withCpuCount(int count) {
+        // Ignore this here (for now). Nomad expects a mhz value, which cannot be calculated easily from here.
+        // Setting a too high value might cause Nomad to cancel the submission due to the lack of reservable resources.
+        // Not setting any value is totally fine though because the value set is the minimum value Nomad will try to
+        // guarantee the job, while there is no upper limit.
+        // this.resources.setCpu(count * 3_000); // * 3_000 is just an estimation!
+        return this;
+    }
+
+    @Nonnull
     public NomadPreparedStageBuilder withGpuCount(int count) {
         this.ensureGpuDeviceAdded();
         if (count > 0) {

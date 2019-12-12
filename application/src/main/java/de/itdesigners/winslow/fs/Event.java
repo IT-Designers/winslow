@@ -100,6 +100,13 @@ public class Event {
     }
 
     public enum Command {
-        LOCK, RELEASE, EXTEND, KILL
+        LOCK,
+        RELEASE,
+        EXTEND,
+        KILL,
+
+        ELECTION_START,
+        ELECTION_PARTICIPATION,
+        ELECTION_STOP
     }
 }

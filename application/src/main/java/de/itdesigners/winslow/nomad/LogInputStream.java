@@ -11,12 +11,8 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Logger;
 
 public class LogInputStream extends InputStream implements AutoCloseable {
-
-    private static final Logger LOG         = Logger.getLogger(LogInputStream.class.getSimpleName());
-    public static final  int    COOLDOWN_MS = 5_000;
 
     @Nonnull private final ClientApi        api;
     @Nonnull private final NomadStageHandle handle;
@@ -27,7 +23,6 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private FramedStream         framedStream;
     private ByteArrayInputStream currentFrame;
     private boolean              closed;
-    private long                 lastSuccess;
 
     public LogInputStream(
             @Nonnull ClientApi api,
@@ -37,7 +32,6 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         this.handle       = handle;
         this.logType      = logType;
         this.framedStream = this.tryOpen();
-        this.lastSuccess  = System.currentTimeMillis();
     }
 
     @Nullable
@@ -79,13 +73,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
 
     private boolean isAlive() {
         handle.pollNoThrows();
-        var hasHadRecentSuccess = (System.currentTimeMillis() - lastSuccess) < COOLDOWN_MS;
-        var finished            = handle.hasFinished();
-        var alive               = !finished || hasHadRecentSuccess;
-        if (!alive) {
-            LOG.info("No longer alive, finished=" + finished + ", recentUpdate=" + hasHadRecentSuccess);
-        }
-        return alive;
+        return !handle.hasFinished();
     }
 
     interface CallableIOException {
@@ -112,7 +100,6 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private boolean ensureHasData() throws IOException {
         if (this.currentFrame != null) {
             if (this.currentFrame.available() > 0) {
-                this.lastSuccess = System.currentTimeMillis();
                 return true;
             } else {
                 this.currentFrame.close();
@@ -129,7 +116,6 @@ public class LogInputStream extends InputStream implements AutoCloseable {
             if (frame != null && frame.getData() != null && frame.getData().length > 0) {
                 this.offset += frame.getData().length;
                 this.currentFrame = new ByteArrayInputStream(frame.getData());
-                this.lastSuccess  = System.currentTimeMillis();
                 return true;
             } else {
                 framedStream.close();

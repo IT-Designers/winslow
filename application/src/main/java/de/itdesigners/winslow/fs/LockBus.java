@@ -28,6 +28,7 @@ public class LockBus {
     public static final int DURATION_SURELY_OUT_OF_DATE   = 5_000;
     public static final int DURATION_FOR_UNREADABLE_FILES = 25_000;
     public static final int MAX_OLD_EVENT_FILE_COUNT      = 25;
+    public static final int MIN_POLL_TIME_INTERVALL       = 10;
 
     private final String             name;
     private final Path               eventDirectory;
@@ -35,7 +36,8 @@ public class LockBus {
 
     private final Map<Event.Command, List<Consumer<Event>>> listener = new EnumMap<>(Event.Command.class);
 
-    private int eventCounter = 0;
+    private             int  eventCounter           = 0;
+    public static final long MAX_POLL_TIME_INTERVAL = 1_000L;
 
     public LockBus(String name, Path eventDirectory) throws IOException, LockException {
         this.name           = name;
@@ -47,6 +49,7 @@ public class LockBus {
             throw new IOException("Path to event directory is not a directory: " + eventDirectory);
         }
 
+        this.initEventCounter();
         this.ensureLocksAreUpToDate();
         this.startEventDirWatchService(eventDirectory);
     }
@@ -98,8 +101,13 @@ public class LockBus {
     private void watchForNewEvents(WatchService ws) {
         while (true) {
             try {
-                var sleepTimeMillis = getMillisUntilNextLockExpires().orElse(60 * 1_000L);
-                var key             = ws.poll(Math.min(1_000, Math.max(10, sleepTimeMillis)), TimeUnit.MILLISECONDS);
+                var sleepTimeMillis = getMillisUntilNextLockExpires().orElse(MAX_POLL_TIME_INTERVAL);
+                var pollTimeMillis = Math.min(
+                        MAX_POLL_TIME_INTERVAL,
+                        Math.max(MIN_POLL_TIME_INTERVALL, sleepTimeMillis)
+                );
+
+                var key = ws.poll(pollTimeMillis, TimeUnit.MILLISECONDS);
                 if (key != null) {
                     if (!key.reset() || !key.isValid()) {
                         key.cancel();
@@ -131,7 +139,7 @@ public class LockBus {
                             break;
                         }
                     }
-                } catch (LockException | IOException e) {
+                } catch (LockException e) {
                     e.printStackTrace();
                 }
 
@@ -269,7 +277,14 @@ public class LockBus {
     }
 
     public void publishCommand(@Nonnull Event.Command command, @Nonnull String subject) throws LockException {
-        this.publishEvent(id -> new Event(id, command, System.currentTimeMillis(), 0, subject, this.name));
+        this.publishCommand(command, subject, 0);
+    }
+
+    public void publishCommand(
+            @Nonnull Event.Command command,
+            @Nonnull String subject,
+            long duration) throws LockException {
+        this.publishEvent(id -> new Event(id, command, System.currentTimeMillis(), duration, subject, this.name));
     }
 
     private synchronized Token publishEvent(@Nonnull EventSupplier supplier) throws LockException {
@@ -281,6 +296,9 @@ public class LockBus {
 
             try (var channel = FileChannel.open(pathLock, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
                 try (var lock = channel.lock()) {
+                    if (Files.exists(path)) {
+                        throw new IOException("Target file already exists");
+                    }
                     try {
                         Files.write(
                                 path,
@@ -348,7 +366,7 @@ public class LockBus {
               .forEach(listener -> new Thread(() -> listener.accept(event)).start());
     }
 
-    private Path nextEventPath() throws IOException {
+    private void initEventCounter() throws IOException {
         try (var stream = Files.list(eventDirectory)) {
             stream
                     .flatMap(p -> {
@@ -360,9 +378,14 @@ public class LockBus {
                     })
                     .filter(a -> a >= this.eventCounter)
                     .min(Comparator.comparingInt(a -> a))
-                    .ifPresent(next -> this.eventCounter = next);
-            return this.eventDirectory.resolve(this.getEventFileNameForCurrentCounter());
+                    .ifPresent(next -> {
+                        this.eventCounter = next;
+                    });
         }
+    }
+
+    private Path nextEventPath() {
+        return this.eventDirectory.resolve(this.getEventFileNameForCurrentCounter());
     }
 
     private String getEventFileNameForCurrentCounter() {
@@ -442,22 +465,33 @@ public class LockBus {
             Path  path  = list.get(i);
             Event event = null;
 
-            try {
-                event = loadEvent(path);
-            } catch (IOException e) {
-                // probably corrupt file
-                LOG.log(Level.WARNING, "Failed to load file to check for last usage", e);
-                if (path.toFile().lastModified() + DURATION_FOR_UNREADABLE_FILES < System.currentTimeMillis()) {
-                    Files.deleteIfExists(path);
+            if (isEventFile(path)) {
+                try {
+                    event = loadEvent(path);
+                } catch (IOException e) {
+                    // probably corrupt file
+                    LOG.log(Level.WARNING, "Failed to load file to check for last usage", e);
+                    if (path.toFile().lastModified() + DURATION_FOR_UNREADABLE_FILES < System.currentTimeMillis()) {
+                        Files.deleteIfExists(path);
+                    }
+                    continue;
                 }
-                continue;
-            }
 
-            if (isSurelyOutOfDate(event)) {
-                Files.deleteIfExists(path);
-            } else {
-                break;
+                if (isSurelyOutOfDate(event)) {
+                    Files.deleteIfExists(path);
+                } else {
+                    break;
+                }
             }
+        }
+    }
+
+    private boolean isEventFile(Path path) {
+        try {
+            Integer.parseInt(path.getFileName().toString());
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 
