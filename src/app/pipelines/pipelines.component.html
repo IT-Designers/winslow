@@ -17,7 +17,7 @@
   <app-loading-info [error]="loadError ? loadError.message : null" [loading]="pipelines == null"></app-loading-info>
 
   <mat-accordion>
-    <mat-expansion-panel *ngFor="let pipeline of pipelines">
+    <mat-expansion-panel *ngFor="let pipeline of pipelines" (expandedChange)="editor.layout()">
       <mat-expansion-panel-header>
         <mat-panel-title>
           <mat-icon class="title-icon">timeline</mat-icon>{{pipeline.name}}
@@ -28,7 +28,7 @@
       </mat-expansion-panel-header>
       <div class="toml-pipeline">
         <h5>Definition</h5>
-        <app-pipeline-editor
+        <app-pipeline-editor #editor
           [pipelineId]="pipeline.id"
           [raw]="raw.get(pipeline.id)"
           [error]="error.get(pipeline.id)"
