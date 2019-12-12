@@ -39,6 +39,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   @ViewChild('executionSelection', {static: false}) executionSelection: StageExecutionSelectionComponent;
 
   private projectValue: ProjectInfo;
+  probablyProjectPipelineId = null;
 
   @Output('state') private stateEmitter = new EventEmitter<State>();
   @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
@@ -101,6 +102,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.pipelinesApi.getPipelineDefinitions().then(result => {
       this.pipelines = result;
       this.project = this.project;
+      if (this.project && this.project.pipelineDefinition) {
+        for (const pipeline of this.pipelines) {
+          if (pipeline.name === this.project.pipelineDefinition.name) {
+            this.probablyProjectPipelineId = pipeline.id;
+            break;
+          }
+        }
+      }
     });
   }
 
