@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {ParseError} from '../api/project-api.service';
 
 
@@ -8,6 +8,9 @@ import {ParseError} from '../api/project-api.service';
   styleUrls: ['./pipeline-editor.component.css']
 })
 export class PipelineEditorComponent implements OnInit {
+
+
+  @ViewChild('editorContainer', {static: false}) container: ElementRef<HTMLDivElement>;
 
   @Input() pipelineId: string;
   @Input() raw: string;
@@ -78,9 +81,20 @@ export class PipelineEditorComponent implements OnInit {
     this.editor.layout();
   }
 
-  layout() {
+  layout(width: number = null, height: number = null) {
+    if (this.container && (width == null || height == null)) {
+      width = this.container.nativeElement.getBoundingClientRect().width;
+      height = this.container.nativeElement.getBoundingClientRect().height;
+    }
     if (this.editor) {
-      this.editor.layout();
+      let dimension = null;
+      if (width != null && height != null) {
+        dimension = {
+          width,
+          height
+        };
+      }
+      this.editor.layout(dimension);
     }
   }
 }
