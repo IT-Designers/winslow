@@ -102,7 +102,7 @@ import {MonacoEditorModule} from 'ngx-monaco-editor';
     }),
 
     RouterModule.forRoot([
-      {path: '', component: SystemOverviewComponent},
+      {path: '', component: ProjectsComponent},
       {path: 'actions', component: GroupActionsComponent},
       {path: 'projects', component: ProjectsComponent},
       {path: 'pipelines', component: PipelinesComponent},
