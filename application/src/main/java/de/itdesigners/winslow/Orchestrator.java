@@ -852,7 +852,7 @@ public class Orchestrator {
 
     @Nonnull
     public Pipeline createPipeline(@Nonnull Project project) throws OrchestratorException {
-        if (this.pipelines.getPipeline(project.getId()).unsafe().isPresent()) {
+        if (this.pipelines.getPipeline(project.getId()).exists()) {
             throw new PipelineAlreadyExistsException(project);
         }
 

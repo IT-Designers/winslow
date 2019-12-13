@@ -245,5 +245,9 @@ public abstract class BaseRepository {
         public boolean isLocked() {
             return BaseRepository.this.isLocked(path);
         }
+
+        public boolean exists() {
+            return Files.exists(path);
+        }
     }
 }
