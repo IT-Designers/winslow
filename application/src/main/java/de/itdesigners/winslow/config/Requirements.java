@@ -11,8 +11,13 @@ public class Requirements {
     private final           long ram;
     private final @Nullable Gpu  gpu;
 
-    public Requirements(int cpu, long megabytesOfRam, @Nullable Gpu gpu) {
-        this.cpu = cpu;
+    /**
+     * @param cpu The cpu requirements, nullable to ensure backwards compatibility
+     * @param megabytesOfRam Megabytes of RAM to list as requirement
+     * @param gpu Optionally, GPU requirements to list
+     */
+    public Requirements(@Nullable Integer cpu, long megabytesOfRam, @Nullable Gpu gpu) {
+        this.cpu = cpu == null ? 0 : cpu;
         this.ram = megabytesOfRam;
         this.gpu = gpu;
     }
