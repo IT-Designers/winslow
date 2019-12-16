@@ -2,6 +2,7 @@ import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild
 import {ProjectInfo, State} from '../api/project-api.service';
 import {StateIconComponent} from '../state-icon/state-icon.component';
 import {FilesApiService} from '../api/files-api.service';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'app-project-view-header',
@@ -25,8 +26,8 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   state: State = null;
   stage: string = null;
 
-  constructor(private files: FilesApiService) {
-  }
+
+  constructor(private files: FilesApiService) { }
 
   @Input()
   set iconState(value: State) {
