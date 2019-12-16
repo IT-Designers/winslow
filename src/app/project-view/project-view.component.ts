@@ -30,7 +30,7 @@ import {Subscription} from 'rxjs';
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
 })
-export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
+export class ProjectViewComponent implements OnInit, OnDestroy {
 
   static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
@@ -88,6 +88,7 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
   rawPipelineDefinitionSuccess: string = null;
 
   paramsSubscription: Subscription = null;
+  selectedTabIndex: number = Tab.Control;
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
@@ -99,6 +100,16 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
+  }
+
+  updateTabSelection(tab: string) {
+    for (let i = 0; i < 10; ++i) {
+      if (Tab[i] && Tab[i].toLowerCase() === tab) {
+        this.selectedTabIndex = i;
+        this.onSelectedTabChanged(this.selectedTabIndex);
+        break;
+      }
+    }
   }
 
   ngOnInit(): void {
@@ -117,19 +128,10 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
         }
       }
     });
-  }
 
-  ngAfterViewInit() {
-    this.paramsSubscription = this.route.params.subscribe(params => {
-      console.log(params);
+    this.paramsSubscription = this.route.children[0].params.subscribe(params => {
       if (params.tab != null) {
-        for (let i = 0; i < 10; ++i) {
-          if (Tab[i] && Tab[i].toLowerCase() === params.tab) {
-            this.tabs.selectedIndex = i;
-            this.onSelectedTabChanged(this.tabs.selectedIndex);
-            break;
-          }
-        }
+        this.updateTabSelection(params.tab);
       }
     });
   }
@@ -164,7 +166,7 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
     });
 
     if (this.tabs) {
-      this.selectTabIndex(this.tabs.selectedIndex);
+      this.selectTabIndex(this.selectedTabIndex);
     }
   }
 
@@ -434,7 +436,7 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   startLoading() {
-    this.selectTabIndex(this.tabs.selectedIndex);
+    this.selectTabIndex(this.selectedTabIndex);
   }
 
   stopLoading() {
@@ -452,6 +454,10 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
     this.watchHistory = this.conditionally(1 === index, () => this.loadHistory());
     this.watchLogs = this.conditionally(3 === index, () => this.loadLogs());
     this.watchDefinition = this.conditionally(4 === index, () => this.loadRawPipelineDefinition());
+
+    if (this.tabs && index != null) {
+      this.tabs.selectedIndex = index;
+    }
   }
 
   conditionally(condition: boolean, fn): boolean {

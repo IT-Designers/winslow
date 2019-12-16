@@ -1,4 +1,4 @@
-<mat-tab-group #tabGroup (selectedIndexChange)="selectTabIndex($event)" class="fill-height">
+<mat-tab-group #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)" class="fill-height">
 
   <mat-tab label="Control">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
