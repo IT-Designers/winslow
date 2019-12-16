@@ -22,6 +22,7 @@ import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-se
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
+import {Subscription} from 'rxjs';
 
 
 @Component({
@@ -86,6 +87,8 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
   rawPipelineDefinitionError: string = null;
   rawPipelineDefinitionSuccess: string = null;
 
+  paramsSubscription: Subscription = null;
+
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
               private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
@@ -117,7 +120,7 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.route.params.subscribe(params => {
+    this.paramsSubscription = this.route.params.subscribe(params => {
       console.log(params);
       if (params.tab != null) {
         for (let i = 0; i < 10; ++i) {
@@ -133,6 +136,10 @@ export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     window.removeEventListener('scroll', this.scrollCallback, true);
+    if (this.paramsSubscription) {
+      this.paramsSubscription.unsubscribe();
+      this.paramsSubscription = null;
+    }
   }
 
   @Input()
