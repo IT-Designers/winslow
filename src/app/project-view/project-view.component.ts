@@ -1,4 +1,4 @@
-import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
   Action,
   DeletionPolicy,
@@ -21,6 +21,7 @@ import {StageExecutionSelectionComponent} from '../stage-execution-selection/sta
 import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
+import {ActivatedRoute, Router} from '@angular/router';
 
 
 @Component({
@@ -28,7 +29,7 @@ import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.compon
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
 })
-export class ProjectViewComponent implements OnInit, OnDestroy {
+export class ProjectViewComponent implements AfterViewInit, OnInit, OnDestroy {
 
   static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
@@ -88,7 +89,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
               private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
-              private dialog: DialogService) {
+              private dialog: DialogService,
+              private route: ActivatedRoute,
+              private router: Router) {
   }
 
   private static deepClone(obj: any): any {
@@ -106,6 +109,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         for (const pipeline of this.pipelines) {
           if (pipeline.name === this.project.pipelineDefinition.name) {
             this.probablyProjectPipelineId = pipeline.id;
+            break;
+          }
+        }
+      }
+    });
+  }
+
+  ngAfterViewInit() {
+    this.route.params.subscribe(params => {
+      console.log(params);
+      if (params.tab != null) {
+        for (let i = 0; i < 10; ++i) {
+          if (Tab[i] && Tab[i].toLowerCase() === params.tab) {
+            this.tabs.selectedIndex = i;
+            this.onSelectedTabChanged(this.tabs.selectedIndex);
             break;
           }
         }
@@ -137,6 +155,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       this.deletionPolicyLocal = policy;
       this.deletionPolicyRemote = policy;
     });
+
+    if (this.tabs) {
+      this.selectTabIndex(this.tabs.selectedIndex);
+    }
   }
 
   public get project(): ProjectInfo {
@@ -405,11 +427,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   startLoading() {
-    this.onSelectedTabChanged(this.tabs.selectedIndex);
+    this.selectTabIndex(this.tabs.selectedIndex);
   }
 
   stopLoading() {
     this.onSelectedTabChanged(null);
+  }
+
+  selectTabIndex(index: number) {
+    this.router.navigate([Tab[index].toLowerCase()], {
+      relativeTo: this.route,
+    });
   }
 
   onSelectedTabChanged(index: number) {
@@ -788,3 +816,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 }
 
+
+export enum Tab {
+  Control,
+  Status,
+  Files,
+  Logs,
+  PipelineDefinition,
+  Settings
+}

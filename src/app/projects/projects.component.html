@@ -32,7 +32,7 @@
       </div>
       <mat-list>
         <mat-list-item *ngFor="let project of projectsFiltered" class="project-selection-sidebar-item"
-                       (click)="selectedProject = project"
+                       (click)="selectProject(project)"
                        [class.selected]="project.id == selectedProject?.id">
           <app-project-view-header
             [project]="project"

@@ -102,9 +102,22 @@ import {MonacoEditorModule} from 'ngx-monaco-editor';
     }),
 
     RouterModule.forRoot([
-      {path: '', component: ProjectsComponent},
+      {path: '', redirectTo: 'projects/', pathMatch: 'full'},
       {path: 'actions', component: GroupActionsComponent},
-      {path: 'projects', component: ProjectsComponent},
+
+      {path: 'projects', redirectTo: 'projects/none', pathMatch: 'full'},
+      {
+        path: 'projects',
+        children: [{
+          path: ':id',
+          component: ProjectsComponent,
+          children: [{
+            path: ':tab',
+            component: ProjectViewComponent,
+          }]
+        }]
+      },
+
       {path: 'pipelines', component: PipelinesComponent},
       {path: 'files', component: FilesComponent},
       {path: 'servers', component: ServersComponent},
