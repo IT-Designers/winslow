@@ -6,6 +6,7 @@ import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
 import {ActivatedRoute, Params, Router} from '@angular/router';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-projects',
@@ -24,16 +25,14 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   selectedProject: ProjectInfo = null;
   selectedProjectId: string = null;
 
+  paramsSubscription: Subscription = null;
+
   constructor(readonly api: ProjectApiService,
               private createDialog: MatDialog,
               private notification: NotificationService,
               private dialog: DialogService,
               private route: ActivatedRoute,
               private router: Router) {
-    route.params.subscribe(params => {
-      this.selectedProjectId = params.id;
-      this.updateSelectedProject();
-    });
   }
 
   ngOnInit() {
@@ -46,6 +45,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       })
       .catch(error => this.loadError = error);
     this.interval = setInterval(() => this.pollAllProjectsForChanges(), 3000);
+    this.paramsSubscription = this.route.params.subscribe(params => {
+      this.selectedProjectId = params.id;
+      this.updateSelectedProject();
+    });
   }
 
   private updateSelectedProject() {
@@ -62,6 +65,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.projects = null;
     clearInterval(this.interval);
+    if (this.paramsSubscription) {
+      this.paramsSubscription.unsubscribe();
+      this.paramsSubscription = null;
+    }
   }
 
   pollAllProjectsForChanges() {
