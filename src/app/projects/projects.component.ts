@@ -5,6 +5,7 @@ import {ProjectApiService, ProjectInfo, StateInfo} from '../api/project-api.serv
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
+import {ActivatedRoute, Params, Router} from '@angular/router';
 
 @Component({
   selector: 'app-projects',
@@ -21,11 +22,18 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   loadError = null;
   interval;
   selectedProject: ProjectInfo = null;
+  selectedProjectId: string = null;
 
   constructor(readonly api: ProjectApiService,
               private createDialog: MatDialog,
               private notification: NotificationService,
-              private dialog: DialogService) {
+              private dialog: DialogService,
+              private route: ActivatedRoute,
+              private router: Router) {
+    route.params.subscribe(params => {
+      this.selectedProjectId = params.id;
+      this.updateSelectedProject();
+    });
   }
 
   ngOnInit() {
@@ -33,10 +41,22 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.api.listProjects()
       .then(projects => {
         this.projects = projects.sort((a, b) => a.name.localeCompare(b.name));
+        this.updateSelectedProject();
         setTimeout(() => this.pollAllProjectsForChanges(), 10);
       })
       .catch(error => this.loadError = error);
     this.interval = setInterval(() => this.pollAllProjectsForChanges(), 3000);
+  }
+
+  private updateSelectedProject() {
+    if (this.projects && this.selectedProjectId) {
+      for (const p of this.projects) {
+        if (p.id === this.selectedProjectId) {
+          this.selectedProject = p;
+          break;
+        }
+      }
+    }
   }
 
   ngOnDestroy() {
@@ -133,5 +153,11 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         break;
       }
     }
+  }
+
+  selectProject(project: ProjectInfo) {
+    this.router.navigate([project.id], {
+      relativeTo: this.route.parent
+    });
   }
 }
