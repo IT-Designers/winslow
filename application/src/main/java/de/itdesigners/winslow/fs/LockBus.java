@@ -470,6 +470,7 @@ public class LockBus {
                     event = loadEvent(path);
                 } catch (NoSuchFileException | FileNotFoundException e) {
                     // already gone, can be ignored
+                    continue;
                 } catch (IOException e) {
                     // probably corrupt file
                     LOG.log(Level.WARNING, "Failed to load file to check for last usage", e);
