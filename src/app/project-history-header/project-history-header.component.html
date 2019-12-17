@@ -1,0 +1,50 @@
+<div class="history-list-column">
+  <app-state-icon [state]="state" [configured]="isConfigure"></app-state-icon>
+</div>
+<div class="history-list-column history-item-no">{{itemNo}}</div>
+<div
+  class="history-list-column history-item-date">{{toDate(time)}}</div>
+<div
+  class="history-list-column">{{isConfigure ? '[Configured] ' : ''}}{{stageName}}</div>
+<div class="history-list-column history-control-icons">
+  <mat-icon *ngIf="paused && showResumeOnlyThisStage"
+            matTooltip="Resume only this stage" class="clickable"
+            (click)="$event.stopPropagation(); clickResumeOnlyThisStage.emit($event)">
+    skip_next
+  </mat-icon>
+  <mat-icon *ngIf="paused && showActiveControls" class="clickable"
+            matTooltip="Resume Pipeline"
+            (click)="$event.stopPropagation(); clickResume.emit($event)">
+    play_circle_outlined
+  </mat-icon>
+  <mat-icon *ngIf="enqueued && showDeleteEnqueued" class="clickable"
+            matTooltip="Delete"
+            (click)="$event.stopPropagation(); clickDelete.emit($event)">
+    delete_outlined
+  </mat-icon>
+  <mat-icon *ngIf="!paused && (running || (showActiveControls && !enqueued))" class="clickable"
+            matTooltip="Pause Pipeline (after this)"
+            (click)="$event.stopPropagation(); clickPauseAfterThis.emit($event)">
+    pause_circle_outlined
+  </mat-icon>
+  <mat-icon *ngIf="running && showActiveControls" class="clickable"
+            matTooltip="Stop"
+            (click)="$event.stopPropagation(); clickKillCurrentStage.emit($event)">
+    pan_tool
+  </mat-icon>
+  <mat-icon *ngIf="showUseAsBlueprint" class="clickable"
+            matTooltip="Use as blueprint"
+            (click)="$event.stopPropagation(); clickUseAsBlueprint.emit($event)">
+    replay
+  </mat-icon>
+  <mat-icon *ngIf="showPassiveControls" class="clickable"
+            matTooltip="Open Logs"
+            (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
+    list_alt
+  </mat-icon>
+  <mat-icon *ngIf="showPassiveControls" class="clickable"
+            matTooltip="Open Directory"
+            (click)="$event.stopPropagation(); clickOpenWorkspace.emit($event)">
+    folder_open
+  </mat-icon>
+</div>

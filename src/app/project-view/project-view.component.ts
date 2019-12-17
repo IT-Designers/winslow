@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
   Action,
   DeletionPolicy,
@@ -34,6 +34,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
+
+  tabIndexOverview = Tab.Overview;
 
   @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
   @ViewChild('console', {static: false}) htmlConsole: ElementRef<HTMLElement>;
@@ -154,6 +156,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.deletionPolicyRemote = null;
     this.pollWatched(true);
     this.setupFiles();
+    this.loadHistory();
 
     if (this.executionSelection != null) {
       this.executionSelection.pipelines = [this.project.pipelineDefinition];
@@ -450,14 +453,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   onSelectedTabChanged(index: number) {
-    this.watchPaused = this.conditionally(0 === index, () => this.loadPaused());
-    this.watchHistory = this.conditionally(1 === index, () => this.loadHistory());
-    this.watchLogs = this.conditionally(3 === index, () => this.loadLogs());
-    this.watchDefinition = this.conditionally(4 === index, () => this.loadRawPipelineDefinition());
-
     if (this.tabs && index != null) {
       this.tabs.selectedIndex = index;
     }
+
+    this.watchPaused = this.conditionally(Tab.Control === index, () => this.loadPaused());
+    this.watchHistory = this.conditionally(Tab.History === index || Tab.Overview === index, () => this.loadHistory());
+    this.watchLogs = this.conditionally(Tab.Logs === index, () => this.loadLogs());
+    this.watchDefinition = this.conditionally(Tab.PipelineDefinition === index, () => this.loadRawPipelineDefinition());
   }
 
   conditionally(condition: boolean, fn): boolean {
@@ -481,7 +484,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   }
 
   openFolder(project: ProjectInfo, entry: HistoryEntry) {
-    this.tabs.selectedIndex = 2;
+    this.tabs.selectedIndex = Tab.Files;
     this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${entry.workspace}/`;
   }
@@ -494,7 +497,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
 
   openLogs(entry?: HistoryEntry, watchLatestLogs = false) {
-    this.tabs.selectedIndex = 3;
+    this.tabs.selectedIndex = Tab.Logs;
     this.logs = null;
     this.watchLogs = true;
     if (entry != null) {
@@ -600,7 +603,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.executionSelection.selectedStage = stageInfo;
     this.environmentVariables = new Map();
     this.defaultEnvironmentVariables = entry.env;
-    this.tabs.selectedIndex = 0;
+    this.tabs.selectedIndex = Tab.Control;
   }
 
   private scrollToBottomTarget(smooth = true) {
@@ -831,8 +834,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
 
 export enum Tab {
+  Overview,
   Control,
-  Status,
+  History,
   Files,
   Logs,
   PipelineDefinition,

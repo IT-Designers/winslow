@@ -131,7 +131,11 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  resume(projectId: string, paused: boolean, singleStageOnly = false) {
+  pause(projectId: string) {
+    return this.resume(projectId, true);
+  }
+
+  resume(projectId: string, paused: boolean = false, singleStageOnly = false) {
     return this.client.post(
       ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`),
       new FormData()
@@ -226,6 +230,10 @@ export class ProjectApiService {
 
   getDefaultDeletionPolicy(projectId: string): Promise<DeletionPolicy> {
     return this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy/default`)).toPromise();
+  }
+
+  getStats(projectId: string): Promise<StatsInfo> {
+    return this.client.get<StatsInfo>(ProjectApiService.getUrl(`${projectId}/stats`)).toPromise();
   }
 }
 
@@ -354,4 +362,11 @@ export class EnvVariable {
 export class DeletionPolicy {
   keepWorkspaceOfFailedStage: boolean;
   numberOfWorkspacesOfSucceededStagesToKeep?: number;
+}
+
+export class StatsInfo {
+  cpuUsed = 0;
+  cpuMaximum = 0;
+  memoryAllocated = 0;
+  memoryMaximum = 0;
 }
