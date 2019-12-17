@@ -26,8 +26,12 @@ public class Backoff {
     }
 
     public void sleep() {
+        this.sleep(Long.MAX_VALUE);
+    }
+
+    public void sleep(long max) {
         try {
-            Thread.sleep(getSleepMs());
+            Thread.sleep(Math.min(max, getSleepMs()));
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

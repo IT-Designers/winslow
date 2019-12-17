@@ -3,10 +3,7 @@ package de.itdesigners.winslow;
 import de.itdesigners.winslow.fs.LockBus;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class Election {
 
@@ -14,7 +11,7 @@ public class Election {
     private final          long   time;
     private final          long   duration;
 
-    private final Map<String, Participation> participations = new HashMap<>();
+    private final Map<String, Participation> participations = new TreeMap<>();
 
     public Election(@Nonnull String projectId, long time, long duration) {
         this.projectId = projectId;

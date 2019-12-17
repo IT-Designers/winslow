@@ -928,6 +928,16 @@ public class ProjectsController {
         }
     }
 
+    @GetMapping("projects/{projectId}/stats")
+    public Optional<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(winslow.getOrchestrator()::getRunningStageStats);
+    }
+
     private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
         return user.hasSuperPrivileges() || project.getOwner().equals(user.getName()) || user
                 .getGroups()

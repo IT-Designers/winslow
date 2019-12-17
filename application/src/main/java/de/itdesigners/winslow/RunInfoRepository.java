@@ -1,9 +1,11 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.project.Stats;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 
 import javax.annotation.Nonnull;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,9 +18,11 @@ import java.util.logging.Logger;
 
 public class RunInfoRepository extends BaseRepository {
 
-    private static final Logger LOG                                      = Logger.getLogger(RunInfoRepository.class.getSimpleName());
+    private static final Logger LOG = Logger.getLogger(RunInfoRepository.class.getSimpleName());
+
     private static final String PROPERTY_FILE_PROGRESS                   = "progress";
     private static final String PROPERTY_FILE_LOG_COMPLETED_SUCCESSFULLY = "log-completed-successfully";
+    private static final String PROPERTY_FILE_STATS                      = "stats";
 
     public RunInfoRepository(
             @Nonnull LockBus lockBus,
@@ -40,7 +44,7 @@ public class RunInfoRepository extends BaseRepository {
     }
 
     @Nonnull
-    protected Optional<Path> getPropertyPathIfExists(@Nonnull String stageId, @Nonnull String property) {
+    protected Optional<Path> getPropertyPathIfStageExists(@Nonnull String stageId, @Nonnull String property) {
         var stageDir = getRepositoryFile(stageId);
         if (Files.exists(stageDir)) {
             return Optional.of(stageDir.resolve(Path.of(property).getFileName()));
@@ -77,7 +81,7 @@ public class RunInfoRepository extends BaseRepository {
 
     @Nonnull
     public Optional<String> getProperty(@Nonnull String stageId, @Nonnull String property) throws IOException {
-        var path = getPropertyPathIfExists(stageId, property);
+        var path = getPropertyPathIfStageExists(stageId, property);
         if (path.isEmpty()) {
             return Optional.empty();
         } else {
@@ -115,6 +119,45 @@ public class RunInfoRepository extends BaseRepository {
             LOG.log(Level.WARNING, "Failed to read progress hint for " + stageId, e);
             return Optional.empty();
         }
+    }
+
+    @Nonnull
+    public Optional<Stats> getStats(@Nonnull String stageId) {
+        return getStatsIfNotOlderThan(stageId, Long.MAX_VALUE);
+    }
+
+    @Nonnull
+    public Optional<Stats> getStatsIfStillRelevant(@Nonnull String stageId) {
+        return getStatsIfNotOlderThan(stageId, 1_500);
+    }
+
+    @Nonnull
+    public Optional<Stats> getStatsIfNotOlderThan(@Nonnull String stageId, long duration) {
+        var path = getPropertyPathIfStageExists(stageId, PROPERTY_FILE_STATS);
+        var file = path.map(Path::toFile);
+
+        if (file.isPresent() && System.currentTimeMillis() - file.get().lastModified() < duration) {
+            try (var fis = new FileInputStream(file.get())) {
+                return Optional.ofNullable(defaultReader(Stats.class).load(fis));
+            } catch (FileNotFoundException e) {
+                return Optional.empty();
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to deserialize stats for " + stageId, e);
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public void setStats(@Nonnull String stageId, @Nonnull Stats stats) {
+        getPropertyPathIfStageExists(stageId, PROPERTY_FILE_STATS).ifPresent(path -> {
+            try {
+                AtomicWriteByUsingTempFile.write(path, os -> defaultWriter().store(os, stats));
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to write stats for " + stageId, e);
+            }
+        });
     }
 
     void setLogRedirectionCompletedSuccessfullyHint(@Nonnull String stageId) {

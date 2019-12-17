@@ -2,6 +2,7 @@ package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.project.Stats;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -13,7 +14,7 @@ public interface StageHandle extends AutoCloseable {
     /**
      * Handles errors internally, might cause states to be
      * updated accordingly (like setting a failed flag)
-     *
+     * <p>
      * Polls for updates for this handle
      */
     void pollNoThrows();
@@ -41,7 +42,7 @@ public interface StageHandle extends AutoCloseable {
 
     /**
      * @return Whether the {@link StageHandle} points to an invalid stage execution,
-     *         for example, once the stage has been cleaned up by the {@link Backend}
+     * for example, once the stage has been cleaned up by the {@link Backend}
      */
     boolean isGone();
 
@@ -50,6 +51,9 @@ public interface StageHandle extends AutoCloseable {
 
     @Nonnull
     Iterator<LogEntry> getLogs() throws IOException;
+
+    @Nonnull
+    Optional<Stats> getStats() throws IOException;
 
     @Override
     void close() throws IOException;

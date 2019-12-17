@@ -5,6 +5,7 @@ import com.hashicorp.nomad.javasdk.*;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.project.Stats;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
@@ -323,12 +324,12 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    private NomadApiClient getNewClient() {
+    NomadApiClient getNewClient() {
         return new NomadApiClient(this.client.getConfig());
     }
 
     @Nonnull
-    protected ClientApi getNewClientApi() {
+    ClientApi getNewClientApi() {
         return getNewClient().getClientApi(this.client.getConfig().getAddress());
     }
 
