@@ -4,6 +4,7 @@ import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.project.Stats;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.Requirements;
@@ -138,6 +139,14 @@ public class Orchestrator {
                 .getRequirements()
                 .map(this::toResourceSet)
                 .orElseGet(ResourceAllocationMonitor.Set::new);
+    }
+
+    @Nonnull
+    public Optional<Stats> getRunningStageStats(@Nonnull Project project) {
+        return getPipelineUnsafe(project.getId())
+                .flatMap(Pipeline::getRunningStage)
+                .map(Stage::getId)
+                .flatMap(getRunInfoRepository()::getStatsIfStillRelevant);
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {
@@ -718,24 +727,16 @@ public class Orchestrator {
     }
 
     protected boolean isStageStateUpdateAvailable(Pipeline pipeline) {
-        return pipeline
+        var hasEnqueuedStages = pipeline.hasEnqueuedStages();
+        var isPaused          = pipeline.isPauseRequested();
+        var isRunning = getLogRedirectionState(pipeline) == SimpleState.Running
+                || pipeline
                 .getRunningStage()
                 .flatMap(stage -> getStateOmitExceptions(pipeline, stage))
-                .map(state -> {
-                    switch (state) {
-                        default:
-                        case Running:
-                            return false;
-                        case Succeeded:
-                        case Failed:
-                            return true;
-                    }
-                })
-                .orElseGet(() -> this.executeStages
-                        && pipeline.hasEnqueuedStages()
-                        && !pipeline.isPauseRequested()
-                        && getLogRedirectionState(pipeline) != SimpleState.Running
-                );
+                .map(state -> State.Running == state)
+                .orElse(false);
+
+        return hasEnqueuedStages && !isPaused && !isRunning;
     }
 
     public boolean deletePipeline(@Nonnull Project project) throws OrchestratorException {

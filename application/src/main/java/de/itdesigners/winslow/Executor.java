@@ -23,8 +23,9 @@ import java.util.stream.Stream;
 
 public class Executor {
 
-    public static final String PREFIX = "[winslow] ";
-    public static final Logger LOG    = Logger.getLogger(Executor.class.getSimpleName());
+    public static final String PREFIX      = "[winslow] ";
+    public static final Logger LOG         = Logger.getLogger(Executor.class.getSimpleName());
+    public static final int    INTERVAL_MS = 1000;
 
     @Nonnull private final String             pipeline;
     @Nonnull private final String             stage;
@@ -35,6 +36,7 @@ public class Executor {
     @Nonnull private final List<Consumer<LogEntry>> logConsumer                = new ArrayList<>();
     @Nonnull private final List<Runnable>           shutdownListeners          = new ArrayList<>();
     @Nonnull private final List<Runnable>           shutdownCompletedListeners = new ArrayList<>();
+    @Nonnull private final IntervalInvoker          intervalInvoker            = new IntervalInvoker(INTERVAL_MS);
 
     @Nullable private StageHandle stageHandle;
 
@@ -52,10 +54,23 @@ public class Executor {
         this.logOutput    = orchestrator.getLogRepository().getRawOutputStream(pipeline, stage);
         this.lockHeart    = new LockHeart(logOutput.getLock());
 
+        this.intervalInvoker.addListener(this::statsUpdater);
+
         var thread = new Thread(this::run);
         thread.setName(pipeline + "." + stage + ".executor");
         thread.setDaemon(false);
         thread.start();
+    }
+
+    private void statsUpdater() {
+        var handle = this.stageHandle;
+        if (handle != null) {
+            try {
+                handle.getStats().ifPresent(value -> orchestrator.getRunInfoRepository().setStats(stage, value));
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to update stats for " + stage, e);
+            }
+        }
     }
 
     public void setStageHandle(@Nonnull StageHandle handle) {
@@ -135,9 +150,10 @@ public class Executor {
                                         null,
                                         p -> this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed(),
                                         p -> {
+                                            intervalInvoker.maybeInvokeAll();
                                             var next = iter.next();
                                             if (next == null) {
-                                                backoff.sleep();
+                                                backoff.sleep(intervalInvoker.timeMillisUntilNextInvocation());
                                                 next = iter.next();
                                             } else {
                                                 backoff.reset();

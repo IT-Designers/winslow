@@ -2,10 +2,12 @@ package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.Evaluation;
 import com.hashicorp.nomad.apimodel.TaskState;
+import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.CombinedIterator;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.project.Stats;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -162,6 +164,41 @@ public class NomadStageHandle implements StageHandle {
                 new EventStream(this),
                 new EvaluationLogger(this)
         );
+    }
+
+
+    @Nonnull
+    @Override
+    public Optional<Stats> getStats() throws IOException {
+        var stageAllocation = this.backend.getAllocation(stageId);
+        if (stageAllocation.isPresent()) {
+            var alloc   = stageAllocation.get();
+            var allocId = alloc.getId();
+
+            try {
+                var allocation = this.backend.getNewClient().getAllocationsApi().info(allocId).getValue();
+                var stats      = this.backend.getNewClientApi().stats(allocId).getValue();
+                // stats["DeviceStats"][0]
+                //                        .InstanceStats[<some-name>]
+                //                                      .Name: Quadro M2200
+                //                                      .Type: gpu
+                //                                      .Vendor: nvidia
+
+                var cpu    = stats.getResourceUsage().getCpuStats();
+                var memory = stats.getResourceUsage().getMemoryStats();
+
+                return Optional.of(new Stats(
+                        (float) cpu.getTotalTicks(),
+                        100.f, // TODO
+                        ((Integer) memory.getUnmappedProperties().get("Usage")).longValue(),
+                        allocation.getResources().getMemoryMb() * 1024 * 1024L
+                ));
+            } catch (NomadException e) {
+                throw new IOException("Internal nomad exception: " + e.getMessage(), e);
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override

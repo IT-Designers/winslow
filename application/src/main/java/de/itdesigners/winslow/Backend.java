@@ -1,6 +1,7 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.project.Stats;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
 
