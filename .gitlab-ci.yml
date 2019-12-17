@@ -6,8 +6,8 @@ build:
   script:
 #    - npm install -g -ng
     - npm install
-#    - npm run build -- --prod --configuration=production --baseHref=./ --deployUrl=./
-    - npm run build -- --prod --configuration=production --baseHref=./
+    - npm run build -- --prod --configuration=production --baseHref=/ --deployUrl=/
+#    - npm run build -- --prod --configuration=production --baseHref=./
     - mv dist/winslow-ui-ng winslow-ui-ng
   artifacts:
     name: winslow-ui-ng_$CI_COMMIT_SHORT_SHA
