@@ -468,7 +468,7 @@ public class LockBus {
             if (isEventFile(path)) {
                 try {
                     event = loadEvent(path);
-                } catch (FileNotFoundException e) {
+                } catch (NoSuchFileException | FileNotFoundException e) {
                     // already gone, can be ignored
                 } catch (IOException e) {
                     // probably corrupt file
