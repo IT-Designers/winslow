@@ -105,7 +105,7 @@ import {MonacoEditorModule} from 'ngx-monaco-editor';
       {path: '', redirectTo: 'projects/', pathMatch: 'full'},
       {path: 'actions', component: GroupActionsComponent},
 
-      {path: 'projects', redirectTo: 'projects/none', pathMatch: 'full'},
+      {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
       {
         path: 'projects',
         children: [{
