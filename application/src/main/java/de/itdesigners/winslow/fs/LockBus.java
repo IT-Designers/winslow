@@ -462,28 +462,23 @@ public class LockBus {
         var diff = list.size() - MAX_OLD_EVENT_FILE_COUNT;
 
         for (int i = 0; i < diff; ++i) {
-            Path  path  = list.get(i);
-            Event event = null;
+            Path path = list.get(i);
 
             if (isEventFile(path)) {
                 try {
-                    event = loadEvent(path);
+                    if (isSurelyOutOfDate(loadEvent(path))) {
+                        Files.deleteIfExists(path);
+                    } else {
+                        break;
+                    }
                 } catch (NoSuchFileException | FileNotFoundException e) {
                     // already gone, can be ignored
-                    continue;
                 } catch (IOException e) {
                     // probably corrupt file
                     LOG.log(Level.WARNING, "Failed to load file to check for last usage", e);
                     if (path.toFile().lastModified() + DURATION_FOR_UNREADABLE_FILES < System.currentTimeMillis()) {
                         Files.deleteIfExists(path);
                     }
-                    continue;
-                }
-
-                if (isSurelyOutOfDate(event)) {
-                    Files.deleteIfExists(path);
-                } else {
-                    break;
                 }
             }
         }
