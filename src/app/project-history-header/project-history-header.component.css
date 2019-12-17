@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}
+
+.history-list-item {
+
+}
+
+.history-control-icons {
+  flex-grow: 1;
+  text-align: end;
+}
+
+.history-list-column:not(:first-child) {
+  padding-left: 1em;
+}
+
+.state-icon-fix > span {
+  align-items: center;
+}

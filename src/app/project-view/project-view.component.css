@@ -9,42 +9,6 @@
   overflow: auto !important;
 }
 
-.history-list-item {
-
-}
-
-.history-control-icons {
-  flex-grow: 1;
-  text-align: end;
-}
-
-.history-list-column:not(:first-child) {
-  padding-left: 1em;
-}
-
-.state-icon-fix > span {
-  align-items: center;
-}
-
-.history-item-no {
-  text-align: end;
-  min-width: 2em;
-}
-
-.history-item-date {
-  min-width: 10em;
-  text-align: end;
-}
-
-.history-item-detail p {
-  display: flex;
-  justify-content: space-between;
-}
-
-.history-item-detail-item {
-  margin: 0;
-  padding: 0.75em 1em;
-}
 
 .stage-control-item {
   display: flex;
@@ -203,4 +167,25 @@
 
 label.disabled {
   color: rgba(0, 0, 0, 0.2);
+}
+
+
+.history-item-no {
+  text-align: end;
+  min-width: 2em;
+}
+
+.history-item-date {
+  min-width: 10em;
+  text-align: end;
+}
+
+.history-item-detail p {
+  display: flex;
+  justify-content: space-between;
+}
+
+.history-item-detail-item {
+  margin: 0;
+  padding: 0.75em 1em;
 }

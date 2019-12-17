@@ -1,0 +1,92 @@
+<div class="header-row">
+  <mat-card-title>{{projectValue.name}}</mat-card-title>
+</div>
+<div class="graph-container">
+  <div class="graph">
+    <mat-card-header>CPU Utilization</mat-card-header>
+    <div class="ngx-graph-wrapper whitespace-separator">
+      <ngx-charts-area-chart
+        [animations]="false"
+        [scheme]="schemeCpu"
+        [results]="cpu"
+        [legend]="false"
+        [xAxis]="true"
+        [yAxis]="true"
+        [yScaleMin]="0"
+        [showYAxisLabel]="true"
+        [yAxisLabel]="'Mhz'"
+      ></ngx-charts-area-chart>
+    </div>
+  </div>
+  <div class="graph">
+    <mat-card-header>Memory Usage</mat-card-header>
+    <div class="ngx-graph-wrapper whitespace-separator">
+      <ngx-charts-area-chart
+        [animations]="false"
+        [scheme]="schemeMemory"
+        [results]="memory"
+        [legend]="false"
+        [xAxis]="true"
+        [yAxis]="true"
+        [yScaleMin]="0"
+        [showYAxisLabel]="true"
+        [yAxisLabel]="'Gigabyte'"
+      ></ngx-charts-area-chart>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+<div class="flex-grow-row control-row">
+  <div class="control-button-row" style="margin: 1em auto">
+    <button mat-stroked-button color="primary"
+            [disabled]="statePaused"
+            (click)="pause()">
+      <mat-icon>pause_circle_outlined</mat-icon>
+      Pause
+    </button>
+    <button mat-stroked-button color="primary"
+            [disabled]="!statePaused"
+            (click)="resume()">
+      <mat-icon>play_circle_outlined</mat-icon>
+      Resume
+    </button>
+    <button mat-stroked-button color="primary" (click)="emitOpenFiles()">
+      <mat-icon>folder_open</mat-icon>
+      Open Files
+    </button>
+    <button mat-stroked-button color="primary" (click)="emitOpenLogs()">
+      <mat-icon>list_alt</mat-icon>
+      Open Logs
+    </button>
+    <button mat-stroked-button color="warn" [disabled]="!stateRunning" (click)="kill()">
+      <mat-icon>pan_tool</mat-icon>
+      Kill
+    </button>
+  </div>
+</div>
+<div *ngIf="enqueued != null && enqueued.length > 0" class="divider"></div>
+<div class="flex-grow-column whitespace-separator-top"  style="margin: 1em 4em 3em 4em">
+  <ng-container *ngFor="let entry of enqueued; index as i">
+    <app-project-history-header
+      [state]="entry.state"
+      [isConfigure]="isConfigure(entry.action)"
+      [itemNo]="enqueued.length - i"
+      [time]="entry.finishTime === null ? entry.startTime : entry.finishTime"
+      [stageName]="entry.stageName"
+      [showResumeOnlyThisStage]="entry.enqueueIndex == 0"
+      [showUseAsBlueprint]="true"
+      [showDeleteEnqueued]="true"
+      [showActiveControls]="true"
+      [showPassiveControls]="false"
+      [enqueued]="isEnqueued(entry.state)"
+      [running]="isRunning(entry.state)"
+      [paused]="statePaused"
+
+      (clickPauseAfterThis)="clickPause.emit(entry)"
+      (clickResumeOnlyThisStage)="clickResumeSingle.emit(entry)"
+      (clickResume)="clickResume.emit(entry)"
+      (clickDelete)="clickDeleteEnqueued.emit(entry)"
+      (clickUseAsBlueprint)="clickUseAsBlueprint.emit(entry)"
+    ></app-project-history-header>
+  </ng-container>
+</div>
