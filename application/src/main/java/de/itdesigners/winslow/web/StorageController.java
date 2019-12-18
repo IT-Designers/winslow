@@ -2,14 +2,20 @@ package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.storage.StorageInfo;
+import de.itdesigners.winslow.auth.User;
+import de.itdesigners.winslow.resource.ResourceManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -20,10 +26,17 @@ public class StorageController {
 
     private static final Logger LOG = Logger.getLogger(StorageController.class.getSimpleName());
 
-    private final Winslow winslow;
+    private final Winslow           winslow;
+    private final ResourceManager   resourceManager;
+    private final FileAccessChecker checker;
 
     public StorageController(Winslow winslow) {
-        this.winslow = winslow;
+        this.winslow         = winslow;
+        this.resourceManager = winslow.getResourceManager();
+        this.checker         = new FileAccessChecker(
+                winslow.getResourceManager(),
+                id -> winslow.getProjectRepository().getProject(id).unsafe()
+        );
     }
 
     @GetMapping("/storage")
@@ -74,9 +87,42 @@ public class StorageController {
                         }
                     });
         } catch (IOException e) {
-            LOG.log(Level.WARNING, "Failed to list files in workd directory", e);
+            LOG.log(Level.WARNING, "Failed to list files in work directory", e);
             return Stream.empty();
         }
+    }
+
+    @GetMapping(value = {"/storage/resources/**"})
+    public Optional<StorageInfo> listResourceDirectory(HttpServletRequest request, User user) {
+        return getStorageInfo(user, resourceManager.getResourceDirectory().orElseThrow(), "/resources");
+    }
+
+    @GetMapping(value = {"/storage/workspaces/**"})
+    public Optional<StorageInfo> listWorkspaceDirectory(HttpServletRequest request, User user) {
+        return FilesController
+                .normalizedPath(request)
+                .flatMap(path -> resourceManager
+                        .getWorkspace(path)
+                        .flatMap(resolved -> getStorageInfo(
+                                user,
+                                resolved,
+                                Path.of("/workspaces").resolve(path).toString()
+                        )));
+    }
+
+    public Optional<StorageInfo> getStorageInfo(@Nullable User user, @Nonnull Path path, @Nonnull String name) {
+        return Optional
+                .ofNullable(user)
+                .filter(u -> checker.isAllowedToAccessPath(user, path))
+                .map(u -> {
+                    var free  = path.toFile().getFreeSpace();
+                    var total = path.toFile().getTotalSpace();
+                    return new StorageInfo(
+                            name,
+                            total - free,
+                            free
+                    );
+                });
     }
 
 }

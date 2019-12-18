@@ -51,19 +51,29 @@ public class FilesController {
     }
 
     @DeleteMapping(value = {"/files/resources/**"})
-    public boolean deleteInResource(HttpServletRequest request, User user) {
-        return resourceManager
+    public ResponseEntity<Object> deleteInResource(HttpServletRequest request, User user) {
+        var result = resourceManager
                 .getResourceDirectory()
                 .map(dir -> delete(request, user, dir, false))
                 .orElse(Boolean.FALSE);
+        if (result) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping(value = {"/files/workspaces/**"})
-    public boolean deleteInWorkspace(HttpServletRequest request, User user) {
-        return resourceManager
+    public ResponseEntity<Object> deleteInWorkspace(HttpServletRequest request, User user) {
+        var result = resourceManager
                 .getWorkspacesDirectory()
                 .map(dir -> delete(request, user, dir, true))
                 .orElse(Boolean.FALSE);
+        if (result) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     public boolean delete(HttpServletRequest request, User user, @Nonnull Path directory, boolean protectTopLevel) {
@@ -77,6 +87,7 @@ public class FilesController {
                         FileUtils.forceDelete(path.toFile());
                         return true;
                     } catch (IOException e) {
+                        e.printStackTrace();
                         return false;
                     }
                 }).orElse(false);
@@ -187,22 +198,30 @@ public class FilesController {
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.OPTIONS)
-    public Iterable<FileInfo> listResourceDirectory(HttpServletRequest request, User user) {
+    public Iterable<FileInfo> listResourceDirectory(
+            HttpServletRequest request,
+            User user,
+            @RequestParam(value = "aggregateSizeForDirectories", required = false, defaultValue = "false") boolean aggregateSizeForDirectories) {
         return listDirectory(
                 request,
                 user,
                 resourceManager.getResourceDirectory().orElseThrow(),
-                Path.of("/resources/")
+                Path.of("/resources/"),
+                aggregateSizeForDirectories
         );
     }
 
     @RequestMapping(value = {"/files/workspaces/**"}, method = RequestMethod.OPTIONS)
-    public Iterable<FileInfo> listWorkspaceDirectory(HttpServletRequest request, User user) {
+    public Iterable<FileInfo> listWorkspaceDirectory(
+            HttpServletRequest request,
+            User user,
+            @RequestParam(value = "aggregateSizeForDirectories", required = false, defaultValue = "false") boolean aggregateSizeForDirectories) {
         return listDirectory(
                 request,
                 user,
                 resourceManager.getWorkspacesDirectory().orElseThrow(),
-                Path.of("/workspaces/")
+                Path.of("/workspaces/"),
+                aggregateSizeForDirectories
         );
     }
 
@@ -210,7 +229,8 @@ public class FilesController {
             HttpServletRequest request,
             User user,
             @Nonnull Path directory,
-            @Nonnull Path resolveTo) {
+            @Nonnull Path resolveTo,
+            boolean aggregateSizeForDirectories) {
         return normalizedPath(request)
                 .map(path -> Optional
                         .of(directory.resolve(path))
@@ -225,12 +245,33 @@ public class FilesController {
                                      Optional.of(file)
                                              .filter(File::isFile)
                                              .map(File::length)
-                                             .orElse(null)
+                                             .orElseGet(() -> {
+                                                 if (aggregateSizeForDirectories && user.isSuperUser()) {
+                                                     return aggregateSize(file);
+                                                 } else {
+                                                     return null;
+                                                 }
+                                             })
                              )
                         )
                         .collect(Collectors.toUnmodifiableList())
                 )
                 .orElse(Collections.emptyList());
+    }
+
+    private long aggregateSize(@Nonnull File directory) {
+        var entries = directory.listFiles();
+        var size    = 0L;
+        if (entries != null) {
+            for (var entry : entries) {
+                if (entry.isFile()) {
+                    size += entry.length();
+                } else if (entry.isDirectory()) {
+                    size += aggregateSize(entry);
+                }
+            }
+        }
+        return size;
     }
 
     @Nonnull
