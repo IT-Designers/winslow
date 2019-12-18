@@ -52,6 +52,8 @@ export class NetInfo {
 export class DiskInfo {
   reading: number;
   writing: number;
+  free: number;
+  used: number;
 }
 
 export class GpuInfo {

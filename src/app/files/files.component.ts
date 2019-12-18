@@ -5,6 +5,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
 import Swal from 'sweetalert2';
+import {StorageApiService} from '../api/storage-api.service';
 
 @Component({
   selector: 'app-files',
@@ -17,6 +18,7 @@ export class FilesComponent implements OnInit {
   longLoading = new LongLoadingDetector();
   loadError = null;
 
+  showDirectorySize = false;
   latestPath = '/resources'; // IMPORTANT: starts with a slash, but never ends with one: '/resources/ab/cd/ef'
   @Output('selection') selectedPath = new EventEmitter<string>();
 
@@ -26,11 +28,13 @@ export class FilesComponent implements OnInit {
 
   dataUpload: UploadFilesProgress = null;
   @ViewChild('swalUpload', {static: false}) swalUpload: SwalComponent;
+  viewHint: string = null;
 
 
   constructor(
     private api: FilesApiService,
     private dialog: DialogService,
+    private storage: StorageApiService,
     public readonly swalTargets: SwalPortalTargets
   ) {
     const root = [];
@@ -114,9 +118,16 @@ export class FilesComponent implements OnInit {
 
   private loadDirectory(path: string) {
     this.longLoading.increase();
-    return this.api.listFiles(path).then(res => {
+    return this.api.listFiles(path, this.showDirectorySize).then(res => {
       this.insertListResourceResult(path, res);
+      return this.updateViewHint();
     }).finally(() => this.longLoading.decrease());
+  }
+
+  private updateViewHint(): Promise<void> {
+    return this.storage.getFilePathInfo(this.latestPath).then(info => {
+      this.viewHint = FileInfo.getFileSizeHumanReadable(info.bytesFree) + ' free';
+    });
   }
 
   currentDirectory(): FileInfo[] {
@@ -260,6 +271,7 @@ export class FilesComponent implements OnInit {
     setTimeout(() => Swal.getConfirmButton().setAttribute('disabled', ''));
     instance
       .uploader(0)
+      .then(r => this.updateViewHint())
       .finally(() => {
         this.dataUpload.closable = true;
         this.swalUpload.showConfirmButton = true;
@@ -289,12 +301,21 @@ export class FilesComponent implements OnInit {
   delete(file: FileInfo) {
     this.dialog.openAreYouSure(
       `Deleting ${file.directory ? 'directory' : 'file'} ${file.name}`,
-      () => this.api.delete(file.path).toPromise().then(r => this.loadDirectory(this.latestPath))
+      () => this.api.delete(file.path).then(r => this.loadDirectory(this.latestPath))
     );
   }
 
   onItemSelected(file: FileInfo) {
     this.selectedPath.emit(file.path);
+  }
+
+  toggleShowDirectorySize() {
+    this.showDirectorySize = !this.showDirectorySize;
+    this.dialog.openLoadingIndicator(
+      this.loadDirectory(this.latestPath),
+      `Updating directory`,
+      false
+    );
   }
 }
 

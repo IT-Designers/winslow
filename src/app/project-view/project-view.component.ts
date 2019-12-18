@@ -90,7 +90,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
   rawPipelineDefinitionSuccess: string = null;
 
   paramsSubscription: Subscription = null;
-  selectedTabIndex: number = Tab.Control;
+  selectedTabIndex: number = Tab.Overview;
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,

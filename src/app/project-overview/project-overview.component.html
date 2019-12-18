@@ -36,7 +36,7 @@
   </div>
 </div>
 <div class="divider"></div>
-<div class="flex-grow-row control-row">
+<div class="flex-grow-column control-row">
   <div class="control-button-row" style="margin: 1em auto">
     <button mat-stroked-button color="primary"
             [disabled]="statePaused"
@@ -63,9 +63,15 @@
       Kill
     </button>
   </div>
+  <div class="control-button-row" style="margin: 0 auto">
+    <button mat-stroked-button color="primary" (click)="openProjectDiskUsageDialog()">
+      <mat-icon>insert_chart</mat-icon>
+      Show Workspace Disk Usage
+    </button>
+  </div>
 </div>
 <div *ngIf="enqueued != null && enqueued.length > 0" class="divider"></div>
-<div class="flex-grow-column whitespace-separator-top"  style="margin: 1em 4em 3em 4em">
+<div class="flex-grow-column whitespace-separator-top" style="margin: 1em 4em 3em 4em">
   <ng-container *ngFor="let entry of enqueued; index as i">
     <app-project-history-header
       [state]="entry.state"
