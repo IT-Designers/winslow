@@ -46,6 +46,27 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_DATE_TIME", new Date(timeS).toString())
                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
+
+        stageDefinition.getRequirements().ifPresent(requirements -> {
+            context
+                    .getBuilder()
+                    //.withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CPU_CORES", String.valueOf(requirements.getCpu()))
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_RAM_MB",
+                            String.valueOf(requirements.getMegabytesOfRam())
+                    )
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_RAM_GB",
+                            String.valueOf(requirements.getMegabytesOfRam() / 1024)
+                    );
+            requirements.getGpu().ifPresent(gpu -> {
+                context.getBuilder()
+                       .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_COUNT", String.valueOf(gpu.getCount()));
+                gpu.getVendor().ifPresent(vendor -> context
+                        .getBuilder()
+                        .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_VENDOR", vendor));
+            });
+        });
     }
 
     @Override
