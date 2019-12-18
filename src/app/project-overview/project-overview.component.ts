@@ -1,6 +1,12 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {Action, HistoryEntry, ProjectApiService, ProjectInfo, State, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
+import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
+import {MatDialog} from '@angular/material';
+import {
+  ProjectDiskUsageDialogComponent,
+  ProjectDiskUsageDialogData
+} from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 
 @Component({
   selector: 'app-project-overview',
@@ -40,7 +46,8 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   enqueued: HistoryEntry[] = [];
 
   constructor(private api: ProjectApiService,
-              private dialog: DialogService) {
+              private dialog: DialogService,
+              private createDialog: MatDialog) {
     this.poll = setInterval(() => {
       const updateNonetheless = new Date().getTime() - this.lastSuccessfulStatsUpdate < 5_000;
       if (this.projectValue && (State.Running === this.stateValue || updateNonetheless)) {
@@ -222,5 +229,14 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
 
   isRunning(state: State) {
     return State.Running === state;
+  }
+
+  openProjectDiskUsageDialog() {
+    this.createDialog
+      .open(ProjectDiskUsageDialogComponent, {
+        data: {
+          projects: [this.projectValue],
+        } as ProjectDiskUsageDialogData
+      });
   }
 }

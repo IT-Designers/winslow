@@ -1,0 +1,14 @@
+.content-list {
+  max-height: 50vh;
+  overflow: auto;
+  padding: .5em 2em;
+}
+
+.content-item {
+  display: flex;
+  flex-direction: row;
+}
+
+.content-item:hover {
+  background-color: rgba(110, 120, 255, 0.1);
+}

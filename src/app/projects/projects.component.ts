@@ -7,6 +7,10 @@ import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
+import {
+  ProjectDiskUsageDialogComponent,
+  ProjectDiskUsageDialogData
+} from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 
 @Component({
   selector: 'app-projects',
@@ -166,5 +170,14 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
     });
+  }
+
+  openProjectDiskUsageDialog() {
+    this.createDialog
+      .open(ProjectDiskUsageDialogComponent, {
+        data: {
+          projects: this.projects,
+        } as ProjectDiskUsageDialogData
+      });
   }
 }

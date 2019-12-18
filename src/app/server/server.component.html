@@ -17,7 +17,20 @@
       <span><strong>MEM</strong> {{getTotalMemoryFormatted()}}</span>
       <span *ngFor="let gpu of node.gpuInfo"><strong>GPU</strong> {{gpu.vendor.toUpperCase()}} {{gpu.name}}</span>
     </div>
-    <div *ngIf="node.buildInfo" class="server-details whitespace-separator-top">
+    <strong class="whitespace-separator-top" style="margin-bottom: -2em">Disk Usage</strong>
+    <div>
+      <ngx-charts-pie-chart
+        [animations]="true"
+        [scheme]="colorSchemeDiskUsageW95"
+        [labels]="true"
+        [labelFormatting]="diskUsageLabelFormatting"
+        [results]="diskUsage"
+        [legend]="false"
+        [tooltipText]="diskUsageToolTipFormatting"
+        [tooltipDisabled]="false"
+      ></ngx-charts-pie-chart>
+    </div>
+    <div *ngIf="node.buildInfo" class="server-details server-build-info whitespace-separator-top">
       <span>{{node.buildInfo.commitHashShort}}, {{node.buildInfo.date}}</span>
     </div>
   </div>

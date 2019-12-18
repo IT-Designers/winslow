@@ -13,6 +13,7 @@ export class ServerComponent implements OnInit {
   memory: any[] = [];
   network: any[] = [];
   disk: any[] = [];
+  diskUsage: any[] = [];
   cpus: any[] = [];
 
   rawNetwork: [Date, number[]][] = [];
@@ -20,6 +21,12 @@ export class ServerComponent implements OnInit {
 
   unitNetwork = '';
   unitDisk = '';
+
+  colorSchemeDiskUsageW95 = {
+    domain: [
+      '#ff00ff', '#0000ff'
+    ]
+  };
 
   colorScheme = {
 //    domain: ['#FF6666', '#66FF66', '#6666FF', '#777777']
@@ -45,6 +52,8 @@ export class ServerComponent implements OnInit {
       '#00FF00',
     ]
   };
+  diskUsageLabelFormatting = value => value + ' GiB';
+  diskUsageToolTipFormatting = value => value.value.toFixed(1) + ' GiB';
 
   constructor(private nodes: NodesApiService) {
   }
@@ -91,8 +100,12 @@ export class ServerComponent implements OnInit {
     if (this.disk.length === 0) {
       this.initDiskSeries();
     }
+    if (this.diskUsage.length === 0) {
+      this.initDiskUsageSeries();
+    }
     if (this.node.diskInfo) {
       this.updateDiskSeries();
+      this.updateDiskUsageSeries();
       this.scaleDisk();
     }
 
@@ -194,6 +207,23 @@ export class ServerComponent implements OnInit {
     if (this.rawDisk.length > 120) {
       this.rawDisk.splice(0, this.rawDisk.length - 120);
     }
+  }
+
+  private initDiskUsageSeries() {
+    this.diskUsage.push({
+      name: 'Free',
+      value: 1
+    });
+    this.diskUsage.push({
+      name: 'Used',
+      value: 1
+    });
+  }
+
+  private updateDiskUsageSeries() {
+    this.diskUsage[0].value = this.bytesToGigabyte(this.node.diskInfo.free);
+    this.diskUsage[1].value = this.bytesToGigabyte(this.node.diskInfo.used);
+    this.diskUsage = this.diskUsage.map(u => u);
   }
 
   getTotalMemoryFormatted() {

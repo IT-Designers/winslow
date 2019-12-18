@@ -42,6 +42,10 @@
   display: block;
 }
 
+.server-build-info {
+  color: silver;
+}
+
 .server-overview .ngx-graph-wrapper {
   flex-grow: 1 !important;
   flex-shrink: 2 !important;

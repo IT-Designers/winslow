@@ -62,6 +62,7 @@ import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.compo
 import {MonacoEditorModule} from 'ngx-monaco-editor';
 import { ProjectOverviewComponent } from './project-overview/project-overview.component';
 import { ProjectHistoryHeaderComponent } from './project-history-header/project-history-header.component';
+import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
 
 @NgModule({
   declarations: [
@@ -95,6 +96,7 @@ import { ProjectHistoryHeaderComponent } from './project-history-header/project-
     PipelineEditorComponent,
     ProjectOverviewComponent,
     ProjectHistoryHeaderComponent,
+    ProjectDiskUsageDialogComponent,
   ],
   imports: [
     SweetAlert2Module.forRoot(),
@@ -169,6 +171,7 @@ import { ProjectHistoryHeaderComponent } from './project-history-header/project-
   bootstrap: [AppComponent],
   entryComponents: [
     ProjectsCreateDialog,
+    ProjectDiskUsageDialogComponent,
     FileBrowseDialog,
     CreatePipelineDialogComponent,
     GroupSettingsDialogComponent,
