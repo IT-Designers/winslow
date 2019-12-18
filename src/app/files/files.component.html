@@ -38,29 +38,33 @@
     </ul>
 
 
-    <ul class="files-browser-view"
-        (contextmenu)="viewContextMenu($event)"
-        (click)="contextMenuVisible = false"
-        appDragDrop=""
-        (onFileDropped)="uploadFile($event)"
-    >
-      <li class="file" *ngFor="let file of this.currentDirectory()" (click)="onItemSelected(file)">
-        <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}</i>
-        <label>{{ file.name }}</label>
-        <label class="action-area file-size file-size-human-readable">{{ file.fileSizeHumanReadable }}</label>
-        <i *ngIf="!file.directory" class="material-icons-outlined action-area">
-          <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">
-            cloud_download
-          </a>
-        </i>
-        <i class="material-icons-outlined action-area" (click)="delete(file)">delete</i>
-      </li>
-    </ul>
+    <div class="files-browser-view">
+      <ul class="files"
+          (contextmenu)="viewContextMenu($event)"
+          (click)="contextMenuVisible = false"
+          appDragDrop=""
+          (onFileDropped)="uploadFile($event)"
+      >
+        <li class="file" *ngFor="let file of this.currentDirectory()" (click)="onItemSelected(file)">
+          <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}</i>
+          <label>{{ file.name }}</label>
+          <label class="action-area file-size file-size-human-readable">{{ file.fileSizeHumanReadable }}</label>
+          <i *ngIf="!file.directory" class="material-icons-outlined action-area">
+            <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">
+              cloud_download
+            </a>
+          </i>
+          <i class="material-icons-outlined action-area" (click)="delete(file)">delete</i>
+        </li>
+      </ul>
+      <div *ngIf="viewHint != null && viewHint.length > 0" class="hint">{{viewHint}}</div>
+    </div>
   </div>
   <div *ngIf="contextMenuVisible" class="context-menu" [ngStyle]="{'left.px': contextMenuX, 'top.px': contextMenuY}">
     <ul>
       <li (click)="createDirectory(); contextMenuVisible = false">New Directory</li>
-      <li (click)="fileInput.click(); contextMenuVisible = false">Upload a file</li>
+      <li (click)="toggleShowDirectorySize(); contextMenuVisible = false">{{showDirectorySize ? 'Hide Directory Size' : 'Show Directory Size'}}</li>
+      <li (click)="fileInput.click(); contextMenuVisible = false">Upload a File</li>
     </ul>
   </div>
   <swal #swalUpload title="Uploading your files"

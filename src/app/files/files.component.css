@@ -115,6 +115,24 @@ ul.files-browser-navigation > li > p {
   background-color: rgba(2, 0, 250, 0.01);
   flex-grow: 1;
   border-left: 1px dotted silver;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.files-browser-view .files {
+  flex-grow: 1;
+  margin: 0.1em 0.5em;
+  padding: 0 !important;
+  overflow: auto;
+}
+
+.files-browser-view .hint {
+  padding-top: 0.1em;
+  border-top: 1px dotted silver;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .files-browser-view .file:not(:last-child) {

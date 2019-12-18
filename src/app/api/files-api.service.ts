@@ -10,13 +10,16 @@ export class FilesApiService {
   constructor(private client: HttpClient) {
   }
 
+  private static getUrl(more?: string) {
+    return `${environment.apiLocation}files${more != null ? `/${more}` : ''}`;
+  }
 
-  listFiles(path: string) {
+  listFiles(path: string, aggregateSizeForDirectories: boolean = false) {
     if (path.startsWith('/')) {
       path = path.substr(1);
     }
     return this.client
-      .options<FileInfo[]>(environment.apiLocation + 'files/' + path)
+      .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
       .toPromise()
       .then(files => files.map(f => new FileInfo(f)));
   }
@@ -27,7 +30,7 @@ export class FilesApiService {
     }
     return this
       .client
-      .put(environment.apiLocation + 'files/' + path, null)
+      .put(FilesApiService.getUrl(path), null)
       .toPromise();
   }
 
@@ -45,7 +48,7 @@ export class FilesApiService {
     return this
       .client
       .post(
-        environment.apiLocation + 'files/' + pathToDirectory + file.name,
+        FilesApiService.getUrl(pathToDirectory + file.name),
         form,
         {reportProgress: true, observe: 'events'}
       );
@@ -55,7 +58,7 @@ export class FilesApiService {
     while (pathToFile.startsWith('/')) {
       pathToFile = pathToFile.substr(1);
     }
-    return `${environment.apiLocation}files/${pathToFile}`;
+    return FilesApiService.getUrl(pathToFile);
   }
 
   workspaceUrl(pathToFile: string): string {
@@ -76,7 +79,8 @@ export class FilesApiService {
     }
     return this
       .client
-      .delete(environment.apiLocation + 'files/' + path);
+      .delete(FilesApiService.getUrl(path))
+      .toPromise();
   }
 
 }
@@ -100,7 +104,7 @@ export class FileInfo {
     }
   }
 
-  private static getFileSizeHumanReadable(fileSize?: number): string {
+  static getFileSizeHumanReadable(fileSize?: number): string {
     if (fileSize != null) {
       let suffix = 0;
       let value = fileSize;
