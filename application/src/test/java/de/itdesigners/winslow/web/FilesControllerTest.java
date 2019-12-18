@@ -11,6 +11,7 @@ import de.itdesigners.winslow.resource.ResourceManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
@@ -77,7 +78,7 @@ public class FilesControllerTest {
     public void testResourceDeletion() {
         String file      = "abc.txt";
         String directory = "sub";
-        assertTrue(controller.deleteInResource(constructRequest(file), getRoot()));
+        assertEquals(HttpStatus.OK, controller.deleteInResource(constructRequest(file), getRoot()).getStatusCode());
         assertFalse(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfResources())
@@ -88,7 +89,10 @@ public class FilesControllerTest {
                         .resolve(pathConfiguration.getRelativePathOfResources())
                         .resolve(directory)
         ));
-        assertTrue(controller.deleteInResource(constructRequest(directory), getRoot()));
+        assertEquals(
+                HttpStatus.OK,
+                controller.deleteInResource(constructRequest(directory), getRoot()).getStatusCode()
+        );
         assertFalse(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfResources())
@@ -98,15 +102,21 @@ public class FilesControllerTest {
 
     @Test
     public void testResourceDeletionInvalid() {
-        assertFalse(controller.deleteInResource(constructRequest("some-invalid-path"), getRoot()));
+        assertEquals(
+                HttpStatus.NOT_FOUND,
+                controller.deleteInResource(constructRequest("some-invalid-path"), getRoot()).getStatusCode()
+        );
     }
 
     @Test
     public void testResourceDeletionUnauthorized() {
         String file      = "abc.txt";
         String directory = "sub";
-        assertFalse(controller.deleteInResource(constructRequest(file), null));
-        assertFalse(controller.deleteInResource(constructRequest(directory), null));
+        assertEquals(HttpStatus.NOT_FOUND, controller.deleteInResource(constructRequest(file), null).getStatusCode());
+        assertEquals(
+                HttpStatus.NOT_FOUND,
+                controller.deleteInResource(constructRequest(directory), null).getStatusCode()
+        );
         assertTrue(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfResources())
@@ -123,7 +133,7 @@ public class FilesControllerTest {
     public void testWorkspaceDeletion() {
         String file      = "my-project-id/stage1/some.file";
         String directory = "my-project-id/stage1";
-        assertTrue(controller.deleteInWorkspace(constructRequest(file), getRoot()));
+        assertEquals(HttpStatus.OK, controller.deleteInWorkspace(constructRequest(file), getRoot()).getStatusCode());
         assertFalse(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfWorkspaces())
@@ -135,7 +145,10 @@ public class FilesControllerTest {
                         .resolve(directory)
         ));
 
-        assertTrue(controller.deleteInWorkspace(constructRequest(directory), getRoot()));
+        assertEquals(
+                HttpStatus.OK,
+                controller.deleteInWorkspace(constructRequest(directory), getRoot()).getStatusCode()
+        );
         assertFalse(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfWorkspaces())
@@ -147,8 +160,11 @@ public class FilesControllerTest {
     public void testWorkspaceDeletionUnauthorized() {
         String file      = "my-project-id/stage1/some.file";
         String directory = "my-project-id/stage1";
-        assertFalse(controller.deleteInWorkspace(constructRequest(file), null));
-        assertFalse(controller.deleteInWorkspace(constructRequest(directory), null));
+        assertEquals(HttpStatus.NOT_FOUND, controller.deleteInWorkspace(constructRequest(file), null).getStatusCode());
+        assertEquals(
+                HttpStatus.NOT_FOUND,
+                controller.deleteInWorkspace(constructRequest(directory), null).getStatusCode()
+        );
         assertTrue(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfWorkspaces())
@@ -165,8 +181,16 @@ public class FilesControllerTest {
     public void testWorkspaceDeletionNotAllowed() {
         String file      = "my-project-id/stage1/some.file";
         String directory = "my-project-id/stage1";
-        assertFalse(controller.deleteInWorkspace(constructRequest(file), getUser("random-guy", false)));
-        assertFalse(controller.deleteInWorkspace(constructRequest(directory), getUser("random-guy", false)));
+        assertEquals(
+                HttpStatus.NOT_FOUND,
+                controller.deleteInWorkspace(constructRequest(file), getUser("random-guy", false)).getStatusCode()
+        );
+        assertEquals(
+                HttpStatus.NOT_FOUND,
+                controller
+                        .deleteInWorkspace(constructRequest(directory), getUser("random-guy", false))
+                        .getStatusCode()
+        );
         assertTrue(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfWorkspaces())
@@ -183,8 +207,14 @@ public class FilesControllerTest {
     public void testWorkspaceDeletionProjectOwner() {
         String file      = "my-project-id/stage1/some.file";
         String directory = "my-project-id/stage1";
-        assertTrue(controller.deleteInWorkspace(constructRequest(file), getProjectOwner()));
-        assertTrue(controller.deleteInWorkspace(constructRequest(directory), getProjectOwner()));
+        assertEquals(
+                HttpStatus.OK,
+                controller.deleteInWorkspace(constructRequest(file), getProjectOwner()).getStatusCode()
+        );
+        assertEquals(
+                HttpStatus.OK,
+                controller.deleteInWorkspace(constructRequest(directory), getProjectOwner()).getStatusCode()
+        );
         assertFalse(Files.exists(
                 workDirectory
                         .resolve(pathConfiguration.getRelativePathOfWorkspaces())
@@ -495,7 +525,8 @@ public class FilesControllerTest {
     public void testBasicWorkspaceListing() {
         var listing = controller.listWorkspaceDirectory(
                 constructRequest("my-project-id/stage1"),
-                getRoot()
+                getRoot(),
+                false
         );
         assertNotNull(listing);
         var lookup = new HashMap<String, FileInfo>();
@@ -523,7 +554,8 @@ public class FilesControllerTest {
     public void testBasicWorkspaceListingUnauthorized() {
         var listing = controller.listWorkspaceDirectory(
                 constructRequest("my-project-id/stage1"),
-                null
+                null,
+                false
         );
         assertNotNull(listing);
         assertFalse(listing.iterator().hasNext());
@@ -533,7 +565,8 @@ public class FilesControllerTest {
     public void testBasicWorkspaceListingNotAllowed() {
         assertFalse(controller.listWorkspaceDirectory(
                 constructRequest("my-project-id/stage1"),
-                getUser("unknown-user", false)
+                getUser("unknown-user", false),
+                false
         ).iterator().hasNext());
     }
 
@@ -541,13 +574,14 @@ public class FilesControllerTest {
     public void testBasicWorkspaceListingProjectOwner() {
         assertTrue(controller.listWorkspaceDirectory(
                 constructRequest("my-project-id/stage1"),
-                getProjectOwner()
+                getProjectOwner(),
+                false
         ).iterator().hasNext());
     }
 
     @Test
     public void testBasicResourceListingUnauthorized() {
-        var listing = controller.listResourceDirectory(constructRequest(""), null);
+        var listing = controller.listResourceDirectory(constructRequest(""), null, false);
         assertNotNull(listing);
         assertFalse(listing.iterator().hasNext());
     }
@@ -556,7 +590,8 @@ public class FilesControllerTest {
     public void testBasicResourceListing() {
         var listing = controller.listResourceDirectory(
                 constructRequest(""),
-                getRoot()
+                getRoot(),
+                false
         );
         assertNotNull(listing);
         var lookup = new HashMap<String, FileInfo>();

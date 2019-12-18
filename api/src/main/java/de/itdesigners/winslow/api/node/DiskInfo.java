@@ -7,11 +7,15 @@ public class DiskInfo {
 
     private final long reading;
     private final long writing;
+    private final long free;
+    private final long used;
 
 
-    public DiskInfo(long reading, long writing) {
+    public DiskInfo(long reading, long writing, long free, long used) {
         this.reading = reading;
         this.writing = writing;
+        this.free    = free;
+        this.used    = used;
     }
 
     public long getReading() {
@@ -20,5 +24,13 @@ public class DiskInfo {
 
     public long getWriting() {
         return writing;
+    }
+
+    public long getFree() {
+        return free;
+    }
+
+    public long getUsed() {
+        return used;
     }
 }

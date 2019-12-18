@@ -4,6 +4,7 @@ import de.itdesigners.winslow.api.node.*;
 import de.itdesigners.winslow.node.Node;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -159,7 +160,12 @@ public class UnixNode implements Node {
         }
 
         this.prevDiskInfo = current;
-        return new DiskInfo(reading, writing);
+
+        var root = new File("/");
+        var free = root.getFreeSpace();
+        var used = root.getTotalSpace() - free;
+
+        return new DiskInfo(reading, writing, free, used);
     }
 
     private static List<UnixDiskIoParser.DiskInfo> getDiskInfo(@Nonnull Path path) throws IOException {
