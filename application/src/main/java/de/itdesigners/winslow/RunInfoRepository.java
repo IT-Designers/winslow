@@ -128,7 +128,7 @@ public class RunInfoRepository extends BaseRepository {
 
     @Nonnull
     public Optional<Stats> getStatsIfStillRelevant(@Nonnull String stageId) {
-        return getStatsIfNotOlderThan(stageId, 1_500);
+        return getStatsIfNotOlderThan(stageId, 5_000);
     }
 
     @Nonnull
