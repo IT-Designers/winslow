@@ -195,7 +195,7 @@ public class NomadStageHandle implements StageHandle {
                         // memory from shared libraries as long as the pages from those libraries are actually in
                         // memory. It does include all stack and heap memory.
                         // https://stackoverflow.com/questions/7880784/what-is-rss-and-vsz-in-linux-memory-management
-                        ((Number) memory.getUnmappedProperties().get("RSS")).longValue(),
+                        memory.getRss().longValue(),
                         allocation.getResources().getMemoryMb() * 1024 * 1024L
                 ));
             } catch (NomadException e) {
