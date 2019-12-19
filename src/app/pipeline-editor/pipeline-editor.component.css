@@ -12,6 +12,9 @@
   min-height: 50vh;
 }
 
+.editor > * {
+  height: 100%;
+}
 
 .check {
   display: flex;
