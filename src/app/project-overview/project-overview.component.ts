@@ -164,7 +164,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   private updateCpu(stats: StatsInfo) {
     this.cpu[0].series.push({
       name: new Date(),
-      value: stats.cpuUsed.toLocaleString('en-US'),
+      value: (1000 * stats.cpuUsed)/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
     this.cpuMax = ProjectOverviewComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
@@ -178,7 +178,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   private updateMemory(stats: StatsInfo) {
     this.memory[0].series.push({
       name: new Date(),
-      value: this.bytesToGigabyte(stats.memoryAllocated).toLocaleString('en-US')
+      value: this.bytesToGigabyte(stats.memoryAllocated)/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
     this.memoryMax = ProjectOverviewComponent.maxOfSeriesOr(this.memory[0].series, 0.1, stats.memoryMaximum);
