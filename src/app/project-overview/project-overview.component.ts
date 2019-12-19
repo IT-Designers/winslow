@@ -76,6 +76,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   set project(value: ProjectInfo) {
     this.projectValue = value;
     this.enqueued = [];
+    this.initSeries();
   }
 
   @Input()
