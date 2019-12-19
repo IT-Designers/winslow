@@ -1,4 +1,5 @@
-<mat-tab-group #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)" class="fill-height">
+<mat-tab-group #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)"
+               class="fill-height">
 
   <mat-tab label="Overview">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
@@ -74,7 +75,8 @@
       <ng-container *ngIf="history != null">
         <i *ngIf="history.length == 0">This project has no history yet</i>
         <mat-accordion>
-          <mat-expansion-panel *ngFor="let entry of history; index as i" class="history-list-item">
+          <mat-expansion-panel *ngFor="let entry of history.slice(0, maxHistoryItemsToDisplay); index as i"
+                               class="history-list-item">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <app-project-history-header
@@ -101,7 +103,7 @@
                   (clickOpenLogs)="openLogs(entry)"
                   (clickOpenWorkspace)="openFolder(project, entry)"
 
-                  ></app-project-history-header>
+                ></app-project-history-header>
               </mat-panel-title>
             </mat-expansion-panel-header>
             <ng-template matExpansionPanelContent>
@@ -164,6 +166,21 @@
             </ng-template>
           </mat-expansion-panel>
         </mat-accordion>
+        <div *ngIf="history.length > maxHistoryItemsToDisplay"
+             class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
+          <button mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(10)">
+            <mat-icon>expand_more</mat-icon>
+            Show 10 More
+          </button>
+          <button mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(50)">
+            <mat-icon>arrow_downward</mat-icon>
+            Show 50 More
+          </button>
+          <button mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(history.length)">
+            <mat-icon style="transform: rotate(90deg)">double_arrow</mat-icon>
+            Show All
+          </button>
+        </div>
       </ng-container>
     </ng-template>
   </mat-tab>

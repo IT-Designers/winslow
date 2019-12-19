@@ -34,6 +34,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
+  static DEFAULT_VISIBLE_ITEM_COUNT_HISTORY = 10;
 
   tabIndexOverview = Tab.Overview;
 
@@ -91,6 +92,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
+  maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
@@ -458,7 +460,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     }
 
     this.watchPaused = this.conditionally(Tab.Control === index, () => this.loadPaused());
-    this.watchHistory = this.conditionally(Tab.History === index || Tab.Overview === index, () => this.loadHistory());
+    this.watchHistory = this.conditionally(Tab.History === index || Tab.Overview === index, () => {
+      this.maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
+      this.loadHistory();
+    });
     this.watchLogs = this.conditionally(Tab.Logs === index, () => this.loadLogs());
     this.watchDefinition = this.conditionally(Tab.PipelineDefinition === index, () => this.loadRawPipelineDefinition());
   }
@@ -829,6 +834,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
       promise,
       'Updating Deletion Policy'
     );
+  }
+
+  incrementMaxHistoryItemsToDisplay(range: number = 1) {
+    this.maxHistoryItemsToDisplay += range;
   }
 }
 
