@@ -190,7 +190,7 @@ public class NomadStageHandle implements StageHandle {
                 return Optional.of(new Stats(
                         (float) cpu.getTotalTicks(),
                         100.f, // TODO
-                        ((Integer) memory.getUnmappedProperties().get("Usage")).longValue(),
+                        ((Number) memory.getUnmappedProperties().get("Usage")).longValue(),
                         allocation.getResources().getMemoryMb() * 1024 * 1024L
                 ));
             } catch (NomadException e) {
