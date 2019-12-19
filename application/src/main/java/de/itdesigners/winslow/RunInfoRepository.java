@@ -5,6 +5,7 @@ import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -133,10 +134,12 @@ public class RunInfoRepository extends BaseRepository {
 
     @Nonnull
     public Optional<Stats> getStatsIfNotOlderThan(@Nonnull String stageId, long duration) {
-        var path = getPropertyPathIfStageExists(stageId, PROPERTY_FILE_STATS);
-        var file = path.map(Path::toFile);
+        var path         = getPropertyPathIfStageExists(stageId, PROPERTY_FILE_STATS);
+        var file         = path.map(Path::toFile);
+        var lastModified = file.map(File::lastModified);
+        var timeDiff     = lastModified.map(lm -> System.currentTimeMillis() - lm);
 
-        if (file.isPresent() && System.currentTimeMillis() - file.get().lastModified() < duration) {
+        if (timeDiff.isPresent() && timeDiff.get() < duration) {
             try (var fis = new FileInputStream(file.get())) {
                 return Optional.ofNullable(defaultReader(Stats.class).load(fis));
             } catch (FileNotFoundException e) {
