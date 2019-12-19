@@ -164,7 +164,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   private updateCpu(stats: StatsInfo) {
     this.cpu[0].series.push({
       name: new Date(),
-      value: (1000 * stats.cpuUsed)/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
+      value: stats.cpuUsed/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
     this.cpuMax = ProjectOverviewComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
