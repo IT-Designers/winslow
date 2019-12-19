@@ -1,7 +1,6 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {Action, HistoryEntry, ProjectApiService, ProjectInfo, State, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
-import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material';
 import {
   ProjectDiskUsageDialogComponent,
@@ -40,7 +39,9 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   mostRecent: HistoryEntry = null;
   projectValue: ProjectInfo;
   memory: any[] = [];
+  memoryMax = 1;
   cpu: any[] = [];
+  cpuMax = 100;
   poll = null;
 
   enqueued: HistoryEntry[] = [];
@@ -64,6 +65,16 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
           });
       }
     }, ProjectOverviewComponent.UPDATE_INTERVAL);
+  }
+
+  private static maxOfSeriesOr(series: any[], minimum: number, upperMax: number) {
+    let max = minimum;
+    for (const entry of series) {
+      if (entry.value > max) {
+        max = entry.value;
+      }
+    }
+    return Math.max(max, Math.min(max * 1.4, upperMax));
   }
 
   private static limitSeriesTo(container: any, length: number) {
@@ -155,6 +166,8 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
       name: new Date(),
       value: stats.cpuUsed.toLocaleString('en-US'),
     });
+
+    this.cpuMax = ProjectOverviewComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
     this.cpu = this.cpu.map(c => {
       ProjectOverviewComponent.limitSeriesTo(c, ProjectOverviewComponent.GRAPH_ENTRIES);
       return c;
@@ -167,6 +180,8 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
       name: new Date(),
       value: this.bytesToGigabyte(stats.memoryAllocated).toLocaleString('en-US')
     });
+
+    this.memoryMax = ProjectOverviewComponent.maxOfSeriesOr(this.memory[0].series, 0.1, stats.memoryMaximum);
     this.memory = this.memory.map(m => {
       ProjectOverviewComponent.limitSeriesTo(m, ProjectOverviewComponent.GRAPH_ENTRIES);
       return m;
