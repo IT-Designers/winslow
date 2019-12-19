@@ -81,18 +81,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       const projectIds = this.projectsFiltered.map(project => project.id);
       this.api.getProjectStates(projectIds)
         .then(result => {
-          let index = 0;
-          this.views.forEach(view => {
-            view.update(result[index++]);
-          });
           this.stateInfo = new Map<string, StateInfo>();
           for (let i = 0; i < result.length; ++i) {
             this.stateInfo.set(projectIds[i], result[i]);
-            this.views.forEach(view => {
-              if (view.project.id === projectIds[i]) {
-                view.update(result[i]);
-              }
-            });
           }
         })
         .finally(() => {
