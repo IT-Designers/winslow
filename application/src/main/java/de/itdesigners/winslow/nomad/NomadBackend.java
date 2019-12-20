@@ -5,7 +5,6 @@ import com.hashicorp.nomad.javasdk.*;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.api.project.Stats;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
@@ -199,7 +198,7 @@ public class NomadBackend implements Backend {
             @Nonnull String pipeline,
             @Nonnull String stage,
             @Nonnull StageDefinition stageDefinition) {
-        return new NomadPreparedStageBuilder(this, pipeline, stage, stageDefinition);
+        return new NomadPreparedStageBuilder(this, stage, stageDefinition);
     }
 
     @Override

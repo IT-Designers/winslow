@@ -7,22 +7,13 @@ import java.util.Optional;
 public interface PreparedStageBuilder {
 
     @Nonnull
-    String getId();
-
-    @Nonnull
-    PreparedStageBuilder withStage(@Nonnull String name);
-
-    @Nonnull
-    String getStage();
-
-    @Nonnull
     PreparedStageBuilder withDockerImage(String image);
 
     @Nonnull
     PreparedStageBuilder withDockerImageArguments(String... args);
 
     @Nonnull
-    PreparedStageBuilder addNfsVolume(
+    PreparedStageBuilder withNfsVolume(
             @Nonnull String volumeName,
             @Nonnull String target,
             boolean readonly,
@@ -60,8 +51,8 @@ public interface PreparedStageBuilder {
     PreparedStageBuilder withMegabytesOfRam(int megabytesOfRam);
 
     @Nonnull
-    PreparedStage build();
+    PreparedStageBuilder withWorkspaceDirectory(@Nonnull String viewAsPipeline);
 
     @Nonnull
-    PreparedStageBuilder withWorkspaceDirectory(@Nonnull String viewAsPipeline);
+    PreparedStage build();
 }

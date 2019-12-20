@@ -82,7 +82,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
             @Nonnull Path target,
             @Nonnull String targetFromWithin,
             boolean readonly) throws AssemblyException {
-        builder.addNfsVolume(
+        builder.withNfsVolume(
                 stageId + "_" + env,
                 targetFromWithin,
                 readonly,

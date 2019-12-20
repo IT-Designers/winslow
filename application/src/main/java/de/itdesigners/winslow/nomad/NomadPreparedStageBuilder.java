@@ -15,14 +15,13 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     @Nonnull private static final String DRIVER_DOCKER = "docker";
 
     @Nonnull private final NomadBackend            backend;
-    @Nonnull private final String                  id;
     @Nonnull private final StageDefinition         stageDefinition;
     @Nonnull private final Map<String, Object>     config          = new HashMap<>();
     @Nonnull private final Map<String, String>     envVars         = new HashMap<>();
     @Nonnull private final Map<String, String>     envVarsPipeline = new HashMap<>();
     @Nonnull private final Map<String, String>     envVarsSystem   = new HashMap<>();
     @Nonnull private final Map<String, String>     envVarsInternal = new HashMap<>();
-    private                String                  stage;
+    private                String                  stageId;
     private                String                  driver;
     private final          Resources               resources       = new Resources();
     private                HashMap<String, Object> deviceGpu       = null;
@@ -30,29 +29,11 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
 
     public NomadPreparedStageBuilder(
             @Nonnull NomadBackend backend,
-            @Nonnull String id,
-            @Nonnull String stage,
+            @Nonnull String stageId,
             @Nonnull StageDefinition stageDefinition) {
         this.backend         = backend;
-        this.id              = id;
-        this.stage           = stage;
+        this.stageId         = stageId;
         this.stageDefinition = stageDefinition;
-    }
-
-    @Nonnull
-    public String getId() {
-        return id;
-    }
-
-    @Nonnull
-    public NomadPreparedStageBuilder withStage(@Nonnull String name) {
-        this.stage = name;
-        return this;
-    }
-
-    @Nonnull
-    public String getStage() {
-        return stage;
     }
 
     @Nonnull
@@ -70,7 +51,7 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
     }
 
     @Nonnull
-    public NomadPreparedStageBuilder addNfsVolume(
+    public NomadPreparedStageBuilder withNfsVolume(
             @Nonnull String volumeName,
             @Nonnull String target,
             boolean readonly,
@@ -221,16 +202,16 @@ public class NomadPreparedStageBuilder implements PreparedStageBuilder {
         return new NomadPreparedStage(
                 backend,
                 new Job()
-                        .setId(this.stage)
+                        .setId(this.stageId)
                         .addDatacenters("local")
                         .setType("batch")
                         .addTaskGroups(
                                 new TaskGroup()
-                                        .setName(this.stage)
+                                        .setName(this.stageId)
                                         .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                         .addTasks(
                                                 new Task()
-                                                        .setName(this.stage)
+                                                        .setName(this.stageId)
                                                         .setDriver(this.driver)
                                                         .setConfig(this.config)
                                                         .setResources(this.resources)
