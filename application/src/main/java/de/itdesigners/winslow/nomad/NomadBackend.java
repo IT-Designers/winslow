@@ -3,11 +3,13 @@ package de.itdesigners.winslow.nomad;
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.*;
 import de.itdesigners.winslow.Backend;
+import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
+import de.itdesigners.winslow.pipeline.Submission;
+import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -28,12 +30,13 @@ public class NomadBackend implements Backend {
 
     @Nonnull private final NomadApiClient client;
 
-    private       long                     cachedAllocsTime;
-    private       List<AllocationListStub> cachedAllocs;
-    private final Object                   cachedAllocsSync = new Object();
-    private       long                     cachedEvalsTime;
-    private       List<Evaluation>         cachedEvals;
-    private final Object                   cachedEvalsSync  = new Object();
+    private       long                        cachedAllocsTime;
+    private       List<AllocationListStub>    cachedAllocs;
+    private final Object                      cachedAllocsSync            = new Object();
+    private       long                        cachedEvalsTime;
+    private       List<Evaluation>            cachedEvals;
+    private final Object                      cachedEvalsSync             = new Object();
+    private final SubmissionToNomadJobAdapter submissionToNomadJobAdapter = new SubmissionToNomadJobAdapter(this);
 
     public NomadBackend(@Nonnull NomadApiClient client) throws IOException {
         this.client = client;
@@ -191,14 +194,15 @@ public class NomadBackend implements Backend {
             throw new IOException("Failed to deregister job for " + stage, e);
         }
     }
-
+    
     @Nonnull
     @Override
-    public PreparedStageBuilder newStageBuilder(
-            @Nonnull String pipeline,
-            @Nonnull String stage,
-            @Nonnull StageDefinition stageDefinition) {
-        return new NomadPreparedStageBuilder(this, stage, stageDefinition);
+    public SubmissionResult submit(@Nonnull Submission submission) throws IOException {
+        try {
+            return submissionToNomadJobAdapter.submit(submission);
+        } catch (OrchestratorException | NomadException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override

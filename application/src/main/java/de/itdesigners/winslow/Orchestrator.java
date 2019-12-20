@@ -14,6 +14,7 @@ import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
+import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.Project;
@@ -403,7 +404,6 @@ public class Orchestrator {
                             new StageAssembler()
                                     .add(new EnvironmentVariableAppender(settings.getGlobalEnvironmentVariables()))
                                     .add(new DockerImageAppender())
-                                    .add(new RequirementAppender())
                                     .add(new EnvLogger())
                                     .add(new UserInputChecker())
                                     .assemble(new Context(
@@ -412,11 +412,7 @@ public class Orchestrator {
                                             null,
                                             enqueuedStage,
                                             stageId,
-                                            backend.newStageBuilder(
-                                                    pipeline.getProjectId(),
-                                                    stageId,
-                                                    stageDefinition
-                                            )
+                                            new Submission(stageId, enqueuedStage.getAction(), stageDefinition)
                                     ));
 
                             // enqueue the stage only if the execution would be possible
@@ -564,13 +560,12 @@ public class Orchestrator {
                     assembler
                             .add(new EnvironmentVariableAppender(globalEnvironmentVariables))
                             .add(new DockerImageAppender())
-                            .add(new RequirementAppender())
                             .add(new EnvLogger())
                             .add(new UserInputChecker())
                             .add(new WorkspaceCreator(this, environment))
                             .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
-                            .add(new BuildAndSubmit(this.nodeName, result -> {
+                            .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
                                 executor.setStageHandle(result.getHandle());
                                 lock.waitForRelease();
                                 updatePipeline(projectId, pipelineToUpdate -> {
@@ -583,11 +578,7 @@ public class Orchestrator {
                                     executor,
                                     stageEnqueued,
                                     stageId,
-                                    backend.newStageBuilder(
-                                            pipeline.getProjectId(),
-                                            stageId,
-                                            stageEnqueued.getDefinition()
-                                    )
+                                    new Submission(stageId, stageEnqueued.getAction(), stageEnqueued.getDefinition())
                             ));
                 } finally {
                     lock.waitForRelease();

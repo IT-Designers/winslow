@@ -27,29 +27,39 @@ public class EnvironmentVariableAppender implements AssemblerStep {
         var timeMs             = System.currentTimeMillis();
         var timeS              = timeMs / 1_000;
 
-        context.getBuilder()
-               .withEnvVariables(stageDefinition.getEnvironment())
-               .withSystemEnvVariables(globalEnvironmentVariables)
-               .withPipelineEnvVariables(pipelineDefinition.getEnvironment())
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_NAME", pipelineDefinition.getName())
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", context.getStageId())
-               .withInternalEnvVariable(
-                       Env.SELF_PREFIX + "_STAGE_NAME",
-                       context.getEnqueuedStage().getDefinition().getName()
-               )
-               .withInternalEnvVariable(
-                       Env.SELF_PREFIX + "_STAGE_NUMBER",
-                       Integer.toString(pipeline.getStageCount())
-               )
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_DATE_TIME", new Date(timeS).toString())
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
-               .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS", Long.toString(timeMs));
+        var submission = context
+                .getSubmission()
+                .withStageEnvVariables(stageDefinition.getEnvironment())
+                .withSystemEnvVariables(globalEnvironmentVariables)
+                .withPipelineEnvVariables(pipelineDefinition.getEnvironment())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_PIPELINE_NAME",
+                        pipelineDefinition.getName()
+                )
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", context.getStageId())
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_STAGE_NAME",
+                        context.getEnqueuedStage().getDefinition().getName()
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_STAGE_NUMBER",
+                        Integer.toString(pipeline.getStageCount())
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_SETUP_DATE_TIME",
+                        new Date(timeS).toString()
+                )
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS",
+                        Long.toString(timeMs)
+                );
 
         stageDefinition.getRequirements().ifPresent(requirements -> {
-            context
-                    .getBuilder()
+            var sub = context
+                    .getSubmission()
                     //.withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CPU_CORES", String.valueOf(requirements.getCpu()))
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_MB",
@@ -60,11 +70,10 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                             String.valueOf(requirements.getMegabytesOfRam() / 1024)
                     );
             requirements.getGpu().ifPresent(gpu -> {
-                context.getBuilder()
-                       .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_COUNT", String.valueOf(gpu.getCount()));
-                gpu.getVendor().ifPresent(vendor -> context
-                        .getBuilder()
-                        .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_VENDOR", vendor));
+                var s = sub.withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_COUNT", String.valueOf(gpu.getCount()));
+                gpu.getVendor().ifPresent(vendor -> {
+                    var ss = s.withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_VENDOR", vendor);
+                });
             });
         });
     }

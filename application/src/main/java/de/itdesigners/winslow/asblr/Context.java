@@ -4,7 +4,7 @@ import de.itdesigners.winslow.Executor;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Pipeline;
-import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
+import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,8 +22,8 @@ public class Context {
     private final @Nonnull  PipelineDefinition pipelineDefinition;
     private final @Nullable Executor           executor;
     private final @Nonnull  EnqueuedStage      enqueuedStage;
-    private final @Nonnull  String               stageId;
-    private final @Nonnull  PreparedStageBuilder builder;
+    private final @Nonnull  String             stageId;
+    private final @Nonnull  Submission         submission;
 
     @Nonnull private final Map<Class<?>, Object> intermediateResults = new HashMap<>();
 
@@ -33,13 +33,13 @@ public class Context {
             @Nullable Executor executor,
             @Nonnull EnqueuedStage enqueuedStage,
             @Nonnull String stageId,
-            @Nonnull PreparedStageBuilder builder) {
+            @Nonnull Submission submission) {
         this.pipeline      = pipeline;
         pipelineDefinition = definition;
         this.executor      = executor;
         this.enqueuedStage = enqueuedStage;
         this.stageId       = stageId;
-        this.builder       = builder;
+        this.submission    = submission;
     }
 
     @Nonnull
@@ -63,8 +63,8 @@ public class Context {
     }
 
     @Nonnull
-    public PreparedStageBuilder getBuilder() {
-        return builder;
+    public Submission getSubmission() {
+        return this.submission;
     }
 
     public <T> void store(@Nonnull T value) {

@@ -4,7 +4,7 @@ import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.UserInput;
 import de.itdesigners.winslow.pipeline.Pipeline;
-import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
+import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -22,7 +22,7 @@ public class UserInputChecker implements AssemblerStep {
         var missingUserInput = hasMissingUserInput(
                 pipelineDefinition,
                 stageDefinition,
-                context.getBuilder()
+                context.getSubmission()
         ).collect(Collectors.toList());
 
         if (requiresConfirmation && isConfirmed(pipeline)) {
@@ -50,11 +50,11 @@ public class UserInputChecker implements AssemblerStep {
     private static Stream<String> hasMissingUserInput(
             @Nonnull PipelineDefinition pipelineDefinition,
             @Nonnull StageDefinition stageDefinition,
-            @Nonnull PreparedStageBuilder builder) {
+            @Nonnull Submission submission) {
         return Stream.concat(
                 pipelineDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream()),
                 stageDefinition.getRequires().stream().flatMap(u -> u.getEnvironment().stream())
-        ).filter(k -> builder.getEnvVariable(k).isEmpty());
+        ).filter(k -> submission.getEnvVariable(k).isEmpty());
     }
 
     private static boolean isConfirmationRequiredForNextStage(

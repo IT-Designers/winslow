@@ -1,9 +1,9 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.api.project.Stats;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.PreparedStageBuilder;
+import de.itdesigners.winslow.pipeline.Submission;
+import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -23,10 +23,7 @@ public interface Backend {
     void kill(@Nonnull String stage) throws IOException;
 
     @Nonnull
-    PreparedStageBuilder newStageBuilder(
-            @Nonnull String pipeline,
-            @Nonnull String stage,
-            @Nonnull StageDefinition definition);
+    SubmissionResult submit(@Nonnull Submission submission) throws IOException;
 
     boolean isCapableOfExecuting(@Nonnull StageDefinition stage);
 }

@@ -1,51 +1,37 @@
 package de.itdesigners.winslow.asblr;
 
-import de.itdesigners.winslow.OrchestratorException;
-import de.itdesigners.winslow.pipeline.PreparedStage;
+import de.itdesigners.winslow.Backend;
+import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class BuildAndSubmit implements AssemblerStep {
 
-    @Nonnull private final String                         nodeName;
-    @Nonnull private final Consumer<PreparedStage.Result> stageConsumer;
+    private final @Nonnull Backend                    backend;
+    private final @Nonnull String                     nodeName;
+    private final @Nonnull Consumer<SubmissionResult> stageConsumer;
 
     public BuildAndSubmit(
+            @Nonnull Backend backend,
             @Nonnull String nodeName,
-            @Nonnull Consumer<PreparedStage.Result> stageConsumer) {
+            @Nonnull Consumer<SubmissionResult> stageConsumer) {
+        this.backend       = backend;
         this.nodeName      = nodeName;
         this.stageConsumer = stageConsumer;
     }
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var result        = (PreparedStage.Result) null;
-        var prepared      = context.getBuilder().build();
-        var stageEnqueued = context.getEnqueuedStage();
-
         try {
-            switch (stageEnqueued.getAction()) {
-                case Execute:
-                    result = prepared.execute();
-                    context.log(Level.INFO, "Stage execution scheduled on node " + this.nodeName);
-                    break;
-
-                case Configure:
-                    result = prepared.configure();
-                    context.log(Level.INFO, "Stage configured on node " + this.nodeName);
-                    context.finishedEarly();
-                    break;
-
-                default:
-                    throw new AssemblyException("Unexpected Stage Action " + stageEnqueued.getAction());
-            }
-        } catch (OrchestratorException e) {
-            throw new AssemblyException("Failed to execute action", e);
+            var result = context.getSubmission().submit(backend);
+            context.log(Level.INFO, "Stage scheduled on node " + this.nodeName);
+            this.stageConsumer.accept(result);
+        } catch (IOException e) {
+            throw new AssemblyException("Failed to submit", e);
         }
-
-        this.stageConsumer.accept(result);
     }
 
     @Override
