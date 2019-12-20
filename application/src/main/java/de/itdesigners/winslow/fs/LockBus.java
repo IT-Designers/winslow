@@ -24,11 +24,12 @@ public class LockBus {
 
     private static final Logger LOG = Logger.getLogger(LockBus.class.getSimpleName());
 
-    public static final int LOCK_DURATION_OFFSET          = 1_000;
-    public static final int DURATION_SURELY_OUT_OF_DATE   = 5_000;
-    public static final int DURATION_FOR_UNREADABLE_FILES = 25_000;
-    public static final int MAX_OLD_EVENT_FILE_COUNT      = 25;
-    public static final int MIN_POLL_TIME_INTERVALL       = 10;
+    public static final int    LOCK_DURATION_OFFSET          = 1_000;
+    public static final int    DURATION_SURELY_OUT_OF_DATE   = 5_000;
+    public static final int    DURATION_FOR_UNREADABLE_FILES = 25_000;
+    public static final int    MAX_OLD_EVENT_FILE_COUNT      = 25;
+    public static final int    MIN_POLL_TIME_INTERVALL = 10;
+    public static final String COMMON_LOCK_FILE        = ".lock";
 
     private final String             name;
     private final Path               eventDirectory;
@@ -290,7 +291,7 @@ public class LockBus {
     private synchronized Token publishEvent(@Nonnull EventSupplier supplier) throws LockException {
         try {
             var path     = this.nextEventPath();
-            var pathLock = path.resolveSibling(".lock"); // TODO
+            var pathLock = path.resolveSibling(COMMON_LOCK_FILE);
             var event    = supplier.getCheckedEvent(UUID.randomUUID().toString());
             var token    = new Token(event.getId(), path, event.getSubject(), event.getTime());
 
