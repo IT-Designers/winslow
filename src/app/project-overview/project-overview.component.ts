@@ -6,6 +6,7 @@ import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
+import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
 
 @Component({
   selector: 'app-project-overview',
@@ -45,10 +46,13 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   poll = null;
 
   enqueued: HistoryEntry[] = [];
+  pipelineDefinitions: PipelineInfo[] = [];
 
   constructor(private api: ProjectApiService,
               private dialog: DialogService,
-              private createDialog: MatDialog) {
+              private createDialog: MatDialog,
+              private  pipelines: PipelineApiService) {
+    pipelines.getPipelineDefinitions().then(def => this.pipelineDefinitions = def);
     this.poll = setInterval(() => {
       const updateNonetheless = new Date().getTime() - this.lastSuccessfulStatsUpdate < 5_000;
       if (this.projectValue && (State.Running === this.stateValue || updateNonetheless)) {
@@ -254,5 +258,12 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
           projects: [this.projectValue],
         } as ProjectDiskUsageDialogData
       });
+  }
+
+  enqueueAction(value: string) {
+    this.dialog.openLoadingIndicator(
+      this.api.action(this.projectValue.id, value),
+      `Submitting action...`
+    );
   }
 }

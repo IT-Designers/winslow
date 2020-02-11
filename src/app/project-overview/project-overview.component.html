@@ -71,6 +71,18 @@
       Show Workspace Disk Usage
     </button>
   </div>
+  <div class="action-row" style="margin: 0 auto">
+    <mat-form-field>
+      <mat-select #actionSelection placeholder="Pipeline to execute as Action">
+        <mat-option *ngFor="let pipeline of pipelineDefinitions" value="{{pipeline.id}}">{{pipeline.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div class="controls">
+      <button mat-stroked-button color="primary"
+              [disabled]="actionSelection.value == null"
+              (click)="enqueueAction(actionSelection.value)">Submit Action</button>
+    </div>
+  </div>
 </div>
 <div *ngIf="enqueued != null && enqueued.length > 0" class="divider"></div>
 <div class="flex-grow-column whitespace-separator-top" style="margin: 1em 4em 3em 4em">
