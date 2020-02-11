@@ -769,6 +769,40 @@ public class ProjectsController {
                         .orElse(Boolean.FALSE));
     }
 
+    @PutMapping("projects/{projectId}/action/{actionId}")
+    public void enqueueAction(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("actionId") String actionId) {
+        winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> canUserAccessProject(user, project))
+                .flatMap(project -> winslow
+                        .getPipelineRepository()
+                        .getPipeline(actionId)
+                        .unsafe()
+                        .flatMap(pipelineDefinition -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+
+                            for (var stage : pipelineDefinition.getStages()) {
+                                pipeline.enqueueStage(
+                                        new StageDefinitionBuilder()
+                                                .withBase(stage)
+                                                .withEnvironment(pipelineDefinition.getEnvironment())
+                                                .withAdditionalEnvironment(stage.getEnvironment())
+                                                .build(),
+                                        Action.Execute
+                                );
+                            }
+
+                            resumeIfPausedByStageFailure(pipeline);
+                            return Boolean.TRUE;
+                        })))
+                .filter(v -> v)
+                .orElseThrow();
+    }
+
     private static void enqueueConfigureStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,

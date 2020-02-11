@@ -3,6 +3,7 @@ package de.itdesigners.winslow.config;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -18,6 +19,7 @@ public class StageDefinitionBuilder {
     private @Nullable Optional<Map<String, String>> env;
     private @Nullable Optional<Highlight>           highlight;
     private @Nullable Optional<Boolean>             discardable;
+    private @Nullable Map<String, String>           additionalEnv;
 
     @Nonnull
     @CheckReturnValue
@@ -70,6 +72,13 @@ public class StageDefinitionBuilder {
 
     @Nonnull
     @CheckReturnValue
+    public StageDefinitionBuilder withAdditionalEnvironment(@Nullable Map<String, String> env) {
+        this.additionalEnv = env;
+        return this;
+    }
+
+    @Nonnull
+    @CheckReturnValue
     public StageDefinitionBuilder withHighlight(@Nullable Highlight highlight) {
         this.highlight = Optional.ofNullable(highlight);
         return this;
@@ -88,13 +97,24 @@ public class StageDefinitionBuilder {
         var name = either(this.name, base.map(StageDefinition::getName));
         Objects.requireNonNull(name);
 
+        var env = either(this.env, base.map(StageDefinition::getEnvironment));
+
+        if (this.additionalEnv != null) {
+            if (env != null) {
+                env = new HashMap<>(env);
+                env.putAll(this.additionalEnv);
+            } else {
+                env = new HashMap<>(this.additionalEnv);
+            }
+        }
+
         return new StageDefinition(
                 name,
                 either(this.description, base.flatMap(StageDefinition::getDescription)),
                 either(this.image, base.flatMap(StageDefinition::getImage)),
                 either(this.requirements, base.flatMap(StageDefinition::getRequirements)),
                 either(this.userInput, base.flatMap(StageDefinition::getRequires)),
-                either(this.env, base.map(StageDefinition::getEnvironment)),
+                env,
                 either(this.highlight, base.flatMap(StageDefinition::getHighlight)),
                 either(this.discardable, base.map(StageDefinition::isDiscardable))
         );
