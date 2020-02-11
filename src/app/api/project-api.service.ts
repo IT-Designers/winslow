@@ -102,6 +102,13 @@ export class ProjectApiService {
     return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`)).toPromise();
   }
 
+  action(projectId: string, actionId: string) {
+    return this.client.put(
+      ProjectApiService.getUrl(`${projectId}/action/${actionId}`),
+      new FormData()
+    ).toPromise();
+  }
+
   enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
