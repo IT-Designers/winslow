@@ -22,7 +22,7 @@ import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-se
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Subscription} from 'rxjs';
+import {pipe, Subscription} from 'rxjs';
 
 
 @Component({
@@ -120,18 +120,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.setupFiles();
     this.scrollCallback = () => this.onWindowScroll();
     window.addEventListener('scroll', this.scrollCallback, true);
-    this.pipelinesApi.getPipelineDefinitions().then(result => {
-      this.pipelines = result;
-      this.project = this.project;
-      if (this.project && this.project.pipelineDefinition) {
-        for (const pipeline of this.pipelines) {
-          if (pipeline.name === this.project.pipelineDefinition.name) {
-            this.probablyProjectPipelineId = pipeline.id;
-            break;
-          }
-        }
-      }
-    });
 
     this.paramsSubscription = this.route.children[0].params.subscribe(params => {
       if (params.tab != null) {
@@ -159,6 +147,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     this.pollWatched(true);
     this.setupFiles();
     this.loadHistory();
+
+    this.pipelinesApi.getPipelineDefinitions().then(result => {
+      this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
+      this.probablyProjectPipelineId = null;
+      if (this.project && this.project.pipelineDefinition) {
+        for (const pipeline of this.pipelines) {
+          if (pipeline.name === this.project.pipelineDefinition.name) {
+            this.probablyProjectPipelineId = pipeline.id;
+            break;
+          }
+        }
+      }
+    });
 
     if (this.executionSelection != null) {
       this.executionSelection.pipelines = [this.project.pipelineDefinition];

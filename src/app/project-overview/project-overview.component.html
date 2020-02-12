@@ -39,7 +39,7 @@
 </div>
 <div class="divider"></div>
 <div class="flex-grow-column control-row">
-  <div class="control-button-row" style="margin: 1em auto">
+  <div class="control-button-row" style="margin: 1em auto -1em auto">
     <button mat-stroked-button color="primary"
             [disabled]="statePaused"
             (click)="pause()">
@@ -66,22 +66,19 @@
     </button>
   </div>
   <div class="control-button-row" style="margin: 0 auto">
-    <button mat-stroked-button color="primary" (click)="openProjectDiskUsageDialog()">
+    <button mat-stroked-button color="accent" (click)="openProjectDiskUsageDialog()">
       <mat-icon>insert_chart</mat-icon>
       Show Workspace Disk Usage
     </button>
   </div>
-  <div class="action-row" style="margin: 0 auto">
-    <mat-form-field>
-      <mat-select #actionSelection placeholder="Pipeline to execute as Action">
-        <mat-option *ngFor="let pipeline of pipelineDefinitions" value="{{pipeline.id}}">{{pipeline.name}}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <div class="controls">
-      <button mat-stroked-button color="primary"
-              [disabled]="actionSelection.value == null"
-              (click)="enqueueAction(actionSelection.value)">Submit Action</button>
-    </div>
+  <div class="control-button-row" style="margin: 0 auto">
+    <button *ngFor="let action of pipelineActions"
+            mat-stroked-button
+            [style.background-color]="actionBackgroundColor(action.name)"
+            (click)="enqueueAction(action.id)">
+      <mat-icon>slideshow</mat-icon>
+      {{action.name}}
+    </button>
   </div>
 </div>
 <div *ngIf="enqueued != null && enqueued.length > 0" class="divider"></div>
