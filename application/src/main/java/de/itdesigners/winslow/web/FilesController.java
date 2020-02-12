@@ -6,8 +6,7 @@ import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.resource.ResourceManager;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +28,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 public class FilesController {
@@ -163,16 +166,16 @@ public class FilesController {
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
-    public ResponseEntity<? extends Resource> downloadResourceFile(HttpServletRequest request, User user) {
+    public ResponseEntity<StreamingResponseBody> downloadResourceFile(HttpServletRequest request, User user) {
         return downloadFile(request, user, resourceManager.getResourceDirectory().orElseThrow());
     }
 
     @RequestMapping(value = {"/files/workspaces/**"}, method = RequestMethod.GET)
-    public ResponseEntity<? extends Resource> downloadWorkspaceFile(HttpServletRequest request, User user) {
+    public ResponseEntity<StreamingResponseBody> downloadWorkspaceFile(HttpServletRequest request, User user) {
         return downloadFile(request, user, resourceManager.getWorkspacesDirectory().orElseThrow());
     }
 
-    public ResponseEntity<? extends Resource> downloadFile(
+    public ResponseEntity<StreamingResponseBody> downloadFile(
             HttpServletRequest request,
             User user,
             @Nonnull Path directory) {
@@ -181,20 +184,53 @@ public class FilesController {
                 .filter(path -> checker.isAllowedToAccessPath(user, path))
                 .filter(Files::exists)
                 .map(Path::toFile)
-                .map(file -> ResponseEntity
-                        .ok()
-                        // Otherwise the download might result in a "f.txt" named file
-                        // https://stackoverflow.com/questions/41364732/zip-file-downloaded-as-f-txt-file-springboot
-                        // https://pivotal.io/security/cve-2015-5211
-                        .header(
-                                "content-disposition",
-                                "inline; filename=\"" + file.getName().replaceAll("\"", "") + "\""
-                        )
-                        .contentLength(file.length())
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(new FileSystemResource(file))
-                )
+                .map(file -> {
+                    var name = (file.isFile() ? file.getName() : file.getName() + ".zip").replaceAll("\"", "");
+                    var responseEntity = ResponseEntity
+                            .ok()
+                            // Otherwise the download might result in a "f.txt" named file
+                            // https://stackoverflow.com/questions/41364732/zip-file-downloaded-as-f-txt-file-springboot
+                            // https://pivotal.io/security/cve-2015-5211
+                            .header(
+                                    HttpHeaders.CONTENT_DISPOSITION,
+                                    "inline; filename=\"" + name + "\""
+                            );
+
+
+                    if (file.isFile()) {
+                        return responseEntity
+                                .contentLength(file.length())
+                                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                                .body((StreamingResponseBody) outputStream -> Files.copy(file.toPath(), outputStream));
+                    } else {
+                        return responseEntity
+                                .contentType(new MediaType("application", "zip"))
+                                .body((StreamingResponseBody) outputStream -> {
+                                    try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+                                        aggregateZipEntries(file.toPath(), file, zos);
+                                    }
+                                });
+                    }
+                })
                 .orElse(null);
+    }
+
+    private void aggregateZipEntries(Path root, File current, ZipOutputStream zos) throws IOException {
+        var files = current.listFiles();
+        if (files != null) {
+            for (var file : files) {
+                if (file.isFile()) {
+                    var zipEntry = new ZipEntry(root.relativize(file.toPath()).toString());
+                    zipEntry.setSize(file.length());
+                    zos.putNextEntry(zipEntry);
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        fis.transferTo(zos);
+                    }
+                } else if (file.isDirectory()) {
+                    aggregateZipEntries(root, file, zos);
+                }
+            }
+        }
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.OPTIONS)
