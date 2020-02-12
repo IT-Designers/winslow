@@ -7,6 +7,7 @@ import {
   ProjectDiskUsageDialogData
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
+import {pipe} from 'rxjs';
 
 @Component({
   selector: 'app-project-overview',
@@ -46,13 +47,12 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   poll = null;
 
   enqueued: HistoryEntry[] = [];
-  pipelineDefinitions: PipelineInfo[] = [];
+  pipelineActions: PipelineInfo[] = [];
 
   constructor(private api: ProjectApiService,
               private dialog: DialogService,
               private createDialog: MatDialog,
               private  pipelines: PipelineApiService) {
-    pipelines.getPipelineDefinitions().then(def => this.pipelineDefinitions = def);
     this.poll = setInterval(() => {
       const updateNonetheless = new Date().getTime() - this.lastSuccessfulStatsUpdate < 5_000;
       if (this.projectValue && (State.Running === this.stateValue || updateNonetheless)) {
@@ -90,6 +90,13 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   @Input()
   set project(value: ProjectInfo) {
     this.projectValue = value;
+    if (value != null) {
+      this.pipelines
+        .getPipelineDefinitions()
+        .then(def => {
+          this.pipelineActions = def.filter(pipe(p =>  p.hasActionMarkerFor(this.projectValue.pipelineDefinition.name)));
+        });
+    }
     this.enqueued = [];
     this.initSeries();
   }
@@ -265,5 +272,22 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
       this.api.action(this.projectValue.id, value),
       `Submitting action...`
     );
+  }
+
+
+  actionBackgroundColor(tag: string) {
+    tag = tag.trim();
+    let sum = tag.length;
+    for (let i = 0; i < tag.length; ++i) {
+      sum += (i + 1) * tag.charCodeAt(i) * 1337;
+    }
+
+    const min = 192;
+    const max = 256 - min;
+
+    const red = ((sum / 7) % max) + min;
+    const green = ((sum / 5) % max) + min;
+    const blue = ((sum / 3) % max) + min;
+    return `rgba(${red}, ${green}, ${blue}, 0.45)`;
   }
 }
