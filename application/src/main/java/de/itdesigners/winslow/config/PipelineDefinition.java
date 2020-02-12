@@ -8,26 +8,33 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class PipelineDefinition {
+
     private final @Nonnull  String                name;
     private final @Nullable String                desc;
     private final @Nullable UserInput             userInput;
     private final @Nullable List<StageDefinition> stages;
     private final @Nullable Map<String, String>   env;
     private final @Nullable DeletionPolicy        deletionPolicy;
+    private final @Nullable List<String>          markers;
 
-    public PipelineDefinition(
+
+    public PipelineDefinition( // the parameter names must match the corresponding getter names!
             @Nonnull String name,
             @Nullable String description,
             @Nullable UserInput requires,
-            @Nonnull List<StageDefinition> stageDefinitions,
+            // null-able for backwards compatibility
+            @Nullable List<StageDefinition> stages,
             @Nullable Map<String, String> environment,
-            @Nullable DeletionPolicy deletionPolicy) {
+            @Nullable DeletionPolicy deletionPolicy,
+            // null-able for backwards compatibility
+            @Nullable List<String> markers) {
         this.name           = name;
         this.desc           = description;
         this.userInput      = requires;
-        this.stages         = stageDefinitions;
-        this.env            = environment;
+        this.stages         = stages != null ? Collections.unmodifiableList(stages) : Collections.emptyList();
+        this.env            = environment != null ? Collections.unmodifiableMap(environment) : Collections.emptyMap();
         this.deletionPolicy = deletionPolicy;
+        this.markers        = markers != null ? Collections.unmodifiableList(markers) : Collections.emptyList();
         this.check();
     }
 
@@ -53,7 +60,7 @@ public class PipelineDefinition {
 
     @Nonnull
     public List<StageDefinition> getStages() {
-        return stages != null ? Collections.unmodifiableList(stages) : Collections.emptyList();
+        return stages != null ? stages : Collections.emptyList();
     }
 
     @Nonnull
@@ -64,6 +71,11 @@ public class PipelineDefinition {
     @Nonnull
     public Optional<DeletionPolicy> getDeletionPolicy() {
         return Optional.ofNullable(this.deletionPolicy);
+    }
+
+    @Nonnull
+    public List<String> getMarkers() {
+        return markers != null ? markers : Collections.emptyList();
     }
 
     @Nonnull

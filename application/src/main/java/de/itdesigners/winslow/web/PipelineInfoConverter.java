@@ -24,7 +24,8 @@ public class PipelineInfoConverter {
                         .getStages()
                         .stream()
                         .map(StageInfoConverter::from)
-                        .collect(Collectors.toUnmodifiableList())
+                        .collect(Collectors.toUnmodifiableList()),
+                pipeline.getMarkers()
         );
     }
 }

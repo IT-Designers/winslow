@@ -62,6 +62,7 @@ public class FilesControllerTest {
                         null,
                         Collections.emptyList(),
                         null,
+                        null,
                         null
                 )
         )));

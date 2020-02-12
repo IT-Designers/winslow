@@ -200,6 +200,7 @@ public class PipelinesController {
                                             null
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
+                                    null,
                                     null
                             );
                             container.update(def);
