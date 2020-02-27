@@ -1,4 +1,4 @@
-import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
   Action,
   DeletionPolicy,
@@ -30,7 +30,7 @@ import {pipe, Subscription} from 'rxjs';
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
 })
-export class ProjectViewComponent implements OnInit, OnDestroy {
+export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
@@ -128,6 +128,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngAfterViewInit() {
+    this.updateExecutionSelectionPipelines();
+  }
+
   ngOnDestroy(): void {
     window.removeEventListener('scroll', this.scrollCallback, true);
     if (this.paramsSubscription) {
@@ -160,12 +164,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
         }
       }
     });
-
-    if (this.executionSelection != null) {
-      this.executionSelection.pipelines = [this.project.pipelineDefinition];
-      this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
-    }
-
+    this.updateExecutionSelectionPipelines();
     this.api.getDeletionPolicy(this.project.id).then(policy => {
       this.deletionPolicyLocal = policy;
       this.deletionPolicyRemote = policy;
@@ -178,6 +177,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy {
 
   public get project(): ProjectInfo {
     return this.projectValue;
+  }
+
+  private updateExecutionSelectionPipelines() {
+    if (this.executionSelection != null && this.project != null) {
+      this.executionSelection.pipelines = [this.project.pipelineDefinition];
+      this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
+    }
   }
 
   @Input()
