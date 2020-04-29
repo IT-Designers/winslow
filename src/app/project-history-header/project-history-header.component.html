@@ -42,9 +42,13 @@
             (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
     list_alt
   </mat-icon>
-  <mat-icon *ngIf="showPassiveControls" class="clickable"
+  <mat-icon  class="clickable"
             matTooltip="Open Directory"
             (click)="$event.stopPropagation(); clickOpenWorkspace.emit($event)">
     folder_open
   </mat-icon>
+  <img *ngIf="showPassiveControls" class="clickable mat-icon notranslate material-icons mat-icon-no-color"
+       src="../../assets/tensorflow.png"
+       alt="(TensorBoard)"
+       (click)="$event.stopPropagation(); clickOpenTensorboard.emit($event)">
 </div>
