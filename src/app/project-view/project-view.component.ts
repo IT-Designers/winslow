@@ -23,6 +23,7 @@ import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {pipe, Subscription} from 'rxjs';
+import {environment} from '../../environments/environment';
 
 
 @Component({
@@ -499,6 +500,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.tabs.selectedIndex = Tab.Files;
     this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${entry.workspace}/`;
+  }
+
+  openTensorboard(project: ProjectInfo, entry: HistoryEntry) {
+    window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.stageId}/start`, '_blank');
   }
 
   private setupFiles(project = this.projectValue) {
