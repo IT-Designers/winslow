@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.web;
+package de.itdesigners.winslow.web.api;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,6 +13,7 @@ import de.itdesigners.winslow.api.pipeline.PipelineInfo;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.project.ProjectRepository;
+import de.itdesigners.winslow.web.PipelineInfoConverter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

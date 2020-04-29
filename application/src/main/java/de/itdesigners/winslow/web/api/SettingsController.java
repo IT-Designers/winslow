@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.web;
+package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.auth.User;

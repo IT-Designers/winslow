@@ -102,6 +102,11 @@ public class Orchestrator {
     }
 
     @Nonnull
+    public Backend getBackend() {
+        return backend;
+    }
+
+    @Nonnull
     Election.Participation judgeParticipationScore(@Nonnull ResourceAllocationMonitor.Set<Long> required) {
         return new Election.Participation(
                 monitor.getAffinity(required),

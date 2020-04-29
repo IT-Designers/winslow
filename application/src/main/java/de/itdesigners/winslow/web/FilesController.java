@@ -311,7 +311,7 @@ public class FilesController {
     }
 
     @Nonnull
-    protected static Optional<Path> normalizedPath(HttpServletRequest request) {
+    public static Optional<Path> normalizedPath(HttpServletRequest request) {
         var pathWithinHandler = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         var bestMatch         = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         return normalizedPath(bestMatch, pathWithinHandler);

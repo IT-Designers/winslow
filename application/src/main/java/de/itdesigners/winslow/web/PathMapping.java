@@ -1,20 +1,29 @@
 package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Env;
+import de.itdesigners.winslow.web.api.StorageController;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.HandlerTypePredicate;
+import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.resource.PathResourceResolver;
+import org.springframework.web.servlet.resource.ResourceResolver;
+import org.springframework.web.servlet.resource.ResourceResolverChain;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Configuration
 @EnableWebMvc
 public class PathMapping implements WebMvcConfigurer {
 
     private static final Integer STATIC_HTML_CACHE_PERIOD = 60 * 60;
+
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -28,11 +37,12 @@ public class PathMapping implements WebMvcConfigurer {
                     .setCachePeriod(STATIC_HTML_CACHE_PERIOD)
                     .resourceChain(true)
                     .addResolver(resolver);
-            registry.addResourceHandler("/swagger-ui.html")
-                    .addResourceLocations("/");
-            registry.addResourceHandler("/webjars/springfox-swagger-ui/**")
-                    .addResourceLocations("/webjars/springfox-swagger-ui/");
         }
+
+        registry.addResourceHandler("/swagger-ui.html")
+                .addResourceLocations("/");
+        registry.addResourceHandler("/webjars/springfox-swagger-ui/**")
+                .addResourceLocations("/webjars/springfox-swagger-ui/");
     }
 
     @Override
@@ -46,6 +56,6 @@ public class PathMapping implements WebMvcConfigurer {
 
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.addPathPrefix(Env.getApiPath(), HandlerTypePredicate.forAnnotation(RestController.class));
+        configurer.addPathPrefix(Env.getApiPath(), HandlerTypePredicate.forBasePackageClass(StorageController.class));
     }
 }
