@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Nonnull;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -41,6 +42,7 @@ public class TensorBoardController {
 
     @GetMapping("/tensorboard/{projectId}/{stageId}/start")
     public ModelAndView start(
+            HttpServletRequest request,
             @Nonnull User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId
@@ -73,8 +75,7 @@ public class TensorBoardController {
                 if (board.stageId.equals(stageId)) {
                     try {
                         return probeAvailableOrRetry(
-                                board.projectId,
-                                board.stageId,
+                                request,
                                 board.port,
                                 board.destinationIp,
                                 board.publicUrl
@@ -161,7 +162,7 @@ public class TensorBoardController {
                         routeDestinationIp
                 ));
 
-                return probeAvailableOrRetry(projectId, stageId, port, routeDestinationIp, publicUrl);
+                return probeAvailableOrRetry(request, port, routeDestinationIp, publicUrl);
 
             } catch (IOException | NomadException | InterruptedException e) {
                 e.printStackTrace();
@@ -204,20 +205,20 @@ public class TensorBoardController {
     }
 
     private ModelAndView probeAvailableOrRetry(
-            @PathVariable("projectId") String projectId,
-            @PathVariable("stageId") String stageId,
+            HttpServletRequest request,
             int port,
-            String routeDestinationIp, String publicUrl) throws InterruptedException {
+            String routeDestinationIp,
+            String publicUrl) throws InterruptedException {
         if (probeAvailableRepeatedly(port, routeDestinationIp)) {
             return new ModelAndView("redirect:" + publicUrl + "/");
         }
 
         // try again
-        return new ModelAndView("redirect:/tensorboard/" + projectId + "/" + stageId + "/start");
+        return new ModelAndView("redirect:" + request.getRequestURI());
     }
 
     private boolean probeAvailableRepeatedly(int port, String routeDestinationIp) throws InterruptedException {
-        for (int i = 0; i < 25; ++i) {
+        for (int i = 0; i < 10; ++i) {
             try {
                 try (var socket = new Socket(InetAddress.getByName(routeDestinationIp), port)) {
                     if (socket.isConnected()) {
