@@ -327,7 +327,7 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
-    NomadApiClient getNewClient() {
+    public NomadApiClient getNewClient() {
         return new NomadApiClient(this.client.getConfig());
     }
 
@@ -368,7 +368,7 @@ public class NomadBackend implements Backend {
     }
 
     public static boolean hasTaskFinished(TaskState state) {
-        return state.getFinishedAt().after(new Date(1)) || state.getState().toLowerCase().contains("dead");
+        return state.getFinishedAt() != null && (state.getFinishedAt().after(new Date(1)) || state.getState().toLowerCase().contains("dead"));
     }
 
     public static boolean hasTaskFailed(TaskState state) {

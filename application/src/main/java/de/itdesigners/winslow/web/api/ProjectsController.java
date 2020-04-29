@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.web;
+package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.api.pipeline.Action;
@@ -11,6 +11,9 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
+import de.itdesigners.winslow.web.HistoryEntryConverter;
+import de.itdesigners.winslow.web.PipelineInfoConverter;
+import de.itdesigners.winslow.web.ProjectInfoConverter;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -972,7 +975,7 @@ public class ProjectsController {
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
 
-    private boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
+    public static boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
         return user.hasSuperPrivileges() || project.getOwner().equals(user.getName()) || user
                 .getGroups()
                 .anyMatch(g -> {

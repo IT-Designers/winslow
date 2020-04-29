@@ -123,7 +123,7 @@ public class SubmissionToNomadJobAdapter {
 
     @Nonnull
     @CheckReturnValue
-    private static Consumer<DockerNfsVolumes> getDockerNfsVolumesConfigurer(Task task) {
+    public static Consumer<DockerNfsVolumes> getDockerNfsVolumesConfigurer(Task task) {
         return list -> {
             var configList = (List<Map<String, Object>>) task.getConfig().computeIfAbsent(
                     "mounts",

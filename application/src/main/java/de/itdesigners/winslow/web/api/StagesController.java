@@ -1,7 +1,8 @@
-package de.itdesigners.winslow.web;
+package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.StageInfo;
+import de.itdesigners.winslow.web.StageInfoConverter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
