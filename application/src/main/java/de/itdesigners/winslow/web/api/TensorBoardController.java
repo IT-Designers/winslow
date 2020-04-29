@@ -19,8 +19,13 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 public class TensorBoardController {
@@ -31,8 +36,8 @@ public class TensorBoardController {
     @Autowired
     private Winslow winslow;
 
-    private Set<String> activeBoards = new HashSet<>();
-    private int         nextPort     = 50_100;
+    private Map<String, ActiveBoard> activeBoards = new HashMap<>();
+    private int                      nextPort     = 50_100;
 
     @GetMapping("/tensorboard/{projectId}/{stageId}/start")
     public ModelAndView start(
@@ -63,11 +68,27 @@ public class TensorBoardController {
 
         if (nomad != null && nfsWorkDir != null && stage.isPresent()) {
 
-            if (activeBoards.remove(projectId)) {
-                try {
-                    nomad.getJobsApi().deregister(toNomadJobId(projectId));
-                } catch (IOException | NomadException e) {
-                    e.printStackTrace();
+            if (activeBoards.containsKey(projectId)) {
+                var board = activeBoards.get(projectId);
+                if (board.stageId.equals(stageId)) {
+                    try {
+                        return probeAvailableOrRetry(
+                                board.projectId,
+                                board.stageId,
+                                board.port,
+                                board.destinationIp,
+                                board.publicUrl
+                        );
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                } else {
+                    try {
+                        nomad.getJobsApi().deregister(toNomadJobId(projectId));
+                    } catch (IOException | NomadException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -95,33 +116,7 @@ public class TensorBoardController {
                             "0.0.0.0"
                     )
             );
-
-
-            // On the DEV-ENV Winslow runs on the host and has no container to which the
-            // tensorboard can attach. In production mode, tensorboard can attach to winslow
-            // and winslow can then access tensorboard by localhost. In host mode, the tensorboard
-            // port must be exposed first
-            var routeDestinationIp = Optional
-                    .ofNullable(Env.getDevEnvIp())
-                    .map(ip -> {
-                        // 2020-04-29, soon-ish https://github.com/hashicorp/nomad/issues/646#issuecomment-596690053
-                        task.setResources(new Resources());
-                        task.getResources().addNetworks(
-                                new NetworkResource().addReservedPorts(new Port().setValue(port))
-                        );
-                        return ip;
-                    })
-                    .orElseGet(() -> {
-                        task
-                                .getConfig()
-                                .put(
-                                        "network_mode",
-                                        "container:" + Optional
-                                                .ofNullable(System.getenv("HOSTNAME"))
-                                                .orElse("winslow")
-                                );
-                        return "127.0.0.1";
-                    });
+            String routeDestinationIp = prepareRoutingDestinationIp(task, port);
 
 
             SubmissionToNomadJobAdapter
@@ -150,7 +145,6 @@ public class TensorBoardController {
 
             try {
                 nomad.getJobsApi().register(job);
-                this.activeBoards.add(projectId);
                 var publicUrl = this.routing.addRoute(
                         routePath,
                         new ProxyRouting.Route(
@@ -158,14 +152,18 @@ public class TensorBoardController {
                                 u -> ProjectsController.canUserAccessProject(u, project)
                         )
                 );
-                try {
-                    Thread.sleep(5_000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return new ModelAndView("redirect:" + publicUrl + "/");
 
-            } catch (IOException | NomadException e) {
+                this.activeBoards.put(projectId, new ActiveBoard(
+                        projectId,
+                        stageId,
+                        port,
+                        publicUrl,
+                        routeDestinationIp
+                ));
+
+                return probeAvailableOrRetry(projectId, stageId, port, routeDestinationIp, publicUrl);
+
+            } catch (IOException | NomadException | InterruptedException e) {
                 e.printStackTrace();
                 try {
                     nomad.getJobsApi().deregister(id);
@@ -177,6 +175,62 @@ public class TensorBoardController {
         return null;
     }
 
+    private String prepareRoutingDestinationIp(Task task, int port) {
+        // On the DEV-ENV Winslow runs on the host and has no container to which the
+        // tensorboard can attach. In production mode, tensorboard can attach to winslow
+        // and winslow can then access tensorboard by localhost. In host mode, the tensorboard
+        // port must be exposed first
+        return Optional
+                .ofNullable(Env.getDevEnvIp())
+                .map(ip -> {
+                    // 2020-04-29, soon-ish https://github.com/hashicorp/nomad/issues/646#issuecomment-596690053
+                    task.setResources(new Resources());
+                    task.getResources().addNetworks(
+                            new NetworkResource().addReservedPorts(new Port().setValue(port))
+                    );
+                    return ip;
+                })
+                .orElseGet(() -> {
+                    task
+                            .getConfig()
+                            .put(
+                                    "network_mode",
+                                    "container:" + Optional
+                                            .ofNullable(System.getenv("HOSTNAME"))
+                                            .orElse("winslow")
+                            );
+                    return "127.0.0.1";
+                });
+    }
+
+    private ModelAndView probeAvailableOrRetry(
+            @PathVariable("projectId") String projectId,
+            @PathVariable("stageId") String stageId,
+            int port,
+            String routeDestinationIp, String publicUrl) throws InterruptedException {
+        if (probeAvailableRepeatedly(port, routeDestinationIp)) {
+            return new ModelAndView("redirect:" + publicUrl + "/");
+        }
+
+        // try again
+        return new ModelAndView("redirect:/tensorboard/" + projectId + "/" + stageId + "/start");
+    }
+
+    private boolean probeAvailableRepeatedly(int port, String routeDestinationIp) throws InterruptedException {
+        for (int i = 0; i < 25; ++i) {
+            try {
+                try (var socket = new Socket(InetAddress.getByName(routeDestinationIp), port)) {
+                    if (socket.isConnected()) {
+                        return true;
+                    }
+                }
+            } catch (IOException e) {
+                Thread.sleep(1_000);
+            }
+        }
+        return false;
+    }
+
     private synchronized int getNextPort() {
         return nextPort++;
     }
@@ -185,5 +239,26 @@ public class TensorBoardController {
     private static String toNomadJobId(@Nonnull String projectId) {
         // TODO
         return projectId + "-tensorboard";
+    }
+
+    private static class ActiveBoard {
+        public final String projectId;
+        public final String stageId;
+        public final int    port;
+        public final String publicUrl;
+        public final String destinationIp;
+
+        private ActiveBoard(
+                String projectId,
+                String stageId,
+                int port,
+                String publicUrl,
+                String destinationIp) {
+            this.projectId     = projectId;
+            this.stageId       = stageId;
+            this.port          = port;
+            this.publicUrl     = publicUrl;
+            this.destinationIp = destinationIp;
+        }
     }
 }
