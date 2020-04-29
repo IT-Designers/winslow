@@ -18,6 +18,7 @@ public class Env {
     public static final String NO_STAGE_EXECUTION = SELF_PREFIX + "_NO_STAGE_EXECUTION";
     public static final String NO_GPU_USAGE       = SELF_PREFIX + "_NO_GPU_USAGE";
     public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
+    public static final String PUBLIC_IP          = SELF_PREFIX + "_PUBLIC_IP";
 
     private Env() {
     }
@@ -61,5 +62,10 @@ public class Env {
                 .ofNullable(System.getenv().get(NO_WEB_API))
                 .map(Boolean::parseBoolean)
                 .orElse(Boolean.TRUE);
+    }
+
+    @Nullable
+    public static String getPublicIp() {
+        return System.getenv(PUBLIC_IP);
     }
 }

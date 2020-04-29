@@ -2,6 +2,7 @@ package de.itdesigners.winslow.web.api;
 
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.NomadException;
+import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.fs.NfsWorkDirectory;
@@ -60,8 +61,12 @@ public class TensorBoardController {
         var nfsWorkDir  = workDirConf instanceof NfsWorkDirectory ? ((NfsWorkDirectory) workDirConf) : null;
 
         var workspaces = winslow.getResourceManager().getWorkspacesDirectory().orElseThrow().toAbsolutePath();
+        var publicIp   = Env.getPublicIp(); // TODO
 
-        if (nomad != null && nfsWorkDir != null && pipeline.getStage(projectId + "_" + stageId).isPresent()) {
+        if (nomad != null && nfsWorkDir != null && pipeline
+                .getStage(projectId + "_" + stageId)
+                .isPresent() && publicIp != null) {
+
             if (activeBoards.remove(projectId)) {
                 try {
                     nomad.getJobsApi().deregister(toNomadJobId(projectId));
@@ -99,7 +104,6 @@ public class TensorBoardController {
             // 2020-04-29, soon-ish https://github.com/hashicorp/nomad/issues/646#issuecomment-596690053
             task.getResources().addNetworks(
                     new NetworkResource()
-                            .setDevice("127.0.0.1")
                             .addReservedPorts(new Port().setValue(port))
             );
 
@@ -133,14 +137,20 @@ public class TensorBoardController {
             try {
                 nomad.getJobsApi().register(job);
                 this.activeBoards.add(projectId);
-                this.routing.addRoute(routePath,
-                                      new ProxyRouting.Route(
-                                              "http://192.168.1.178:" + port + routeLocation,
-                                              u -> ProjectsController.canUserAccessProject(u, project)
-                                      )
+                this.routing.addRoute(
+                        routePath,
+                        new ProxyRouting.Route(
+                                "http://" + publicIp + ":" + port + routeLocation,
+                                u -> ProjectsController.canUserAccessProject(u, project)
+                        )
                 );
             } catch (IOException | NomadException e) {
                 e.printStackTrace();
+                try {
+                    nomad.getJobsApi().deregister(id);
+                } catch (IOException | NomadException ioException) {
+                    ioException.printStackTrace();
+                }
             }
         }
     }
