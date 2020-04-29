@@ -30,6 +30,7 @@ export class ProjectHistoryHeaderComponent implements OnInit {
   @Output() clickUseAsBlueprint = new EventEmitter<MouseEvent>();
   @Output() clickOpenLogs = new EventEmitter<MouseEvent>();
   @Output() clickOpenWorkspace = new EventEmitter<MouseEvent>();
+  @Output() clickOpenTensorboard = new EventEmitter<MouseEvent>();
 
   constructor() { }
 
