@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Executor;
+import de.itdesigners.winslow.auth.User;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 @Service
@@ -22,24 +24,23 @@ public class ProxyRouting {
     public static final Logger LOG            = Logger.getLogger(Executor.class.getSimpleName());
     public static final String REQUEST_PREFIX = "/proxied/";
 
-    private Map<Path, String> mapping = new HashMap<>();
+    private Map<Path, Route> mapping = new HashMap<>();
 
     public ProxyRouting() {
         this.addRoute(
                 Path.of("tensorboard", "project-sec-1"),
-                "http://192.168.1.178:8888/proxied/tensorboard/project-sec-1/"
+                new Route("http://192.168.1.178:8888/proxied/tensorboard/project-sec-1/", (u) -> true)
         );
     }
 
-    @Nonnull
-    public String addRoute(@Nonnull Path path, @Nonnull String uri) {
+    public void addRoute(@Nonnull Path path, @Nonnull Route uri) {
         mapping.put(path, uri);
-        return getPublicLocation(path.toString());
     }
 
 
     @RequestMapping(REQUEST_PREFIX + "**")
     public ResponseEntity<Object> proxy(
+            User user,
             ProxyExchange<Object> proxy,
             HttpMethod method,
             HttpServletRequest request,
@@ -50,8 +51,8 @@ public class ProxyRouting {
             return null;
         }
 
-        var search   = (Path) null;
-        var location = (String) null;
+        var search = (Path) null;
+        var route  = (Route) null;
 
         for (var segment : normalized) {
             if (search == null) {
@@ -59,15 +60,19 @@ public class ProxyRouting {
             } else {
                 search = search.resolve(segment);
             }
-            location = mapping.get(search);
-            if (location != null) {
+            route = mapping.get(search);
+            if (route != null) {
                 break;
             }
         }
 
-        if (location == null) {
+        if (route == null || !route.allowedToAccess.test(user)) {
             return null;
-        } else if (!location.endsWith("/")) {
+        }
+
+        var location = route.uri;
+
+        if (!location.endsWith("/")) {
             location += "/";
         }
 
@@ -101,6 +106,16 @@ public class ProxyRouting {
             return REQUEST_PREFIX + path.substring(1);
         } else {
             return REQUEST_PREFIX + path;
+        }
+    }
+
+    public static class Route {
+        public final String          uri;
+        public final Predicate<User> allowedToAccess;
+
+        public Route(String uri, Predicate<User> allowedToAccess) {
+            this.uri             = uri;
+            this.allowedToAccess = allowedToAccess;
         }
     }
 }

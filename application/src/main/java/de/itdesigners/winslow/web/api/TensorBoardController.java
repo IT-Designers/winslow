@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,10 +71,10 @@ public class TensorBoardController {
             }
 
 
-            var task = new Task();
-            var port = getNextPort();
-            var id   = toNomadJobId(projectId);
-            var routePath = Path.of( "tensorboard", projectId);
+            var task          = new Task();
+            var port          = getNextPort();
+            var id            = toNomadJobId(projectId);
+            var routePath     = Path.of("tensorboard", projectId);
             var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
 
             task.setName("task-main");
@@ -88,7 +87,7 @@ public class TensorBoardController {
                             "tensorboard",
                             "--logdir",
                             "/data/",
-                            "--path_prefix="+routeLocation+"/",
+                            "--path_prefix=" + routeLocation + "/",
                             "--port",
                             String.valueOf(port),
                             "--host",
@@ -134,7 +133,12 @@ public class TensorBoardController {
             try {
                 nomad.getJobsApi().register(job);
                 this.activeBoards.add(projectId);
-                this.routing.addRoute(routePath, "http://192.168.1.178:"+port+ routeLocation);
+                this.routing.addRoute(routePath,
+                                      new ProxyRouting.Route(
+                                              "http://192.168.1.178:" + port + routeLocation,
+                                              u -> ProjectsController.canUserAccessProject(u, project)
+                                      )
+                );
             } catch (IOException | NomadException e) {
                 e.printStackTrace();
             }
