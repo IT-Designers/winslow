@@ -63,10 +63,9 @@ public class TensorBoardController {
 
         var workspaces = winslow.getResourceManager().getWorkspacesDirectory().orElseThrow().toAbsolutePath();
         var publicIp   = Env.getPublicIp(); // TODO
+        var stage      = pipeline.getStage(stageId);
 
-        if (nomad != null && nfsWorkDir != null && pipeline
-                .getStage(projectId + "_" + stageId)
-                .isPresent() && publicIp != null) {
+        if (nomad != null && nfsWorkDir != null && stage.isPresent() && publicIp != null) {
 
             if (activeBoards.remove(projectId)) {
                 try {
@@ -114,9 +113,7 @@ public class TensorBoardController {
                     .accept(new DockerNfsVolumes(List.of(new DockerNfsVolume(
                             "tensorboard-" + id + "-" + port,
                             "/data/",
-                            nfsWorkDir.toExportedPath(workspaces
-                                                              .resolve(projectId)
-                                                              .resolve(stageId))
+                            nfsWorkDir.toExportedPath(workspaces.resolve(stage.get().getWorkspace().orElseThrow()))
                                       .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"))
                                       .toAbsolutePath()
                                       .toString(),
@@ -145,6 +142,11 @@ public class TensorBoardController {
                                 u -> ProjectsController.canUserAccessProject(u, project)
                         )
                 );
+                try {
+                    Thread.sleep(5_000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 return new ModelAndView("redirect:" + publicUrl + "/");
 
             } catch (IOException | NomadException e) {
