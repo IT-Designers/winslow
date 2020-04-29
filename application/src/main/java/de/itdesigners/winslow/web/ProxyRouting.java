@@ -4,19 +4,24 @@ import de.itdesigners.winslow.Executor;
 import de.itdesigners.winslow.auth.User;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriUtils;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 @RestController
@@ -47,10 +52,12 @@ public class ProxyRouting {
             HttpMethod method,
             HttpServletRequest request,
             @RequestBody(required = false) Object body) throws Exception {
+
+
         var normalized = FilesController.normalizedPath(request).orElse(Path.of(""));
 
         if (normalized.getNameCount() == 0) {
-            return null;
+            return new ResponseEntity<>(HttpStatus.OK);
         }
 
         var search = (Path) null;
@@ -69,7 +76,7 @@ public class ProxyRouting {
         }
 
         if (route == null || !route.allowedToAccess.test(user)) {
-            return null;
+            return new ResponseEntity<>(HttpStatus.OK);
         }
 
         var location = route.uri;
@@ -78,8 +85,24 @@ public class ProxyRouting {
             location += "/";
         }
 
-        var uri         = location + search.relativize(normalized);
+        var uri = location + search.relativize(normalized) + "?" + request
+                .getParameterMap()
+                .entrySet()
+                .stream()
+                .flatMap(entry -> List.of(entry.getValue())
+                                      .stream()
+                                      .map(v -> UriUtils.encodeQueryParam(
+                                              entry.getKey(),
+                                              StandardCharsets.UTF_8
+                                      ) + "=" + UriUtils.encodeQueryParam(
+                                              v,
+                                              StandardCharsets.UTF_8
+                                      )))
+                .collect(Collectors.joining("&"));
+
+
         var mappedProxy = proxy.uri(uri).body(body);
+
 
         switch (method) {
             case GET:
@@ -98,7 +121,7 @@ public class ProxyRouting {
                 return mappedProxy.options();
             default:
             case TRACE:
-                return null;
+                return new ResponseEntity<>(HttpStatus.OK);
         }
     }
 
