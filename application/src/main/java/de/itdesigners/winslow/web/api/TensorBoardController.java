@@ -112,10 +112,16 @@ public class TensorBoardController {
                         return ip;
                     })
                     .orElseGet(() -> {
-                        task.getConfig().put("network_mode", "container:winslow");
+                        task
+                                .getConfig()
+                                .put(
+                                        "network_mode",
+                                        "container:" + Optional
+                                                .ofNullable(System.getenv("HOSTNAME"))
+                                                .orElse("winslow")
+                                );
                         return "127.0.0.1";
                     });
-
 
 
             SubmissionToNomadJobAdapter
