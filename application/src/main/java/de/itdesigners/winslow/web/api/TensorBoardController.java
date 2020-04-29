@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class TensorBoardController {
     private int         nextPort     = 50_100;
 
     @GetMapping("/tensorboard/{projectId}/{stageId}/start")
-    public void start(
+    public ModelAndView start(
             @Nonnull User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId
@@ -137,13 +138,15 @@ public class TensorBoardController {
             try {
                 nomad.getJobsApi().register(job);
                 this.activeBoards.add(projectId);
-                this.routing.addRoute(
+                var publicUrl = this.routing.addRoute(
                         routePath,
                         new ProxyRouting.Route(
                                 "http://" + publicIp + ":" + port + routeLocation,
                                 u -> ProjectsController.canUserAccessProject(u, project)
                         )
                 );
+                return new ModelAndView("redirect:" + publicUrl + "/");
+
             } catch (IOException | NomadException e) {
                 e.printStackTrace();
                 try {
@@ -153,6 +156,7 @@ public class TensorBoardController {
                 }
             }
         }
+        return null;
     }
 
     private synchronized int getNextPort() {

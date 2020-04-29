@@ -33,8 +33,10 @@ public class ProxyRouting {
         );
     }
 
-    public void addRoute(@Nonnull Path path, @Nonnull Route uri) {
+    @Nonnull
+    public String addRoute(@Nonnull Path path, @Nonnull Route uri) {
         mapping.put(path, uri);
+        return getPublicLocation(path.toString());
     }
 
 
