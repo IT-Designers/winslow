@@ -20,10 +20,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 public class TensorBoardController {
@@ -62,10 +59,9 @@ public class TensorBoardController {
         var nfsWorkDir  = workDirConf instanceof NfsWorkDirectory ? ((NfsWorkDirectory) workDirConf) : null;
 
         var workspaces = winslow.getResourceManager().getWorkspacesDirectory().orElseThrow().toAbsolutePath();
-        var publicIp   = Env.getPublicIp(); // TODO
         var stage      = pipeline.getStage(stageId);
 
-        if (nomad != null && nfsWorkDir != null && stage.isPresent() && publicIp != null) {
+        if (nomad != null && nfsWorkDir != null && stage.isPresent()) {
 
             if (activeBoards.remove(projectId)) {
                 try {
@@ -100,12 +96,26 @@ public class TensorBoardController {
                     )
             );
 
-            task.setResources(new Resources());
-            // 2020-04-29, soon-ish https://github.com/hashicorp/nomad/issues/646#issuecomment-596690053
-            task.getResources().addNetworks(
-                    new NetworkResource()
-                            .addReservedPorts(new Port().setValue(port))
-            );
+
+            // On the DEV-ENV Winslow runs on the host and has no container to which the
+            // tensorboard can attach. In production mode, tensorboard can attach to winslow
+            // and winslow can then access tensorboard by localhost. In host mode, the tensorboard
+            // port must be exposed first
+            var routeDestinationIp = Optional
+                    .ofNullable(Env.getDevEnvIp())
+                    .map(ip -> {
+                        // 2020-04-29, soon-ish https://github.com/hashicorp/nomad/issues/646#issuecomment-596690053
+                        task.setResources(new Resources());
+                        task.getResources().addNetworks(
+                                new NetworkResource().addReservedPorts(new Port().setValue(port))
+                        );
+                        return ip;
+                    })
+                    .orElseGet(() -> {
+                        task.getConfig().put("network_mode", "container:winslow");
+                        return "127.0.0.1";
+                    });
+
 
 
             SubmissionToNomadJobAdapter
@@ -138,7 +148,7 @@ public class TensorBoardController {
                 var publicUrl = this.routing.addRoute(
                         routePath,
                         new ProxyRouting.Route(
-                                "http://" + publicIp + ":" + port + routeLocation,
+                                "http://" + routeDestinationIp + ":" + port + routeLocation,
                                 u -> ProjectsController.canUserAccessProject(u, project)
                         )
                 );
