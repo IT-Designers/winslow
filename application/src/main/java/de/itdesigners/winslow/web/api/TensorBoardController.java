@@ -123,7 +123,7 @@ public class TensorBoardController {
             SubmissionToNomadJobAdapter
                     .getDockerNfsVolumesConfigurer(task)
                     .accept(new DockerNfsVolumes(List.of(new DockerNfsVolume(
-                            "tensorboard-" + id + "-" + port,
+                            "tensorboard-" + projectId + "-" + stageId + "-" + port,
                             "/data/",
                             nfsWorkDir.toExportedPath(workspaces.resolve(stage.get().getWorkspace().orElseThrow()))
                                       .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"))
