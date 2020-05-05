@@ -96,7 +96,7 @@ public class TensorBoardController {
 
             var task          = new Task();
             var port          = getNextPort();
-            var id            = toNomadJobId(projectId);
+            var nomadId       = toNomadJobId(projectId);
             var routePath     = Path.of("tensorboard", projectId);
             var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
 
@@ -134,12 +134,12 @@ public class TensorBoardController {
                     ))));
 
             var job = new Job()
-                    .setId(id)
+                    .setId(nomadId)
                     .addDatacenters("local")
                     .setType("batch")
                     .addTaskGroups(
                             new TaskGroup()
-                                    .setName("tensorboard-group-" + id)
+                                    .setName("group-" + nomadId)
                                     .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                     .addTasks(task)
                     );
@@ -167,7 +167,7 @@ public class TensorBoardController {
             } catch (IOException | NomadException | InterruptedException e) {
                 e.printStackTrace();
                 try {
-                    nomad.getJobsApi().deregister(id);
+                    nomad.getJobsApi().deregister(nomadId);
                 } catch (IOException | NomadException ioException) {
                     ioException.printStackTrace();
                 }
@@ -238,8 +238,7 @@ public class TensorBoardController {
 
     @Nonnull
     private static String toNomadJobId(@Nonnull String projectId) {
-        // TODO
-        return projectId + "-tensorboard";
+        return "tensorboard-" + projectId;
     }
 
     private static class ActiveBoard {
