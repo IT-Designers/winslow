@@ -2,7 +2,6 @@ import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild
 import {ProjectInfo, State} from '../api/project-api.service';
 import {StateIconComponent} from '../state-icon/state-icon.component';
 import {FilesApiService} from '../api/files-api.service';
-import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'app-project-view-header',
