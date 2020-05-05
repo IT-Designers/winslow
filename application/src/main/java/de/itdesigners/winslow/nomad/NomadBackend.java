@@ -87,6 +87,18 @@ public class NomadBackend implements Backend {
             e.printStackTrace();
         }
          */
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                LOG.info("Shutting down "+getClass().getSimpleName()+"...");
+                this.killAnyRunningStage();
+                LOG.info("Shutting down "+getClass().getSimpleName()+"... done");
+            } catch (IOException  e) {
+                LOG.log(Level.WARNING, "Shutting down "+getClass().getSimpleName()+"... failed to kill at least one stage", e);
+            }
+            System.out.flush();
+            System.err.flush();
+        }));
     }
 
     private void killAnyRunningStage() throws IOException {
