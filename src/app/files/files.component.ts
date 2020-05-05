@@ -317,6 +317,18 @@ export class FilesComponent implements OnInit {
       false
     );
   }
+
+  rename(file: FileInfo) {
+    this.dialog.renameAThing(
+      file.name,
+      'New name',
+      name => {
+        if (name != null && name.length > 0) {
+          return this.api.renameTopLevelPath(file.path, name).then(r => this.navigateDirectlyTo(this.latestPath));
+        }
+      }
+    );
+  }
 }
 
 export interface UploadFilesProgress {

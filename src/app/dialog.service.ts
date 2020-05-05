@@ -100,6 +100,15 @@ export class DialogService {
       preConfirm: this.preConfirmPromiseWithErrorCatcher(action),
     });
   }
+  renameAThing(thing: string, placeholder: string, action: (input: string) => Promise<void>) {
+    return this.fireWithSuccessNotification({
+      title: 'Rename ' + thing,
+      input: 'text',
+      inputPlaceholder: placeholder,
+      showLoaderOnConfirm: true,
+      preConfirm: this.preConfirmPromiseWithErrorCatcher(action),
+    });
+  }
 
   error(text: string) {
     Swal.fire({
