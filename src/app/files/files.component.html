@@ -49,6 +49,7 @@
           <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}</i>
           <label>{{ file.name }}</label>
           <label class="action-area file-size file-size-human-readable">{{ file.fileSizeHumanReadable }}</label>
+          <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
           <i class="material-icons-outlined action-area">
             <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">
               cloud_download

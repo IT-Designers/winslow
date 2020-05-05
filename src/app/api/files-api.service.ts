@@ -83,6 +83,13 @@ export class FilesApiService {
       .toPromise();
   }
 
+  renameTopLevelPath(path: string, newName: string) {
+    return this.client
+      .patch<string>(FilesApiService.getUrl(path), {
+        'rename-to': newName,
+      })
+      .toPromise();
+  }
 }
 
 
