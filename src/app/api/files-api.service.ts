@@ -84,6 +84,9 @@ export class FilesApiService {
   }
 
   renameTopLevelPath(path: string, newName: string) {
+    if (path.startsWith('/')) {
+      path = path.substr(1);
+    }
     return this.client
       .patch<string>(FilesApiService.getUrl(path), {
         'rename-to': newName,
