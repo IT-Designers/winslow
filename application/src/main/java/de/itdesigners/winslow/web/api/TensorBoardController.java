@@ -47,6 +47,20 @@ public class TensorBoardController {
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId
     ) {
+        try {
+            return startAndMaybeThrow(request, user, projectId, stageId);
+        } catch (Throwable t) {
+            t.printStackTrace(); // prevent error propagation
+            return new ModelAndView();
+        }
+    }
+
+    public ModelAndView startAndMaybeThrow(
+            HttpServletRequest request,
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("stageId") String stageId
+    ) {
         var project = winslow
                 .getProjectRepository()
                 .getProject(projectId)
