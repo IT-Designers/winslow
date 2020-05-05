@@ -5,6 +5,7 @@ import de.itdesigners.winslow.api.file.FileInfo;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.FileAccessChecker;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -25,8 +26,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -309,6 +312,53 @@ public class FilesController {
             }
         }
         return size;
+    }
+
+    @PatchMapping(value = {"/files/resources/**"})
+    public ResponseEntity<String> patchResources(
+            @Nonnull HttpServletRequest request,
+            @Nonnull User user,
+            @Nonnull @RequestBody Map<String, Object> options) {
+        return patch(request, user, options, resourceManager.getResourceDirectory().orElseThrow());
+    }
+
+    @PatchMapping(value = {"/files/workspaces/**"})
+    public ResponseEntity<String> patchWorkspaces(
+            @Nonnull HttpServletRequest request,
+            @Nonnull User user,
+            @Nonnull @RequestBody Map<String, Object> options) {
+        return patch(request, user, options, resourceManager.getWorkspacesDirectory().orElseThrow());
+    }
+
+    public ResponseEntity<String> patch(
+            @Nonnull HttpServletRequest request,
+            @Nonnull User user,
+            @Nonnull Map<String, Object> options,
+            @Nonnull Path directory) {
+        try {
+            var path = normalizedPath(request)
+                    .map(directory::resolve)
+                    .filter(p -> p.getNameCount() > 1) // prevent modification of the top level directories
+                    .filter(p -> checker.isAllowedToAccessPath(user, p))
+                    .orElseThrow();
+
+            var optionRenameTo = options.get("rename-to");
+            if (optionRenameTo instanceof String) {
+                var renameTo = (String)optionRenameTo;
+                var target = path.resolveSibling(renameTo);
+                if (target.getParent().equals(path.getParent())) {
+                    Files.move(path, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                } else {
+                    return ResponseEntity.badRequest().body("");
+                }
+            }
+
+            return ResponseEntity.ok("");
+        } catch (Throwable t) {
+            t.printStackTrace();
+            // blame everything on the user!
+            return ResponseEntity.badRequest().body("");
+        }
     }
 
     @Nonnull
