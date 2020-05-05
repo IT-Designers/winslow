@@ -100,7 +100,7 @@ public class TensorBoardController {
             var routePath     = Path.of("tensorboard", projectId);
             var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
 
-            task.setName("task-main");
+            task.setName("tensorboard");
             task.setDriver("docker");
             task.setConfig(new HashMap<>());
             task.getConfig().put("image", "tensorflow/tensorflow:latest-gpu-py3");
@@ -139,7 +139,7 @@ public class TensorBoardController {
                     .setType("batch")
                     .addTaskGroups(
                             new TaskGroup()
-                                    .setName("task-group-" + id)
+                                    .setName("tensorboard-group-" + id)
                                     .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                     .addTasks(task)
                     );
