@@ -86,7 +86,7 @@ public class TensorBoardController {
                     }
                 } else {
                     try {
-                        nomad.getJobsApi().deregister(toNomadJobId(projectId));
+                        nomad.getJobsApi().deregister(toNomadJobId(projectId, stageId));
                     } catch (IOException | NomadException e) {
                         e.printStackTrace();
                     }
