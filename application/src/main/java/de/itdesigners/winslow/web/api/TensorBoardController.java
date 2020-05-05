@@ -96,7 +96,7 @@ public class TensorBoardController {
 
             var task          = new Task();
             var port          = getNextPort();
-            var id            = toNomadJobId(projectId, stageId);
+            var id            = toNomadJobId(projectId);
             var routePath     = Path.of("tensorboard", projectId);
             var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
 
@@ -123,7 +123,7 @@ public class TensorBoardController {
             SubmissionToNomadJobAdapter
                     .getDockerNfsVolumesConfigurer(task)
                     .accept(new DockerNfsVolumes(List.of(new DockerNfsVolume(
-                            id + "-" + port,
+                            "tensorboard-" + projectId + "-" + stageId + "-" + port,
                             "/data/",
                             nfsWorkDir.toExportedPath(workspaces.resolve(stage.get().getWorkspace().orElseThrow()))
                                       .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"))
@@ -139,7 +139,7 @@ public class TensorBoardController {
                     .setType("batch")
                     .addTaskGroups(
                             new TaskGroup()
-                                    .setName("task-group")
+                                    .setName("tensorboard-group-" + id)
                                     .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                     .addTasks(task)
                     );
@@ -237,8 +237,9 @@ public class TensorBoardController {
     }
 
     @Nonnull
-    private static String toNomadJobId(@Nonnull String projectId, @Nonnull String stageId) {
-        return "tensorboard-" + projectId + "-" + stageId;
+    private static String toNomadJobId(@Nonnull String projectId) {
+        // TODO
+        return projectId + "-tensorboard";
     }
 
     private static class ActiveBoard {
