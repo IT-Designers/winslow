@@ -8,7 +8,7 @@ import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.resource.PathConfiguration;
 import de.itdesigners.winslow.resource.ResourceManager;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import de.itdesigners.winslow.web.api.FilesController;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

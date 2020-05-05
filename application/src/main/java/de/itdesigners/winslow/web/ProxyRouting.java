@@ -2,6 +2,7 @@ package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Executor;
 import de.itdesigners.winslow.auth.User;
+import de.itdesigners.winslow.web.api.FilesController;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;

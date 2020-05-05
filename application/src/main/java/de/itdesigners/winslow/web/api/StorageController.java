@@ -5,7 +5,6 @@ import de.itdesigners.winslow.api.storage.StorageInfo;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.FileAccessChecker;
-import de.itdesigners.winslow.web.FilesController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

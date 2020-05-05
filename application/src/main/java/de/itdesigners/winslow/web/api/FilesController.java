@@ -1,9 +1,10 @@
-package de.itdesigners.winslow.web;
+package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.file.FileInfo;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.resource.ResourceManager;
+import de.itdesigners.winslow.web.FileAccessChecker;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
