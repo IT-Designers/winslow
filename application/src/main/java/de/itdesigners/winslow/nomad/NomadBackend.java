@@ -90,11 +90,15 @@ public class NomadBackend implements Backend {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                LOG.info("Shutting down "+getClass().getSimpleName()+"...");
+                LOG.info("Shutting down " + getClass().getSimpleName() + "...");
                 this.killAnyRunningStage();
-                LOG.info("Shutting down "+getClass().getSimpleName()+"... done");
-            } catch (IOException  e) {
-                LOG.log(Level.WARNING, "Shutting down "+getClass().getSimpleName()+"... failed to kill at least one stage", e);
+                LOG.info("Shutting down " + getClass().getSimpleName() + "... done");
+            } catch (IOException e) {
+                LOG.log(
+                        Level.WARNING,
+                        "Shutting down " + getClass().getSimpleName() + "... failed to kill at least one stage",
+                        e
+                );
             }
             System.out.flush();
             System.err.flush();
@@ -206,7 +210,7 @@ public class NomadBackend implements Backend {
             throw new IOException("Failed to deregister job for " + stage, e);
         }
     }
-    
+
     @Nonnull
     @Override
     public SubmissionResult submit(@Nonnull Submission submission) throws IOException {
@@ -376,11 +380,13 @@ public class NomadBackend implements Backend {
     }
 
     public static boolean hasTaskStarted(TaskState state) {
-        return state.getStartedAt().after(new Date(1));
+        return state.getStartedAt() != null && state.getStartedAt().after(new Date(1));
     }
 
     public static boolean hasTaskFinished(TaskState state) {
-        return state.getFinishedAt() != null && (state.getFinishedAt().after(new Date(1)) || state.getState().toLowerCase().contains("dead"));
+        return state.getFinishedAt() != null && (state
+                .getFinishedAt()
+                .after(new Date(1)) || (state.getState() != null && state.getState().toLowerCase().contains("dead")));
     }
 
     public static boolean hasTaskFailed(TaskState state) {
