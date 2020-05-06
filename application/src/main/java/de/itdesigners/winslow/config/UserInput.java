@@ -15,6 +15,14 @@ public class UserInput {
     }
 
     @Nonnull
+    public UserInput withoutConfirmation() {
+        return new UserInput(
+                Confirmation.Never,
+                this.valueFor
+        );
+    }
+
+    @Nonnull
     public Confirmation getConfirmation() {
         return confirmation != null ? confirmation : Confirmation.Never;
     }

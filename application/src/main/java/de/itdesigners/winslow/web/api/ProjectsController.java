@@ -712,7 +712,7 @@ public class ProjectsController {
                 .filter(project -> canUserAccessProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
-                    // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
+                    // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
                     return getStageDefinitionNoClone(project, index)
                             .map(stageDef -> {
@@ -845,7 +845,7 @@ public class ProjectsController {
         var resultDefinition = createStageDefinition(
                 recentBase,
                 base.getRequirements().orElse(null),
-                base.getRequires().orElse(null),
+                base.getRequires().map(UserInput::withoutConfirmation).orElse(null),
                 env
         );
 
