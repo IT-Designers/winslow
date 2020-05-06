@@ -105,6 +105,7 @@ export class DialogService {
       title: 'Rename ' + thing,
       input: 'text',
       inputPlaceholder: placeholder,
+      inputValue: thing,
       showLoaderOnConfirm: true,
       preConfirm: this.preConfirmPromiseWithErrorCatcher(action),
     });
