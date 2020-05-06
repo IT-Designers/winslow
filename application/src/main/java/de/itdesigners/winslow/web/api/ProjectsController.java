@@ -861,6 +861,23 @@ public class ProjectsController {
         maybeUpdateImageInfo(imageName, imageArgs, resultDefinition);
         pipeline.enqueueStage(resultDefinition, action);
         resumeIfPausedByStageFailure(pipeline);
+        resumeIfWaitingForGoneStageConfiramtion(pipeline);
+    }
+
+    private static void resumeIfWaitingForGoneStageConfiramtion(Pipeline pipeline) {
+        if (Optional.of(Pipeline.PauseReason.ConfirmationRequired).equals(pipeline.getPauseReason())) {
+            var noStageRequiresUserConfirmation = pipeline
+                    .getEnqueuedStages()
+                    .noneMatch(e -> e
+                            .getDefinition()
+                            .getRequires()
+                            .map(UserInput::getConfirmation)
+                            .orElse(UserInput.Confirmation.Never)
+                            != UserInput.Confirmation.Never);
+            if (noStageRequiresUserConfirmation) {
+                pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+            }
+        }
     }
 
     private static void resumeIfPausedByStageFailure(@Nonnull Pipeline pipeline) {
