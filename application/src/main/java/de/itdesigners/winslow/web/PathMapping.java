@@ -48,10 +48,10 @@ public class PathMapping implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         // just show the index.html on errors
-        // registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        // registry.addViewController("/error")
-        //        .setStatusCode(HttpStatus.OK)
-        //        .setViewName("/index.html");
+        registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registry.addViewController("/error")
+                .setStatusCode(HttpStatus.OK)
+                .setViewName("/index.html");
     }
 
     @Override
