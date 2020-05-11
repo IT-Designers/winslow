@@ -14,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,13 +45,20 @@ public class UserResolver implements HandlerMethodArgumentResolver, WebMvcConfig
             ModelAndViewContainer modelAndViewContainer,
             NativeWebRequest nativeWebRequest,
             WebDataBinderFactory webDataBinderFactory) throws Exception {
+        Optional
+                .ofNullable(nativeWebRequest.getNativeRequest(HttpServletRequest.class))
+                .flatMap((r) -> Optional.ofNullable(r.getHeader("X-REMOTE-USER")))
+                .ifPresent(user -> System.out.println("########## # ## ##    " + user));
         return Optional.ofNullable(nativeWebRequest.getRemoteUser()).or(() -> {
             if (Boolean.parseBoolean(System.getenv(Env.DEV_ENV))) {
                 return Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER));
             } else {
                 return Optional.empty();
             }
-        }).flatMap(users::getUser).orElse(null);
+        }).or(() -> Optional
+                .ofNullable(nativeWebRequest.getNativeRequest(HttpServletRequest.class))
+                .flatMap((r) -> Optional.ofNullable(r.getHeader("X-REMOTE-USER")))
+        ).flatMap(users::getUser).orElse(null);
     }
 }
 
