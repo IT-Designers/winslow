@@ -137,7 +137,7 @@ public class WorkspaceCreator implements AssemblerStep {
     }
 
     @Nonnull
-    private static Path getPipelineInputPathOf(@Nonnull Pipeline pipeline) {
+    public static Path getPipelineInputPathOf(@Nonnull Pipeline pipeline) {
         return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("input");
     }
 
@@ -147,7 +147,7 @@ public class WorkspaceCreator implements AssemblerStep {
     }
 
     @Nonnull
-    private static Path getPipelineOutputPathOf(@Nonnull Pipeline pipeline) {
+    public static Path getPipelineOutputPathOf(@Nonnull Pipeline pipeline) {
         return getProjectWorkspacesDirectory(pipeline.getProjectId()).resolve("output");
     }
 

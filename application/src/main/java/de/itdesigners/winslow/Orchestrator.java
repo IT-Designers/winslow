@@ -855,19 +855,29 @@ public class Orchestrator {
 
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             Pipeline pipeline = new Pipeline(project.getId());
-            tryCreateInitDirectory(pipeline, false);
+            tryCreateInitDirectories(pipeline, false);
             updatePipeline(project.getPipelineDefinition(), container);
             tryUpdateContainer(container, pipeline);
             return pipeline;
         }
     }
 
-    private void tryCreateInitDirectory(
+    private void tryCreateInitDirectories(
             @Nonnull Pipeline pipeline,
             boolean failIfAlreadyExists) throws OrchestratorException {
         environment
                 .getResourceManager()
                 .createWorkspace(WorkspaceCreator.getInitWorkspacePath(pipeline.getProjectId()), failIfAlreadyExists)
+                .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
+
+        environment
+                .getResourceManager()
+                .createWorkspace(WorkspaceCreator.getPipelineInputPathOf(pipeline), failIfAlreadyExists)
+                .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
+
+        environment
+                .getResourceManager()
+                .createWorkspace(WorkspaceCreator.getPipelineOutputPathOf(pipeline), failIfAlreadyExists)
                 .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
     }
 
