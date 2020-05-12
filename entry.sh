@@ -7,7 +7,8 @@ if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then
   update-ca-certificates
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR" -type f); do
-    keytool -noprompt -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -file "$f"
+    echo "Importing $f"
+    keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias $f -file /usr/share/ca-certificates/foo/my_root_ca.pem
   done
 fi
 
