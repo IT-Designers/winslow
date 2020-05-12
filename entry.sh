@@ -3,11 +3,11 @@ set -e
 trap 'kill -TERM $(pgrep nfs); sleep 2; kill -KILL $(pgrep nfs)' TERM
 trap 'kill -KILL $(pgrep nfs)' KILL
 
-if [ "$WINSLOW_CA_CERT_DIR" -ne "" ]; then 
+if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then 
   update-ca-certificates
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR"); do
-    keytool -noprompt -keystore "$JAVA_HOME/jre/lib/security/cacerts" -storepass changeit -importcert -alias wisvch -file "$f"
+    keytool -noprompt -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -importcert -alias wisvch -file "$f"
   done
 fi
 
