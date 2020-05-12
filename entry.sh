@@ -7,7 +7,7 @@ if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then
   update-ca-certificates
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR" -type f); do
-    keytool -noprompt -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -importcert -alias wisvch -file "$f"
+    keytool -noprompt -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -importcert -cacerts -file "$f"
   done
 fi
 
