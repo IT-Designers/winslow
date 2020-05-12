@@ -45,10 +45,6 @@ public class UserResolver implements HandlerMethodArgumentResolver, WebMvcConfig
             ModelAndViewContainer modelAndViewContainer,
             NativeWebRequest nativeWebRequest,
             WebDataBinderFactory webDataBinderFactory) throws Exception {
-        Optional
-                .ofNullable(nativeWebRequest.getNativeRequest(HttpServletRequest.class))
-                .flatMap((r) -> Optional.ofNullable(r.getHeader("X-REMOTE-USER")))
-                .ifPresent(user -> System.out.println("########## # ## ##    " + user));
         return Optional.ofNullable(nativeWebRequest.getRemoteUser()).or(() -> {
             if (Boolean.parseBoolean(System.getenv(Env.DEV_ENV))) {
                 return Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER));
@@ -58,7 +54,7 @@ public class UserResolver implements HandlerMethodArgumentResolver, WebMvcConfig
         }).or(() -> Optional
                 .ofNullable(nativeWebRequest.getNativeRequest(HttpServletRequest.class))
                 .flatMap((r) -> Optional.ofNullable(r.getHeader("X-REMOTE-USER")))
-        ).flatMap(users::getUser).orElse(null);
+        ).flatMap(users::getUserOrCreateAuthenticated).orElse(null);
     }
 }
 

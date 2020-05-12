@@ -20,6 +20,16 @@ public class Env {
     public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
     public static final String DEV_ENV_IP         = SELF_PREFIX + "_DEV_ENV_IP";
 
+    public static final String LDAP_URL                 = SELF_PREFIX + "_LDAP_URL";
+    // public static final String LDAP_MANAGER_DN          = SELF_PREFIX + "_LDAP_MANAGER_DN";
+    // public static final String LDAP_MANAGER_PASSWORD    = SELF_PREFIX + "_LDAP_MANAGER_PASSWORD";
+    // public static final String LDAP_USER_SEARCH_BASE    = SELF_PREFIX + "_LDAP_USER_SEARCH_FILTER";
+    // public static final String LDAP_USER_SEARCH_FILTER  = SELF_PREFIX + "_LDAP_USER_SEARCH_FILTER";
+    // public static final String LDAP_GROUP_SEARCH_BASE   = SELF_PREFIX + "_LDAP_GROUP_SEARCH_FILTER";
+    // public static final String LDAP_GROUP_SEARCH_FILTER = SELF_PREFIX + "_LDAP_GROUP_SEARCH_FILTER";
+
+    public static final String ROOT_USERS = SELF_PREFIX + "_ROOT_USERS";
+
     private Env() {
     }
 
@@ -64,8 +74,27 @@ public class Env {
                 .orElse(Boolean.TRUE);
     }
 
+    public static boolean isDevEnv() {
+        var env = System.getenv(DEV_ENV);
+        return env != null & (Boolean.parseBoolean(env) || "1" .equals(env));
+    }
+
+    public static boolean isLdapAuthEnabled() {
+        return !isDevEnv() && System.getenv(LDAP_URL) != null;
+    }
+
     @Nullable
     public static String getDevEnvIp() {
         return System.getenv(DEV_ENV_IP);
+    }
+
+    @Nonnull
+    public static String[] getRootUsers() {
+        var users = System.getenv(ROOT_USERS);
+        if (users != null) {
+            return users.split(",");
+        } else {
+            return new String[0];
+        }
     }
 }

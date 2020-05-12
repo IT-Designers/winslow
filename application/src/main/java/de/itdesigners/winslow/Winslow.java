@@ -46,6 +46,10 @@ public class Winslow implements Runnable {
         this.projectRepository  = projectRepository;
         this.nodeRepository     = new NodeRepository(lockBus, configuration);
         this.settingsRepository = settingsRepository;
+
+        for (var user : Env.getRootUsers()) {
+            userRepository.createUser(user, false);
+        }
     }
 
     public void run() {

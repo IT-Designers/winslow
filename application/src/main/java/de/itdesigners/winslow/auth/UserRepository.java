@@ -15,7 +15,7 @@ public class UserRepository implements GroupAssignmentResolver {
 
     public UserRepository(GroupRepository groups) {
         this.groups = groups;
-        this.withUser(new User(SUPERUSER, true, this));
+        this.createUser(SUPERUSER, true);
 
     }
 
@@ -37,6 +37,15 @@ public class UserRepository implements GroupAssignmentResolver {
     @Nonnull
     public Optional<User> getUser(String name) {
         return Optional.ofNullable(this.users.get(name));
+    }
+
+    @Nonnull
+    public Optional<User> getUserOrCreateAuthenticated(String name) {
+        var user = this.users.get(name);
+        if (user == null && name != null) {
+            user = new User(name, false, this);
+        }
+        return Optional.ofNullable(user);
     }
 
     @Override
