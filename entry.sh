@@ -8,7 +8,7 @@ if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR" -type f); do
     echo "Importing $f"
-    keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias $f -file /usr/share/ca-certificates/foo/my_root_ca.pem
+    keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias $f -file $2
   done
 fi
 
