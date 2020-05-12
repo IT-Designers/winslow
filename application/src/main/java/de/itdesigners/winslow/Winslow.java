@@ -48,7 +48,7 @@ public class Winslow implements Runnable {
         this.settingsRepository = settingsRepository;
 
         for (var user : Env.getRootUsers()) {
-            userRepository.createUser(user, false);
+            userRepository.createUser(user, true);
         }
     }
 
