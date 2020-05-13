@@ -851,6 +851,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   incrementMaxHistoryItemsToDisplay(range: number = 1) {
     this.maxHistoryItemsToDisplay += range;
   }
+
+  updatePublicAccess(checked: boolean) {
+    this.dialog.openLoadingIndicator(
+      this.api.updatePublicAccess(this.projectValue.id, checked)
+        .then(v => this.projectValue.publicAccess = v),
+      `Updating public access property`
+    );
+  }
 }
 
 

@@ -192,7 +192,7 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  setName(projectId: string, name: string) {
+  setName(projectId: string, name: string): Promise<void> {
     const form = new FormData();
     form.set('name', name);
     return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/name`), form).toPromise();
@@ -235,6 +235,10 @@ export class ProjectApiService {
     return this.client.post<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`), form).toPromise();
   }
 
+  updatePublicAccess(projectId: string, publicAccess: boolean): Promise<boolean> {
+    return this.client.post<boolean>(ProjectApiService.getUrl(`${projectId}/public`), publicAccess).toPromise();
+  }
+
   getDefaultDeletionPolicy(projectId: string): Promise<DeletionPolicy> {
     return this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy/default`)).toPromise();
   }
@@ -265,6 +269,7 @@ export class ProjectInfo {
   groups: string[];
   tags: string[];
   name: string;
+  publicAccess: boolean;
   pipelineDefinition: PipelineInfo;
   // local only
   version: number;
