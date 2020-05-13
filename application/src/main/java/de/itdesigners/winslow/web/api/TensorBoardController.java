@@ -65,7 +65,7 @@ public class TensorBoardController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(p -> ProjectsController.canUserAccessProject(user, p))
+                .filter(p -> p.canBeAccessedBy(user))
                 .orElseThrow();
 
         var pipeline = winslow
@@ -164,7 +164,7 @@ public class TensorBoardController {
                         routePath,
                         new ProxyRouting.Route(
                                 "http://" + routeDestinationIp + ":" + port + routeLocation,
-                                u -> ProjectsController.canUserAccessProject(u, project)
+                                project::canBeAccessedBy
                         )
                 );
 

@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.project;
 
+import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
@@ -144,5 +145,19 @@ public class Project {
         if (tags != null) {
             this.tags.addAll(Arrays.asList(tags));
         }
+    }
+
+    public boolean canBeManagedBy(@Nonnull User user) {
+        return user.isSuperUser() || getOwner().equals(user.getName());
+    }
+
+    public boolean canBeAccessedBy(@Nonnull User user) {
+        return this.isPublic()
+                || this.canBeManagedBy(user)
+                || user.getGroups()
+                       .anyMatch(Objects.requireNonNullElseGet(
+                               this.groups,
+                               Collections::emptyList
+                       )::contains);
     }
 }

@@ -52,7 +52,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProjects()
                 .flatMap(handle -> handle.unsafe().stream())
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .map(ProjectInfoConverter::from);
     }
 
@@ -96,7 +96,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -116,7 +116,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -138,7 +138,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .updatePipeline(project, pipeline -> {
@@ -160,7 +160,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(p -> canUserManageProject(user, p));
+                .filter(p -> p.canBeManagedBy(user));
 
         // do not try to lock expensively if the
         // user is not allowed to access the project anyway
@@ -177,7 +177,7 @@ public class ProjectsController {
             try (var project = exclusive.get()) {
                 var update = project
                         .get()
-                        .filter(p -> canUserAccessProject(user, p))
+                        .filter(p -> p.canBeAccessedBy(user))
                         .map(p -> {
                             p.setName(name);
                             return p;
@@ -185,7 +185,7 @@ public class ProjectsController {
 
                 if (update.isPresent()) {
                     project.update(update.get());
-                    return ResponseEntity.ok(update.get().getName());
+                    return ResponseEntity.ok().build();
                 }
             }
         }
@@ -202,7 +202,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(p -> canUserManageProject(user, p));
+                .filter(p -> p.canBeManagedBy(user));
 
         // do not try to lock expensively if the
         // user is not allowed to access the project anyway
@@ -219,7 +219,7 @@ public class ProjectsController {
             try (var project = exclusive.get()) {
                 var update = project
                         .get()
-                        .filter(p -> canUserAccessProject(user, p))
+                        .filter(p -> p.canBeAccessedBy(user))
                         .map(p -> {
                             p.setTags(tags);
                             return p;
@@ -243,7 +243,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .map(Project::getPipelineDefinition)
                 .map(definition -> PipelineInfoConverter.from(projectId, definition));
     }
@@ -254,7 +254,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -296,7 +296,7 @@ public class ProjectsController {
                 .map(winslow.getProjectRepository()::getProject)
                 .map(BaseRepository.Handle::unsafe)
                 .map(p -> p
-                        .filter(project -> canUserAccessProject(user, project))
+                        .filter(project -> project.canBeAccessedBy(user))
                         .flatMap(project -> winslow
                                 .getOrchestrator()
                                 .getPipeline(project))
@@ -338,7 +338,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     if (paused) {
                         pipeline.requestPause();
@@ -357,7 +357,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -375,7 +375,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -433,7 +433,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .stream()
                 .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId))
                 .map(entry -> new LogEntryInfo(line.incrementAndGet(), stageId, entry));
@@ -448,7 +448,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> {
                     try {
                         return Optional.of(winslow
@@ -475,7 +475,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> {
                     try (var baos = new ByteArrayOutputStream()) {
                         ProjectRepository.defaultWriter().store(baos, project.getPipelineDefinition());
@@ -512,14 +512,14 @@ public class ProjectsController {
         if (containerOptional.isPresent()) {
             var container = containerOptional.get();
             try (container) {
-                var maybeProject = container.get().filter(p -> canUserManageProject(user, p));
+                var maybeProject = container.get().filter(p -> p.canBeManagedBy(user));
                 if (maybeProject.isEmpty()) {
                     return ResponseEntity.notFound().build();
                 } else {
                     var project = maybeProject.get();
                     project.setPipelineDefinition(definition);
                     container.update(project);
-                    return ResponseEntity.ok(raw);
+                    return ResponseEntity.ok().build();
                 }
             }
         }
@@ -532,7 +532,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project))
                 .flatMap(Pipeline::getPauseReason);
     }
@@ -543,7 +543,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project))
                 .flatMap(Pipeline::getDeletionPolicy);
     }
@@ -559,7 +559,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserManageProject(user, project))
+                .filter(project -> project.canBeManagedBy(user))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     pipeline.setDeletionPolicy(null);
                     return ResponseEntity.ok(Boolean.TRUE); // just _some_ value
@@ -576,7 +576,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserManageProject(user, project))
+                .filter(project -> project.canBeManagedBy(user))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     pipeline.setDeletionPolicy(policy);
                     return ResponseEntity.ok(policy); // just _some_ value
@@ -593,7 +593,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -646,7 +646,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .stream()
                 .flatMap(project -> Stream.concat(
                         project
@@ -667,7 +667,7 @@ public class ProjectsController {
     }
 
     @PostMapping("projects/{projectId}/pipeline/{pipelineId}")
-    public ResponseEntity<String> setPipelineDefinition(
+    public ResponseEntity<Boolean> setPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("pipelineId") String pipelineId) {
@@ -680,7 +680,7 @@ public class ProjectsController {
                         try {
                             var updatedProject = projectContainer
                                     .get()
-                                    .filter(project -> canUserManageProject(user, project))
+                                    .filter(project -> project.canBeManagedBy(user))
                                     .flatMap(project -> winslow
                                             .getPipelineRepository()
                                             .getPipeline(pipelineId)
@@ -692,13 +692,13 @@ public class ProjectsController {
 
                             if (updatedProject.isPresent()) {
                                 projectContainer.update(updatedProject.get());
-                                return ResponseEntity.ok(pipelineId);
+                                return ResponseEntity.ok(true);
                             }
                         } catch (LockException | IOException e) {
                             e.printStackTrace();
                         }
 
-                        return ResponseEntity.notFound().<String>build();
+                        return ResponseEntity.notFound().<Boolean>build();
                     }
 
                 }).orElseGet(() -> ResponseEntity.notFound().build());
@@ -716,7 +716,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
                     // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
@@ -752,7 +752,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
@@ -765,7 +765,7 @@ public class ProjectsController {
                 .of(projectIds)
                 .map(id -> winslow.getProjectRepository().getProject(id).unsafe())
                 .map(maybeProject -> maybeProject
-                        .filter(project -> canUserAccessProject(user, project))
+                        .filter(project -> project.canBeAccessedBy(user))
                         .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                             enqueueConfigureStage(
                                     pipeline,
@@ -788,7 +788,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow
                         .getPipelineRepository()
                         .getPipeline(actionId)
@@ -928,7 +928,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(p -> canUserManageProject(user, p));
+                .filter(p -> p.canBeManagedBy(user));
 
         if (project.isPresent()) {
             var exclusive = winslow.getProjectRepository().getProject(projectId).exclusive();
@@ -977,7 +977,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -995,7 +995,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
 
@@ -1010,7 +1010,7 @@ public class ProjectsController {
                 .exclusive()
                 .flatMap(container -> {
                     try (container) {
-                        if (container.getNoThrow().filter(p -> canUserManageProject(user, p)).isPresent()) {
+                        if (container.getNoThrow().filter(p -> p.canBeManagedBy(user)).isPresent()) {
                             var project = container.getNoThrow();
                             if (project.isPresent()) {
                                 var p = project.get();
@@ -1024,25 +1024,6 @@ public class ProjectsController {
                     }
                     return Optional.of(ResponseEntity.notFound().<Boolean>build());
                 }).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    public static boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
-        return project.isPublic() || canUserManageProject(user, project) || user
-                .getGroups()
-                .anyMatch(g -> {
-                    for (String group : project.getGroups()) {
-                        if (group.equals(g)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-    }
-
-    private static boolean canUserManageProject(
-            @Nonnull User user,
-            @Nonnull Project project) {
-        return user.hasSuperPrivileges() || project.getOwner().equals(user.getName());
     }
 
 
