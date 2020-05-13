@@ -314,6 +314,16 @@
         </button>
       </div>
 
+      <div class="stage-control-item whitespace-separator-top">
+        <label>Public Access</label>
+        <mat-slide-toggle #publicAccess [checked]="this.project?.publicAccess"></mat-slide-toggle>
+        <button mat-stroked-button color="primary"
+                [disabled]="publicAccess.checked === this.project?.publicAccess"
+                (click)="updatePublicAccess(publicAccess.checked)">
+          Update
+        </button>
+      </div>
+
       <div class="whitespace-separator-top">
         <div class="whitespace-separator-top stage-control-item">
           <mat-card-subtitle>
