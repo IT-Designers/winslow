@@ -152,7 +152,7 @@ public class ProjectsController {
     }
 
     @PostMapping("/projects/{projectId}/name")
-    public void setProjectName(
+    public ResponseEntity<String> setProjectName(
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("name") String name) throws LockException, IOException {
@@ -160,12 +160,12 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(p -> canUserAccessProject(user, p));
+                .filter(p -> canUserManageProject(user, p));
 
         // do not try to lock expensively if the
         // user is not allowed to access the project anyway
         if (canAccess.isEmpty()) {
-            return;
+            return ResponseEntity.notFound().build();
         }
 
         var exclusive = winslow
@@ -185,13 +185,16 @@ public class ProjectsController {
 
                 if (update.isPresent()) {
                     project.update(update.get());
+                    return ResponseEntity.ok(update.get().getName());
                 }
             }
         }
+
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/projects/{projectId}/tags")
-    public void setProjectName(
+    public ResponseEntity<String[]> setProjectTags(
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("tags") String[] tags) throws LockException, IOException {
@@ -199,12 +202,12 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(p -> canUserAccessProject(user, p));
+                .filter(p -> canUserManageProject(user, p));
 
         // do not try to lock expensively if the
         // user is not allowed to access the project anyway
         if (canAccess.isEmpty()) {
-            return;
+            return ResponseEntity.notFound().build();
         }
 
         var exclusive = winslow
@@ -224,9 +227,12 @@ public class ProjectsController {
 
                 if (update.isPresent()) {
                     project.update(update.get());
+                    return ResponseEntity.ok(tags);
                 }
             }
         }
+
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/projects/{projectId}/pipeline-definition")
@@ -317,7 +323,7 @@ public class ProjectsController {
     private Pipeline.Strategy getPipelineStrategy(@Nullable @RequestParam(value = "strategy", required = false) String strategy) {
         return Optional
                 .ofNullable(strategy)
-                .filter(str -> "once".equals(str.toLowerCase()))
+                .filter(str -> "once" .equals(str.toLowerCase()))
                 .map(str -> Pipeline.Strategy.MoveForwardOnce)
                 .orElse(Pipeline.Strategy.MoveForwardUntilEnd);
     }
@@ -482,7 +488,7 @@ public class ProjectsController {
     }
 
     @PostMapping("projects/{projectId}/pipeline-definition-raw")
-    public ResponseEntity<String> getProjectRawDefinition(
+    public ResponseEntity<String> setProjectRawDefinition(
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("raw") String raw) throws IOException, LockException {
@@ -506,17 +512,18 @@ public class ProjectsController {
         if (containerOptional.isPresent()) {
             var container = containerOptional.get();
             try (container) {
-                var maybeProject = container.get();
-                if (!maybeProject.map(p -> canUserAccessProject(user, p)).orElse(Boolean.FALSE)) {
+                var maybeProject = container.get().filter(p -> canUserManageProject(user, p));
+                if (maybeProject.isEmpty()) {
                     return ResponseEntity.notFound().build();
                 } else {
                     var project = maybeProject.get();
                     project.setPipelineDefinition(definition);
                     container.update(project);
+                    return ResponseEntity.ok(raw);
                 }
             }
         }
-        return ResponseEntity.ok(null);
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("projects/{projectId}/pause-reason")
@@ -547,21 +554,21 @@ public class ProjectsController {
     }
 
     @DeleteMapping("projects/{projectId}/deletion-policy")
-    public void resetDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
-        winslow
+    public ResponseEntity<Boolean> resetDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
+        return winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> canUserManageProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     pipeline.setDeletionPolicy(null);
-                    return Boolean.TRUE; // just _some_ value
+                    return ResponseEntity.ok(Boolean.TRUE); // just _some_ value
                 }))
-                .orElseThrow();
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("projects/{projectId}/deletion-policy")
-    public DeletionPolicy setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(
+    public ResponseEntity<DeletionPolicy> setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("value") DeletionPolicy policy) {
@@ -569,12 +576,12 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> canUserAccessProject(user, project))
+                .filter(project -> canUserManageProject(user, project))
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     pipeline.setDeletionPolicy(policy);
-                    return policy; // just _some_ value
+                    return ResponseEntity.ok(policy); // just _some_ value
                 }))
-                .orElseThrow();
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("projects/{projectId}/{stageIndex}/environment")
@@ -660,7 +667,7 @@ public class ProjectsController {
     }
 
     @PostMapping("projects/{projectId}/pipeline/{pipelineId}")
-    public Boolean changePipeline(
+    public ResponseEntity<String> setPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("pipelineId") String pipelineId) {
@@ -673,7 +680,7 @@ public class ProjectsController {
                         try {
                             var updatedProject = projectContainer
                                     .get()
-                                    .filter(project -> canUserAccessProject(user, project))
+                                    .filter(project -> canUserManageProject(user, project))
                                     .flatMap(project -> winslow
                                             .getPipelineRepository()
                                             .getPipeline(pipelineId)
@@ -685,16 +692,16 @@ public class ProjectsController {
 
                             if (updatedProject.isPresent()) {
                                 projectContainer.update(updatedProject.get());
-                                return Boolean.TRUE;
+                                return ResponseEntity.ok(pipelineId);
                             }
                         } catch (LockException | IOException e) {
                             e.printStackTrace();
                         }
 
-                        return false;
+                        return ResponseEntity.notFound().<String>build();
                     }
 
-                }).orElse(Boolean.FALSE);
+                }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("projects/{projectId}/enqueued")
@@ -921,7 +928,7 @@ public class ProjectsController {
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(p -> canUserAccessProject(user, p));
+                .filter(p -> canUserManageProject(user, p));
 
         if (project.isPresent()) {
             var exclusive = winslow.getProjectRepository().getProject(projectId).exclusive();
@@ -992,8 +999,35 @@ public class ProjectsController {
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
 
+    @PostMapping("projects/{projectId}/public")
+    public ResponseEntity<Boolean> setPublic(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestBody String publicAccess) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive()
+                .flatMap(container -> {
+                    try (container) {
+                        if (container.getNoThrow().filter(p -> canUserManageProject(user, p)).isPresent()) {
+                            var project = container.getNoThrow();
+                            if (project.isPresent()) {
+                                var p = project.get();
+                                p.setPublic(Boolean.parseBoolean(publicAccess));
+                                container.update(p);
+                                return Optional.of(ResponseEntity.ok(p.isPublic()));
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return Optional.of(ResponseEntity.notFound().<Boolean>build());
+                }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     public static boolean canUserAccessProject(@Nonnull User user, @Nonnull Project project) {
-        return user.hasSuperPrivileges() || project.getOwner().equals(user.getName()) || user
+        return project.isPublic() || canUserManageProject(user, project) || user
                 .getGroups()
                 .anyMatch(g -> {
                     for (String group : project.getGroups()) {
@@ -1004,5 +1038,12 @@ public class ProjectsController {
                     return false;
                 });
     }
+
+    private static boolean canUserManageProject(
+            @Nonnull User user,
+            @Nonnull Project project) {
+        return user.hasSuperPrivileges() || project.getOwner().equals(user.getName());
+    }
+
 
 }

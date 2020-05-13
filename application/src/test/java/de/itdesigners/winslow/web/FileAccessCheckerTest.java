@@ -24,6 +24,8 @@ public class FileAccessCheckerTest {
     private PathConfiguration config;
     private FileAccessChecker checker;
 
+    private boolean publicProject = false;
+
     @Before
     public void before() {
         workDir = Path.of("/winslow");
@@ -36,6 +38,7 @@ public class FileAccessCheckerTest {
                         List.of("project-group"),
                         null,
                         "project-name",
+                        publicProject,
                         new PipelineDefinition(
                                 "pipeline-definition",
                                 null,
@@ -107,6 +110,16 @@ public class FileAccessCheckerTest {
         assertFalse(checker.isAllowedToAccessPath(superUser, Path.of("test")));
         assertFalse(checker.isAllowedToAccessPath(superUser, Path.of("../tmp")));
         assertFalse(checker.isAllowedToAccessPath(superUser, config.getRelativePathOfResources().resolve("../tmp")));
+    }
+
+    @Test
+    public void canAccessPublicProjectAsNonSuperuserAndNonMember() {
+        var waldo = new User("waldo", false, DUMMY_GROUP_RESOLVER);
+
+        this.publicProject = true;
+        var workspace = config.getRelativePathOfWorkspaces().resolve("workspace-id");
+
+        assertTrue(checker.isAllowedToAccessPath(waldo, workspace));
     }
 
 

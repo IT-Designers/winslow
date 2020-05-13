@@ -12,6 +12,7 @@ public class ProjectInfo {
     public final @Nonnull List<String> groups;
     public final @Nonnull List<String> tags;
     public final @Nonnull String       name;
+    public final          boolean      publicAccess;
     public final @Nonnull PipelineInfo pipelineDefinition;
 
     public ProjectInfo(
@@ -20,12 +21,14 @@ public class ProjectInfo {
             @Nonnull List<String> groups,
             @Nonnull List<String> tags,
             @Nonnull String name,
+            boolean publicAccess,
             @Nonnull PipelineInfo pipelineDefinition) {
         this.id                 = id;
         this.owner              = owner;
         this.groups             = groups;
         this.tags               = tags;
         this.name               = name;
+        this.publicAccess       = publicAccess;
         this.pipelineDefinition = pipelineDefinition;
     }
 }

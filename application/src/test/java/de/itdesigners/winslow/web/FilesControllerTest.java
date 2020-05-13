@@ -56,6 +56,7 @@ public class FilesControllerTest {
                 List.of("project-group"),
                 null,
                 "project-name",
+                null,
                 new PipelineDefinition(
                         "pipeline-definition",
                         null,

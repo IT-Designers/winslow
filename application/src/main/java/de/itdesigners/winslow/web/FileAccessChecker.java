@@ -46,6 +46,7 @@ public class FileAccessChecker {
                                     .apply(workspace.getName(0).toString()) // the work directory name is the project id
                                     .map(project -> project.getOwner().equals(user.getName())
                                             || project.getGroups().stream().anyMatch(user::canAccessGroup)
+                                            || project.isPublic()
                                     )
                                     .orElse(Boolean.FALSE));
         } else {

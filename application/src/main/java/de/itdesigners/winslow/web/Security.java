@@ -28,6 +28,7 @@ public class Security extends WebSecurityConfigurerAdapter {
         configureCsrfToken(http);
 
         if (!Env.isDevEnv()) {
+            /*
             http
                     .authorizeRequests()
                     .antMatchers("/**")
@@ -36,14 +37,20 @@ public class Security extends WebSecurityConfigurerAdapter {
                     .fullyAuthenticated()
                     .and()
                     .httpBasic()
-                    .authenticationEntryPoint(new BasicAuth());
+                    .authenticationEntryPoint(new BasicAuth());*/
+            http
+                    .authorizeRequests()
+                    .anyRequest().authenticated()
+                    .and()
+                    .formLogin().and()
+                    .httpBasic();
         }
     }
 
     private void configureCsrfToken(HttpSecurity http) throws Exception {
         var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookiePath("/");
-        http.httpBasic().and().csrf().csrfTokenRepository(repo);
+        http.csrf().csrfTokenRepository(repo);
     }
 
 
@@ -59,6 +66,8 @@ public class Security extends WebSecurityConfigurerAdapter {
                 .url(ldapUrl)
                 .managerDn(managerDn)
                 .managerPassword(managerPassword);
+        } else {
+            super.configure(auth);
         }
     }
 }

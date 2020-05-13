@@ -9,14 +9,15 @@ import java.util.*;
 
 public class Project {
 
-    @Nonnull private final String id;
-    @Nonnull private final String owner;
+    private @Nonnull final String id;
+    private @Nonnull final String owner;
 
-    @Nullable private List<String> groups;
-    @Nullable private List<String> tags;
+    private @Nullable List<String> groups;
+    private @Nullable List<String> tags;
 
-    @Nonnull private PipelineDefinition pipeline;
-    @Nonnull private String             name;
+    private @Nonnull PipelineDefinition pipeline;
+    private @Nonnull String             name;
+    private          boolean            publicAccess;
 
     Project(@Nonnull String id, @Nonnull String owner, @Nonnull PipelineDefinition pipeline) {
         this.id       = id;
@@ -25,20 +26,22 @@ public class Project {
         this.name     = "[no name]";
     }
 
-    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "pipelineDefinition"})
+    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "public", "pipelineDefinition"})
     public Project(
             @Nonnull String id,
             @Nonnull String owner,
             @Nullable Iterable<String> groups,
             @Nullable Iterable<String> tags,
             @Nonnull String name,
+            @Nullable Boolean publicAccess,
             @Nonnull PipelineDefinition pipelineDefinition) {
-        this.id       = id;
-        this.owner    = owner;
-        this.groups   = null;
-        this.tags     = null;
-        this.pipeline = pipelineDefinition;
-        this.name     = name;
+        this.id           = id;
+        this.owner        = owner;
+        this.groups       = null;
+        this.tags         = null;
+        this.pipeline     = pipelineDefinition;
+        this.name         = name;
+        this.publicAccess = Objects.requireNonNullElse(publicAccess, false);
 
         if (groups != null) {
             groups.forEach(this::addGroup);
@@ -47,6 +50,7 @@ public class Project {
         if (tags != null) {
             tags.forEach(this::addTag);
         }
+
     }
 
     @Nonnull
@@ -67,6 +71,14 @@ public class Project {
     @Nonnull
     public String getOwner() {
         return owner;
+    }
+
+    public boolean isPublic() {
+        return publicAccess;
+    }
+
+    public void setPublic(boolean publicAccessible) {
+        this.publicAccess = publicAccessible;
     }
 
     public void setPipelineDefinition(@Nonnull PipelineDefinition definition) {
