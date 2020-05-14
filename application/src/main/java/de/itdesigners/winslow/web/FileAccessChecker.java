@@ -41,13 +41,11 @@ public class FileAccessChecker {
             // root is allowed to do everything anywhere, no further check required
             var workspace = workspacePath.get();
             return user.hasSuperPrivileges() ||
+                    "".equals(workspace.toString()) ||
                     (workspace.getNameCount() > 0 &&
                             projectResolver
                                     .apply(workspace.getName(0).toString()) // the work directory name is the project id
-                                    .map(project -> project.getOwner().equals(user.getName())
-                                            || project.getGroups().stream().anyMatch(user::canAccessGroup)
-                                            || project.isPublic()
-                                    )
+                                    .map(project -> project.canBeAccessedBy(user))
                                     .orElse(Boolean.FALSE));
         } else {
             return false;
