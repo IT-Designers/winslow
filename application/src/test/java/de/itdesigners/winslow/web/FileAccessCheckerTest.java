@@ -76,12 +76,12 @@ public class FileAccessCheckerTest {
     }
 
     @Test
-    public void onlyRootCanAccessWorkspacesMainDirectory() {
+    public void everyoneCanAccessWorkspacesMainDirectory() {
         var root = new User("root", true, DUMMY_GROUP_RESOLVER);
         var user = new User("user", false, DUMMY_GROUP_RESOLVER);
 
         assertTrue(checker.isAllowedToAccessPath(root, config.getRelativePathOfWorkspaces()));
-        assertFalse(checker.isAllowedToAccessPath(user, config.getRelativePathOfWorkspaces()));
+        assertTrue(checker.isAllowedToAccessPath(user, config.getRelativePathOfWorkspaces()));
     }
 
     @Test
