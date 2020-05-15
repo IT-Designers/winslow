@@ -1,5 +1,5 @@
-FROM repo.itd-intern.de/winslow/component-server as server
-FROM repo.itd-intern.de/winslow/component-html as html
+FROM nexus.itd-intern.de/winslow/component-server as server
+FROM nexus.itd-intern.de/winslow/component-html as html
 
 FROM openjdk:11-jre-slim-buster
 
