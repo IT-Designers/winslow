@@ -4,6 +4,7 @@ import com.hashicorp.nomad.javasdk.NomadApiClient;
 import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.node.Node;
+import de.itdesigners.winslow.node.PlatformInfo;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -23,6 +24,12 @@ public class NomadGpuDetectorNodeWrapper implements Node {
     @Override
     public String getName() {
         return this.node.getName();
+    }
+
+    @Nonnull
+    @Override
+    public PlatformInfo getPlatformInfo() {
+        return this.node.getPlatformInfo();
     }
 
     @Nonnull

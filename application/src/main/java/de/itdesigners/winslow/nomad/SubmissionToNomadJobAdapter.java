@@ -5,6 +5,7 @@ import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.Requirements;
+import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.pipeline.*;
 
 import javax.annotation.CheckReturnValue;
@@ -17,9 +18,11 @@ public class SubmissionToNomadJobAdapter {
 
     private static final @Nonnull String DOCKER_DRIVER = "docker";
 
+    private final @Nonnull PlatformInfo info;
     private final @Nonnull NomadBackend backend;
 
-    public SubmissionToNomadJobAdapter(@Nonnull NomadBackend backend) {
+    public SubmissionToNomadJobAdapter(@Nonnull PlatformInfo info, @Nonnull NomadBackend backend) {
+        this.info    = info;
         this.backend = backend;
     }
 
@@ -159,7 +162,6 @@ public class SubmissionToNomadJobAdapter {
     @CheckReturnValue
     private Consumer<Requirements> getResourceRequirementsConfigurer(@Nonnull Task task) {
         return requirements -> {
-            // TODO requirements.getCpu()
             requirements.getGpu().ifPresent(gpu -> {
                 if (gpu.getCount() > 0) {
                     var configGpu = new HashMap<>();
@@ -181,6 +183,11 @@ public class SubmissionToNomadJobAdapter {
                 }
 
             });
+
+            if (requirements.getCpu() > 0) {
+                info.getCpuSingleCoreMaxFrequency()
+                    .ifPresent(max -> task.getResources().setCpu(requirements.getCpu() * max));
+            }
 
             task.getResources().setMemoryMb((int) requirements.getMegabytesOfRam());
         };

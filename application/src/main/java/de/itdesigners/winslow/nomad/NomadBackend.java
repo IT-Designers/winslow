@@ -8,6 +8,7 @@ import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
 
@@ -28,18 +29,19 @@ public class NomadBackend implements Backend {
     public static final  String DEFAULT_GPU_VENDOR               = "nvidia";
     public static final  String IMAGE_DRIVER_NAME                = "docker";
 
-    @Nonnull private final NomadApiClient client;
+    @Nonnull private final NomadApiClient              client;
+    @Nonnull private final SubmissionToNomadJobAdapter submissionToNomadJobAdapter;
 
-    private       long                        cachedAllocsTime;
-    private       List<AllocationListStub>    cachedAllocs;
-    private final Object                      cachedAllocsSync            = new Object();
-    private       long                        cachedEvalsTime;
-    private       List<Evaluation>            cachedEvals;
-    private final Object                      cachedEvalsSync             = new Object();
-    private final SubmissionToNomadJobAdapter submissionToNomadJobAdapter = new SubmissionToNomadJobAdapter(this);
+    private       long                     cachedAllocsTime;
+    private       List<AllocationListStub> cachedAllocs;
+    private final Object                   cachedAllocsSync = new Object();
+    private       long                     cachedEvalsTime;
+    private       List<Evaluation>         cachedEvals;
+    private final Object                   cachedEvalsSync  = new Object();
 
-    public NomadBackend(@Nonnull NomadApiClient client) throws IOException {
-        this.client = client;
+    public NomadBackend(@Nonnull PlatformInfo platformInfo, @Nonnull NomadApiClient client) throws IOException {
+        this.client                      = client;
+        this.submissionToNomadJobAdapter = new SubmissionToNomadJobAdapter(platformInfo, this);
         killAnyRunningStage();
 
 

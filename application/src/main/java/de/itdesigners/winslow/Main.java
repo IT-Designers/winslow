@@ -71,13 +71,12 @@ public class Main {
             var settings        = new SettingsRepository(lockBus, config);
 
             LOG.info("Preparing the orchestrator");
-            var repository  = new PipelineRepository(lockBus, config);
-            var attributes  = new RunInfoRepository(lockBus, config);
-            var nomadClient = new NomadApiClient(new NomadApiConfiguration.Builder().build());
-            var backend     = new NomadBackend(nomadClient);
-
+            var repository      = new PipelineRepository(lockBus, config);
+            var attributes      = new RunInfoRepository(lockBus, config);
+            var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
             var node            = getNode(nodeName, nomadClient);
             var resourceMonitor = new ResourceAllocationMonitor(toResourceSet(node.loadInfo()));
+            var backend         = new NomadBackend(node.getPlatformInfo(), nomadClient);
 
             // TODO
             NodeInfoUpdater.spawn(config.getNodesDirectory(), node);

@@ -11,5 +11,8 @@ public interface Node {
     String getName();
 
     @Nonnull
+    PlatformInfo getPlatformInfo();
+
+    @Nonnull
     NodeInfo loadInfo() throws IOException;
 }

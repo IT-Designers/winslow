@@ -2,6 +2,7 @@ package de.itdesigners.winslow.node.unix;
 
 import de.itdesigners.winslow.api.node.*;
 import de.itdesigners.winslow.node.Node;
+import de.itdesigners.winslow.node.PlatformInfo;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class UnixNode implements Node {
 
     private static final Path   PROC                  = Path.of("/", "proc");
+    private static final Path   SYS                   = Path.of("/", "sys");
     public static final  String CPU_INFO_MODEL_PREFIX = "model name";
     public static final  String CPU_INFO_SEPARATOR    = ":";
 
@@ -24,11 +26,14 @@ public class UnixNode implements Node {
     @Nonnull private       List<UnixNetIoParser.InterfaceInfo> prevNetBytes;
     @Nonnull private       List<UnixDiskIoParser.DiskInfo>     prevDiskInfo;
 
+    @Nonnull private final PlatformInfo platformInfo;
+
     public UnixNode(@Nonnull String name) throws IOException {
         this.name         = name;
         this.prevCpuTimes = getCpuTimes(resolveStat());
         this.prevNetBytes = getInterfaceInfo(resolveNetDev());
         this.prevDiskInfo = getDiskInfo(resolveDiskstats());
+        this.platformInfo = loadPlatformInfo();
     }
 
     @Nonnull
@@ -57,9 +62,36 @@ public class UnixNode implements Node {
     }
 
     @Nonnull
+    private static Path resolveCpuInfoMaxFreq() {
+        return PROC
+                .resolve("devices")
+                .resolve("system")
+                .resolve("cpu")
+                .resolve("cpufreq")
+                .resolve("policy0")
+                .resolve("cpuinfo_max_freq");
+    }
+
+    @Nonnull
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Nonnull
+    @Override
+    public PlatformInfo getPlatformInfo() {
+        return platformInfo;
+    }
+
+    @Nonnull
+    private PlatformInfo loadPlatformInfo() throws IOException {
+        try (var lines = Files.lines(resolveCpuInfoMaxFreq())) {
+            var cpuMaxFreq = lines
+                    .findFirst()
+                    .map(Integer::parseInt);
+            return new PlatformInfo(cpuMaxFreq.orElse(null));
+        }
     }
 
     @Nonnull
