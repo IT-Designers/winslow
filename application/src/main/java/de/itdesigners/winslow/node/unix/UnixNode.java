@@ -63,7 +63,7 @@ public class UnixNode implements Node {
 
     @Nonnull
     private static Path resolveCpuInfoMaxFreq() {
-        return PROC
+        return SYS
                 .resolve("devices")
                 .resolve("system")
                 .resolve("cpu")
@@ -87,10 +87,11 @@ public class UnixNode implements Node {
     @Nonnull
     private PlatformInfo loadPlatformInfo() throws IOException {
         try (var lines = Files.lines(resolveCpuInfoMaxFreq())) {
-            var cpuMaxFreq = lines
+            var cpuMaxFreqMhz = lines
                     .findFirst()
-                    .map(Integer::parseInt);
-            return new PlatformInfo(cpuMaxFreq.orElse(null));
+                    .map(Integer::parseInt)
+                    .map(khz -> khz / 1_000);
+            return new PlatformInfo(cpuMaxFreqMhz.orElse(null));
         }
     }
 
