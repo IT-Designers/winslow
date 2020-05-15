@@ -19,8 +19,9 @@ public class Env {
     public static final String NO_GPU_USAGE       = SELF_PREFIX + "_NO_GPU_USAGE";
     public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
     public static final String DEV_ENV_IP         = SELF_PREFIX + "_DEV_ENV_IP";
+    public static final String WEB_REQUIRE_SECURE = SELF_PREFIX + "_WEB_REQUIRE_SECURE";
 
-    public static final String LDAP_URL                 = SELF_PREFIX + "_LDAP_URL";
+    public static final String LDAP_URL = SELF_PREFIX + "_LDAP_URL";
     // public static final String LDAP_MANAGER_DN          = SELF_PREFIX + "_LDAP_MANAGER_DN";
     // public static final String LDAP_MANAGER_PASSWORD    = SELF_PREFIX + "_LDAP_MANAGER_PASSWORD";
     // public static final String LDAP_USER_SEARCH_BASE    = SELF_PREFIX + "_LDAP_USER_SEARCH_FILTER";
@@ -74,9 +75,17 @@ public class Env {
                 .orElse(Boolean.TRUE);
     }
 
+    public static boolean requireSecure() {
+        // 'SECURITY_REQUIRE_SSL' is an old and deprecated springboot property but might be used here and there
+        return isTrueOr1(System.getenv("SECURITY_REQUIRE_SSL")) || isTrueOr1(System.getenv(WEB_REQUIRE_SECURE));
+    }
+
     public static boolean isDevEnv() {
-        var env = System.getenv(DEV_ENV);
-        return env != null & (Boolean.parseBoolean(env) || "1" .equals(env));
+        return isTrueOr1(System.getenv(DEV_ENV));
+    }
+
+    private static boolean isTrueOr1(@Nullable String env) {
+        return Boolean.parseBoolean(env) || "1".equals(env);
     }
 
     public static boolean isLdapAuthEnabled() {

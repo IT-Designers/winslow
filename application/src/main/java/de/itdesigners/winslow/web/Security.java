@@ -26,7 +26,17 @@ public class Security extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         configureCsrfToken(http);
+        configureAuthorization(http);
+        configureTransport(http);
+    }
 
+    private void configureTransport(HttpSecurity http) throws Exception {
+        if (Env.requireSecure()) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
+    }
+
+    private void configureAuthorization(HttpSecurity http) throws Exception {
         if (!Env.isDevEnv()) {
             /*
             http
