@@ -9,7 +9,8 @@
            (keydown.enter)="navigateDirectlyTo($event.target.value)">
     <i class="material-icons-outlined action-area" (click)="fileInput.click()">cloud_upload</i>
     <i class="material-icons-outlined action-area" (click)="createDirectory()">create_new_folder</i>
-    <input hidden #fileInput accept="*/*" type="file" (change)="uploadFile($event.target.files)">
+    <input hidden #decompress value="false"/>
+    <input hidden #fileInput accept="*/*" type="file" (change)="uploadFile($event.target.files, decompress.value)">
   </div>
 
 
@@ -65,7 +66,8 @@
     <ul>
       <li (click)="createDirectory(); contextMenuVisible = false">New Directory</li>
       <li (click)="toggleShowDirectorySize(); contextMenuVisible = false">{{showDirectorySize ? 'Hide Directory Size' : 'Show Directory Size'}}</li>
-      <li (click)="fileInput.click(); contextMenuVisible = false">Upload a File</li>
+      <li (click)="decompress.value = true; fileInput.click(); contextMenuVisible = false">Upload a Directory</li>
+      <li (click)="decompress.value = false; fileInput.click(); contextMenuVisible = false">Upload a File</li>
     </ul>
   </div>
   <swal #swalUpload title="Uploading your files"
