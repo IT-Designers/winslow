@@ -12,7 +12,6 @@ import de.itdesigners.winslow.web.api.FilesController;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,8 +30,6 @@ import java.nio.file.Path;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static junit.framework.TestCase.*;
 import static org.junit.Assert.assertArrayEquals;
