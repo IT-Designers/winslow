@@ -34,12 +34,18 @@ export class FilesApiService {
       .toPromise();
   }
 
-  uploadFile(pathToDirectory: string, file: File) {
+  uploadFile(pathToDirectory: string, file: File, decompress = false) {
     if (!pathToDirectory.endsWith('/')) {
       pathToDirectory += '/';
     }
     if (pathToDirectory.startsWith('/')) {
       pathToDirectory = pathToDirectory.substr(1);
+    }
+
+    let params = '?';
+
+    if (decompress) {
+      params += 'decompressArchive=true';
     }
 
     const form = new FormData();
@@ -48,7 +54,7 @@ export class FilesApiService {
     return this
       .client
       .post(
-        FilesApiService.getUrl(pathToDirectory + file.name),
+        FilesApiService.getUrl(pathToDirectory + file.name + params),
         form,
         {reportProgress: true, observe: 'events'}
       );
