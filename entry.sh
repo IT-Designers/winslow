@@ -8,7 +8,8 @@ if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR" -type f); do
     echo "Importing $f"
-    keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias $f -file $f
+    keytool -delete -alias "$f" -keystore || true
+    keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias "$f" -file "$f"
   done
 fi
 
