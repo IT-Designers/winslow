@@ -238,7 +238,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  uploadFile(files: FileList, decompress: boolean) {
+  uploadFile(files: FileList, decompress = false) {
     this.prepareDataUpload(files);
 
     const instance = {
