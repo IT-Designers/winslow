@@ -238,7 +238,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  uploadFile(files: FileList) {
+  uploadFile(files: FileList, decompress: boolean) {
     this.prepareDataUpload(files);
 
     const instance = {
@@ -248,7 +248,7 @@ export class FilesComponent implements OnInit {
 
     instance.uploader = (index: number): Promise<void> => {
       if (index < files.length) {
-        const upload = this.api.uploadFile(this.latestPath, files.item(index));
+        const upload = this.api.uploadFile(this.latestPath, files.item(index), decompress);
         upload.subscribe(event => {
           if (event.type === HttpEventType.UploadProgress) {
             this.dataUpload.uploads[index][1] = event.loaded;
