@@ -16,7 +16,7 @@ import {
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
+import {PipelineApiService, PipelineInfo, ResourceInfo, StageInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
 import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
 import {DialogService} from '../dialog.service';
@@ -349,7 +349,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  enqueue(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
+  enqueue(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
@@ -360,7 +360,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.enqueue(this.project.id, index, env, image),
+          this.api.enqueue(this.project.id, index, env, image, requiredResources),
           `Submitting selections`
         );
       }
@@ -369,7 +369,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  configure(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
+  configure(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
@@ -380,7 +380,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.configureGroup(this.project.id, index, [this.project.id], env, image),
+          this.api.configureGroup(this.project.id, index, [this.project.id], env, image, requiredResources),
           `Submitting selections`
         );
       }
@@ -615,8 +615,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     stageInfo.image = ProjectViewComponent.deepClone(entry.imageInfo);
     stageInfo.name = entry.stageName;
     stageInfo.requiredEnvVariables = entry.env && entry.env.keys ? [...entry.env.keys()] : [];
+    stageInfo.requiredResources = entry.resourceRequirements;
 
     this.executionSelection.image = stageInfo.image;
+    this.executionSelection.resources = stageInfo.requiredResources;
     this.executionSelection.selectedStage = stageInfo;
     this.environmentVariables = new Map();
     this.defaultEnvironmentVariables = entry.env;

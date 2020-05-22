@@ -104,4 +104,11 @@ export class StageInfo {
   name: string;
   image?: ImageInfo;
   requiredEnvVariables: string[];
+  requiredResources?: ResourceInfo;
+}
+
+export class ResourceInfo {
+  cpus: number;
+  megabytesOfRam: number;
+  gpus?: number;
 }
