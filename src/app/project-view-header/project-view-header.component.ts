@@ -19,7 +19,7 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   @Output() tagActionSecondary = new EventEmitter<string>();
 
   @Output()
-  @ViewChild('icon', {static: false})
+  @ViewChild('icon')
   icon: StateIconComponent;
 
   state: State = null;

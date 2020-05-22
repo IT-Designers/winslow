@@ -27,7 +27,7 @@ export class FilesComponent implements OnInit {
   contextMenuVisible = false;
 
   dataUpload: UploadFilesProgress = null;
-  @ViewChild('swalUpload', {static: false}) swalUpload: SwalComponent;
+  @ViewChild('swalUpload') swalUpload: SwalComponent;
   viewHint: string = null;
 
 

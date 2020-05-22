@@ -39,10 +39,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   tabIndexOverview = Tab.Overview;
 
-  @ViewChild('tabGroup', {static: false}) tabs: MatTabGroup;
-  @ViewChild('console', {static: false}) htmlConsole: ElementRef<HTMLElement>;
-  @ViewChild('scrollBottomTarget', {static: false}) scrollBottomTarget: ElementRef<HTMLElement>;
-  @ViewChild('executionSelection', {static: false}) executionSelection: StageExecutionSelectionComponent;
+  @ViewChild('tabGroup') tabs: MatTabGroup;
+  @ViewChild('console') htmlConsole: ElementRef<HTMLElement>;
+  @ViewChild('scrollBottomTarget') scrollBottomTarget: ElementRef<HTMLElement>;
+  @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
 
   private projectValue: ProjectInfo;
   probablyProjectPipelineId = null;
