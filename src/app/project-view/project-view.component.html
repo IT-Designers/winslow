@@ -49,7 +49,8 @@
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),
-                  executionSelection.getImage()
+                  executionSelection.getImage(),
+                  executionSelection.getResourceRequirements()
                 )">
         <mat-icon>save</mat-icon>
         Save configuration
@@ -60,7 +61,8 @@
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),
-                  executionSelection.getImage()
+                  executionSelection.getImage(),
+                  executionSelection.getResourceRequirements()
                 )">
         <mat-icon>send</mat-icon>
         Enqueue
@@ -135,6 +137,10 @@
                 <ng-template
                   *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo?.args|json}}"></ng-template>
 
+                <h3>Resource Requirements</h3>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'CPU (cores)', value: entry.resourceRequirements?.cpus}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'RAM (MiB)', value: entry.resourceRequirements?.megabytesOfRam}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'GPU', value: entry.resourceRequirements?.gpus}}"></ng-template>
 
                 <h3>Stage Environment Variables</h3>
                 <i *ngIf="entry.env == null || entry.env.size == 0">none</i>

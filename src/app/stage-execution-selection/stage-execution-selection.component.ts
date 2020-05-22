@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {PipelineInfo, StageInfo} from '../api/pipeline-api.service';
+import {PipelineInfo, ResourceInfo, StageInfo} from '../api/pipeline-api.service';
 import {MatDialog} from '@angular/material';
 import {EnvVariable, ImageInfo} from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
@@ -22,6 +22,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageInfo = null;
   image = new ImageInfo();
+  resources = new ResourceInfo();
   @Output('valid') private validEmitter = new EventEmitter<boolean>();
   valid = false;
 
@@ -33,7 +34,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   envValid = false;
 
 
-  static deepClone(image: ImageInfo) {
+  static deepClone(image: object) {
     return JSON.parse(JSON.stringify(image));
   }
 
@@ -79,6 +80,10 @@ export class StageExecutionSelectionComponent implements OnInit {
     return this.image;
   }
 
+  getResourceRequirements(): ResourceInfo {
+    return this.resources;
+  }
+
   loadStagesForPipeline(pipelineId: string) {
     this.selectedPipeline = null;
     this.selectedPipelineEmitter.emit(null);
@@ -104,6 +109,7 @@ export class StageExecutionSelectionComponent implements OnInit {
           this.selectedStage = stage;
           this.selectedStageEmitter.emit(stage);
           this.image = StageExecutionSelectionComponent.deepClone(stage.image);
+          this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : new ResourceInfo();
 
           const requiredEnvironmentVariables = [];
           this.selectedPipeline.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
@@ -125,5 +131,9 @@ export class StageExecutionSelectionComponent implements OnInit {
   updateValidEnv(valid: boolean) {
     this.envValid = valid;
     this.updateValid();
+  }
+
+  toNumber(value: string): number {
+    return Number(value);
   }
 }
