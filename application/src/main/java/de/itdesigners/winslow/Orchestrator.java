@@ -260,7 +260,8 @@ public class Orchestrator {
         return pipeline
                 .peekNextStage()
                 .map(this::getRequiredResources)
-                .map(this.monitor::couldReserveConsideringReservations);
+                .map(this.monitor::couldReserveConsideringReservations)
+                .map(has -> has || pipeline.peekNextStage().map(s -> s.getAction() == Action.Configure).orElse(false));
     }
 
     @Nonnull
