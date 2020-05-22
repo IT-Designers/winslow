@@ -78,3 +78,63 @@
   </app-env-variables>
 </ng-container>
 
+
+<ng-container *ngIf="selectedStage?.requiredResources != null">
+  <div>
+    <mat-divider></mat-divider>
+  </div>
+
+  <div class="whitespace-separator-top">
+    <mat-card-subtitle>Minimum Resource Requirements</mat-card-subtitle>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">CPUs (cores)</mat-label>
+    <mat-form-field>
+      <input #requiredCpus matInput required [value]="'' +selectedStage.requiredResources.cpus"
+             (change)="resources.cpus = toNumber($event.target.value); updateValid()">
+    </mat-form-field>
+    <div class="controls">
+      <button dense mat-stroked-button color="primary"
+              [disabled]="requiredCpus.value == '' + selectedStage.requiredResources.cpus"
+              (click)="requiredCpus.value = '' + selectedStage.requiredResources.cpus; resources.cpus = selectedStage.requiredResources.cpus">
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">RAM (MiB)</mat-label>
+    <mat-form-field>
+      <input #requiredRam matInput required [value]="'' +selectedStage.requiredResources.megabytesOfRam"
+             (change)="resources.megabytesOfRam = toNumber($event.target.value); updateValid()">
+    </mat-form-field>
+    <div class="controls">
+      <button dense mat-stroked-button color="primary"
+              [disabled]="requiredRam.value == '' +selectedStage.requiredResources.megabytesOfRam"
+              (click)="requiredRam.value = '' +selectedStage.requiredResources.megabytesOfRam; resources.megabytesOfRam = selectedStage.requiredResources.megabytesOfRam">
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+      <input #requireGpus type="checkbox" [checked]="resources.gpus != null"
+             (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpus : null"> GPUs
+    </mat-label>
+    <mat-form-field>
+      <input #requiredGpus matInput required [value]="'' +selectedStage.requiredResources.gpus"
+             [disabled]="!requireGpus.checked"
+             (change)="resources.gpus = toNumber($event.target.value); updateValid()">
+    </mat-form-field>
+    <div class="controls">
+      <button dense mat-stroked-button color="primary"
+              [disabled]="requiredGpus.value == '' +selectedStage.requiredResources.gpus"
+              (click)="requiredGpus.value = '' +selectedStage.requiredResources.gpus; resources.gpus = selectedStage.requiredResources.gpus">
+        Reset
+      </button>
+    </div>
+  </div>
+</ng-container>
+

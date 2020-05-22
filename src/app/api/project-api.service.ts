@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
-import {PipelineInfo} from './pipeline-api.service';
+import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -109,7 +109,7 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null) {
+  enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
     form.set('stageIndex', '' + nextStageIndex);
@@ -117,13 +117,16 @@ export class ProjectApiService {
       form.set('imageName', image.name);
       form.set('imageArgs', JSON.stringify(image.args));
     }
+    if (requiredResources != null) {
+      form.set('requiredResources', JSON.stringify(requiredResources));
+    }
     return this.client.put(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
       form
     ).toPromise();
   }
 
-  configureGroup(projectId: string, stageIndex: number, projectIds: string[], env: any, image: ImageInfo = null) {
+  configureGroup(projectId: string, stageIndex: number, projectIds: string[], env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null) {
     const form = new FormData();
     form.set('stageIndex', '' + stageIndex);
     form.set('projectIds', JSON.stringify(projectIds));
@@ -131,6 +134,9 @@ export class ProjectApiService {
     if (image != null) {
       form.set('imageName', image.name);
       form.set('imageArgs', JSON.stringify(image.args));
+    }
+    if (requiredResources != null) {
+      form.set('requiredResources', JSON.stringify(requiredResources));
     }
     return this.client.put<boolean[]>(
       ProjectApiService.getUrl(`${projectId}/enqueued-on-others`),
@@ -293,6 +299,7 @@ export class HistoryEntry {
   // local only
   enqueueIndex?: number;
   enqueueControlSize?: number;
+  resourceRequirements?: ResourceInfo;
 }
 
 export enum LogSource {
