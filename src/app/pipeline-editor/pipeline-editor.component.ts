@@ -10,7 +10,7 @@ import {ParseError} from '../api/project-api.service';
 export class PipelineEditorComponent implements OnInit {
 
 
-  @ViewChild('editorContainer', {static: false}) container: ElementRef<HTMLDivElement>;
+  @ViewChild('editorContainer') container: ElementRef<HTMLDivElement>;
 
   @Input() pipelineId: string;
   @Input() raw: string;
