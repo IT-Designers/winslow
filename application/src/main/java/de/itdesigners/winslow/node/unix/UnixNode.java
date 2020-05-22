@@ -6,12 +6,14 @@ import de.itdesigners.winslow.node.PlatformInfo;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UnixNode implements Node {
@@ -86,12 +88,48 @@ public class UnixNode implements Node {
 
     @Nonnull
     private PlatformInfo loadPlatformInfo() throws IOException {
+        return new PlatformInfo(tryLoadCpuMaxFreqMhz().orElse(null));
+    }
+
+    @Nonnull
+    private Optional<Integer> tryLoadCpuMaxFreqMhz() throws IOException {
+        Optional<Integer> cpuMaxFreqMhz;
+        try {
+            cpuMaxFreqMhz = tryLoadCpuInfoMaxFreq();
+        } catch (FileNotFoundException e) {
+            try {
+                cpuMaxFreqMhz = tryLoadCpuInfoMhz();
+            } catch (FileNotFoundException ee) {
+                ee.addSuppressed(e);
+                e.printStackTrace();
+                // for whatever reason...
+                cpuMaxFreqMhz = Optional.empty();
+            }
+        }
+        return cpuMaxFreqMhz;
+    }
+
+    @Nonnull
+    private Optional<Integer> tryLoadCpuInfoMhz() throws IOException {
+        try (var lines = Files.lines(resolveCpuInfo())) {
+            return lines
+                    .filter(l -> l.startsWith("cpu MHz"))
+                    .map(l -> l.split(":"))
+                    .filter(l -> l.length == 2)
+                    .map(l -> l[1])
+                    .findFirst()
+                    .map(Float::parseFloat)
+                    .map(mhz -> (int)(float)mhz);
+        }
+    }
+
+    @Nonnull
+    private Optional<Integer> tryLoadCpuInfoMaxFreq() throws IOException {
         try (var lines = Files.lines(resolveCpuInfoMaxFreq())) {
-            var cpuMaxFreqMhz = lines
+             return lines
                     .findFirst()
                     .map(Integer::parseInt)
                     .map(khz -> khz / 1_000);
-            return new PlatformInfo(cpuMaxFreqMhz.orElse(null));
         }
     }
 
