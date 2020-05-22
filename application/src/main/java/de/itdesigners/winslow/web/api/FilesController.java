@@ -5,7 +5,10 @@ import de.itdesigners.winslow.api.file.FileInfo;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.FileAccessChecker;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +37,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @RestController
 public class FilesController {
@@ -132,20 +138,29 @@ public class FilesController {
     }
 
     @PostMapping(value = {"/files/resources/**"})
-    public void uploadResourceFile(HttpServletRequest request, User user, @RequestParam("file") MultipartFile file) {
-        uploadFile(request, user, file, resourceManager.getResourceDirectory().orElseThrow());
+    public void uploadResourceFile(
+            HttpServletRequest request,
+            User user,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) {
+        uploadFile(request, user, file, resourceManager.getResourceDirectory().orElseThrow(), decompressArchive);
     }
 
     @PostMapping(value = {"/files/workspaces/**"})
-    public void uploadWorkspaceFile(HttpServletRequest request, User user, @RequestParam("file") MultipartFile file) {
-        uploadFile(request, user, file, resourceManager.getWorkspacesDirectory().orElseThrow());
+    public void uploadWorkspaceFile(
+            HttpServletRequest request,
+            User user,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) {
+        uploadFile(request, user, file, resourceManager.getWorkspacesDirectory().orElseThrow(), decompressArchive);
     }
 
     public void uploadFile(
             HttpServletRequest request,
             User user,
-            @RequestParam("file") MultipartFile file,
-            @Nonnull Path directory) {
+            MultipartFile file,
+            @Nonnull Path directory,
+            boolean decompressArchive) {
         normalizedPath(request)
                 .flatMap(path -> Optional
                         .of(directory.resolve(path))
@@ -154,7 +169,11 @@ public class FilesController {
                     var parent = path.getParent();
                     if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
                         try {
-                            file.transferTo(path);
+                            if (!decompressArchive) {
+                                file.transferTo(path);
+                            } else {
+                                decompressArchiveContentTo(file, path);
+                            }
                             return true;
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -166,6 +185,59 @@ public class FilesController {
                 })
                 .flatMap(result -> result ? Optional.of(true) : Optional.empty())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    private void decompressArchiveContentTo(MultipartFile file, Path path) throws IOException {
+        var fileName = path.getFileName().toString();
+        var target = path.getParent();
+
+        if (fileName.endsWith(".zip")) {
+            try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+                decompressZipArchiveContentTo(zis, target);
+            }
+        } else if (fileName.endsWith(".tar.gz")) {
+            try (GzipCompressorInputStream gcis = new GzipCompressorInputStream(file.getInputStream())) {
+                try (TarArchiveInputStream tais = new TarArchiveInputStream(gcis)) {
+                    decompressTarGzArchiveContentTo(tais, target);
+                }
+            }
+        } else {
+            throw new IOException("Unsupported archive format");
+        }
+    }
+
+    private void decompressZipArchiveContentTo(ZipInputStream zis, Path path) throws IOException {
+        var entry = (ZipEntry) null;
+        while ((entry = zis.getNextEntry()) != null) {
+            var file = path.resolve(entry.getName());
+            if (entry.isDirectory()) {
+                decompressZipArchiveContentTo(zis, file);
+            } else {
+                if (!file.getParent().toFile().exists()) {
+                    Files.createDirectories(file.getParent());
+                }
+                try (FileOutputStream fos = new FileOutputStream(file.toFile())) {
+                    zis.transferTo(fos);
+                }
+            }
+        }
+    }
+
+    private void decompressTarGzArchiveContentTo(TarArchiveInputStream tais, Path path) throws IOException {
+        var entry = (TarArchiveEntry) null;
+        while ((entry = tais.getNextTarEntry()) != null) {
+            var file = path.resolve(entry.getName());
+            if (entry.isDirectory()) {
+                decompressTarGzArchiveContentTo(tais, file);
+            } else {
+                if (!file.getParent().toFile().exists()) {
+                    Files.createDirectories(file.getParent());
+                }
+                try (FileOutputStream fos = new FileOutputStream(file.toFile())) {
+                    tais.transferTo(fos);
+                }
+            }
+        }
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
@@ -220,7 +292,7 @@ public class FilesController {
                 .orElse(null);
     }
 
-    private void aggregateTarGzEntries(Path root, File current, TarArchiveOutputStream taos) throws  IOException {
+    private void aggregateTarGzEntries(Path root, File current, TarArchiveOutputStream taos) throws IOException {
         var files = current.listFiles();
         if (files != null) {
             for (var file : files) {
@@ -346,8 +418,8 @@ public class FilesController {
 
             var optionRenameTo = options.get("rename-to");
             if (optionRenameTo instanceof String) {
-                var renameTo = (String)optionRenameTo;
-                var target = path.resolveSibling(renameTo);
+                var renameTo = (String) optionRenameTo;
+                var target   = path.resolveSibling(renameTo);
                 if (target.getParent().equals(path.getParent())) {
                     Files.move(path, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 } else {

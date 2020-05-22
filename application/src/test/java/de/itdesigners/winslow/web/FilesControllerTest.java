@@ -11,7 +11,9 @@ import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.api.FilesController;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +32,8 @@ import java.nio.file.Path;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static junit.framework.TestCase.*;
 import static org.junit.Assert.assertArrayEquals;
@@ -337,7 +341,8 @@ public class FilesControllerTest {
         controller.uploadResourceFile(
                 constructRequest("bitcoin.privatekey"),
                 getRoot(),
-                constructUploadFile(ABC_TXT)
+                constructUploadFile(ABC_TXT),
+                false
         );
         String content = Files.readString(
                 workDirectory
@@ -352,7 +357,8 @@ public class FilesControllerTest {
         controller.uploadResourceFile(
                 constructRequest("abc.txt"),
                 getRoot(),
-                constructUploadFile(DEF_TXT)
+                constructUploadFile(DEF_TXT),
+                false
         );
         String content = Files.readString(
                 workDirectory
@@ -370,7 +376,8 @@ public class FilesControllerTest {
                 () -> controller.uploadResourceFile(
                         constructRequest("bitcoin.privatekey"),
                         null,
-                        constructUploadFile(ABC_TXT)
+                        constructUploadFile(ABC_TXT),
+                        false
                 )
         );
         assertFalse(Files.exists(
@@ -385,7 +392,8 @@ public class FilesControllerTest {
         controller.uploadWorkspaceFile(
                 constructRequest("my-project-id/bitcoin.privatekey"),
                 getRoot(),
-                constructUploadFile(ABC_TXT)
+                constructUploadFile(ABC_TXT),
+                false
         );
         String content = Files.readString(
                 workDirectory
@@ -403,7 +411,8 @@ public class FilesControllerTest {
                 () -> controller.uploadWorkspaceFile(
                         constructRequest("my-project-id/bitcoin.privatekey"),
                         null,
-                        constructUploadFile(ABC_TXT)
+                        constructUploadFile(ABC_TXT),
+                        false
                 )
         );
         assertFalse(Files.exists(
@@ -421,7 +430,8 @@ public class FilesControllerTest {
                 () -> controller.uploadWorkspaceFile(
                         constructRequest("my-project-id/bitcoin.privatekey"),
                         getUser("random-guy", false),
-                        constructUploadFile(ABC_TXT)
+                        constructUploadFile(ABC_TXT),
+                        false
                 )
         );
         assertFalse(Files.exists(
@@ -436,7 +446,8 @@ public class FilesControllerTest {
         controller.uploadWorkspaceFile(
                 constructRequest("my-project-id/bitcoin.privatekey"),
                 getProjectOwner(),
-                constructUploadFile(ABC_TXT)
+                constructUploadFile(ABC_TXT),
+                false
         );
         String content = Files.readString(
                 workDirectory
@@ -444,6 +455,107 @@ public class FilesControllerTest {
                         .resolve("my-project-id/bitcoin.privatekey")
         );
         assertEquals(ABC_TXT, content);
+    }
+
+    @Test
+    public void testZipArchiveUpload() throws IOException {
+        testZipArchiveUpload(false);
+        testZipArchiveUpload(true);
+    }
+
+    public void testZipArchiveUpload(boolean decompress) throws IOException {
+        var abcContent = "Se Compressed File Content";
+        var archive    = new ByteArrayOutputStream();
+
+        try (ZipOutputStream zos = new ZipOutputStream(archive)) {
+            zos.putNextEntry(new ZipEntry("bernd/abc.txt"));
+            var baos = new ByteArrayOutputStream();
+            try (PrintStream ps = new PrintStream(baos)) {
+                ps.print(abcContent);
+            }
+            new ByteArrayInputStream(baos.toByteArray()).transferTo(zos);
+            zos.flush();
+            zos.closeEntry();
+        }
+
+        var content = new ByteArrayInputStream(archive.toByteArray());
+
+        controller.uploadResourceFile(
+                constructRequest("my-project-id/se.zip"),
+                getProjectOwner(),
+                constructUploadFile(content, content.available()),
+                decompress
+        );
+
+        if (decompress) {
+            var readContent = Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bernd/abc.txt")
+            );
+            assertEquals(abcContent, readContent);
+        } else {
+            assertArrayEquals(
+                    archive.toByteArray(),
+                    Files.readAllBytes(
+                            workDirectory
+                                    .resolve(pathConfiguration.getRelativePathOfResources())
+                                    .resolve("my-project-id/se.zip"))
+            );
+        }
+    }
+
+    @Test
+    public void testTarGzArchiveUpload() throws IOException {
+        testTarGzArchiveUpload(false);
+        testTarGzArchiveUpload(true);
+    }
+
+    public void testTarGzArchiveUpload(boolean decompress) throws IOException {
+        var abcContent = "Se Compressed File Content";
+        var archive    = new ByteArrayOutputStream();
+
+        try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(archive)) {
+            try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
+                var baos = new ByteArrayOutputStream();
+                try (PrintStream ps = new PrintStream(baos)) {
+                    ps.print(abcContent);
+                }
+                var array        = baos.toByteArray();
+                var archiveEntry = new TarArchiveEntry("bernd/abc.txt");
+                archiveEntry.setSize(array.length);
+                taos.putArchiveEntry(archiveEntry);
+                new ByteArrayInputStream(array).transferTo(taos);
+                taos.flush();
+                taos.closeArchiveEntry();
+            }
+        }
+
+        var content = new ByteArrayInputStream(archive.toByteArray());
+
+        controller.uploadResourceFile(
+                constructRequest("my-project-id/se.tar.gz"),
+                getProjectOwner(),
+                constructUploadFile(content, content.available()),
+                decompress
+        );
+
+        if (decompress) {
+            var readContent = Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bernd/abc.txt")
+            );
+            assertEquals(abcContent, readContent);
+        } else {
+            assertArrayEquals(
+                    archive.toByteArray(),
+                    Files.readAllBytes(
+                            workDirectory
+                                    .resolve(pathConfiguration.getRelativePathOfResources())
+                                    .resolve("my-project-id/se.tar.gz"))
+            );
+        }
     }
 
     @Test
@@ -687,6 +799,50 @@ public class FilesControllerTest {
                 Optional.of(Path.of("some/very/clever/path")),
                 FilesController.normalizedPath(constructRequest("/some/api/**", "/some/api/some/very/clever/path"))
         );
+    }
+
+    private static MultipartFile constructUploadFile(@Nonnull InputStream is, long size) {
+        return new MultipartFile() {
+            @Override
+            public String getName() {
+                return null;
+            }
+
+            @Override
+            public String getOriginalFilename() {
+                return null;
+            }
+
+            @Override
+            public String getContentType() {
+                return null;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return false;
+            }
+
+            @Override
+            public long getSize() {
+                return size;
+            }
+
+            @Override
+            public byte[] getBytes() throws IOException {
+                return is.readAllBytes();
+            }
+
+            @Override
+            public InputStream getInputStream() throws IOException {
+                return is;
+            }
+
+            @Override
+            public void transferTo(File dest) throws IOException, IllegalStateException {
+                this.transferTo(dest.toPath());
+            }
+        };
     }
 
     private static MultipartFile constructUploadFile(@Nonnull String content) {
