@@ -3,6 +3,7 @@ package de.itdesigners.winslow.web.api;
 import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.PipelineInfo;
+import de.itdesigners.winslow.api.pipeline.ResourceInfo;
 import de.itdesigners.winslow.api.project.*;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
@@ -323,7 +324,7 @@ public class ProjectsController {
     private Pipeline.Strategy getPipelineStrategy(@Nullable @RequestParam(value = "strategy", required = false) String strategy) {
         return Optional
                 .ofNullable(strategy)
-                .filter(str -> "once" .equals(str.toLowerCase()))
+                .filter(str -> "once".equals(str.toLowerCase()))
                 .map(str -> Pipeline.Strategy.MoveForwardOnce)
                 .orElse(Pipeline.Strategy.MoveForwardUntilEnd);
     }
@@ -711,12 +712,15 @@ public class ProjectsController {
             @RequestParam("env") Map<String, String> env,
             @RequestParam("stageIndex") int index,
             @RequestParam(value = "imageName", required = false) @Nullable String imageName,
-            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs) {
+            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs,
+            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
+    ) {
         winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
                 .filter(project -> project.canBeAccessedBy(user))
+
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
                     // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
@@ -728,7 +732,8 @@ public class ProjectsController {
                                         stageDef,
                                         env,
                                         imageName,
-                                        imageArgs
+                                        imageArgs,
+                                        requiredResources
                                 );
                                 return Boolean.TRUE;
                             })
@@ -746,7 +751,8 @@ public class ProjectsController {
             @RequestParam("projectIds") String[] projectIds,
             @RequestParam("env") Map<String, String> env,
             @RequestParam(value = "imageName", required = false) @Nullable String imageName,
-            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs
+            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs,
+            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
     ) {
         var stageDefinitionBase = winslow
                 .getProjectRepository()
@@ -772,7 +778,8 @@ public class ProjectsController {
                                     stageDefinitionBase,
                                     env,
                                     imageName,
-                                    imageArgs
+                                    imageArgs,
+                                    requiredResources
                             );
                             return Boolean.TRUE;
                         }))
@@ -818,8 +825,9 @@ public class ProjectsController {
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
             @Nullable String imageName,
-            @Nullable String[] imageArgs) {
-        enqueueStage(pipeline, base, env, imageName, imageArgs, Action.Configure);
+            @Nullable String[] imageArgs,
+            @Nullable ResourceInfo requiredResources) {
+        enqueueStage(pipeline, base, env, imageName, imageArgs, requiredResources, Action.Configure);
     }
 
     private static void enqueueExecutionStage(
@@ -827,8 +835,9 @@ public class ProjectsController {
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
             @Nullable String imageName,
-            @Nullable String[] imageArgs) {
-        enqueueStage(pipeline, base, env, imageName, imageArgs, Action.Execute);
+            @Nullable String[] imageArgs,
+            @Nullable ResourceInfo requiredResources) {
+        enqueueStage(pipeline, base, env, imageName, imageArgs, requiredResources, Action.Execute);
     }
 
     private static void enqueueStage(
@@ -837,6 +846,7 @@ public class ProjectsController {
             @Nonnull Map<String, String> env,
             @Nullable String imageName,
             @Nullable String[] imageArgs,
+            @Nullable ResourceInfo requiredResources,
             @Nonnull Action action) {
 
         var recentBase = Optional
@@ -851,7 +861,7 @@ public class ProjectsController {
 
         var resultDefinition = createStageDefinition(
                 recentBase,
-                base.getRequirements().orElse(null),
+                updatedResourceRequirement(base.getRequirements().orElse(null), requiredResources),
                 base.getRequires().map(UserInput::withoutConfirmation).orElse(null),
                 env
         );
@@ -869,6 +879,38 @@ public class ProjectsController {
         pipeline.enqueueStage(resultDefinition, action);
         resumeIfPausedByStageFailure(pipeline);
         resumeIfWaitingForGoneStageConfiramtion(pipeline);
+    }
+
+    @Nullable
+    private static Requirements updatedResourceRequirement(
+            @Nullable Requirements requirements,
+            @Nullable ResourceInfo update) {
+        if (requirements == null && update == null) {
+            return null;
+        } else if (requirements != null && update == null) {
+            // nothing to do
+            return requirements;
+        } else {
+            return new Requirements(
+                    update.cpus,
+                    update.megabytesOfRam,
+                    Optional.ofNullable(update.gpus)
+                            .map(gpus -> new Requirements.Gpu(
+                                    gpus,
+                                    Optional
+                                            .ofNullable(requirements)
+                                            .map(Requirements::getGpu)
+                                            .flatMap(g -> g.flatMap(Requirements.Gpu::getVendor))
+                                            .orElse(null),
+                                    Optional
+                                            .ofNullable(requirements)
+                                            .map(Requirements::getGpu)
+                                            .flatMap(g -> g.map(Requirements.Gpu::getSupport))
+                                            .orElse(null)
+                            ))
+                    .orElse(null)
+            );
+        }
     }
 
     private static void resumeIfWaitingForGoneStageConfiramtion(Pipeline pipeline) {

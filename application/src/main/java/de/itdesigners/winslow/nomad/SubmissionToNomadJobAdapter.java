@@ -61,7 +61,7 @@ public class SubmissionToNomadJobAdapter {
                 jobId,
                 submission.getStageDefinition(),
                 submission.getAction(),
-                submission.getWorkspaceDirectory().orElseThrow()
+                submission.getWorkspaceDirectory().orElse(null)
         );
         stage.getEnv().putAll(submission.getStageEnvVariablesReduced());
         stage.getEnvPipeline().putAll(submission.getPipelineEnvVariables());
