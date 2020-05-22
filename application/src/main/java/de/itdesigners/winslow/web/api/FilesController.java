@@ -5,7 +5,8 @@ import de.itdesigners.winslow.api.file.FileInfo;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.FileAccessChecker;
-import net.bytebuddy.implementation.bytecode.Throw;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -171,15 +172,15 @@ public class FilesController {
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
     public ResponseEntity<StreamingResponseBody> downloadResourceFile(HttpServletRequest request, User user) {
-        return downloadFile(request, user, resourceManager.getResourceDirectory().orElseThrow());
+        return downloadFileOrDirectoryAsTarGz(request, user, resourceManager.getResourceDirectory().orElseThrow());
     }
 
     @RequestMapping(value = {"/files/workspaces/**"}, method = RequestMethod.GET)
     public ResponseEntity<StreamingResponseBody> downloadWorkspaceFile(HttpServletRequest request, User user) {
-        return downloadFile(request, user, resourceManager.getWorkspacesDirectory().orElseThrow());
+        return downloadFileOrDirectoryAsTarGz(request, user, resourceManager.getWorkspacesDirectory().orElseThrow());
     }
 
-    public ResponseEntity<StreamingResponseBody> downloadFile(
+    public ResponseEntity<StreamingResponseBody> downloadFileOrDirectoryAsTarGz(
             HttpServletRequest request,
             User user,
             @Nonnull Path directory) {
@@ -189,7 +190,7 @@ public class FilesController {
                 .filter(Files::exists)
                 .map(Path::toFile)
                 .map(file -> {
-                    var name = (file.isFile() ? file.getName() : file.getName() + ".zip").replaceAll("\"", "");
+                    var name = (file.isFile() ? file.getName() : file.getName() + ".tar.gz").replaceAll("\"", "");
                     var responseEntity = ResponseEntity
                             .ok()
                             // Otherwise the download might result in a "f.txt" named file
@@ -208,10 +209,12 @@ public class FilesController {
                                 .body((StreamingResponseBody) outputStream -> Files.copy(file.toPath(), outputStream));
                     } else {
                         return responseEntity
-                                .contentType(new MediaType("application", "zip"))
+                                .contentType(new MediaType("application", "tar+gzip"))
                                 .body((StreamingResponseBody) outputStream -> {
-                                    try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
-                                        aggregateZipEntries(file.toPath(), file, zos);
+                                    try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(outputStream)) {
+                                        try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
+                                            aggregateTarGzEntries(file.toPath(), file, taos);
+                                        }
                                     }
                                 });
                     }
@@ -219,19 +222,20 @@ public class FilesController {
                 .orElse(null);
     }
 
-    private void aggregateZipEntries(Path root, File current, ZipOutputStream zos) throws IOException {
+    private void aggregateTarGzEntries(Path root, File current, TarArchiveOutputStream taos) throws  IOException {
         var files = current.listFiles();
         if (files != null) {
             for (var file : files) {
                 if (file.isFile()) {
-                    var zipEntry = new ZipEntry(root.relativize(file.toPath()).toString());
-                    zipEntry.setSize(file.length());
-                    zos.putNextEntry(zipEntry);
                     try (FileInputStream fis = new FileInputStream(file)) {
-                        fis.transferTo(zos);
+                        System.out.println(root.relativize(file.toPath()));
+                        taos.putArchiveEntry(taos.createArchiveEntry(file, root.relativize(file.toPath()).toString()));
+                        fis.transferTo(taos);
+                    } finally {
+                        taos.closeArchiveEntry();
                     }
                 } else if (file.isDirectory()) {
-                    aggregateZipEntries(root, file, zos);
+                    aggregateTarGzEntries(root, file, taos);
                 }
             }
         }
