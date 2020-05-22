@@ -9,6 +9,10 @@ import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.resource.PathConfiguration;
 import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.api.FilesController;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -559,24 +563,24 @@ public class FilesControllerTest {
         response.getBody().writeTo(baos);
 
         var bais = new ByteArrayInputStream(baos.toByteArray());
-        var zis  = new ZipInputStream(bais);
-        var next = (ZipEntry) null;
+        var gcis = new GzipCompressorInputStream(bais);
+        var tais = new TarArchiveInputStream(gcis);
+        var next = (TarArchiveEntry) null;
 
         boolean subDirectoryDefTxt = false;
 
-        while ((next = zis.getNextEntry()) != null) {
+        while ((next = tais.getNextTarEntry()) != null) {
             if (next.getName().equals("directory/def.txt")) {
                 subDirectoryDefTxt = true;
                 assertFalse(next.isDirectory());
                 var entryBaos = new ByteArrayOutputStream();
-                zis.transferTo(entryBaos);
+                tais.transferTo(entryBaos);
                 assertEquals(DEF_TXT.getBytes(StandardCharsets.UTF_8).length, next.getSize());
                 assertEquals(DEF_TXT.getBytes(StandardCharsets.UTF_8).length, entryBaos.size());
                 assertArrayEquals(DEF_TXT.getBytes(StandardCharsets.UTF_8), entryBaos.toByteArray());
             } else {
                 fail("Unexpected ZipEntry: " + next.getName());
             }
-            zis.closeEntry();
         }
 
         assertTrue(subDirectoryDefTxt);
