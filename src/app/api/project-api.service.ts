@@ -114,8 +114,7 @@ export class ProjectApiService {
     form.set('env', JSON.stringify(env));
     form.set('stageIndex', '' + nextStageIndex);
     if (image != null) {
-      form.set('imageName', image.name);
-      form.set('imageArgs', JSON.stringify(image.args));
+      form.set('image', JSON.stringify(image));
     }
     if (requiredResources != null) {
       form.set('requiredResources', JSON.stringify(requiredResources));
@@ -132,8 +131,7 @@ export class ProjectApiService {
     form.set('projectIds', JSON.stringify(projectIds));
     form.set('env', JSON.stringify(env));
     if (image != null) {
-      form.set('imageName', image.name);
-      form.set('imageArgs', JSON.stringify(image.args));
+      form.set('image', JSON.stringify(image));
     }
     if (requiredResources != null) {
       form.set('requiredResources', JSON.stringify(requiredResources));
@@ -357,6 +355,7 @@ export class StateInfo {
 export class ImageInfo {
   name?: string;
   args?: string[];
+  shmMegabytes?: number;
 }
 
 export class ParseError {
