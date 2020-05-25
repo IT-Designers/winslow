@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,10 +97,10 @@ public class UnixNode implements Node {
         Optional<Integer> cpuMaxFreqMhz;
         try {
             cpuMaxFreqMhz = tryLoadCpuInfoMaxFreq();
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | NoSuchFileException e) {
             try {
                 cpuMaxFreqMhz = tryLoadCpuInfoMhz();
-            } catch (FileNotFoundException ee) {
+            } catch (FileNotFoundException | NoSuchFileException ee) {
                 ee.addSuppressed(e);
                 e.printStackTrace();
                 // for whatever reason...
@@ -119,14 +120,14 @@ public class UnixNode implements Node {
                     .map(l -> l[1])
                     .findFirst()
                     .map(Float::parseFloat)
-                    .map(mhz -> (int)(float)mhz);
+                    .map(mhz -> (int) (float) mhz);
         }
     }
 
     @Nonnull
     private Optional<Integer> tryLoadCpuInfoMaxFreq() throws IOException {
         try (var lines = Files.lines(resolveCpuInfoMaxFreq())) {
-             return lines
+            return lines
                     .findFirst()
                     .map(Integer::parseInt)
                     .map(khz -> khz / 1_000);
