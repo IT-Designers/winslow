@@ -7,13 +7,15 @@ import java.util.*;
 
 public class Election {
 
+    private final @Nonnull String issuer;
     private final @Nonnull String projectId;
     private final          long   time;
     private final          long   duration;
 
     private final Map<String, Participation> participations = new TreeMap<>();
 
-    public Election(@Nonnull String projectId, long time, long duration) {
+    public Election(@Nonnull String issuer, @Nonnull String projectId, long time, long duration) {
+        this.issuer    = issuer;
         this.projectId = projectId;
         this.time      = time;
         this.duration  = duration;
@@ -21,6 +23,11 @@ public class Election {
 
     public boolean isStillRunning() {
         return time + duration + LockBus.DURATION_SURELY_OUT_OF_DATE > System.currentTimeMillis();
+    }
+
+    @Nonnull
+    public String getIssuer() {
+        return issuer;
     }
 
     @Nonnull

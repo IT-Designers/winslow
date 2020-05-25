@@ -251,7 +251,10 @@ public class Pipeline implements Cloneable {
     }
 
     public enum PauseReason {
-        ConfirmationRequired, FurtherInputRequired, StageFailure
+        ConfirmationRequired,
+        FurtherInputRequired,
+        StageFailure,
+        NoFittingNodeFound,
     }
 
     public enum ResumeNotification {

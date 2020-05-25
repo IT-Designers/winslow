@@ -90,11 +90,11 @@ public class ElectionManager {
         lockBus.publishCommand(Event.Command.ELECTION_PARTICIPATION, toSubjectLine(properties));
     }
 
-    public synchronized void onElectionStarted(@Nonnull String subject, long time, long duration) throws IOException {
+    public synchronized void onElectionStarted(@Nonnull String subject, @Nonnull String issuer, long time, long duration) throws IOException {
         var properties = fromSubjectLine(subject);
         var projectId  = properties.getProperty(PROPERTY_PROJECT);
         if (projectId != null) {
-            var election = new Election(projectId, time, duration);
+            var election = new Election(issuer, projectId, time, duration);
             this.elections.put(election.getProjectId(), election);
             notifyAll(electionStartedListeners, election);
         }

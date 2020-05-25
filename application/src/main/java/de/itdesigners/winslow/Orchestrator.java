@@ -248,7 +248,7 @@ public class Orchestrator {
                 this.missingResources.add(pipe.get().getProjectId());
             }
 
-            return !locked && !hasElection && ((hasUpdate && capable && hasResources) || inconsistent || hasNext);
+            return !locked && !hasElection && ((hasUpdate) || inconsistent || hasNext);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
             return false;
@@ -310,6 +310,23 @@ public class Orchestrator {
             } else {
                 LOG.warning("Failed to load project for project " + projectId + ", " + container.getLock());
             }
+
+            pipeline.ifPresent(pipe -> {
+                if (pipe.getRunningStage().isEmpty() && isStageStateUpdateAvailable(pipe)) {
+                    new Thread(() -> {
+                        try {
+                            var duration = 2_000L;
+                            var puffer   = 100L;
+                            if (electionManager.maybeStartElection(pipe.getProjectId(), duration + puffer)) {
+                                LockBus.ensureSleepMs(duration);
+                                electionManager.closeElection(pipe.getProjectId());
+                            }
+                        } catch (LockException | IOException e) {
+                            LOG.log(Level.SEVERE, "Failed to start election for project " + pipe.getProjectId());
+                        }
+                    }).start();
+                }
+            });
         } catch (OrchestratorException | LockException e) {
             LOG.log(
                     Level.SEVERE,
@@ -318,22 +335,6 @@ public class Orchestrator {
             );
         }
 
-        pipeline.ifPresent(pipe -> {
-            if (pipe.getRunningStage().isEmpty()) {
-                new Thread(() -> {
-                    try {
-                        var duration = 2_000L;
-                        var puffer   = 100L;
-                        if (electionManager.maybeStartElection(pipe.getProjectId(), duration + puffer)) {
-                            LockBus.ensureSleepMs(duration);
-                            electionManager.closeElection(pipe.getProjectId());
-                        }
-                    } catch (LockException | IOException e) {
-                        LOG.log(Level.SEVERE, "Failed to start election for project " + pipe.getProjectId());
-                    }
-                }).start();
-            }
-        });
     }
 
     private void updatePipeline(

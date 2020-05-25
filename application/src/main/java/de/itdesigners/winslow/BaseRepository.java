@@ -121,7 +121,11 @@ public abstract class BaseRepository {
 
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
         return getLocked(path, reader, writer, DEFAULT_RETRY_COUNT, e -> {
-            e.printStackTrace();
+            if (e instanceof LockAlreadyExistsException) {
+                LOG.log(Level.FINE, "Failed to lock " + path, e);
+            } else {
+                LOG.log(Level.WARNING, "Failed to lock" + path, e);
+            }
         });
     }
 

@@ -3,6 +3,7 @@ package de.itdesigners.winslow;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
+import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.project.Project;
 
 import javax.annotation.Nonnull;
@@ -49,7 +50,12 @@ public class LockBusElectionManagerAdapter {
 
     private void handleElectionStartEvent(@Nonnull Event event) {
         try {
-            this.electionManager.onElectionStarted(event.getSubject(), event.getTime(), event.getDuration());
+            this.electionManager.onElectionStarted(
+                    event.getSubject(),
+                    event.getIssuer(),
+                    event.getTime(),
+                    event.getDuration()
+            );
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to process election started event: " + event, e);
         }
@@ -96,7 +102,7 @@ public class LockBusElectionManagerAdapter {
     }
 
     private void handleElectionClosed(@Nonnull Election election) {
-        election.getMostFittingParticipant().ifPresent(participant -> {
+        election.getMostFittingParticipant().ifPresentOrElse(participant -> {
             if (nodeName.equals(participant)) {
                 new Thread(() -> {
                     var project    = orchestrator.getProjectUnsafe(election.getProjectId());
@@ -117,6 +123,28 @@ public class LockBusElectionManagerAdapter {
                             },
                             () -> LOG.severe(
                                     "Failed to lock project which should be executed by this node by election")
+                    );
+                }).start();
+            }
+        }, () -> {
+            if (nodeName.equals(election.getIssuer())) {
+                new Thread(() -> {
+                    var project   = orchestrator.getProjectUnsafe(election.getProjectId());
+                    var exclusive = project.flatMap(orchestrator::getPipelineExclusive);
+
+                    exclusive.ifPresentOrElse(
+                            container -> {
+                                var lock = container.getLock();
+                                try (lock) {
+                                    var pipeline = container.get().get();
+                                    pipeline.requestPause(Pipeline.PauseReason.NoFittingNodeFound);
+                                    container.update(pipeline);
+                                } catch (LockException | IOException e) {
+                                    LOG.log(Level.SEVERE, "Failed to pause pipeline", e);
+                                }
+                            },
+                            () -> LOG.severe(
+                                    "Failed to lock project to note resource exhaustion after Election of which me was the issuer")
                     );
                 }).start();
             }
