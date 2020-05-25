@@ -3,13 +3,15 @@ set -e
 trap 'kill -TERM $(pgrep nfs); sleep 2; kill -KILL $(pgrep nfs)' TERM
 trap 'kill -KILL $(pgrep nfs)' KILL
 
+KEYSTORE="$JAVA_HOME/lib/security/cacerts"
+
 if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then 
   update-ca-certificates
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR" -type f); do
     echo "Importing $f"
-    keytool -delete -alias "$f" -keystore "$JAVA_HOME/jre/lib/security/cacerts" || true
-    keytool -import -trustcacerts -keystore "$JAVA_HOME/jre/lib/security/cacerts" -cacerts -storepass changeit -noprompt -alias "$f" -file "$f"
+    keytool -delete -alias "$f" -keystore "$KEYSTORE" || true
+    keytool -import -trustcacerts -keystore "$KEYSTORE" -cacerts -storepass changeit -noprompt -alias "$f" -file "$f"
   done
 fi
 
