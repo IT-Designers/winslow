@@ -11,7 +11,8 @@ public class ImageInfoConverter {
     public static ImageInfo from(@Nonnull Image image) {
         return new ImageInfo(
                 image.getName(),
-                image.getArgs()
+                image.getArgs(),
+                image.getShmSizeMegabytes().orElse(null)
         );
     }
 }

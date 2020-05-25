@@ -10,7 +10,8 @@ public class DockerImageAppender implements AssemblerStep {
         context.getEnqueuedStage().getDefinition().getImage().ifPresent(image -> {
             var submission = context.getSubmission().withExtension(new DockerImage(
                     image.getName(),
-                    image.getArgs()
+                    image.getArgs(),
+                    image.getShmSizeMegabytes().orElse(null)
             ));
         });
     }

@@ -121,6 +121,9 @@ public class SubmissionToNomadJobAdapter {
             task.setDriver(DOCKER_DRIVER);
             task.getConfig().put("image", docker.getImage());
             task.getConfig().put("args", docker.getArguments());
+
+            docker.getShmSizeMegabytes().ifPresent(shm -> task.getConfig().put("shm_size", shm * 1024L * 1024L));
+
         };
     }
 

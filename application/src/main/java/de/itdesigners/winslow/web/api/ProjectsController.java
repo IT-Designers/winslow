@@ -2,6 +2,7 @@ package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.ImageInfo;
 import de.itdesigners.winslow.api.pipeline.PipelineInfo;
 import de.itdesigners.winslow.api.pipeline.ResourceInfo;
 import de.itdesigners.winslow.api.project.*;
@@ -711,8 +712,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @RequestParam("env") Map<String, String> env,
             @RequestParam("stageIndex") int index,
-            @RequestParam(value = "imageName", required = false) @Nullable String imageName,
-            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs,
+            @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
     ) {
         winslow
@@ -731,8 +731,7 @@ public class ProjectsController {
                                         pipeline,
                                         stageDef,
                                         env,
-                                        imageName,
-                                        imageArgs,
+                                        image,
                                         requiredResources
                                 );
                                 return Boolean.TRUE;
@@ -750,8 +749,7 @@ public class ProjectsController {
             @RequestParam("stageIndex") int index,
             @RequestParam("projectIds") String[] projectIds,
             @RequestParam("env") Map<String, String> env,
-            @RequestParam(value = "imageName", required = false) @Nullable String imageName,
-            @RequestParam(value = "imageArgs", required = false) @Nullable String[] imageArgs,
+            @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
     ) {
         var stageDefinitionBase = winslow
@@ -777,8 +775,7 @@ public class ProjectsController {
                                     pipeline,
                                     stageDefinitionBase,
                                     env,
-                                    imageName,
-                                    imageArgs,
+                                    image,
                                     requiredResources
                             );
                             return Boolean.TRUE;
@@ -824,28 +821,25 @@ public class ProjectsController {
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
-            @Nullable String imageName,
-            @Nullable String[] imageArgs,
+            @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources) {
-        enqueueStage(pipeline, base, env, imageName, imageArgs, requiredResources, Action.Configure);
+        enqueueStage(pipeline, base, env, image, requiredResources, Action.Configure);
     }
 
     private static void enqueueExecutionStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
-            @Nullable String imageName,
-            @Nullable String[] imageArgs,
+            @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources) {
-        enqueueStage(pipeline, base, env, imageName, imageArgs, requiredResources, Action.Execute);
+        enqueueStage(pipeline, base, env, image, requiredResources, Action.Execute);
     }
 
     private static void enqueueStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
-            @Nullable String imageName,
-            @Nullable String[] imageArgs,
+            @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nonnull Action action) {
 
@@ -875,7 +869,7 @@ public class ProjectsController {
             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
         }
          */
-        maybeUpdateImageInfo(imageName, imageArgs, resultDefinition);
+        maybeUpdateImageInfo(image, resultDefinition);
         pipeline.enqueueStage(resultDefinition, action);
         resumeIfPausedByStageFailure(pipeline);
         resumeIfWaitingForGoneStageConfiramtion(pipeline);
@@ -908,7 +902,7 @@ public class ProjectsController {
                                             .flatMap(g -> g.map(Requirements.Gpu::getSupport))
                                             .orElse(null)
                             ))
-                    .orElse(null)
+                            .orElse(null)
             );
         }
     }
@@ -949,17 +943,13 @@ public class ProjectsController {
     }
 
     private static void maybeUpdateImageInfo(
-            @Nullable String imageName,
-            @Nullable String[] imageArgs,
+            @Nullable ImageInfo image,
             @Nonnull StageDefinition stageDef) {
-        if ((imageName != null || imageArgs != null)) {
-            stageDef.getImage().ifPresent(image -> {
-                if (imageName != null) {
-                    image.setName(imageName);
-                }
-                if (imageArgs != null) {
-                    image.setArgs(imageArgs);
-                }
+        if (image != null) {
+            stageDef.getImage().ifPresent(def -> {
+                Optional.ofNullable(image.name).ifPresent(def::setName);
+                Optional.ofNullable(image.args).ifPresent(def::setArgs);
+                Optional.ofNullable(image.shmMegabytes).ifPresent(def::setShmSizeMegabytes);
             });
         }
     }
