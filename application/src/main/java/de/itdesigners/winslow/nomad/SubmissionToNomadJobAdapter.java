@@ -2,6 +2,8 @@ package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.NomadException;
+import de.itdesigners.winslow.NoOpStageHandle;
+import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.Requirements;
@@ -44,14 +46,15 @@ public class SubmissionToNomadJobAdapter {
             case Execute:
                 // this one could fail
                 backend.getNewJobsApi().register(job);
-                break;
+                return new SubmissionResult(stage, new NomadStageHandle(backend, jobId));
+
             case Configure:
                 // a configure is successful by being instantiated and has no lifetime
                 stage.finishNow(State.Succeeded);
-                break;
+                return new SubmissionResult(stage, new NoOpStageHandle());
         }
 
-        return new SubmissionResult(stage, new NomadStageHandle(backend, jobId));
+        throw new OrchestratorException("Unexpected action: " + submission.getAction());
     }
 
     @Nonnull
