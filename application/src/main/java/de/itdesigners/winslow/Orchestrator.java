@@ -93,6 +93,7 @@ public class Orchestrator {
 
         if (executeStages) {
             this.lockBus.registerEventListener(Event.Command.KILL, this::handleKillEvent);
+            this.lockBus.registerEventListener(Event.Command.STOP, this::handleStopEvent);
             this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
 
             LockBusElectionManagerAdapter.setupAdapters(nodeName, electionManager, this, lockBus);
@@ -168,6 +169,18 @@ public class Orchestrator {
         }
     }
 
+    private void handleStopEvent(@Nonnull Event event) {
+        var executor = this.executors.get(event.getSubject());
+        if (null != executor) {
+            try {
+                executor.logErr("Received STOP signal");
+                this.backend.stop(event.getSubject());
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, "Failed to request the backend to stop stage " + event.getSubject(), e);
+            }
+        }
+    }
+
     private void handleKillEvent(@Nonnull Event event) {
         var executor = this.executors.remove(event.getSubject());
         if (null != executor) {
@@ -192,6 +205,10 @@ public class Orchestrator {
                 }).start();
             }
         }
+    }
+
+    public void stop(@Nonnull Stage stage) throws LockException {
+        this.lockBus.publishCommand(Event.Command.STOP, stage.getId());
     }
 
     public void kill(@Nonnull Stage stage) throws LockException {
@@ -935,7 +952,6 @@ public class Orchestrator {
         return updatePipeline(project.getId(), updater);
     }
 
-    @Nonnull
     private void updatePipeline(
             @Nonnull String projectId,
             @Nonnull Consumer<Pipeline> updater) {

@@ -103,6 +103,8 @@ public class Event {
         LOCK,
         RELEASE,
         EXTEND,
+
+        STOP,
         KILL,
 
         ELECTION_START,

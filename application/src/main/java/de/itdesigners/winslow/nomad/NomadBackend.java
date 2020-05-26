@@ -205,6 +205,18 @@ public class NomadBackend implements Backend {
     }
 
     @Override
+    public void stop(@Nonnull String stage) throws IOException {
+        try {
+            var allocation = getAllocation(stage);
+            if (allocation.isPresent()) {
+                getNewAllocationsApi().signal(allocation.get().getId(), "SIGTERM", null);
+            }
+        } catch (NomadException e) {
+            throw new IOException("Failed to signal allocation for " + stage, e);
+        }
+    }
+
+    @Override
     public void kill(@Nonnull String stage) throws IOException {
         try {
             getNewJobsApi().deregister(stage).getValue();

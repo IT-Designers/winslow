@@ -94,11 +94,7 @@ public class ProjectsController {
 
     @GetMapping("/projects/{projectId}/history")
     public Stream<HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -114,11 +110,7 @@ public class ProjectsController {
 
     @GetMapping("/projects/{projectId}/enqueued")
     public Stream<HistoryEntry> getEnqueued(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -136,11 +128,7 @@ public class ProjectsController {
             @PathVariable("index") int index,
             @PathVariable("controlSize") int controlSize
     ) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .updatePipeline(project, pipeline -> {
@@ -241,22 +229,14 @@ public class ProjectsController {
     public Optional<PipelineInfo> getProjectPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .map(Project::getPipelineDefinition)
                 .map(definition -> PipelineInfoConverter.from(projectId, definition));
     }
 
     @GetMapping("/projects/{projectId}/state")
     public Optional<State> getProjectState(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -336,11 +316,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("paused") boolean paused,
             @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     if (paused) {
                         pipeline.requestPause();
@@ -355,11 +331,7 @@ public class ProjectsController {
 
     @GetMapping("projects/{projectId}/paused")
     public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -373,11 +345,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @RequestParam(value = "skipLines", defaultValue = "0") long skipLines,
             @RequestParam(value = "expectingStageId", defaultValue = "0") String stageId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -431,11 +399,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId) {
         var line = new AtomicLong(0);
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId))
                 .map(entry -> new LogEntryInfo(line.incrementAndGet(), stageId, entry));
@@ -446,11 +410,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> {
                     try {
                         return Optional.of(winslow
@@ -473,11 +433,7 @@ public class ProjectsController {
 
     @GetMapping("projects/{projectId}/pipeline-definition-raw")
     public Optional<String> getProjectRawDefinition(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> {
                     try (var baos = new ByteArrayOutputStream()) {
                         ProjectRepository.defaultWriter().store(baos, project.getPipelineDefinition());
@@ -530,24 +486,12 @@ public class ProjectsController {
 
     @GetMapping("projects/{projectId}/pause-reason")
     public Optional<Pipeline.PauseReason> getPauseReason(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
-                .flatMap(project -> winslow.getOrchestrator().getPipeline(project))
-                .flatMap(Pipeline::getPauseReason);
+        return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getPauseReason);
     }
 
     @GetMapping("projects/{projectId}/deletion-policy")
     public Optional<DeletionPolicy> getDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
-                .flatMap(project -> winslow.getOrchestrator().getPipeline(project))
-                .flatMap(Pipeline::getDeletionPolicy);
+        return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getDeletionPolicy);
     }
 
     @GetMapping("projects/{projectId}/deletion-policy/default")
@@ -591,11 +535,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageIndex") int stageIndex) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -644,11 +584,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageIndex") int stageIndex) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> Stream.concat(
                         project
@@ -715,11 +651,7 @@ public class ProjectsController {
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
     ) {
-        winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        getProjectIfAllowedToAccess(user, projectId)
 
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
@@ -752,11 +684,7 @@ public class ProjectsController {
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
     ) {
-        var stageDefinitionBase = winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        var stageDefinitionBase = getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
@@ -788,11 +716,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("actionId") String actionId) {
-        winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+        getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getPipelineRepository()
                         .getPipeline(actionId)
@@ -1003,31 +927,69 @@ public class ProjectsController {
         return Optional.empty();
     }
 
-    @PutMapping("projects/{projectId}/kill")
-    public void killCurrentStage(User user, @PathVariable("projectId") String projectId) throws LockException {
-        var stage = winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
-                .flatMap(project -> winslow
+    @PutMapping("projects/{projectId}/stop")
+    public void stopCurrentStage(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam(name = "pause", required = false, defaultValue = "true") boolean pause) throws LockException {
+        var project = getProjectIfAllowedToAccess(user, projectId);
+        var stage = project
+                .flatMap(p -> winslow
                         .getOrchestrator()
-                        .getPipeline(project)
+                        .getPipeline(p)
                 )
                 .flatMap(Pipeline::getRunningStage);
+        if (stage.isPresent()) {
+            winslow.getOrchestrator().stop(stage.get());
+            if (pause) {
+                winslow.getOrchestrator().updatePipeline(project.get(), pipeline -> {
+                    pipeline.requestPause();
+                    return null;
+                });
+            }
+        }
+    }
 
+    @PutMapping("projects/{projectId}/kill")
+    public void killCurrentStage(User user, @PathVariable("projectId") String projectId) throws LockException {
+        var stage = getCurrentlyRunningStageIfAllowedToAccess(user, projectId);
         if (stage.isPresent()) {
             winslow.getOrchestrator().kill(stage.get());
         }
     }
 
-    @GetMapping("projects/{projectId}/stats")
-    public Optional<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
+    @Nonnull
+    private Optional<Stage> getCurrentlyRunningStageIfAllowedToAccess(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId) {
+        return getPipelineIfAllowedToAccess(user, projectId)
+                .flatMap(Pipeline::getRunningStage);
+    }
+
+    @Nonnull
+    private Optional<Pipeline> getPipelineIfAllowedToAccess(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .flatMap(project -> winslow
+                        .getOrchestrator()
+                        .getPipeline(project)
+                );
+    }
+
+    private Optional<Project> getProjectIfAllowedToAccess(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
-                .filter(project -> project.canBeAccessedBy(user))
+                .filter(project -> project.canBeAccessedBy(user));
+    }
+
+    @GetMapping("projects/{projectId}/stats")
+    public Optional<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
 

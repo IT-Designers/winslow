@@ -20,6 +20,8 @@ public interface Backend {
 
     void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
 
+    void stop(@Nonnull String stage) throws IOException;
+
     void kill(@Nonnull String stage) throws IOException;
 
     @Nonnull
