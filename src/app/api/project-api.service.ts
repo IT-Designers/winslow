@@ -213,6 +213,10 @@ export class ProjectApiService {
       });
   }
 
+  stopStage(projectId: string, pause: boolean) {
+    return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/stop?pause=${pause}`), new FormData()).toPromise();
+  }
+
   killStage(projectId: string) {
     return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/kill`), new FormData()).toPromise();
   }

@@ -11,26 +11,26 @@ import {FilesComponent} from './files/files.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {
-  MatAutocompleteModule,
-  MatButtonModule,
-  MatButtonToggleModule,
-  MatCardModule,
-  MatCheckboxModule,
-  MatChipsModule,
-  MatExpansionModule,
-  MatGridListModule,
-  MatIconModule,
-  MatInputModule,
-  MatListModule,
-  MatProgressBarModule,
-  MatProgressSpinnerModule,
-  MatSelectModule,
-  MatSlideToggleModule,
-  MatSnackBarModule,
-  MatStepperModule,
-  MatTableModule,
-  MatTabsModule,
-  MatTooltipModule
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatCardModule,
+    MatCheckboxModule,
+    MatChipsModule,
+    MatExpansionModule,
+    MatGridListModule,
+    MatIconModule,
+    MatInputModule,
+    MatListModule, MatMenuModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatSlideToggleModule,
+    MatSnackBarModule,
+    MatStepperModule,
+    MatTableModule,
+    MatTabsModule,
+    MatTooltipModule
 } from '@angular/material';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
@@ -98,73 +98,74 @@ import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/pro
     ProjectHistoryHeaderComponent,
     ProjectDiskUsageDialogComponent,
   ],
-  imports: [
-    SweetAlert2Module.forRoot(),
-    MonacoEditorModule.forRoot(),
-    HttpClientModule,
-    HttpClientXsrfModule.withOptions({
-      cookieName: 'XSRF-TOKEN',
-      headerName: 'X-XSRF-TOKEN'
-    }),
+    imports: [
+        SweetAlert2Module.forRoot(),
+        MonacoEditorModule.forRoot(),
+        HttpClientModule,
+        HttpClientXsrfModule.withOptions({
+            cookieName: 'XSRF-TOKEN',
+            headerName: 'X-XSRF-TOKEN'
+        }),
 
-    RouterModule.forRoot([
-      {path: '', redirectTo: 'projects/', pathMatch: 'full'},
-      {path: 'actions', component: GroupActionsComponent},
+        RouterModule.forRoot([
+            {path: '', redirectTo: 'projects/', pathMatch: 'full'},
+            {path: 'actions', component: GroupActionsComponent},
 
-      {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
-      {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
-      {
-        path: 'projects',
-        children: [{
-          path: ':id',
-          component: ProjectsComponent,
-          children: [{
-            path: ':tab',
-            component: ProjectViewComponent,
-          }]
-        }]
-      },
+            {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
+            {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
+            {
+                path: 'projects',
+                children: [{
+                    path: ':id',
+                    component: ProjectsComponent,
+                    children: [{
+                        path: ':tab',
+                        component: ProjectViewComponent,
+                    }]
+                }]
+            },
 
-      {path: 'pipelines', component: PipelinesComponent},
-      {path: 'files', component: FilesComponent},
-      {path: 'servers', component: ServersComponent},
-      {path: 'about', component: AboutComponent},
-      {path: 'system', component: SystemViewComponent},
-    ]),
+            {path: 'pipelines', component: PipelinesComponent},
+            {path: 'files', component: FilesComponent},
+            {path: 'servers', component: ServersComponent},
+            {path: 'about', component: AboutComponent},
+            {path: 'system', component: SystemViewComponent},
+        ]),
 
-    BrowserModule,
-    BrowserAnimationsModule,
+        BrowserModule,
+        BrowserAnimationsModule,
 
-    FormsModule,
-    ReactiveFormsModule,
+        FormsModule,
+        ReactiveFormsModule,
 
 
-    MatDialogModule,
-    MatInputModule,
-    MatButtonModule,
-    MatListModule,
-    MatProgressBarModule,
-    MatButtonToggleModule,
-    MatExpansionModule,
-    MatStepperModule,
-    MatSelectModule,
-    MatTableModule,
-    MatGridListModule,
-    MatSnackBarModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
-    MatSlideToggleModule,
-    MatTabsModule,
-    MatCheckboxModule,
+        MatDialogModule,
+        MatInputModule,
+        MatButtonModule,
+        MatListModule,
+        MatProgressBarModule,
+        MatButtonToggleModule,
+        MatExpansionModule,
+        MatStepperModule,
+        MatSelectModule,
+        MatTableModule,
+        MatGridListModule,
+        MatSnackBarModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatTooltipModule,
+        MatSlideToggleModule,
+        MatTabsModule,
+        MatCheckboxModule,
 
-    NgxChartsModule,
-    MatCardModule,
-    ScrollingModule,
-    MatAutocompleteModule,
-    MatChipsModule,
+        NgxChartsModule,
+        MatCardModule,
+        ScrollingModule,
+        MatAutocompleteModule,
+        MatChipsModule,
+        MatMenuModule,
 
-  ],
+    ],
   providers: [
     {provide: MatDialogRef, useValue: {}},
   ],

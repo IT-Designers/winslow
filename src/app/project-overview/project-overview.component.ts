@@ -237,10 +237,19 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
     }
   }
 
+  stop(pause: boolean) {
+    if (this.projectValue) {
+      this.dialog.openAreYouSure(
+        `Halt stage of ${this.projectValue.name}`,
+        () => this.api.stopStage(this.projectValue.id, pause)
+      );
+    }
+  }
+
   kill() {
     if (this.projectValue) {
       this.dialog.openAreYouSure(
-        `Kill currently running stage of project ${this.projectValue.name}`,
+        `Kill stage of ${this.projectValue.name}`,
         () => this.api.killStage(this.projectValue.id)
       );
     }
