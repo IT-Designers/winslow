@@ -32,6 +32,12 @@
   border: 1px solid red;
   background-color: rgba(255, 0, 0, .2);
 }
+
+.check.check-warn {
+  border: 1px solid  rgb(255, 155, 0);
+  background-color: rgba(255, 155, 0, .2);
+}
+
 .check.check-success {
   border: 1px solid green;
   background-color: rgba(0, 255, 0, .2);

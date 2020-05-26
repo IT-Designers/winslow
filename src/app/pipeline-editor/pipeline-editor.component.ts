@@ -9,11 +9,14 @@ import {ParseError} from '../api/project-api.service';
 })
 export class PipelineEditorComponent implements OnInit {
 
+  // what an ugly hack
+  State = State;
+
 
   @ViewChild('editorContainer') container: ElementRef<HTMLDivElement>;
 
   @Input() pipelineId: string;
-  @Input() raw: string;
+  @Input() rawV: string;
   @Input() errorV: string = null;
   @Input() successV: string = null;
   @Input() enableOnOthers = false;
@@ -22,7 +25,10 @@ export class PipelineEditorComponent implements OnInit {
   @Output() update = new EventEmitter<string>();
   @Output() check = new EventEmitter<string>();
 
+  @Output() state?: State = null;
+
   editor = null;
+  original = '';
 
 
   editorOptions = {
@@ -37,8 +43,16 @@ export class PipelineEditorComponent implements OnInit {
   }
 
   @Input()
+  set raw(raw: string) {
+    this.original = raw;
+    this.rawV = raw;
+    this.updateState();
+  }
+
+  @Input()
   set error(error: string) {
     this.errorV = error;
+    this.updateState();
     if (this.editor != null) {
       setTimeout(() => {
         this.editor.layout();
@@ -49,6 +63,7 @@ export class PipelineEditorComponent implements OnInit {
   @Input()
   set success(success: string) {
     this.successV = success;
+    this.updateState();
     if (this.editor != null) {
       setTimeout(() => {
         this.editor.layout();
@@ -79,6 +94,7 @@ export class PipelineEditorComponent implements OnInit {
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
     this.editor.layout();
+    this.updateState();
   }
 
   layout(width: number = null, height: number = null) {
@@ -97,4 +113,28 @@ export class PipelineEditorComponent implements OnInit {
       this.editor.layout(dimension);
     }
   }
+
+  save(rawV: string) {
+    this.raw = rawV;
+    this.updateState();
+    this.update.emit(rawV);
+  }
+
+  updateState() {
+    if (this.errorV != null) {
+      this.state = State.Failure;
+    } else if (this.rawV !== this.original) {
+      this.state = State.UnsavedChanges;
+    } else if (this.successV != null) {
+      this.state = State.Success;
+    } else {
+      this.state = null;
+    }
+  }
+}
+
+export enum State {
+  UnsavedChanges,
+  Success,
+  Failure
 }
