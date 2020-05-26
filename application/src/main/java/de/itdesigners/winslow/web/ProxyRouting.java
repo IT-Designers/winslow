@@ -30,7 +30,7 @@ public class ProxyRouting {
     public static final Logger LOG            = Logger.getLogger(Executor.class.getSimpleName());
     public static final String REQUEST_PREFIX = "/proxied/";
 
-    private Map<Path, Route> mapping = new HashMap<>();
+    private final Map<Path, Route> mapping = new HashMap<>();
 
     public ProxyRouting() {
     }
