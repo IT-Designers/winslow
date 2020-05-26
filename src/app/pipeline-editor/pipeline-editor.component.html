@@ -1,16 +1,22 @@
-<div #editorContainer class="editor" (keydown.control.s)="$event.preventDefault(); update.emit(raw);" (resize)="layout()">
+<div #editorContainer class="editor"
+     (keydown.control.s)="$event.preventDefault(); save(rawV);"
+     (resize)="layout()">
   <ngx-monaco-editor
       [options]="editorOptions"
-      [(ngModel)]="raw"
+      [(ngModel)]="rawV"
+      (ngModelChange)="updateState()"
       (onInit)="onInit($event)"
   ></ngx-monaco-editor>
 </div>
-<pre *ngIf="this.errorV != null" class="check check-error">{{this.errorV}}</pre>
-<pre *ngIf="this.successV != null" class="check check-success">{{this.successV}}</pre>
+<ng-container [ngSwitch]="this.state">
+  <pre *ngSwitchCase="State.Failure" class="check check-error">{{this.errorV}}</pre>
+  <pre *ngSwitchCase="State.UnsavedChanges" class="check check-warn">Unsaved changes</pre>
+  <pre *ngSwitchCase="State.Success" class="check check-success">{{this.successV}}</pre>
+</ng-container>
 <div class="controls">
-  <button *ngIf="enableOnOthers" mat-stroked-button color="warn" (click)="others.emit(raw)">
+  <button *ngIf="enableOnOthers" mat-stroked-button color="warn" (click)="others.emit(rawV)">
     Set on other Projects
   </button>
-  <button mat-raised-button color="primary" (click)="update.emit(raw)">Save</button>
-  <button mat-stroked-button color="primary" (click)="check.emit(raw); this.layout()">Check</button>
+  <button mat-raised-button color="primary" (click)="save(rawV)">Save</button>
+  <button mat-stroked-button color="primary" (click)="check.emit(rawV); this.layout()">Check</button>
 </div>
