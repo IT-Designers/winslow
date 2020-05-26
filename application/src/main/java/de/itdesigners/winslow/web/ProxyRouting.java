@@ -33,10 +33,6 @@ public class ProxyRouting {
     private Map<Path, Route> mapping = new HashMap<>();
 
     public ProxyRouting() {
-        this.addRoute(
-                Path.of("tensorboard", "project-sec-1"),
-                new Route("http://192.168.1.178:8888/proxied/tensorboard/project-sec-1/", (u) -> true)
-        );
     }
 
     @Nonnull
