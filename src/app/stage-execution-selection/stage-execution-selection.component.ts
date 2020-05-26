@@ -109,7 +109,7 @@ export class StageExecutionSelectionComponent implements OnInit {
           this.selectedStage = stage;
           this.selectedStageEmitter.emit(stage);
           this.image = StageExecutionSelectionComponent.deepClone(stage.image);
-          this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : new ResourceInfo();
+          this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : null;
 
           const requiredEnvironmentVariables = [];
           this.selectedPipeline.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
