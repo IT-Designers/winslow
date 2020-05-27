@@ -198,6 +198,7 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         null,
+                        null,
                         null
                 ),
                 action,
@@ -225,6 +226,7 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         env,
+                        null,
                         null,
                         null
                 ),

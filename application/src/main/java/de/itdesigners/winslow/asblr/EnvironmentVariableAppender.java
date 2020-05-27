@@ -45,7 +45,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_STAGE_NUMBER",
-                        Integer.toString(pipeline.getStageCount())
+                        Integer.toString(context.getStageNumber())
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_SETUP_DATE_TIME",

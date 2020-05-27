@@ -402,7 +402,7 @@ public class Orchestrator {
                         var env  = new TreeMap<>(base.getEnvironment());
 
                         var builder = new StageDefinitionBuilder()
-                                .withBase(base)
+                                .withTemplateBase(base)
                                 .withEnvironment(env);
 
                         // overwrite StageDefinition if there is already an
@@ -436,7 +436,8 @@ public class Orchestrator {
                                             null,
                                             enqueuedStage,
                                             stageId,
-                                            new Submission(stageId, enqueuedStage.getAction(), stageDefinition)
+                                            new Submission(stageId, enqueuedStage.getAction(), stageDefinition),
+                                            pipeline.getStageCount___() + 1
                                     ));
 
                             // enqueue the stage only if the execution would be possible
@@ -535,7 +536,8 @@ public class Orchestrator {
         }
 
         var stageEnqueued = nextStage.get();
-        var stageId       = getStageId(pipeline, stageEnqueued.getDefinition());
+        var stageNumber   = pipeline.getStageCount___() + 1;
+        var stageId       = getStageId(pipeline, stageNumber, stageEnqueued.getDefinition());
         var executor      = (Executor) null;
 
         try {
@@ -553,7 +555,7 @@ public class Orchestrator {
                     null
             );
 
-            startStageAssembler(lock, definition, pipeline.clone(), stageEnqueued, stageId, exec, env);
+            startStageAssembler(lock, definition, pipeline.clone(), stageEnqueued, stageId, exec, env, stageNumber);
 
             pipeline.resetResumeNotification();
             pipeline.pushStage(stage);
@@ -574,7 +576,8 @@ public class Orchestrator {
             @Nonnull EnqueuedStage stageEnqueued,
             @Nonnull String stageId,
             @Nonnull Executor executor,
-            @Nonnull Map<String, String> globalEnvironmentVariables) {
+            @Nonnull Map<String, String> globalEnvironmentVariables,
+            int stageNumber) {
         new Thread(() -> {
             var projectId = pipeline.getProjectId();
             var assembler = new StageAssembler();
@@ -602,7 +605,8 @@ public class Orchestrator {
                                     executor,
                                     stageEnqueued,
                                     stageId,
-                                    new Submission(stageId, stageEnqueued.getAction(), stageEnqueued.getDefinition())
+                                    new Submission(stageId, stageEnqueued.getAction(), stageEnqueued.getDefinition()),
+                                    stageNumber
                             ));
                 } finally {
                     lock.waitForRelease();
@@ -926,11 +930,11 @@ public class Orchestrator {
         return Path.of(projectId);
     }
 
-    private static String getStageId(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
+    private static String getStageId(@Nonnull Pipeline pipeline, int stageNumber, @Nonnull StageDefinition stage) {
         return replaceInvalidCharactersInJobName(String.format(
                 "%s_%04d_%s",
                 pipeline.getProjectId(),
-                pipeline.getStageCount() + 1,
+                stageNumber,
                 stage.getName()
         ));
     }

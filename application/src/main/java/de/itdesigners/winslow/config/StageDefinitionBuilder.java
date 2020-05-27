@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public class StageDefinitionBuilder {
 
+    private @Nullable StageDefinition               template;
     private @Nullable StageDefinition               base;
     private @Nullable Optional<String>              name;
     private @Nullable Optional<String>              description;
@@ -23,7 +24,14 @@ public class StageDefinitionBuilder {
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withBase(@Nullable StageDefinition base) {
+    public StageDefinitionBuilder withTemplateBase(@Nullable StageDefinition template) {
+        this.template = template;
+        return this;
+    }
+
+    @Nonnull
+    @CheckReturnValue
+    public StageDefinitionBuilder withRecentBase(@Nullable StageDefinition base) {
         this.base = base;
         return this;
     }
@@ -93,7 +101,7 @@ public class StageDefinitionBuilder {
 
     @Nonnull
     public StageDefinition build() {
-        var base = Optional.ofNullable(this.base);
+        var base = Optional.ofNullable(this.base).or(() -> Optional.ofNullable(this.template));
         var name = either(this.name, base.map(StageDefinition::getName));
         Objects.requireNonNull(name);
 
@@ -116,7 +124,11 @@ public class StageDefinitionBuilder {
                 either(this.userInput, base.flatMap(StageDefinition::getRequires)),
                 env,
                 either(this.highlight, base.flatMap(StageDefinition::getHighlight)),
-                either(this.discardable, base.map(StageDefinition::isDiscardable))
+                either(this.discardable, base.map(StageDefinition::isDiscardable)),
+                Optional.ofNullable(either(
+                        Optional.ofNullable(this.template).map(StageDefinition::isPrivileged),
+                        Optional.ofNullable(this.base).map(StageDefinition::isPrivileged)
+                )).orElse(Boolean.FALSE)
         );
     }
 

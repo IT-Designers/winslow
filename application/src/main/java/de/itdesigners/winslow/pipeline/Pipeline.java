@@ -101,7 +101,7 @@ public class Pipeline implements Cloneable {
     }
 
     @Transient
-    public int getStageCount() {
+    public int getStageCount___() {
         return this.stages.size() + (getRunningStage().isPresent() ? 1 : 0);
     }
 

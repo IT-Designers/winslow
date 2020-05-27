@@ -164,6 +164,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         null,
+                        null,
                         null
                 ),
                 Action.Execute,
@@ -186,6 +187,7 @@ public class ObsoleteWorkspaceFinderTest {
                 "some-id",
                 new StageDefinition(
                         "some-definition",
+                        null,
                         null,
                         null,
                         null,
@@ -221,7 +223,8 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         null,
-                        Boolean.TRUE
+                        Boolean.TRUE,
+                        null
                 ),
                 action,
                 new Date(0L),

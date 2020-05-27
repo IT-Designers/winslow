@@ -39,6 +39,7 @@ public class WorkspaceCreator implements AssemblerStep {
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var pathOfWorkspace = getWorkspacePathOf(
                 context.getPipeline(),
+                context.getStageNumber(),
                 context.getEnqueuedStage().getDefinition()
         );
         var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
@@ -157,8 +158,8 @@ public class WorkspaceCreator implements AssemblerStep {
     }
 
     @Nonnull
-    private static Path getWorkspacePathOf(@Nonnull Pipeline pipeline, @Nonnull StageDefinition stage) {
-        return getWorkspacePathOf(pipeline.getProjectId(), pipeline.getStageCount() + 1, stage);
+    private static Path getWorkspacePathOf(@Nonnull Pipeline pipeline, int stageNumber, @Nonnull StageDefinition stage) {
+        return getWorkspacePathOf(pipeline.getProjectId(), stageNumber, stage);
     }
 
     @Nonnull

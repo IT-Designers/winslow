@@ -16,6 +16,7 @@ public class StageDefinition {
     private final @Nullable Map<String, String> env;
     private final @Nullable Highlight           highlight;
     private final           boolean             discardable;
+    private final           boolean             privileged;
 
     public StageDefinition(
             @Nonnull String name,
@@ -26,7 +27,8 @@ public class StageDefinition {
             @Nullable Map<String, String> environment,
             @Nullable Highlight highlight,
             // null-able for backwards compatibility
-            @Nullable Boolean discardable) {
+            @Nullable Boolean discardable,
+            @Nullable Boolean privileged) {
         this.name        = name;
         this.desc        = description;
         this.image       = image;
@@ -35,6 +37,7 @@ public class StageDefinition {
         this.env         = environment;
         this.highlight   = highlight;
         this.discardable = discardable != null && discardable;
+        this.privileged  = privileged != null && privileged;
         this.check();
     }
 
@@ -79,10 +82,17 @@ public class StageDefinition {
 
     /**
      * @return Whether associated resources (like the workspace) that were used when executing this
-     *         stage are allowed to be discarded as soon as the next stage succeeded in execution
+     * stage are allowed to be discarded as soon as the next stage succeeded in execution
      */
     public boolean isDiscardable() {
         return discardable;
+    }
+
+    /**
+     * @return Whether this stages requires to be executed in a privileged environment
+     */
+    public boolean isPrivileged() {
+        return privileged;
     }
 
     @Override

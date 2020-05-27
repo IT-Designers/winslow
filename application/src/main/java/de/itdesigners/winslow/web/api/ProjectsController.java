@@ -726,7 +726,7 @@ public class ProjectsController {
                             for (var stage : pipelineDefinition.getStages()) {
                                 pipeline.enqueueStage(
                                         new StageDefinitionBuilder()
-                                                .withBase(stage)
+                                                .withTemplateBase(stage)
                                                 .withEnvironment(pipelineDefinition.getEnvironment())
                                                 .withAdditionalEnvironment(stage.getEnvironment())
                                                 .build(),
@@ -778,6 +778,7 @@ public class ProjectsController {
                 .orElse(base); // none before, so take the given as origin
 
         var resultDefinition = createStageDefinition(
+                base,
                 recentBase,
                 updatedResourceRequirement(base.getRequirements().orElse(null), requiredResources),
                 base.getRequires().map(UserInput::withoutConfirmation).orElse(null),
@@ -854,12 +855,14 @@ public class ProjectsController {
     }
 
     private static StageDefinition createStageDefinition(
-            @Nonnull StageDefinition template,
+            @Nonnull StageDefinition templateBase,
+            @Nullable StageDefinition recentBase,
             @Nullable Requirements requirements,
             @Nullable UserInput requires,
             @Nonnull Map<String, String> env) {
         return new StageDefinitionBuilder()
-                .withBase(template)
+                .withTemplateBase(templateBase)
+                .withRecentBase(recentBase)
                 .withRequirements(requirements)
                 .withUserInput(requires)
                 .withEnvironment(env)

@@ -10,11 +10,17 @@ public class DockerImage implements Extension {
     private final @Nonnull  String   image;
     private final @Nonnull  String[] arguments;
     private final @Nullable Integer  shmSizeMegabytes;
+    private final           boolean  privileged;
 
-    public DockerImage(@Nonnull String image, @Nonnull String[] arguments, @Nullable Integer shmSizeMegabytes) {
+    public DockerImage(
+            @Nonnull String image,
+            @Nonnull String[] arguments,
+            @Nullable Integer shmSizeMegabytes,
+            boolean privileged) {
         this.image            = image;
         this.arguments        = arguments;
         this.shmSizeMegabytes = shmSizeMegabytes;
+        this.privileged       = privileged;
     }
 
     @Nonnull
@@ -33,5 +39,10 @@ public class DockerImage implements Extension {
     @CheckReturnValue
     public Optional<Integer> getShmSizeMegabytes() {
         return Optional.ofNullable(shmSizeMegabytes);
+    }
+
+    @CheckReturnValue
+    public boolean isPrivileged() {
+        return privileged;
     }
 }
