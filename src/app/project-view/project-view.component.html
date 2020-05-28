@@ -138,9 +138,12 @@
                   *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo?.args|json}}"></ng-template>
 
                 <h3>Resource Requirements</h3>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'CPU (cores)', value: entry.resourceRequirements?.cpus}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'RAM (MiB)', value: entry.resourceRequirements?.megabytesOfRam}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'GPU', value: entry.resourceRequirements?.gpus}}"></ng-template>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'CPU (cores)', value: entry.resourceRequirements?.cpus}}"></ng-template>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'RAM (MiB)', value: entry.resourceRequirements?.megabytesOfRam}}"></ng-template>
+                <ng-template
+                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'GPU', value: entry.resourceRequirements?.gpus}}"></ng-template>
 
                 <h3>Stage Environment Variables</h3>
                 <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
@@ -173,19 +176,25 @@
             </ng-template>
           </mat-expansion-panel>
         </mat-accordion>
-        <div *ngIf="history.length > maxHistoryItemsToDisplay"
-             class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
-          <button mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(10)">
+        <div class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
+          <button *ngIf="history.length > maxHistoryItemsToDisplay"
+                  mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(10)">
             <mat-icon>expand_more</mat-icon>
             Show 10 More
           </button>
-          <button mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(50)">
+          <button *ngIf="history.length > maxHistoryItemsToDisplay"
+                  mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(50)">
             <mat-icon>arrow_downward</mat-icon>
             Show 50 More
           </button>
-          <button mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(history.length)">
+          <button *ngIf="history.length > maxHistoryItemsToDisplay"
+                  mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(history.length)">
             <mat-icon style="transform: rotate(90deg)">double_arrow</mat-icon>
             Show All
+          </button>
+          <button mat-stroked-button color="warn" (click)="pruneHistory()">
+            <mat-icon>cleaning_services</mat-icon>
+            Delete Failed
           </button>
         </div>
       </ng-container>
