@@ -307,30 +307,34 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.api
       .getProjectHistory(this.project.id)
       .then(history => {
-        history = history.reverse();
-        return this.api.getProjectEnqueued(this.project.id)
-          .then(enqueued => {
-            // remember state before adding to other history entires
-            for (let i = 0; i < enqueued.length; ++i) {
-              enqueued[i].enqueueIndex = i;
-              enqueued[i].enqueueControlSize = enqueued.length;
-            }
-
-            this.loadHistoryAnyway = (enqueued.length > 0 && this.stateValue !== State.Paused)
-              || (history.length > 0 && history[0].state === State.Running);
-
-            const latest = enqueued.reverse();
-            history.forEach(h => latest.push(h));
-            if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
-              this.history = latest;
-            }
-          });
+        return this.updateHistory(history);
       })
       .catch(e => {
         this.dialog.error(e);
         console.log(e);
       })
       .finally(() => this.longLoading.decrease());
+  }
+
+  private updateHistory(history: any[]) {
+    history = history.reverse();
+    return this.api.getProjectEnqueued(this.project.id)
+      .then(enqueued => {
+        // remember state before adding to other history entires
+        for (let i = 0; i < enqueued.length; ++i) {
+          enqueued[i].enqueueIndex = i;
+          enqueued[i].enqueueControlSize = enqueued.length;
+        }
+
+        this.loadHistoryAnyway = (enqueued.length > 0 && this.stateValue !== State.Paused)
+          || (history.length > 0 && history[0].state === State.Running);
+
+        const latest = enqueued.reverse();
+        history.forEach(h => latest.push(h));
+        if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
+          this.history = latest;
+        }
+      });
   }
 
   loadPaused(): void {
@@ -859,6 +863,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.api.updatePublicAccess(this.projectValue.id, checked)
         .then(v => this.projectValue.publicAccess = v),
       `Updating public access property`
+    );
+  }
+
+  pruneHistory() {
+    this.dialog.openAreYouSure(
+      `Delete all failed stages of this project`,
+      () => this.api.pruneHistory(this.projectValue.id)
+        .then(updatedHistory => {
+          return this.updateHistory(updatedHistory);
+        }),
     );
   }
 }
