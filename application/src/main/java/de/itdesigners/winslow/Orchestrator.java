@@ -437,7 +437,7 @@ public class Orchestrator {
                                             enqueuedStage,
                                             stageId,
                                             new Submission(stageId, enqueuedStage.getAction(), stageDefinition),
-                                            pipeline.getStageCount___() + 1
+                                            pipeline.getStageCounter() + 1
                                     ));
 
                             // enqueue the stage only if the execution would be possible
@@ -536,7 +536,7 @@ public class Orchestrator {
         }
 
         var stageEnqueued = nextStage.get();
-        var stageNumber   = pipeline.getStageCount___() + 1;
+        var stageNumber   = pipeline.getStageCounter() + 1;
         var stageId       = getStageId(pipeline, stageNumber, stageEnqueued.getDefinition());
         var executor      = (Executor) null;
 

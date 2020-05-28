@@ -28,6 +28,8 @@ public class Pipeline implements Cloneable {
     private @Nonnull  Strategy       strategy;
     private @Nullable Stage          stage;
 
+    private int stageCounter;
+
     public Pipeline(@Nonnull String projectId) {
         this.projectId = projectId;
         this.stages    = new ArrayList<>();
@@ -43,7 +45,8 @@ public class Pipeline implements Cloneable {
             @Nullable List<Stage> completedStages,
             @Nullable DeletionPolicy deletionPolicy,
             @Nonnull Strategy strategy,
-            @Nullable Stage runningStage) {
+            @Nullable Stage runningStage,
+            @Nullable Integer stageCounter) {
         this.projectId          = projectId;
         this.pauseRequested     = pauseRequested;
         this.pauseReason        = pauseReason;
@@ -53,6 +56,10 @@ public class Pipeline implements Cloneable {
         this.deletionPolicy     = deletionPolicy;
         this.strategy           = strategy;
         this.stage              = runningStage;
+        this.stageCounter       = stageCounter != null
+                                  ? stageCounter
+                                  : Optional.ofNullable(completedStages).map(List::size).orElse(0)
+                                          + (runningStage != null ? 1 : 0);
     }
 
     @Nonnull
@@ -63,6 +70,7 @@ public class Pipeline implements Cloneable {
     public void pushStage(@Nullable Stage stage) {
         if (this.stage != null) {
             this.stages.add(this.stage);
+            this.stageCounter += 1;
         }
         this.stage = stage;
     }
@@ -100,9 +108,12 @@ public class Pipeline implements Cloneable {
         });
     }
 
-    @Transient
-    public int getStageCount___() {
-        return this.stages.size() + (getRunningStage().isPresent() ? 1 : 0);
+    /**
+     * @return The number of stages ever completed for this pipeline
+     */
+    public int getStageCounter() {
+        // return this.stages.size() + (getRunningStage().isPresent() ? 1 : 0);
+        return this.stageCounter;
     }
 
 
@@ -242,7 +253,8 @@ public class Pipeline implements Cloneable {
                 stages.stream().map(Stage::clone).collect(Collectors.toList()),
                 deletionPolicy,
                 strategy,
-                stage
+                stage,
+                stageCounter
         );
     }
 
