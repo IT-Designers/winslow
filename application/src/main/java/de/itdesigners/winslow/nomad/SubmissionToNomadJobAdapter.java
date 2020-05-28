@@ -3,7 +3,6 @@ package de.itdesigners.winslow.nomad;
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.NoOpStageHandle;
-import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.Requirements;
@@ -13,6 +12,7 @@ import de.itdesigners.winslow.pipeline.*;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -171,22 +171,15 @@ public class SubmissionToNomadJobAdapter {
         return requirements -> {
             requirements.getGpu().ifPresent(gpu -> {
                 if (gpu.getCount() > 0) {
-                    var configGpu = new HashMap<>();
-                    configGpu.put("Count", gpu.getCount());
-                    configGpu.put("Name", "gpu");
+                    var gpuDevice = new RequestedDevice();
+                    gpuDevice.setName("gpu");
+                    gpuDevice.setCount(BigInteger.valueOf(gpu.getCount()));
 
                     gpu.getVendor().ifPresent(vendor -> {
-                        configGpu.put("Name", vendor + "/gpu");
+                        gpuDevice.setName(vendor + "/gpu");
                     });
 
-                    if (task.getResources().getUnmappedProperties() == null) {
-                        task.getResources().addUnmappedProperty("Devices", new ArrayList<>(List.of(configGpu)));
-                    } else {
-                        ((List<Object>) task.getResources().getUnmappedProperties().computeIfAbsent(
-                                "Devices",
-                                key -> new ArrayList<>()
-                        )).add(configGpu);
-                    }
+                    task.getResources().addDevices(gpuDevice);
                 }
 
             });

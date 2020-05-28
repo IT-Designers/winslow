@@ -55,24 +55,24 @@ public class Env {
     }
 
     public static boolean isNoStageExecutionSet() {
-        return !Optional
+        return Optional
                 .ofNullable(System.getenv().get(NO_STAGE_EXECUTION))
                 .map(Boolean::parseBoolean)
-                .orElse(Boolean.TRUE);
+                .orElse(Boolean.FALSE);
     }
 
     public static boolean isNoGpuUsageSet() {
-        return !Optional
+        return Optional
                 .ofNullable(System.getenv().get(NO_GPU_USAGE))
                 .map(Boolean::parseBoolean)
-                .orElse(Boolean.TRUE);
+                .orElse(Boolean.FALSE);
     }
 
     public static boolean isNoWebApiSet() {
-        return !Optional
+        return Optional
                 .ofNullable(System.getenv().get(NO_WEB_API))
                 .map(Boolean::parseBoolean)
-                .orElse(Boolean.TRUE);
+                .orElse(Boolean.FALSE);
     }
 
     public static boolean requireSecure() {

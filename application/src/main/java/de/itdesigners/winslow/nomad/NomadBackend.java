@@ -45,51 +45,6 @@ public class NomadBackend implements Backend {
         killAnyRunningStage();
 
 
-        /*
-
-        try {
-            getNewClient()
-                    .getNodesApi()
-                    .list()
-                    .getValue()
-                    .stream()
-                    .forEach(stub -> {
-                        try {
-                            System.out.println(stub.getUnmappedProperties());
-                            System.out.println("reserved " + getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue()
-                                    .getReserved());
-                            System.out.println("resources " + getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue());
-                            System.out.println("unmapped " + ((List<Map<String, Object>>) ((Map<String, Object>) getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue()
-                                    .getUnmappedProperties()
-                                    .get("NodeResources"))
-                                    .get("Devices"))
-                                    .get(0)
-                            );
-                            System.out.println("attributes " + getNewClient()
-                                    .getNodesApi()
-                                    .info(stub.getId())
-                                    .getValue()
-                                    .getAttributes());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (NomadException e) {
-                            e.printStackTrace();
-                        }
-                    });
-        } catch (NomadException e) {
-            e.printStackTrace();
-        }
-         */
-
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 LOG.info("Shutting down " + getClass().getSimpleName() + "...");
@@ -150,18 +105,16 @@ public class NomadBackend implements Backend {
                                 .getNodesApi()
                                 .info(id)
                                 .getValue()
-                                .getUnmappedProperties()
+                                .getNodeResources()
                 )
+                        .map(NodeResources::getDevices)
                         .stream()
-                        .flatMap(Stream::ofNullable)
-                        .flatMap(map -> Stream.ofNullable((Map<String, Map<String, Object>>) map.get("NodeResources")))
-                        .flatMap(map -> Stream.ofNullable((List<Map<String, Object>>) map.get("Devices")))
                         .flatMap(Collection::stream)
-                        .filter(device -> "gpu".equals(device.get("Type")))
+                        .filter(device -> "gpu".equals(device.getType()))
                         .flatMap(device -> {
-                            var vendor = (String) device.get("Vendor");
-                            var name   = (String) device.get("Name");
-                            return ((List<Object>) device.get("Instances"))
+                            var vendor = (String) device.getVendor();
+                            var name   = (String) device.getName();
+                            return device.getInstances()
                                     .stream()
                                     .map(instance -> new GpuInfo(vendor, name));
                         })
