@@ -1048,6 +1048,56 @@ public class Orchestrator {
         });
     }
 
+    /**
+     * Deletes any failed stage from the {@link Pipeline} of the given {@link Project}. Also
+     * deletes associated workspace and log files.
+     *
+     * @param project {@link Project} to prune
+     * @throws IOException An accumulated exception for every failed stage that failed to be pruned
+     */
+    public void prunePipeline(@Nonnull Project project) throws IOException {
+        var exception = getPipelineExclusive(project).flatMap(container -> {
+            try (container; var heart = new LockHeart(container.getLock())) {
+                var pipeline = container.getNoThrow();
+                if (pipeline.isPresent()) {
+                    var pipe   = pipeline.get();
+                    var except = Optional.<IOException>empty();
+                    var prunable = pipe
+                            .getCompletedStages()
+                            .filter(s -> s.getState() == State.Failed)
+                            .collect(Collectors.toUnmodifiableList());
+
+                    for (var stage : prunable) {
+                        try {
+                            var path      = stage.getWorkspace().map(Path::of);
+                            var workspace = path.flatMap(p -> environment.getResourceManager().getWorkspace(p));
+                            if (workspace.isPresent()) {
+                                forcePurgeWorkspace(project.getId(), workspace.get());
+                            }
+                            logs.deleteLogsIfExistsNoThrows(project.getId(), stage.getId());
+                            pipe.removeStage(stage.getId());
+                            container.update(pipe);
+                        } catch (IOException e) {
+                            if (except.isEmpty()) {
+                                except = Optional.of(e);
+                            } else {
+                                except.get().addSuppressed(e);
+                            }
+                        }
+                    }
+
+                    return except;
+                } else {
+                    return Optional.empty();
+                }
+            }
+        });
+
+        if (exception.isPresent()) {
+            throw exception.get();
+        }
+    }
+
     @Nonnull
     public static DeletionPolicy defaultDeletionPolicy() {
         return new DeletionPolicy(false, null);

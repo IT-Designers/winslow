@@ -83,6 +83,16 @@ public class Pipeline implements Cloneable {
         return false;
     }
 
+    public boolean removeStage(@Nonnull String stageId) {
+        for (int i = this.stages.size() - 1; i >= 0; --i) {
+            if (this.stages.get(i).getId().equals(stageId)) {
+                this.stages.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Nonnull
     public Optional<Stage> getRunningStage() {
         return Optional.ofNullable(this.stage);

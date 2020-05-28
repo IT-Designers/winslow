@@ -11,8 +11,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public class LogRepository extends BaseRepository {
 
@@ -42,6 +44,20 @@ public class LogRepository extends BaseRepository {
         var path = getLogFile(projectId, stageId);
         var lock = getLockForPath(path, LOCK_DURATION_MS);
         return new LockedOutputStream(path.toFile(), lock);
+    }
+
+    public boolean deleteLogsIfExistsNoThrows(@Nonnull String projectId, @Nonnull String stageId) {
+        try {
+            return deleteLogsIfExists(projectId, stageId);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to delete log file for project " + projectId + " and stage " + stageId, e);
+            return false;
+        }
+    }
+
+    public boolean deleteLogsIfExists(@Nonnull String projectId, @Nonnull String stageId) throws IOException {
+        var path = getLogFile(projectId, stageId);
+        return Files.deleteIfExists(path);
     }
 
     @Nonnull

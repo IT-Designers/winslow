@@ -108,6 +108,17 @@ public class ProjectsController {
                 );
     }
 
+    @PostMapping("/projects/{projectId}/history/prune")
+    public Stream<HistoryEntry> pruneProjectHistory(User user, @PathVariable("projectId") String projectId) throws IOException {
+        var project = getProjectIfAllowedToAccess(user, projectId);
+        if (project.isPresent()) {
+            winslow.getOrchestrator().prunePipeline(project.get());
+            return getProjectHistory(user, projectId);
+        } else {
+            return Stream.empty();
+        }
+    }
+
     @GetMapping("/projects/{projectId}/enqueued")
     public Stream<HistoryEntry> getEnqueued(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
