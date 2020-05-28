@@ -254,6 +254,10 @@ export class ProjectApiService {
   getStats(projectId: string): Promise<StatsInfo> {
     return this.client.get<StatsInfo>(ProjectApiService.getUrl(`${projectId}/stats`)).toPromise();
   }
+
+  pruneHistory(projectId: string): Promise<HistoryEntry[]> {
+    return this.client.post<HistoryEntry[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), new FormData()).toPromise();
+  }
 }
 
 export enum State {
