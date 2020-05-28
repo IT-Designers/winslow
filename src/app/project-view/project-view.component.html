@@ -84,7 +84,7 @@
                 <app-project-history-header
                   [state]="entry.state"
                   [isConfigure]="isConfigure(entry.action)"
-                  [itemNo]="history.length - i"
+                  [itemNo]="tryParseStageNumber(entry.stageId, history.length - i)"
                   [time]="entry.finishTime === null ? entry.startTime : entry.finishTime"
                   [stageName]="entry.stageName"
                   [showResumeOnlyThisStage]="entry.enqueueIndex == 0"

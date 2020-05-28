@@ -875,6 +875,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
         }),
     );
   }
+
+  tryParseStageNumber(stageId: string, alt: number): number {
+    if (stageId != null) {
+      const split = stageId.split('_');
+      if (split.length >= 2) {
+        const parsed = Number(split[1]);
+        if (!Number.isNaN(parsed)) {
+          return parsed;
+        }
+      }
+    }
+    return alt;
+  }
 }
 
 
