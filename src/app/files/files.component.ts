@@ -329,6 +329,37 @@ export class FilesComponent implements OnInit {
       }
     );
   }
+
+  cloneGitRepo() {
+    this.dialog.createAThing(
+      `Git Clone`,
+      ``,
+      url => {
+        return this.api.cloneGitRepo(this.latestPath, url).then(r => {
+          return this.loadDirectory(this.latestPath);
+        });
+      }
+    );
+  }
+
+  pullGitRepo() {
+    this.dialog.openLoadingIndicator(
+      this.api.pullGitRepo(this.latestPath).then(r => {
+        return this.loadDirectory(this.latestPath);
+      }),
+      `Pulling Git Repo`,
+      true
+    );
+  }
+
+  isGitRepo(path: string): boolean {
+    for (const dir of this.directories(path)) {
+      if (dir.name === '.git') {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 export interface UploadFilesProgress {

@@ -89,7 +89,7 @@ export class FilesApiService {
       .toPromise();
   }
 
-  renameTopLevelPath(path: string, newName: string) {
+  renameTopLevelPath(path: string, newName: string): Promise<string> {
     if (path.startsWith('/')) {
       path = path.substr(1);
     }
@@ -98,6 +98,18 @@ export class FilesApiService {
         'rename-to': newName,
       })
       .toPromise();
+  }
+
+  cloneGitRepo(path: string, gitUrl: string): Promise<string> {
+    return this.client.patch<string>(FilesApiService.getUrl(path), {
+      'git-clone': gitUrl
+    }).toPromise();
+  }
+
+  pullGitRepo(path: string): Promise<string> {
+    return this.client.patch<string>(FilesApiService.getUrl(path), {
+      'git-pull': ``
+    }).toPromise();
   }
 }
 
