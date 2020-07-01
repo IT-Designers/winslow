@@ -66,6 +66,8 @@
     <ul>
       <li (click)="createDirectory(); contextMenuVisible = false">New Directory</li>
       <li (click)="toggleShowDirectorySize(); contextMenuVisible = false">{{showDirectorySize ? 'Hide Directory Size' : 'Show Directory Size'}}</li>
+      <li *ngIf="!isGitRepo(this.latestPath)" (click)="cloneGitRepo(); contextMenuVisible = false">Git Clone</li>
+      <li *ngIf="isGitRepo(this.latestPath)" (click)="pullGitRepo(); contextMenuVisible = false">Git Pull</li>
       <li (click)="decompress.value = true; fileInput.click(); contextMenuVisible = false">Upload a Directory</li>
       <li (click)="decompress.value = false; fileInput.click(); contextMenuVisible = false">Upload a File</li>
     </ul>
