@@ -353,9 +353,12 @@ export class FilesComponent implements OnInit {
   }
 
   isGitRepo(path: string): boolean {
-    for (const dir of this.directories(path)) {
-      if (dir.name === '.git') {
-        return true;
+    const directories = this.directories(path);
+    if (directories != null) {
+      for (const dir of directories) {
+        if (dir.name === '.git') {
+          return true;
+        }
       }
     }
     return false;
