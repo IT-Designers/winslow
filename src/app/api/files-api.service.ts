@@ -10,7 +10,7 @@ export class FilesApiService {
   constructor(private client: HttpClient) {
   }
 
-  private static getUrl(more?: string) {
+  static getUrl(more?: string) {
     return `${environment.apiLocation}files${more != null ? `/${more}` : ''}`;
   }
 

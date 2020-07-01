@@ -5,12 +5,14 @@ import {ProjectApiService, ProjectInfo, StateInfo} from '../api/project-api.serv
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
-import {ActivatedRoute, Params, Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
 import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
+import {UserApiService} from '../api/user-api.service';
+import {FilesApiService} from '../api/files-api.service';
 
 @Component({
   selector: 'app-projects',
@@ -30,8 +32,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   selectedProjectId: string = null;
 
   paramsSubscription: Subscription = null;
+  effects: Effects = null;
 
   constructor(readonly api: ProjectApiService,
+              readonly users: UserApiService,
               private createDialog: MatDialog,
               private notification: NotificationService,
               private dialog: DialogService,
@@ -53,6 +57,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       this.selectedProjectId = params.id;
       this.updateSelectedProject();
     });
+
+    try {
+      this.effects = new Effects(this.users);
+    } catch (e) {
+      // ignore all errors
+    }
   }
 
   private updateSelectedProject() {
@@ -84,6 +94,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
           this.stateInfo = new Map<string, StateInfo>();
           for (let i = 0; i < result.length; ++i) {
             this.stateInfo.set(projectIds[i], result[i]);
+            if (this.selectedProject?.id === projectIds[i] && this.effects != null) {
+              this.effects.update(result[i]);
+            }
           }
         })
         .finally(() => {
@@ -170,5 +183,46 @@ export class ProjectsComponent implements OnInit, OnDestroy {
           projects: this.projects,
         } as ProjectDiskUsageDialogData
       });
+  }
+}
+
+
+class Effects {
+  audio: HTMLAudioElement;
+  prev: StateInfo;
+  username = '';
+
+
+  constructor(users: UserApiService) {
+    try {
+      users.getSelfUserName().then(name => {
+        this.username = name;
+      });
+    } catch (e) {
+      // ignore all errors
+    }
+  }
+
+  update(state: StateInfo) {
+    try {
+      if (state.isRunning() && (this.prev == null || !this.prev.isRunning())) {
+        if (this.audio != null) {
+          this.audio.pause();
+        }
+        this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/running.mp3`));
+        this.audio.loop = true;
+        this.audio.play();
+      } else if (this.prev != null && this.prev.isRunning() && !state.isRunning()) {
+        if (this.audio != null) {
+          this.audio.pause();
+        }
+        this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/completed.mp3`));
+        this.audio.loop = false;
+        this.audio.play();
+      }
+      this.prev = state;
+    } catch (e) {
+      // ignore all errors
+    }
   }
 }
