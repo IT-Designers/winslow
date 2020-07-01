@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material';
-import {ProjectApiService, ProjectInfo, StateInfo} from '../api/project-api.service';
+import {ProjectApiService, ProjectInfo, State, StateInfo} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
@@ -211,6 +211,13 @@ class Effects {
         }
         this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/running.mp3`));
         this.audio.loop = true;
+        this.audio.play();
+      } else if (this.prev != null && this.prev.actualState() !== State.Failed && state.actualState() === State.Failed) {
+        if (this.audio != null) {
+          this.audio.pause();
+        }
+        this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/failed.mp3`));
+        this.audio.loop = false;
         this.audio.play();
       } else if (this.prev != null && this.prev.isRunning() && !state.isRunning()) {
         if (this.audio != null) {
