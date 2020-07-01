@@ -11,6 +11,8 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -189,7 +191,7 @@ public class FilesController {
 
     private void decompressArchiveContentTo(MultipartFile file, Path path) throws IOException {
         var fileName = path.getFileName().toString();
-        var target = path.getParent();
+        var target   = path.getParent();
 
         if (fileName.endsWith(".zip")) {
             try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
@@ -413,6 +415,9 @@ public class FilesController {
                     .orElseThrow();
 
             var optionRenameTo = options.get("rename-to");
+            var optionGitClone = options.get("git-clone");
+            var optionGitPull  = options.get("git-pull");
+
             if (optionRenameTo instanceof String) {
                 var renameTo = (String) optionRenameTo;
                 var target   = path.resolveSibling(renameTo);
@@ -421,13 +426,42 @@ public class FilesController {
                 } else {
                     return ResponseEntity.badRequest().body("");
                 }
+                return ResponseEntity.ok("");
+            } else if (optionGitClone instanceof String) {
+                cloneGitRepo(path, (String) optionGitClone);
+                return ResponseEntity.ok("");
+            } else if (optionGitPull instanceof String) {
+                pullGitRepo(path);
+                return ResponseEntity.ok("");
+            } else {
+                return ResponseEntity.notFound().build();
             }
 
-            return ResponseEntity.ok("");
         } catch (Throwable t) {
             t.printStackTrace();
             // blame everything on the user!
             return ResponseEntity.badRequest().body("");
+        }
+    }
+
+    private void cloneGitRepo(@Nonnull Path path, @Nonnull String repoUrl) throws GitAPIException {
+        var elements = repoUrl.split("/");
+        if (elements.length > 0) {
+            var gitDir = elements[elements.length - 1];
+            if (gitDir.toLowerCase().endsWith(".git")) {
+                gitDir = gitDir.substring(0, gitDir.length() - ".git".length());
+            }
+            Git.cloneRepository()
+               .setURI(repoUrl)
+               .setDirectory(path.resolve(gitDir).toFile())
+               .call()
+               .close();
+        }
+    }
+
+    private void pullGitRepo(@Nonnull Path path) throws GitAPIException, IOException {
+        try (var repo = Git.open(path.toFile())) {
+            repo.pull().call();
         }
     }
 
