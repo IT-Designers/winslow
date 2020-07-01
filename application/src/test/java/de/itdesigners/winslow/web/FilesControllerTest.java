@@ -476,6 +476,37 @@ public class FilesControllerTest {
             new ByteArrayInputStream(baos.toByteArray()).transferTo(zos);
             zos.flush();
             zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/abc.txt"));
+            baos = new ByteArrayOutputStream();
+            try (PrintStream ps = new PrintStream(baos)) {
+                ps.print(abcContent);
+            }
+            new ByteArrayInputStream(baos.toByteArray()).transferTo(zos);
+            zos.flush();
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/"));
+            zos.flush();
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/xyz.txt"));
+            baos = new ByteArrayOutputStream();
+            try (PrintStream ps = new PrintStream(baos)) {
+                ps.print(abcContent);
+            }
+            new ByteArrayInputStream(baos.toByteArray()).transferTo(zos);
+            zos.flush();
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("bli/blubb/def.txt"));
+            baos = new ByteArrayOutputStream();
+            try (PrintStream ps = new PrintStream(baos)) {
+                ps.print(abcContent);
+            }
+            new ByteArrayInputStream(baos.toByteArray()).transferTo(zos);
+            zos.flush();
+            zos.closeEntry();
         }
 
         var content = new ByteArrayInputStream(archive.toByteArray());
@@ -488,12 +519,26 @@ public class FilesControllerTest {
         );
 
         if (decompress) {
-            var readContent = Files.readString(
+            assertEquals(abcContent, Files.readString(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
                             .resolve("my-project-id/bernd/abc.txt")
-            );
-            assertEquals(abcContent, readContent);
+            ));
+            assertEquals(abcContent, Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bernd/blubb/bli/abc.txt")
+            ));
+            assertEquals(abcContent, Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bernd/blubb/bli/xyz.txt")
+            ));
+            assertEquals(abcContent, Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bli/blubb/def.txt")
+            ));
         } else {
             assertArrayEquals(
                     archive.toByteArray(),
@@ -528,6 +573,42 @@ public class FilesControllerTest {
                 new ByteArrayInputStream(array).transferTo(taos);
                 taos.flush();
                 taos.closeArchiveEntry();
+
+                baos = new ByteArrayOutputStream();
+                try (PrintStream ps = new PrintStream(baos)) {
+                    ps.print(abcContent);
+                }
+                array        = baos.toByteArray();
+                archiveEntry = new TarArchiveEntry("bernd/bli/blubb/abc.txt");
+                archiveEntry.setSize(array.length);
+                taos.putArchiveEntry(archiveEntry);
+                new ByteArrayInputStream(array).transferTo(taos);
+                taos.flush();
+                taos.closeArchiveEntry();
+
+                baos = new ByteArrayOutputStream();
+                try (PrintStream ps = new PrintStream(baos)) {
+                    ps.print(abcContent);
+                }
+                array        = baos.toByteArray();
+                archiveEntry = new TarArchiveEntry("bernd/bli/blubb/xyz.txt");
+                archiveEntry.setSize(array.length);
+                taos.putArchiveEntry(archiveEntry);
+                new ByteArrayInputStream(array).transferTo(taos);
+                taos.flush();
+                taos.closeArchiveEntry();
+
+                baos = new ByteArrayOutputStream();
+                try (PrintStream ps = new PrintStream(baos)) {
+                    ps.print(abcContent);
+                }
+                array        = baos.toByteArray();
+                archiveEntry = new TarArchiveEntry("bernd/bli/def.txt");
+                archiveEntry.setSize(array.length);
+                taos.putArchiveEntry(archiveEntry);
+                new ByteArrayInputStream(array).transferTo(taos);
+                taos.flush();
+                taos.closeArchiveEntry();
             }
         }
 
@@ -541,12 +622,26 @@ public class FilesControllerTest {
         );
 
         if (decompress) {
-            var readContent = Files.readString(
+            assertEquals(abcContent, Files.readString(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
                             .resolve("my-project-id/bernd/abc.txt")
-            );
-            assertEquals(abcContent, readContent);
+            ));
+            assertEquals(abcContent, Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bernd/bli/blubb/abc.txt")
+            ));
+            assertEquals(abcContent, Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bernd/bli/blubb/xyz.txt")
+            ));
+            assertEquals(abcContent, Files.readString(
+                    workDirectory
+                            .resolve(pathConfiguration.getRelativePathOfResources())
+                            .resolve("my-project-id/bernd/bli/def.txt")
+            ));
         } else {
             assertArrayEquals(
                     archive.toByteArray(),

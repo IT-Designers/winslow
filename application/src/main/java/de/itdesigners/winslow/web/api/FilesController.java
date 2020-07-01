@@ -210,9 +210,7 @@ public class FilesController {
         var entry = (ZipEntry) null;
         while ((entry = zis.getNextEntry()) != null) {
             var file = path.resolve(entry.getName());
-            if (entry.isDirectory()) {
-                decompressZipArchiveContentTo(zis, file);
-            } else {
+            if (!entry.isDirectory()) {
                 if (!file.getParent().toFile().exists()) {
                     Files.createDirectories(file.getParent());
                 }
@@ -227,9 +225,7 @@ public class FilesController {
         var entry = (TarArchiveEntry) null;
         while ((entry = tais.getNextTarEntry()) != null) {
             var file = path.resolve(entry.getName());
-            if (entry.isDirectory()) {
-                decompressTarGzArchiveContentTo(tais, file);
-            } else {
+            if (!entry.isDirectory()) {
                 if (!file.getParent().toFile().exists()) {
                     Files.createDirectories(file.getParent());
                 }
