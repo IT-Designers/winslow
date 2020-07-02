@@ -39,16 +39,17 @@ public class ObsoleteWorkspaceFinder {
         appendWorkspacesOfDiscardedStages(obsolete);
 
         removeSuccessfullyContinuedWorkspacesButIgnoreOutdatedDiscardable(obsolete);
-        removeDuplicates(obsolete, Objects::equals);
+        removeDuplicatesKeepReverseOrder(obsolete, Objects::equals);
 
         return obsolete;
     }
 
-    private <T> void removeDuplicates(List<T> obsolete, BiFunction<T, T, Boolean> c) {
-        for (int i = 0; i < obsolete.size(); ++i) {
-            for (int n = obsolete.size() - 1; n > i; --n) {
-                if (c.apply(obsolete.get(i), obsolete.get(n))) {
-                    obsolete.remove(n);
+    protected static <T> void removeDuplicatesKeepReverseOrder(List<T> list, BiFunction<T, T, Boolean> c) {
+        for (int i = list.size() - 1; i >= 0; --i) {
+            for (int n = i - 1; n >= 0; --n) {
+                if (c.apply(list.get(i), list.get(n))) {
+                    list.remove(n);
+                    i -= 1;
                 }
             }
         }
@@ -79,7 +80,7 @@ public class ObsoleteWorkspaceFinder {
                 .flatMap(Optional::stream)
                 .collect(Collectors.toList());
 
-        removeDuplicates(successfulWorkspaces, String::equals);
+        removeDuplicatesKeepReverseOrder(successfulWorkspaces, String::equals);
 
 
         for (int i = 0; i < numberToKeep && i < successfulWorkspaces.size(); ++i) {
