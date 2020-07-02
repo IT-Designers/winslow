@@ -10,7 +10,7 @@
     <i class="material-icons-outlined action-area" (click)="fileInput.click()">cloud_upload</i>
     <i class="material-icons-outlined action-area" (click)="createDirectory()">create_new_folder</i>
     <input hidden #decompress value="false"/>
-    <input hidden #fileInput accept="*/*" type="file" (change)="uploadFile($event.target.files, decompress.value)">
+    <input hidden #fileInput accept="*/*" type="file" (change)="uploadFile($event.target.files, decompress.value.toLowerCase() == 'true')">
   </div>
 
   <ng-template #gitLogo let-file="file">
@@ -78,8 +78,8 @@
       <li (click)="toggleShowDirectorySize(); contextMenuVisible = false">{{showDirectorySize ? 'Hide Directory Size' : 'Show Directory Size'}}</li>
       <li *ngIf="!isGitRepo(this.latestPath)" (click)="cloneGitRepo(); contextMenuVisible = false">Git Clone</li>
       <li *ngIf="isGitRepo(this.latestPath)" (click)="pullGitRepo(); contextMenuVisible = false">Git Pull</li>
-      <li (click)="decompress.value = true; fileInput.click(); contextMenuVisible = false">Upload a Directory</li>
-      <li (click)="decompress.value = false; fileInput.click(); contextMenuVisible = false">Upload a File</li>
+      <li (click)="decompress.value = 'true'; fileInput.click(); contextMenuVisible = false">Upload a Directory</li>
+      <li (click)="decompress.value = 'false'; fileInput.click(); contextMenuVisible = false">Upload a File</li>
     </ul>
   </div>
   <swal #swalUpload title="Uploading your files"
