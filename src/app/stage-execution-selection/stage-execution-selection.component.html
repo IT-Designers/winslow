@@ -164,8 +164,8 @@
   <div class="action-row">
     <mat-label class="title">
       <input name="ws-config" type="radio" value="increment"
-             [checked]="workspaceConfiguration?.mode == WorkspaceMode.INCREMENT"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.INCREMENT)"
+             [checked]="workspaceConfiguration?.mode == WorkspaceMode.INCREMENTAL"
+             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.INCREMENTAL)"
       >
       Increment
     </mat-label>
