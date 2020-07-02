@@ -169,7 +169,6 @@ export class StageExecutionSelectionComponent implements OnInit {
   setWorkspaceMode(checked: boolean, mode: WorkspaceMode, value: string = null) {
     if (checked) {
       this.workspaceConfiguration = new WorkspaceConfiguration(mode, value);
-      console.log(JSON.stringify(this.workspaceConfiguration));
     }
   }
 
