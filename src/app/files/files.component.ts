@@ -126,7 +126,9 @@ export class FilesComponent implements OnInit {
 
   private updateViewHint(): Promise<void> {
     return this.storage.getFilePathInfo(this.latestPath).then(info => {
-      this.viewHint = FileInfo.getFileSizeHumanReadable(info.bytesFree) + ' free';
+      if (info != null) {
+        this.viewHint = FileInfo.getFileSizeHumanReadable(info.bytesFree) + ' free';
+      }
     });
   }
 

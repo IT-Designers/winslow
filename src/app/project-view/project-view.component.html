@@ -133,6 +133,8 @@
                   *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: entry.startTime != null ? toDate(entry.startTime) : 'not yet started'}}"></ng-template>
                 <ng-template
                   *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet finished'}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Workspace Mode', value: entry.workspaceConfiguration?.mode}}"></ng-template>
+                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Workspace Supplement', value: entry.workspaceConfiguration?.value}}"></ng-template>
 
                 <h3>Image Information</h3>
                 <ng-template
