@@ -19,6 +19,75 @@ import static junit.framework.TestCase.assertEquals;
 public class ObsoleteWorkspaceFinderTest {
 
     @Test
+    public void testConsiderContinuedWorkspaces() {
+        var history = List.of(
+                constructFinishedStage("workspace1", State.Succeeded),
+                constructFinishedStage("workspace2", State.Failed),
+                constructFinishedStage("workspace2", State.Failed),
+                constructFinishedDiscardableStage("workspace2", Action.Execute, State.Succeeded),
+                constructFinishedStage("workspace3", State.Failed)
+        );
+
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+                .withExecutionHistory(history)
+                .collectObsoleteWorkspaces();
+
+        var expected = new ArrayList<>(List.of("workspace3", "workspace1"));
+        assertEquals(expected.size(), obsolete.size());
+        expected.removeAll(obsolete);
+        assertEquals(Collections.emptyList(), expected);
+
+    }
+
+    @Test
+    public void testConsiderContinuedWorkspacesComplex1() {
+        var history = List.of(
+                constructFinishedStage("workspace1", State.Succeeded), // delete: third successful
+                constructFinishedStage("workspace2", State.Failed), // keep: because of below
+                constructFinishedStage("workspace2", State.Failed),// keep: because of below
+                constructFinishedDiscardableStage("workspace2", Action.Execute, State.Succeeded), // keep: because of below
+                constructFinishedStage("workspace2", State.Succeeded), // keep: second successful
+                constructFinishedStage("workspace3", State.Succeeded), // keep: because of below
+                constructFinishedStage("workspace3", State.Succeeded), // keep: first successful
+                constructFinishedStage("workspace4", State.Failed) // delete: do not keep failed stages
+        );
+
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))
+                .withExecutionHistory(history)
+                .collectObsoleteWorkspaces();
+
+        var expected = new ArrayList<>(List.of("workspace4", "workspace1"));
+        assertEquals(expected.size(), obsolete.size());
+        expected.removeAll(obsolete);
+        assertEquals(Collections.emptyList(), expected);
+
+    }
+
+    @Test
+    public void testConsiderContinuedWorkspacesComplex2() {
+        var history = List.of(
+                constructFinishedStage("workspace1", State.Succeeded), // keep: second non-discardable successful
+                constructFinishedStage("workspace2", State.Failed), // keep: because of below
+                constructFinishedStage("workspace2", State.Failed), // keep: because of below
+                constructFinishedDiscardableStage("workspace2", Action.Execute, State.Succeeded), // delete: discardable
+                constructFinishedStage("workspace3", State.Succeeded), // keep:  first successful
+                constructFinishedStage("workspace3", State.Failed), // keep: because of above
+                constructFinishedStage("workspace4", State.Failed) // delete: do not keep failed stages
+        );
+
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))
+                .withExecutionHistory(history)
+                .collectObsoleteWorkspaces();
+
+        var expected = new ArrayList<>(List.of("workspace4", "workspace2"));
+        assertEquals(expected.size(), obsolete.size());
+        expected.removeAll(obsolete);
+        assertEquals(Collections.emptyList(), expected);
+
+    }
+
+
+    @Test
     public void testNoThrowWithoutHistory() {
         assertEquals(
                 Collections.emptyList(),

@@ -421,7 +421,7 @@ public class Orchestrator {
 
                         var stageId         = "no-id-because-probing-execution-" + System.nanoTime();
                         var stageDefinition = builder.build();
-                        var enqueuedStage   = new EnqueuedStage(stageDefinition, Action.Execute);
+                        var enqueuedStage   = new EnqueuedStage(stageDefinition, Action.Execute, null);
 
                         try {
                             // check whether assembling the stage would be possible

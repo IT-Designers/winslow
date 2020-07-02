@@ -9,8 +9,8 @@ import org.springframework.lang.NonNull;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class ObsoleteWorkspaceFinder {
@@ -38,7 +38,62 @@ public class ObsoleteWorkspaceFinder {
         appendWorkspacesOfSuccessfulStagesThatExceedTheLimit(obsolete);
         appendWorkspacesOfDiscardedStages(obsolete);
 
+        removeSuccessfullyContinuedWorkspacesButIgnoreOutdatedDiscardable(obsolete);
+        removeDuplicates(obsolete, Objects::equals);
+
         return obsolete;
+    }
+
+    private <T> void removeDuplicates(List<T> obsolete, BiFunction<T, T, Boolean> c) {
+        for (int i = 0; i < obsolete.size(); ++i) {
+            for (int n = obsolete.size() - 1; n > i; --n) {
+                if (c.apply(obsolete.get(i), obsolete.get(n))) {
+                    obsolete.remove(n);
+                }
+            }
+        }
+    }
+
+    private void removeSuccessfullyContinuedWorkspacesButIgnoreOutdatedDiscardable(List<String> obsolete) {
+        int numberToKeep = policy.getNumberOfWorkspacesOfSucceededStagesToKeep().orElse(Integer.MAX_VALUE);
+        var successfulStages = Optional
+                .ofNullable(this.executionHistory)
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(stage -> stage.getFinishState().orElse(State.Running) == State.Succeeded)
+                .filter(stage -> stage.getAction() == Action.Execute)
+                .collect(Collectors.toList());
+
+
+        Map<String, Boolean> workspaceDiscardable = new HashMap<>();
+
+        for (var stage : successfulStages) {
+            var workspace   = stage.getWorkspace().orElse(null);
+            var discardable = workspaceDiscardable.getOrDefault(workspace, Boolean.TRUE);
+            workspaceDiscardable.put(workspace, discardable && stage.getDefinition().isDiscardable());
+        }
+
+        var successfulWorkspaces = successfulStages
+                .stream()
+                .map(Stage::getWorkspace)
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
+
+        removeDuplicates(successfulWorkspaces, String::equals);
+
+
+        for (int i = 0; i < numberToKeep && i < successfulWorkspaces.size(); ++i) {
+            var workspace   = successfulWorkspaces.get(successfulWorkspaces.size() - i - 1);
+            var discardable = workspaceDiscardable.get(workspace);
+
+            // only skip discardable from whitelisting if it is the very first item
+            if (discardable && i > 0) {
+                numberToKeep++; // do not prevent deletion
+            } else {
+                while (obsolete.remove(workspace))
+                    ;
+            }
+        }
     }
 
     private void appendWorkspaceOfFailedStagesIfApplicable(@NonNull List<String> obsolete) {

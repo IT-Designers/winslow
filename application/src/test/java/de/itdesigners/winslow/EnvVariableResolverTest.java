@@ -230,7 +230,8 @@ public class EnvVariableResolverTest {
                         null,
                         null
                 ),
-                action
+                action,
+                null
         );
     }
 }

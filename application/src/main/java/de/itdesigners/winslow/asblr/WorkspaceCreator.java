@@ -37,11 +37,17 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var pathOfWorkspace = getWorkspacePathOf(
-                context.getPipeline(),
-                context.getStageNumber(),
-                context.getEnqueuedStage().getDefinition()
-        );
+        var isContinuingOnPreviousWorkspace = context.getEnqueuedStage().isContinuingOnPreviousWorkspace();
+        var pathOfWorkspace = context
+                .getPipeline()
+                .getMostRecentStage(Action.Execute)
+                .filter(s -> isContinuingOnPreviousWorkspace)
+                .map(base -> Path.of(base.getWorkspace().orElseThrow()))
+                .orElseGet(() -> getWorkspacePathOf(
+                        context.getPipeline(),
+                        context.getStageNumber(),
+                        context.getEnqueuedStage().getDefinition()
+                ));
         var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
         var pathOfPipelineOutput = getPipelineOutputPathOf(context.getPipeline());
 
@@ -55,7 +61,10 @@ public class WorkspaceCreator implements AssemblerStep {
 
         var workspacesRoot = environment.getResourceManager().getWorkspacesDirectory();
         var resources      = environment.getResourceManager().getResourceDirectory();
-        var workspace      = environment.getResourceManager().createWorkspace(pathOfWorkspace, true);
+        var workspace = environment.getResourceManager().createWorkspace(
+                pathOfWorkspace,
+                !isContinuingOnPreviousWorkspace
+        );
         var pipelineInput  = environment.getResourceManager().createWorkspace(pathOfPipelineInput, false);
         var pipelineOutput = environment.getResourceManager().createWorkspace(pathOfPipelineOutput, false);
 
@@ -64,7 +73,10 @@ public class WorkspaceCreator implements AssemblerStep {
                 || workspace.isEmpty()
                 || pipelineInput.isEmpty()
                 || pipelineOutput.isEmpty()) {
-            workspace.map(Path::toFile).map(File::delete);
+            // do not delete the workspace if it is re-used
+            if (!isContinuingOnPreviousWorkspace) {
+                workspace.map(Path::toFile).map(File::delete);
+            }
             throw new AssemblyException(
                     "The workspace and resources directory must exit, but at least one isn't."
                             + " workspacesRoot=" + workspacesRoot
@@ -77,10 +89,12 @@ public class WorkspaceCreator implements AssemblerStep {
         } else {
             switch (context.getEnqueuedStage().getAction()) {
                 case Execute:
-                    copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
-                            context,
-                            workspace.get()
-                    );
+                    if (!isContinuingOnPreviousWorkspace) {
+                        copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
+                                context,
+                                workspace.get()
+                        );
+                    }
                     break;
                 default:
                     LOG.warning("Unexpected Stage Action " + context.getEnqueuedStage().getAction());
@@ -158,13 +172,16 @@ public class WorkspaceCreator implements AssemblerStep {
     }
 
     @Nonnull
-    private static Path getWorkspacePathOf(@Nonnull Pipeline pipeline, int stageNumber, @Nonnull StageDefinition stage) {
+    private static Path getWorkspacePathOf(
+            @Nonnull Pipeline pipeline,
+            int stageNumber,
+            @Nonnull StageDefinition stage) {
         return getWorkspacePathOf(pipeline.getProjectId(), stageNumber, stage);
     }
 
     @Nonnull
     public static Path getInitWorkspacePath(@Nonnull String projectId) {
-        return getWorkspacePathOf(projectId, 0, (String)null);
+        return getWorkspacePathOf(projectId, 0, (String) null);
     }
 
     @Nonnull

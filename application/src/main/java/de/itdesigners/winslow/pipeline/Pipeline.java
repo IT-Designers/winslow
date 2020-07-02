@@ -118,6 +118,21 @@ public class Pipeline implements Cloneable {
         });
     }
 
+    @Nonnull
+    @Transient
+    public Optional<Stage> getMostRecentStage(@Nonnull Action action) {
+        return getRunningStage()
+                .filter(stage -> stage.getAction() == action)
+                .or(() -> {
+                    for (var i = stages.size() - 1; i >= 0; --i) {
+                        if (stages.get(i).getAction() == action) {
+                            return Optional.of(stages.get(i));
+                        }
+                    }
+                    return Optional.empty();
+                });
+    }
+
     /**
      * @return The number of stages ever completed for this pipeline
      */
@@ -210,10 +225,18 @@ public class Pipeline implements Cloneable {
     }
 
     public void enqueueStage(@Nonnull StageDefinition definition, @Nonnull Action action) {
+        this.enqueue(new EnqueuedStage(definition, action, null));
+    }
+
+    public void enqueueStageContinuation(@Nonnull StageDefinition definition, @Nonnull Action action) {
+        this.enqueue(new EnqueuedStage(definition, action, true));
+    }
+
+    private void enqueue(@Nonnull EnqueuedStage stage) {
         if (this.enqueuedStages == null) {
             this.enqueuedStages = new ArrayList<>();
         }
-        this.enqueuedStages.add(new EnqueuedStage(definition, action));
+        this.enqueuedStages.add(stage);
     }
 
     @Nonnull
