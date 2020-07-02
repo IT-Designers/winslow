@@ -228,8 +228,23 @@ public class Pipeline implements Cloneable {
         this.enqueue(new EnqueuedStage(definition, action, null));
     }
 
-    public void enqueueStageContinuation(@Nonnull StageDefinition definition, @Nonnull Action action) {
-        this.enqueue(new EnqueuedStage(definition, action, true));
+    public void enqueueStageContinuation(@Nonnull StageDefinition definition, @Nullable String value) {
+        this.enqueue(new EnqueuedStage(
+                definition,
+                Action.Execute,
+                new WorkspaceConfiguration(
+                        WorkspaceConfiguration.WorkspaceMode.CONTINUATION,
+                        value
+                )
+        ));
+    }
+
+    public void enqueueStageStandalone(@Nonnull StageDefinition definition) {
+        this.enqueue(new EnqueuedStage(
+                definition,
+                Action.Execute,
+                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null)
+        ));
     }
 
     private void enqueue(@Nonnull EnqueuedStage stage) {

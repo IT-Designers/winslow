@@ -11,6 +11,7 @@ import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
+import de.itdesigners.winslow.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.web.HistoryEntryConverter;
@@ -109,7 +110,9 @@ public class ProjectsController {
     }
 
     @PostMapping("/projects/{projectId}/history/prune")
-    public Stream<HistoryEntry> pruneProjectHistory(User user, @PathVariable("projectId") String projectId) throws IOException {
+    public Stream<HistoryEntry> pruneProjectHistory(
+            User user,
+            @PathVariable("projectId") String projectId) throws IOException {
         var project = getProjectIfAllowedToAccess(user, projectId);
         if (project.isPresent()) {
             winslow.getOrchestrator().prunePipeline(project.get());
@@ -660,7 +663,8 @@ public class ProjectsController {
             @RequestParam("env") Map<String, String> env,
             @RequestParam("stageIndex") int index,
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
-            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
+            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
+            @RequestParam(value = "workspaceConfiguration", required = false) @Nullable WorkspaceConfiguration workspaceConfiguration
     ) {
         getProjectIfAllowedToAccess(user, projectId)
 
@@ -675,7 +679,8 @@ public class ProjectsController {
                                         stageDef,
                                         env,
                                         image,
-                                        requiredResources
+                                        requiredResources,
+                                        workspaceConfiguration
                                 );
                                 return Boolean.TRUE;
                             })
@@ -758,7 +763,7 @@ public class ProjectsController {
             @Nonnull Map<String, String> env,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources) {
-        enqueueStage(pipeline, base, env, image, requiredResources, Action.Configure);
+        enqueueStage(pipeline, base, env, image, requiredResources, Action.Configure, null);
     }
 
     private static void enqueueExecutionStage(
@@ -766,8 +771,9 @@ public class ProjectsController {
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
             @Nullable ImageInfo image,
-            @Nullable ResourceInfo requiredResources) {
-        enqueueStage(pipeline, base, env, image, requiredResources, Action.Execute);
+            @Nullable ResourceInfo requiredResources,
+            @Nullable WorkspaceConfiguration workspaceConfiguration) {
+        enqueueStage(pipeline, base, env, image, requiredResources, Action.Execute, workspaceConfiguration);
     }
 
     private static void enqueueStage(
@@ -776,7 +782,11 @@ public class ProjectsController {
             @Nonnull Map<String, String> env,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
-            @Nonnull Action action) {
+            @Nonnull Action action,
+            @Nullable WorkspaceConfiguration workspaceConfiguration) {
+        if (workspaceConfiguration == null) {
+            workspaceConfiguration = new WorkspaceConfiguration();
+        }
 
         var recentBase = Optional
                 .of(base)
@@ -806,7 +816,19 @@ public class ProjectsController {
         }
          */
         maybeUpdateImageInfo(image, resultDefinition);
-        pipeline.enqueueStage(resultDefinition, action);
+        switch (workspaceConfiguration.getMode()) {
+            case STANDALONE:
+                pipeline.enqueueStageStandalone(resultDefinition);
+                break;
+            case INCREMENTAL:
+                pipeline.enqueueStage(resultDefinition, action);
+                break;
+            case CONTINUATION:
+                pipeline.enqueueStageContinuation(resultDefinition, workspaceConfiguration.getValue().orElse(null));
+                break;
+            default:
+                throw new RuntimeException("Unexpected WorkspaceMode " + workspaceConfiguration.getMode());
+        }
         resumeIfPausedByStageFailure(pipeline);
         resumeIfWaitingForGoneStageConfiramtion(pipeline);
     }

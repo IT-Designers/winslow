@@ -6,6 +6,7 @@ import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.Pipeline;
+import de.itdesigners.winslow.pipeline.WorkspaceConfiguration.WorkspaceMode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,17 +39,36 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var isContinuingOnPreviousWorkspace = context.getEnqueuedStage().isContinuingOnPreviousWorkspace();
-        var pathOfWorkspace = context
-                .getPipeline()
-                .getMostRecentStage(Action.Execute)
-                .filter(s -> isContinuingOnPreviousWorkspace)
-                .map(base -> Path.of(base.getWorkspace().orElseThrow()))
-                .orElseGet(() -> getWorkspacePathOf(
-                        context.getPipeline(),
-                        context.getStageNumber(),
-                        context.getEnqueuedStage().getDefinition()
-                ));
+        var workspaceMode = context.getEnqueuedStage().getWorkspaceConfiguration().getMode();
+        context.log(Level.INFO, "WorkspaceConfiguration.WorkspaceMode=" + workspaceMode);
+
+        var workspaceContinuation = Optional.<Path>empty();
+        if (workspaceMode == WorkspaceMode.CONTINUATION) {
+            var stageId = context
+                    .getEnqueuedStage()
+                    .getWorkspaceConfiguration()
+                    .getValue()
+                    .orElse(null);
+
+            var baseWorkspace = context
+                    .getPipeline()
+                    .getAllStages()
+                    .filter(s -> Objects.equals(s.getId(), stageId))
+                    .findFirst()
+                    .orElseThrow(() -> new AssemblyException(
+                            "Failed to find continue workspace because a stage with the id " + stageId + " was not found"))
+                    .getWorkspace()
+                    .orElseThrow(() -> new ClassCastException("Failed to continue on workspace of stage " + stageId + " because it has no workspace"));
+
+
+            workspaceContinuation = Optional.of(Path.of(baseWorkspace));
+        }
+
+        var pathOfWorkspace = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(
+                context.getPipeline(),
+                context.getStageNumber(),
+                context.getEnqueuedStage().getDefinition()
+        ));
         var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
         var pathOfPipelineOutput = getPipelineOutputPathOf(context.getPipeline());
 
@@ -63,7 +84,7 @@ public class WorkspaceCreator implements AssemblerStep {
         var resources      = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(
                 pathOfWorkspace,
-                !isContinuingOnPreviousWorkspace
+                workspaceMode != WorkspaceMode.CONTINUATION
         );
         var pipelineInput  = environment.getResourceManager().createWorkspace(pathOfPipelineInput, false);
         var pipelineOutput = environment.getResourceManager().createWorkspace(pathOfPipelineOutput, false);
@@ -74,7 +95,7 @@ public class WorkspaceCreator implements AssemblerStep {
                 || pipelineInput.isEmpty()
                 || pipelineOutput.isEmpty()) {
             // do not delete the workspace if it is re-used
-            if (!isContinuingOnPreviousWorkspace) {
+            if (workspaceMode != WorkspaceMode.CONTINUATION) {
                 workspace.map(Path::toFile).map(File::delete);
             }
             throw new AssemblyException(
@@ -89,7 +110,7 @@ public class WorkspaceCreator implements AssemblerStep {
         } else {
             switch (context.getEnqueuedStage().getAction()) {
                 case Execute:
-                    if (!isContinuingOnPreviousWorkspace) {
+                    if (workspaceMode == WorkspaceMode.INCREMENTAL) {
                         copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
                                 context,
                                 workspace.get()
