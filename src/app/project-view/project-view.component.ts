@@ -887,7 +887,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   workspaceModes(): WorkspaceMode[] {
-    return [WorkspaceMode.STANDALONE, WorkspaceMode.INCREMENT, WorkspaceMode.CONTINUATION];
+    return [WorkspaceMode.STANDALONE, WorkspaceMode.INCREMENTAL, WorkspaceMode.CONTINUATION];
   }
 
   setWorkspaceMode(value: WorkspaceMode) {

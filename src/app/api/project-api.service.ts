@@ -426,7 +426,7 @@ export class StatsInfo {
 
 export enum WorkspaceMode {
   STANDALONE = 'STANDALONE',
-  INCREMENT = 'INCREMENT',
+  INCREMENTAL = 'INCREMENTAL',
   CONTINUATION = 'CONTINUATION',
 }
 
@@ -434,7 +434,7 @@ export class WorkspaceConfiguration {
   mode: WorkspaceMode;
   value: string;
 
-  constructor(mode: WorkspaceMode = WorkspaceMode.INCREMENT, value: string = null) {
+  constructor(mode: WorkspaceMode = WorkspaceMode.INCREMENTAL, value: string = null) {
     this.mode = mode;
     this.value = value;
   }

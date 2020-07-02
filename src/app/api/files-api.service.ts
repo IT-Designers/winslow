@@ -101,12 +101,18 @@ export class FilesApiService {
   }
 
   cloneGitRepo(path: string, gitUrl: string): Promise<string> {
+    if (path.startsWith('/')) {
+      path = path.substr(1);
+    }
     return this.client.patch<string>(FilesApiService.getUrl(path), {
       'git-clone': gitUrl
     }).toPromise();
   }
 
   pullGitRepo(path: string): Promise<string> {
+    if (path.startsWith('/')) {
+      path = path.substr(1);
+    }
     return this.client.patch<string>(FilesApiService.getUrl(path), {
       'git-pull': ``
     }).toPromise();
