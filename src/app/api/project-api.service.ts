@@ -333,6 +333,7 @@ export class HistoryEntry {
   enqueueIndex?: number;
   enqueueControlSize?: number;
   resourceRequirements?: ResourceInfo;
+  workspaceConfiguration: WorkspaceConfiguration;
 }
 
 export enum LogSource {
