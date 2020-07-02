@@ -262,6 +262,16 @@ export class ProjectApiService {
     return this.client.post<HistoryEntry[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), new FormData()).toPromise();
   }
 
+  getWorkspaceConfigurationMode(projectId: string): Promise<WorkspaceMode> {
+    return this.client.get<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`)).toPromise();
+  }
+
+  setWorkspaceConfigurationMode(projectId: string, mode: WorkspaceMode): Promise<WorkspaceMode> {
+    const form = new FormData();
+    form.set('value', JSON.stringify(mode));
+    return this.client.post<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`), form).toPromise();
+  }
+
 
   tryParseStageNumber(stageId: string, alt: number): number {
     if (stageId != null) {
