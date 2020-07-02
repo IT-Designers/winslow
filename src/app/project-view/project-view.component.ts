@@ -12,7 +12,8 @@ import {
   ProjectInfo,
   State,
   StateInfo,
-  WorkspaceConfiguration
+  WorkspaceConfiguration,
+  WorkspaceMode
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
@@ -87,6 +88,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedStage: StageInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
   defaultEnvironmentVariables: Map<string, string> = null;
+  workspaceConfigurationMode: WorkspaceMode = null;
 
   rawPipelineDefinition: string = null;
   rawPipelineDefinitionError: string = null;
@@ -95,6 +97,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
   maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
+  workspaceMode: WorkspaceMode = null;
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
@@ -175,6 +178,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.tabs) {
       this.selectTabIndex(this.selectedTabIndex);
     }
+
+    this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
   }
 
   public get project(): ProjectInfo {
@@ -879,6 +884,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   tryParseStageNumber(stageId: string, alt: number): number {
     return this.api.tryParseStageNumber(stageId, alt);
+  }
+
+  workspaceModes(): WorkspaceMode[] {
+    return [WorkspaceMode.STANDALONE, WorkspaceMode.INCREMENT, WorkspaceMode.CONTINUATION];
+  }
+
+  setWorkspaceMode(value: WorkspaceMode) {
+    this.dialog.openLoadingIndicator(
+      this.api.setWorkspaceConfigurationMode(this.projectValue.id, value)
+        .then(mode => {
+          this.workspaceMode = mode;
+        }),
+      `Updating workspace configuration mode`,
+    );
   }
 }
 

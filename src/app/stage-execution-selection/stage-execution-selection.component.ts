@@ -15,12 +15,13 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   @Input() pipelines: PipelineInfo[];
   @Input() pipelineSelectionDisabled = false;
-  @Input() executionHistory: HistoryEntry[] = null;
+
 
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
   @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageInfo>();
 
   defaultPipelineIdValue: string;
+  executionHistoryValue: HistoryEntry[] = null;
 
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageInfo = null;
@@ -67,6 +68,25 @@ export class StageExecutionSelectionComponent implements OnInit {
   set defaultEnvironmentVariables(map: Map<string, string>) {
     this.defaultEnvironmentVariablesValue = map;
     this.updateValid();
+  }
+
+  @Input()
+  set executionHistory(history: HistoryEntry[]) {
+    this.executionHistoryValue = history;
+    this.workspaceConfigurationMode = this.workspaceConfiguration?.mode;
+  }
+
+  @Input()
+  set workspaceConfigurationMode(mode: WorkspaceMode) {
+    if (mode != null) {
+      let value = null;
+      if (mode === WorkspaceMode.CONTINUATION && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
+        value = this.executionHistoryValue[0].stageId;
+      }
+      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value);
+    } else {
+      this.workspaceConfiguration = new WorkspaceConfiguration();
+    }
   }
 
   updateValid() {
