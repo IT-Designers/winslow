@@ -630,6 +630,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.executionSelection.image = stageInfo.image;
     this.executionSelection.resources = stageInfo.requiredResources;
     this.executionSelection.selectedStage = stageInfo;
+    this.executionSelection.workspaceConfiguration = entry.workspaceConfiguration;
     this.environmentVariables = new Map();
     this.defaultEnvironmentVariables = entry.env;
     this.tabs.selectedIndex = Tab.Control;
