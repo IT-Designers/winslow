@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.pipeline;
+package de.itdesigners.winslow.api.pipeline;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

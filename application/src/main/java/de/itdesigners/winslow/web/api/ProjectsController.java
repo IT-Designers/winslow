@@ -11,7 +11,7 @@ import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
-import de.itdesigners.winslow.pipeline.WorkspaceConfiguration;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.web.HistoryEntryConverter;

@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;

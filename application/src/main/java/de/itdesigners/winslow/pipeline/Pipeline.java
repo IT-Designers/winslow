@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;

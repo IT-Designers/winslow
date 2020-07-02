@@ -6,7 +6,7 @@ import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.Pipeline;
-import de.itdesigners.winslow.pipeline.WorkspaceConfiguration.WorkspaceMode;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration.WorkspaceMode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
