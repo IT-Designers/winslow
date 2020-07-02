@@ -109,7 +109,7 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null) {
+  enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null, workspaceConfiguration: WorkspaceConfiguration = null) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
     form.set('stageIndex', '' + nextStageIndex);
@@ -118,6 +118,9 @@ export class ProjectApiService {
     }
     if (requiredResources != null) {
       form.set('requiredResources', JSON.stringify(requiredResources));
+    }
+    if (workspaceConfiguration != null) {
+      form.set('workspaceConfiguration', JSON.stringify(workspaceConfiguration));
     }
     return this.client.put(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
@@ -258,6 +261,20 @@ export class ProjectApiService {
   pruneHistory(projectId: string): Promise<HistoryEntry[]> {
     return this.client.post<HistoryEntry[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), new FormData()).toPromise();
   }
+
+
+  tryParseStageNumber(stageId: string, alt: number): number {
+    if (stageId != null) {
+      const split = stageId.split('_');
+      if (split.length >= 2) {
+        const parsed = Number(split[1]);
+        if (!Number.isNaN(parsed)) {
+          return parsed;
+        }
+      }
+    }
+    return alt;
+  }
 }
 
 export enum State {
@@ -395,4 +412,21 @@ export class StatsInfo {
   cpuMaximum = 0;
   memoryAllocated = 0;
   memoryMaximum = 0;
+}
+
+export enum WorkspaceMode {
+  STANDALONE = 'STANDALONE',
+  INCREMENT = 'INCREMENT',
+  CONTINUATION = 'CONTINUATION',
+}
+
+export class WorkspaceConfiguration {
+  mode: WorkspaceMode;
+  value: string;
+
+  constructor(mode: WorkspaceMode = WorkspaceMode.INCREMENT, value: string = null) {
+    this.mode = mode;
+    this.value = value;
+  }
+
 }

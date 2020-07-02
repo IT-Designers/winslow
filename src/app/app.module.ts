@@ -23,7 +23,7 @@ import {
     MatInputModule,
     MatListModule, MatMenuModule,
     MatProgressBarModule,
-    MatProgressSpinnerModule,
+    MatProgressSpinnerModule, MatRadioModule,
     MatSelectModule,
     MatSlideToggleModule,
     MatSnackBarModule,
@@ -164,6 +164,7 @@ import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/pro
         MatAutocompleteModule,
         MatChipsModule,
         MatMenuModule,
+        MatRadioModule,
 
     ],
   providers: [

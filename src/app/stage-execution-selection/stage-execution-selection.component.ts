@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {PipelineInfo, ResourceInfo, StageInfo} from '../api/pipeline-api.service';
 import {MatDialog} from '@angular/material';
-import {EnvVariable, ImageInfo} from '../api/project-api.service';
+import {EnvVariable, HistoryEntry, ImageInfo, ProjectApiService, WorkspaceConfiguration, WorkspaceMode} from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
 
 @Component({
@@ -11,8 +11,11 @@ import {parseArgsStringToArgv} from 'string-argv';
 })
 export class StageExecutionSelectionComponent implements OnInit {
 
+  WorkspaceMode = WorkspaceMode;
+
   @Input() pipelines: PipelineInfo[];
   @Input() pipelineSelectionDisabled = false;
+  @Input() executionHistory: HistoryEntry[] = null;
 
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
   @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageInfo>();
@@ -23,6 +26,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   selectedStage: StageInfo = null;
   image = new ImageInfo();
   resources = new ResourceInfo();
+  workspaceConfiguration = new WorkspaceConfiguration();
   @Output('valid') private validEmitter = new EventEmitter<boolean>();
   valid = false;
 
@@ -38,7 +42,8 @@ export class StageExecutionSelectionComponent implements OnInit {
     return JSON.parse(JSON.stringify(image));
   }
 
-  constructor(private dialog: MatDialog) {
+  constructor(private dialog: MatDialog,
+              private api: ProjectApiService) {
     this.updateValid();
   }
 
@@ -82,6 +87,10 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   getResourceRequirements(): ResourceInfo {
     return this.resources;
+  }
+
+  getWorkspaceConfiguration(): WorkspaceConfiguration {
+    return this.workspaceConfiguration;
   }
 
   loadStagesForPipeline(pipelineId: string) {
@@ -136,4 +145,20 @@ export class StageExecutionSelectionComponent implements OnInit {
   toNumber(value: string): number {
     return Number(value);
   }
+
+  setWorkspaceMode(checked: boolean, mode: WorkspaceMode, value: string = null) {
+    if (checked) {
+      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value);
+      console.log(JSON.stringify(this.workspaceConfiguration));
+    }
+  }
+
+  tryParseStageNumber(stageId: string, alt: number): number {
+    return this.api.tryParseStageNumber(stageId, alt);
+  }
+
+  hasStageId(e: HistoryEntry): boolean {
+    return e.stageId != null;
+  }
+
 }

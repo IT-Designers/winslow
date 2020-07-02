@@ -28,7 +28,8 @@
         (selectedPipeline)="onSelectedPipelineChanged($event)"
         (selectedStage)="onSelectedStageChanged($event)"
         [environmentVariables]="environmentVariables"
-        [defaultEnvironmentVariables]="defaultEnvironmentVariables">
+        [defaultEnvironmentVariables]="defaultEnvironmentVariables"
+        [executionHistory]="history">
       </app-stage-execution-selection>
     </div>
     <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
@@ -62,7 +63,8 @@
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),
                   executionSelection.getImage(),
-                  executionSelection.getResourceRequirements()
+                  executionSelection.getResourceRequirements(),
+                  executionSelection.getWorkspaceConfiguration()
                 )">
         <mat-icon>send</mat-icon>
         Enqueue
