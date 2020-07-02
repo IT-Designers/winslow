@@ -544,6 +544,29 @@ public class ProjectsController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("projects/{projectId}/workspace-configuration-mode")
+    public Optional<WorkspaceConfiguration.WorkspaceMode> getWorkspaceConfigurationMode(User user, @PathVariable("projectId") String projectId) {
+        return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getWorkspaceConfigurationMode);
+    }
+
+    @PostMapping("projects/{projectId}/workspace-configuration-mode")
+    public ResponseEntity<WorkspaceConfiguration.WorkspaceMode> setWorkspaceConfigurationMode(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam("value") WorkspaceConfiguration.WorkspaceMode mode) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> project.canBeManagedBy(user))
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+                    pipeline.setWorkspaceConfigurationMode(mode);
+                    return ResponseEntity.ok(mode); // just _some_ value
+                }))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+
     @GetMapping("projects/{projectId}/{stageIndex}/environment")
     public Map<String, EnvVariable> getLatestEnvironment(
             User user,

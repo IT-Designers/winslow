@@ -24,9 +24,10 @@ public class Pipeline implements Cloneable {
     private @Nullable ResumeNotification  resumeNotification = null;
     private @Nullable List<EnqueuedStage> enqueuedStages     = new ArrayList<>();
 
-    private @Nullable DeletionPolicy deletionPolicy;
-    private @Nonnull  Strategy       strategy;
-    private @Nullable Stage          stage;
+    private @Nullable DeletionPolicy                       deletionPolicy;
+    private @Nonnull  Strategy                             strategy;
+    private @Nullable Stage                                stage;
+    private @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode;
 
     private int stageCounter;
 
@@ -46,7 +47,8 @@ public class Pipeline implements Cloneable {
             @Nullable DeletionPolicy deletionPolicy,
             @Nonnull Strategy strategy,
             @Nullable Stage runningStage,
-            @Nullable Integer stageCounter) {
+            @Nullable Integer stageCounter,
+            @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode) {
         this.projectId          = projectId;
         this.pauseRequested     = pauseRequested;
         this.pauseReason        = pauseReason;
@@ -60,6 +62,8 @@ public class Pipeline implements Cloneable {
                                   ? stageCounter
                                   : Optional.ofNullable(completedStages).map(List::size).orElse(0)
                                           + (runningStage != null ? 1 : 0);
+
+        this.workspaceConfigurationMode = workspaceConfigurationMode;
     }
 
     @Nonnull
@@ -290,6 +294,16 @@ public class Pipeline implements Cloneable {
         this.strategy = strategy;
     }
 
+    @Nonnull
+    public Optional<WorkspaceConfiguration.WorkspaceMode> getWorkspaceConfigurationMode() {
+        return Optional.ofNullable(workspaceConfigurationMode);
+    }
+
+    public void setWorkspaceConfigurationMode(@Nonnull WorkspaceConfiguration.WorkspaceMode mode) {
+        this.workspaceConfigurationMode = mode;
+    }
+
+
     @Override
     public Pipeline clone() {
         return new Pipeline(
@@ -302,7 +316,8 @@ public class Pipeline implements Cloneable {
                 deletionPolicy,
                 strategy,
                 stage,
-                stageCounter
+                stageCounter,
+                workspaceConfigurationMode
         );
     }
 
