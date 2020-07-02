@@ -1,6 +1,7 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.api.project.State;
@@ -436,7 +437,12 @@ public class Orchestrator {
                                             null,
                                             enqueuedStage,
                                             stageId,
-                                            new Submission(stageId, enqueuedStage.getAction(), stageDefinition),
+                                            new Submission(
+                                                    stageId,
+                                                    enqueuedStage.getAction(),
+                                                    stageDefinition,
+                                                    enqueuedStage.getWorkspaceConfiguration()
+                                            ),
                                             pipeline.getStageCounter() + 1
                                     ));
 
@@ -552,7 +558,8 @@ public class Orchestrator {
                     stageId,
                     stageEnqueued.getDefinition(),
                     stageEnqueued.getAction(),
-                    null
+                    null,
+                    new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null)
             );
 
             startStageAssembler(lock, definition, pipeline.clone(), stageEnqueued, stageId, exec, env, stageNumber);
@@ -605,7 +612,12 @@ public class Orchestrator {
                                     executor,
                                     stageEnqueued,
                                     stageId,
-                                    new Submission(stageId, stageEnqueued.getAction(), stageEnqueued.getDefinition()),
+                                    new Submission(
+                                            stageId,
+                                            stageEnqueued.getAction(),
+                                            stageEnqueued.getDefinition(),
+                                            stageEnqueued.getWorkspaceConfiguration()
+                                    ),
                                     stageNumber
                             ));
                 } finally {

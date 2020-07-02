@@ -25,7 +25,8 @@ public class HistoryEntryConverter {
                 new TreeMap<>(stage.getEnvPipeline()),
                 new TreeMap<>(stage.getEnvSystem()),
                 new TreeMap<>(stage.getEnvInternal()),
-                stage.getDefinition().getRequirements().map(ResourceInfoConverter::from).orElse(null)
+                stage.getDefinition().getRequirements().map(ResourceInfoConverter::from).orElse(null),
+                stage.getWorkspaceConfiguration()
         );
     }
 
@@ -44,7 +45,8 @@ public class HistoryEntryConverter {
                 Collections.emptyMap(),
                 Collections.emptyMap(),
                 Collections.emptyMap(),
-                stage.getDefinition().getRequirements().map(ResourceInfoConverter::from).orElse(null)
+                stage.getDefinition().getRequirements().map(ResourceInfoConverter::from).orElse(null),
+                stage.getWorkspaceConfiguration()
         );
     }
 }

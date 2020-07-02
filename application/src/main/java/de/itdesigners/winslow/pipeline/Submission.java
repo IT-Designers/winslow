@@ -3,6 +3,7 @@ package de.itdesigners.winslow.pipeline;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.CheckReturnValue;
@@ -15,9 +16,10 @@ import java.util.stream.Stream;
 
 public class Submission {
 
-    private final @Nonnull String          id;
-    private final @Nonnull Action          action;
-    private final @Nonnull StageDefinition stageDefinition;
+    private final @Nonnull String                 id;
+    private final @Nonnull Action                 action;
+    private final @Nonnull StageDefinition        stageDefinition;
+    private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
 
     private final @Nonnull Map<String, String> envVarsStage    = new HashMap<>();
     private final @Nonnull Map<String, String> envVarsPipeline = new HashMap<>();
@@ -32,10 +34,12 @@ public class Submission {
     public Submission(
             @Nonnull String id,
             @Nonnull Action action,
-            @Nonnull StageDefinition stageDefinition) {
-        this.id              = Objects.requireNonNull(id);
-        this.action          = Objects.requireNonNull(action);
-        this.stageDefinition = Objects.requireNonNull(stageDefinition);
+            @Nonnull StageDefinition stageDefinition,
+            @Nonnull WorkspaceConfiguration workspaceConfiguration) {
+        this.id                     = Objects.requireNonNull(id);
+        this.action                 = Objects.requireNonNull(action);
+        this.stageDefinition        = Objects.requireNonNull(stageDefinition);
+        this.workspaceConfiguration = workspaceConfiguration;
     }
 
     @Nonnull
@@ -68,6 +72,12 @@ public class Submission {
     @CheckReturnValue
     public Optional<String> getWorkspaceDirectory() {
         return Optional.ofNullable(workspaceDirectory);
+    }
+
+    @Nonnull
+    @CheckReturnValue
+    public WorkspaceConfiguration getWorkspaceConfiguration() {
+        return workspaceConfiguration;
     }
 
     @Nonnull

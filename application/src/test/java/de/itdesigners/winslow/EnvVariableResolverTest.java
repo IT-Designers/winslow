@@ -209,6 +209,7 @@ public class EnvVariableResolverTest {
                 env,
                 null,
                 null,
+                null,
                 null
         );
     }
