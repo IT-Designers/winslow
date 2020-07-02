@@ -11,7 +11,8 @@ import {
   ProjectApiService,
   ProjectInfo,
   State,
-  StateInfo
+  StateInfo,
+  WorkspaceConfiguration
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
@@ -353,7 +354,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  enqueue(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
+  enqueue(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo, workspaceConfiguration?: WorkspaceConfiguration) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
@@ -364,7 +365,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.enqueue(this.project.id, index, env, image, requiredResources),
+          this.api.enqueue(this.project.id, index, env, image, requiredResources, workspaceConfiguration),
           `Submitting selections`
         );
       }
@@ -877,16 +878,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   tryParseStageNumber(stageId: string, alt: number): number {
-    if (stageId != null) {
-      const split = stageId.split('_');
-      if (split.length >= 2) {
-        const parsed = Number(split[1]);
-        if (!Number.isNaN(parsed)) {
-          return parsed;
-        }
-      }
-    }
-    return alt;
+    return this.api.tryParseStageNumber(stageId, alt);
   }
 }
 

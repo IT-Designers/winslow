@@ -121,7 +121,8 @@
   <div class="action-row">
     <mat-label class="title">
       <input #requireGpus type="checkbox" [checked]="resources.gpus != null"
-             (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpus : null"> GPUs
+             (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpus : null">
+      GPUs
     </mat-label>
     <mat-form-field>
       <input #requiredGpus matInput required [value]="'' +selectedStage.requiredResources.gpus"
@@ -135,6 +136,70 @@
         Reset
       </button>
     </div>
+  </div>
+</ng-container>
+
+
+<ng-container *ngIf="selectedStage != null">
+  <div>
+    <mat-divider></mat-divider>
+  </div>
+
+  <div class="whitespace-separator-top">
+    <mat-card-subtitle>Workspace configuration</mat-card-subtitle>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+      <input name="ws-config" type="radio"
+             [checked]="workspaceConfiguration?.mode == WorkspaceMode.STANDALONE"
+             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.STANDALONE)">
+      Standalone
+    </mat-label>
+    <div>
+      Start execution in an empty workspace
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+      <input name="ws-config" type="radio" value="increment"
+             [checked]="workspaceConfiguration?.mode == WorkspaceMode.INCREMENT"
+             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.INCREMENT)"
+      >
+      Increment
+    </mat-label>
+    <div>
+      Start execution in a self contained copy of the previous workspace
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+      <input name="ws-config" #wsContinuation type="radio" value="continuation"
+             [disabled]="executionHistory == null || executionHistory.length == 0"
+             [checked]="workspaceConfiguration?.mode == WorkspaceMode.CONTINUATION"
+             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.CONTINUATION, executionHistory[0].stageId)">
+      Continuation
+    </mat-label>
+    <div>
+      Start execution in a workspace that already exists:
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+    </mat-label>
+    <mat-form-field>
+      <mat-select #continuationValue
+                  [(ngModel)]="workspaceConfiguration.value"
+                  [disabled]="!wsContinuation.checked"
+                  (valueChange)="setWorkspaceMode(true, WorkspaceMode.CONTINUATION, $event)">
+        <mat-option *ngFor="let h of executionHistory.filter(hasStageId); let i = index"
+                    [value]="h.stageId">[{{tryParseStageNumber(h.stageId, executionHistory.length - i)}}] {{h.stageName}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div class="controls"></div>
   </div>
 </ng-container>
 
