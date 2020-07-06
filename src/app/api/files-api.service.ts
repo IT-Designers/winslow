@@ -11,13 +11,13 @@ export class FilesApiService {
   }
 
   static getUrl(more?: string) {
+    while (more != null && more.startsWith('/')) {
+      more = more.substr(1);
+    }
     return `${environment.apiLocation}files${more != null ? `/${more}` : ''}`;
   }
 
   listFiles(path: string, aggregateSizeForDirectories: boolean = false) {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
     return this.client
       .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
       .toPromise()
@@ -25,9 +25,6 @@ export class FilesApiService {
   }
 
   createDirectory(path: string): Promise<any> {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
     return this
       .client
       .put(FilesApiService.getUrl(path), null)
@@ -37,9 +34,6 @@ export class FilesApiService {
   uploadFile(pathToDirectory: string, file: File, decompress = false) {
     if (!pathToDirectory.endsWith('/')) {
       pathToDirectory += '/';
-    }
-    if (pathToDirectory.startsWith('/')) {
-      pathToDirectory = pathToDirectory.substr(1);
     }
 
     let params = '?';
@@ -80,9 +74,6 @@ export class FilesApiService {
   }
 
   delete(path: string) {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
     return this
       .client
       .delete(FilesApiService.getUrl(path))
@@ -90,9 +81,6 @@ export class FilesApiService {
   }
 
   renameTopLevelPath(path: string, newName: string): Promise<string> {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
     return this.client
       .patch<string>(FilesApiService.getUrl(path), {
         'rename-to': newName,
@@ -101,9 +89,6 @@ export class FilesApiService {
   }
 
   cloneGitRepo(path: string, gitUrl: string, gitBranch?: string): Promise<string> {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
     return this.client.patch<string>(FilesApiService.getUrl(path), {
       'git-clone': gitUrl,
       'git-branch': gitBranch,
@@ -111,11 +96,14 @@ export class FilesApiService {
   }
 
   pullGitRepo(path: string): Promise<string> {
-    if (path.startsWith('/')) {
-      path = path.substr(1);
-    }
     return this.client.patch<string>(FilesApiService.getUrl(path), {
       'git-pull': ``
+    }).toPromise();
+  }
+
+  checkoutGitRepo(path: string, branch: string): Promise<void> {
+    return this.client.patch<void>(FilesApiService.getUrl(path), {
+      'git-checkout': branch
     }).toPromise();
   }
 }
@@ -192,6 +180,13 @@ export class FileInfo {
     } else {
       return null;
     }
+  }
+
+  public setGitBranch(branch: string) {
+    if (this.attributes == null) {
+      this.attributes = new Map<string, unknown>();
+    }
+    this.attributes['git-branch'] = branch;
   }
 
   public getFileSizeHumanReadable(): string {

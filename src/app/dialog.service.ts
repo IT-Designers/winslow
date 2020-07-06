@@ -117,6 +117,7 @@ export class DialogService {
       html,
       showLoaderOnConfirm: true,
       focusConfirm: false,
+      allowEnterKey: true,
       preConfirm: this.preConfirmPromiseWithErrorCatcher(() => {
         const values = [];
         for (let i = 0; i < inputs.length; ++i) {
