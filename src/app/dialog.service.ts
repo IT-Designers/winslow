@@ -97,9 +97,36 @@ export class DialogService {
       input: 'text',
       inputPlaceholder: placeholder,
       showLoaderOnConfirm: true,
+      focusConfirm: false,
       preConfirm: this.preConfirmPromiseWithErrorCatcher(action),
     });
   }
+
+  multiInput(title: string, inputs: InputDefinition[], action: (input: string[]) => Promise<void>) {
+    const prefix = 'swal-multi-input-' + Math.random() + '-';
+    let html = '';
+    for (let i = 0; i < inputs.length; ++i) {
+      const id = prefix + i;
+
+      html += `<label for="${id}">${inputs[i].getTitle()}</label>`;
+      html += `<input  id="${id}" class="swal2-input"
+                placeholder="${inputs[i].getPlaceholder()}" value="${inputs[i].getValue()}">`;
+    }
+    return this.fireWithSuccessNotification({
+      title,
+      html,
+      showLoaderOnConfirm: true,
+      focusConfirm: false,
+      preConfirm: this.preConfirmPromiseWithErrorCatcher(() => {
+        const values = [];
+        for (let i = 0; i < inputs.length; ++i) {
+          values.push((document.getElementById(prefix + i) as HTMLInputElement)?.value);
+        }
+        return action(values);
+      }),
+    });
+  }
+
   renameAThing(thing: string, placeholder: string, action: (input: string) => Promise<void>) {
     return this.fireWithSuccessNotification({
       title: 'Rename ' + thing,
@@ -119,5 +146,30 @@ export class DialogService {
       showConfirmButton: true,
       showCancelButton: false,
     });
+  }
+
+}
+
+export class InputDefinition {
+  title: string;
+  placeholder?: string;
+  value?: string;
+
+  constructor(title: string, placeholder: string = null, value: string = null) {
+    this.title = title;
+    this.placeholder = placeholder;
+    this.value = value;
+  }
+
+  getTitle(): string {
+    return this.title;
+  }
+
+  getPlaceholder(): string {
+    return this.placeholder ?? '';
+  }
+
+  getValue(): string {
+    return this.value ?? '';
   }
 }

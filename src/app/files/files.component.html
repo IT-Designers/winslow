@@ -14,7 +14,7 @@
   </div>
 
   <ng-template #gitLogo let-file="file">
-    <img *ngIf="isGitRepo(file.path)"
+    <img *ngIf="file.isGitRepository()"
          class="material-icons-outlined"
          style="position: absolute; height: 0.75em; margin-left: -0.75em; margin-top: 0.2em"
          src="assets/git-logomark-orange.png" alt="Git Repository">
@@ -35,7 +35,7 @@
               (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'folder_open' : 'folder'}}
               <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
             </i>
-            <label (click)="viewDirectory(file.path)">{{ file.name }}</label>
+            <label (click)="viewDirectory(file.path)">{{ file.name + formatGitBranch(file) }}</label>
           </p>
           <ul>
             <ng-container
@@ -59,7 +59,7 @@
             <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
           </i>
           <label>{{ file.name }}</label>
-          <label class="action-area file-size file-size-human-readable">{{ file.fileSizeHumanReadable }}</label>
+          <label class="action-area file-size file-size-human-readable">{{ file.getFileSizeHumanReadable() }}</label>
           <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
           <i class="material-icons-outlined action-area">
             <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">

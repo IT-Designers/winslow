@@ -2,7 +2,7 @@ import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angula
 import {HttpEventType} from '@angular/common/http';
 import {FileInfo, FilesApiService} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {DialogService} from '../dialog.service';
+import {DialogService, InputDefinition} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
 import Swal from 'sweetalert2';
 import {StorageApiService} from '../api/storage-api.service';
@@ -127,7 +127,7 @@ export class FilesComponent implements OnInit {
   private updateViewHint(): Promise<void> {
     return this.storage.getFilePathInfo(this.latestPath).then(info => {
       if (info != null) {
-        this.viewHint = FileInfo.getFileSizeHumanReadable(info.bytesFree) + ' free';
+        this.viewHint = FileInfo.toFileSizeHumanReadable(info.bytesFree) + ' free';
       }
     });
   }
@@ -333,11 +333,14 @@ export class FilesComponent implements OnInit {
   }
 
   cloneGitRepo() {
-    this.dialog.createAThing(
-      `Git Clone`,
-      ``,
+    this.dialog.multiInput(
+      `Clone a Git Repository`,
+      [
+        new InputDefinition('Repository', 'URL'),
+        new InputDefinition('Branch', '', 'master')
+      ],
       url => {
-        return this.api.cloneGitRepo(this.latestPath, url).then(r => {
+        return this.api.cloneGitRepo(this.latestPath, url[0], url[1]).then(r => {
           return this.loadDirectory(this.latestPath);
         });
       }
@@ -354,16 +357,36 @@ export class FilesComponent implements OnInit {
     );
   }
 
-  isGitRepo(path: string): boolean {
-    const directories = this.directories(path);
-    if (directories != null) {
-      for (const dir of directories) {
-        if (dir.name === '.git') {
-          return true;
-        }
-      }
+  getCachedFileInfo(path: string): FileInfo {
+    if (path.endsWith('/')) {
+      path = path.substr(0, path.length - 1);
     }
-    return false;
+    const index = path.lastIndexOf('/');
+    if (index > 0) {
+      const files = this.files.get(path.substr(0, index));
+      return files?.find(f => {
+        return f.name === path.substr(index + 1);
+      });
+    } else {
+      return null;
+    }
+  }
+
+  isGitRepo(path: string): boolean {
+    const info = this.getCachedFileInfo(path);
+    if (info != null) {
+      return info.isGitRepository();
+    } else {
+      return false;
+    }
+  }
+
+  formatGitBranch(file: FileInfo) {
+    if (file.isGitRepository()) {
+      return ` (${file.getGitBranch()})`;
+    } else {
+      return '';
+    }
   }
 }
 

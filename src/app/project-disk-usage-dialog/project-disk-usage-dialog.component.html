@@ -5,12 +5,12 @@
         {{project[0].name}}
       </mat-panel-title>
       <mat-panel-description>
-        {{project[0].fileSizeHumanReadable}}
+        {{project[0].getFileSizeHumanReadable()}}
       </mat-panel-description>
     </mat-expansion-panel-header>
     <div class="content-list">
       <div *ngFor="let entry of project[1]" class="content-item">
-        <span>{{entry.name}}</span><span class="align-right-using-margin">{{entry.fileSizeHumanReadable}}</span>
+        <span>{{entry.name}}</span><span class="align-right-using-margin">{{entry.getFileSizeHumanReadable()}}</span>
       </div>
     </div>
   </mat-expansion-panel>

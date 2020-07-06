@@ -100,12 +100,13 @@ export class FilesApiService {
       .toPromise();
   }
 
-  cloneGitRepo(path: string, gitUrl: string): Promise<string> {
+  cloneGitRepo(path: string, gitUrl: string, gitBranch?: string): Promise<string> {
     if (path.startsWith('/')) {
       path = path.substr(1);
     }
     return this.client.patch<string>(FilesApiService.getUrl(path), {
-      'git-clone': gitUrl
+      'git-clone': gitUrl,
+      'git-branch': gitBranch,
     }).toPromise();
   }
 
@@ -125,8 +126,9 @@ export class FileInfo {
   directory: boolean;
   path: string;
   fileSize?: number;
+  attributes: Map<string, unknown>;
   // local only
-  fileSizeHumanReadable?: string;
+  fileSizeHumanReadableCached?: string;
 
   constructor(info: FileInfo = null) {
     if (info != null) {
@@ -134,11 +136,13 @@ export class FileInfo {
       this.directory = info.directory;
       this.path = info.path;
       this.fileSize = info.fileSize;
-      this.fileSizeHumanReadable = FileInfo.getFileSizeHumanReadable(info.fileSize);
+      this.attributes = info.attributes;
+      this.fileSizeHumanReadableCached = FileInfo.toFileSizeHumanReadable(info.fileSize);
     }
   }
 
-  static getFileSizeHumanReadable(fileSize?: number): string {
+
+  static toFileSizeHumanReadable(fileSize?: number): string {
     if (fileSize != null) {
       let suffix = 0;
       let value = fileSize;
@@ -167,5 +171,33 @@ export class FileInfo {
     } else {
       return null;
     }
+  }
+
+  public getAttribute(key: string): unknown {
+    return this.attributes != null ? this.attributes[key] : null;
+  }
+
+  public hasAttribute(key: string): boolean {
+    return this.attributes != null && this.attributes[key] != null;
+  }
+
+  public isGitRepository(): boolean {
+    return this.hasAttribute('git-branch');
+  }
+
+  public getGitBranch(): string {
+    const attr = this.getAttribute('git-branch');
+    if (typeof attr === typeof '') {
+      return attr as string;
+    } else {
+      return null;
+    }
+  }
+
+  public getFileSizeHumanReadable(): string {
+    if (this.fileSizeHumanReadableCached == null) {
+      this.fileSizeHumanReadableCached = FileInfo.toFileSizeHumanReadable(this.fileSize);
+    }
+    return this.fileSizeHumanReadableCached;
   }
 }
