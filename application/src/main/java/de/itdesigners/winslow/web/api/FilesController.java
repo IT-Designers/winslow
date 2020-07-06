@@ -26,6 +26,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,10 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -363,12 +361,26 @@ public class FilesController {
                                                  } else {
                                                      return null;
                                                  }
-                                             })
+                                             }),
+                                     getFileInfoAttributes(file)
                              )
                         )
                         .collect(Collectors.toUnmodifiableList())
                 )
                 .orElse(Collections.emptyList());
+    }
+
+    @Nonnull
+    private Map<String, Object> getFileInfoAttributes(@Nonnull File file) {
+        var attributes = new HashMap<String, Object>();
+        if (Files.isDirectory(file.toPath().resolve(".git"))) {
+            try (var git = Git.open(file)) {
+                attributes.put("git-branch", git.getRepository().getBranch());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return attributes;
     }
 
     private long aggregateSize(@Nonnull File directory) {
@@ -414,9 +426,10 @@ public class FilesController {
                     .filter(p -> checker.isAllowedToAccessPath(user, p))
                     .orElseThrow();
 
-            var optionRenameTo = options.get("rename-to");
-            var optionGitClone = options.get("git-clone");
-            var optionGitPull  = options.get("git-pull");
+            var optionRenameTo  = options.get("rename-to");
+            var optionGitClone  = options.get("git-clone");
+            var optionGitPull   = options.get("git-pull");
+            var optionGitBranch = options.get("git-branch");
 
             if (optionRenameTo instanceof String) {
                 var renameTo = (String) optionRenameTo;
@@ -428,7 +441,11 @@ public class FilesController {
                 }
                 return ResponseEntity.ok("");
             } else if (optionGitClone instanceof String) {
-                cloneGitRepo(path, (String) optionGitClone);
+                cloneGitRepo(
+                        path,
+                        (String) optionGitClone,
+                        optionGitBranch instanceof String ? (String) optionGitBranch : null
+                );
                 return ResponseEntity.ok("");
             } else if (optionGitPull instanceof String) {
                 pullGitRepo(path);
@@ -444,18 +461,24 @@ public class FilesController {
         }
     }
 
-    private void cloneGitRepo(@Nonnull Path path, @Nonnull String repoUrl) throws GitAPIException {
+    private void cloneGitRepo(
+            @Nonnull Path path,
+            @Nonnull String repoUrl,
+            @Nullable String branch) throws GitAPIException {
         var elements = repoUrl.split("/");
         if (elements.length > 0) {
             var gitDir = elements[elements.length - 1];
             if (gitDir.toLowerCase().endsWith(".git")) {
                 gitDir = gitDir.substring(0, gitDir.length() - ".git".length());
             }
-            Git.cloneRepository()
-               .setURI(repoUrl)
-               .setDirectory(path.resolve(gitDir).toFile())
-               .call()
-               .close();
+            var command = Git
+                    .cloneRepository()
+                    .setURI(repoUrl)
+                    .setDirectory(path.resolve(gitDir).toFile());
+            if (branch != null) {
+                command = command.setBranch(branch);
+            }
+            command.call().close();
         }
     }
 
