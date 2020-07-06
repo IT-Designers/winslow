@@ -426,10 +426,11 @@ public class FilesController {
                     .filter(p -> checker.isAllowedToAccessPath(user, p))
                     .orElseThrow();
 
-            var optionRenameTo  = options.get("rename-to");
-            var optionGitClone  = options.get("git-clone");
-            var optionGitPull   = options.get("git-pull");
-            var optionGitBranch = options.get("git-branch");
+            var optionRenameTo    = options.get("rename-to");
+            var optionGitClone    = options.get("git-clone");
+            var optionGitPull     = options.get("git-pull");
+            var optionGitBranch   = options.get("git-branch");
+            var optionGitCheckout = options.get("git-checkout");
 
             if (optionRenameTo instanceof String) {
                 var renameTo = (String) optionRenameTo;
@@ -449,6 +450,9 @@ public class FilesController {
                 return ResponseEntity.ok("");
             } else if (optionGitPull instanceof String) {
                 pullGitRepo(path);
+                return ResponseEntity.ok("");
+            } else if (optionGitCheckout instanceof String) {
+                checkoutGitRepo(path, (String)optionGitCheckout);
                 return ResponseEntity.ok("");
             } else {
                 return ResponseEntity.notFound().build();
@@ -485,6 +489,15 @@ public class FilesController {
     private void pullGitRepo(@Nonnull Path path) throws GitAPIException, IOException {
         try (var repo = Git.open(path.toFile())) {
             repo.pull().call();
+        }
+    }
+
+    private void checkoutGitRepo(@Nonnull Path path, @Nonnull String branch) throws GitAPIException, IOException {
+        try (var repo = Git.open(path.toFile())) {
+            repo.clean().setCleanDirectories(true).setForce(true).call();
+            repo.pull().setRemoteBranchName(branch).call();
+            repo.branchCreate().setForce(true).setName(branch).setStartPoint("origin/" + branch).call();
+            repo.checkout().setName(branch).call();
         }
     }
 
