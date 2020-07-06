@@ -357,6 +357,20 @@ export class FilesComponent implements OnInit {
     );
   }
 
+  checkoutGitRepo() {
+    const fileInfo = this.getCachedFileInfo(this.latestPath);
+    this.dialog.multiInput(
+      `Git Checkout`,
+      [new InputDefinition(`Branch`, null, fileInfo?.getGitBranch())],
+      inputs => {
+        const branch = inputs[0];
+        return this.api.checkoutGitRepo(this.latestPath, branch).then(r => {
+          fileInfo.setGitBranch(branch);
+          return this.loadDirectory(this.latestPath);
+        });
+      });
+  }
+
   getCachedFileInfo(path: string): FileInfo {
     if (path.endsWith('/')) {
       path = path.substr(0, path.length - 1);
