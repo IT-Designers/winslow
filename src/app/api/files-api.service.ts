@@ -170,11 +170,11 @@ export class FileInfo {
   }
 
   public isGitRepository(): boolean {
-    return this.hasAttribute('git-branch');
+    return this.hasAttribute(FileInfoAttribute.GIT_BRANCH);
   }
 
   public getGitBranch(): string {
-    const attr = this.getAttribute('git-branch');
+    const attr = this.getAttribute(FileInfoAttribute.GIT_BRANCH);
     if (typeof attr === typeof '') {
       return attr as string;
     } else {
@@ -186,7 +186,7 @@ export class FileInfo {
     if (this.attributes == null) {
       this.attributes = new Map<string, unknown>();
     }
-    this.attributes['git-branch'] = branch;
+    this.attributes[FileInfoAttribute.GIT_BRANCH] = branch;
   }
 
   public getFileSizeHumanReadable(): string {
@@ -195,4 +195,8 @@ export class FileInfo {
     }
     return this.fileSizeHumanReadableCached;
   }
+}
+
+export enum FileInfoAttribute {
+  GIT_BRANCH = 'git-branch',
 }
