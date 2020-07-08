@@ -1,5 +1,8 @@
 package de.itdesigners.winslow.api.project;
 
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
+
 public class Stats {
 
     public final float cpuUsed;
@@ -12,5 +15,16 @@ public class Stats {
         this.cpuMaximum      = cpuMaximum;
         this.memoryAllocated = memoryAllocated;
         this.memoryMaximum   = memoryMaximum;
+    }
+
+    @Nonnull
+    @CheckReturnValue
+    public Stats add(@Nonnull Stats other) {
+        return new Stats(
+                this.cpuUsed + other.cpuUsed,
+                this.cpuMaximum + other.cpuMaximum,
+                this.memoryAllocated + other.memoryAllocated,
+                this.memoryMaximum + other.memoryMaximum
+        );
     }
 }

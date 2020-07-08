@@ -21,10 +21,8 @@ public class Context {
     private final @Nonnull  Pipeline           pipeline;
     private final @Nonnull  PipelineDefinition pipelineDefinition;
     private final @Nullable Executor           executor;
-    private final @Nonnull  EnqueuedStage      enqueuedStage;
     private final @Nonnull  String             stageId;
     private final @Nonnull  Submission         submission;
-    private final           int                stageNumber;
 
     @Nonnull private final Map<Class<?>, Object> intermediateResults = new HashMap<>();
 
@@ -32,17 +30,13 @@ public class Context {
             @Nonnull Pipeline pipeline,
             @Nonnull PipelineDefinition definition,
             @Nullable Executor executor,
-            @Nonnull EnqueuedStage enqueuedStage,
             @Nonnull String stageId,
-            @Nonnull Submission submission,
-            int stageNumber) {
+            @Nonnull Submission submission) {
         this.pipeline      = pipeline;
-        pipelineDefinition = definition;
+        this.pipelineDefinition = definition;
         this.executor      = executor;
-        this.enqueuedStage = enqueuedStage;
         this.stageId       = stageId;
         this.submission    = submission;
-        this.stageNumber   = stageNumber;
     }
 
     @Nonnull
@@ -61,17 +55,8 @@ public class Context {
     }
 
     @Nonnull
-    public EnqueuedStage getEnqueuedStage() {
-        return enqueuedStage;
-    }
-
-    @Nonnull
     public Submission getSubmission() {
         return this.submission;
-    }
-
-    public int getStageNumber() {
-        return stageNumber;
     }
 
     public <T> void store(@Nonnull T value) {

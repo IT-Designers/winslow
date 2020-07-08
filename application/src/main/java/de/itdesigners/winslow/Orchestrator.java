@@ -1,18 +1,13 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.api.project.LogEntry;
 import de.itdesigners.winslow.api.project.State;
 import de.itdesigners.winslow.api.project.Stats;
 import de.itdesigners.winslow.asblr.*;
-import de.itdesigners.winslow.config.PipelineDefinition;
-import de.itdesigners.winslow.config.Requirements;
-import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.config.StageDefinitionBuilder;
+import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.*;
-import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.Submission;
@@ -20,6 +15,7 @@ import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
+import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,19 +29,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Orchestrator {
 
-    private static final Logger  LOG                     = Logger.getLogger(Orchestrator.class.getSimpleName());
-    private static final Pattern INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
-    private static final Pattern MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
-    public static final  Pattern PROGRESS_HINT_PATTERN   = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
+    private static final Logger  LOG                   = Logger.getLogger(Orchestrator.class.getSimpleName());
+    public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
 
     @Nonnull private final LockBus            lockBus;
     @Nonnull private final Environment        environment;
@@ -63,7 +55,7 @@ public class Orchestrator {
     @Nonnull private final ResourceAllocationMonitor monitor;
     @Nonnull private final ElectionManager           electionManager;
 
-    private boolean executeStages;
+    private final boolean executeStages;
 
 
     public Orchestrator(
@@ -132,16 +124,6 @@ public class Orchestrator {
     }
 
     @Nonnull
-    ResourceAllocationMonitor.Set<Long> getRequiredResources(@Nonnull EnqueuedStage enqueued) {
-        return getRequiredResources(enqueued.getDefinition());
-    }
-
-    @Nonnull
-    ResourceAllocationMonitor.Set<Long> getRequiredResources(@Nonnull Stage stage) {
-        return getRequiredResources(stage.getDefinition());
-    }
-
-    @Nonnull
     ResourceAllocationMonitor.Set<Long> getRequiredResources(@Nonnull StageDefinition definition) {
         return definition
                 .getRequirements()
@@ -152,9 +134,18 @@ public class Orchestrator {
     @Nonnull
     public Optional<Stats> getRunningStageStats(@Nonnull Project project) {
         return getPipelineUnsafe(project.getId())
-                .flatMap(Pipeline::getRunningStage)
+                .flatMap(Pipeline::getActiveExecutionGroup)
+                .stream()
+                .flatMap(ExecutionGroup::getRunningStages)
                 .map(Stage::getId)
-                .flatMap(getRunInfoRepository()::getStatsIfStillRelevant);
+                .map(getRunInfoRepository()::getStatsIfStillRelevant)
+                .reduce(Optional.empty(), (value, stats) -> {
+                    if (value.isEmpty()) {
+                        return stats;
+                    } else {
+                        return stats.map(s -> s.add(value.get()));
+                    }
+                });
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {
@@ -196,8 +187,19 @@ public class Orchestrator {
                     if (executor.isRunning()) {
                         executor.logErr("Timeout reached: going to stop running executor");
                         this.updatePipeline(executor.getPipeline(), pipeline -> {
-                            if (pipeline.getRunningStage().map(Stage::getId).equals(Optional.of(executor.getStage()))) {
-                                pipeline.finishRunningStage(State.Failed);
+                            var group = pipeline.getActiveExecutionGroup();
+                            if (group.isPresent()) {
+                                try {
+                                    group.get().updateStage(
+                                            event.getSubject(),
+                                            stage -> {
+                                                stage.finishNow(State.Failed);
+                                                return Optional.of(stage);
+                                            }
+                                    );
+                                } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                    LOG.log(Level.SEVERE, "Failed to force abort onto stage " + event.getSubject(), e);
+                                }
                             }
                         });
                         LockBus.ensureSleepMs(5_000);
@@ -255,7 +257,7 @@ public class Orchestrator {
             var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
             var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
             var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
-            var hasResources = pipe.flatMap(this::hasResourcesForNextStage).orElse(false);
+            var hasResources = pipe.flatMap(this::hasResourcesToSpawnStage).orElse(false);
             var hasNext = pipe.flatMap(p -> definition.map(d -> maybeEnqueueNextStageOfPipeline(d, p)))
                               .orElse(false);
 
@@ -274,12 +276,12 @@ public class Orchestrator {
     }
 
     @Nonnull
-    protected Optional<Boolean> hasResourcesForNextStage(@Nonnull Pipeline pipeline) {
+    protected Optional<Boolean> hasResourcesToSpawnStage(@Nonnull Pipeline pipeline) {
         return pipeline
-                .peekNextStage()
-                .map(this::getRequiredResources)
-                .map(this.monitor::couldReserveConsideringReservations)
-                .map(has -> has || pipeline.peekNextStage().map(s -> s.getAction() == Action.Configure).orElse(false));
+                .getActiveExecutionGroup()
+                .map(group -> group.isConfigureOnly()
+                        || this.monitor.couldReserveConsideringReservations(getRequiredResources(group.getStageDefinition()))
+                );
     }
 
     @Nonnull
@@ -304,16 +306,9 @@ public class Orchestrator {
     }
 
     protected Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
-        return pipeline.peekNextStage().map(enqueued -> {
-            switch (enqueued.getAction()) {
-                case Execute:
-                    return this.backend.isCapableOfExecuting(enqueued.getDefinition());
-                default:
-                    LOG.warning("Unexpected Action for enqueued Stage: " + enqueued.getAction());
-                case Configure:
-                    return true;
-            }
-        });
+        return pipeline
+                .getActiveExecutionGroup()
+                .map(group -> group.isConfigureOnly() || this.backend.isCapableOfExecuting(group.getStageDefinition()));
     }
 
     private void updatePipeline(@Nonnull LockedContainer<Pipeline> container) {
@@ -330,7 +325,7 @@ public class Orchestrator {
             }
 
             pipeline.ifPresent(pipe -> {
-                if (pipe.getRunningStage().isEmpty() && isStageStateUpdateAvailable(pipe)) {
+                if (pipe.canRetrieveNextActiveExecution() && isStageStateUpdateAvailable(pipe)) {
                     new Thread(() -> {
                         try {
                             var duration = 2_000L;
@@ -377,214 +372,219 @@ public class Orchestrator {
 
     private static boolean hasNoRunningStage(Pipeline pipeline) {
         return pipeline
-                .getRunningStage()
-                .map(Stage::getState)
-                .orElse(null) != State.Running;
+                .getActiveExecutionGroup()
+                .stream()
+                .flatMap(ExecutionGroup::getRunningStages)
+                .noneMatch(s -> s.getState() == State.Running);
     }
 
     private boolean maybeEnqueueNextStageOfPipeline(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        var noneRunning = pipeline.getRunningStage().isEmpty();
-        var paused      = pipeline.isPauseRequested();
-        var hasNext     = pipeline.peekNextStage().isPresent();
-        var successful = pipeline
-                .getMostRecentStage()
-                .filter(stage -> stage.getAction() == Action.Execute)
-                .map(Stage::getState)
-                .map(state -> state == State.Succeeded)
-                .orElse(Boolean.FALSE);
+        var noneRunning         = hasNoRunningStage(pipeline);
+        var paused              = pipeline.isPauseRequested();
+        var completedAndHasNext = !pipeline.activeExecutionGroupCouldSpawnFurtherStages() && pipeline.canRetrieveNextActiveExecution();
+        var successful          = pipeline.activeExecutionGroupHasNoFailedStages();
 
-        if (noneRunning && !paused && !hasNext && successful) {
+        if (noneRunning && !paused && completedAndHasNext && successful) {
             return pipeline
-                    .getMostRecentStage()
-                    .flatMap(_recent -> getNextStageIndex(definition, _recent).map(index -> {
-                        var base = definition.getStages().get(index);
-                        var env  = new TreeMap<>(base.getEnvironment());
+                    .getActiveExecutionGroup()
+                    .flatMap(group -> getNextStageIndex(definition, group.getStageDefinition(), group.isConfigureOnly())
+                            .map(
+                                    index -> {
+                                        var base = definition.getStages().get(index);
+                                        var env  = new TreeMap<>(base.getEnvironment());
 
-                        var builder = new StageDefinitionBuilder()
-                                .withTemplateBase(base)
-                                .withEnvironment(env);
+                                        var builder = new StageDefinitionBuilder()
+                                                .withTemplateBase(base)
+                                                .withEnvironment(env);
 
-                        // overwrite StageDefinition if there is already an
-                        // execution instance of it
-                        pipeline
-                                .getAllStages()
-                                .filter(stage -> stage.getFinishState().equals(Optional.of(State.Succeeded)))
-                                .filter(stage -> stage.getDefinition().getName().equals(base.getName()))
-                                .reduce((first, second) -> second)
-                                .ifPresent(recent -> {
-                                    env.clear();
-                                    env.putAll(recent.getEnv());
-                                    recent.getDefinition().getImage().ifPresent(builder::withImage);
-                                });
+                                        // overwrite StageDefinition if there is already an
+                                        // execution instance of it
+                                        pipeline
+                                                .getPresentAndPastExecutionGroups()
+                                                .filter(g -> g.getStageDefinition().getName().equals(base.getName()))
+                                                .filter(g -> g
+                                                        .getStages()
+                                                        .anyMatch(s -> s.getState() == State.Succeeded))
+                                                .reduce((first, second) -> second) // take the most recent
+                                                .ifPresent(recent -> {
+                                                    env.clear();
+                                                    env.putAll(recent
+                                                                       .getStages()
+                                                                       .filter(s -> s.getState() == State.Succeeded)
+                                                                       .reduce((first, second) -> second)
+                                                                       .orElseThrow() // would not have passed through any match
+                                                                       .getEnv());
+                                                    recent
+                                                            .getStageDefinition()
+                                                            .getImage()
+                                                            .ifPresent(builder::withImage);
+                                                });
 
 
-                        var stageId         = "no-id-because-probing-execution-" + System.nanoTime();
-                        var stageDefinition = builder.build();
-                        var enqueuedStage   = new EnqueuedStage(stageDefinition, Action.Execute, null);
+                                        var stageId                = "no-id-because-probing-execution-" + System.nanoTime();
+                                        var stageDefinition        = builder.build();
+                                        var workspaceConfiguration = new WorkspaceConfiguration();
 
-                        try {
-                            // check whether assembling the stage would be possible
-                            new StageAssembler()
-                                    .add(new EnvironmentVariableAppender(settings.getGlobalEnvironmentVariables()))
-                                    .add(new DockerImageAppender())
-                                    .add(new EnvLogger())
-                                    .add(new UserInputChecker())
-                                    .assemble(new Context(
-                                            pipeline,
-                                            definition,
-                                            null,
-                                            enqueuedStage,
-                                            stageId,
-                                            new Submission(
-                                                    stageId,
-                                                    enqueuedStage.getAction(),
+                                        try {
+                                            // check whether assembling the stage would be possible
+                                            new StageAssembler()
+                                                    .add(new EnvironmentVariableAppender(settings.getGlobalEnvironmentVariables()))
+                                                    .add(new DockerImageAppender())
+                                                    .add(new EnvLogger())
+                                                    .add(new UserInputChecker())
+                                                    .assemble(new Context(
+                                                            pipeline,
+                                                            definition,
+                                                            null,
+                                                            stageId,
+                                                            new Submission(
+                                                                    stageId,
+                                                                    false,
+                                                                    stageDefinition,
+                                                                    workspaceConfiguration
+                                                            )
+                                                    ));
+
+                                            // enqueue the stage only if the execution would be possible
+                                            pipeline.enqueueSingleExecution(
                                                     stageDefinition,
-                                                    enqueuedStage.getWorkspaceConfiguration()
-                                            ),
-                                            pipeline.getStageCounter() + 1
-                                    ));
+                                                    workspaceConfiguration
+                                            );
+                                            return Boolean.TRUE;
+                                        } catch (UserInputChecker.MissingUserConfirmationException e) {
+                                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                                            return Boolean.TRUE;
 
-                            // enqueue the stage only if the execution would be possible
-                            pipeline.enqueueStage(stageDefinition);
-                            return Boolean.TRUE;
-                        } catch (UserInputChecker.MissingUserConfirmationException e) {
-                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
-                            return Boolean.TRUE;
-
-                        } catch (UserInputChecker.FurtherUserInputRequiredException e) {
-                            pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
-                            return Boolean.TRUE;
-                        } catch (Throwable t) {
-                            LOG.log(
-                                    Level.WARNING,
-                                    "Unexpected error when checking whether to enqueue the next stage automatically",
-                                    t
-                            );
-                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
-                            return Boolean.TRUE;
-                        }
-                    })).orElse(Boolean.FALSE);
+                                        } catch (UserInputChecker.FurtherUserInputRequiredException e) {
+                                            pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
+                                            return Boolean.TRUE;
+                                        } catch (Throwable t) {
+                                            LOG.log(
+                                                    Level.WARNING,
+                                                    "Unexpected error when checking whether to enqueue the next stage automatically",
+                                                    t
+                                            );
+                                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                                            return Boolean.TRUE;
+                                        }
+                                    })).orElse(Boolean.FALSE);
         } else {
             return false;
         }
     }
 
-    private Optional<Integer> getNextStageIndex(@Nonnull PipelineDefinition definition, Stage recent) {
-        var index     = -1;
-        var increment = recent.getAction() == Action.Configure ? 0 : 1;
-
+    private Optional<Integer> getNextStageIndex(
+            @Nonnull PipelineDefinition definition,
+            @Nonnull StageDefinition stage,
+            boolean configureOnly) {
         for (int i = 0; i < definition.getStages().size(); ++i) {
-            if (definition.getStages().get(i).getName().equals(recent.getDefinition().getName())) {
-                index = i;
-                break;
+            if (definition.getStages().get(i).getName().equals(stage.getName())) {
+                var next = i + (configureOnly ? 0 : 1);
+                if (next < definition.getStages().size()) {
+                    return Optional.of(next);
+                } else {
+                    return Optional.empty();
+                }
             }
         }
-
-        if (index >= 0 && index + increment < definition.getStages().size()) {
-            return Optional.of(index + increment);
-        } else {
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 
     protected boolean startNextStageIfReady(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        var noneRunning  = pipeline.getRunningStage().isEmpty();
+        var noneRunning  = hasNoRunningStage(pipeline);
         var paused       = pipeline.isPauseRequested();
-        var hasNext      = pipeline.peekNextStage().isPresent();
+        var hasNext      = pipeline.hasEnqueuedStages();
         var isCapable    = isCapableOfExecutingNextStage(pipeline).orElse(false);
-        var hasResources = hasResourcesForNextStage(pipeline).orElse(false);
+        var hasResources = hasResourcesToSpawnStage(pipeline).orElse(false);
 
         if (noneRunning && !paused && hasNext && isCapable && hasResources) {
             switch (pipeline.getStrategy()) {
                 case MoveForwardOnce:
                     pipeline.requestPause();
                 case MoveForwardUntilEnd:
-                    if (startNextPipelineStage(lock, definition, pipeline)) {
-                        setupResourceAllocationAndFreeingListener(pipeline);
+                    return startNextPipelineStage(lock, definition, pipeline).map(pair -> {
+                        setupResourceAllocationAndFreeingListener(
+                                pair.getValue0().getStageDefinition(),
+                                pair.getValue1()
+                        );
                         pipeline.clearPauseReason();
-                        return true;
-                    }
+                        return Boolean.TRUE;
+                    }).orElse(Boolean.FALSE);
             }
         }
         return false;
     }
 
-    private void setupResourceAllocationAndFreeingListener(@Nonnull Pipeline pipeline) {
-        pipeline.getRunningStage().ifPresent(stage -> {
-            var requiredResources = getRequiredResources(stage);
-            var executor          = this.executors.get(stage.getId());
-            if (executor != null) {
-                this.monitor.reserve(requiredResources);
-                executor.addShutdownCompletedListener(() -> {
-                    this.monitor.free(requiredResources);
-                    var copy = new HashSet<>(this.missingResources);
-                    this.missingResources.removeAll(copy);
-                    copy.forEach(this::pollPipelineForUpdate);
-                });
-            }
-        });
+    private void setupResourceAllocationAndFreeingListener(
+            @Nonnull StageDefinition stageDefinition,
+            @Nonnull Stage stage) {
+        var requiredResources = getRequiredResources(stageDefinition);
+        var executor          = this.executors.get(stage.getId());
+        if (executor != null) {
+            this.monitor.reserve(requiredResources);
+            executor.addShutdownCompletedListener(() -> {
+                this.monitor.free(requiredResources);
+                var copy = new HashSet<>(this.missingResources);
+                this.missingResources.removeAll(copy);
+                copy.forEach(this::pollPipelineForUpdate);
+            });
+        }
     }
 
-    private boolean startNextPipelineStage(
+    private Optional<Pair<ExecutionGroup, Stage>> startNextPipelineStage(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        var nextStage = pipeline.popNextStage();
+        var executionGroup      = pipeline.getActiveExecutionGroup();
+        var nextStageDefinition = executionGroup.flatMap(ExecutionGroup::getNextStageDefinition);
 
-        if (nextStage.isEmpty()) {
+        if (nextStageDefinition.isEmpty()) {
             LOG.warning("Got commanded to start next stage but there is none!");
-            return false;
+            return Optional.empty();
         }
 
-        var stageEnqueued = nextStage.get();
-        var stageNumber   = pipeline.getStageCounter() + 1;
-        var stageId       = getStageId(pipeline, stageNumber, stageEnqueued.getDefinition());
-        var executor      = (Executor) null;
+        var       stageDefinition = nextStageDefinition.get();
+        var       stageId         = stageDefinition.getName();
+        var       executor        = (Executor) null;
+        final var stage           = new Stage(stageId, null);
 
         try {
             final var env = settings.getGlobalEnvironmentVariables();
-            final var exec = executor = startExecutor(
+
+            executor = startExecutor(
                     pipeline.getProjectId(),
                     stageId,
                     getProgressHintMatcher(stageId)
             );
 
-            final var stage = new Stage(
-                    stageId,
-                    stageEnqueued.getDefinition(),
-                    stageEnqueued.getAction(),
-                    null,
-                    new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null)
-            );
 
-            startStageAssembler(lock, definition, pipeline.clone(), stageEnqueued, stageId, exec, env, stageNumber);
-
-            pipeline.resetResumeNotification();
-            pipeline.pushStage(stage);
-
-            return true;
+            startStageAssembler(lock, definition, pipeline, executionGroup.get(), stageId, executor, env);
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
-            pipeline.finishRunningStage(State.Failed);
             cleanupOnAssembleError(pipeline.getProjectId(), stageId, executor);
-            return true;
+            return Optional.empty();
         }
+
+        // this code cannot fail anymore
+        pipeline.resetResumeNotification();
+        executionGroup.get().addStage(stage);
+
+        return Optional.of(new Pair<>(executionGroup.get(), stage));
     }
 
     private void startStageAssembler(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline,
-            @Nonnull EnqueuedStage stageEnqueued,
+            @Nonnull ExecutionGroup executionGroup,
             @Nonnull String stageId,
             @Nonnull Executor executor,
-            @Nonnull Map<String, String> globalEnvironmentVariables,
-            int stageNumber) {
+            @Nonnull Map<String, String> globalEnvironmentVariables) {
         new Thread(() -> {
             var projectId = pipeline.getProjectId();
             var assembler = new StageAssembler();
@@ -603,22 +603,27 @@ public class Orchestrator {
                                 executor.setStageHandle(result.getHandle());
                                 lock.waitForRelease();
                                 updatePipeline(projectId, pipelineToUpdate -> {
-                                    pipelineToUpdate.updateStage(result.getStage());
+                                    try {
+                                        pipelineToUpdate
+                                                .getActiveExecutionGroup()
+                                                .orElseThrow()
+                                                .updateStage(result.getStage());
+                                    } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                        throw new RuntimeException(e); // bubble up
+                                    }
                                 });
                             }))
                             .assemble(new Context(
                                     pipeline,
                                     definition,
                                     executor,
-                                    stageEnqueued,
                                     stageId,
                                     new Submission(
                                             stageId,
-                                            stageEnqueued.getAction(),
-                                            stageEnqueued.getDefinition(),
-                                            stageEnqueued.getWorkspaceConfiguration()
-                                    ),
-                                    stageNumber
+                                            executionGroup.isConfigureOnly(),
+                                            executionGroup.getStageDefinition(),
+                                            executionGroup.getWorkspaceConfiguration()
+                                    )
                             ));
                 } finally {
                     lock.waitForRelease();
@@ -637,7 +642,19 @@ public class Orchestrator {
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
                 updatePipeline(projectId, pipelineToUpdate -> {
-                    pipelineToUpdate.finishRunningStage(State.Failed);
+                    pipelineToUpdate.getActiveExecutionGroup().ifPresentOrElse(
+                            group -> {
+                                try {
+                                    group.updateStage(stageId, stage -> {
+                                        stage.finishNow(State.Failed);
+                                        return Optional.of(stage);
+                                    });
+                                } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                    LOG.log(Level.SEVERE, "Failed to set failed flag for stage " + stageId, e);
+                                }
+                            },
+                            () -> LOG.log(Level.SEVERE, "Failed to retrieve the active ExecutionGroup for " + projectId)
+                    );
                 });
                 cleanupOnAssembleError(projectId, stageId, executor);
             }
@@ -661,35 +678,33 @@ public class Orchestrator {
 
     @Nonnull
     private Pipeline updateRunningStage(@Nonnull Pipeline pipeline) {
-        pipeline.getRunningStage().ifPresent(stage -> {
-            LOG.info("Checking if running stage state can be updated: " + getStateOmitExceptions(
-                    pipeline,
-                    stage
-            ) + " for " + stage.getId());
-            Supplier<State> finishStateOrFailed = () -> stage.getFinishState().orElse(State.Failed);
-            switch (getStateOmitExceptions(pipeline, stage).orElseGet(finishStateOrFailed)) {
-                case Running:
-                    if (getLogRedirectionState(pipeline) != SimpleState.Failed) {
-                        break;
+        pipeline.getActiveExecutionGroup()
+                .stream()
+                .flatMap(ExecutionGroup::getRunningStages)
+                .forEach(stage -> {
+                    var state = getStateOmitExceptions(pipeline, stage);
+                    LOG.info("Checking if the state for stage " + stage.getId() + " has changed: " + state);
+                    switch (state.orElseGet(() -> stage.getFinishState().orElse(State.Failed))) {
+                        case Running:
+                            if (getLogRedirectionState(pipeline, stage) != SimpleState.Failed) {
+                                break;
+                            }
+                        default:
+                        case Failed:
+                            stage.finishNow(State.Failed);
+                            pipeline.requestPause(Pipeline.PauseReason.StageFailure);
+                            try {
+                                LOG.info("Killing failed stage");
+                                backend.kill(stage.getId());
+                            } catch (IOException e) {
+                                LOG.log(Level.WARNING, "Failed to request kill failed stage: " + stage.getId(), e);
+                            }
+                            break;
+                        case Succeeded:
+                            stage.finishNow(State.Succeeded);
+                            break;
                     }
-                default:
-                case Failed:
-                    stage.finishNow(State.Failed);
-                    pipeline.pushStage(null);
-                    pipeline.requestPause(Pipeline.PauseReason.StageFailure);
-                    try {
-                        LOG.info("Killing failed stage");
-                        backend.kill(stage.getId());
-                    } catch (IOException e) {
-                        LOG.log(Level.WARNING, "Failed to request kill failed stage: " + stage.getId(), e);
-                    }
-                    break;
-                case Succeeded:
-                    stage.finishNow(State.Succeeded);
-                    pipeline.pushStage(null);
-                    break;
-            }
-        });
+                });
         return pipeline;
     }
 
@@ -719,31 +734,37 @@ public class Orchestrator {
     }
 
     private boolean unnoticedFinished(@Nonnull Pipeline pipeline) {
-        var stillMarkedAsRunning = pipeline.getRunningStage().isPresent();
-        return getLogRedirectionState(pipeline) != SimpleState.Running && stillMarkedAsRunning;
+        var stillMarkedAsRunning = pipeline
+                .getActiveExecutionGroup()
+                .stream()
+                .flatMap(ExecutionGroup::getRunningStages)
+                .count() > 0;
+        return getLogRedirectionState(pipeline).noneMatch(s -> s == SimpleState.Running) && stillMarkedAsRunning;
     }
 
     private boolean hasLogRedirectionFailed(@Nonnull Pipeline pipeline) {
-        return getLogRedirectionState(pipeline) == SimpleState.Failed;
+        return getLogRedirectionState(pipeline).anyMatch(s -> s == SimpleState.Failed);
     }
 
-    private SimpleState getLogRedirectionState(Pipeline pipeline) {
-        var running = pipeline.getRunningStage();
-        if (running.isEmpty()) {
-            return SimpleState.Succeeded;
-        } else {
-            var stage     = running.get();
-            var projectId = pipeline.getProjectId();
-            var stageId   = stage.getId();
+    @Nonnull
+    private Stream<SimpleState> getLogRedirectionState(@Nonnull Pipeline pipeline) {
+        return pipeline
+                .getActiveExecutionGroup()
+                .map(group -> group.getStages().map(stage -> {
+                    return getLogRedirectionState(pipeline, stage);
+                }))
+                .orElse(Stream.of(SimpleState.Succeeded));
+    }
 
-            if (hints.hasLogRedirectionCompletedSuccessfullyHint(stageId)) {
-                return SimpleState.Succeeded;
-            } else if (!logs.isLocked(projectId, stageId)) {
-                LOG.warning("Detected log redirect which has been aborted! " + stageId + "@" + projectId);
-                return SimpleState.Failed;
-            } else {
-                return SimpleState.Running;
-            }
+    @Nonnull
+    private SimpleState getLogRedirectionState(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
+        if (hints.hasLogRedirectionCompletedSuccessfullyHint(stage.getId())) {
+            return SimpleState.Succeeded;
+        } else if (!logs.isLocked(pipeline.getProjectId(), stage.getId())) {
+            LOG.warning("Detected log redirect which has been aborted! " + stage.getId());
+            return SimpleState.Failed;
+        } else {
+            return SimpleState.Running;
         }
     }
 
@@ -760,12 +781,13 @@ public class Orchestrator {
     protected boolean isStageStateUpdateAvailable(Pipeline pipeline) {
         var hasEnqueuedStages = pipeline.hasEnqueuedStages();
         var isPaused          = pipeline.isPauseRequested();
-        var isRunning = getLogRedirectionState(pipeline) == SimpleState.Running
+        var isRunning = getLogRedirectionState(pipeline).anyMatch(s -> s == SimpleState.Running)
                 || pipeline
-                .getRunningStage()
-                .flatMap(stage -> getStateOmitExceptions(pipeline, stage))
-                .map(state -> State.Running == state)
-                .orElse(false);
+                .getActiveExecutionGroup()
+                .stream()
+                .flatMap(ExecutionGroup::getRunningStages)
+                .flatMap(stage -> getStateOmitExceptions(pipeline, stage).stream())
+                .anyMatch(state -> State.Running == state);
 
         return hasEnqueuedStages && !isPaused && !isRunning;
     }
@@ -778,7 +800,7 @@ public class Orchestrator {
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             var pipeline = container.get().orElseThrow(() -> new PipelineNotFoundException(project));
 
-            if (pipeline.getRunningStage().isPresent()) {
+            if (!hasNoRunningStage(pipeline)) {
                 throw new OrchestratorException(
                         "Pipeline is still running. Deleting a running Pipeline is not (yet) supported");
             }
@@ -942,15 +964,6 @@ public class Orchestrator {
         return Path.of(projectId);
     }
 
-    private static String getStageId(@Nonnull Pipeline pipeline, int stageNumber, @Nonnull StageDefinition stage) {
-        return replaceInvalidCharactersInJobName(String.format(
-                "%s_%04d_%s",
-                pipeline.getProjectId(),
-                stageNumber,
-                stage.getName()
-        ));
-    }
-
     @Nonnull
     public Optional<Pipeline> getPipeline(@Nonnull Project project) {
         return getPipeline(project.getId());
@@ -1029,6 +1042,9 @@ public class Orchestrator {
     }
 
     private void discardObsoleteWorkspaces(@Nonnull String projectId) {
+        // TODO discardObsoleteWorkspaces
+        LOG.warning("discardObsoleteWorkspaces is currently deactivated (" + projectId + ")");
+        /*
         getPipeline(projectId).ifPresent(pipeline -> {
             var policy = pipeline
                     .getDeletionPolicy()
@@ -1057,7 +1073,7 @@ public class Orchestrator {
                     .filter(Files::exists)
                     .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
                     .forEach(path -> forcePurgeNoThrows(purgeScope.get(), path));
-        });
+        });*/
     }
 
     /**
@@ -1068,6 +1084,9 @@ public class Orchestrator {
      * @throws IOException An accumulated exception for every failed stage that failed to be pruned
      */
     public void prunePipeline(@Nonnull Project project) throws IOException {
+        // TODO prunePipeline
+        LOG.warning("prunePipeline is currently deactivated (" + project.getId() + ")");
+        /*
         var exception = getPipelineExclusive(project).flatMap(container -> {
             try (container; var heart = new LockHeart(container.getLock())) {
                 var pipeline = container.getNoThrow();
@@ -1108,17 +1127,12 @@ public class Orchestrator {
         if (exception.isPresent()) {
             throw exception.get();
         }
+         */
     }
 
     @Nonnull
     public static DeletionPolicy defaultDeletionPolicy() {
         return new DeletionPolicy(false, null);
-    }
-
-    public static String replaceInvalidCharactersInJobName(@Nonnull String jobName) {
-        return MULTI_UNDERSCORE
-                .matcher(INVALID_NOMAD_CHARACTER.matcher(jobName.toLowerCase()).replaceAll("_"))
-                .replaceAll("_");
     }
 
     private enum SimpleState {

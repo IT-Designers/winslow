@@ -1,10 +1,6 @@
 package de.itdesigners.winslow.pipeline;
 
-import de.itdesigners.winslow.api.pipeline.Action;
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration.WorkspaceMode;
 import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,11 +13,8 @@ import java.util.Optional;
 
 public class Stage implements Cloneable {
 
-    @Nonnull private final String                 id;
-    @Nonnull private final StageDefinition        definition;
-    @Nonnull private final Action                 action;
-    @Nonnull private final Date                   startTime;
-    @Nonnull private final WorkspaceConfiguration workspaceConfiguration;
+    @Nonnull private final String id;
+    @Nonnull private final Date   startTime;
 
     @Nullable private String              workspace;
     @Nullable private Date                finishTime;
@@ -31,28 +24,18 @@ public class Stage implements Cloneable {
     @Nullable private Map<String, String> envSystem;
     @Nullable private Map<String, String> envInternal;
 
-    public Stage(
-            @Nonnull String id,
-            @Nonnull StageDefinition definition,
-            @Nonnull Action action,
-            @Nullable String workspace,
-            @Nonnull WorkspaceConfiguration workspaceConfiguration) {
-        this.id                     = id;
-        this.definition             = definition;
-        this.action                 = action;
-        this.workspaceConfiguration = workspaceConfiguration;
-        this.workspace              = workspace;
+    public Stage(@Nonnull String id, @Nullable String workspace) {
+        this.id        = id;
+        this.workspace = workspace;
 
         this.startTime   = new Date();
         this.finishTime  = null;
         this.finishState = null;
     }
 
-    @ConstructorProperties({"id, definition", "action", "startTime", "workspace", "finishTime", "finishState", "env", "envInternal", "workspaceConfiguration"})
+    @ConstructorProperties({"id", "startTime", "workspace", "finishTime", "finishState", "env", "envPipeline", "envSystem", "envInternal"})
     public Stage(
             @Nonnull String id,
-            @Nonnull StageDefinition definition,
-            @Nonnull Action action,
             @Nonnull Date startTime,
             @Nullable String workspace,
             @Nullable Date finishTime,
@@ -60,22 +43,16 @@ public class Stage implements Cloneable {
             @Nullable Map<String, String> env,
             @Nullable Map<String, String> envPipeline,
             @Nullable Map<String, String> envSystem,
-            @Nullable Map<String, String> envInternal,
-            @Nullable WorkspaceConfiguration workspaceConfiguration) {
-        this.id                     = id;
-        this.definition             = definition;
-        this.action                 = action;
-        this.startTime              = startTime;
-        this.workspaceConfiguration = workspaceConfiguration != null
-                                      ? workspaceConfiguration
-                                      : new WorkspaceConfiguration(WorkspaceMode.INCREMENTAL, null);
-        this.workspace              = workspace;
-        this.finishTime             = finishTime;
-        this.finishState            = finishState;
-        this.env                    = env;
-        this.envPipeline            = envPipeline;
-        this.envSystem              = envSystem;
-        this.envInternal            = envInternal;
+            @Nullable Map<String, String> envInternal) {
+        this.id          = id;
+        this.startTime   = startTime;
+        this.workspace   = workspace;
+        this.finishTime  = finishTime;
+        this.finishState = finishState;
+        this.env         = env;
+        this.envPipeline = envPipeline;
+        this.envSystem   = envSystem;
+        this.envInternal = envInternal;
     }
 
     @Nonnull
@@ -86,16 +63,6 @@ public class Stage implements Cloneable {
     public void finishNow(@Nonnull State finishState) {
         this.finishTime  = new Date();
         this.finishState = finishState;
-    }
-
-    @Nonnull
-    public StageDefinition getDefinition() {
-        return this.definition;
-    }
-
-    @Nonnull
-    public Action getAction() {
-        return this.action;
     }
 
     @Nonnull
@@ -132,11 +99,6 @@ public class Stage implements Cloneable {
     }
 
     @Nonnull
-    public WorkspaceConfiguration getWorkspaceConfiguration() {
-        return workspaceConfiguration;
-    }
-
-    @Nonnull
     public Map<String, String> getEnv() {
         if (this.env == null) {
             this.env = new HashMap<>();
@@ -167,23 +129,4 @@ public class Stage implements Cloneable {
         }
         return this.envInternal;
     }
-
-    @Override
-    public Stage clone() {
-        return new Stage(
-                id,
-                definition,
-                action,
-                startTime,
-                workspace,
-                finishTime,
-                finishState,
-                env,
-                envPipeline,
-                envSystem,
-                envInternal,
-                workspaceConfiguration
-        );
-    }
-
 }

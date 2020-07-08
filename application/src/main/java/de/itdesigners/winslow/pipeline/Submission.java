@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public class Submission {
 
     private final @Nonnull String                 id;
-    private final @Nonnull Action                 action;
+    private final          boolean                configureOnly;
     private final @Nonnull StageDefinition        stageDefinition;
     private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
 
@@ -33,11 +33,11 @@ public class Submission {
 
     public Submission(
             @Nonnull String id,
-            @Nonnull Action action,
+            boolean configureOnly,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
         this.id                     = Objects.requireNonNull(id);
-        this.action                 = Objects.requireNonNull(action);
+        this.configureOnly          = configureOnly;
         this.stageDefinition        = Objects.requireNonNull(stageDefinition);
         this.workspaceConfiguration = workspaceConfiguration;
     }
@@ -48,10 +48,9 @@ public class Submission {
         return id;
     }
 
-    @Nonnull
     @CheckReturnValue
-    public Action getAction() {
-        return action;
+    public boolean isConfigureOnly() {
+        return this.configureOnly;
     }
 
     @Nonnull

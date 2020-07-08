@@ -104,6 +104,11 @@
             <artifactId>org.eclipse.jgit</artifactId>
             <version>5.8.0.202006091008-r</version>
         </dependency>
+        <dependency>
+            <groupId>org.javatuples</groupId>
+            <artifactId>javatuples</artifactId>
+            <version>1.2</version>
+        </dependency>
     </dependencies>
 
 </project>
