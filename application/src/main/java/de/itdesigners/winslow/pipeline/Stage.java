@@ -13,8 +13,8 @@ import java.util.Optional;
 
 public class Stage implements Cloneable {
 
-    @Nonnull private final String id;
-    @Nonnull private final Date   startTime;
+    @Nonnull private final StageId id;
+    @Nonnull private final Date    startTime;
 
     @Nullable private String              workspace;
     @Nullable private Date                finishTime;
@@ -24,7 +24,7 @@ public class Stage implements Cloneable {
     @Nullable private Map<String, String> envSystem;
     @Nullable private Map<String, String> envInternal;
 
-    public Stage(@Nonnull String id, @Nullable String workspace) {
+    public Stage(@Nonnull StageId id, @Nullable String workspace) {
         this.id        = id;
         this.workspace = workspace;
 
@@ -35,7 +35,7 @@ public class Stage implements Cloneable {
 
     @ConstructorProperties({"id", "startTime", "workspace", "finishTime", "finishState", "env", "envPipeline", "envSystem", "envInternal"})
     public Stage(
-            @Nonnull String id,
+            @Nonnull StageId id,
             @Nonnull Date startTime,
             @Nullable String workspace,
             @Nullable Date finishTime,
@@ -56,8 +56,18 @@ public class Stage implements Cloneable {
     }
 
     @Nonnull
-    public String getId() {
+    public StageId getId__() {
         return this.id;
+    }
+
+    @Nonnull
+    public String getFullyQualifiedId() {
+        return this.id.getFullyQualified();
+    }
+
+    @Nonnull
+    public String getProjectRelativeId() {
+        return this.id.getProjectRelative();
     }
 
     public void finishNow(@Nonnull State finishState) {

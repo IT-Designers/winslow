@@ -6,12 +6,14 @@ import javax.annotation.Nonnull;
 
 public class ThereIsStillAnActiveExecutionGroupException extends Throwable {
 
-    private final @Nonnull Pipeline pipeline;
+    private final @Nonnull Pipeline       pipeline;
     private final @Nonnull ExecutionGroup activeExecution;
 
-    public ThereIsStillAnActiveExecutionGroupException(@Nonnull Pipeline pipeline, @Nonnull ExecutionGroup activeExecution) {
-        super("Within pipeline " + pipeline.getProjectId() + " there is the active execution group " + activeExecution.getId());
-        this.pipeline = pipeline;
+    public ThereIsStillAnActiveExecutionGroupException(
+            @Nonnull Pipeline pipeline,
+            @Nonnull ExecutionGroup activeExecution) {
+        super("There is the already an active execution group " + activeExecution.getFullyQualifiedId());
+        this.pipeline        = pipeline;
         this.activeExecution = activeExecution;
     }
 

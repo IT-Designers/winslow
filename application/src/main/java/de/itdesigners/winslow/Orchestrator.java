@@ -10,6 +10,7 @@ import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
+import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
@@ -137,7 +138,7 @@ public class Orchestrator {
                 .flatMap(Pipeline::getActiveExecutionGroup)
                 .stream()
                 .flatMap(ExecutionGroup::getRunningStages)
-                .map(Stage::getId)
+                .map(Stage::getFullyQualifiedId)
                 .map(getRunInfoRepository()::getStatsIfStillRelevant)
                 .reduce(Optional.empty(), (value, stats) -> {
                     if (value.isEmpty()) {
@@ -211,11 +212,11 @@ public class Orchestrator {
     }
 
     public void stop(@Nonnull Stage stage) throws LockException {
-        this.lockBus.publishCommand(Event.Command.STOP, stage.getId());
+        this.lockBus.publishCommand(Event.Command.STOP, stage.getFullyQualifiedId());
     }
 
     public void kill(@Nonnull Stage stage) throws LockException {
-        this.lockBus.publishCommand(Event.Command.KILL, stage.getId());
+        this.lockBus.publishCommand(Event.Command.KILL, stage.getFullyQualifiedId());
     }
 
     @Nonnull
@@ -423,9 +424,14 @@ public class Orchestrator {
                                                 });
 
 
-                                        var stageId                = "no-id-because-probing-execution-" + System.nanoTime();
                                         var stageDefinition        = builder.build();
                                         var workspaceConfiguration = new WorkspaceConfiguration();
+                                        var stageId = new StageId(
+                                                "no-project-id-because-probing-execution-" + System.nanoTime(),
+                                                0,
+                                                null,
+                                                null
+                                        );
 
                                         try {
                                             // check whether assembling the stage would be possible
@@ -524,7 +530,7 @@ public class Orchestrator {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Stage stage) {
         var requiredResources = getRequiredResources(stageDefinition);
-        var executor          = this.executors.get(stage.getId());
+        var executor          = this.executors.get(stage.getFullyQualifiedId());
         if (executor != null) {
             this.monitor.reserve(requiredResources);
             executor.addShutdownCompletedListener(() -> {
@@ -548,8 +554,8 @@ public class Orchestrator {
             return Optional.empty();
         }
 
-        var       stageDefinition = nextStageDefinition.get();
-        var       stageId         = stageDefinition.getName();
+        var       stageId         = nextStageDefinition.get().getValue0();
+        var       stageDefinition = nextStageDefinition.get().getValue1();
         var       executor        = (Executor) null;
         final var stage           = new Stage(stageId, null);
 
@@ -558,15 +564,23 @@ public class Orchestrator {
 
             executor = startExecutor(
                     pipeline.getProjectId(),
-                    stageId,
-                    getProgressHintMatcher(stageId)
+                    stageId.getFullyQualified(),
+                    getProgressHintMatcher(stageId.getFullyQualified())
             );
 
-
-            startStageAssembler(lock, definition, pipeline, executionGroup.get(), stageId, executor, env);
+            startStageAssembler(
+                    lock,
+                    definition,
+                    pipeline,
+                    executionGroup.get(),
+                    stageDefinition,
+                    stageId,
+                    executor,
+                    env
+            );
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
-            cleanupOnAssembleError(pipeline.getProjectId(), stageId, executor);
+            cleanupOnAssembleError(pipeline.getProjectId(), stageId.getFullyQualified(), executor);
             return Optional.empty();
         }
 
@@ -582,7 +596,8 @@ public class Orchestrator {
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline,
             @Nonnull ExecutionGroup executionGroup,
-            @Nonnull String stageId,
+            @Nonnull StageDefinition stageDefinition,
+            @Nonnull StageId stageId,
             @Nonnull Executor executor,
             @Nonnull Map<String, String> globalEnvironmentVariables) {
         new Thread(() -> {
@@ -621,7 +636,7 @@ public class Orchestrator {
                                     new Submission(
                                             stageId,
                                             executionGroup.isConfigureOnly(),
-                                            executionGroup.getStageDefinition(),
+                                            stageDefinition,
                                             executionGroup.getWorkspaceConfiguration()
                                     )
                             ));
@@ -630,12 +645,12 @@ public class Orchestrator {
                 }
 
             } catch (UserInputChecker.MissingUserInputException e) {
-                cleanupOnAssembleError(projectId, stageId, executor);
+                cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
                 updatePipeline(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.FurtherInputRequired);
                 });
             } catch (UserInputChecker.MissingUserConfirmationException e) {
-                cleanupOnAssembleError(projectId, stageId, executor);
+                cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
                 updatePipeline(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 });
@@ -645,7 +660,7 @@ public class Orchestrator {
                     pipelineToUpdate.getActiveExecutionGroup().ifPresentOrElse(
                             group -> {
                                 try {
-                                    group.updateStage(stageId, stage -> {
+                                    group.updateStage(stageId.getFullyQualified(), stage -> {
                                         stage.finishNow(State.Failed);
                                         return Optional.of(stage);
                                     });
@@ -656,7 +671,7 @@ public class Orchestrator {
                             () -> LOG.log(Level.SEVERE, "Failed to retrieve the active ExecutionGroup for " + projectId)
                     );
                 });
-                cleanupOnAssembleError(projectId, stageId, executor);
+                cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
             }
         }).start();
     }
@@ -683,7 +698,7 @@ public class Orchestrator {
                 .flatMap(ExecutionGroup::getRunningStages)
                 .forEach(stage -> {
                     var state = getStateOmitExceptions(pipeline, stage);
-                    LOG.info("Checking if the state for stage " + stage.getId() + " has changed: " + state);
+                    LOG.info("Checking if the state for stage " + stage.getFullyQualifiedId() + " has changed: " + state);
                     switch (state.orElseGet(() -> stage.getFinishState().orElse(State.Failed))) {
                         case Running:
                             if (getLogRedirectionState(pipeline, stage) != SimpleState.Failed) {
@@ -695,9 +710,13 @@ public class Orchestrator {
                             pipeline.requestPause(Pipeline.PauseReason.StageFailure);
                             try {
                                 LOG.info("Killing failed stage");
-                                backend.kill(stage.getId());
+                                backend.kill(stage.getFullyQualifiedId());
                             } catch (IOException e) {
-                                LOG.log(Level.WARNING, "Failed to request kill failed stage: " + stage.getId(), e);
+                                LOG.log(
+                                        Level.WARNING,
+                                        "Failed to request kill failed stage: " + stage.getFullyQualifiedId(),
+                                        e
+                                );
                             }
                             break;
                         case Succeeded:
@@ -723,10 +742,10 @@ public class Orchestrator {
             @Nonnull Pipeline pipeline,
             @Nonnull Stage stage) throws IOException {
         // faster & cheaper than potentially causing a REST request on a new TcpConnection
-        if (this.executors.get(stage.getId()) != null) {
+        if (this.executors.get(stage.getFullyQualifiedId()) != null) {
             return Optional.of(State.Running);
         }
-        return backend.getState(pipeline.getProjectId(), stage.getId());
+        return backend.getState(pipeline.getProjectId(), stage.getFullyQualifiedId());
     }
 
     private boolean needsConsistencyUpdate(@Nonnull Pipeline pipeline) {
@@ -758,10 +777,10 @@ public class Orchestrator {
 
     @Nonnull
     private SimpleState getLogRedirectionState(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        if (hints.hasLogRedirectionCompletedSuccessfullyHint(stage.getId())) {
+        if (hints.hasLogRedirectionCompletedSuccessfullyHint(stage.getFullyQualifiedId())) {
             return SimpleState.Succeeded;
-        } else if (!logs.isLocked(pipeline.getProjectId(), stage.getId())) {
-            LOG.warning("Detected log redirect which has been aborted! " + stage.getId());
+        } else if (!logs.isLocked(pipeline.getProjectId(), stage.getFullyQualifiedId())) {
+            LOG.warning("Detected log redirect which has been aborted! " + stage.getFullyQualifiedId());
             return SimpleState.Failed;
         } else {
             return SimpleState.Running;
@@ -1021,15 +1040,15 @@ public class Orchestrator {
 
     private Executor startExecutor(
             @Nonnull String projectId,
-            @Nonnull String stage,
+            @Nonnull String stageId,
             @Nonnull Consumer<LogEntry> consumer) throws LockException, FileNotFoundException {
-        var executor = new Executor(projectId, stage, this);
-        executor.addShutdownListener(() -> this.executors.remove(stage));
-        executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stage));
+        var executor = new Executor(projectId, stageId, this);
+        executor.addShutdownListener(() -> this.executors.remove(stageId));
+        executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stageId));
         executor.addShutdownListener(() -> this.discardObsoleteWorkspaces(projectId));
         executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(projectId));
         executor.addLogEntryConsumer(consumer);
-        this.executors.put(stage, executor);
+        this.executors.put(stageId, executor);
         return executor;
     }
 

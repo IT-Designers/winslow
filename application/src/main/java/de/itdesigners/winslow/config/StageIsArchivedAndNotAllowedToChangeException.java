@@ -10,7 +10,7 @@ public class StageIsArchivedAndNotAllowedToChangeException extends Throwable {
     private final @Nonnull Stage          stage;
 
     public StageIsArchivedAndNotAllowedToChangeException(@Nonnull ExecutionGroup goup, @Nonnull Stage stage) {
-        super("The stage with the id " + stage.getId() + " is archived and therefore not allowed to change anymore");
+        super("The stage with the id " + stage.getFullyQualifiedId() + " is archived and therefore not allowed to change anymore");
         this.group = goup;
         this.stage = stage;
     }

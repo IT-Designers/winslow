@@ -3,8 +3,11 @@ package de.itdesigners.winslow.config;
 import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.NamedId;
 import de.itdesigners.winslow.pipeline.Stage;
+import de.itdesigners.winslow.pipeline.StageId;
+import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,7 +19,7 @@ import java.util.stream.Stream;
 
 public class ExecutionGroup {
 
-    private final @Nonnull  String                             id;
+    private final @Nonnull  ExecutionGroupId                   id;
     private final           boolean                            configureOnly;
     private final @Nonnull  StageDefinition                    stageDefinition;
     /**
@@ -35,7 +38,7 @@ public class ExecutionGroup {
      * @param id              The id of this {@link ExecutionGroup}
      * @param stageDefinition {@link StageDefinition} being configured
      */
-    public ExecutionGroup(@Nonnull String id, @Nonnull StageDefinition stageDefinition) {
+    public ExecutionGroup(@Nonnull ExecutionGroupId id, @Nonnull StageDefinition stageDefinition) {
         this(id, true, stageDefinition, new TreeMap<>(), new WorkspaceConfiguration(), new ArrayList<>(), 0);
     }
 
@@ -47,7 +50,7 @@ public class ExecutionGroup {
      * @param workspaceConfiguration {@link WorkspaceConfiguration} to apply
      */
     public ExecutionGroup(
-            @Nonnull String id,
+            @Nonnull ExecutionGroupId id,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
         this(id, false, stageDefinition, Collections.emptyMap(), workspaceConfiguration, new ArrayList<>(), 0);
@@ -63,7 +66,7 @@ public class ExecutionGroup {
      * @param workspaceConfiguration {@link WorkspaceConfiguration} to apply
      */
     public ExecutionGroup(
-            @Nonnull String id,
+            @Nonnull ExecutionGroupId id,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Map<String, RangeWithStepSize> rangedValues,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
@@ -76,7 +79,7 @@ public class ExecutionGroup {
      */
     @ConstructorProperties({"id", "configureOnly", "stageDefinition", "rangedValues", "workspaceConfiguration", "stages", "groupCounter"})
     public ExecutionGroup(
-            @Nonnull String id,
+            @Nonnull ExecutionGroupId id,
             boolean configureOnly,
             @Nonnull StageDefinition stageDefinition,
             @Nullable Map<String, RangeWithStepSize> rangedValues,
@@ -110,13 +113,13 @@ public class ExecutionGroup {
             @Nullable Map<String, String> envSystem,
             @Nullable Map<String, String> envInternal,
             @Nullable WorkspaceConfiguration workspaceConfiguration) {
-        this(id, definition, Optional.ofNullable(workspaceConfiguration)
-                                     .orElseGet(() -> new WorkspaceConfiguration(
-                                             WorkspaceConfiguration.WorkspaceMode.INCREMENTAL,
-                                             null
-                                     )));
+        this(NamedId.parseLegacyExecutionGroupId(id), definition, Optional.ofNullable(workspaceConfiguration)
+                                                                          .orElseGet(() -> new WorkspaceConfiguration(
+                                                                                  WorkspaceConfiguration.WorkspaceMode.INCREMENTAL,
+                                                                                  null
+                                                                          )));
         this.addStage(new Stage(
-                id,
+                this.id.generateStageId(null),
                 startTime,
                 workspace,
                 finishTime,
@@ -129,12 +132,25 @@ public class ExecutionGroup {
     }
 
     @Nonnull
-    public String getId() {
+    public ExecutionGroupId getId__() {
         return id;
+    }
+
+    @Nonnull
+    @Transient
+    public String getFullyQualifiedId() {
+        return id.getFullyQualified();
+    }
+
+    @Nonnull
+    @Transient
+    public String getProjectRelativeId() {
+        return id.getProjectRelative();
     }
 
     public void addStage(@Nonnull Stage stage) {
         this.stages.add(stage);
+        this.incrementGroupCounter();
     }
 
     /**
@@ -142,7 +158,7 @@ public class ExecutionGroup {
      */
     @Nonnull
     @Transient
-    public Optional<StageDefinition> getNextStageDefinition() {
+    public Optional<Pair<StageId, StageDefinition>> getNextStageDefinition() {
         if (this.configureOnly) {
             return Optional.empty();
         } else if (this.rangedValues != null && !this.rangedValues.isEmpty()) {
@@ -157,23 +173,27 @@ public class ExecutionGroup {
                 counter /= entry.getValue().getStepCount();
             }
 
-            return Optional.of(new StageDefinition(
-                    NamedId.getStageId(getId(), getGroupCounter() + 1, stageDefinition.getName()),
-                    stageDefinition.getDescription().orElse(null),
-                    stageDefinition.getImage().orElse(null),
-                    stageDefinition.getRequirements().orElse(null),
-                    stageDefinition.getRequires().orElse(null),
-                    map,
-                    stageDefinition.getHighlight().orElse(null),
-                    stageDefinition.isDiscardable(),
-                    stageDefinition.isPrivileged()
+            return Optional.of(new Pair<>(
+                    this.id.generateStageId(getGroupCounter() + 1),
+                    new StageDefinition(
+                            stageDefinition.getName(),
+                            stageDefinition.getDescription().orElse(null),
+                            stageDefinition.getImage().orElse(null),
+                            stageDefinition.getRequirements().orElse(null),
+                            stageDefinition.getRequires().orElse(null),
+                            map,
+                            stageDefinition.getHighlight().orElse(null),
+                            stageDefinition.isDiscardable(),
+                            stageDefinition.isPrivileged()
+                    )
             ));
         } else if (this.stages.isEmpty()) {
-            return Optional.of(this.stageDefinition);
+            return Optional.of(new Pair<>(this.id.generateStageId(null), this.stageDefinition));
         } else {
             return Optional.empty();
         }
     }
+
 
     /**
      * @return All {@link Stage}s associated with this {@link ExecutionGroup}
@@ -273,14 +293,14 @@ public class ExecutionGroup {
      * @throws StageIsArchivedAndNotAllowedToChangeException If the existing {@link Stage} for the given id has already finished
      */
     public boolean updateStage(@Nonnull Stage stage) throws StageIsArchivedAndNotAllowedToChangeException {
-        return this.updateStage(stage.getId(), old -> Optional.of(stage));
+        return this.updateStage(stage.getFullyQualifiedId(), old -> Optional.of(stage));
     }
 
     public boolean updateStage(
             @Nonnull String stageId,
             @Nonnull Function<Stage, Optional<Stage>> updater) throws StageIsArchivedAndNotAllowedToChangeException {
         for (int n = this.stages.size() - 1; n >= 0; --n) {
-            if (this.stages.get(n).getId().equals(stageId)) {
+            if (this.stages.get(n).getFullyQualifiedId().equals(stageId)) {
                 if (this.stages.get(n).getFinishState().isEmpty()) {
                     final int index = n;
                     updater.apply(this.stages.get(index)).ifPresentOrElse(

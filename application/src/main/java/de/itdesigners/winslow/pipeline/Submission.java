@@ -2,7 +2,6 @@ package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.StageHandle;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
 
@@ -16,7 +15,7 @@ import java.util.stream.Stream;
 
 public class Submission {
 
-    private final @Nonnull String                 id;
+    private final @Nonnull StageId                 id;
     private final          boolean                configureOnly;
     private final @Nonnull StageDefinition        stageDefinition;
     private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
@@ -32,7 +31,7 @@ public class Submission {
     private @Nullable String           workspaceDirectory;
 
     public Submission(
-            @Nonnull String id,
+            @Nonnull StageId id,
             boolean configureOnly,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
@@ -44,7 +43,7 @@ public class Submission {
 
     @Nonnull
     @CheckReturnValue
-    public String getId() {
+    public StageId getId() {
         return id;
     }
 

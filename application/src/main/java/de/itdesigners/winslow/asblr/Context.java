@@ -2,8 +2,8 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Executor;
 import de.itdesigners.winslow.config.PipelineDefinition;
-import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Pipeline;
+import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.Nonnull;
@@ -21,7 +21,7 @@ public class Context {
     private final @Nonnull  Pipeline           pipeline;
     private final @Nonnull  PipelineDefinition pipelineDefinition;
     private final @Nullable Executor           executor;
-    private final @Nonnull  String             stageId;
+    private final @Nonnull  StageId            stageId;
     private final @Nonnull  Submission         submission;
 
     @Nonnull private final Map<Class<?>, Object> intermediateResults = new HashMap<>();
@@ -30,17 +30,17 @@ public class Context {
             @Nonnull Pipeline pipeline,
             @Nonnull PipelineDefinition definition,
             @Nullable Executor executor,
-            @Nonnull String stageId,
+            @Nonnull StageId stageId,
             @Nonnull Submission submission) {
-        this.pipeline      = pipeline;
+        this.pipeline           = pipeline;
         this.pipelineDefinition = definition;
-        this.executor      = executor;
-        this.stageId       = stageId;
-        this.submission    = submission;
+        this.executor           = executor;
+        this.stageId            = stageId;
+        this.submission         = submission;
     }
 
     @Nonnull
-    public String getStageId() {
+    public StageId getStageId() {
         return stageId;
     }
 

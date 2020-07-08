@@ -3,13 +3,13 @@ package de.itdesigners.winslow.asblr;
 import de.itdesigners.winslow.Environment;
 import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.api.pipeline.Action;
-import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration.WorkspaceMode;
+import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.config.ExecutionGroup;
+import de.itdesigners.winslow.pipeline.Pipeline;
+import de.itdesigners.winslow.pipeline.StageId;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,8 +24,8 @@ public class WorkspaceCreator implements AssemblerStep {
 
     private static final Logger LOG = Logger.getLogger(WorkspaceCreator.class.getSimpleName());
 
-    @Nonnull private final Orchestrator orchestrator;
-    @Nonnull private final Environment  environment;
+    private final @Nonnull Orchestrator orchestrator;
+    private final @Nonnull Environment  environment;
 
     public WorkspaceCreator(@Nonnull Orchestrator orchestrator, @Nonnull Environment environment) {
         this.orchestrator = orchestrator;
@@ -34,26 +34,23 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Override
     public boolean applicable(@Nonnull Context context) {
-        return context.getEnqueuedStage().getAction() != Action.Configure;
+        return !context.getSubmission().isConfigureOnly();
     }
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var workspaceMode = context.getEnqueuedStage().getWorkspaceConfiguration().getMode();
+        var workspaceConfiguration = context.getSubmission().getWorkspaceConfiguration();
+        var workspaceMode          = workspaceConfiguration.getMode();
         context.log(Level.INFO, "WorkspaceConfiguration.WorkspaceMode=" + workspaceMode);
 
         var workspaceContinuation = Optional.<Path>empty();
         if (workspaceMode == WorkspaceMode.CONTINUATION) {
-            var stageId = context
-                    .getEnqueuedStage()
-                    .getWorkspaceConfiguration()
-                    .getValue()
-                    .orElse(null);
-
+            var stageId = workspaceConfiguration.getValue().orElse(null);
             var baseWorkspace = context
                     .getPipeline()
-                    .getAllStages()
-                    .filter(s -> Objects.equals(s.getId(), stageId))
+                    .getPresentAndPastExecutionGroups()
+                    .flatMap(ExecutionGroup::getStages)
+                    .filter(s -> Objects.equals(s.getFullyQualifiedId(), stageId))
                     .findFirst()
                     .orElseThrow(() -> new AssemblyException(
                             "Failed to find continue workspace because a stage with the id " + stageId + " was not found"))
@@ -64,11 +61,7 @@ public class WorkspaceCreator implements AssemblerStep {
             workspaceContinuation = Optional.of(Path.of(baseWorkspace));
         }
 
-        var pathOfWorkspace = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(
-                context.getPipeline(),
-                context.getStageNumber(),
-                context.getEnqueuedStage().getDefinition()
-        ));
+        var pathOfWorkspace      = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(context.getStageId()));
         var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
         var pathOfPipelineOutput = getPipelineOutputPathOf(context.getPipeline());
 
@@ -108,20 +101,11 @@ public class WorkspaceCreator implements AssemblerStep {
                             + ",pipelineOutput=" + pipelineOutput
             );
         } else {
-            switch (context.getEnqueuedStage().getAction()) {
-                case Execute:
-                    if (workspaceMode == WorkspaceMode.INCREMENTAL) {
-                        copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
-                                context,
-                                workspace.get()
-                        );
-                    }
-                    break;
-                default:
-                    LOG.warning("Unexpected Stage Action " + context.getEnqueuedStage().getAction());
-                    context.log(Level.WARNING, "Unexpected Stage Action " + context.getEnqueuedStage().getAction());
-                case Configure:
-                    break;
+            if (!context.getSubmission().isConfigureOnly() && workspaceMode == WorkspaceMode.INCREMENTAL) {
+                copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
+                        context,
+                        workspace.get()
+                );
             }
 
 
@@ -193,33 +177,14 @@ public class WorkspaceCreator implements AssemblerStep {
     }
 
     @Nonnull
-    private static Path getWorkspacePathOf(
-            @Nonnull Pipeline pipeline,
-            int stageNumber,
-            @Nonnull StageDefinition stage) {
-        return getWorkspacePathOf(pipeline.getProjectId(), stageNumber, stage);
-    }
-
-    @Nonnull
     public static Path getInitWorkspacePath(@Nonnull String projectId) {
-        return getWorkspacePathOf(projectId, 0, (String) null);
+        return getWorkspacePathOf(new StageId(projectId, 0, null, null));
     }
 
-    @Nonnull
-    public static Path getWorkspacePathOf(@Nonnull String projectId, int stageNumber, @Nonnull StageDefinition stage) {
-        return getWorkspacePathOf(projectId, stageNumber, stage.getName());
-    }
 
     @Nonnull
-    private static Path getWorkspacePathOf(@Nonnull String projectId, int stageNumber, @Nullable String suffix) {
-        return getProjectWorkspacesDirectory(projectId).resolve(
-                Orchestrator.replaceInvalidCharactersInJobName(String.format(
-                        "%04d%s%s",
-                        stageNumber,
-                        suffix != null ? "_" : "",
-                        suffix != null ? suffix : ""
-                ))
-        );
+    public static Path getWorkspacePathOf(@Nonnull StageId stageId) {
+        return getProjectWorkspacesDirectory(stageId.getProjectId()).resolve(stageId.getProjectRelative());
     }
 
     @Nonnull
@@ -242,9 +207,15 @@ public class WorkspaceCreator implements AssemblerStep {
 
         var pipeline = context.getPipeline();
         var workDirBefore = pipeline
-                .getAllStages()
+                .getPresentAndPastExecutionGroups()
+                .filter(group -> !group.isConfigureOnly())
+                .takeWhile(group -> group.getId__().getGroupNumberWithinProject() < context
+                        .getStageId()
+                        .getGroupNumberWithinProject())
+                .reduce((first, second) -> second) // get the most recent group
+                .stream()
+                .flatMap(ExecutionGroup::getStages)
                 .filter(stage -> stage.getState() == State.Succeeded)
-                .filter(stage -> stage.getAction() == Action.Execute)
                 .flatMap(stage -> stage.getWorkspace().stream())
                 .flatMap(workspace -> {
                     var path = environment.getResourceManager().getWorkspace(Path.of(workspace));

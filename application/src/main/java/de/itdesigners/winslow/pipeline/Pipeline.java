@@ -152,13 +152,13 @@ public class Pipeline implements Cloneable {
     public Optional<ExecutionGroup> removeExecutionGroup(@Nonnull String id) {
 
         for (int i = 0; i < this.executionQueue.size(); ++i) {
-            if (this.executionQueue.get(i).getId().equals(id)) {
+            if (this.executionQueue.get(i).getFullyQualifiedId().equals(id)) {
                 return Optional.of(this.executionQueue.remove(i));
             }
         }
 
         for (int i = 0; i < this.executionHistory.size(); ++i) {
-            if (this.executionHistory.get(i).getId().equals(id)) {
+            if (this.executionHistory.get(i).getFullyQualifiedId().equals(id)) {
                 return Optional.of(this.executionHistory.remove(i));
             }
         }
@@ -226,20 +226,20 @@ public class Pipeline implements Cloneable {
     }
 
     @Nonnull
-    private String incrementAndGetNextExecutionGroupId(@Nonnull String stageName) {
+    private ExecutionGroupId incrementAndGetNextExecutionGroupId(@Nonnull String stageName) {
         this.executionCounter += 1;
-        return NamedId.getExecutionGroupId(this.getProjectId(), this.executionCounter, stageName);
+        return new ExecutionGroupId(getProjectId(), executionCounter, stageName);
     }
 
     @Nonnull
-    public String enqueueConfiguration(@Nonnull StageDefinition definition) {
+    public ExecutionGroupId enqueueConfiguration(@Nonnull StageDefinition definition) {
         var id = incrementAndGetNextExecutionGroupId(definition.getName());
         this.executionQueue.add(new ExecutionGroup(id, definition));
         return id;
     }
 
     @Nonnull
-    public String enqueueSingleExecution(
+    public ExecutionGroupId enqueueSingleExecution(
             @Nonnull StageDefinition definition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
         var id = incrementAndGetNextExecutionGroupId(definition.getName());
@@ -248,7 +248,7 @@ public class Pipeline implements Cloneable {
     }
 
     @Nonnull
-    public String enqueueRangedExecution(
+    public ExecutionGroupId enqueueRangedExecution(
             @Nonnull StageDefinition definition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
             @Nonnull Map<String, RangeWithStepSize> rangedValues) {

@@ -3,6 +3,7 @@ package de.itdesigners.winslow.cli;
 import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.asblr.WorkspaceCreator;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.project.Project;
@@ -78,8 +79,7 @@ public class FixWorkspacePaths {
 
     @Nonnull
     @CheckReturnValue
-    public FixWorkspacePaths tryFixProjectsWithFixableWorkspacePaths(
-            @Nonnull Orchestrator orchestrator) {
+    public FixWorkspacePaths tryFixProjectsWithFixableWorkspacePaths(@Nonnull Orchestrator orchestrator) {
         Objects.requireNonNull(this.fixablePath);
 
         this.fixedPaths = new HashMap<>();
@@ -87,21 +87,20 @@ public class FixWorkspacePaths {
 
         for (var project : this.fixablePath) {
             var result = orchestrator.updatePipeline(project, pipeline -> {
-                var stages   = pipeline.getAllStages().collect(Collectors.toUnmodifiableList());
                 var response = new TreeMap<String, String>();
+                var stages = pipeline
+                        .getPresentAndPastExecutionGroups()
+                        .flatMap(ExecutionGroup::getStages)
+                        .collect(Collectors.toUnmodifiableList());
 
                 for (var i = 0; i < stages.size(); ++i) {
                     var stage       = stages.get(i);
                     var stageNumber = i + 1;
 
                     if (hasFixableWorkspacePath(stage)) {
-                        var path = WorkspaceCreator.getWorkspacePathOf(
-                                pipeline.getProjectId(),
-                                stageNumber,
-                                stage.getDefinition()
-                        ).toString();
+                        var path = WorkspaceCreator.getWorkspacePathOf(stage.getId__()).toString();
                         stage.setWorkspace(path);
-                        response.put(stage.getId(), path);
+                        response.put(stage.getFullyQualifiedId(), path);
                     }
                 }
                 return response;
