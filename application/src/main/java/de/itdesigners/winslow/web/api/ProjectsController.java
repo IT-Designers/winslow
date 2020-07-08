@@ -14,9 +14,9 @@ import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
-import de.itdesigners.winslow.web.HistoryEntryConverter;
 import de.itdesigners.winslow.web.PipelineInfoConverter;
 import de.itdesigners.winslow.web.ProjectInfoConverter;
+import de.itdesigners.winslow.web.StageInfoConverter;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -94,7 +94,7 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/history")
-    public Stream<HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
+    public Stream<StageInfo> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
@@ -105,12 +105,12 @@ public class ProjectsController {
                                 pipeline.getCompletedStages(),
                                 pipeline.getRunningStage().stream()
                         ))
-                        .map(HistoryEntryConverter::from)
+                        .map(StageInfoConverter::from)
                 );
     }
 
     @PostMapping("/projects/{projectId}/history/prune")
-    public Stream<HistoryEntry> pruneProjectHistory(
+    public Stream<StageInfo> pruneProjectHistory(
             User user,
             @PathVariable("projectId") String projectId) throws IOException {
         var project = getProjectIfAllowedToAccess(user, projectId);
@@ -123,7 +123,7 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/enqueued")
-    public Stream<HistoryEntry> getEnqueued(User user, @PathVariable("projectId") String projectId) {
+    public Stream<StageInfo> getEnqueued(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
@@ -132,7 +132,7 @@ public class ProjectsController {
                         .stream()
                         .flatMap(Pipeline::getEnqueuedStages)
                 )
-                .map(HistoryEntryConverter::from);
+                .map(StageInfoConverter::from);
     }
 
     @DeleteMapping("/projects/{projectId}/enqueued/{index}/{controlSize}")
