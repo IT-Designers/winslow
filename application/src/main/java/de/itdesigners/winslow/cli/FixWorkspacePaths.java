@@ -1,7 +1,6 @@
 package de.itdesigners.winslow.cli;
 
 import de.itdesigners.winslow.Orchestrator;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.asblr.WorkspaceCreator;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Pipeline;
@@ -15,7 +14,6 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class FixWorkspacePaths {
 
@@ -66,12 +64,13 @@ public class FixWorkspacePaths {
 
     private boolean hasFixableWorkspacePath(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getAllStages()
+                .getPresentAndPastExecutionGroups()
+                .flatMap(ExecutionGroup::getStages)
                 .anyMatch(this::hasFixableWorkspacePath);
     }
 
     private Boolean hasFixableWorkspacePath(@Nonnull Stage stage) {
-        return stage.getAction() == Action.Execute && stage
+        return stage
                 .getWorkspace()
                 .map(path -> Path.of(path).isAbsolute() || WRONG_STATIC_PATH_LITERAL_USED.equals(path))
                 .orElse(Boolean.TRUE);
@@ -88,21 +87,18 @@ public class FixWorkspacePaths {
         for (var project : this.fixablePath) {
             var result = orchestrator.updatePipeline(project, pipeline -> {
                 var response = new TreeMap<String, String>();
-                var stages = pipeline
+
+                pipeline
                         .getPresentAndPastExecutionGroups()
                         .flatMap(ExecutionGroup::getStages)
-                        .collect(Collectors.toUnmodifiableList());
+                        .forEach(stage -> {
+                            if (hasFixableWorkspacePath(stage)) {
+                                var path = WorkspaceCreator.getWorkspacePathOf(stage.getId__()).toString();
+                                stage.setWorkspace(path);
+                                response.put(stage.getFullyQualifiedId(), path);
+                            }
+                        });
 
-                for (var i = 0; i < stages.size(); ++i) {
-                    var stage       = stages.get(i);
-                    var stageNumber = i + 1;
-
-                    if (hasFixableWorkspacePath(stage)) {
-                        var path = WorkspaceCreator.getWorkspacePathOf(stage.getId__()).toString();
-                        stage.setWorkspace(path);
-                        response.put(stage.getFullyQualifiedId(), path);
-                    }
-                }
                 return response;
             });
 

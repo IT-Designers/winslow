@@ -1,9 +1,11 @@
 package de.itdesigners.winslow.fs;
 
-import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.project.DeletionPolicy;
 import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Stage;
+import org.javatuples.Pair;
 import org.springframework.lang.NonNull;
 
 import javax.annotation.CheckReturnValue;
@@ -15,8 +17,8 @@ import java.util.stream.Collectors;
 
 public class ObsoleteWorkspaceFinder {
 
-    private @NonNull final DeletionPolicy policy;
-    private @Nullable      List<Stage>    executionHistory;
+    private @NonNull final DeletionPolicy       policy;
+    private @Nullable      List<ExecutionGroup> executionHistory;
 
     public ObsoleteWorkspaceFinder(@Nonnull DeletionPolicy policy) {
         this.policy = policy;
@@ -24,7 +26,7 @@ public class ObsoleteWorkspaceFinder {
 
     @NonNull
     @CheckReturnValue
-    public ObsoleteWorkspaceFinder withExecutionHistory(@Nullable List<Stage> history) {
+    public ObsoleteWorkspaceFinder withExecutionHistory(@Nullable List<ExecutionGroup> history) {
         this.executionHistory = history;
         return this;
     }
@@ -56,71 +58,79 @@ public class ObsoleteWorkspaceFinder {
     }
 
     private void removeSuccessfullyContinuedWorkspacesButIgnoreOutdatedDiscardable(List<String> obsolete) {
-        int numberToKeep = policy.getNumberOfWorkspacesOfSucceededStagesToKeep().orElse(Integer.MAX_VALUE);
-        var successfulStages = Optional
-                .ofNullable(this.executionHistory)
-                .stream()
-                .flatMap(Collection::stream)
-                .filter(stage -> stage.getFinishState().orElse(State.Running) == State.Succeeded)
-                .filter(stage -> stage.getAction() == Action.Execute)
-                .collect(Collectors.toList());
+        if (this.executionHistory != null) {
+            int numberToKeep = policy.getNumberOfWorkspacesOfSucceededStagesToKeep().orElse(Integer.MAX_VALUE);
+
+            var workspaceDistance = new HashMap<String, Integer>();
+            var workspaceLookup   = new HashMap<String, ExecutionGroup>();
+
+            for (var group : executionHistory) {
+                group.getStages().forEach(stage -> stage.getWorkspace().ifPresent(w -> workspaceLookup.put(w, group)));
+            }
 
 
-        Map<String, Boolean> workspaceDiscardable = new HashMap<>();
+            for (int n = this.executionHistory.size() - 1; n >= 0; --n) {
+                int distance = this.executionHistory.size() - n;
+                var group    = this.executionHistory.get(n);
 
-        for (var stage : successfulStages) {
-            var workspace   = stage.getWorkspace().orElse(null);
-            var discardable = workspaceDiscardable.getOrDefault(workspace, Boolean.TRUE);
-            workspaceDiscardable.put(workspace, discardable && stage.getDefinition().isDiscardable());
-        }
+                if (distance > numberToKeep) {
+                    break; // no need to do this precise resolution for older entries
+                }
 
-        var successfulWorkspaces = successfulStages
-                .stream()
-                .map(Stage::getWorkspace)
-                .flatMap(Optional::stream)
-                .collect(Collectors.toList());
+                while (group != null) {
+                    group
+                            .getStages()
+                            .flatMap(s -> s.getWorkspace().stream())
+                            .forEach(w -> workspaceDistance.put(w, distance));
 
-        removeDuplicatesKeepReverseOrder(successfulWorkspaces, String::equals);
+                    if (group
+                            .getWorkspaceConfiguration()
+                            .getMode() == WorkspaceConfiguration.WorkspaceMode.CONTINUATION) {
+                        group = workspaceLookup.get(group
+                                                            .getWorkspaceConfiguration()
+                                                            .getValue()
+                                                            .orElse(null));
+                    } else {
+                        group = null;
+                    }
+                }
 
+            }
 
-        for (int i = 0; i < numberToKeep && i < successfulWorkspaces.size(); ++i) {
-            var workspace   = successfulWorkspaces.get(successfulWorkspaces.size() - i - 1);
-            var discardable = workspaceDiscardable.get(workspace);
-
-            // only skip discardable from whitelisting if it is the very first item
-            if (discardable && i > 0) {
-                numberToKeep++; // do not prevent deletion
-            } else {
-                while (obsolete.remove(workspace))
-                    ;
+            for (int n = obsolete.size() - 1; n >= 0; --n) {
+                if (workspaceDistance.getOrDefault(obsolete.get(n), Integer.MAX_VALUE) > numberToKeep) {
+                    obsolete.remove(n);
+                }
             }
         }
     }
+
 
     private void appendWorkspaceOfFailedStagesIfApplicable(@NonNull List<String> obsolete) {
         if (!policy.getKeepWorkspaceOfFailedStage() && this.executionHistory != null) {
             this.executionHistory
                     .stream()
+                    .flatMap(ExecutionGroup::getStages)
                     .filter(stage -> stage.getFinishState().orElse(State.Running) == State.Failed)
-                    .filter(stage -> stage.getAction() == Action.Execute)
-                    .filter(stage -> stage.getWorkspace().isPresent())
-                    .forEach(stage -> obsolete.add(stage.getWorkspace().get()));
+                    .flatMap(stage -> stage.getWorkspace().stream())
+                    .forEach(obsolete::add);
         }
     }
 
     private void appendWorkspacesOfSuccessfulStagesThatExceedTheLimit(@NonNull List<String> obsolete) {
         if (policy.getNumberOfWorkspacesOfSucceededStagesToKeep().isPresent() && this.executionHistory != null) {
-            var numberToKeep = policy.getNumberOfWorkspacesOfSucceededStagesToKeep().get();
-            var successfulStages = this.executionHistory
+            int numberToKeep = policy.getNumberOfWorkspacesOfSucceededStagesToKeep().get();
+            var successfulGroups = this.executionHistory
                     .stream()
-                    .filter(stage -> stage.getFinishState().orElse(State.Running) == State.Succeeded)
-                    .filter(stage -> stage.getAction() == Action.Execute)
+                    .filter(group -> group
+                            .getStages()
+                            .anyMatch(s -> s.getFinishState().orElse(State.Running) == State.Succeeded))
                     .collect(Collectors.toList());
 
-            for (int i = 0; i < successfulStages.size(); ++i) {
-                var distance = successfulStages.size() - i;
+            for (int i = 0; i < successfulGroups.size(); ++i) {
+                var distance = successfulGroups.size() - i;
                 if (distance > numberToKeep) {
-                    successfulStages.get(i).getWorkspace().ifPresent(obsolete::add);
+                    successfulGroups.get(i).getStages().flatMap(s -> s.getWorkspace().stream()).forEach(obsolete::add);
                 } else {
                     break;
                 }
@@ -132,16 +142,18 @@ public class ObsoleteWorkspaceFinder {
         if (this.executionHistory != null) {
             var hasSuccessfulExecution = false;
             for (int i = this.executionHistory.size() - 1; i >= 0; --i) {
-                var stage = this.executionHistory.get(i);
+                var group = this.executionHistory.get(i);
 
-                if (stage.getDefinition().isDiscardable() && hasSuccessfulExecution) {
-                    if (stage.getWorkspace().isPresent() && !obsolete.contains(stage.getWorkspace().get())) {
-                        obsolete.add(stage.getWorkspace().get());
-                    }
+                if (group.getStageDefinition().isDiscardable() && hasSuccessfulExecution) {
+                    group.getCompletedStages()
+                         .flatMap(s -> s.getWorkspace().stream())
+                         .filter(w -> !obsolete.contains(w))
+                         .forEach(obsolete::add);
                 }
 
-                hasSuccessfulExecution |= stage.getAction() == Action.Execute
-                        && stage.getFinishState().orElse(State.Running) == State.Succeeded;
+                hasSuccessfulExecution |= group.getCompletedStages().anyMatch(s -> s
+                        .getFinishState()
+                        .orElse(State.Running) == State.Succeeded);
             }
         }
     }
