@@ -36,36 +36,28 @@ public class SubmissionToNomadJobAdapter {
         var job      = createJob(submission);
         var jobId    = job.getId();
         var taskName = job.getTaskGroups().get(0).getName();
-        var stage    = createStage(submission, jobId);
+        var stage    = createStage(submission);
+        var stageId  = stage.getFullyQualifiedId();
 
-        if (!Objects.equals(jobId, taskName)) {
+        if (!Objects.equals(jobId, taskName) || !Objects.equals(jobId, stageId)) {
             throw new OrchestratorException("Invalid configuration, jobId must match taskName, but doesn't: " + jobId + " != " + taskName);
         }
 
-        switch (submission.getAction()) {
-            case Execute:
-                // this one could fail
-                backend.getNewJobsApi().register(job);
-                return new SubmissionResult(stage, new NomadStageHandle(backend, jobId));
-
-            case Configure:
-                // a configure is successful by being instantiated and has no lifetime
-                stage.finishNow(State.Succeeded);
-                return new SubmissionResult(stage, new NoOpStageHandle());
+        if (submission.isConfigureOnly()) {
+            stage.finishNow(State.Succeeded);
+            return new SubmissionResult(stage, new NoOpStageHandle());
+        } else {
+            backend.getNewJobsApi().register(job);
+            return new SubmissionResult(stage, new NomadStageHandle(backend, jobId));
         }
-
-        throw new OrchestratorException("Unexpected action: " + submission.getAction());
     }
 
     @Nonnull
     @CheckReturnValue
-    private Stage createStage(@Nonnull Submission submission, @Nonnull String jobId) {
+    private Stage createStage(@Nonnull Submission submission) {
         var stage = new Stage(
-                jobId,
-                submission.getStageDefinition(),
-                submission.getAction(),
-                submission.getWorkspaceDirectory().orElse(null),
-                submission.getWorkspaceConfiguration()
+                submission.getId(),
+                submission.getWorkspaceDirectory().orElse(null)
         );
         stage.getEnv().putAll(submission.getStageEnvVariablesReduced());
         stage.getEnvPipeline().putAll(submission.getPipelineEnvVariables());
@@ -86,7 +78,7 @@ public class SubmissionToNomadJobAdapter {
     private Job createJob(@Nonnull Submission submission) {
 
         var task = new Task()
-                .setName(submission.getId())
+                .setName(submission.getId().getFullyQualified())
                 .setEnv(getVisibleEnvironmentVariables(submission))
                 .setConfig(new HashMap<>())
                 .setResources(new Resources());
@@ -98,12 +90,12 @@ public class SubmissionToNomadJobAdapter {
 
 
         return new Job()
-                .setId(submission.getId())
+                .setId(submission.getId().getFullyQualified())
                 .addDatacenters("local")
                 .setType("batch")
                 .addTaskGroups(
                         new TaskGroup()
-                                .setName(submission.getId())
+                                .setName(submission.getId().getFullyQualified())
                                 .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                 .addTasks(task));
 

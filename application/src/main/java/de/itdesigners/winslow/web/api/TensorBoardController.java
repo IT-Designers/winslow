@@ -5,6 +5,7 @@ import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.auth.User;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.fs.NfsWorkDirectory;
 import de.itdesigners.winslow.nomad.NomadBackend;
 import de.itdesigners.winslow.nomad.SubmissionToNomadJobAdapter;
@@ -80,7 +81,11 @@ public class TensorBoardController {
         var nfsWorkDir  = workDirConf instanceof NfsWorkDirectory ? ((NfsWorkDirectory) workDirConf) : null;
 
         var workspaces = winslow.getResourceManager().getWorkspacesDirectory().orElseThrow().toAbsolutePath();
-        var stage      = pipeline.getStage(stageId);
+        var stage = pipeline
+                .getPresentAndPastExecutionGroups()
+                .flatMap(ExecutionGroup::getStages)
+                .filter(s -> s.getFullyQualifiedId().equals(stageId))
+                .findFirst();
 
         if (nomad != null && nfsWorkDir != null && stage.isPresent()) {
 
