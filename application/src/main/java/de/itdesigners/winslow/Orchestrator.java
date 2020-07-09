@@ -1,10 +1,10 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.project.DeletionPolicy;
-import de.itdesigners.winslow.api.project.LogEntry;
-import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.api.project.Stats;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.*;

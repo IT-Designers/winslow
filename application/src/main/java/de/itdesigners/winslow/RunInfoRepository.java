@@ -1,6 +1,6 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.project.Stats;
+import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 

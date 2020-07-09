@@ -2,9 +2,8 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Environment;
 import de.itdesigners.winslow.Orchestrator;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration.WorkspaceMode;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;

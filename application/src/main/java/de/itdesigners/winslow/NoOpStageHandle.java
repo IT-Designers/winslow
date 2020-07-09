@@ -1,8 +1,8 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.project.LogEntry;
-import de.itdesigners.winslow.api.project.State;
-import de.itdesigners.winslow.api.project.Stats;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.api.pipeline.Stats;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

@@ -2,7 +2,7 @@ package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.TaskEvent;
 import com.hashicorp.nomad.apimodel.TaskState;
-import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
 
 import javax.annotation.Nonnull;
 import java.util.*;

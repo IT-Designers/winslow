@@ -1,8 +1,9 @@
 package de.itdesigners.winslow.config;
 
 import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.NamedId;
 import de.itdesigners.winslow.pipeline.Stage;
@@ -210,7 +211,7 @@ public class ExecutionGroup {
     }
 
     /**
-     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are currently {@link de.itdesigners.winslow.api.project.State#Running}
+     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are currently {@link State#Running}
      */
     @Nonnull
     @Transient
@@ -219,7 +220,7 @@ public class ExecutionGroup {
     }
 
     /**
-     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are hav ecompleted ({@link de.itdesigners.winslow.api.project.State#Failed} or {@link de.itdesigners.winslow.api.project.State#Succeeded})
+     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are hav ecompleted ({@link State#Failed} or {@link State#Succeeded})
      */
     @Nonnull
     @Transient

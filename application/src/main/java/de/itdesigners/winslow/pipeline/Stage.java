@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.pipeline;
 
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.State;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

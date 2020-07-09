@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.api.project;
+package de.itdesigners.winslow.api.pipeline;
 
 import javax.annotation.Nonnull;
 import java.util.Date;

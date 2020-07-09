@@ -1,6 +1,6 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.LockedOutputStream;
 import de.itdesigners.winslow.project.LogWriter;

@@ -1,8 +1,8 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.Action;
-import de.itdesigners.winslow.api.project.EnvVariable;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.EnvVariable;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Stage;

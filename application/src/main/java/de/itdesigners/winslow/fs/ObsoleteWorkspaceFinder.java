@@ -1,11 +1,9 @@
 package de.itdesigners.winslow.fs;
 
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.project.DeletionPolicy;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.pipeline.Stage;
-import org.javatuples.Pair;
 import org.springframework.lang.NonNull;
 
 import javax.annotation.CheckReturnValue;

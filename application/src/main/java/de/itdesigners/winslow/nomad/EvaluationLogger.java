@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.nomad;
 
 import de.itdesigners.winslow.Executor;
-import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

@@ -4,7 +4,7 @@ import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.NoOpStageHandle;
 import de.itdesigners.winslow.OrchestratorException;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.pipeline.*;

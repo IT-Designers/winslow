@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.config;
+package de.itdesigners.winslow.api.pipeline;
 
 import java.beans.Transient;
 

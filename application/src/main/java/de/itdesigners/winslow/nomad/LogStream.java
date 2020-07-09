@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.javasdk.ClientApi;
-import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

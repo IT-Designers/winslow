@@ -1,10 +1,10 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.project.DeletionPolicy;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.RangeWithStepSize;
+import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
 import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
@@ -174,6 +174,11 @@ public class Pipeline implements Cloneable {
     @Nonnull
     public Stream<ExecutionGroup> getPresentAndPastExecutionGroups() {
         return Stream.concat(this.executionHistory.stream(), getActiveExecutionGroup().stream());
+    }
+
+    @Nonnull
+    public Stream<ExecutionGroup> getEnqueuedExecutions() {
+        return this.executionQueue.stream();
     }
 
     public void requestPause() {
