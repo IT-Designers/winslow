@@ -1,10 +1,7 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
-import de.itdesigners.winslow.api.pipeline.LogEntry;
-import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.*;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.*;
@@ -33,6 +30,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Orchestrator {
@@ -1061,9 +1059,6 @@ public class Orchestrator {
     }
 
     private void discardObsoleteWorkspaces(@Nonnull String projectId) {
-        // TODO discardObsoleteWorkspaces
-        LOG.warning("discardObsoleteWorkspaces is currently deactivated (" + projectId + ")");
-        /*
         getPipeline(projectId).ifPresent(pipeline -> {
             var policy = pipeline
                     .getDeletionPolicy()
@@ -1074,7 +1069,7 @@ public class Orchestrator {
                             .flatMap(PipelineDefinition::getDeletionPolicy)
                     )
                     .orElseGet(Orchestrator::defaultDeletionPolicy);
-            var history    = pipeline.getCompletedStages().collect(Collectors.toList());
+            var history    = pipeline.getPresentAndPastExecutionGroups().collect(Collectors.toList());
             var finder     = new ObsoleteWorkspaceFinder(policy).withExecutionHistory(history);
             var obsolete   = finder.collectObsoleteWorkspaces();
             var workspaces = environment.getResourceManager();
@@ -1092,7 +1087,7 @@ public class Orchestrator {
                     .filter(Files::exists)
                     .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
                     .forEach(path -> forcePurgeNoThrows(purgeScope.get(), path));
-        });*/
+        });
     }
 
     /**
@@ -1103,9 +1098,6 @@ public class Orchestrator {
      * @throws IOException An accumulated exception for every failed stage that failed to be pruned
      */
     public void prunePipeline(@Nonnull Project project) throws IOException {
-        // TODO prunePipeline
-        LOG.warning("prunePipeline is currently deactivated (" + project.getId() + ")");
-        /*
         var exception = getPipelineExclusive(project).flatMap(container -> {
             try (container; var heart = new LockHeart(container.getLock())) {
                 var pipeline = container.getNoThrow();
@@ -1113,19 +1105,21 @@ public class Orchestrator {
                     var pipe   = pipeline.get();
                     var except = Optional.<IOException>empty();
                     var prunable = pipe
-                            .getCompletedStages()
-                            .filter(s -> s.getState() == State.Failed)
+                            .getPresentAndPastExecutionGroups()
+                            .flatMap(g -> g.getStages().map(s -> new Pair<>(g, s)))
+                            .filter(s -> s.getValue1().getState() == State.Failed)
                             .collect(Collectors.toUnmodifiableList());
 
-                    for (var stage : prunable) {
+
+                    for (var pair : prunable) {
                         try {
-                            var path      = stage.getWorkspace().map(Path::of);
+                            var path      = pair.getValue1().getWorkspace().map(Path::of);
                             var workspace = path.flatMap(p -> environment.getResourceManager().getWorkspace(p));
                             if (workspace.isPresent()) {
                                 forcePurgeWorkspace(project.getId(), workspace.get());
                             }
-                            logs.deleteLogsIfExistsNoThrows(project.getId(), stage.getId());
-                            pipe.removeStage(stage.getId());
+                            logs.deleteLogsIfExistsNoThrows(project.getId(), pair.getValue1().getFullyQualifiedId());
+                            assert pair.getValue0().removeStage(pair.getValue1().getFullyQualifiedId());
                             container.update(pipe);
                         } catch (IOException e) {
                             if (except.isEmpty()) {
@@ -1146,7 +1140,6 @@ public class Orchestrator {
         if (exception.isPresent()) {
             throw exception.get();
         }
-         */
     }
 
     @Nonnull

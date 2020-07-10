@@ -288,6 +288,14 @@ public class ExecutionGroup {
         return Optional.ofNullable(rangedValues).map(Collections::unmodifiableMap);
     }
 
+    public boolean removeStage(@Nonnull String stageId) {
+        try {
+            return updateStage(stageId, s -> Optional.empty());
+        } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+            throw new RuntimeException("This is not supposed to happen", e);
+        }
+    }
+
     /**
      * @param stage The new {@link Stage}-data to update the with the id matching one
      * @return Whether a {@link Stage} for the given id was known and therefore the given update was stored
@@ -302,15 +310,17 @@ public class ExecutionGroup {
             @Nonnull Function<Stage, Optional<Stage>> updater) throws StageIsArchivedAndNotAllowedToChangeException {
         for (int n = this.stages.size() - 1; n >= 0; --n) {
             if (this.stages.get(n).getFullyQualifiedId().equals(stageId)) {
-                if (this.stages.get(n).getFinishState().isEmpty()) {
-                    final int index = n;
-                    updater.apply(this.stages.get(index)).ifPresentOrElse(
+                final int index  = n;
+                var       update = updater.apply(this.stages.get(index));
+
+                if (this.stages.get(n).getFinishState().isPresent() && update.isPresent()) {
+                    throw new StageIsArchivedAndNotAllowedToChangeException(this, this.stages.get(n));
+                } else {
+                    update.ifPresentOrElse(
                             updated -> this.stages.set(index, updated),
                             () -> this.stages.remove(index)
                     );
                     return true;
-                } else {
-                    throw new StageIsArchivedAndNotAllowedToChangeException(this, this.stages.get(n));
                 }
             }
         }
