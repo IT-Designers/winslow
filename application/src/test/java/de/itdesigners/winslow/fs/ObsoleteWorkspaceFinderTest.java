@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 public class ObsoleteWorkspaceFinderTest {
 
@@ -53,8 +54,7 @@ public class ObsoleteWorkspaceFinderTest {
         var expected = new ArrayList<>(List.of("workspace3", "workspace1"));
         assertEquals(expected.size(), obsolete.size());
         expected.removeAll(obsolete);
-        assertEquals(Collections.emptyList(), expected);
-
+        assertTrue(expected.isEmpty());
     }
 
     @Test
@@ -127,7 +127,7 @@ public class ObsoleteWorkspaceFinderTest {
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
-        var expected = new ArrayList<>(List.of("workspace4", "workspace1"));
+        var expected = new ArrayList<>(List.of("workspace1"));
         assertEquals(expected.size(), obsolete.size());
         expected.removeAll(obsolete);
         assertEquals(Collections.emptyList(), expected);
@@ -150,7 +150,7 @@ public class ObsoleteWorkspaceFinderTest {
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
-        var expected = new ArrayList<>(List.of("workspace4", "workspace2"));
+        var expected = new ArrayList<>(List.of("workspace2"));
         assertEquals(expected.size(), obsolete.size());
         expected.removeAll(obsolete);
         assertEquals(Collections.emptyList(), expected);
@@ -193,8 +193,13 @@ public class ObsoleteWorkspaceFinderTest {
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
-        assertEquals(3, list.size());
-        assertEquals(List.of("workspace2", "workspace3", "workspace5"), list);
+        var expected = new ArrayList<>(List.of("workspace2", "workspace3"));
+        assertEquals(expected.size(), list.size());
+        expected.removeAll(list);
+        assertEquals(
+                Collections.emptyList(),
+                expected
+        );
     }
 
     @Test
@@ -220,8 +225,18 @@ public class ObsoleteWorkspaceFinderTest {
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
-        assertEquals(3, list.size());
-        assertEquals(List.of("workspace1", "workspace4", "workspace6"), list);
+        assertEquals(6, list.size());
+        assertEquals(
+                List.of(
+                        "workspace1",
+                        "workspace2",
+                        "workspace3",
+                        "workspace4",
+                        "workspace5",
+                        "workspace6"
+                ),
+                list
+        );
     }
 
     @Test

@@ -2,8 +2,8 @@ package de.itdesigners.winslow.config;
 
 import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.NamedId;
 import de.itdesigners.winslow.pipeline.Stage;
@@ -90,7 +90,7 @@ public class ExecutionGroup {
         this.id                     = id;
         this.configureOnly          = configureOnly;
         this.stageDefinition        = stageDefinition;
-        this.rangedValues           = new TreeMap<>(rangedValues);
+        this.rangedValues           = rangedValues != null ? new TreeMap<>(rangedValues) : new TreeMap<>();
         this.workspaceConfiguration = workspaceConfiguration;
         this.stages                 = stages;
         this.groupCounter           = groupCounter;
