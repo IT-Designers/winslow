@@ -40,21 +40,21 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testConsiderContinuedWorkspaces() {
         var history = List.of(
-                constructFinishedStage("workspace1", State.Succeeded),
-                constructFinishedStage("workspace2", State.Failed),
-                constructFinishedStage("workspace2", State.Failed),
-                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded),
-                constructFinishedStage("workspace3", State.Failed)
+                constructFinishedStage("workspace1", State.Succeeded), // cannot because first successful normal (counter)
+                constructFinishedStage("workspace2", State.Failed), // cannot be deleted because of below
+                constructFinishedStage("workspace2", State.Failed), // cannot be deleted because of below
+                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded), // cannot be discarded because first successful one (ignores counter)
+                constructFinishedStage("workspace3", State.Failed) // cannot be deleted because missing follow-up
         );
 
         var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
-        var expected = new ArrayList<>(List.of("workspace3", "workspace1"));
-        assertEquals(expected.size(), obsolete.size());
-        expected.removeAll(obsolete);
-        assertTrue(expected.isEmpty());
+        assertEquals(
+                obsolete,
+                Collections.emptyList()
+        );
     }
 
     @Test
@@ -138,12 +138,12 @@ public class ObsoleteWorkspaceFinderTest {
     public void testConsiderContinuedWorkspacesComplex2() {
         var history = List.of(
                 constructFinishedStage("workspace1", State.Succeeded), // keep: second non-discardable successful
-                constructFinishedStage("workspace2", State.Failed), // keep: because of below
-                constructFinishedStage("workspace2", State.Failed), // keep: because of below
-                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded), // delete: discardable
+                constructFinishedStage("workspace2", State.Failed), // delete: because of below
+                constructFinishedStage("workspace2", State.Failed), // delete: because of below
+                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded), // delete: discardable with succcessful follow-up
                 constructFinishedStage("workspace3", State.Succeeded), // keep:  first successful
                 constructFinishedStage("workspace3", State.Failed), // keep: because of above
-                constructFinishedStage("workspace4", State.Failed) // delete: do not keep failed stages
+                constructFinishedStage("workspace4", State.Failed) // keep: most recent without successful follow-up
         );
 
         var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))

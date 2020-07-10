@@ -84,7 +84,7 @@ public class ObsoleteWorkspaceFinder {
                 var requireSomeRecentBase = !foundAtLeastOnceSuccessfulExecution;
                 var wsToKeep = details
                         .stream()
-                        .filter(d -> (requireSomeRecentBase || (d.notDiscardable && d.hasExecutedAtLeastOnce)) && d.hasSucceededAtLeastOnce)
+                        .filter(d -> (requireSomeRecentBase || (d.hasSucceededWithoutDiscardableAtLeastOnce && d.hasExecutedAtLeastOnce)) && d.hasSucceededAtLeastOnce)
                         .collect(Collectors.toList());
 
                 boolean foundSuccessfulStages = wsToKeep
@@ -123,7 +123,7 @@ public class ObsoleteWorkspaceFinder {
                             );
                             potentialDeletionsAndWhetherItHasSuccessfulFollowups.put(
                                     d.workspace,
-                                    successfulFollowup || d.hasSucceededAtLeastOnce
+                                    successfulFollowup || d.hasSucceededWithoutDiscardableAtLeastOnce
                             );
                         });
 
