@@ -981,51 +981,61 @@ public class ProjectsController {
     }
 
     @PutMapping("projects/{projectId}/stop/{stageId}")
-    public boolean stopCurrentStage(
+    public boolean stopSingleStageOrAllStagesOfActiveExecutionGroup(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable("stageId") String stageId,
+            @PathVariable(value = "stageId", required = false) @Nullable String stageId,
             @RequestParam(name = "pause", required = false, defaultValue = "true") boolean pause) throws LockException {
-        var project = getProjectIfAllowedToAccess(user, projectId);
-        var stage = project
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(p -> winslow
                         .getOrchestrator()
                         .getPipeline(p)
                 )
                 .flatMap(Pipeline::getActiveExecutionGroup)
-                .flatMap(g -> g.getRunningStages()
-                               .filter(s -> s.getFullyQualifiedId().equals(stageId))
-                               .findFirst()
-                );
-        if (stage.isPresent()) {
-            winslow.getOrchestrator().stop(stage.get());
-            if (pause) {
-                winslow.getOrchestrator().updatePipeline(project.get(), pipeline -> {
-                    pipeline.requestPause();
-                    return null;
+                .stream()
+                .flatMap(g -> g
+                        .getRunningStages()
+                        .filter(s -> stageId == null || s.getFullyQualifiedId().equals(stageId))
+                )
+                .allMatch(stage -> {
+                    try {
+                        if (pause) {
+                            winslow.getOrchestrator().updatePipeline(
+                                    getProjectIfAllowedToAccess(user, projectId).get(),
+                                    pipeline -> {
+                                        pipeline.requestPause();
+                                        return null;
+                                    }
+                            );
+                        }
+                        winslow.getOrchestrator().stop(stage);
+                        return true;
+                    } catch (LockException e) {
+                        LOG.log(Level.SEVERE, "Failed to stop stage " + stage.getFullyQualifiedId(), e);
+                        return false;
+                    }
                 });
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     @PutMapping("projects/{projectId}/kill/{stageId}")
-    public boolean killCurrentStage(
+    public boolean killSingleStageOrAllStagesOfActiveExecutionGroup(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable("stageId") String stageId) throws LockException {
-        var stage = getPipelineIfAllowedToAccess(user, projectId)
+            @PathVariable(value = "stageId", required = false) @Nullable String stageId) throws LockException {
+        return getPipelineIfAllowedToAccess(user, projectId)
                 .flatMap(Pipeline::getActiveExecutionGroup)
                 .map(ExecutionGroup::getRunningStages)
-                .flatMap(r -> r.filter(s -> s.getFullyQualifiedId().equals(stageId)).findFirst());
-        if (stage.isPresent()) {
-            winslow.getOrchestrator().kill(stage.get());
-            return true;
-        } else {
-            return false;
-        }
+                .stream()
+                .flatMap(r -> r.filter(s -> stageId == null || s.getFullyQualifiedId().equals(stageId)))
+                .allMatch(stage -> {
+                    try {
+                        winslow.getOrchestrator().kill(stage);
+                        return true;
+                    } catch (LockException e) {
+                        LOG.log(Level.SEVERE, "Failed to kill stage " + stage.getFullyQualifiedId(), e);
+                        return false;
+                    }
+                });
     }
 
     @Nonnull
