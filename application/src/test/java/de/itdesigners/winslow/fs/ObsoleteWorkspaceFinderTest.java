@@ -357,7 +357,7 @@ public class ObsoleteWorkspaceFinderTest {
                 0
         );
         group.addStage(new Stage(
-                group.getId__().generateStageId(0),
+                group.getId().generateStageId(0),
                 new Date(0),
                 workspace,
                 new Date(),

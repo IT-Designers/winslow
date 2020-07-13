@@ -97,43 +97,8 @@ public class ExecutionGroup {
     }
 
 
-    /**
-     * Legacy {@link Stage}-Import constructor
-     */
-    @ConstructorProperties({"id, definition", "action", "startTime", "workspace", "finishTime", "finishState", "env", "envInternal", "workspaceConfiguration"})
-    public ExecutionGroup(
-            @Nonnull String id,
-            @Nonnull StageDefinition definition,
-            @Nonnull Action action,
-            @Nonnull Date startTime,
-            @Nullable String workspace,
-            @Nullable Date finishTime,
-            @Nullable State finishState,
-            @Nullable Map<String, String> env,
-            @Nullable Map<String, String> envPipeline,
-            @Nullable Map<String, String> envSystem,
-            @Nullable Map<String, String> envInternal,
-            @Nullable WorkspaceConfiguration workspaceConfiguration) {
-        this(NamedId.parseLegacyExecutionGroupId(id), definition, Optional.ofNullable(workspaceConfiguration)
-                                                                          .orElseGet(() -> new WorkspaceConfiguration(
-                                                                                  WorkspaceConfiguration.WorkspaceMode.INCREMENTAL,
-                                                                                  null
-                                                                          )));
-        this.addStage(new Stage(
-                this.id.generateStageId(null),
-                startTime,
-                workspace,
-                finishTime,
-                finishState,
-                env,
-                envPipeline,
-                envSystem,
-                envInternal
-        ));
-    }
-
     @Nonnull
-    public ExecutionGroupId getId__() {
+    public ExecutionGroupId getId() {
         return id;
     }
 

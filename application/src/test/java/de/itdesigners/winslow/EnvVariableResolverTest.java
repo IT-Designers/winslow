@@ -213,7 +213,7 @@ public class EnvVariableResolverTest {
     private static ExecutionGroup wrap(
             @Nonnull String stageDefName,
             @Nonnull Function<ExecutionGroupId, Stage> stageBuilder) {
-        return wrapCustom(stageDefName, group -> group.addStage(stageBuilder.apply(group.getId__())));
+        return wrapCustom(stageDefName, group -> group.addStage(stageBuilder.apply(group.getId())));
     }
 
     @Nonnull

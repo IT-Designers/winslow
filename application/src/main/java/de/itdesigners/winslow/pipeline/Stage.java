@@ -56,7 +56,7 @@ public class Stage implements Cloneable {
     }
 
     @Nonnull
-    public StageId getId__() {
+    public StageId getId() {
         return this.id;
     }
 

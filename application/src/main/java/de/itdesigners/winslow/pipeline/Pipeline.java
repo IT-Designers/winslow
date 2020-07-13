@@ -1,15 +1,16 @@
 package de.itdesigners.winslow.pipeline;
 
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
-import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
+import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.ConstructorProperties;
+import java.beans.Transient;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -38,59 +39,30 @@ public class Pipeline implements Cloneable {
         this.executionQueue   = new ArrayList<>();
     }
 
-    /**
-     * Legacy import constructor
-     */
-    @ConstructorProperties({"projectId", "pauseRequested", "pauseReason", "resumeNotification", "enqueuedStages", "completedStages", "deletionPolicy", "strategy", "runningStage", "stageCounter", "workspaceConfigurationMode"})
+    @ConstructorProperties({"projectId", "executionHistory", "executionQueue", "activeExecution", "pauseRequested", "pauseReason", "resumeNotification", "deletionPolicy", "strategy", "workspaceConfigurationMode", "executionCounter"})
     public Pipeline(
             @Nonnull String projectId,
+            @Nullable List<ExecutionGroup> executionHistory,
+            @Nullable List<ExecutionGroup> executionQueue,
+            @Nullable ExecutionGroup activeExecution,
             boolean pauseRequested,
             @Nullable PauseReason pauseReason,
             @Nullable ResumeNotification resumeNotification,
-            @Nullable List<EnqueuedStage> enqueuedStages,
-            // Conversion through import constructor {@link ExecutionGroup#ExecutionGroup(String, StageDefinition, Action, Date, String, Date, State, Map, Map, Map, Map, WorkspaceConfiguration)}
-            @Nullable List<ExecutionGroup> completedStages,
             @Nullable DeletionPolicy deletionPolicy,
             @Nonnull Strategy strategy,
-            // Conversion through import constructor {@link ExecutionGroup#ExecutionGroup(String, StageDefinition, Action, Date, String, Date, State, Map, Map, Map, Map, WorkspaceConfiguration)}
-            @Nullable ExecutionGroup runningStage,
-            @Nullable Integer stageCounter,
-            @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode) {
-        this.projectId          = projectId;
-        this.pauseRequested     = pauseRequested;
-        this.pauseReason        = pauseReason;
-        this.resumeNotification = resumeNotification;
-        this.executionQueue     = new ArrayList<>();
-        this.executionHistory   = completedStages != null ? completedStages : new ArrayList<>();
-        this.deletionPolicy     = deletionPolicy;
-        this.strategy           = strategy;
-        this.activeExecution    = runningStage;
-        this.executionCounter   = stageCounter != null
-                                  ? stageCounter
-                                  : Optional.ofNullable(completedStages).map(List::size).orElse(0)
-                                          + (runningStage != null ? 1 : 0);
-
+            @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode,
+            int executionCounter) {
+        this.projectId                  = projectId;
+        this.executionHistory           = Optional.ofNullable(executionHistory).orElseGet(ArrayList::new);
+        this.executionQueue             = Optional.ofNullable(executionQueue).orElseGet(ArrayList::new);
+        this.activeExecution            = activeExecution;
+        this.pauseRequested             = pauseRequested;
+        this.pauseReason                = pauseReason;
+        this.resumeNotification         = resumeNotification;
+        this.deletionPolicy             = deletionPolicy;
+        this.strategy                   = strategy;
         this.workspaceConfigurationMode = workspaceConfigurationMode;
-
-        if (enqueuedStages != null) {
-            enqueuedStages.stream().map(es -> {
-                switch (es.getAction()) {
-                    case Execute:
-                        return new ExecutionGroup(
-                                incrementAndGetNextExecutionGroupId(es.getDefinition().getName()),
-                                es.getDefinition(),
-                                es.getWorkspaceConfiguration()
-                        );
-                    case Configure:
-                        return new ExecutionGroup(
-                                incrementAndGetNextExecutionGroupId(es.getDefinition().getName()),
-                                es.getDefinition()
-                        );
-                    default:
-                        throw new RuntimeException("Unexpected action for legacy storage " + es.getAction());
-                }
-            }).forEach(this.executionQueue::add);
-        }
+        this.executionCounter           = executionCounter;
     }
 
     @Nonnull
@@ -113,6 +85,7 @@ public class Pipeline implements Cloneable {
      * @return Whether a new {@link ExecutionGroup} was marked as actively executing (false if there is none)
      * @throws ThereIsStillAnActiveExecutionGroupException If there is still an {@link ExecutionGroup} being executed
      */
+    @Transient
     public boolean retrieveNextActiveExecution() throws ThereIsStillAnActiveExecutionGroupException {
         if (this.activeExecution != null) {
             throw new ThereIsStillAnActiveExecutionGroupException(this, this.activeExecution);
@@ -126,10 +99,12 @@ public class Pipeline implements Cloneable {
         }
     }
 
+    @Transient
     public boolean activeExecutionGroupCouldSpawnFurtherStages() {
         return this.activeExecution != null && this.activeExecution.hasRemainingExecutions();
     }
 
+    @Transient
     public boolean activeExecutionGroupHasNoFailedStages() {
         return getActiveExecutionGroup()
                 .filter(group -> !group.isConfigureOnly())
@@ -138,6 +113,7 @@ public class Pipeline implements Cloneable {
                 .map(Stage::getState)
                 .noneMatch(state -> state == State.Failed);
     }
+
 
     public boolean canRetrieveNextActiveExecution() {
         return this.activeExecution == null && !this.executionQueue.isEmpty();
@@ -167,11 +143,17 @@ public class Pipeline implements Cloneable {
     }
 
     @Nonnull
+    public Stream<ExecutionGroup> getExecutionHistory() {
+        return this.executionHistory.stream();
+    }
+
+    @Nonnull
     public Optional<ExecutionGroup> getActiveExecutionGroup() {
         return Optional.ofNullable(this.activeExecution);
     }
 
     @Nonnull
+    @Transient
     public Stream<ExecutionGroup> getPresentAndPastExecutionGroups() {
         return Stream.concat(this.executionHistory.stream(), getActiveExecutionGroup().stream());
     }
@@ -221,7 +203,7 @@ public class Pipeline implements Cloneable {
         this.resumeNotification = null;
     }
 
-
+    @Transient
     public boolean hasEnqueuedStages() {
         return (this.activeExecution != null && this.activeExecution.hasRemainingExecutions()) || !this.executionQueue.isEmpty();
     }

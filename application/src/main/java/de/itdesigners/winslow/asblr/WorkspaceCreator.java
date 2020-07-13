@@ -208,7 +208,7 @@ public class WorkspaceCreator implements AssemblerStep {
         var workDirBefore = pipeline
                 .getPresentAndPastExecutionGroups()
                 .filter(group -> !group.isConfigureOnly())
-                .takeWhile(group -> group.getId__().getGroupNumberWithinProject() < context
+                .takeWhile(group -> group.getId().getGroupNumberWithinProject() < context
                         .getStageId()
                         .getGroupNumberWithinProject())
                 .reduce((first, second) -> second) // get the most recent group
