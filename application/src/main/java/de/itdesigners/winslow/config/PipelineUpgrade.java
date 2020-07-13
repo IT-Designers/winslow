@@ -12,6 +12,7 @@ import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Pipeline;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -31,98 +32,102 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
         JsonNode node = p.getCodec().readTree(p);
         // upgrade from Stage -> ExecutionGroup?
         if (node.has("runningStage") || node.has("stageCounter")) {
-            var projectId      = node.get("projectId").asText();
-            var pauseRequested = node.get("pauseRequested").asBoolean();
-            var pauseReason    = readNullable(node, p.getCodec(), "pauseReason", Pipeline.PauseReason.class);
-            var resumeNotification = readNullable(
-                    node,
-                    p.getCodec(),
-                    "resumeNotification",
-                    Pipeline.ResumeNotification.class
-            );
-            var enqueuedStages = readNullable(
-                    node,
-                    p.getCodec(),
-                    "enqueuedStages",
-                    new TypeReference<List<EnqueuedStage>>() {
-                    }
-            );
-            var completedStages = readNullable(
-                    node,
-                    p.getCodec(),
-                    "completedStages",
-                    new TypeReference<List<ExecutionGroup>>() {
-                    }
-            );
-            var deletionPolicy = readNullable(
-                    node,
-                    p.getCodec(),
-                    "deletionPolicy",
-                    DeletionPolicy.class
-            );
-            var strategy     = node.get("strategy").traverse(p.getCodec()).readValueAs(Pipeline.Strategy.class);
-            var runningStage = readNullable(node, p.getCodec(), "runningStage", ExecutionGroup.class);
-            var stageCounter = readNullable(node, p.getCodec(), "stageCounter", Integer.class);
-            var workspace = readNullable(
-                    node,
-                    p.getCodec(),
-                    "workspaceConfigurationMode",
-                    WorkspaceConfiguration.WorkspaceMode.class
-            );
-
-            var executionCounter = new AtomicInteger(
-                    stageCounter != null ? stageCounter
-                                         : Optional.ofNullable(completedStages).map(List::size).orElse(0)
-                            + (runningStage != null ? 1 : 0)
-            );
-
-            var executionQueue =
-                    Stream
-                            .ofNullable(enqueuedStages)
-                            .flatMap(Collection::stream)
-                            .map(es -> {
-                                switch (es.getAction()) {
-                                    case Execute:
-                                        return new ExecutionGroup(
-                                                new ExecutionGroupId(
-                                                        projectId,
-                                                        executionCounter.incrementAndGet(),
-                                                        es.getDefinition().getName()
-                                                ),
-                                                es.getDefinition(),
-                                                es.getWorkspaceConfiguration()
-                                        );
-                                    case Configure:
-                                        return new ExecutionGroup(
-                                                new ExecutionGroupId(
-                                                        projectId,
-                                                        executionCounter.incrementAndGet(),
-                                                        es.getDefinition().getName()
-                                                ),
-                                                es.getDefinition()
-                                        );
-                                    default:
-                                        throw new RuntimeException("Unexpected action for legacy storage " + es.getAction());
-                                }
-                            })
-                            .collect(Collectors.toList());
-
-            return new Pipeline(
-                    projectId,
-                    completedStages,
-                    executionQueue,
-                    runningStage,
-                    pauseRequested,
-                    pauseReason,
-                    resumeNotification,
-                    deletionPolicy,
-                    strategy,
-                    workspace,
-                    executionCounter.get()
-            );
-
+            return upgrade(p, node);
         } else {
             return p.readValueAs(Pipeline.class);
         }
+    }
+
+    @Nonnull
+    private Pipeline upgrade(@Nonnull JsonParser p, @Nonnull JsonNode node) throws IOException {
+        var projectId      = node.get("projectId").asText();
+        var pauseRequested = node.get("pauseRequested").asBoolean();
+        var pauseReason    = readNullable(node, p.getCodec(), "pauseReason", Pipeline.PauseReason.class);
+        var resumeNotification = readNullable(
+                node,
+                p.getCodec(),
+                "resumeNotification",
+                Pipeline.ResumeNotification.class
+        );
+        var enqueuedStages = readNullable(
+                node,
+                p.getCodec(),
+                "enqueuedStages",
+                new TypeReference<List<EnqueuedStage>>() {
+                }
+        );
+        var completedStages = readNullable(
+                node,
+                p.getCodec(),
+                "completedStages",
+                new TypeReference<List<ExecutionGroup>>() {
+                }
+        );
+        var deletionPolicy = readNullable(
+                node,
+                p.getCodec(),
+                "deletionPolicy",
+                DeletionPolicy.class
+        );
+        var strategy     = node.get("strategy").traverse(p.getCodec()).readValueAs(Pipeline.Strategy.class);
+        var runningStage = readNullable(node, p.getCodec(), "runningStage", ExecutionGroup.class);
+        var stageCounter = readNullable(node, p.getCodec(), "stageCounter", Integer.class);
+        var workspace = readNullable(
+                node,
+                p.getCodec(),
+                "workspaceConfigurationMode",
+                WorkspaceConfiguration.WorkspaceMode.class
+        );
+
+        var executionCounter = new AtomicInteger(
+                stageCounter != null ? stageCounter
+                                     : Optional.ofNullable(completedStages).map(List::size).orElse(0)
+                        + (runningStage != null ? 1 : 0)
+        );
+
+        var executionQueue =
+                Stream
+                        .ofNullable(enqueuedStages)
+                        .flatMap(Collection::stream)
+                        .map(es -> {
+                            switch (es.getAction()) {
+                                case Execute:
+                                    return new ExecutionGroup(
+                                            new ExecutionGroupId(
+                                                    projectId,
+                                                    executionCounter.incrementAndGet(),
+                                                    es.getDefinition().getName()
+                                            ),
+                                            es.getDefinition(),
+                                            es.getWorkspaceConfiguration()
+                                    );
+                                case Configure:
+                                    return new ExecutionGroup(
+                                            new ExecutionGroupId(
+                                                    projectId,
+                                                    executionCounter.incrementAndGet(),
+                                                    es.getDefinition().getName()
+                                            ),
+                                            es.getDefinition()
+                                    );
+                                default:
+                                    throw new RuntimeException("Unexpected action for legacy storage " + es.getAction());
+                            }
+                        })
+                        .collect(Collectors.toList());
+
+        return new Pipeline(
+                projectId,
+                completedStages,
+                executionQueue,
+                runningStage,
+                pauseRequested,
+                pauseReason,
+                resumeNotification,
+                deletionPolicy,
+                strategy,
+                workspace,
+                executionCounter.get()
+        );
     }
 }
