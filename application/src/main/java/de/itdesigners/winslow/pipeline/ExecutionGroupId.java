@@ -2,6 +2,7 @@ package de.itdesigners.winslow.pipeline;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.Transient;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -21,11 +22,13 @@ public class ExecutionGroupId {
     }
 
     @Nonnull
+    @Transient
     public String getFullyQualified() {
         return NamedId.buildExecutionGroupId(projectId, groupNumberWithinProject, humanReadableGroupHint);
     }
 
     @Nonnull
+    @Transient
     public String getProjectRelative() {
         return NamedId.buildExecutionGroupId(null, groupNumberWithinProject, humanReadableGroupHint);
     }
