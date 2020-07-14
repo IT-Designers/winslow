@@ -12,6 +12,9 @@ public class ExecutionGroupId {
     private final           int    groupNumberWithinProject;
     private final @Nullable String humanReadableGroupHint;
 
+    private @Nullable String idFullyQualified;
+    private @Nullable String idProjectRealitve;
+
     public ExecutionGroupId(
             @Nonnull String projectId,
             int groupNumberWithinProject,
@@ -24,13 +27,27 @@ public class ExecutionGroupId {
     @Nonnull
     @Transient
     public String getFullyQualified() {
-        return NamedId.buildExecutionGroupId(projectId, groupNumberWithinProject, humanReadableGroupHint);
+        if (this.idFullyQualified == null) {
+            this.idFullyQualified = NamedId.buildExecutionGroupId(
+                    projectId,
+                    groupNumberWithinProject,
+                    humanReadableGroupHint
+            );
+        }
+        return idFullyQualified;
     }
 
     @Nonnull
     @Transient
     public String getProjectRelative() {
-        return NamedId.buildExecutionGroupId(null, groupNumberWithinProject, humanReadableGroupHint);
+        if (this.idProjectRealitve == null) {
+            this.idProjectRealitve = NamedId.buildExecutionGroupId(
+                    null,
+                    groupNumberWithinProject,
+                    humanReadableGroupHint
+            );
+        }
+        return idProjectRealitve;
     }
 
     @Nonnull
