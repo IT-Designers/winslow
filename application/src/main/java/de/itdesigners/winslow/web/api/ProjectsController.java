@@ -684,6 +684,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("env") Map<String, String> env,
+            @RequestParam(value = "rangedEnv", required = false) @Nullable Map<String, RangeWithStepSize> rangedEnv,
             @RequestParam("stageIndex") int index,
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
@@ -701,6 +702,7 @@ public class ProjectsController {
                                         pipeline,
                                         stageDef,
                                         env,
+                                        rangedEnv,
                                         image,
                                         requiredResources,
                                         workspaceConfiguration
@@ -792,23 +794,25 @@ public class ProjectsController {
             @Nonnull Map<String, String> env,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources) {
-        enqueueStage(pipeline, base, env, image, requiredResources, Action.Configure, null);
+        enqueueStage(pipeline, base, env, null, image, requiredResources, Action.Configure, null);
     }
 
     private static void enqueueExecutionStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
+            @Nullable Map<String, RangeWithStepSize> rangedEnv,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nullable WorkspaceConfiguration workspaceConfiguration) {
-        enqueueStage(pipeline, base, env, image, requiredResources, Action.Execute, workspaceConfiguration);
+        enqueueStage(pipeline, base, env, rangedEnv, image, requiredResources, Action.Execute, workspaceConfiguration);
     }
 
     private static void enqueueStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
+            @Nullable Map<String, RangeWithStepSize> rangedEnv,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nonnull Action action,
@@ -845,7 +849,13 @@ public class ProjectsController {
         }
          */
         maybeUpdateImageInfo(image, resultDefinition);
-        pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration);
+        if (action == Action.Configure) {
+            pipeline.enqueueConfiguration(resultDefinition);
+        } else if (rangedEnv == null || rangedEnv.isEmpty()) {
+            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration);
+        } else {
+            pipeline.enqueueRangedExecution(resultDefinition, workspaceConfiguration, rangedEnv);
+        }
         resumeIfPausedByStageFailure(pipeline);
         resumeIfWaitingForGoneStageConfiramtion(pipeline);
     }
