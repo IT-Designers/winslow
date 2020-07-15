@@ -85,14 +85,14 @@ public class ExecutionGroup {
             @Nonnull StageDefinition stageDefinition,
             @Nullable Map<String, RangeWithStepSize> rangedValues,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
-            @Nonnull List<Stage> stages,
+            @Nullable List<Stage> stages,
             int groupCounter) {
         this.id                     = id;
         this.configureOnly          = configureOnly;
         this.stageDefinition        = stageDefinition;
         this.rangedValues           = rangedValues != null ? new TreeMap<>(rangedValues) : new TreeMap<>();
         this.workspaceConfiguration = workspaceConfiguration;
-        this.stages                 = stages;
+        this.stages                 = stages != null ? new ArrayList<>(stages) : new ArrayList<>();
         this.groupCounter           = groupCounter;
     }
 
