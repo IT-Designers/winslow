@@ -39,12 +39,24 @@ public class Pipeline implements Cloneable {
         this.executionQueue   = new ArrayList<>();
     }
 
-    @ConstructorProperties({"projectId", "executionHistory", "executionQueue", "activeExecution", "pauseRequested", "pauseReason", "resumeNotification", "deletionPolicy", "strategy", "workspaceConfigurationMode", "executionCounter"})
+    @ConstructorProperties({
+            "projectId",
+            "executionHistory",
+            "enqueuedExecutions",
+            "activeExecutionGroup",
+            "pauseRequested",
+            "pauseReason",
+            "resumeNotification",
+            "deletionPolicy",
+            "strategy",
+            "workspaceConfigurationMode",
+            "executionCounter"
+    })
     public Pipeline(
             @Nonnull String projectId,
             @Nullable List<ExecutionGroup> executionHistory,
-            @Nullable List<ExecutionGroup> executionQueue,
-            @Nullable ExecutionGroup activeExecution,
+            @Nullable List<ExecutionGroup> enqueuedExecutions,
+            @Nullable ExecutionGroup activeExecutionGroup,
             boolean pauseRequested,
             @Nullable PauseReason pauseReason,
             @Nullable ResumeNotification resumeNotification,
@@ -54,8 +66,8 @@ public class Pipeline implements Cloneable {
             int executionCounter) {
         this.projectId                  = projectId;
         this.executionHistory           = Optional.ofNullable(executionHistory).orElseGet(ArrayList::new);
-        this.executionQueue             = Optional.ofNullable(executionQueue).orElseGet(ArrayList::new);
-        this.activeExecution            = activeExecution;
+        this.executionQueue             = Optional.ofNullable(enqueuedExecutions).orElseGet(ArrayList::new);
+        this.activeExecution            = activeExecutionGroup;
         this.pauseRequested             = pauseRequested;
         this.pauseReason                = pauseReason;
         this.resumeNotification         = resumeNotification;
@@ -243,12 +255,6 @@ public class Pipeline implements Cloneable {
         this.executionQueue.add(new ExecutionGroup(id, definition, rangedValues, workspaceConfiguration));
         return id;
     }
-
-    @Nonnull
-    public Strategy getStrategy() {
-        return this.strategy;
-    }
-
     @Nonnull
     public Optional<DeletionPolicy> getDeletionPolicy() {
         return Optional.ofNullable(this.deletionPolicy);
@@ -257,6 +263,12 @@ public class Pipeline implements Cloneable {
     public void setDeletionPolicy(@Nullable DeletionPolicy policy) {
         this.deletionPolicy = policy;
     }
+
+    @Nonnull
+    public Strategy getStrategy() {
+        return this.strategy;
+    }
+
 
     public void setStrategy(@Nonnull Strategy strategy) {
         this.strategy = strategy;

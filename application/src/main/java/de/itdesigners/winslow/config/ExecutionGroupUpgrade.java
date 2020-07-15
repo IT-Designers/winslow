@@ -27,7 +27,8 @@ public class ExecutionGroupUpgrade extends JsonDeserializer<ExecutionGroup> {
         if (node.has("action")) {
             return upgrade(p, node);
         } else {
-            return p.readValueAs(ExecutionGroup.class);
+            // return p.readValueAs(ExecutionGroup.class);
+            return DeserializerUtils.deserializeWithDefaultDeserializer(node, ctxt, ExecutionGroup.class);
         }
     }
 

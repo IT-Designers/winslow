@@ -3,9 +3,10 @@ package de.itdesigners.winslow.config;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerFactory;
+import com.fasterxml.jackson.databind.deser.ResolvableDeserializer;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
@@ -34,7 +35,8 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
         if (node.has("runningStage") || node.has("stageCounter")) {
             return upgrade(p, node);
         } else {
-            return p.readValueAs(Pipeline.class);
+            // return ctxt.readValue(node.traverse(), Pipeline.class);
+            return DeserializerUtils.deserializeWithDefaultDeserializer(node, ctxt, Pipeline.class);
         }
     }
 
