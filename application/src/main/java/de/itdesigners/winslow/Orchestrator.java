@@ -97,6 +97,21 @@ public class Orchestrator {
     }
 
     @Nonnull
+    public ElectionManager getElectionManager() {
+        return electionManager;
+    }
+
+    @Nonnull
+    public ProjectRepository getProjects() {
+        return projects;
+    }
+
+    @Nonnull
+    public PipelineRepository getPipelines() {
+        return pipelines;
+    }
+
+    @Nonnull
     Election.Participation judgeParticipationScore(@Nonnull ResourceAllocationMonitor.Set<Long> required) {
         return new Election.Participation(
                 monitor.getAffinity(required),
@@ -239,6 +254,20 @@ public class Orchestrator {
                     .map(BaseRepository.Handle::exclusive)
                     .flatMap(Optional::stream)
                     .forEach(this::updatePipeline);
+
+            pipelines
+                    .flatMap(h -> h.unsafe().map(p -> new PipelineUpdater(this, p, h)).stream())
+                    .filter(u -> {
+                        u.evaluateUpdatesWithoutExclusivePipelineAccess();
+                        return u.hasPipelineUpdatesThatRequireExclusiveAccess();
+                    })
+                    .forEach(u -> {
+                        try {
+                            u.evaluateUpdatesWithExclusivePipelineAccess();
+                        } catch (LockException | IOException e) {
+                            LOG.log(Level.SEVERE, "Failed to update pipeline", e);
+                        }
+                    });
         }
     }
 
@@ -307,45 +336,6 @@ public class Orchestrator {
                 .map(group -> group.isConfigureOnly() || this.backend.isCapableOfExecuting(group.getStageDefinition()));
     }
 
-    private void updatePipeline(@Nonnull LockedContainer<Pipeline> container) {
-        var projectId = container.getNoThrow().map(Pipeline::getProjectId);
-        var project   = projectId.flatMap(id -> projects.getProject(id).unsafe());
-        var pipeline  = Optional.<Pipeline>empty();
-
-        try (container) {
-            if (project.isPresent()) {
-                updatePipeline(project.get().getPipelineDefinition(), container);
-                pipeline = container.get();
-            } else {
-                LOG.warning("Failed to load project for project " + projectId + ", " + container.getLock());
-            }
-
-            pipeline.ifPresent(pipe -> {
-                if (isStageStateUpdateAvailable(pipe)) {
-                    new Thread(() -> {
-                        try {
-                            var duration = 2_000L;
-                            var puffer   = 100L;
-                            if (electionManager.maybeStartElection(pipe.getProjectId(), duration + puffer)) {
-                                LockBus.ensureSleepMs(duration);
-                                electionManager.closeElection(pipe.getProjectId());
-                            }
-                        } catch (LockException | IOException e) {
-                            LOG.log(Level.SEVERE, "Failed to start election for project " + pipe.getProjectId());
-                        }
-                    }).start();
-                }
-            });
-        } catch (OrchestratorException | LockException e) {
-            LOG.log(
-                    Level.SEVERE,
-                    "Failed to update pipeline " + container.getNoThrow().map(Pipeline::getProjectId),
-                    e
-            );
-        }
-
-    }
-
     private void updatePipeline(
             @Nonnull PipelineDefinition definition,
             @Nonnull LockedContainer<Pipeline> container) throws OrchestratorException {
@@ -376,15 +366,7 @@ public class Orchestrator {
         }
     }
 
-    private static boolean hasNoRunningStage(Pipeline pipeline) {
-        return pipeline
-                .getActiveExecutionGroup()
-                .stream()
-                .flatMap(ExecutionGroup::getRunningStages)
-                .noneMatch(s -> s.getState() == State.Running);
-    }
-
-    private boolean maybeEnqueueNextStageOfPipeline(
+    public boolean maybeEnqueueNextStageOfPipeline(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
         var noneRunning = hasNoRunningStage(pipeline);
@@ -757,7 +739,7 @@ public class Orchestrator {
     }
 
     private boolean needsConsistencyUpdate(@Nonnull Pipeline pipeline) {
-       return (hasLogRedirectionFailed(pipeline)
+        return (hasLogRedirectionFailed(pipeline)
                 || activeExecutionGroupIsDeadEnd(pipeline)
         ) && !pipeline.isPauseRequested()
                 || unnoticedFinished(pipeline);

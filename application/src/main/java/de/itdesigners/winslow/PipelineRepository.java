@@ -28,14 +28,14 @@ public class PipelineRepository extends BaseRepository {
     }
 
     @Nonnull
-    Stream<Handle<Pipeline>> getAllPipelines() {
+    public Stream<Handle<Pipeline>> getAllPipelines() {
         return listAll(FILE_SUFFIX)
                 .filter(path -> path.toString().endsWith(FILE_SUFFIX))
                 .map(path -> createHandle(path, Pipeline.class));
     }
 
     @Nonnull
-    Handle<Pipeline> getPipeline(@Nonnull String projectId) {
+    public Handle<Pipeline> getPipeline(@Nonnull String projectId) {
         return createHandle(getRepositoryFile(projectId, FILE_SUFFIX), Pipeline.class);
     }
 }
