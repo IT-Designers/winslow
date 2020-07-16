@@ -42,7 +42,7 @@ public class Executor {
 
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
-    private boolean                 failed      = true;
+    private boolean                 failed      = false;
 
     public Executor(
             @Nonnull String pipeline,
