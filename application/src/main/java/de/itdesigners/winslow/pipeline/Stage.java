@@ -61,11 +61,13 @@ public class Stage implements Cloneable {
     }
 
     @Nonnull
+    @Transient
     public String getFullyQualifiedId() {
         return this.id.getFullyQualified();
     }
 
     @Nonnull
+    @Transient
     public String getProjectRelativeId() {
         return this.id.getProjectRelative();
     }

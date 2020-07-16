@@ -166,6 +166,19 @@ public class Pipeline implements Cloneable {
 
     @Nonnull
     @Transient
+    public Optional<ExecutionGroup> getActiveOrNextExecutionGroup() {
+        if (this.activeExecution != null) {
+            return Optional.of(this.activeExecution);
+        } else if (!this.executionQueue.isEmpty()) {
+            return Optional.of(this.executionQueue.get(0));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+
+    @Nonnull
+    @Transient
     public Stream<ExecutionGroup> getPresentAndPastExecutionGroups() {
         return Stream.concat(this.executionHistory.stream(), getActiveExecutionGroup().stream());
     }

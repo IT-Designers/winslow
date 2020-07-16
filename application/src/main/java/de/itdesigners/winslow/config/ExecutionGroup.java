@@ -1,11 +1,9 @@
 package de.itdesigners.winslow.config;
 
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
-import de.itdesigners.winslow.pipeline.NamedId;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
 import org.javatuples.Pair;
@@ -165,7 +163,6 @@ public class ExecutionGroup {
      * @return All {@link Stage}s associated with this {@link ExecutionGroup}
      */
     @Nonnull
-    @Transient
     public Stream<Stage> getStages() {
         return this.stages.stream();
     }

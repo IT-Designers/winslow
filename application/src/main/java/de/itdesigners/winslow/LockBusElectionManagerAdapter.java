@@ -84,7 +84,7 @@ public class LockBusElectionManagerAdapter {
                 .filter(orchestrator::isStageStateUpdateAvailable)
                 .filter(p -> orchestrator.hasResourcesToSpawnStage(p).orElse(Boolean.FALSE))
                 .filter(p -> orchestrator.isCapableOfExecutingNextStage(p).orElse(Boolean.FALSE))
-                .flatMap(Pipeline::getActiveExecutionGroup)
+                .flatMap(Pipeline::getActiveOrNextExecutionGroup)
                 .ifPresent(activeGroup -> {
                     var requiredResources = orchestrator.getRequiredResources(activeGroup.getStageDefinition());
                     var participation     = orchestrator.judgeParticipationScore(requiredResources);

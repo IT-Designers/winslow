@@ -5,10 +5,7 @@ import de.itdesigners.winslow.api.pipeline.*;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.*;
-import de.itdesigners.winslow.pipeline.Pipeline;
-import de.itdesigners.winslow.pipeline.Stage;
-import de.itdesigners.winslow.pipeline.StageId;
-import de.itdesigners.winslow.pipeline.Submission;
+import de.itdesigners.winslow.pipeline.*;
 import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.Project;
@@ -277,7 +274,7 @@ public class Orchestrator {
     @Nonnull
     protected Optional<Boolean> hasResourcesToSpawnStage(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getActiveExecutionGroup()
+                .getActiveOrNextExecutionGroup()
                 .map(group -> group.isConfigureOnly()
                         || this.monitor.couldReserveConsideringReservations(getRequiredResources(group.getStageDefinition()))
                 );
@@ -306,7 +303,7 @@ public class Orchestrator {
 
     protected Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getActiveExecutionGroup()
+                .getActiveOrNextExecutionGroup()
                 .map(group -> group.isConfigureOnly() || this.backend.isCapableOfExecuting(group.getStageDefinition()));
     }
 
@@ -324,7 +321,7 @@ public class Orchestrator {
             }
 
             pipeline.ifPresent(pipe -> {
-                if (pipe.canRetrieveNextActiveExecution() && isStageStateUpdateAvailable(pipe)) {
+                if (isStageStateUpdateAvailable(pipe)) {
                     new Thread(() -> {
                         try {
                             var duration = 2_000L;
@@ -356,6 +353,16 @@ public class Orchestrator {
             var pipelineOpt = container.get();
             if (pipelineOpt.isPresent()) {
                 var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
+                if (activeExecutionGroupIsDeadEnd(pipeline)) {
+                    try {
+                        pipeline.archiveActiveExecution();
+                        pipeline = tryUpdateContainer(container, pipeline);
+                        pipeline.retrieveNextActiveExecution();
+                        pipeline = tryUpdateContainer(container, pipeline);
+                    } catch (ThereIsStillAnActiveExecutionGroupException | ExecutionGroupStillHasRunningStagesException e) {
+                        LOG.log(Level.SEVERE, "Failed to update dead active execution group", e);
+                    }
+                }
                 if (this.executeStages && hasNoRunningStage(pipeline)) {
                     var enqueued = maybeEnqueueNextStageOfPipeline(definition, pipeline);
                     //var started  = startNextStageIfReady(container.getLock(), definition, pipeline);
@@ -380,14 +387,13 @@ public class Orchestrator {
     private boolean maybeEnqueueNextStageOfPipeline(
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        var noneRunning         = hasNoRunningStage(pipeline);
-        var paused              = pipeline.isPauseRequested();
-        var completedAndHasNext = !pipeline.activeExecutionGroupCouldSpawnFurtherStages() && pipeline.canRetrieveNextActiveExecution();
-        var successful          = pipeline.activeExecutionGroupHasNoFailedStages();
+        var noneRunning = hasNoRunningStage(pipeline);
+        var paused      = pipeline.isPauseRequested();
+        var successful  = pipeline.activeExecutionGroupHasNoFailedStages();
 
-        if (noneRunning && !paused && completedAndHasNext && successful) {
+        if (noneRunning && !paused && successful) {
             return pipeline
-                    .getActiveExecutionGroup()
+                    .getActiveOrNextExecutionGroup()
                     .flatMap(group -> getNextStageIndex(definition, group.getStageDefinition(), group.isConfigureOnly())
                             .map(
                                     index -> {
@@ -451,11 +457,6 @@ public class Orchestrator {
                                                             )
                                                     ));
 
-                                            // enqueue the stage only if the execution would be possible
-                                            pipeline.enqueueSingleExecution(
-                                                    stageDefinition,
-                                                    workspaceConfiguration
-                                            );
                                             return Boolean.TRUE;
                                         } catch (UserInputChecker.MissingUserConfirmationException e) {
                                             pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
@@ -544,6 +545,14 @@ public class Orchestrator {
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
+        if (pipeline.getActiveExecutionGroup().isEmpty()) {
+            try {
+                pipeline.retrieveNextActiveExecution();
+            } catch (ThereIsStillAnActiveExecutionGroupException e) {
+                LOG.log(Level.SEVERE, "Failed to retrieve execution group", e);
+            }
+        }
+
         var executionGroup      = pipeline.getActiveExecutionGroup();
         var nextStageDefinition = executionGroup.flatMap(ExecutionGroup::getNextStageDefinition);
 
@@ -655,6 +664,7 @@ public class Orchestrator {
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
                 updatePipeline(projectId, pipelineToUpdate -> {
+                    pipelineToUpdate.requestPause();
                     pipelineToUpdate.getActiveExecutionGroup().ifPresentOrElse(
                             group -> {
                                 try {
@@ -747,7 +757,17 @@ public class Orchestrator {
     }
 
     private boolean needsConsistencyUpdate(@Nonnull Pipeline pipeline) {
-        return hasLogRedirectionFailed(pipeline) || unnoticedFinished(pipeline);
+        return hasLogRedirectionFailed(pipeline)
+                || unnoticedFinished(pipeline)
+                || (activeExecutionGroupIsDeadEnd(pipeline) && hasNoRunningStage(pipeline));
+    }
+
+    private boolean activeExecutionGroupIsDeadEnd(@Nonnull Pipeline pipeline) {
+        var executionGroup = pipeline.getActiveExecutionGroup();
+        return executionGroup.isPresent() && !executionGroup
+                .map(ExecutionGroup::hasRemainingExecutions)
+                .orElse(Boolean.FALSE);
+
     }
 
     private boolean unnoticedFinished(@Nonnull Pipeline pipeline) {
@@ -795,7 +815,7 @@ public class Orchestrator {
         };
     }
 
-    protected boolean isStageStateUpdateAvailable(Pipeline pipeline) {
+    protected boolean isStageStateUpdateAvailable(@Nonnull Pipeline pipeline) {
         var hasEnqueuedStages = pipeline.hasEnqueuedStages();
         var isPaused          = pipeline.isPauseRequested();
         var isRunning = getLogRedirectionState(pipeline).anyMatch(s -> s == SimpleState.Running)
