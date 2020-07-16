@@ -788,9 +788,7 @@ public class Orchestrator {
     private Stream<SimpleState> getLogRedirectionState(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveExecutionGroup()
-                .map(group -> group.getStages().map(stage -> {
-                    return getLogRedirectionState(pipeline, stage);
-                }))
+                .map(group -> group.getStages().map(stage -> getLogRedirectionState(pipeline, stage)))
                 .orElse(Stream.of(SimpleState.Succeeded));
     }
 
