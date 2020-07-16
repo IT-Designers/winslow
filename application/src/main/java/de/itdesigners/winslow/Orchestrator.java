@@ -757,16 +757,17 @@ public class Orchestrator {
     }
 
     private boolean needsConsistencyUpdate(@Nonnull Pipeline pipeline) {
-        return hasLogRedirectionFailed(pipeline)
-                || unnoticedFinished(pipeline)
-                || (activeExecutionGroupIsDeadEnd(pipeline) && hasNoRunningStage(pipeline));
+       return (hasLogRedirectionFailed(pipeline)
+                || activeExecutionGroupIsDeadEnd(pipeline)
+        ) && !pipeline.isPauseRequested()
+                || unnoticedFinished(pipeline);
     }
 
     private boolean activeExecutionGroupIsDeadEnd(@Nonnull Pipeline pipeline) {
         var executionGroup = pipeline.getActiveExecutionGroup();
-        return executionGroup.isPresent() && !executionGroup
-                .map(ExecutionGroup::hasRemainingExecutions)
-                .orElse(Boolean.FALSE);
+        return executionGroup.isPresent()
+                && !executionGroup.map(ExecutionGroup::hasRemainingExecutions).orElse(Boolean.FALSE)
+                && executionGroup.map(ExecutionGroup::getRunningStages).flatMap(Stream::findFirst).isEmpty();
 
     }
 
