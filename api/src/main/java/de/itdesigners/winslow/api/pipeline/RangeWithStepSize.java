@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.api.pipeline;
 
+import java.beans.ConstructorProperties;
 import java.beans.Transient;
 
 public class RangeWithStepSize {
@@ -8,6 +9,7 @@ public class RangeWithStepSize {
     private final float max;
     private final float stepSize;
 
+    @ConstructorProperties({"min", "max", "stepSize"})
     public RangeWithStepSize(float min, float max, float stepSize) {
         this.min      = min;
         this.max      = max;
@@ -35,11 +37,13 @@ public class RangeWithStepSize {
             stepSize = stepSize * -1.0f;
         }
 
-        return this.min + (((float)step) * stepSize);
+        var current = this.min + (((float)step) * stepSize);
+
+        return Math.min(current, this.max);
     }
 
     @Transient
     public int getStepCount() {
-        return Math.max(1, (int) Math.ceil(Math.abs((this.max - this.min) / this.stepSize)));
+        return Math.max(0, (int) Math.ceil(Math.abs((this.max - this.min) / this.stepSize))) + 1;
     }
 }
