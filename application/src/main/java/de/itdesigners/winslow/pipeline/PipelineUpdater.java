@@ -1,6 +1,8 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.BaseRepository;
+import de.itdesigners.winslow.LockHeart;
+import de.itdesigners.winslow.LockedContainer;
 import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.fs.LockException;
 
@@ -17,10 +19,11 @@ public class PipelineUpdater {
 
     private static final Logger LOG = Logger.getLogger(PipelineUpdater.class.getSimpleName());
 
-    private final @Nonnull  Orchestrator                    orchestrator;
-    private final @Nonnull  String                          projectId;
-    private final @Nullable Pipeline                        pipelineReadOnly;
-    private final @Nonnull  BaseRepository.Handle<Pipeline> pipelineHandle;
+    private final @Nonnull Orchestrator                    orchestrator;
+    private final @Nonnull String                          projectId;
+    private final @Nonnull BaseRepository.Handle<Pipeline> pipelineHandle;
+
+    private @Nullable Pipeline pipelineReadOnly;
 
     private final @Nonnull List<NoAccessUpdater>        independentUpdates = new ArrayList<>();
     private final @Nonnull List<ExclusiveAccessUpdater> pipelineUpdates    = new ArrayList<>();
@@ -55,13 +58,23 @@ public class PipelineUpdater {
         this.searchForUpdates();
     }
 
+    public void evaluate() throws IOException, LockException {
+        searchForUpdates();
+        evaluateUpdatesWithoutExclusivePipelineAccess();
+        evaluateUpdatesWithExclusivePipelineAccess();
+    }
+
     public void searchForUpdates() {
         ActiveExecutionGroupUpdate
-                .search(orchestrator, projectId, pipelineReadOnly)
+                .check(orchestrator, projectId, pipelineReadOnly)
                 .ifPresent(independentUpdates::add);
 
         StageElectionUpdate
-                .search(orchestrator, projectId, pipelineReadOnly)
+                .check(orchestrator, projectId, pipelineReadOnly)
+                .ifPresent(independentUpdates::add);
+
+        AutoEnqueueUpdate
+                .check(orchestrator, projectId, pipelineReadOnly)
                 .ifPresent(independentUpdates::add);
     }
 
@@ -90,18 +103,40 @@ public class PipelineUpdater {
         if (hasPipelineUpdatesThatRequireExclusiveAccess()) {
             try (var container = pipelineHandle
                     .exclusive()
-                    .orElseThrow(() -> new LockException("Failed to acquire exclusive pipeline access"))) {
-                for (var update : this.pipelineUpdates) {
-                    LOG.log(Level.INFO, pId() + " RW: " + update.getClass().getSimpleName());
-                    var pipeline = update.update(orchestrator, container.get().orElse(null));
-                    if (pipeline != null) {
-                        container.update(pipeline);
-                    }
+                    .orElseThrow(() -> new LockException("Failed to acquire exclusive pipeline access"));
+                 var heart = new LockHeart(container.getLock())) {
 
+
+                var updatedPipeline = performPipelineUpdates(container);
+
+                for (int i = 0; i < 10 && updatedPipeline.isPresent(); ++i) {
+                    this.pipelineReadOnly = updatedPipeline.get();
+                    this.searchForUpdates();
+                    this.evaluateUpdatesWithoutExclusivePipelineAccess();
+                    updatedPipeline = performPipelineUpdates(container);
                 }
+
             } finally {
                 this.pipelineUpdates.clear();
             }
+        }
+    }
+
+    private Optional<Pipeline> performPipelineUpdates(@Nonnull LockedContainer<Pipeline> container) throws LockException, IOException {
+        try {
+            var mostRecentPipelineUpdate = Optional.<Pipeline>empty();
+            for (var update : this.pipelineUpdates) {
+                LOG.log(Level.INFO, pId() + " RW: " + update.getClass().getSimpleName());
+                var pipeline = update.update(orchestrator, container.get().orElse(null));
+                if (pipeline != null) {
+                    container.update(pipeline);
+                    mostRecentPipelineUpdate = Optional.of(pipeline);
+                }
+
+            }
+            return mostRecentPipelineUpdate;
+        } finally {
+            this.pipelineUpdates.clear();
         }
     }
 

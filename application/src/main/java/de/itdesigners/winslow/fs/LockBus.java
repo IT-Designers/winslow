@@ -28,8 +28,8 @@ public class LockBus {
     public static final int    DURATION_SURELY_OUT_OF_DATE   = 5_000;
     public static final int    DURATION_FOR_UNREADABLE_FILES = 25_000;
     public static final int    MAX_OLD_EVENT_FILE_COUNT      = 25;
-    public static final int    MIN_POLL_TIME_INTERVALL = 10;
-    public static final String COMMON_LOCK_FILE        = ".lock";
+    public static final int    MIN_POLL_TIME_INTERVALL       = 10;
+    public static final String COMMON_LOCK_FILE              = ".lock";
 
     private final String             name;
     private final Path               eventDirectory;
@@ -238,11 +238,23 @@ public class LockBus {
         }
     }
 
-    public synchronized boolean isLocked(String subject) {
+    public boolean isLocked(String subject) {
+        return getValidLock(subject).isPresent();
+    }
+
+    public boolean isLockedByAnotherInstance(String subject) {
+        return getValidLock(subject).map(e -> !this.name.equals(e.getIssuer())).orElse(Boolean.FALSE);
+    }
+
+    private synchronized Optional<Event> getValidLock(String subject) {
         ensureLocksAreUpToDate();
         var lock = this.locks.get(subject);
         LOG.fine("Lock lookup for the same subject: " + lock);
-        return lock != null && lock.getTime() + lock.getDuration() + LOCK_DURATION_OFFSET >= System.currentTimeMillis();
+        if (lock != null && lock.getTime() + lock.getDuration() + LOCK_DURATION_OFFSET >= System.currentTimeMillis()) {
+            return Optional.of(lock);
+        } else {
+            return Optional.empty();
+        }
     }
 
     private void ensureLocksAreUpToDate() {

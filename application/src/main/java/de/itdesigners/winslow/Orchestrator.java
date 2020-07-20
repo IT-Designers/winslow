@@ -1,7 +1,9 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.pipeline.*;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.*;
@@ -19,7 +21,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
@@ -109,6 +114,11 @@ public class Orchestrator {
     @Nonnull
     public PipelineRepository getPipelines() {
         return pipelines;
+    }
+
+    @Nonnull
+    public DelayedExecutor getDelayedExecutor() {
+        return delayedExecutions;
     }
 
     @Nonnull
@@ -250,12 +260,6 @@ public class Orchestrator {
     private void checkPipelinesForUpdate(@Nonnull Stream<BaseRepository.Handle<Pipeline>> pipelines) {
         if (this.executeStages) {
             pipelines
-                    .filter(this::pipelineUpdatable)
-                    .map(BaseRepository.Handle::exclusive)
-                    .flatMap(Optional::stream)
-                    .forEach(this::updatePipeline);
-
-            pipelines
                     .flatMap(h -> h.unsafe().map(p -> new PipelineUpdater(this, p, h)).stream())
                     .filter(u -> {
                         u.evaluateUpdatesWithoutExclusivePipelineAccess();
@@ -271,37 +275,12 @@ public class Orchestrator {
         }
     }
 
-    private boolean pipelineUpdatable(@Nonnull BaseRepository.Handle<Pipeline> handle) {
-        try {
-            var locked       = handle.isLocked();
-            var pipe         = handle.unsafe();
-            var projectId    = pipe.map(Pipeline::getProjectId);
-            var hasElection  = projectId.flatMap(electionManager::getElection).isPresent();
-            var project      = projectId.map(projects::getProject).flatMap(BaseRepository.Handle::unsafe);
-            var definition   = project.map(Project::getPipelineDefinition);
-            var hasUpdate    = pipe.map(this::isStageStateUpdateAvailable).orElse(false);
-            var inconsistent = pipe.map(this::needsConsistencyUpdate).orElse(false);
-            var capable      = pipe.flatMap(this::isCapableOfExecutingNextStage).orElse(false);
-            var hasResources = pipe.flatMap(this::hasResourcesToSpawnStage).orElse(false);
-            var hasNext = pipe.flatMap(p -> definition.map(d -> maybeEnqueueNextStageOfPipeline(d, p)))
-                              .orElse(false);
-
-            LOG.info("Checking, locked=" + locked + ", hasElection=" + hasElection + ", hasUpdate=" + hasUpdate + ", capable=" + capable + ", hasResources=" + hasResources + ", inconsistent=" + inconsistent + ", hasNext=" + hasNext + " projectId=" + projectId);
-
-            if (!locked && !hasElection && hasUpdate && capable && !hasResources) {
-                // just missing free resources for now
-                this.missingResources.add(pipe.get().getProjectId());
-            }
-
-            return !locked && !hasElection && ((hasUpdate) || inconsistent || hasNext);
-        } catch (Throwable t) {
-            LOG.log(Level.SEVERE, "Failed to poll for " + handle.unsafe().map(Pipeline::getProjectId), t);
-            return false;
-        }
+    public void addProjectThatNeedsToBeReEvaluatedOnceMoreResourcesAreAvailable(@Nonnull String projectId) {
+        this.missingResources.add(projectId);
     }
 
     @Nonnull
-    protected Optional<Boolean> hasResourcesToSpawnStage(@Nonnull Pipeline pipeline) {
+    public Optional<Boolean> hasResourcesToSpawnStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
                 .map(group -> group.isConfigureOnly()
@@ -330,184 +309,36 @@ public class Orchestrator {
                 );
     }
 
-    protected Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
+    public Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
                 .map(group -> group.isConfigureOnly() || this.backend.isCapableOfExecuting(group.getStageDefinition()));
     }
 
-    private void updatePipeline(
-            @Nonnull PipelineDefinition definition,
-            @Nonnull LockedContainer<Pipeline> container) throws OrchestratorException {
-        try {
-            var pipelineOpt = container.get();
-            if (pipelineOpt.isPresent()) {
-                var pipeline = tryUpdateContainer(container, updateRunningStage(pipelineOpt.get()));
-                if (activeExecutionGroupIsDeadEnd(pipeline)) {
-                    try {
-                        pipeline.archiveActiveExecution();
-                        pipeline = tryUpdateContainer(container, pipeline);
-                        pipeline.retrieveNextActiveExecution();
-                        pipeline = tryUpdateContainer(container, pipeline);
-                    } catch (ThereIsStillAnActiveExecutionGroupException | ExecutionGroupStillHasRunningStagesException e) {
-                        LOG.log(Level.SEVERE, "Failed to update dead active execution group", e);
-                    }
-                }
-                if (this.executeStages && hasNoRunningStage(pipeline)) {
-                    var enqueued = maybeEnqueueNextStageOfPipeline(definition, pipeline);
-                    //var started  = startNextStageIfReady(container.getLock(), definition, pipeline);
-                    if (enqueued/* || started*/) {
-                        tryUpdateContainer(container, pipeline);
-                    }
-                }
-            }
-        } catch (LockException e) {
-            LOG.log(Level.SEVERE, "Failed to get pipeline for update", e);
-        }
-    }
 
-    public boolean maybeEnqueueNextStageOfPipeline(
-            @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) {
-        var noneRunning = hasNoRunningStage(pipeline);
-        var paused      = pipeline.isPauseRequested();
-        var successful  = pipeline.activeExecutionGroupHasNoFailedStages();
-
-        if (noneRunning && !paused && successful) {
-            return pipeline
-                    .getActiveOrNextExecutionGroup()
-                    .flatMap(group -> getNextStageIndex(definition, group.getStageDefinition(), group.isConfigureOnly())
-                            .map(
-                                    index -> {
-                                        var base = definition.getStages().get(index);
-                                        var env  = new TreeMap<>(base.getEnvironment());
-
-                                        var builder = new StageDefinitionBuilder()
-                                                .withTemplateBase(base)
-                                                .withEnvironment(env);
-
-                                        // overwrite StageDefinition if there is already an
-                                        // execution instance of it
-                                        pipeline
-                                                .getPresentAndPastExecutionGroups()
-                                                .filter(g -> g.getStageDefinition().getName().equals(base.getName()))
-                                                .filter(g -> g
-                                                        .getStages()
-                                                        .anyMatch(s -> s.getState() == State.Succeeded))
-                                                .reduce((first, second) -> second) // take the most recent
-                                                .ifPresent(recent -> {
-                                                    env.clear();
-                                                    env.putAll(recent
-                                                                       .getStages()
-                                                                       .filter(s -> s.getState() == State.Succeeded)
-                                                                       .reduce((first, second) -> second)
-                                                                       .orElseThrow() // would not have passed through any match
-                                                                       .getEnv());
-                                                    recent
-                                                            .getStageDefinition()
-                                                            .getImage()
-                                                            .ifPresent(builder::withImage);
-                                                });
-
-
-                                        var stageDefinition        = builder.build();
-                                        var workspaceConfiguration = new WorkspaceConfiguration();
-                                        var stageId = new StageId(
-                                                "no-project-id-because-probing-execution-" + System.nanoTime(),
-                                                0,
-                                                null,
-                                                null
-                                        );
-
-                                        try {
-                                            // check whether assembling the stage would be possible
-                                            new StageAssembler()
-                                                    .add(new EnvironmentVariableAppender(settings.getGlobalEnvironmentVariables()))
-                                                    .add(new DockerImageAppender())
-                                                    .add(new EnvLogger())
-                                                    .add(new UserInputChecker())
-                                                    .assemble(new Context(
-                                                            pipeline,
-                                                            definition,
-                                                            null,
-                                                            stageId,
-                                                            new Submission(
-                                                                    stageId,
-                                                                    false,
-                                                                    stageDefinition,
-                                                                    workspaceConfiguration
-                                                            )
-                                                    ));
-
-                                            return Boolean.TRUE;
-                                        } catch (UserInputChecker.MissingUserConfirmationException e) {
-                                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
-                                            return Boolean.TRUE;
-
-                                        } catch (UserInputChecker.FurtherUserInputRequiredException e) {
-                                            pipeline.requestPause(Pipeline.PauseReason.FurtherInputRequired);
-                                            return Boolean.TRUE;
-                                        } catch (Throwable t) {
-                                            LOG.log(
-                                                    Level.WARNING,
-                                                    "Unexpected error when checking whether to enqueue the next stage automatically",
-                                                    t
-                                            );
-                                            pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
-                                            return Boolean.TRUE;
-                                        }
-                                    })).orElse(Boolean.FALSE);
-        } else {
-            return false;
-        }
-    }
-
-    private Optional<Integer> getNextStageIndex(
-            @Nonnull PipelineDefinition definition,
-            @Nonnull StageDefinition stage,
-            boolean configureOnly) {
-        for (int i = 0; i < definition.getStages().size(); ++i) {
-            if (definition.getStages().get(i).getName().equals(stage.getName())) {
-                var next = i + (configureOnly ? 0 : 1);
-                if (next < definition.getStages().size()) {
-                    return Optional.of(next);
-                } else {
-                    return Optional.empty();
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    protected boolean startNextStageIfReady(
+    protected boolean startPipeline(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        var noneRunning  = hasNoRunningStage(pipeline);
-        var paused       = pipeline.isPauseRequested();
-        var hasNext      = pipeline.hasEnqueuedStages();
-        var isCapable    = isCapableOfExecutingNextStage(pipeline).orElse(false);
-        var hasResources = hasResourcesToSpawnStage(pipeline).orElse(false);
-
-        if (noneRunning && !paused && hasNext && isCapable && hasResources) {
-            switch (pipeline.getStrategy()) {
-                case MoveForwardOnce:
-                    pipeline.requestPause();
-                case MoveForwardUntilEnd:
-                    return startNextPipelineStage(lock, definition, pipeline).map(pair -> {
-                        setupResourceAllocationAndFreeingListener(
-                                pair.getValue0().getStageDefinition(),
-                                pair.getValue1()
-                        );
-                        pipeline.clearPauseReason();
-                        return Boolean.TRUE;
-                    }).orElse(Boolean.FALSE);
-            }
+        switch (pipeline.getStrategy()) {
+            case MoveForwardOnce:
+                pipeline.requestPause();
+            case MoveForwardUntilEnd:
+                return startNextPipelineStage(lock, definition, pipeline).map(pair -> {
+                    freeResourcesOnExecutorShutdown(
+                            pair.getValue0().getStageDefinition(),
+                            pair.getValue1()
+                    );
+                    pipeline.clearPauseReason();
+                    return Boolean.TRUE;
+                }).orElse(Boolean.FALSE);
+            default:
+                LOG.log(Level.SEVERE, "Unknown pipeline strategy: " + pipeline.getStrategy());
+                return false;
         }
-        return false;
     }
 
-    private void setupResourceAllocationAndFreeingListener(
+    private void freeResourcesOnExecutorShutdown(
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Stage stage) {
         var requiredResources = getRequiredResources(stageDefinition);
@@ -818,7 +649,7 @@ public class Orchestrator {
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             var pipeline = container.get().orElseThrow(() -> new PipelineNotFoundException(project));
 
-            if (!hasNoRunningStage(pipeline)) {
+            if (pipeline.getActiveExecutionGroup().stream().flatMap(ExecutionGroup::getRunningStages).count() > 0) {
                 throw new OrchestratorException(
                         "Pipeline is still running. Deleting a running Pipeline is not (yet) supported");
             }
@@ -928,11 +759,23 @@ public class Orchestrator {
             throw new PipelineAlreadyExistsException(project);
         }
 
-        try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
+        var handle = this.pipelines.getPipeline(project.getId());
+
+        try (var container = handle.exclusive()
+                                   .orElseThrow(() -> new OrchestratorException(
+                                           "Failed to access new pipeline exclusively"));
+             var heart = new LockHeart(container.getLock())) {
+
             Pipeline pipeline = new Pipeline(project.getId());
             tryCreateInitDirectories(pipeline, false);
-            updatePipeline(project.getPipelineDefinition(), container);
             tryUpdateContainer(container, pipeline);
+
+            try {
+                new PipelineUpdater(this, pipeline.getProjectId(), handle).evaluate();
+            } catch (LockException | IOException e) {
+                LOG.log(Level.SEVERE, "Failed to evaluate pipeline updates");
+            }
+
             return pipeline;
         }
     }

@@ -82,8 +82,14 @@ public class LockBusElectionManagerAdapter {
         orchestrator
                 .getPipelineUnsafe(election.getProjectId())
                 .filter(orchestrator::isStageStateUpdateAvailable)
-                .filter(p -> orchestrator.hasResourcesToSpawnStage(p).orElse(Boolean.FALSE))
                 .filter(p -> orchestrator.isCapableOfExecutingNextStage(p).orElse(Boolean.FALSE))
+                .filter(p -> {
+                    var hasResourced = orchestrator.hasResourcesToSpawnStage(p).orElse(Boolean.FALSE);
+                    if (!hasResourced) {
+                        orchestrator.addProjectThatNeedsToBeReEvaluatedOnceMoreResourcesAreAvailable(p.getProjectId());
+                    }
+                    return hasResourced;
+                })
                 .flatMap(Pipeline::getActiveOrNextExecutionGroup)
                 .ifPresent(activeGroup -> {
                     var requiredResources = orchestrator.getRequiredResources(activeGroup.getStageDefinition());
@@ -111,18 +117,16 @@ public class LockBusElectionManagerAdapter {
 
                     exclusive.ifPresentOrElse(
                             container -> {
-                                var lock = container.getLock();
-                                try (lock) {
+                                try (var lock = container.getLock()) {
                                     var pipeline = container.get().get();
-                                    if (orchestrator.startNextStageIfReady(lock, definition.get(), pipeline)) {
+                                    if (orchestrator.startPipeline(lock, definition.get(), pipeline)) {
                                         container.update(pipeline);
                                     }
                                 } catch (LockException | IOException e) {
                                     LOG.log(Level.SEVERE, "Failed to start next stage", e);
                                 }
                             },
-                            () -> LOG.severe(
-                                    "Failed to lock project which should be executed by this node by election")
+                            () -> LOG.severe("Failed to lock project which should be executed by this node by election")
                     );
                 }).start();
             }

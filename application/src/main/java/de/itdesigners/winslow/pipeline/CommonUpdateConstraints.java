@@ -10,7 +10,7 @@ import java.util.Optional;
 public class CommonUpdateConstraints {
 
 
-    public static void ensureIsNotLocked(
+    public static void ensureIsNotLockedByAnotherInstance(
             @Nonnull Orchestrator orchestrator,
             @Nonnull String projectId) throws PreconditionNotMetException {
         PreconditionNotMetException.requireFalse(
@@ -18,7 +18,7 @@ public class CommonUpdateConstraints {
                 orchestrator
                         .getPipelines()
                         .getPipeline(projectId)
-                        .isLocked()
+                        .isLockedByAnotherInstance()
         );
     }
 
@@ -74,6 +74,16 @@ public class CommonUpdateConstraints {
                 .isEmpty();
         if (!empty) {
             throw new PreconditionNotMetException("There is at least one entry in the queue for this pipeline");
+        }
+    }
+
+    public static void ensureIsNotPaused(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
+        var paused = Optional
+            .ofNullable(pipelineReadOnly)
+                .map(Pipeline::isPauseRequested)
+                .orElse(Boolean.FALSE);
+        if (paused) {
+            throw new PreconditionNotMetException("The pipeline is paused");
         }
     }
 }

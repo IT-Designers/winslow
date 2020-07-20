@@ -125,8 +125,12 @@ public abstract class BaseRepository {
         }
     }
 
-    protected boolean isLocked(Path path) {
+    protected boolean isLocked(@Nonnull Path path) {
         return this.lockBus.isLocked(getLockSubjectForPath(path));
+    }
+
+    protected boolean isLockedByAnotherInstance(@Nonnull Path path) {
+        return this.lockBus.isLockedByAnotherInstance(getLockSubjectForPath(path));
     }
 
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
@@ -202,7 +206,7 @@ public abstract class BaseRepository {
         return new Lock(lockBus, subject, durationMs);
     }
 
-    protected String getLockSubjectForPath(Path path) {
+    protected String getLockSubjectForPath(@Nonnull Path path) {
         return workDirectoryConfiguration.getPath().relativize(path).toString();
     }
 
@@ -258,6 +262,10 @@ public abstract class BaseRepository {
 
         public boolean isLocked() {
             return BaseRepository.this.isLocked(path);
+        }
+
+        public boolean isLockedByAnotherInstance() {
+            return BaseRepository.this.isLockedByAnotherInstance(path);
         }
 
         public boolean exists() {
