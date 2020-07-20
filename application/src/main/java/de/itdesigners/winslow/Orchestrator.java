@@ -257,9 +257,10 @@ public class Orchestrator {
         this.checkPipelinesForUpdate(Stream.of(this.pipelines.getPipeline(id)));
     }
 
-    private void checkPipelinesForUpdate(@Nonnull Stream<BaseRepository.Handle<Pipeline>> pipelines) {
+    private synchronized void checkPipelinesForUpdate(@Nonnull Stream<BaseRepository.Handle<Pipeline>> pipelines) {
         if (this.executeStages) {
             pipelines
+                    .filter(h -> !h.isLocked())
                     .flatMap(h -> h.unsafe().map(p -> new PipelineUpdater(this, p, h)).stream())
                     .filter(u -> {
                         u.evaluateUpdatesWithoutExclusivePipelineAccess();
@@ -629,7 +630,11 @@ public class Orchestrator {
 
     protected boolean isStageStateUpdateAvailable(@Nonnull Pipeline pipeline) {
         var hasEnqueuedStages = pipeline.hasEnqueuedStages();
-        var isPaused          = pipeline.isPauseRequested();
+        var hasRemaining = pipeline
+                .getActiveExecutionGroup()
+                .map(ExecutionGroup::hasRemainingExecutions)
+                .orElse(Boolean.FALSE);
+        var isPaused = pipeline.isPauseRequested();
         var isRunning = getLogRedirectionState(pipeline).anyMatch(s -> s == SimpleState.Running)
                 || pipeline
                 .getActiveExecutionGroup()
@@ -638,7 +643,7 @@ public class Orchestrator {
                 .flatMap(stage -> getStateOmitExceptions(pipeline, stage).stream())
                 .anyMatch(state -> State.Running == state);
 
-        return hasEnqueuedStages && !isPaused && !isRunning;
+        return (hasEnqueuedStages || hasRemaining) && !isPaused && (!isRunning || hasRemaining);
     }
 
     public boolean deletePipeline(@Nonnull Project project) throws OrchestratorException {

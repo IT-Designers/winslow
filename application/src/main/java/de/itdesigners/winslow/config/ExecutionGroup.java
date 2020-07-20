@@ -214,18 +214,21 @@ public class ExecutionGroup {
      */
     @Transient
     public int getExpectedGroupSize() {
-        return Optional.ofNullable(this.rangedValues).map(m -> m
-                .values()
-                .stream()
-                .map(RangeWithStepSize::getStepCount)
-                .reduce(0, Integer::sum)
-        ).orElseGet(() -> {
-            if (configureOnly) {
-                return 0;
-            } else {
-                return 1;
-            }
-        });
+        return Optional
+                .ofNullable(this.rangedValues)
+                .filter(r -> !r.isEmpty())
+                .map(m -> m
+                        .values()
+                        .stream()
+                        .map(RangeWithStepSize::getStepCount)
+                        .reduce(0, Integer::sum)
+                ).orElseGet(() -> {
+                    if (configureOnly) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                });
     }
 
     @Transient

@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 
 import javax.annotation.Nonnull;
@@ -29,7 +30,9 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
             @Nullable Pipeline pipelineReadOnly) {
         try {
             ensureAllPreconditionsAreMet(orchestrator, projectId, pipelineReadOnly);
-            if (pipelineReadOnly != null && orchestrator.isCapableOfExecutingNextStage(pipelineReadOnly).orElse(Boolean.FALSE)) {
+            if (pipelineReadOnly != null && orchestrator
+                    .isCapableOfExecutingNextStage(pipelineReadOnly)
+                    .orElse(Boolean.FALSE)) {
                 if (orchestrator.hasResourcesToSpawnStage(pipelineReadOnly).orElse(Boolean.FALSE)) {
                     return Optional.of(new StageElectionUpdate(projectId));
                 } else {
@@ -50,6 +53,17 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
         ensureIsNotLockedByAnotherInstance(orchestrator, projectId);
         ensureNoElectionIsRunning(orchestrator, projectId);
         ensureHasStageDefinitionToDeploy(pipelineReadOnly);
+        ensureNotPaused(pipelineReadOnly);
+    }
+
+    private static void ensureNotPaused(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
+        var paused = Optional
+                .ofNullable(pipelineReadOnly)
+                .map(Pipeline::isPauseRequested)
+                .orElse(Boolean.FALSE);
+        if (paused) {
+            throw new PreconditionNotMetException("Pipeline is paused");
+        }
     }
 
     @Nonnull
@@ -63,25 +77,20 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
     public Pipeline update(@Nonnull Orchestrator orchestrator, @Nullable Pipeline pipeline) {
         try {
             ensureAllPreconditionsAreMet(orchestrator, projectId, pipeline);
-            var duration = 2_000L;
-            var puffer   = 100L;
-            if (orchestrator.getElectionManager().maybeStartElection(projectId, duration + puffer)) {
-                orchestrator.getDelayedExecutor().executeDelayed(
-                        String.format("%s_%s", getClass().getSimpleName(), projectId),
-                        duration,
-                        () -> {
-                            try {
-                                orchestrator.getElectionManager().closeElection(projectId);
-                            } catch (LockException | IOException e) {
-                                LOG.log(Level.SEVERE, "Failed to end election for project " + projectId);
-                            }
-                        }
-                );
-            }
+            new Thread(() -> {
+                try {
+                    var duration = 2_000L;
+                    var puffer   = 100L;
+                    if (orchestrator.getElectionManager().maybeStartElection(projectId, duration + puffer)) {
+                        LockBus.ensureSleepMs(duration);
+                        orchestrator.getElectionManager().closeElection(projectId);
+                    }
+                } catch (LockException | IOException e) {
+                    LOG.log(Level.SEVERE, "Failed to have an election for project " + projectId);
+                }
+            }).start();
         } catch (PreconditionNotMetException e) {
             LOG.log(Level.SEVERE, "At least one precondition is no longer met, cannot start election", e);
-        } catch (LockException | IOException e) {
-            LOG.log(Level.SEVERE, "Failed to start election for project " + projectId);
         }
         // no changes on pipeline
         return null;

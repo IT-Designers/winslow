@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.config.ExecutionGroup;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
 
 import static de.itdesigners.winslow.pipeline.CommonUpdateConstraints.*;
 
-public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdater {
+public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdater, PipelineUpdater.ExclusiveAccessUpdater {
 
     private static final Logger LOG = Logger.getLogger(ActiveExecutionGroupUpdate.class.getSimpleName());
 
@@ -41,26 +42,34 @@ public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdat
         ensureNoElectionIsRunning(orchestrator, projectId);
         ensureHasNoRunningStages(pipelineReadOnly);
         ensureNoActiveExecutionGroupOrActiveGroupIsExhausted(pipelineReadOnly);
+        ensureArchivableOrRetrievableExecutionGroup(pipelineReadOnly);
     }
+
 
     @Nonnull
     @Override
     public Optional<PipelineUpdater.ExclusiveAccessUpdater> update(@Nonnull Orchestrator _orchestrator) {
-        return Optional.of((orchestrator, pipeline) -> {
-            if (pipeline != null) {
-                try {
-                    ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
-                    if (pipeline.getActiveExecutionGroup().isPresent()) {
-                        pipeline.archiveActiveExecution();
-                    }
-                    if (pipeline.hasEnqueuedStages() && pipeline.canRetrieveNextActiveExecution()) {
-                        pipeline.retrieveNextActiveExecution();
-                    }
-                } catch (PreconditionNotMetException | ExecutionGroupStillHasRunningStagesException | ThereIsStillAnActiveExecutionGroupException e) {
-                    LOG.log(Level.SEVERE, "At least one precondition is no longer met, cannot perform update", e);
+        return Optional.of(this);
+    }
+
+    @Nullable
+    @Override
+    public Pipeline update(@Nonnull Orchestrator orchestrator, @Nullable Pipeline pipeline) {
+        if (pipeline != null) {
+            try {
+                ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
+                if (pipeline.getActiveExecutionGroup().isPresent() && !isActiveExecutionGroupStillRelevant(pipeline)) {
+                    pipeline.archiveActiveExecution();
                 }
+
+                if (pipeline.canRetrieveNextActiveExecution()) {
+                    pipeline.retrieveNextActiveExecution();
+                }
+                return pipeline;
+            } catch (PreconditionNotMetException | ExecutionGroupStillHasRunningStagesException | ThereIsStillAnActiveExecutionGroupException e) {
+                LOG.log(Level.SEVERE, "At least one precondition is no longer met, cannot perform update", e);
             }
-            return pipeline;
-        });
+        }
+        return null;
     }
 }

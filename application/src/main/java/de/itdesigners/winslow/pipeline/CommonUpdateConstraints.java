@@ -58,6 +58,43 @@ public class CommonUpdateConstraints {
         }
     }
 
+    public static void ensureArchivableOrRetrievableExecutionGroup(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
+        if (pipelineReadOnly != null) {
+            var stillRelevant = pipelineReadOnly
+                    .getActiveExecutionGroup()
+                    .map(g -> g.hasRemainingExecutions() || g.getRunningStages().count() > 0);
+
+            if (stillRelevant.orElse(Boolean.FALSE)) {
+                throw new PreconditionNotMetException("Pipeline still has an relevant active ExecutionGroup");
+            }
+
+            if (stillRelevant.isPresent() || !pipelineReadOnly.hasEnqueuedStages()) {
+                throw new PreconditionNotMetException("Pipeline neither can archive active nor retrieve next ExecutionGroup");
+            }
+        } else {
+            throw new PreconditionNotMetException("No Pipeline, no update");
+        }
+    }
+
+    public static Boolean hasEnqueuedStages(@Nullable Pipeline pipelineReadOnly) {
+        return Optional
+                .ofNullable(pipelineReadOnly)
+                .map(Pipeline::hasEnqueuedStages)
+                .orElse(Boolean.FALSE);
+    }
+
+    public static boolean hasRemainingOrRunningStageExecutions(@Nonnull ExecutionGroup group) {
+        return group.hasRemainingExecutions() || group.getRunningStages().count() > 0;
+    }
+
+    public static Boolean isActiveExecutionGroupStillRelevant(@Nullable Pipeline pipelineReadOnly) {
+        return Optional
+                .ofNullable(pipelineReadOnly)
+                .flatMap(Pipeline::getActiveExecutionGroup)
+                .map(CommonUpdateConstraints::hasRemainingOrRunningStageExecutions)
+                .orElse(Boolean.FALSE);
+    }
+
     public static void ensureHasStageDefinitionToDeploy(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         Optional.ofNullable(pipelineReadOnly)
                 .flatMap(Pipeline::getActiveExecutionGroup)
@@ -79,7 +116,7 @@ public class CommonUpdateConstraints {
 
     public static void ensureIsNotPaused(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         var paused = Optional
-            .ofNullable(pipelineReadOnly)
+                .ofNullable(pipelineReadOnly)
                 .map(Pipeline::isPauseRequested)
                 .orElse(Boolean.FALSE);
         if (paused) {
