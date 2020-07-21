@@ -76,6 +76,10 @@ public class PipelineUpdater {
         AutoEnqueueUpdate
                 .check(orchestrator, projectId, pipelineReadOnly)
                 .ifPresent(independentUpdates::add);
+
+        StageTimeoutDetection
+                .check(orchestrator, projectId, pipelineReadOnly)
+                .ifPresent(independentUpdates::add);
     }
 
     @Nonnull
