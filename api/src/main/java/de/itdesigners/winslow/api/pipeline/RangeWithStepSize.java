@@ -11,9 +11,9 @@ public class RangeWithStepSize {
 
     @ConstructorProperties({"min", "max", "stepSize"})
     public RangeWithStepSize(float min, float max, float stepSize) {
-        this.min      = min;
-        this.max      = max;
-        this.stepSize = stepSize;
+        this.min      = Math.min(min, max);
+        this.max      = Math.max(min, max);
+        this.stepSize = Math.abs(stepSize);
     }
 
     public float getMin() {
@@ -30,16 +30,8 @@ public class RangeWithStepSize {
 
     @Transient
     public float getValue(int step) {
-        var range    = this.max - this.min;
-        var stepSize = this.stepSize;
-
-        if (range < 0 != stepSize < 0) {
-            stepSize = stepSize * -1.0f;
-        }
-
-        var current = this.min + (((float)step) * stepSize);
-
-        return Math.min(current, this.max);
+        var current = ((float)step) * this.stepSize;
+        return Math.min(this.min + current, this.max);
     }
 
     @Transient
