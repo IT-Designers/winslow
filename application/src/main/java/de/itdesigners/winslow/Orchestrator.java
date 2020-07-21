@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -56,7 +57,8 @@ public class Orchestrator {
     @Nonnull private final ResourceAllocationMonitor monitor;
     @Nonnull private final ElectionManager           electionManager;
 
-    private final boolean executeStages;
+    private final boolean       executeStages;
+    private final AtomicBoolean started = new AtomicBoolean(false);
 
 
     public Orchestrator(
@@ -84,15 +86,19 @@ public class Orchestrator {
         this.executeStages = executeStages;
 
         this.electionManager = new ElectionManager(lockBus);
+    }
 
+    public void start() {
         if (executeStages) {
-            this.lockBus.registerEventListener(Event.Command.KILL, this::handleKillEvent);
-            this.lockBus.registerEventListener(Event.Command.STOP, this::handleStopEvent);
-            this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
+            if (!started.getAndSet(true)) {
+                this.lockBus.registerEventListener(Event.Command.KILL, this::handleKillEvent);
+                this.lockBus.registerEventListener(Event.Command.STOP, this::handleStopEvent);
+                this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
 
-            LockBusElectionManagerAdapter.setupAdapters(nodeName, electionManager, this, lockBus);
+                LockBusElectionManagerAdapter.setupAdapters(nodeName, electionManager, this, lockBus);
+                this.pollAllPipelinesForUpdate();
 
-            this.pollAllPipelinesForUpdate();
+            }
         }
     }
 

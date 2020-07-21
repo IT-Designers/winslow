@@ -14,9 +14,12 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Winslow implements Runnable {
+
+    private static final Logger LOG = Logger.getLogger(Winslow.class.getSimpleName());
 
     @Nonnull private final Orchestrator                 orchestrator;
     @Nonnull private final WorkDirectoryConfiguration   configuration;
@@ -53,6 +56,10 @@ public class Winslow implements Runnable {
     }
 
     public void run() {
+        LOG.info("Starting the orchestrator");
+        orchestrator.start();
+
+        LOG.info("Serving interactive console");
         try (Scanner scanner = new Scanner(System.in)) {
             String line;
             while ((line = scanner.nextLine()) != null) {
