@@ -77,7 +77,7 @@ public class PipelineUpdater {
                 .check(orchestrator, projectId, pipelineReadOnly)
                 .ifPresent(independentUpdates::add);
 
-        StageTimeoutDetection
+        StageCompletionUpdate
                 .check(orchestrator, projectId, pipelineReadOnly)
                 .ifPresent(independentUpdates::add);
     }

@@ -77,6 +77,7 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
     public Pipeline update(@Nonnull Orchestrator orchestrator, @Nullable Pipeline pipeline) {
         try {
             ensureAllPreconditionsAreMet(orchestrator, projectId, pipeline);
+            // TODO use the DelayedExecutor a scheduler or something more clever?
             new Thread(() -> {
                 try {
                     var duration = 2_000L;

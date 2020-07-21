@@ -12,6 +12,7 @@ import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
+import de.itdesigners.winslow.resource.ResourceManager;
 import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
@@ -126,6 +127,22 @@ public class Orchestrator {
     public DelayedExecutor getDelayedExecutor() {
         return delayedExecutions;
     }
+
+    @Nonnull
+    public RunInfoRepository getRunInfoRepository() {
+        return hints;
+    }
+
+    @Nonnull
+    public LogRepository getLogRepository() {
+        return logs;
+    }
+
+    @Nonnull
+    public ResourceManager getResourceManager() {
+        return environment.getResourceManager();
+    }
+
 
     @Nonnull
     Election.Participation judgeParticipationScore(@Nonnull ResourceAllocationMonitor.Set<Long> required) {
@@ -243,16 +260,6 @@ public class Orchestrator {
 
     public void kill(@Nonnull Stage stage) throws LockException {
         this.lockBus.publishCommand(Event.Command.KILL, stage.getFullyQualifiedId());
-    }
-
-    @Nonnull
-    public RunInfoRepository getRunInfoRepository() {
-        return hints;
-    }
-
-    @Nonnull
-    public LogRepository getLogRepository() {
-        return logs;
     }
 
     private void pollAllPipelinesForUpdate() {
@@ -828,7 +835,7 @@ public class Orchestrator {
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
     }
 
-    private static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
+    public static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
         return getWorkspacePathForPipeline(pipeline.getProjectId());
     }
 
@@ -897,54 +904,11 @@ public class Orchestrator {
             @Nonnull Consumer<LogEntry> consumer) throws LockException, FileNotFoundException {
         var executor = new Executor(projectId, stageId, this);
         executor.addShutdownListener(() -> this.executors.remove(stageId));
-        executor.addShutdownListener(() -> this.cleanupAfterStageExecution(stageId));
-        executor.addShutdownListener(() -> this.discardObsoleteWorkspaces(projectId));
         executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(projectId));
         executor.addLogEntryConsumer(consumer);
         this.executors.put(stageId, executor);
         return executor;
     }
-
-    private void cleanupAfterStageExecution(@Nonnull String stageId) {
-        try {
-            getRunInfoRepository().removeAllProperties(stageId);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Failed to cleanup stage " + stageId, e);
-        }
-    }
-
-    private void discardObsoleteWorkspaces(@Nonnull String projectId) {
-        getPipeline(projectId).ifPresent(pipeline -> {
-            var policy = pipeline
-                    .getDeletionPolicy()
-                    .or(() -> this.projects
-                            .getProject(projectId)
-                            .unsafe()
-                            .map(Project::getPipelineDefinition)
-                            .flatMap(PipelineDefinition::getDeletionPolicy)
-                    )
-                    .orElseGet(Orchestrator::defaultDeletionPolicy);
-            var history    = pipeline.getPresentAndPastExecutionGroups().collect(Collectors.toList());
-            var finder     = new ObsoleteWorkspaceFinder(policy).withExecutionHistory(history);
-            var obsolete   = finder.collectObsoleteWorkspaces();
-            var workspaces = environment.getResourceManager();
-            var purgeScope = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
-
-            if (purgeScope.isEmpty()) {
-                LOG.warning("Cannot determine purge scope for Pipeline with ProjectId " + pipeline.getProjectId());
-                return;
-            }
-
-            obsolete.stream()
-                    .map(Path::of)
-                    .map(workspaces::getWorkspace)
-                    .flatMap(Optional::stream)
-                    .filter(Files::exists)
-                    .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
-                    .forEach(path -> forcePurgeNoThrows(purgeScope.get(), path));
-        });
-    }
-
     /**
      * Deletes any failed stage from the {@link Pipeline} of the given {@link Project}. Also
      * deletes associated workspace and log files.
