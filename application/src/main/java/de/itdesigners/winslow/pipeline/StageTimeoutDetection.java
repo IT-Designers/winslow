@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class StageTimeoutDetection implements PipelineUpdater.NoAccessUpdater, PipelineUpdater.ExclusiveAccessUpdater {
 
@@ -22,12 +23,8 @@ public class StageTimeoutDetection implements PipelineUpdater.NoAccessUpdater, P
             @Nonnull Orchestrator orchestrator,
             @Nonnull String projectId,
             @Nullable Pipeline pipelineReadOnly) {
-        var stages = orchestrator
-                .getProjects()
-                .getProject(projectId)
-                .unsafe()
-                .flatMap(orchestrator::getPipeline)
-                .stream()
+        var stages = Stream
+                .ofNullable(pipelineReadOnly)
                 .flatMap(pipeline -> pipeline
                         .getActiveExecutionGroup()
                         .stream()
