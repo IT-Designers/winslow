@@ -104,7 +104,7 @@ public class PipelineUpdater {
     }
 
     public void evaluateUpdatesWithExclusivePipelineAccess() throws IOException, LockException {
-        if (hasPipelineUpdatesThatRequireExclusiveAccess()) {
+        if (hasPipelineUpdatesThatRequireExclusiveAccess() && !pipelineHandle.isLocked()) {
             try (var container = pipelineHandle
                     .exclusive()
                     .orElseThrow(() -> new LockException("Failed to acquire exclusive pipeline access"));

@@ -10,6 +10,19 @@ import java.util.Optional;
 public class CommonUpdateConstraints {
 
 
+    public static void ensureIsNotLocked(
+            @Nonnull Orchestrator orchestrator,
+            @Nonnull String projectId) throws PreconditionNotMetException {
+        PreconditionNotMetException.requireFalse(
+                "Pipeline is currently locked",
+                orchestrator
+                        .getPipelines()
+                        .getPipeline(projectId)
+                        .isLocked()
+        );
+    }
+
+
     public static void ensureIsNotLockedByAnotherInstance(
             @Nonnull Orchestrator orchestrator,
             @Nonnull String projectId) throws PreconditionNotMetException {
@@ -69,7 +82,8 @@ public class CommonUpdateConstraints {
             }
 
             if (stillRelevant.isEmpty() || !pipelineReadOnly.hasEnqueuedStages()) {
-                throw new PreconditionNotMetException("Pipeline neither can archive active nor retrieve next ExecutionGroup");
+                throw new PreconditionNotMetException(
+                        "Pipeline neither can archive active nor retrieve next ExecutionGroup");
             }
         } else {
             throw new PreconditionNotMetException("No Pipeline, no update");
@@ -85,6 +99,17 @@ public class CommonUpdateConstraints {
 
     public static boolean hasRemainingOrRunningStageExecutions(@Nonnull ExecutionGroup group) {
         return group.hasRemainingExecutions() || group.getRunningStages().count() > 0;
+    }
+
+    public static void ensureActiveExecutionGroupHasRemainingStageExecutions(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
+        var hasRemaining = Optional
+                .ofNullable(pipelineReadOnly)
+                .flatMap(Pipeline::getActiveExecutionGroup)
+                .map(ExecutionGroup::hasRemainingExecutions)
+                .orElse(Boolean.FALSE);
+        if (!hasRemaining) {
+            throw new PreconditionNotMetException("Active ExecutionGroup has no remaining stage executions");
+        }
     }
 
     public static Boolean isActiveExecutionGroupStillRelevant(@Nullable Pipeline pipelineReadOnly) {
