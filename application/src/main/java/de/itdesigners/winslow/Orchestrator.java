@@ -20,9 +20,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -594,25 +596,21 @@ public class Orchestrator {
             @Nonnull Path mustBeWithin,
             @Nonnull Path path) throws IOException {
         ensurePathToPurgeIsValid(workDirectory, mustBeWithin, path);
-        var maxRetries = 3;
-        for (int i = 0; i < maxRetries && path.toFile().exists(); ++i) {
-            var index = i;
-            try (var stream = Files.walk(path)) {
-                stream.forEach(entry -> {
-                    try {
-                        Files.deleteIfExists(entry);
-                    } catch (NoSuchFileException ignored) {
-                    } catch (IOException e) {
-                        if (index + 1 == maxRetries) {
-                            throw new RuntimeException("Failed to delete: " + entry, e);
-                        }
-                    }
-                });
-            } catch (RuntimeException re) {
-                throw new IOException(re);
-            }
+        if (Files.exists(path)) {
+            Files.walkFileTree(path, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         }
-        Files.deleteIfExists(path);
     }
 
     public static void ensurePathToPurgeIsValid(
