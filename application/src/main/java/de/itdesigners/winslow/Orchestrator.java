@@ -451,16 +451,28 @@ public class Orchestrator {
                             .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
                                 executor.setStageHandle(result.getHandle());
                                 lock.waitForRelease();
-                                updatePipeline(projectId, pipelineToUpdate -> {
-                                    try {
-                                        pipelineToUpdate
-                                                .getActiveExecutionGroup()
-                                                .orElseThrow()
-                                                .updateStage(result.getStage());
-                                    } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                        throw new RuntimeException(e); // bubble up
+                                var updated = false;
+                                // TODO this is a workaround, a proper solution would be to enqueue these kind of changes and to apply them as soon as the lock is released
+                                for (int i = 0; i < 10 && !updated; ++i) {
+                                    updated = updatePipeline(projectId, pipelineToUpdate -> {
+                                        try {
+                                            pipelineToUpdate
+                                                    .getActiveExecutionGroup()
+                                                    .orElseThrow()
+                                                    .updateStage(result.getStage());
+                                        } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                            LOG.log(Level.SEVERE, "Failed to update stage with assemble result", e);
+                                            throw new RuntimeException(e); // bubble up
+                                        }
+                                    });
+                                    if (!updated) {
+                                        LOG.fine("Failed to update pipeline with stage result, will try again...");
+                                        LockBus.ensureSleepMs(250);
                                     }
-                                });
+                                }
+                                if (!updated) {
+                                    LOG.severe("Failed to update pipeline with stage result");
+                                }
                             }))
                             .assemble(new Context(
                                     pipeline,
@@ -860,13 +872,18 @@ public class Orchestrator {
         return updatePipeline(project.getId(), updater);
     }
 
-    private void updatePipeline(
+    /**
+     * @param projectId Id of the {@link Project} to update the {@link Pipeline} for
+     * @param updater   {@link Consumer} to invoke to update the {@link Pipeline}
+     * @return Whether the {@link Consumer} was invoked
+     */
+    private boolean updatePipeline(
             @Nonnull String projectId,
             @Nonnull Consumer<Pipeline> updater) {
-        this.updatePipeline(projectId, pipeline -> {
+        return this.updatePipeline(projectId, pipeline -> {
             updater.accept(pipeline);
-            return null;
-        });
+            return Boolean.TRUE;
+        }).orElse(Boolean.FALSE);
     }
 
     @Nonnull
