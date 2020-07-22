@@ -8,6 +8,7 @@ import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.pipeline.StageId;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +28,7 @@ public class NomadStageHandle implements StageHandle {
     private static final long   GONE_TIMEOUT                     = 10_000;
 
     private final @Nonnull NomadBackend backend;
-    private final @Nonnull String       stageId;
+    private final @Nonnull StageId      stageId;
 
     private @Nullable String    allocationId;
     private @Nullable TaskState taskState;
@@ -40,14 +41,19 @@ public class NomadStageHandle implements StageHandle {
 
     private int partialErrorCounter = 0;
 
-    public NomadStageHandle(@Nonnull NomadBackend backend, @Nonnull String stageId) {
+    public NomadStageHandle(@Nonnull NomadBackend backend, @Nonnull StageId stageId) {
         this.backend = backend;
         this.stageId = stageId;
     }
 
     @Nonnull
-    public String getStageId() {
+    public StageId getStageId() {
         return stageId;
+    }
+
+    @Nonnull
+    public String getFullyQualifiedStageId() {
+        return stageId.getFullyQualified();
     }
 
     @Nonnull
@@ -73,12 +79,12 @@ public class NomadStageHandle implements StageHandle {
     public void poll() throws IOException {
         if (!gone) {
             this.backend
-                    .getAllocation(stageId)
+                    .getAllocation(getFullyQualifiedStageId())
                     .ifPresentOrElse(alloc -> {
                         this.allocationId = alloc.getId();
 
                         var taskStates = alloc.getTaskStates();
-                        var taskState  = taskStates != null ? taskStates.get(stageId) : null;
+                        var taskState  = taskStates != null ? taskStates.get(getFullyQualifiedStageId()) : null;
 
                         if (taskState != null) {
                             this.taskState = taskState;
@@ -152,7 +158,12 @@ public class NomadStageHandle implements StageHandle {
     @Nonnull
     @Override
     public Optional<State> getState() {
-        return Optional.empty();
+        try {
+            return this.backend.getState(this.stageId);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to retrieve stage state", e);
+            return Optional.empty();
+        }
     }
 
     @Nonnull
@@ -170,7 +181,7 @@ public class NomadStageHandle implements StageHandle {
     @Nonnull
     @Override
     public Optional<Stats> getStats() throws IOException {
-        var stageAllocation = this.backend.getAllocation(stageId);
+        var stageAllocation = this.backend.getAllocation(getFullyQualifiedStageId());
         if (stageAllocation.isPresent()) {
             var alloc   = stageAllocation.get();
             var allocId = alloc.getId();
@@ -221,12 +232,12 @@ public class NomadStageHandle implements StageHandle {
         if (this.killTime == null) {
             this.killTime = System.currentTimeMillis();
         }
-        this.backend.kill(this.stageId);
+        this.backend.kill(getFullyQualifiedStageId());
     }
 
     @Nonnull
     public Stream<Evaluation> getEvaluations() throws IOException {
-        return this.backend.getEvaluations(this.stageId);
+        return this.backend.getEvaluations(getFullyQualifiedStageId());
     }
 
     public void notifyAboutPartialFailure(@Nonnull Throwable t) {

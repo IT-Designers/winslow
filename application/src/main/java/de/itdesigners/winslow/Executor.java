@@ -1,6 +1,7 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.LockedOutputStream;
 import de.itdesigners.winslow.project.LogWriter;
@@ -9,10 +10,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
@@ -174,7 +172,7 @@ public class Executor {
                         .runInForeground();
 
                 logOutput.flush();
-                if (!failed) {
+                if (executionFinishedSuccessfully()) {
                     orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(stage);
                 }
             } catch (Throwable e) {
@@ -187,6 +185,15 @@ public class Executor {
         } finally {
             this.notifyShutdownCompletedListeners();
         }
+    }
+
+    private boolean executionFinishedSuccessfully() {
+        return !failed && Optional
+                .ofNullable(stageHandle)
+                .flatMap(StageHandle::getState)
+                // try a second time
+                .or(() -> Optional.ofNullable(stageHandle).flatMap(StageHandle::getState))
+                .orElse(State.Failed) == State.Succeeded;
     }
 
     @Nonnull

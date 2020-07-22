@@ -30,7 +30,7 @@ public class EvaluationLogger implements Iterator<LogEntry> {
             List<String> result = handle
                     .getEvaluations()
                     .flatMap(e -> Stream.ofNullable(e.getFailedTgAllocs()))
-                    .flatMap(e -> Stream.ofNullable(e.get(handle.getStageId())))
+                    .flatMap(e -> Stream.ofNullable(e.get(handle.getFullyQualifiedStageId())))
                     .flatMap(e -> {
                         Stream<String> constraint = e.getConstraintFiltered() != null
                                                     ? e.getConstraintFiltered().keySet().stream()

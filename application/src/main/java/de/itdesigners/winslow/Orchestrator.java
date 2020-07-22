@@ -538,41 +538,6 @@ public class Orchestrator {
         }
     }
 
-    @Nonnull
-    private Pipeline updateRunningStage(@Nonnull Pipeline pipeline) {
-        pipeline.getActiveExecutionGroup()
-                .stream()
-                .flatMap(ExecutionGroup::getRunningStages)
-                .forEach(stage -> {
-                    var state = getStateOmitExceptions(pipeline, stage);
-                    LOG.info("Checking if the state for stage " + stage.getFullyQualifiedId() + " has changed: " + state);
-                    switch (state.orElseGet(() -> stage.getFinishState().orElse(State.Failed))) {
-                        case Running:
-                            if (getLogRedirectionState(pipeline, stage) != SimpleState.Failed) {
-                                break;
-                            }
-                        default:
-                        case Failed:
-                            stage.finishNow(State.Failed);
-                            pipeline.requestPause(Pipeline.PauseReason.StageFailure);
-                            try {
-                                LOG.info("Killing failed stage");
-                                backend.kill(stage.getFullyQualifiedId());
-                            } catch (IOException e) {
-                                LOG.log(
-                                        Level.WARNING,
-                                        "Failed to request kill failed stage: " + stage.getFullyQualifiedId(),
-                                        e
-                                );
-                            }
-                            break;
-                        case Succeeded:
-                            stage.finishNow(State.Succeeded);
-                            break;
-                    }
-                });
-        return pipeline;
-    }
 
     @Nonnull
     private Optional<State> getStateOmitExceptions(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
