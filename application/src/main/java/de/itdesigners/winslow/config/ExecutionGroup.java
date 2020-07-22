@@ -209,6 +209,12 @@ public class ExecutionGroup {
         this.groupCounter = getGroupCounter() + 1;
     }
 
+    public void markAsCompleted() {
+        if (this.groupCounter < getExpectedGroupSize()) {
+            this.groupCounter += getExpectedGroupSize();
+        }
+    }
+
     /**
      * @return The expected group size if all spawned stages succeed. This is more of a guess and does not represent a limit of allowed stages.
      */

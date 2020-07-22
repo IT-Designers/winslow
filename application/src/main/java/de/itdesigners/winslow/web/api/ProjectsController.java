@@ -1043,16 +1043,44 @@ public class ProjectsController {
                 });
     }
 
+    @PutMapping("projects/{projectId}/kill")
+    public boolean killSingleStageOrAllStagesOfActiveExecutionGroup(
+            User user,
+            @PathVariable("projectId") String projectId) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(
+                        project,
+                        pipeline -> pipeline
+                                .getActiveExecutionGroup()
+                                .map(g -> {
+                                    g.markAsCompleted();
+                                    g.getRunningStages().forEach(stage -> {
+                                        try {
+                                            winslow.getOrchestrator().kill(stage);
+                                        } catch (LockException e) {
+                                            LOG.log(
+                                                    Level.SEVERE,
+                                                    "Failed to kill stage " + stage.getFullyQualifiedId(),
+                                                    e
+                                            );
+                                        }
+                                    });
+                                    return Boolean.TRUE;
+                                }).orElse(Boolean.FALSE)
+                ))
+                .orElse(Boolean.FALSE);
+    }
+
     @PutMapping("projects/{projectId}/kill/{stageId}")
     public boolean killSingleStageOrAllStagesOfActiveExecutionGroup(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable(value = "stageId", required = false) @Nullable String stageId) throws LockException {
+            @PathVariable("stageId") @Nonnull String stageId) {
         return getPipelineIfAllowedToAccess(user, projectId)
                 .flatMap(Pipeline::getActiveExecutionGroup)
                 .map(ExecutionGroup::getRunningStages)
                 .stream()
-                .flatMap(r -> r.filter(s -> stageId == null || s.getFullyQualifiedId().equals(stageId)))
+                .flatMap(r -> r.filter(s -> s.getFullyQualifiedId().equals(stageId)))
                 .allMatch(stage -> {
                     try {
                         winslow.getOrchestrator().kill(stage);
