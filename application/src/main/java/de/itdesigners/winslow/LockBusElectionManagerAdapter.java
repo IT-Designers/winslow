@@ -3,6 +3,7 @@ package de.itdesigners.winslow;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
+import de.itdesigners.winslow.pipeline.CommonUpdateConstraints;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.project.Project;
 
@@ -81,10 +82,11 @@ public class LockBusElectionManagerAdapter {
     private void handleElectionStarted(@Nonnull Election election) {
         orchestrator
                 .getPipelineUnsafe(election.getProjectId())
-                .filter(orchestrator::isStageStateUpdateAvailable)
+                .filter(CommonUpdateConstraints::hasActiveExecutionGroupRemainingExecutions)
+                .filter(pipeline -> !pipeline.isPauseRequested())
                 .filter(p -> orchestrator.isCapableOfExecutingNextStage(p).orElse(Boolean.FALSE))
                 .filter(p -> {
-                    var hasResourced = orchestrator.hasResourcesToSpawnStage(p).orElse(Boolean.FALSE);
+                    var hasResourced = orchestrator.hasResourcesToExecuteNextStage(p).orElse(Boolean.FALSE);
                     if (!hasResourced) {
                         orchestrator.addProjectThatNeedsToBeReEvaluatedOnceMoreResourcesAreAvailable(p.getProjectId());
                     }

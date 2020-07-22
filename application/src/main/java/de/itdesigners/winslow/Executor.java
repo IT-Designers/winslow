@@ -254,7 +254,7 @@ public class Executor {
      *                 but while the stage is still locked
      */
     public synchronized void addShutdownListener(@Nonnull Runnable runnable) {
-        if (this.logBuffer == null) {
+        if (!isRunning()) {
             runnable.run();
         } else {
             this.shutdownListeners.add(runnable);
@@ -266,7 +266,7 @@ public class Executor {
      *                 and after the lock of the stage has been released
      */
     public synchronized void addShutdownCompletedListener(@Nonnull Runnable runnable) {
-        if (this.logBuffer == null) {
+        if (!isRunning()) {
             runnable.run();
         } else {
             this.shutdownCompletedListeners.add(runnable);

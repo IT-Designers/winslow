@@ -14,6 +14,7 @@ import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.resource.ResourceManager;
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -97,7 +98,7 @@ public class Orchestrator {
                 this.lockBus.registerEventListener(Event.Command.RELEASE, this::handleReleaseEvent);
 
                 LockBusElectionManagerAdapter.setupAdapters(nodeName, electionManager, this, lockBus);
-                this.pollAllPipelinesForUpdate();
+                this.checkPipelinesForUpdate(this.pipelines.getAllPipelines());
 
             }
         }
@@ -262,10 +263,6 @@ public class Orchestrator {
         this.lockBus.publishCommand(Event.Command.KILL, stage.getFullyQualifiedId());
     }
 
-    private void pollAllPipelinesForUpdate() {
-        this.checkPipelinesForUpdate(this.pipelines.getAllPipelines());
-    }
-
     private void pollPipelineForUpdate(@Nonnull String id) {
         this.checkPipelinesForUpdate(Stream.of(this.pipelines.getPipeline(id)));
     }
@@ -294,15 +291,6 @@ public class Orchestrator {
     }
 
     @Nonnull
-    public Optional<Boolean> hasResourcesToSpawnStage(@Nonnull Pipeline pipeline) {
-        return pipeline
-                .getActiveOrNextExecutionGroup()
-                .map(group -> group.isConfigureOnly()
-                        || this.monitor.couldReserveConsideringReservations(getRequiredResources(group.getStageDefinition()))
-                );
-    }
-
-    @Nonnull
     private ResourceAllocationMonitor.Set<Long> toResourceSet(@Nonnull Requirements requirements) {
         return new ResourceAllocationMonitor.Set<Long>()
                 .with(
@@ -323,6 +311,15 @@ public class Orchestrator {
                 );
     }
 
+    @Nonnull
+    public Optional<Boolean> hasResourcesToExecuteNextStage(@Nonnull Pipeline pipeline) {
+        return pipeline
+                .getActiveOrNextExecutionGroup()
+                .map(group -> group.isConfigureOnly()
+                        || this.monitor.couldReserveConsideringReservations(getRequiredResources(group.getStageDefinition()))
+                );
+    }
+
     public Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
@@ -338,10 +335,10 @@ public class Orchestrator {
             case MoveForwardOnce:
                 pipeline.requestPause();
             case MoveForwardUntilEnd:
-                return startNextPipelineStage(lock, definition, pipeline).map(pair -> {
-                    freeResourcesOnExecutorShutdown(
-                            pair.getValue0().getStageDefinition(),
-                            pair.getValue1()
+                return startNextPipelineStage(lock, definition, pipeline).map(result -> {
+                    hookUpResourceReservationAndFreeingHandler(
+                            result.getValue0().getStageDefinition(),
+                            result.getValue2()
                     );
                     pipeline.clearPauseReason();
                     return Boolean.TRUE;
@@ -352,23 +349,25 @@ public class Orchestrator {
         }
     }
 
-    private void freeResourcesOnExecutorShutdown(
+    private void hookUpResourceReservationAndFreeingHandler(
             @Nonnull StageDefinition stageDefinition,
-            @Nonnull Stage stage) {
+            @Nonnull Executor executor) {
         var requiredResources = getRequiredResources(stageDefinition);
-        var executor          = this.executors.get(stage.getFullyQualifiedId());
-        if (executor != null) {
-            this.monitor.reserve(requiredResources);
-            executor.addShutdownCompletedListener(() -> {
-                this.monitor.free(requiredResources);
-                var copy = new HashSet<>(this.missingResources);
-                this.missingResources.removeAll(copy);
-                copy.forEach(this::pollPipelineForUpdate);
-            });
-        }
+        this.monitor.reserve(requiredResources);
+        executor.addShutdownCompletedListener(() -> {
+            this.monitor.free(requiredResources);
+            takeAllPipelinesThatWereRecordedForMissingResources().forEach(this::pollPipelineForUpdate);
+        });
     }
 
-    private Optional<Pair<ExecutionGroup, Stage>> startNextPipelineStage(
+    @Nonnull
+    private Set<String> takeAllPipelinesThatWereRecordedForMissingResources() {
+        var copy = new HashSet<>(this.missingResources);
+        this.missingResources.removeAll(copy);
+        return copy;
+    }
+
+    private Optional<Triplet<ExecutionGroup, Stage, Executor>> startNextPipelineStage(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
@@ -422,7 +421,7 @@ public class Orchestrator {
         pipeline.resetResumeNotification();
         executionGroup.get().addStage(stage);
 
-        return Optional.of(new Pair<>(executionGroup.get(), stage));
+        return Optional.of(new Triplet<>(executionGroup.get(), stage, executor));
     }
 
     private void startStageAssembler(
@@ -538,76 +537,6 @@ public class Orchestrator {
         }
     }
 
-
-    @Nonnull
-    private Optional<State> getStateOmitExceptions(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        try {
-            return getState(pipeline, stage);
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to retrieve stage state", e);
-            return Optional.empty();
-        }
-    }
-
-    @Nonnull
-    private Optional<State> getState(
-            @Nonnull Pipeline pipeline,
-            @Nonnull Stage stage) throws IOException {
-        // faster & cheaper than potentially causing a REST request on a new TcpConnection
-        if (this.executors.get(stage.getFullyQualifiedId()) != null) {
-            return Optional.of(State.Running);
-        }
-        return backend.getState(pipeline.getProjectId(), stage.getFullyQualifiedId());
-    }
-
-    private boolean needsConsistencyUpdate(@Nonnull Pipeline pipeline) {
-        return (hasLogRedirectionFailed(pipeline)
-                || activeExecutionGroupIsDeadEnd(pipeline)
-        ) && !pipeline.isPauseRequested()
-                || unnoticedFinished(pipeline);
-    }
-
-    private boolean activeExecutionGroupIsDeadEnd(@Nonnull Pipeline pipeline) {
-        var executionGroup = pipeline.getActiveExecutionGroup();
-        return executionGroup.isPresent()
-                && !executionGroup.map(ExecutionGroup::hasRemainingExecutions).orElse(Boolean.FALSE)
-                && executionGroup.map(ExecutionGroup::getRunningStages).flatMap(Stream::findFirst).isEmpty();
-
-    }
-
-    private boolean unnoticedFinished(@Nonnull Pipeline pipeline) {
-        var stillMarkedAsRunning = pipeline
-                .getActiveExecutionGroup()
-                .stream()
-                .flatMap(ExecutionGroup::getRunningStages)
-                .count() > 0;
-        return getLogRedirectionState(pipeline).noneMatch(s -> s == SimpleState.Running) && stillMarkedAsRunning;
-    }
-
-    private boolean hasLogRedirectionFailed(@Nonnull Pipeline pipeline) {
-        return getLogRedirectionState(pipeline).anyMatch(s -> s == SimpleState.Failed);
-    }
-
-    @Nonnull
-    private Stream<SimpleState> getLogRedirectionState(@Nonnull Pipeline pipeline) {
-        return pipeline
-                .getActiveExecutionGroup()
-                .map(group -> group.getStages().map(stage -> getLogRedirectionState(pipeline, stage)))
-                .orElse(Stream.of(SimpleState.Succeeded));
-    }
-
-    @Nonnull
-    private SimpleState getLogRedirectionState(@Nonnull Pipeline pipeline, @Nonnull Stage stage) {
-        if (hints.hasLogRedirectionCompletedSuccessfullyHint(stage.getFullyQualifiedId())) {
-            return SimpleState.Succeeded;
-        } else if (!logs.isLocked(pipeline.getProjectId(), stage.getFullyQualifiedId())) {
-            LOG.warning("Detected log redirect which has been aborted! " + stage.getFullyQualifiedId());
-            return SimpleState.Failed;
-        } else {
-            return SimpleState.Running;
-        }
-    }
-
     private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String stageId) {
         return entry -> {
             var matcher = PROGRESS_HINT_PATTERN.matcher(entry.getMessage());
@@ -616,24 +545,6 @@ public class Orchestrator {
                 LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
             }
         };
-    }
-
-    protected boolean isStageStateUpdateAvailable(@Nonnull Pipeline pipeline) {
-        var hasEnqueuedStages = pipeline.hasEnqueuedStages();
-        var hasRemaining = pipeline
-                .getActiveExecutionGroup()
-                .map(ExecutionGroup::hasRemainingExecutions)
-                .orElse(Boolean.FALSE);
-        var isPaused = pipeline.isPauseRequested();
-        var isRunning = getLogRedirectionState(pipeline).anyMatch(s -> s == SimpleState.Running)
-                || pipeline
-                .getActiveExecutionGroup()
-                .stream()
-                .flatMap(ExecutionGroup::getRunningStages)
-                .flatMap(stage -> getStateOmitExceptions(pipeline, stage).stream())
-                .anyMatch(state -> State.Running == state);
-
-        return (hasEnqueuedStages || hasRemaining) && !isPaused && (!isRunning || hasRemaining);
     }
 
     public boolean deletePipeline(@Nonnull Project project) throws OrchestratorException {
@@ -667,18 +578,6 @@ public class Orchestrator {
             forcePurge(environment.getWorkDirectoryConfiguration().getPath(), mustBeWithin, directory);
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to get rid of directory " + directory, e);
-        }
-    }
-
-    public void forcePurgeWorkspaceNoThrows(@Nonnull String projectId, @Nonnull Path workspace) {
-        try {
-            forcePurgeWorkspace(projectId, workspace);
-        } catch (IOException e) {
-            LOG.log(
-                    Level.SEVERE,
-                    "Failed to get rid of workspace directory[" + workspace + "] of Project " + projectId,
-                    e
-            );
         }
     }
 

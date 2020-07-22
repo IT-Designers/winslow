@@ -102,14 +102,17 @@ public class CommonUpdateConstraints {
     }
 
     public static void ensureActiveExecutionGroupHasRemainingStageExecutions(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
-        var hasRemaining = Optional
+        if (!hasActiveExecutionGroupRemainingExecutions(pipelineReadOnly)) {
+            throw new PreconditionNotMetException("Active ExecutionGroup has no remaining stage executions");
+        }
+    }
+
+    public static Boolean hasActiveExecutionGroupRemainingExecutions(@Nullable Pipeline pipelineReadOnly) {
+        return Optional
                 .ofNullable(pipelineReadOnly)
                 .flatMap(Pipeline::getActiveExecutionGroup)
                 .map(ExecutionGroup::hasRemainingExecutions)
                 .orElse(Boolean.FALSE);
-        if (!hasRemaining) {
-            throw new PreconditionNotMetException("Active ExecutionGroup has no remaining stage executions");
-        }
     }
 
     public static Boolean isActiveExecutionGroupStillRelevant(@Nullable Pipeline pipelineReadOnly) {

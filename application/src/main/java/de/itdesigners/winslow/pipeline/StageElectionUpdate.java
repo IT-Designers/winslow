@@ -35,7 +35,7 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
             if (pipelineReadOnly != null && orchestrator
                     .isCapableOfExecutingNextStage(pipelineReadOnly)
                     .orElse(Boolean.FALSE)) {
-                if (orchestrator.hasResourcesToSpawnStage(pipelineReadOnly).orElse(Boolean.FALSE)) {
+                if (orchestrator.hasResourcesToExecuteNextStage(pipelineReadOnly).orElse(Boolean.FALSE)) {
                     return Optional.of(new StageElectionUpdate(projectId));
                 } else {
                     orchestrator.addProjectThatNeedsToBeReEvaluatedOnceMoreResourcesAreAvailable(projectId);
