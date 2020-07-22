@@ -12,6 +12,7 @@ public class ExecutionGroupInfo {
     public final @Nonnull Map<String, RangeWithStepSize> rangedValues;
     public final @Nonnull WorkspaceConfiguration         workspaceConfiguration;
     public final @Nonnull List<StageInfo>                stages;
+    public final          boolean                        active;
 
     public ExecutionGroupInfo(
             @Nonnull String id,
@@ -19,12 +20,14 @@ public class ExecutionGroupInfo {
             @Nonnull StageDefinitionInfo stageDefinition,
             @Nonnull Map<String, RangeWithStepSize> rangedValues,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
-            @Nonnull List<StageInfo> stages) {
+            @Nonnull List<StageInfo> stages,
+            boolean active) {
         this.id                     = id;
         this.configureOnly          = configureOnly;
         this.stageDefinition        = stageDefinition;
         this.rangedValues           = rangedValues;
         this.workspaceConfiguration = workspaceConfiguration;
         this.stages                 = stages;
+        this.active                 = active;
     }
 }

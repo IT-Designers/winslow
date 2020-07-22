@@ -93,13 +93,16 @@ public class ProjectsController {
     public Stream<ExecutionGroupInfo> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
-                .flatMap(project -> winslow
-                        .getOrchestrator()
-                        .getPipeline(project)
-                        .stream()
-                        .flatMap(Pipeline::getActiveAndPastExecutionGroups)
-                        .map(ExecutionGroupInfoConverter::convert)
-                );
+                .flatMap(project -> {
+                    var pipeline = winslow.getOrchestrator().getPipeline(project);
+                    var active   = pipeline.flatMap(Pipeline::getActiveExecutionGroup);
+                    var history  = pipeline.stream().flatMap(Pipeline::getExecutionHistory);
+
+                    return Stream.concat(
+                            history.map(g -> ExecutionGroupInfoConverter.convert(g, false)),
+                            active.map(g -> ExecutionGroupInfoConverter.convert(g, true)).stream()
+                    );
+                });
     }
 
     @PostMapping("/projects/{projectId}/history/prune")
@@ -125,7 +128,7 @@ public class ProjectsController {
                         .stream()
                         .flatMap(Pipeline::getEnqueuedExecutions)
                 )
-                .map(ExecutionGroupInfoConverter::convert);
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false));
     }
 
     @DeleteMapping("/projects/{projectId}/enqueued/{groupId}")
@@ -283,7 +286,9 @@ public class ProjectsController {
                                 .getOrchestrator()
                                 .getPipeline(project))
                         .map(pipeline -> new StateInfo(
-                                getPipelineState(pipeline).orElse(null),
+                                pipeline.isPauseRequested()
+                                    ? State.Paused
+                                    : getPipelineState(pipeline).orElse(null),
                                 pipeline
                                         .getPauseReason()
                                         .map(Pipeline.PauseReason::toString)
@@ -327,11 +332,12 @@ public class ProjectsController {
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     if (paused) {
                         pipeline.requestPause();
+                        return Boolean.TRUE;
                     } else {
                         pipeline.setStrategy(getPipelineStrategy(strategy));
                         pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+                        return Boolean.FALSE;
                     }
-                    return Boolean.TRUE;
                 }))
                 .orElse(Boolean.FALSE);
     }
