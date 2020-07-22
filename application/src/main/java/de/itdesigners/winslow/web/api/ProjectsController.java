@@ -257,17 +257,29 @@ public class ProjectsController {
                         return Optional.empty();
                     }
                 })
-                .or(() -> pipeline
-                        .getActiveExecutionGroup()
-                        .map(ExecutionGroup::getStages)
-                        .flatMap(s -> s.reduce((first, second) -> second))
-                        .filter(s -> s.getFinishTime().isPresent())
-                        .map(Stage::getState))
+                .or(() -> {
+                    var mostRecent = pipeline
+                            .getActiveExecutionGroup()
+                            .map(ExecutionGroup::getStages)
+                            .flatMap(s -> s.reduce((first, second) -> second))
+                            .filter(s -> s.getFinishTime().isPresent())
+                            .map(Stage::getState);
+
+                    if (mostRecent.isEmpty() && pipeline.isPauseRequested()) {
+                        return Optional.of(State.Paused);
+                    } else {
+                        return mostRecent.map(state -> {
+                            if (State.Succeeded == state && pipeline.isPauseRequested()) {
+                                return State.Paused;
+                            } else {
+                                return state;
+                            }
+                        });
+                    }
+                })
                 .or(() -> {
                     if (!pipeline.isPauseRequested() && pipeline.hasEnqueuedStages()) {
                         return Optional.of(State.Running);
-                    } else if (pipeline.isPauseRequested()) {
-                        return Optional.of(State.Paused);
                     } else {
                         return Optional.empty();
                     }
@@ -286,9 +298,7 @@ public class ProjectsController {
                                 .getOrchestrator()
                                 .getPipeline(project))
                         .map(pipeline -> new StateInfo(
-                                pipeline.isPauseRequested()
-                                    ? State.Paused
-                                    : getPipelineState(pipeline).orElse(null),
+                                getPipelineState(pipeline).orElse(null),
                                 pipeline
                                         .getPauseReason()
                                         .map(Pipeline.PauseReason::toString)
