@@ -64,7 +64,7 @@ public class FixWorkspacePaths {
 
     private boolean hasFixableWorkspacePath(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getPresentAndPastExecutionGroups()
+                .getActiveAndPastExecutionGroups()
                 .flatMap(ExecutionGroup::getStages)
                 .anyMatch(this::hasFixableWorkspacePath);
     }
@@ -89,7 +89,7 @@ public class FixWorkspacePaths {
                 var response = new TreeMap<String, String>();
 
                 pipeline
-                        .getPresentAndPastExecutionGroups()
+                        .getActiveAndPastExecutionGroups()
                         .flatMap(ExecutionGroup::getStages)
                         .forEach(stage -> {
                             if (hasFixableWorkspacePath(stage)) {

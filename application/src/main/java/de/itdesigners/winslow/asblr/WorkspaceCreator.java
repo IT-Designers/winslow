@@ -47,7 +47,7 @@ public class WorkspaceCreator implements AssemblerStep {
             var stageId = workspaceConfiguration.getValue().orElse(null);
             var baseWorkspace = context
                     .getPipeline()
-                    .getPresentAndPastExecutionGroups()
+                    .getActiveAndPastExecutionGroups()
                     .flatMap(ExecutionGroup::getStages)
                     .filter(s -> Objects.equals(s.getFullyQualifiedId(), stageId))
                     .findFirst()
@@ -206,7 +206,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
         var pipeline = context.getPipeline();
         var workDirBefore = pipeline
-                .getPresentAndPastExecutionGroups()
+                .getActiveAndPastExecutionGroups()
                 .filter(group -> !group.isConfigureOnly())
                 .takeWhile(group -> group.getId().getGroupNumberWithinProject() < context
                         .getStageId()

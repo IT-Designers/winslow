@@ -87,7 +87,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                             // overwrite StageDefinition if there is already an
                             // execution instance of it
                             pipeline
-                                    .getPresentAndPastExecutionGroups()
+                                    .getActiveAndPastExecutionGroups()
                                     .filter(g -> g
                                             .getStageDefinition()
                                             .getName()

@@ -82,7 +82,7 @@ public class TensorBoardController {
 
         var workspaces = winslow.getResourceManager().getWorkspacesDirectory().orElseThrow().toAbsolutePath();
         var stage = pipeline
-                .getPresentAndPastExecutionGroups()
+                .getActiveAndPastExecutionGroups()
                 .flatMap(ExecutionGroup::getStages)
                 .filter(s -> s.getFullyQualifiedId().equals(stageId))
                 .findFirst();

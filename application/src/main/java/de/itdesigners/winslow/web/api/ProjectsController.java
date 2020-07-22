@@ -97,7 +97,7 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .stream()
-                        .flatMap(Pipeline::getPresentAndPastExecutionGroups)
+                        .flatMap(Pipeline::getActiveAndPastExecutionGroups)
                         .map(ExecutionGroupInfoConverter::convert)
                 );
     }
@@ -578,7 +578,7 @@ public class ProjectsController {
                         .getPipeline(project)
                         .map(pipeline -> {
                             var resolver = new EnvVariableResolver()
-                                    .withExecutionHistory(pipeline::getPresentAndPastExecutionGroups)
+                                    .withExecutionHistory(pipeline::getActiveAndPastExecutionGroups)
                                     .withEnqueuedStages(pipeline::getEnqueuedExecutions)
                                     .withInPipelineDefinitionDefinedVariables(
                                             project
@@ -824,7 +824,7 @@ public class ProjectsController {
         var recentBase = Optional
                 .of(base)
                 .flatMap(def -> pipeline
-                        .getPresentAndPastExecutionGroups()
+                        .getActiveAndPastExecutionGroups()
                         .filter(g -> g.getStageDefinition().getName().equals(def.getName()))
                         .map(ExecutionGroup::getStageDefinition)
                         .reduce((first, second) -> second)

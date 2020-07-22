@@ -1,6 +1,5 @@
 package de.itdesigners.winslow.asblr;
 
-import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.UserInput;
@@ -66,7 +65,7 @@ public class UserInputChecker implements AssemblerStep {
                 .concat(stageDefinition.getRequires().stream(), pipelineDefinition.getRequires().stream())
                 .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
                 .anyMatch(u -> !(u.getConfirmation() == UserInput.Confirmation.Once && pipeline
-                        .getPresentAndPastExecutionGroups()
+                        .getActiveAndPastExecutionGroups()
                         .anyMatch(g -> g.getStageDefinition().equals(stageDefinition))));
     }
 

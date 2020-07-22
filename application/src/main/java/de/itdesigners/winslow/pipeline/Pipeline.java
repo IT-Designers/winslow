@@ -191,7 +191,7 @@ public class Pipeline implements Cloneable {
 
     @Nonnull
     @Transient
-    public Stream<ExecutionGroup> getPresentAndPastExecutionGroups() {
+    public Stream<ExecutionGroup> getActiveAndPastExecutionGroups() {
         return Stream.concat(this.executionHistory.stream(), getActiveExecutionGroup().stream());
     }
 

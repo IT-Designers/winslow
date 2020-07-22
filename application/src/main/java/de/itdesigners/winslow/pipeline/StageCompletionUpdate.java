@@ -110,7 +110,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                         .flatMap(PipelineDefinition::getDeletionPolicy)
                 )
                 .orElseGet(Orchestrator::defaultDeletionPolicy);
-        var history    = pipeline.getPresentAndPastExecutionGroups().collect(Collectors.toList());
+        var history    = pipeline.getActiveAndPastExecutionGroups().collect(Collectors.toList());
         var finder     = new ObsoleteWorkspaceFinder(policy).withExecutionHistory(history);
         var obsolete   = finder.collectObsoleteWorkspaces();
         var workspaces = orchestrator.getResourceManager();

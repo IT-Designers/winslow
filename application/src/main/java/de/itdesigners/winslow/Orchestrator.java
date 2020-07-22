@@ -806,7 +806,7 @@ public class Orchestrator {
                     var pipe   = pipeline.get();
                     var except = Optional.<IOException>empty();
                     var prunable = pipe
-                            .getPresentAndPastExecutionGroups()
+                            .getActiveAndPastExecutionGroups()
                             .flatMap(g -> g.getStages().map(s -> new Pair<>(g, s)))
                             .filter(s -> s.getValue1().getState() == State.Failed)
                             .collect(Collectors.toUnmodifiableList());
