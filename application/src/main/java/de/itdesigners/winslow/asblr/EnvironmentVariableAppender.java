@@ -42,7 +42,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.getName())
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_SETUP_DATE_TIME",
-                        new Date(timeS).toString()
+                        new Date(timeMs).toString()
                 )
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
                 .withInternalEnvVariable(
