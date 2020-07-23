@@ -11,7 +11,6 @@ public class StageInfo {
     public final @Nullable Date                startTime;
     public final @Nullable Date                finishTime;
     public final @Nullable State               state;
-    public final @Nonnull  String              stageName;
     public final @Nullable String              workspace;
     public final @Nonnull  Map<String, String> env;
     public final @Nonnull  Map<String, String> envPipeline;
@@ -23,7 +22,6 @@ public class StageInfo {
             @Nullable Date startTime,
             @Nullable Date finishTime,
             @Nullable State state,
-            @Nonnull String stageName,
             @Nullable String workspace,
             @Nonnull Map<String, String> env,
             @Nonnull Map<String, String> envPipeline,
@@ -33,7 +31,6 @@ public class StageInfo {
         this.startTime   = startTime;
         this.finishTime  = finishTime;
         this.state       = state;
-        this.stageName   = stageName;
         this.workspace   = workspace;
         this.env         = env;
         this.envPipeline = envPipeline;

@@ -15,7 +15,6 @@ public class StageInfoConverter {
                 stage.getStartTime(),
                 stage.getFinishTime().orElse(null),
                 stage.getState(),
-                stage.getId().getHumanReadableGroupHint().orElse("unknown"),
                 stage.getWorkspace().orElse(null),
                 new TreeMap<>(stage.getEnv()),
                 new TreeMap<>(stage.getEnvPipeline()),
