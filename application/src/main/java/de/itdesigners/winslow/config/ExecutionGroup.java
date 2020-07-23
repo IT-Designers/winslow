@@ -227,7 +227,7 @@ public class ExecutionGroup {
                         .values()
                         .stream()
                         .map(RangeWithStepSize::getStepCount)
-                        .reduce(0, Integer::sum)
+                        .reduce(1, (first, second) -> first * second)
                 ).orElseGet(() -> {
                     if (configureOnly) {
                         return 0;
