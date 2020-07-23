@@ -25,11 +25,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -63,6 +61,8 @@ public class Orchestrator {
 
     private final boolean       executeStages;
     private final AtomicBoolean started = new AtomicBoolean(false);
+
+    private final @Nonnull Map<String, Queue<Consumer<Pipeline>>> deferredPipelineUpdates = new ConcurrentHashMap<>();
 
 
     public Orchestrator(
@@ -196,6 +196,32 @@ public class Orchestrator {
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {
+        Optional.ofNullable(deferredPipelineUpdates.get(event.getSubject()))
+                .ifPresent(queue -> {
+                    pipelines
+                            .getPipeline(event.getSubject())
+                            .exclusive()
+                            .ifPresent(container -> {
+                                try (container) {
+                                    var pipeline = container.get();
+                                    while (!queue.isEmpty() && pipeline.isPresent()) {
+                                        var updater = queue.poll();
+                                        var pipe    = pipeline.get();
+
+                                        if (updater != null) {
+                                            updater.accept(pipe);
+                                            container.update(pipe);
+                                        }
+                                    }
+                                } catch (LockException | IOException e) {
+                                    LOG.log(Level.SEVERE, "Failed to update pipeline", e);
+                                }
+                            });
+
+
+                });
+
+
         var project = this.projects
                 .getProjectIdForLockSubject(event.getSubject())
                 .or(() -> this.logs.getProjectIdForLogPath(Path.of(event.getSubject())));
@@ -233,7 +259,7 @@ public class Orchestrator {
                     LockBus.ensureSleepMs(30_000);
                     if (executor.isRunning()) {
                         executor.logErr("Timeout reached: going to stop running executor");
-                        this.updatePipeline(executor.getPipeline(), pipeline -> {
+                        this.enqueuePipelineUpdate(executor.getPipeline(), pipeline -> {
                             var group = pipeline.getActiveExecutionGroup();
                             if (group.isPresent()) {
                                 try {
@@ -452,28 +478,17 @@ public class Orchestrator {
                             .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
                                 executor.setStageHandle(result.getHandle());
                                 lock.waitForRelease();
-                                var updated = false;
-                                // TODO this is a workaround, a proper solution would be to enqueue these kind of changes and to apply them as soon as the lock is released
-                                for (int i = 0; i < 10 && !updated; ++i) {
-                                    updated = updatePipeline(projectId, pipelineToUpdate -> {
-                                        try {
-                                            pipelineToUpdate
-                                                    .getActiveExecutionGroup()
-                                                    .orElseThrow()
-                                                    .updateStage(result.getStage());
-                                        } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                            LOG.log(Level.SEVERE, "Failed to update stage with assemble result", e);
-                                            throw new RuntimeException(e); // bubble up
-                                        }
-                                    });
-                                    if (!updated) {
-                                        LOG.fine("Failed to update pipeline with stage result, will try again...");
-                                        LockBus.ensureSleepMs(250);
+                                enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
+                                    try {
+                                        pipelineToUpdate
+                                                .getActiveExecutionGroup()
+                                                .orElseThrow()
+                                                .updateStage(result.getStage());
+                                    } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                        LOG.log(Level.SEVERE, "Failed to update stage with assemble result", e);
+                                        throw new RuntimeException(e); // bubble up
                                     }
-                                }
-                                if (!updated) {
-                                    LOG.severe("Failed to update pipeline with stage result");
-                                }
+                                });
                             }))
                             .assemble(new Context(
                                     pipeline,
@@ -493,17 +508,17 @@ public class Orchestrator {
 
             } catch (UserInputChecker.MissingUserInputException e) {
                 cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
-                updatePipeline(projectId, toUpdate -> {
+                enqueuePipelineUpdate(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.FurtherInputRequired);
                 });
             } catch (UserInputChecker.MissingUserConfirmationException e) {
                 cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
-                updatePipeline(projectId, toUpdate -> {
+                enqueuePipelineUpdate(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 });
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
-                updatePipeline(projectId, pipelineToUpdate -> {
+                enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
                     pipelineToUpdate.requestPause();
                     pipelineToUpdate.getActiveExecutionGroup().ifPresentOrElse(
                             group -> {
@@ -748,24 +763,47 @@ public class Orchestrator {
         }).orElse(Boolean.FALSE);
     }
 
+    private void enqueuePipelineUpdate(@Nonnull String projectId, @Nonnull Consumer<Pipeline> update) {
+        pipelines
+                .getPipeline(projectId)
+                .exclusive()
+                .ifPresentOrElse(
+                        container -> applyUpdateOnPipelineContainer(container, container1 -> {
+                            update.accept(container1);
+                            return Boolean.TRUE; // whatever, just some static value
+                        }),
+                        () -> deferredPipelineUpdates
+                                .computeIfAbsent(projectId, pid -> new ConcurrentLinkedQueue<>())
+                                .add(update)
+                );
+    }
+
     @Nonnull
     private <T> Optional<T> updatePipeline(
             @Nonnull String projectId,
-            @Nonnull Function<Pipeline, T> updater) {
-        return pipelines.getPipeline(projectId).exclusive().flatMap(container -> {
-            try (container) {
-                var result   = Optional.<T>empty();
-                var pipeline = container.get();
-                if (pipeline.isPresent()) {
-                    result = Optional.ofNullable(updater.apply(pipeline.get()));
-                    container.update(pipeline.get());
-                }
-                return result;
-            } catch (LockException | IOException e) {
-                LOG.log(Level.SEVERE, "Failed to update pipeline", e);
-                return Optional.empty();
+            @Nonnull Function<Pipeline, T> update) {
+        return pipelines
+                .getPipeline(projectId)
+                .exclusive()
+                .flatMap(container -> applyUpdateOnPipelineContainer(container, update));
+    }
+
+    @Nonnull
+    private <T> Optional<? extends T> applyUpdateOnPipelineContainer(
+            LockedContainer<Pipeline> container,
+            @Nonnull Function<Pipeline, T> update) {
+        try (container) {
+            var result   = Optional.<T>empty();
+            var pipeline = container.get();
+            if (pipeline.isPresent()) {
+                result = Optional.ofNullable(update.apply(pipeline.get()));
+                container.update(pipeline.get());
             }
-        });
+            return result;
+        } catch (LockException | IOException e) {
+            LOG.log(Level.SEVERE, "Failed to update pipeline", e);
+            return Optional.empty();
+        }
     }
 
     @Nonnull
