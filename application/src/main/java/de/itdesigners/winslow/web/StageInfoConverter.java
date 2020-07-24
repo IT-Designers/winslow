@@ -12,7 +12,7 @@ public class StageInfoConverter {
     public static StageInfo from(@Nonnull Stage stage) {
         return new StageInfo(
                 stage.getFullyQualifiedId(),
-                stage.getStartTime(),
+                stage.getStartTime().orElse(null),
                 stage.getFinishTime().orElse(null),
                 stage.getState(),
                 stage.getWorkspace().orElse(null),

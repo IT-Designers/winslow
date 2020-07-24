@@ -14,9 +14,9 @@ import java.util.Optional;
 public class Stage implements Cloneable {
 
     @Nonnull private final StageId id;
-    @Nonnull private final Date    startTime;
 
     @Nullable private String              workspace;
+    @Nullable private Date                startTime;
     @Nullable private Date                finishTime;
     @Nullable private State               finishState;
     @Nullable private Map<String, String> env;
@@ -28,7 +28,7 @@ public class Stage implements Cloneable {
         this.id        = id;
         this.workspace = workspace;
 
-        this.startTime   = new Date();
+        this.startTime   = null;
         this.finishTime  = null;
         this.finishState = null;
     }
@@ -36,7 +36,7 @@ public class Stage implements Cloneable {
     @ConstructorProperties({"id", "startTime", "workspace", "finishTime", "finishState", "env", "envPipeline", "envSystem", "envInternal"})
     public Stage(
             @Nonnull StageId id,
-            @Nonnull Date startTime,
+            @Nullable Date startTime,
             @Nullable String workspace,
             @Nullable Date finishTime,
             @Nullable State finishState,
@@ -72,14 +72,18 @@ public class Stage implements Cloneable {
         return this.id.getProjectRelative();
     }
 
+    public void startNow() {
+        this.startTime = new Date();
+    }
+
     public void finishNow(@Nonnull State finishState) {
         this.finishTime  = new Date();
         this.finishState = finishState;
     }
 
     @Nonnull
-    public Date getStartTime() {
-        return startTime;
+    public Optional<Date> getStartTime() {
+        return Optional.ofNullable(startTime);
     }
 
     @Nonnull
@@ -95,7 +99,13 @@ public class Stage implements Cloneable {
     @Nonnull
     @Transient
     public State getState() {
-        return getFinishState().orElse(State.Running);
+        return getFinishState().orElseGet(() -> {
+            if (startTime == null) {
+                return State.Preparing;
+            } else {
+                return State.Running;
+            }
+        });
     }
 
     /**
