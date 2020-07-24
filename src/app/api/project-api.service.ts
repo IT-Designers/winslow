@@ -370,6 +370,7 @@ export class ExecutionGroupInfo {
   constructor(origin: ExecutionGroupInfo = null) {
     if (origin != null) {
       Object.assign(this, origin);
+      this.stageDefinition = new StageDefinitionInfo(origin.stageDefinition);
       this.rangedValues = ProjectApiService.toMap(origin.rangedValues);
     }
   }
@@ -441,6 +442,14 @@ export class StageDefinitionInfo {
   image?: ImageInfo;
   requiredEnvVariables: string[];
   requiredResources: ResourceInfo;
+  env: Map<string, string>;
+
+  constructor(origin: StageDefinitionInfo = null) {
+    if (origin != null) {
+      Object.assign(this, origin);
+      this.env = ProjectApiService.toMap(origin.env);
+    }
+  }
 }
 
 export enum LogSource {
