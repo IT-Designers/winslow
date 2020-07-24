@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 
@@ -57,6 +58,18 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
         ensureHasStageDefinitionToDeploy(pipelineReadOnly);
         ensureActiveExecutionGroupHasRemainingStageExecutions(pipelineReadOnly);
         ensureNotPaused(pipelineReadOnly);
+        ensureNoStageInPreparationPhase(pipelineReadOnly);
+    }
+
+    private static void ensureNoStageInPreparationPhase(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
+        var hasPreparingStage = Optional
+                .ofNullable(pipelineReadOnly)
+                .flatMap(Pipeline::getActiveExecutionGroup)
+                .map(g -> g.getStages().anyMatch(s -> s.getState() == State.Preparing))
+                .orElse(Boolean.FALSE);
+        if (hasPreparingStage) {
+            throw new PreconditionNotMetException("ExecutionGroup has stage in Preparing state");
+        }
     }
 
     private static void ensureNotPaused(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
