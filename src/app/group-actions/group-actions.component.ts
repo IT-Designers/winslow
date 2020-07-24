@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
-import {ProjectInfo, ProjectApiService} from '../api/project-api.service';
+import {ProjectApiService, ProjectInfo} from '../api/project-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {PipelineApiService, PipelineInfo, StageInfo} from '../api/pipeline-api.service';
+import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
 
 @Component({
   selector: 'app-group-actions',

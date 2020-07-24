@@ -1,0 +1,20 @@
+
+.history-item-no {
+  text-align: end;
+  min-width: 2em;
+}
+
+.history-item-date {
+  min-width: 10em;
+  text-align: end;
+}
+
+.history-item-detail p {
+  display: flex;
+  justify-content: space-between;
+}
+
+.history-item-detail-item {
+  margin: 0;
+  padding: 0.75em 1em;
+}

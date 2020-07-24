@@ -12,42 +12,46 @@
             (click)="$event.stopPropagation(); clickResumeOnlyThisStage.emit($event)">
     skip_next
   </mat-icon>
-  <mat-icon *ngIf="paused && showActiveControls" class="clickable"
+  <mat-icon *ngIf="paused && showActiveControls && clickResume.observers.length > 0" class="clickable"
             matTooltip="Resume Pipeline"
             (click)="$event.stopPropagation(); clickResume.emit($event)">
     play_circle_outlined
   </mat-icon>
-  <mat-icon *ngIf="enqueued && showDeleteEnqueued" class="clickable"
+  <mat-icon *ngIf="enqueued && showDeleteEnqueued && clickDelete.observers.length > 0" class="clickable"
             matTooltip="Delete"
             (click)="$event.stopPropagation(); clickDelete.emit($event)">
     delete_outlined
   </mat-icon>
-  <mat-icon *ngIf="!paused && (running || (showActiveControls && !enqueued))" class="clickable"
-            matTooltip="Pause Pipeline (after this)"
-            (click)="$event.stopPropagation(); clickPauseAfterThis.emit($event)">
+  <mat-icon
+    *ngIf="!paused && (running || (showActiveControls && !enqueued && clickPauseAfterThis.observers.length > 0))"
+    class="clickable"
+    matTooltip="Pause Pipeline (after this)"
+    (click)="$event.stopPropagation(); clickPauseAfterThis.emit($event)">
     pause_circle_outlined
   </mat-icon>
-  <mat-icon *ngIf="running && showActiveControls" class="clickable"
+  <mat-icon *ngIf="((running && showActiveControls) || showKillCurrentStage) && clickKillCurrentStage.observers.length > 0" class="clickable"
             matTooltip="Stop"
             (click)="$event.stopPropagation(); clickKillCurrentStage.emit($event)">
     pan_tool
   </mat-icon>
-  <mat-icon *ngIf="showUseAsBlueprint" class="clickable"
+  <mat-icon *ngIf="showUseAsBlueprint && clickUseAsBlueprint.observers.length > 0" class="clickable"
             matTooltip="Use as blueprint"
             (click)="$event.stopPropagation(); clickUseAsBlueprint.emit($event)">
     replay
   </mat-icon>
-  <mat-icon *ngIf="showPassiveControls" class="clickable"
+  <mat-icon *ngIf="showPassiveControls && clickOpenLogs.observers.length > 0" class="clickable"
             matTooltip="Open Logs"
             (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
     list_alt
   </mat-icon>
-  <mat-icon  class="clickable"
+  <mat-icon *ngIf="clickOpenWorkspace.observers.length > 0"
+            class="clickable"
             matTooltip="Open Directory"
             (click)="$event.stopPropagation(); clickOpenWorkspace.emit($event)">
     folder_open
   </mat-icon>
-  <img *ngIf="showPassiveControls" class="clickable mat-icon notranslate material-icons mat-icon-no-color"
+  <img *ngIf="showPassiveControls && clickOpenTensorboard.observers.length > 0"
+       class="clickable mat-icon notranslate material-icons mat-icon-no-color"
        src="../../assets/tensorflow.png"
        alt="(TensorBoard)"
        (click)="$event.stopPropagation(); clickOpenTensorboard.emit($event)">
