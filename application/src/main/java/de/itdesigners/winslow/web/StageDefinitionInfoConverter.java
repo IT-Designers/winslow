@@ -15,7 +15,8 @@ public class StageDefinitionInfoConverter {
                 definition.getName(),
                 definition.getImage().map(ImageInfoConverter::from).orElse(null),
                 definition.getRequires().map(UserInput::getEnvironment).orElseGet(Collections::emptyList),
-                definition.getRequirements().map(ResourceInfoConverter::from).orElse(null)
+                definition.getRequirements().map(ResourceInfoConverter::from).orElse(null),
+                definition.getEnvironment()
         );
     }
 }
