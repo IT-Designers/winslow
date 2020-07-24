@@ -46,12 +46,10 @@ public class RunInfoRepository extends BaseRepository {
 
     @Nonnull
     protected Optional<Path> getPropertyPathIfStageExists(@Nonnull String stageId, @Nonnull String property) {
-        var stageDir = getRepositoryFile(stageId);
-        if (Files.exists(stageDir)) {
-            return Optional.of(stageDir.resolve(Path.of(property).getFileName()));
-        } else {
-            return Optional.empty();
-        }
+        return Optional
+                .of(getRepositoryFile(stageId))
+                .filter(Files::exists)
+                .map(p -> p.resolve(Path.of(property)));
     }
 
     public void removeAllProperties(@Nonnull String stageId) throws IOException {
