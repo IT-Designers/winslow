@@ -398,8 +398,8 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId,
-            @RequestParam(value = "skipLines", defaultValue = "0") long skipLines,
-            @RequestParam(value = "expectingStageId", defaultValue = "0") String expectingStageId) {
+            @RequestParam(value = "skipLines", defaultValue = "0", required = false) long skipLines,
+            @RequestParam(value = "expectingStageId", defaultValue = "0", required = false) String expectingStageId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
