@@ -10,8 +10,8 @@
       [visible]="selectedTabIndex == tabIndexOverview"
       (openFiles)="openFolder(this.project, this.history[0])"
       (openLogs)="openLogs(null)"
-      (clickUseAsBlueprint)="prepareEnqueue($event)"
-      (clickDeleteEnqueued)="cancelEnqueuedStage($event.enqueueIndex, $event.enqueueControlSize)"
+      (clickUseAsBlueprint)="useAsBlueprint($event[0], $event[1])"
+      (clickDeleteEnqueued)="cancelEnqueuedStage($event.id)"
       (clickResumeSingle)="updateRequestPause(false, true)"
       (clickResume)="updateRequestPause(false, false)"
       (clickPause)="updateRequestPause(true)"
@@ -29,6 +29,7 @@
         (selectedStage)="onSelectedStageChanged($event)"
         [environmentVariables]="environmentVariables"
         [defaultEnvironmentVariables]="defaultEnvironmentVariables"
+        [rangedEnvironmentVariables]="rangedEnvironmentVariables"
         [workspaceConfigurationMode]="workspaceConfigurationMode"
         [executionHistory]="history">
       </app-stage-execution-selection>
@@ -63,6 +64,7 @@
                   executionSelection.selectedPipeline,
                   executionSelection.selectedStage,
                   executionSelection.getEnv(),
+                  executionSelection.getRangedEnv(),
                   executionSelection.getImage(),
                   executionSelection.getResourceRequirements(),
                   executionSelection.getWorkspaceConfiguration()
@@ -79,108 +81,28 @@
 
       <ng-container *ngIf="history != null">
         <i *ngIf="history.length == 0">This project has no history yet</i>
-        <mat-accordion>
-          <mat-expansion-panel *ngFor="let entry of history.slice(0, maxHistoryItemsToDisplay); index as i"
-                               class="history-list-item">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <app-project-history-header
-                  [state]="entry.state"
-                  [isConfigure]="isConfigure(entry.action)"
-                  [itemNo]="tryParseStageNumber(entry.stageId, history.length - i)"
-                  [time]="entry.finishTime === null ? entry.startTime : entry.finishTime"
-                  [stageName]="entry.stageName"
-                  [showResumeOnlyThisStage]="entry.enqueueIndex == 0"
-                  [showDeleteEnqueued]="isEnqueued(entry.state)"
-                  [showUseAsBlueprint]="true"
-                  [showActiveControls]="i == 0 || entry.enqueueIndex == 0"
-                  [showPassiveControls]="!isEnqueued(entry.state)"
-                  [enqueued]="isEnqueued(entry.state)"
-                  [running]="isRunning(entry.state)"
-                  [paused]="paused"
 
-                  (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
-                  (clickResume)="updateRequestPause(false, false)"
-                  (clickDelete)="cancelEnqueuedStage(entry.enqueueIndex, entry.enqueueControlSize)"
-                  (clickPauseAfterThis)="updateRequestPause(true)"
-                  (clickKillCurrentStage)="killCurrentStage()"
-                  (clickUseAsBlueprint)="prepareEnqueue(entry)"
-                  (clickOpenLogs)="openLogs(entry)"
-                  (clickOpenWorkspace)="openFolder(project, entry)"
-                  (clickOpenTensorboard)="openTensorboard(project, entry)"
+        <mat-accordion [multi]="true">
+          <app-project-history
+            *ngFor="let entry of history.slice(0, maxHistoryItemsToDisplay); index as i"
+            class="history-list-item"
+            [executionGroup]="entry"
+            [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
+            [expanded]="i < 5"
+            [pipelineIsPaused]="paused"
 
-                ></app-project-history-header>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <ng-template matExpansionPanelContent>
-              <div class="history-item-detail">
-                <ng-template #detailItem let-keyvalue>
-                  <p class="history-item-detail-item mat-highlight-hover">
-                    <label *ngIf="keyvalue.value != null">{{keyvalue.key}}</label>
-                    <label *ngIf="keyvalue.value == null"><s>{{keyvalue.key}}</s></label>
-                    <label>{{keyvalue.value}}</label>
-                  </p>
-                </ng-template>
-
-                <h3>Status Information</h3>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Unique Stage Id', value: entry.stageId}}"></ng-template>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Workspace Directory', value: entry.workspace}}"></ng-template>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Based on Stage Definition', value: entry.stageName}}"></ng-template>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Started execution at', value: entry.startTime != null ? toDate(entry.startTime) : 'not yet started'}}"></ng-template>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Finished execution at', value: entry.finishTime != null ? toDate(entry.finishTime) : 'not yet finished'}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Workspace Mode', value: entry.workspaceConfiguration?.mode}}"></ng-template>
-                <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Workspace Supplement', value: entry.workspaceConfiguration?.value}}"></ng-template>
-
-                <h3>Image Information</h3>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Image', value: entry.imageInfo?.name}}"></ng-template>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'Arguments', value: entry.imageInfo?.args|json}}"></ng-template>
-
-                <h3>Resource Requirements</h3>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'CPU (cores)', value: entry.resourceRequirements?.cpus}}"></ng-template>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'RAM (MiB)', value: entry.resourceRequirements?.megabytesOfRam}}"></ng-template>
-                <ng-template
-                  *ngTemplateOutlet="detailItem; context: {$implicit: {key: 'GPU', value: entry.resourceRequirements?.gpus}}"></ng-template>
-
-                <h3>Stage Environment Variables</h3>
-                <i *ngIf="entry.env == null || entry.env.size == 0">none</i>
-                <ng-container *ngFor="let e of entry.env | keyvalue">
-                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                  </ng-template>
-                </ng-container>
-
-                <h3>Pipeline Environment Variables</h3>
-                <i *ngIf="entry.envPipeline == null || entry.envPipeline.size == 0">none</i>
-                <ng-container *ngFor="let e of entry.envPipeline | keyvalue">
-                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                  </ng-template>
-                </ng-container>
-
-                <h3>System Environment Variables</h3>
-                <i *ngIf="entry.envSystem == null || entry.envSystem.size == 0">none</i>
-                <ng-container *ngFor="let e of entry.envSystem | keyvalue">
-                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                  </ng-template>
-                </ng-container>
-
-                <h3>Internal Environment Variables</h3>
-                <i *ngIf="entry.envInternal == null || entry.envInternal.size == 0">none</i>
-                <ng-container *ngFor="let e of entry.envInternal | keyvalue">
-                  <ng-template *ngTemplateOutlet="detailItem; context: {$implicit: {key: e.key, value: e.value}}">
-                  </ng-template>
-                </ng-container>
-              </div>
-            </ng-template>
-          </mat-expansion-panel>
+            (clickResume)="updateRequestPause(false)"
+            (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
+            (clickDelete)="cancelEnqueuedStage(entry.id)"
+            (clickPauseAfterThis)="updateRequestPause(true)"
+            (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
+            (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
+            (clickOpenLogs)="openLogs($event)"
+            (clickOpenWorkspace)="openWorkspace(project, $event)"
+            (clickOpenTensorboard)="openTensorboard(project, $event)"
+          ></app-project-history>
         </mat-accordion>
+
         <div class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
           <button *ngIf="history.length > maxHistoryItemsToDisplay"
                   mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(10)">

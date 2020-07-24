@@ -1,8 +1,7 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {ImageInfo, ParseError} from './project-api.service';
-import {FileInfo} from './files-api.service';
+import {ParseError, StageDefinitionInfo} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -46,15 +45,6 @@ export class PipelineApiService {
       .then(info => info.map(i => new PipelineInfo(i)));
   }
 
-  /**
-   * @deprecated Stages ({@link StageInfo}[]) is already included in the {@link PipelineInfo}
-   */
-  getStageDefinitions(pipelineId: string) {
-    return this.client
-        .get<StageInfo[]>(environment.apiLocation + 'stages/' + pipelineId)
-        .toPromise();
-  }
-
   createPipelineDefinition(name: string) {
     const form = new FormData();
     form.set('name', name);
@@ -72,7 +62,7 @@ export class PipelineInfo {
   name: string;
   desc?: string;
   requiredEnvVariables: string[];
-  stages: StageInfo[];
+  stages: StageDefinitionInfo[];
   markers: string[];
 
   constructor(info: PipelineInfo) {
@@ -98,13 +88,6 @@ export class PipelineInfo {
     const markers = this.markers.map(m => m.toLowerCase());
     return markers.indexOf('action') >= 0 || markers.indexOf('action for ' + pipelineName.toLowerCase()) >= 0;
   }
-}
-
-export class StageInfo {
-  name: string;
-  image?: ImageInfo;
-  requiredEnvVariables: string[];
-  requiredResources?: ResourceInfo;
 }
 
 export class ResourceInfo {

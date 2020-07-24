@@ -125,7 +125,7 @@
       GPUs
     </mat-label>
     <mat-form-field>
-      <input #requiredGpus matInput required [value]="'' +selectedStage.requiredResources.gpus"
+      <input #requiredGpus matInput required [value]="'' +(selectedStage.requiredResources.gpus != null ? selectedStage.requiredResources.gpus : 0)"
              [disabled]="!requireGpus.checked"
              (change)="resources.gpus = toNumber($event.target.value); updateValid()">
     </mat-form-field>
@@ -146,7 +146,87 @@
   </div>
 
   <div class="whitespace-separator-top">
+    <mat-card-subtitle>Ranged Environment Values</mat-card-subtitle>
+  </div>
+
+  <div class="action-row" *ngFor="let entry of rangedEnvironmentVariablesValue | keyvalue">
+    <mat-label class="title">{{entry.key}}</mat-label>
+    <mat-form-field>
+      <input matInput placeholder="Start" type="number" step="0.1" value="{{entry.value.min}}"
+             (change)="updateRangedEnv(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeStart>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput placeholder="End" type="number" step="0.1" value="{{entry.value.max}}"
+             (change)="updateRangedEnv(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeEnd>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput placeholder="Step Size" type="number" step="0.01" value="{{entry.value.stepSize}}"
+             (change)="updateRangedEnv(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #stepSize>
+    </mat-form-field>
+    <div class="controls">
+      <button mat-icon-button color="primary"
+              [disabled]="rangeStart.value.trim() == entry.value.min
+                      && rangeEnd.value.trim() == entry.value.max
+                      && stepSize.value.trim() == entry.value.stepSize"
+              (click)="rangeStart.value = entry.value.min;
+                      rangeEnd.value = entry.value.max;
+                      stepSize.value = entry.value.stepSize"
+      >
+        <mat-icon class="material-icons-outlined">undo</mat-icon>
+      </button>
+      <button mat-icon-button color="warn"
+              (click)="removeRangeDEnvironmentVariable(entry.key)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-form-field class="title">
+      <input matInput placeholder="Name" type="text" #name>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput placeholder="Start" type="number" step="0.1" value="0.0" #rangeStart>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput placeholder="End" type="number" step="0.1" value="1.0" #rangeEnd>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput placeholder="Step Size" type="number" step="0.01" value="0.15" #stepSize>
+    </mat-form-field>
+    <div class="controls">
+      <button dense mat-raised-button color="primary" #button
+              [disabled]="name.value.trim().length == 0
+                      || rangeStart.value.trim().length == 0
+                      || rangeEnd.value.trim().length == 0
+                      || stepSize.value.trim().length == 0"
+              (click)="addRangedEnvironmentVariable(name, rangeStart, rangeEnd, stepSize)"
+      >Add
+      </button>
+    </div>
+  </div>
+</ng-container>
+
+
+<ng-container *ngIf="selectedStage != null">
+  <div>
+    <mat-divider></mat-divider>
+  </div>
+
+  <div class="whitespace-separator-top">
     <mat-card-subtitle>Workspace Mode</mat-card-subtitle>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+      <input type="checkbox"
+             [checked]="workspaceConfiguration?.sharedWithinGroup != false"
+             (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, $event.target.checked)">
+      Shared
+    </mat-label>
+    <div>
+      All stages within this group share the same workspace
+    </div>
   </div>
 
   <div class="action-row">
@@ -179,7 +259,7 @@
       <input name="ws-config" #wsContinuation type="radio" value="continuation"
              [disabled]="executionHistoryValue == null || executionHistoryValue.length == 0"
              [checked]="workspaceConfiguration?.mode == WorkspaceMode.CONTINUATION"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.CONTINUATION, executionHistoryValue[0].stageId)">
+             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.CONTINUATION, executionHistoryValue[0].id)">
       Continuation
     </mat-label>
     <div>
@@ -195,8 +275,10 @@
                   [value]="workspaceConfiguration.value"
                   [disabled]="!wsContinuation.checked"
                   (valueChange)="setWorkspaceMode(true, WorkspaceMode.CONTINUATION, $event)">
-        <mat-option *ngFor="let h of executionHistoryValue.filter(hasStageId); let i = index"
-                    [value]="h.stageId">[{{tryParseStageNumber(h.stageId, executionHistoryValue.length - i)}}] {{h.stageName}}</mat-option>
+        <ng-container *ngFor="let h of executionHistoryValue; let i = index">
+          <mat-option *ngFor="let s of h.stages; let n = index"
+                      [value]="s.id">[{{tryParseStageNumber(h.id, executionHistoryValue.length - i)}}] {{s.workspace}}</mat-option>
+        </ng-container>
       </mat-select>
     </mat-form-field>
     <div class="controls"></div>
