@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Executor;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
@@ -20,6 +21,7 @@ public class Context {
 
     private final @Nonnull  Pipeline           pipeline;
     private final @Nonnull  PipelineDefinition pipelineDefinition;
+    private final @Nonnull  ExecutionGroup     executionGroup;
     private final @Nullable Executor           executor;
     private final @Nonnull  StageId            stageId;
     private final @Nonnull  Submission         submission;
@@ -29,11 +31,13 @@ public class Context {
     public Context(
             @Nonnull Pipeline pipeline,
             @Nonnull PipelineDefinition definition,
+            @Nonnull ExecutionGroup executionGroup,
             @Nullable Executor executor,
             @Nonnull StageId stageId,
             @Nonnull Submission submission) {
         this.pipeline           = pipeline;
         this.pipelineDefinition = definition;
+        this.executionGroup     = executionGroup;
         this.executor           = executor;
         this.stageId            = stageId;
         this.submission         = submission;
@@ -52,6 +56,11 @@ public class Context {
     @Nonnull
     public PipelineDefinition getPipelineDefinition() {
         return pipelineDefinition;
+    }
+
+    @Nonnull
+    public ExecutionGroup getExecutionGroup() {
+        return executionGroup;
     }
 
     @Nonnull

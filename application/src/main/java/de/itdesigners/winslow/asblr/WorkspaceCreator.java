@@ -2,8 +2,8 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Environment;
 import de.itdesigners.winslow.Orchestrator;
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration.WorkspaceMode;
 import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration.WorkspaceMode;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
@@ -60,7 +60,10 @@ public class WorkspaceCreator implements AssemblerStep {
             workspaceContinuation = Optional.of(Path.of(baseWorkspace));
         }
 
-        var pathOfWorkspace      = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(context.getStageId()));
+        var pathOfWorkspace      = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(
+                context.getStageId(),
+                workspaceConfiguration.isSharedWithinGroup()
+        ));
         var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
         var pathOfPipelineOutput = getPipelineOutputPathOf(context.getPipeline());
 
@@ -72,11 +75,12 @@ public class WorkspaceCreator implements AssemblerStep {
             upgradePipelineDirectory(context, pathOfPipelineOutput, pathOfPipelineLegacyOutput, "output");
         }
 
+        var workspaceExistedBefore = environment.getResourceManager().existsWorkspace(pathOfWorkspace);
         var workspacesRoot = environment.getResourceManager().getWorkspacesDirectory();
         var resources      = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(
                 pathOfWorkspace,
-                workspaceMode != WorkspaceMode.CONTINUATION
+                workspaceMode != WorkspaceMode.CONTINUATION && !workspaceConfiguration.isSharedWithinGroup()
         );
         var pipelineInput  = environment.getResourceManager().createWorkspace(pathOfPipelineInput, false);
         var pipelineOutput = environment.getResourceManager().createWorkspace(pathOfPipelineOutput, false);
@@ -100,7 +104,9 @@ public class WorkspaceCreator implements AssemblerStep {
                             + ",pipelineOutput=" + pipelineOutput
             );
         } else {
-            if (!context.getSubmission().isConfigureOnly() && workspaceMode == WorkspaceMode.INCREMENTAL) {
+            if (!context.getSubmission().isConfigureOnly()
+                    && workspaceMode == WorkspaceMode.INCREMENTAL
+                    && (!workspaceConfiguration.isSharedWithinGroup() || !workspaceExistedBefore)) {
                 copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
                         context,
                         workspace.get()
@@ -177,13 +183,18 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Nonnull
     public static Path getInitWorkspacePath(@Nonnull String projectId) {
-        return getWorkspacePathOf(new StageId(projectId, 0, null, null));
+        return getWorkspacePathOf(new StageId(projectId, 0, null, null), true);
     }
 
 
     @Nonnull
-    public static Path getWorkspacePathOf(@Nonnull StageId stageId) {
-        return getProjectWorkspacesDirectory(stageId.getProjectId()).resolve(stageId.getProjectRelative());
+    public static Path getWorkspacePathOf(@Nonnull StageId stageId, boolean sharedWithinGroup) {
+        var base = getProjectWorkspacesDirectory(stageId.getProjectId());
+        if (sharedWithinGroup) {
+            return base.resolve(stageId.getExecutionGroupId().getProjectRelative());
+        } else {
+            return base.resolve(stageId.getProjectRelative());
+        }
     }
 
     @Nonnull
@@ -206,11 +217,8 @@ public class WorkspaceCreator implements AssemblerStep {
 
         var pipeline = context.getPipeline();
         var workDirBefore = pipeline
-                .getActiveAndPastExecutionGroups()
+                .getExecutionHistory()
                 .filter(group -> !group.isConfigureOnly())
-                .takeWhile(group -> group.getId().getGroupNumberWithinProject() < context
-                        .getStageId()
-                        .getGroupNumberWithinProject())
                 .reduce((first, second) -> second) // get the most recent group
                 .stream()
                 .flatMap(ExecutionGroup::getStages)

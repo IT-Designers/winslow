@@ -50,6 +50,20 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                         Long.toString(timeMs)
                 );
 
+        submission
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_MULTI_STAGE_GROUP",
+                        String.valueOf(context.getExecutionGroup().getExpectedGroupSize() > 1)
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_WORKSPACE_SHARED_WITHIN_GROUP",
+                        String.valueOf(submission.getWorkspaceConfiguration().isSharedWithinGroup())
+                );
+        submission.getId().getStageNumberWithinGroup().ifPresent(number -> {
+            submission.withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER_WITHIN_GROUP", String.valueOf(number));
+        });
+
+
         stageDefinition.getRequirements().ifPresent(requirements -> {
             var sub = context
                     .getSubmission()

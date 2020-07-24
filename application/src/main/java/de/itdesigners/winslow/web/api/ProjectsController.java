@@ -792,6 +792,7 @@ public class ProjectsController {
                                                         .getWorkspaceConfigurationMode()
                                                         .filter(m -> m == WorkspaceConfiguration.WorkspaceMode.STANDALONE || m == WorkspaceConfiguration.WorkspaceMode.INCREMENTAL)
                                                         .orElse(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
+                                                null,
                                                 null
                                         )
                                 );
