@@ -362,24 +362,33 @@ public class ProjectsController {
                 .orElse(false);
     }
 
-    @GetMapping("projects/{projectId}/logs/latest")
+    @GetMapping("projects/{projectId}/logs/{stageId}")
     public Stream<LogEntryInfo> getProjectStageLogsLatest(
             User user,
             @PathVariable("projectId") String projectId,
+            @PathVariable("stageId") String stageId,
             @RequestParam(value = "skipLines", defaultValue = "0") long skipLines,
-            @RequestParam(value = "expectingStageId", defaultValue = "0") String stageId) {
+            @RequestParam(value = "expectingStageId", defaultValue = "0") String expectingStageId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
                         .flatMap(Pipeline::getActiveExecutionGroup)
-                        .map(ExecutionGroup::getRunningStages)
-                        .flatMap(s -> s.reduce((first, second) -> second))
+                        .stream()
+                        .flatMap(ExecutionGroup::getStages)
+                        .filter(stage -> {
+                            if ("latest".equals(stageId)) {
+                                return stage.getState() == State.Running;
+                            } else {
+                                return stageId.equals(stage.getFullyQualifiedId());
+                            }
+                        })
+                        .reduce((first, second) -> second)
                         .stream()
                         .flatMap(stage -> {
                             var skip = skipLines;
-                            if (stageId != null && !stageId.equals(stage.getFullyQualifiedId())) {
+                            if (expectingStageId != null && !expectingStageId.equals(stage.getFullyQualifiedId())) {
                                 skip = 0;
                             }
 
@@ -419,18 +428,6 @@ public class ProjectsController {
                                             })
                             );
                         }));
-    }
-
-    @GetMapping("projects/{projectId}/logs/{stageId}")
-    public Stream<LogEntryInfo> getProjectStageLogs(
-            User user,
-            @PathVariable("projectId") String projectId,
-            @PathVariable("stageId") String stageId) {
-        var line = new AtomicLong(0);
-        return getProjectIfAllowedToAccess(user, projectId)
-                .stream()
-                .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId))
-                .map(entry -> new LogEntryInfo(line.incrementAndGet(), stageId, entry));
     }
 
     @GetMapping("projects/{projectId}/raw-logs/{stageId}")
