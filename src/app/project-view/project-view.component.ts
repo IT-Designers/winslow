@@ -296,8 +296,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  isStageRunning(stageId: string) {
-    if (this.history != null) {
+  isStageRunning(stageId?: string) {
+    if (this.history != null && stageId != null) {
       for (const entry of this.history) {
         // TODO double check!
         if (stageId.startsWith(entry.id)) {

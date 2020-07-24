@@ -168,9 +168,9 @@ export class ProjectApiService {
     return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`)).toPromise();
   }
 
-  getLatestLogs(projectId: string, skipLines: number, expectingStageId: string, stageId: string = 'latest') {
+  getLatestLogs(projectId: string, skipLines: number, expectingStageId: string, stageId?: string) {
     return this.client.get<LogEntry[]>(
-      ProjectApiService.getUrl(`${projectId}/logs/${stageId}?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)
+      ProjectApiService.getUrl(`${projectId}/logs/${stageId ?? 'latest'}?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)
     ).toPromise();
   }
 
