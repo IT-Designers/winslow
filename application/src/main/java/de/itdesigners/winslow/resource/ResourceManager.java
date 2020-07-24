@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.resource;
 
 import javax.annotation.Nonnull;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -32,6 +33,13 @@ public class ResourceManager {
         return getWorkspacesDirectory()
                 .flatMap(dir -> saveResolve(dir, path))
                 .filter(p -> p.toFile().exists());
+    }
+
+    public boolean existsWorkspace(@Nonnull Path path) {
+        return getWorkspacesDirectory()
+                .flatMap(dir -> saveResolve(dir, path))
+                .map(Files::exists)
+                .orElse(Boolean.FALSE);
     }
 
     /**
