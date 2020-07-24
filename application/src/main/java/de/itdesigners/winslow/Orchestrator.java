@@ -196,31 +196,7 @@ public class Orchestrator {
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {
-        Optional.ofNullable(deferredPipelineUpdates.get(event.getSubject()))
-                .ifPresent(queue -> {
-                    pipelines
-                            .getPipeline(event.getSubject())
-                            .exclusive()
-                            .ifPresent(container -> {
-                                try (container) {
-                                    var pipeline = container.get();
-                                    while (!queue.isEmpty() && pipeline.isPresent()) {
-                                        var updater = queue.poll();
-                                        var pipe    = pipeline.get();
-
-                                        if (updater != null) {
-                                            updater.accept(pipe);
-                                            container.update(pipe);
-                                        }
-                                    }
-                                } catch (LockException | IOException e) {
-                                    LOG.log(Level.SEVERE, "Failed to update pipeline", e);
-                                }
-                            });
-
-
-                });
-
+        tryTriggerDeferredPipelineUpdates(event.getSubject());
 
         var project = this.projects
                 .getProjectIdForLockSubject(event.getSubject())
@@ -232,6 +208,29 @@ public class Orchestrator {
                 this.pollPipelineForUpdate(project.get());
             });
         }
+    }
+
+    private void tryTriggerDeferredPipelineUpdates(@Nonnull String projectId) {
+        Optional.ofNullable(deferredPipelineUpdates.get(projectId))
+                .ifPresent(queue -> pipelines
+                        .getPipeline(projectId)
+                        .exclusive()
+                        .ifPresent(container -> {
+                            try (container) {
+                                var pipeline = container.get();
+                                while (!queue.isEmpty() && pipeline.isPresent()) {
+                                    var updater = queue.poll();
+                                    var pipe    = pipeline.get();
+
+                                    if (updater != null) {
+                                        updater.accept(pipe);
+                                        container.update(pipe);
+                                    }
+                                }
+                            } catch (LockException | IOException e) {
+                                LOG.log(Level.SEVERE, "Failed to update pipeline", e);
+                            }
+                        }));
     }
 
     private void handleStopEvent(@Nonnull Event event) {
@@ -476,6 +475,7 @@ public class Orchestrator {
                             .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
                             .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
+                                result.getStage().startNow();
                                 executor.setStageHandle(result.getHandle());
                                 lock.waitForRelease();
                                 enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
@@ -493,6 +493,7 @@ public class Orchestrator {
                             .assemble(new Context(
                                     pipeline,
                                     definition,
+                                    executionGroup,
                                     executor,
                                     stageId,
                                     new Submission(
@@ -505,7 +506,6 @@ public class Orchestrator {
                 } finally {
                     lock.waitForRelease();
                 }
-
             } catch (UserInputChecker.MissingUserInputException e) {
                 cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
                 enqueuePipelineUpdate(projectId, toUpdate -> {
@@ -764,18 +764,10 @@ public class Orchestrator {
     }
 
     private void enqueuePipelineUpdate(@Nonnull String projectId, @Nonnull Consumer<Pipeline> update) {
-        pipelines
-                .getPipeline(projectId)
-                .exclusive()
-                .ifPresentOrElse(
-                        container -> applyUpdateOnPipelineContainer(container, container1 -> {
-                            update.accept(container1);
-                            return Boolean.TRUE; // whatever, just some static value
-                        }),
-                        () -> deferredPipelineUpdates
-                                .computeIfAbsent(projectId, pid -> new ConcurrentLinkedQueue<>())
-                                .add(update)
-                );
+        deferredPipelineUpdates
+                .computeIfAbsent(projectId, pid -> new ConcurrentLinkedQueue<>())
+                .add(update);
+        tryTriggerDeferredPipelineUpdates(projectId);
     }
 
     @Nonnull
