@@ -241,4 +241,29 @@ export class StageExecutionSelectionComponent implements OnInit {
     range.stepSize = Number(stepSize);
     this.rangedEnvironmentVariablesUpdated.set(key, range);
   }
+
+  expectedNumberOfStages(): number {
+    let counter = 1;
+    if (this.rangedEnvironmentVariablesUpdated != null) {
+      for (const value of this.rangedEnvironmentVariablesUpdated.values()) {
+        counter *= this.getStageCount(value);
+      }
+    }
+    if (this.rangedEnvironmentVariablesValue != null) {
+      for (const entry of this.rangedEnvironmentVariablesValue.entries()) {
+        if (this.rangedEnvironmentVariablesUpdated == null || !this.rangedEnvironmentVariablesUpdated.has(entry[0])) {
+          counter *= this.getStageCount(entry[1]);
+        }
+      }
+    }
+    return Math.max(1, counter);
+  }
+
+  private getStageCount(value: RangedWithStepSize): number {
+    const min = Math.min(value.min, value.max);
+    const max = Math.max(value.min, value.max);
+    const stp = Math.abs(value.stepSize);
+    const dist = (max - min);
+    return Math.trunc((dist / stp) + 1) + 1;
+  }
 }
