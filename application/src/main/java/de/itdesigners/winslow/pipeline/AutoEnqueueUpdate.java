@@ -137,7 +137,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
         ensureIsNotLockedByAnotherInstance(orchestrator, projectId);
         ensureNoElectionIsRunning(orchestrator, projectId);
         ensureHasNoRunningStages(pipelineReadOnly);
-        ensureNoActiveExecutionGroupOrActiveGroupIsExhausted(pipelineReadOnly);
+        ensureNoActiveExecutionGroupOrActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
         ensureQueueIsEmpty(pipelineReadOnly);
         ensureIsNotPaused(pipelineReadOnly);
     }
