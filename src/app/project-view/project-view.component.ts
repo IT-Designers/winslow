@@ -649,7 +649,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.executionSelection.selectedStage = group.stageDefinition;
     this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
     this.environmentVariables = new Map();
-    this.defaultEnvironmentVariables = entry != null ? entry.env : new Map();
+    this.defaultEnvironmentVariables = entry != null ? new Map(entry.env) : new Map(group.stageDefinition.env);
     this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? new Map(group.rangedValues) : new Map();
     this.tabs.selectedIndex = Tab.Control;
   }
