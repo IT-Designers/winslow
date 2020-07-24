@@ -324,10 +324,7 @@ public class ProjectsController {
                                                     ));
                                                 }
                                             } else {
-                                                return group
-                                                        .getStages()
-                                                        .reduce((first, second) -> second)
-                                                        .map(Stage::getFullyQualifiedId);
+                                                return Optional.of(group.getStageDefinition().getName());
                                             }
                                         })
                                         .orElse(null),
