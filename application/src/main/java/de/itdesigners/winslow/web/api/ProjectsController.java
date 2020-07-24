@@ -305,19 +305,50 @@ public class ProjectsController {
                                         .orElse(null),
                                 pipeline
                                         .getActiveExecutionGroup()
-                                        .map(ExecutionGroup::getStages)
-                                        .flatMap(s -> s.reduce((first, second) -> second))
-                                        .map(Stage::getFullyQualifiedId)
+                                        .flatMap(group -> {
+                                            if (group.getExpectedGroupSize() > 1) {
+                                                var running = group.getRunningStages().count();
+                                                var completed = group
+                                                        .getStages()
+                                                        .filter(s -> s.getFinishState().isPresent())
+                                                        .count();
+                                                var expected = group.getExpectedGroupSize();
+                                                if (completed == expected) {
+                                                    return Optional.empty();
+                                                } else {
+                                                    return Optional.of(String.format(
+                                                            "%d running, %d finished, %d expected",
+                                                            running,
+                                                            completed,
+                                                            expected
+                                                    ));
+                                                }
+                                            } else {
+                                                return group
+                                                        .getStages()
+                                                        .reduce((first, second) -> second)
+                                                        .map(Stage::getFullyQualifiedId);
+                                            }
+                                        })
                                         .orElse(null),
-                                // TODO do not only grab the first
                                 pipeline.getActiveExecutionGroup()
-                                        .map(ExecutionGroup::getRunningStages)
-                                        .flatMap(s -> s
-                                                .map(Stage::getFullyQualifiedId)
-                                                .map(winslow.getRunInfoRepository()::getProgressHint)
-                                                .flatMap(Optional::stream)
-                                                .findFirst()
-                                        )
+                                        .flatMap(group -> {
+                                            if (group.getExpectedGroupSize() > 1) {
+                                                var expected = group.getExpectedGroupSize();
+                                                var completed = (int)group
+                                                        .getStages()
+                                                        .filter(s -> s.getFinishState().isPresent())
+                                                        .count() * 100;
+                                                return Optional.of(completed / expected);
+                                            } else {
+                                                return group
+                                                        .getStages()
+                                                        .map(Stage::getFullyQualifiedId)
+                                                        .map(winslow.getRunInfoRepository()::getProgressHint)
+                                                        .flatMap(Optional::stream)
+                                                        .findFirst();
+                                            }
+                                        })
                                         .orElse(null),
                                 pipeline.hasEnqueuedStages()
                         ))
