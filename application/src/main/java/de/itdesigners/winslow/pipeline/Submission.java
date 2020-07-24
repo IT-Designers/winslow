@@ -111,7 +111,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withInternalEnvVariable(@Nonnull String key, @Nonnull String value) {
         this.ensureNotSubmittedYet();
         this.envVarsInternal.put(key, value);
@@ -125,7 +124,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withPipelineEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.ensureNotSubmittedYet();
         this.envVarsPipeline.putAll(variables);
@@ -139,7 +137,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withSystemEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.ensureNotSubmittedYet();
         this.envVarsSystem.putAll(variables);
@@ -153,7 +150,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withStageEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.ensureNotSubmittedYet();
         this.envVarsStage.putAll(variables);
