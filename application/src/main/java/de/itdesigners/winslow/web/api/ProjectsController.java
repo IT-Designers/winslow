@@ -405,8 +405,8 @@ public class ProjectsController {
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
-                        .flatMap(Pipeline::getActiveExecutionGroup)
                         .stream()
+                        .flatMap(Pipeline::getActiveAndPastExecutionGroups)
                         .flatMap(ExecutionGroup::getStages)
                         .filter(stage -> {
                             if ("latest".equals(stageId)) {
