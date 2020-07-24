@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.javasdk.ClientApi;
-import de.itdesigners.winslow.api.project.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,7 +34,7 @@ public class LogStream implements Iterator<String> {
     private String getNextLine() throws IOException {
         String line = this.reader.readLine();
         if (line == null) {
-            LOG.info("read line is null");
+            LOG.fine("read line is null which means this LogStream reached EOF");
             try {
                 this.reader.close();
             } finally {

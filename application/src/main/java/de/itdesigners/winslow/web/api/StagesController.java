@@ -1,8 +1,8 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
-import de.itdesigners.winslow.api.pipeline.StageInfo;
-import de.itdesigners.winslow.web.StageInfoConverter;
+import de.itdesigners.winslow.api.pipeline.StageDefinitionInfo;
+import de.itdesigners.winslow.web.StageDefinitionInfoConverter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,14 +19,14 @@ public class StagesController {
     }
 
     @GetMapping("/stages/{pipeline}")
-    public Stream<StageInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
+    public Stream<StageDefinitionInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
         return winslow
                 .getPipelineRepository()
                 .getPipeline(pipeline)
                 .unsafe()
                 .stream()
                 .flatMap(p -> p.getStages().stream())
-                .map(StageInfoConverter::from);
+                .map(StageDefinitionInfoConverter::from);
     }
 
 }

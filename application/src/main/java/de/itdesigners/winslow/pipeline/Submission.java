@@ -2,7 +2,6 @@ package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.StageHandle;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
 
@@ -16,8 +15,8 @@ import java.util.stream.Stream;
 
 public class Submission {
 
-    private final @Nonnull String                 id;
-    private final @Nonnull Action                 action;
+    private final @Nonnull StageId                 id;
+    private final          boolean                configureOnly;
     private final @Nonnull StageDefinition        stageDefinition;
     private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
 
@@ -32,26 +31,25 @@ public class Submission {
     private @Nullable String           workspaceDirectory;
 
     public Submission(
-            @Nonnull String id,
-            @Nonnull Action action,
+            @Nonnull StageId id,
+            boolean configureOnly,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
         this.id                     = Objects.requireNonNull(id);
-        this.action                 = Objects.requireNonNull(action);
+        this.configureOnly          = configureOnly;
         this.stageDefinition        = Objects.requireNonNull(stageDefinition);
         this.workspaceConfiguration = workspaceConfiguration;
     }
 
     @Nonnull
     @CheckReturnValue
-    public String getId() {
+    public StageId getId() {
         return id;
     }
 
-    @Nonnull
     @CheckReturnValue
-    public Action getAction() {
-        return action;
+    public boolean isConfigureOnly() {
+        return this.configureOnly;
     }
 
     @Nonnull
@@ -113,7 +111,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withInternalEnvVariable(@Nonnull String key, @Nonnull String value) {
         this.ensureNotSubmittedYet();
         this.envVarsInternal.put(key, value);
@@ -127,7 +124,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withPipelineEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.ensureNotSubmittedYet();
         this.envVarsPipeline.putAll(variables);
@@ -141,7 +137,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withSystemEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.ensureNotSubmittedYet();
         this.envVarsSystem.putAll(variables);
@@ -155,7 +150,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withStageEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
         this.ensureNotSubmittedYet();
         this.envVarsStage.putAll(variables);

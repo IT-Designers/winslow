@@ -23,7 +23,7 @@ public class PipelineInfoConverter {
                 pipeline
                         .getStages()
                         .stream()
-                        .map(StageInfoConverter::from)
+                        .map(StageDefinitionInfoConverter::from)
                         .collect(Collectors.toUnmodifiableList()),
                 pipeline.getMarkers()
         );

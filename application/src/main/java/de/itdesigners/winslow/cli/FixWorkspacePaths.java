@@ -1,8 +1,8 @@
 package de.itdesigners.winslow.cli;
 
 import de.itdesigners.winslow.Orchestrator;
-import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.asblr.WorkspaceCreator;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.project.Project;
@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class FixWorkspacePaths {
 
@@ -65,12 +64,13 @@ public class FixWorkspacePaths {
 
     private boolean hasFixableWorkspacePath(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getAllStages()
+                .getActiveAndPastExecutionGroups()
+                .flatMap(ExecutionGroup::getStages)
                 .anyMatch(this::hasFixableWorkspacePath);
     }
 
     private Boolean hasFixableWorkspacePath(@Nonnull Stage stage) {
-        return stage.getAction() == Action.Execute && stage
+        return stage
                 .getWorkspace()
                 .map(path -> Path.of(path).isAbsolute() || WRONG_STATIC_PATH_LITERAL_USED.equals(path))
                 .orElse(Boolean.TRUE);
@@ -78,8 +78,7 @@ public class FixWorkspacePaths {
 
     @Nonnull
     @CheckReturnValue
-    public FixWorkspacePaths tryFixProjectsWithFixableWorkspacePaths(
-            @Nonnull Orchestrator orchestrator) {
+    public FixWorkspacePaths tryFixProjectsWithFixableWorkspacePaths(@Nonnull Orchestrator orchestrator) {
         Objects.requireNonNull(this.fixablePath);
 
         this.fixedPaths = new HashMap<>();
@@ -87,23 +86,19 @@ public class FixWorkspacePaths {
 
         for (var project : this.fixablePath) {
             var result = orchestrator.updatePipeline(project, pipeline -> {
-                var stages   = pipeline.getAllStages().collect(Collectors.toUnmodifiableList());
                 var response = new TreeMap<String, String>();
 
-                for (var i = 0; i < stages.size(); ++i) {
-                    var stage       = stages.get(i);
-                    var stageNumber = i + 1;
+                pipeline
+                        .getActiveAndPastExecutionGroups()
+                        .flatMap(ExecutionGroup::getStages)
+                        .forEach(stage -> {
+                            if (hasFixableWorkspacePath(stage)) {
+                                var path = WorkspaceCreator.getWorkspacePathOf(stage.getId(), false).toString();
+                                stage.setWorkspace(path);
+                                response.put(stage.getFullyQualifiedId(), path);
+                            }
+                        });
 
-                    if (hasFixableWorkspacePath(stage)) {
-                        var path = WorkspaceCreator.getWorkspacePathOf(
-                                pipeline.getProjectId(),
-                                stageNumber,
-                                stage.getDefinition()
-                        ).toString();
-                        stage.setWorkspace(path);
-                        response.put(stage.getId(), path);
-                    }
-                }
                 return response;
             });
 

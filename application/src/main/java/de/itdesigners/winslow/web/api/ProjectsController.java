@@ -1,20 +1,16 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.*;
-import de.itdesigners.winslow.api.pipeline.Action;
-import de.itdesigners.winslow.api.pipeline.ImageInfo;
-import de.itdesigners.winslow.api.pipeline.PipelineInfo;
-import de.itdesigners.winslow.api.pipeline.ResourceInfo;
-import de.itdesigners.winslow.api.project.*;
+import de.itdesigners.winslow.api.pipeline.*;
+import de.itdesigners.winslow.api.project.ProjectInfo;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
-import de.itdesigners.winslow.web.HistoryEntryConverter;
+import de.itdesigners.winslow.web.ExecutionGroupInfoConverter;
 import de.itdesigners.winslow.web.PipelineInfoConverter;
 import de.itdesigners.winslow.web.ProjectInfoConverter;
 import org.springframework.core.io.InputStreamResource;
@@ -94,23 +90,23 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/history")
-    public Stream<HistoryEntry> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
+    public Stream<ExecutionGroupInfo> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
-                .flatMap(project -> winslow
-                        .getOrchestrator()
-                        .getPipeline(project)
-                        .stream()
-                        .flatMap(pipeline -> Stream.concat(
-                                pipeline.getCompletedStages(),
-                                pipeline.getRunningStage().stream()
-                        ))
-                        .map(HistoryEntryConverter::from)
-                );
+                .flatMap(project -> {
+                    var pipeline = winslow.getOrchestrator().getPipeline(project);
+                    var active   = pipeline.flatMap(Pipeline::getActiveExecutionGroup);
+                    var history  = pipeline.stream().flatMap(Pipeline::getExecutionHistory);
+
+                    return Stream.concat(
+                            history.map(g -> ExecutionGroupInfoConverter.convert(g, false)),
+                            active.map(g -> ExecutionGroupInfoConverter.convert(g, true)).stream()
+                    );
+                });
     }
 
     @PostMapping("/projects/{projectId}/history/prune")
-    public Stream<HistoryEntry> pruneProjectHistory(
+    public Stream<ExecutionGroupInfo> pruneProjectHistory(
             User user,
             @PathVariable("projectId") String projectId) throws IOException {
         var project = getProjectIfAllowedToAccess(user, projectId);
@@ -123,35 +119,28 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/enqueued")
-    public Stream<HistoryEntry> getEnqueued(User user, @PathVariable("projectId") String projectId) {
+    public Stream<ExecutionGroupInfo> getEnqueued(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
                         .stream()
-                        .flatMap(Pipeline::getEnqueuedStages)
+                        .flatMap(Pipeline::getEnqueuedExecutions)
                 )
-                .map(HistoryEntryConverter::from);
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false));
     }
 
-    @DeleteMapping("/projects/{projectId}/enqueued/{index}/{controlSize}")
+    @DeleteMapping("/projects/{projectId}/enqueued/{groupId}")
     public Optional<Boolean> deleteEnqueued(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable("index") int index,
-            @PathVariable("controlSize") int controlSize
+            @PathVariable("groupId") String groupId
     ) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
-                        .updatePipeline(project, pipeline -> {
-                            if (pipeline.getEnqueuedStages().count() == controlSize) {
-                                return pipeline.removeEnqueuedStage(index).isPresent();
-                            } else {
-                                return Boolean.FALSE;
-                            }
-                        })
+                        .updatePipeline(project, pipeline -> pipeline.removeExecutionGroup(groupId).isPresent())
                 );
     }
 
@@ -257,32 +246,44 @@ public class ProjectsController {
                         .flatMap(this::getPipelineState));
     }
 
-    private Optional<State> getPipelineState(Pipeline pipeline) {
+    private Optional<State> getPipelineState(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getRunningStage()
-                .map(Stage::getState)
-                .or(
-                        () -> {
-                            if (!pipeline.isPauseRequested() && pipeline.hasEnqueuedStages()) {
-                                return Optional.of(State.Running);
-                            } else {
-                                return Optional.empty();
-                            }
-                        }
-                )
-                .or(() -> pipeline.getMostRecentStage().map(Stage::getState).map(state -> {
-                    switch (state) {
-                        case Running:
-                        case Failed:
-                            return state;
-                        default:
-                            if (pipeline.isPauseRequested()) {
+                .getActiveExecutionGroup()
+                .map(ExecutionGroup::getRunningStages)
+                .flatMap(s -> {
+                    if (s.count() > 0) {
+                        return Optional.of(State.Running);
+                    } else {
+                        return Optional.empty();
+                    }
+                })
+                .or(() -> {
+                    var mostRecent = pipeline
+                            .getActiveExecutionGroup()
+                            .map(ExecutionGroup::getStages)
+                            .flatMap(s -> s.reduce((first, second) -> second))
+                            .filter(s -> s.getFinishTime().isPresent())
+                            .map(Stage::getState);
+
+                    if (mostRecent.isEmpty() && pipeline.isPauseRequested()) {
+                        return Optional.of(State.Paused);
+                    } else {
+                        return mostRecent.map(state -> {
+                            if (State.Succeeded == state && pipeline.isPauseRequested()) {
                                 return State.Paused;
                             } else {
                                 return state;
                             }
+                        });
                     }
-                }));
+                })
+                .or(() -> {
+                    if (!pipeline.isPauseRequested() && pipeline.hasEnqueuedStages()) {
+                        return Optional.of(State.Running);
+                    } else {
+                        return Optional.empty();
+                    }
+                });
     }
 
     @GetMapping("/projects/states")
@@ -303,13 +304,20 @@ public class ProjectsController {
                                         .map(Pipeline.PauseReason::toString)
                                         .orElse(null),
                                 pipeline
-                                        .getMostRecentStage()
-                                        .map(Stage::getDefinition)
-                                        .map(StageDefinition::getName)
+                                        .getActiveExecutionGroup()
+                                        .map(ExecutionGroup::getStages)
+                                        .flatMap(s -> s.reduce((first, second) -> second))
+                                        .map(Stage::getFullyQualifiedId)
                                         .orElse(null),
-                                pipeline.getRunningStage()
-                                        .map(Stage::getId)
-                                        .flatMap(winslow.getRunInfoRepository()::getProgressHint)
+                                // TODO do not only grab the first
+                                pipeline.getActiveExecutionGroup()
+                                        .map(ExecutionGroup::getRunningStages)
+                                        .flatMap(s -> s
+                                                .map(Stage::getFullyQualifiedId)
+                                                .map(winslow.getRunInfoRepository()::getProgressHint)
+                                                .flatMap(Optional::stream)
+                                                .findFirst()
+                                        )
                                         .orElse(null),
                                 pipeline.hasEnqueuedStages()
                         ))
@@ -334,11 +342,12 @@ public class ProjectsController {
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     if (paused) {
                         pipeline.requestPause();
+                        return Boolean.TRUE;
                     } else {
                         pipeline.setStrategy(getPipelineStrategy(strategy));
                         pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+                        return Boolean.FALSE;
                     }
-                    return Boolean.TRUE;
                 }))
                 .orElse(Boolean.FALSE);
     }
@@ -353,22 +362,33 @@ public class ProjectsController {
                 .orElse(false);
     }
 
-    @GetMapping("projects/{projectId}/logs/latest")
+    @GetMapping("projects/{projectId}/logs/{stageId}")
     public Stream<LogEntryInfo> getProjectStageLogsLatest(
             User user,
             @PathVariable("projectId") String projectId,
+            @PathVariable("stageId") String stageId,
             @RequestParam(value = "skipLines", defaultValue = "0") long skipLines,
-            @RequestParam(value = "expectingStageId", defaultValue = "0") String stageId) {
+            @RequestParam(value = "expectingStageId", defaultValue = "0") String expectingStageId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
-                        .flatMap(Pipeline::getMostRecentStage)
+                        .flatMap(Pipeline::getActiveExecutionGroup)
+                        .stream()
+                        .flatMap(ExecutionGroup::getStages)
+                        .filter(stage -> {
+                            if ("latest".equals(stageId)) {
+                                return stage.getState() == State.Running;
+                            } else {
+                                return stageId.equals(stage.getFullyQualifiedId());
+                            }
+                        })
+                        .reduce((first, second) -> second)
                         .stream()
                         .flatMap(stage -> {
                             var skip = skipLines;
-                            if (stageId != null && !stageId.equals(stage.getId())) {
+                            if (expectingStageId != null && !expectingStageId.equals(stage.getFullyQualifiedId())) {
                                 skip = 0;
                             }
 
@@ -377,12 +397,15 @@ public class ProjectsController {
                             return Stream.concat(
                                     winslow
                                             .getOrchestrator()
-                                            .getLogs(project, stage.getId())  // do not stream in parallel!
+                                            .getLogs(
+                                                    project,
+                                                    stage.getFullyQualifiedId()
+                                            )  // do not stream in parallel!
                                             .skip(skip)
                                             .sequential()
                                             .map(entry -> new LogEntryInfo(
                                                     line.incrementAndGet(),
-                                                    stage.getId(),
+                                                    stage.getFullyQualifiedId(),
                                                     entry
                                             )),
                                     Stream
@@ -391,7 +414,7 @@ public class ProjectsController {
                                                 if (line.get() == 0L) {
                                                     return Stream.of(new LogEntryInfo(
                                                             1L,
-                                                            stage.getId() + "_temp",
+                                                            stage.getFullyQualifiedId() + "_temp",
                                                             new LogEntry(
                                                                     System.currentTimeMillis(),
                                                                     LogEntry.Source.MANAGEMENT_EVENT,
@@ -405,18 +428,6 @@ public class ProjectsController {
                                             })
                             );
                         }));
-    }
-
-    @GetMapping("projects/{projectId}/logs/{stageId}")
-    public Stream<LogEntryInfo> getProjectStageLogs(
-            User user,
-            @PathVariable("projectId") String projectId,
-            @PathVariable("stageId") String stageId) {
-        var line = new AtomicLong(0);
-        return getProjectIfAllowedToAccess(user, projectId)
-                .stream()
-                .flatMap(project -> winslow.getOrchestrator().getLogs(project, stageId))
-                .map(entry -> new LogEntryInfo(line.incrementAndGet(), stageId, entry));
     }
 
     @GetMapping("projects/{projectId}/raw-logs/{stageId}")
@@ -545,7 +556,9 @@ public class ProjectsController {
     }
 
     @GetMapping("projects/{projectId}/workspace-configuration-mode")
-    public Optional<WorkspaceConfiguration.WorkspaceMode> getWorkspaceConfigurationMode(User user, @PathVariable("projectId") String projectId) {
+    public Optional<WorkspaceConfiguration.WorkspaceMode> getWorkspaceConfigurationMode(
+            User user,
+            @PathVariable("projectId") String projectId) {
         return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getWorkspaceConfigurationMode);
     }
 
@@ -578,8 +591,8 @@ public class ProjectsController {
                         .getPipeline(project)
                         .map(pipeline -> {
                             var resolver = new EnvVariableResolver()
-                                    .withExecutionHistory(pipeline::getAllStages)
-                                    .withEnqueuedStages(pipeline::getEnqueuedStages)
+                                    .withExecutionHistory(pipeline::getActiveAndPastExecutionGroups)
+                                    .withEnqueuedStages(pipeline::getEnqueuedExecutions)
                                     .withInPipelineDefinitionDefinedVariables(
                                             project
                                                     .getPipelineDefinition()
@@ -684,6 +697,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @RequestParam("env") Map<String, String> env,
+            @RequestParam(value = "rangedEnv", required = false) @Nullable Map<String, RangeWithStepSize> rangedEnv,
             @RequestParam("stageIndex") int index,
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
@@ -701,6 +715,7 @@ public class ProjectsController {
                                         pipeline,
                                         stageDef,
                                         env,
+                                        rangedEnv,
                                         image,
                                         requiredResources,
                                         workspaceConfiguration
@@ -763,13 +778,20 @@ public class ProjectsController {
                         .flatMap(pipelineDefinition -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
                             for (var stage : pipelineDefinition.getStages()) {
-                                pipeline.enqueueStage(
+                                pipeline.enqueueSingleExecution(
                                         new StageDefinitionBuilder()
                                                 .withTemplateBase(stage)
                                                 .withEnvironment(pipelineDefinition.getEnvironment())
                                                 .withAdditionalEnvironment(stage.getEnvironment())
                                                 .build(),
-                                        Action.Execute
+                                        new WorkspaceConfiguration(
+                                                pipeline
+                                                        .getWorkspaceConfigurationMode()
+                                                        .filter(m -> m == WorkspaceConfiguration.WorkspaceMode.STANDALONE || m == WorkspaceConfiguration.WorkspaceMode.INCREMENTAL)
+                                                        .orElse(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
+                                                null,
+                                                null
+                                        )
                                 );
                             }
 
@@ -786,23 +808,25 @@ public class ProjectsController {
             @Nonnull Map<String, String> env,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources) {
-        enqueueStage(pipeline, base, env, image, requiredResources, Action.Configure, null);
+        enqueueStage(pipeline, base, env, null, image, requiredResources, Action.Configure, null);
     }
 
     private static void enqueueExecutionStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
+            @Nullable Map<String, RangeWithStepSize> rangedEnv,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nullable WorkspaceConfiguration workspaceConfiguration) {
-        enqueueStage(pipeline, base, env, image, requiredResources, Action.Execute, workspaceConfiguration);
+        enqueueStage(pipeline, base, env, rangedEnv, image, requiredResources, Action.Execute, workspaceConfiguration);
     }
 
     private static void enqueueStage(
             @Nonnull Pipeline pipeline,
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
+            @Nullable Map<String, RangeWithStepSize> rangedEnv,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nonnull Action action,
@@ -814,9 +838,9 @@ public class ProjectsController {
         var recentBase = Optional
                 .of(base)
                 .flatMap(def -> pipeline
-                        .getAllStages()
-                        .filter(stage -> stage.getDefinition().getName().equals(def.getName()))
-                        .map(Stage::getDefinition)
+                        .getActiveAndPastExecutionGroups()
+                        .filter(g -> g.getStageDefinition().getName().equals(def.getName()))
+                        .map(ExecutionGroup::getStageDefinition)
                         .reduce((first, second) -> second)
                 )
                 .orElse(base); // none before, so take the given as origin
@@ -839,18 +863,12 @@ public class ProjectsController {
         }
          */
         maybeUpdateImageInfo(image, resultDefinition);
-        switch (workspaceConfiguration.getMode()) {
-            case STANDALONE:
-                pipeline.enqueueStageStandalone(resultDefinition);
-                break;
-            case INCREMENTAL:
-                pipeline.enqueueStage(resultDefinition, action);
-                break;
-            case CONTINUATION:
-                pipeline.enqueueStageContinuation(resultDefinition, workspaceConfiguration.getValue().orElse(null));
-                break;
-            default:
-                throw new RuntimeException("Unexpected WorkspaceMode " + workspaceConfiguration.getMode());
+        if (action == Action.Configure) {
+            pipeline.enqueueConfiguration(resultDefinition);
+        } else if (rangedEnv == null || rangedEnv.isEmpty()) {
+            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration);
+        } else {
+            pipeline.enqueueRangedExecution(resultDefinition, workspaceConfiguration, rangedEnv);
         }
         resumeIfPausedByStageFailure(pipeline);
         resumeIfWaitingForGoneStageConfiramtion(pipeline);
@@ -891,9 +909,9 @@ public class ProjectsController {
     private static void resumeIfWaitingForGoneStageConfiramtion(Pipeline pipeline) {
         if (Optional.of(Pipeline.PauseReason.ConfirmationRequired).equals(pipeline.getPauseReason())) {
             var noStageRequiresUserConfirmation = pipeline
-                    .getEnqueuedStages()
-                    .noneMatch(e -> e
-                            .getDefinition()
+                    .getEnqueuedExecutions()
+                    .noneMatch(g -> g
+                            .getStageDefinition()
                             .getRequires()
                             .map(UserInput::getConfirmation)
                             .orElse(UserInput.Confirmation.Never)
@@ -986,43 +1004,90 @@ public class ProjectsController {
         return Optional.empty();
     }
 
-    @PutMapping("projects/{projectId}/stop")
-    public void stopCurrentStage(
+    @PutMapping("projects/{projectId}/stop/{stageId}")
+    public boolean stopSingleStageOrAllStagesOfActiveExecutionGroup(
             User user,
             @PathVariable("projectId") String projectId,
+            @PathVariable(value = "stageId", required = false) @Nullable String stageId,
             @RequestParam(name = "pause", required = false, defaultValue = "true") boolean pause) throws LockException {
-        var project = getProjectIfAllowedToAccess(user, projectId);
-        var stage = project
+        return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(p -> winslow
                         .getOrchestrator()
                         .getPipeline(p)
                 )
-                .flatMap(Pipeline::getRunningStage);
-        if (stage.isPresent()) {
-            winslow.getOrchestrator().stop(stage.get());
-            if (pause) {
-                winslow.getOrchestrator().updatePipeline(project.get(), pipeline -> {
-                    pipeline.requestPause();
-                    return null;
+                .flatMap(Pipeline::getActiveExecutionGroup)
+                .stream()
+                .flatMap(g -> g
+                        .getRunningStages()
+                        .filter(s -> stageId == null || s.getFullyQualifiedId().equals(stageId))
+                )
+                .allMatch(stage -> {
+                    try {
+                        if (pause) {
+                            winslow.getOrchestrator().updatePipeline(
+                                    getProjectIfAllowedToAccess(user, projectId).get(),
+                                    pipeline -> {
+                                        pipeline.requestPause();
+                                        return null;
+                                    }
+                            );
+                        }
+                        winslow.getOrchestrator().stop(stage);
+                        return true;
+                    } catch (LockException e) {
+                        LOG.log(Level.SEVERE, "Failed to stop stage " + stage.getFullyQualifiedId(), e);
+                        return false;
+                    }
                 });
-            }
-        }
     }
 
     @PutMapping("projects/{projectId}/kill")
-    public void killCurrentStage(User user, @PathVariable("projectId") String projectId) throws LockException {
-        var stage = getCurrentlyRunningStageIfAllowedToAccess(user, projectId);
-        if (stage.isPresent()) {
-            winslow.getOrchestrator().kill(stage.get());
-        }
+    public boolean killSingleStageOrAllStagesOfActiveExecutionGroup(
+            User user,
+            @PathVariable("projectId") String projectId) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .flatMap(project -> winslow.getOrchestrator().updatePipeline(
+                        project,
+                        pipeline -> pipeline
+                                .getActiveExecutionGroup()
+                                .map(g -> {
+                                    g.markAsCompleted();
+                                    g.getRunningStages().forEach(stage -> {
+                                        try {
+                                            winslow.getOrchestrator().kill(stage);
+                                        } catch (LockException e) {
+                                            LOG.log(
+                                                    Level.SEVERE,
+                                                    "Failed to kill stage " + stage.getFullyQualifiedId(),
+                                                    e
+                                            );
+                                        }
+                                    });
+                                    return Boolean.TRUE;
+                                }).orElse(Boolean.FALSE)
+                ))
+                .orElse(Boolean.FALSE);
     }
 
-    @Nonnull
-    private Optional<Stage> getCurrentlyRunningStageIfAllowedToAccess(
-            @Nonnull User user,
-            @PathVariable("projectId") String projectId) {
+    @PutMapping("projects/{projectId}/kill/{stageId}")
+    public boolean killSingleStageOrAllStagesOfActiveExecutionGroup(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("stageId") @Nonnull String stageId) {
         return getPipelineIfAllowedToAccess(user, projectId)
-                .flatMap(Pipeline::getRunningStage);
+                .flatMap(Pipeline::getActiveExecutionGroup)
+                .map(ExecutionGroup::getRunningStages)
+                .stream()
+                .flatMap(r -> r.filter(s -> s.getFullyQualifiedId().equals(stageId)))
+                .allMatch(stage -> {
+                    try {
+                        winslow.getOrchestrator().kill(stage);
+                        return true;
+                    } catch (LockException e) {
+                        LOG.log(Level.SEVERE, "Failed to kill stage " + stage.getFullyQualifiedId(), e);
+                        return false;
+                    }
+                });
     }
 
     @Nonnull

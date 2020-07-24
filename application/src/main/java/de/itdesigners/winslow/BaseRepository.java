@@ -1,10 +1,15 @@
 package de.itdesigners.winslow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import de.itdesigners.winslow.config.ExecutionGroup;
+import de.itdesigners.winslow.config.ExecutionGroupUpgrade;
+import de.itdesigners.winslow.config.PipelineUpgrade;
 import de.itdesigners.winslow.fs.*;
+import de.itdesigners.winslow.pipeline.Pipeline;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -72,9 +77,14 @@ public abstract class BaseRepository {
     public static <T> Reader<T> defaultReader(Class<T> clazz) {
         return inputStream -> {
             try {
+                var upgradeLoader = new SimpleModule();
+                upgradeLoader.addDeserializer(ExecutionGroup.class, new ExecutionGroupUpgrade());
+                upgradeLoader.addDeserializer(Pipeline.class, new PipelineUpgrade());
+
                 return new ObjectMapper(new YAMLFactory())
                         .registerModule(new ParameterNamesModule())
                         .registerModule(new Jdk8Module())
+                        .registerModule(upgradeLoader)
                         .readValue(inputStream, clazz);
             } catch (IOException e) {
                 throw e;
@@ -115,8 +125,12 @@ public abstract class BaseRepository {
         }
     }
 
-    protected boolean isLocked(Path path) {
+    protected boolean isLocked(@Nonnull Path path) {
         return this.lockBus.isLocked(getLockSubjectForPath(path));
+    }
+
+    protected boolean isLockedByAnotherInstance(@Nonnull Path path) {
+        return this.lockBus.isLockedByAnotherInstance(getLockSubjectForPath(path));
     }
 
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
@@ -192,7 +206,7 @@ public abstract class BaseRepository {
         return new Lock(lockBus, subject, durationMs);
     }
 
-    protected String getLockSubjectForPath(Path path) {
+    protected String getLockSubjectForPath(@Nonnull Path path) {
         return workDirectoryConfiguration.getPath().relativize(path).toString();
     }
 
@@ -248,6 +262,10 @@ public abstract class BaseRepository {
 
         public boolean isLocked() {
             return BaseRepository.this.isLocked(path);
+        }
+
+        public boolean isLockedByAnotherInstance() {
+            return BaseRepository.this.isLockedByAnotherInstance(path);
         }
 
         public boolean exists() {

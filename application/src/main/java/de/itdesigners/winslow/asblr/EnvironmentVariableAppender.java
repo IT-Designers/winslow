@@ -23,7 +23,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var pipeline           = context.getPipeline();
         var pipelineDefinition = context.getPipelineDefinition();
-        var stageDefinition    = context.getEnqueuedStage().getDefinition();
+        var stageDefinition    = context.getSubmission().getStageDefinition();
         var timeMs             = System.currentTimeMillis();
         var timeS              = timeMs / 1_000;
 
@@ -38,24 +38,31 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                         Env.SELF_PREFIX + "_PIPELINE_NAME",
                         pipelineDefinition.getName()
                 )
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", context.getStageId())
-                .withInternalEnvVariable(
-                        Env.SELF_PREFIX + "_STAGE_NAME",
-                        context.getEnqueuedStage().getDefinition().getName()
-                )
-                .withInternalEnvVariable(
-                        Env.SELF_PREFIX + "_STAGE_NUMBER",
-                        Integer.toString(context.getStageNumber())
-                )
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", context.getStageId().getFullyQualified())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.getName())
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_SETUP_DATE_TIME",
-                        new Date(timeS).toString()
+                        new Date(timeMs).toString()
                 )
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_SETUP_EPOCH_TIME", Long.toString(timeS))
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_SETUP_EPOCH_TIME_MS",
                         Long.toString(timeMs)
                 );
+
+        submission
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_MULTI_STAGE_GROUP",
+                        String.valueOf(context.getExecutionGroup().getExpectedGroupSize() > 1)
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_WORKSPACE_SHARED_WITHIN_GROUP",
+                        String.valueOf(submission.getWorkspaceConfiguration().isSharedWithinGroup())
+                );
+        submission.getId().getStageNumberWithinGroup().ifPresent(number -> {
+            submission.withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER_WITHIN_GROUP", String.valueOf(number));
+        });
+
 
         stageDefinition.getRequirements().ifPresent(requirements -> {
             var sub = context

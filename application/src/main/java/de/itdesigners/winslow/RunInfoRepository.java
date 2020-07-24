@@ -1,6 +1,6 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.project.Stats;
+import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 
@@ -171,7 +171,7 @@ public class RunInfoRepository extends BaseRepository {
         }
     }
 
-    boolean hasLogRedirectionCompletedSuccessfullyHint(@Nonnull String stageId) {
+    public boolean hasLogRedirectionCompletedSuccessfullyHint(@Nonnull String stageId) {
         try {
             return Files.exists(getPropertyPath(stageId, PROPERTY_FILE_LOG_COMPLETED_SUCCESSFULLY));
         } catch (IOException e) {

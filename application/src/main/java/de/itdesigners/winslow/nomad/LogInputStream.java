@@ -41,7 +41,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
             try {
                 return this.api.logsAsFrames(
                         handle.getAllocationId().get(),
-                        handle.getStageId(),
+                        handle.getFullyQualifiedStageId(),
                         false,
                         logType,
                         offset

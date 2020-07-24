@@ -33,7 +33,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
 
     @Override
     public boolean applicable(@Nonnull Context context) {
-        return context.getEnqueuedStage().getAction() != Action.Configure;
+        return !context.getSubmission().isConfigureOnly();
     }
 
     @Override
@@ -48,7 +48,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
         submission = submission.withExtension(new DockerNfsVolumes(List.of(
                 volume(
                         submission,
-                        stageId,
+                        stageId.getFullyQualified(),
                         ENV_DIR_RESOURCES,
                         config.getResourcesDirectoryAbsolute(),
                         TARGET_PATH_RESOURCES,
@@ -56,7 +56,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
                 ),
                 volume(
                         submission,
-                        stageId,
+                        stageId.getFullyQualified(),
                         ENV_DIR_PIPELINE_INPUT,
                         config.getPipelineInputDirectoryAbsolute(),
                         TARGET_PATH_PIPELINE_INPUT,
@@ -64,7 +64,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
                 ),
                 volume(
                         submission,
-                        stageId,
+                        stageId.getFullyQualified(),
                         ENV_DIR_PIPELINE_WORKSPACE,
                         config.getWorkspaceDirectoryAbsolute(),
                         TARGET_PATH_PIPELINE_WORKSPACE,
@@ -72,7 +72,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
                 ),
                 volume(
                         submission,
-                        stageId,
+                        stageId.getFullyQualified(),
                         ENV_DIR_PIPELINE_OUTPUT,
                         config.getPipelineOutputDirectoryAbsolute(),
                         TARGET_PATH_PIPELINE_OUTPUT,

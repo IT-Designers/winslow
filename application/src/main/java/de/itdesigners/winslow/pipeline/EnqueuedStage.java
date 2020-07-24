@@ -13,6 +13,7 @@ public class EnqueuedStage {
     private final @Nonnull Action                 action;
     private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
 
+    @Deprecated
     public EnqueuedStage(
             @Nonnull StageDefinition definition,
             @Nonnull Action action,

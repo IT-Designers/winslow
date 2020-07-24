@@ -1,9 +1,10 @@
 package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Executor;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
-import de.itdesigners.winslow.pipeline.EnqueuedStage;
 import de.itdesigners.winslow.pipeline.Pipeline;
+import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.Nonnull;
@@ -20,33 +21,30 @@ public class Context {
 
     private final @Nonnull  Pipeline           pipeline;
     private final @Nonnull  PipelineDefinition pipelineDefinition;
+    private final @Nonnull  ExecutionGroup     executionGroup;
     private final @Nullable Executor           executor;
-    private final @Nonnull  EnqueuedStage      enqueuedStage;
-    private final @Nonnull  String             stageId;
+    private final @Nonnull  StageId            stageId;
     private final @Nonnull  Submission         submission;
-    private final           int                stageNumber;
 
     @Nonnull private final Map<Class<?>, Object> intermediateResults = new HashMap<>();
 
     public Context(
             @Nonnull Pipeline pipeline,
             @Nonnull PipelineDefinition definition,
+            @Nonnull ExecutionGroup executionGroup,
             @Nullable Executor executor,
-            @Nonnull EnqueuedStage enqueuedStage,
-            @Nonnull String stageId,
-            @Nonnull Submission submission,
-            int stageNumber) {
-        this.pipeline      = pipeline;
-        pipelineDefinition = definition;
-        this.executor      = executor;
-        this.enqueuedStage = enqueuedStage;
-        this.stageId       = stageId;
-        this.submission    = submission;
-        this.stageNumber   = stageNumber;
+            @Nonnull StageId stageId,
+            @Nonnull Submission submission) {
+        this.pipeline           = pipeline;
+        this.pipelineDefinition = definition;
+        this.executionGroup     = executionGroup;
+        this.executor           = executor;
+        this.stageId            = stageId;
+        this.submission         = submission;
     }
 
     @Nonnull
-    public String getStageId() {
+    public StageId getStageId() {
         return stageId;
     }
 
@@ -61,17 +59,13 @@ public class Context {
     }
 
     @Nonnull
-    public EnqueuedStage getEnqueuedStage() {
-        return enqueuedStage;
+    public ExecutionGroup getExecutionGroup() {
+        return executionGroup;
     }
 
     @Nonnull
     public Submission getSubmission() {
         return this.submission;
-    }
-
-    public int getStageNumber() {
-        return stageNumber;
     }
 
     public <T> void store(@Nonnull T value) {

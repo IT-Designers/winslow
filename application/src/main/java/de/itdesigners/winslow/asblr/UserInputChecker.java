@@ -16,7 +16,7 @@ public class UserInputChecker implements AssemblerStep {
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var pipeline           = context.getPipeline();
         var pipelineDefinition = context.getPipelineDefinition();
-        var stageDefinition    = context.getEnqueuedStage().getDefinition();
+        var stageDefinition    = context.getSubmission().getStageDefinition();
 
         var requiresConfirmation = isConfirmationRequiredForNextStage(pipelineDefinition, stageDefinition, pipeline);
         var missingUserInput = hasMissingUserInput(
@@ -65,8 +65,8 @@ public class UserInputChecker implements AssemblerStep {
                 .concat(stageDefinition.getRequires().stream(), pipelineDefinition.getRequires().stream())
                 .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
                 .anyMatch(u -> !(u.getConfirmation() == UserInput.Confirmation.Once && pipeline
-                        .getAllStages()
-                        .anyMatch(s -> s.getDefinition().equals(stageDefinition))));
+                        .getActiveAndPastExecutionGroups()
+                        .anyMatch(g -> g.getStageDefinition().equals(stageDefinition))));
     }
 
     public static class FurtherUserInputRequiredException extends AssemblyException {

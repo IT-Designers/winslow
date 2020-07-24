@@ -3,6 +3,7 @@ package de.itdesigners.winslow;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
+import de.itdesigners.winslow.pipeline.CommonUpdateConstraints;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.project.Project;
 
@@ -81,12 +82,19 @@ public class LockBusElectionManagerAdapter {
     private void handleElectionStarted(@Nonnull Election election) {
         orchestrator
                 .getPipelineUnsafe(election.getProjectId())
-                .filter(orchestrator::isStageStateUpdateAvailable)
-                .filter(p -> orchestrator.hasResourcesForNextStage(p).orElse(Boolean.FALSE))
+                .filter(CommonUpdateConstraints::hasActiveExecutionGroupRemainingExecutions)
+                .filter(pipeline -> !pipeline.isPauseRequested())
                 .filter(p -> orchestrator.isCapableOfExecutingNextStage(p).orElse(Boolean.FALSE))
-                .flatMap(pipeline -> pipeline.getEnqueuedStages().findFirst())
-                .ifPresent(enqueued -> {
-                    var requiredResources = orchestrator.getRequiredResources(enqueued);
+                .filter(p -> {
+                    var hasResourced = orchestrator.hasResourcesToExecuteNextStage(p).orElse(Boolean.FALSE);
+                    if (!hasResourced) {
+                        orchestrator.addProjectThatNeedsToBeReEvaluatedOnceMoreResourcesAreAvailable(p.getProjectId());
+                    }
+                    return hasResourced;
+                })
+                .flatMap(Pipeline::getActiveOrNextExecutionGroup)
+                .ifPresent(activeGroup -> {
+                    var requiredResources = orchestrator.getRequiredResources(activeGroup.getStageDefinition());
                     var participation     = orchestrator.judgeParticipationScore(requiredResources);
 
                     try {
@@ -111,18 +119,16 @@ public class LockBusElectionManagerAdapter {
 
                     exclusive.ifPresentOrElse(
                             container -> {
-                                var lock = container.getLock();
-                                try (lock) {
+                                try (var lock = container.getLock()) {
                                     var pipeline = container.get().get();
-                                    if (orchestrator.startNextStageIfReady(lock, definition.get(), pipeline)) {
+                                    if (orchestrator.startPipeline(lock, definition.get(), pipeline)) {
                                         container.update(pipeline);
                                     }
                                 } catch (LockException | IOException e) {
                                     LOG.log(Level.SEVERE, "Failed to start next stage", e);
                                 }
                             },
-                            () -> LOG.severe(
-                                    "Failed to lock project which should be executed by this node by election")
+                            () -> LOG.severe("Failed to lock project which should be executed by this node by election")
                     );
                 }).start();
             }

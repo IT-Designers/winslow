@@ -1,70 +1,80 @@
 package de.itdesigners.winslow.pipeline;
 
-import de.itdesigners.winslow.api.pipeline.Action;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.api.project.DeletionPolicy;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.ConstructorProperties;
 import java.beans.Transient;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class Pipeline implements Cloneable {
 
-    @Nonnull private final String      projectId;
-    @Nonnull private final List<Stage> stages;
+    private final @Nonnull String               projectId;
+    private final @Nonnull List<ExecutionGroup> executionHistory;
+    private final @Nonnull List<ExecutionGroup> executionQueue;
+    private @Nullable      ExecutionGroup       activeExecution;
 
-    private           boolean             pauseRequested     = false;
-    private @Nullable PauseReason         pauseReason        = null;
-    private @Nullable ResumeNotification  resumeNotification = null;
-    private @Nullable List<EnqueuedStage> enqueuedStages     = new ArrayList<>();
-
+    private           boolean                              pauseRequested     = false;
+    private @Nullable PauseReason                          pauseReason        = null;
+    private @Nullable ResumeNotification                   resumeNotification = null;
     private @Nullable DeletionPolicy                       deletionPolicy;
     private @Nonnull  Strategy                             strategy;
-    private @Nullable Stage                                stage;
     private @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode;
 
-    private int stageCounter;
+    private int executionCounter;
 
     public Pipeline(@Nonnull String projectId) {
-        this.projectId = projectId;
-        this.stages    = new ArrayList<>();
-        this.strategy  = Strategy.MoveForwardUntilEnd;
+        this.projectId        = projectId;
+        this.strategy         = Strategy.MoveForwardUntilEnd;
+        this.executionCounter = 0;
+
+        this.executionHistory = new ArrayList<>();
+        this.executionQueue   = new ArrayList<>();
     }
 
+    @ConstructorProperties({
+            "projectId",
+            "executionHistory",
+            "enqueuedExecutions",
+            "activeExecutionGroup",
+            "pauseRequested",
+            "pauseReason",
+            "resumeNotification",
+            "deletionPolicy",
+            "strategy",
+            "workspaceConfigurationMode",
+            "executionCounter"
+    })
     public Pipeline(
             @Nonnull String projectId,
+            @Nullable List<ExecutionGroup> executionHistory,
+            @Nullable List<ExecutionGroup> enqueuedExecutions,
+            @Nullable ExecutionGroup activeExecutionGroup,
             boolean pauseRequested,
             @Nullable PauseReason pauseReason,
             @Nullable ResumeNotification resumeNotification,
-            @Nullable List<EnqueuedStage> enqueuedStages,
-            @Nullable List<Stage> completedStages,
             @Nullable DeletionPolicy deletionPolicy,
             @Nonnull Strategy strategy,
-            @Nullable Stage runningStage,
-            @Nullable Integer stageCounter,
-            @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode) {
-        this.projectId          = projectId;
-        this.pauseRequested     = pauseRequested;
-        this.pauseReason        = pauseReason;
-        this.resumeNotification = resumeNotification;
-        this.enqueuedStages     = enqueuedStages;
-        this.stages             = completedStages != null ? completedStages : new ArrayList<>();
-        this.deletionPolicy     = deletionPolicy;
-        this.strategy           = strategy;
-        this.stage              = runningStage;
-        this.stageCounter       = stageCounter != null
-                                  ? stageCounter
-                                  : Optional.ofNullable(completedStages).map(List::size).orElse(0)
-                                          + (runningStage != null ? 1 : 0);
-
+            @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode,
+            int executionCounter) {
+        this.projectId                  = projectId;
+        this.executionHistory           = Optional.ofNullable(executionHistory).orElseGet(ArrayList::new);
+        this.executionQueue             = Optional.ofNullable(enqueuedExecutions).orElseGet(ArrayList::new);
+        this.activeExecution            = activeExecutionGroup;
+        this.pauseRequested             = pauseRequested;
+        this.pauseReason                = pauseReason;
+        this.resumeNotification         = resumeNotification;
+        this.deletionPolicy             = deletionPolicy;
+        this.strategy                   = strategy;
         this.workspaceConfigurationMode = workspaceConfigurationMode;
+        this.executionCounter           = executionCounter;
     }
 
     @Nonnull
@@ -72,95 +82,122 @@ public class Pipeline implements Cloneable {
         return projectId;
     }
 
-    public void pushStage(@Nullable Stage stage) {
-        if (this.stage != null) {
-            this.stages.add(this.stage);
-            this.stageCounter += 1;
+    public void archiveActiveExecution() throws NullPointerException, ExecutionGroupStillHasRunningStagesException {
+        Objects.requireNonNull(this.activeExecution);
+
+        if (this.activeExecution.getRunningStages().count() > 0) {
+            throw new ExecutionGroupStillHasRunningStagesException(this, this.activeExecution);
+        } else {
+            this.executionHistory.add(this.activeExecution);
+            this.activeExecution = null;
         }
-        this.stage = stage;
-    }
-
-    public boolean updateStage(@Nonnull Stage stage) {
-        if (this.stage != null && this.stage.getId().equals(stage.getId())) {
-            this.stage = stage;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean removeStage(@Nonnull String stageId) {
-        for (int i = this.stages.size() - 1; i >= 0; --i) {
-            if (this.stages.get(i).getId().equals(stageId)) {
-                this.stages.remove(i);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Nonnull
-    public Optional<Stage> getRunningStage() {
-        return Optional.ofNullable(this.stage);
-    }
-
-    public boolean finishRunningStage(@Nonnull State finishState) {
-        return getRunningStage().map(stage -> {
-            stage.finishNow(finishState);
-            this.pushStage(null);
-            return stage;
-        }).isPresent();
-    }
-
-    @Nonnull
-    @Transient
-    public Optional<Stage> getMostRecentStage() {
-        return getRunningStage().or(() -> {
-            if (stages.isEmpty()) {
-                return Optional.empty();
-            } else {
-                return Optional.of(stages.get(stages.size() - 1));
-            }
-        });
-    }
-
-    @Nonnull
-    @Transient
-    public Optional<Stage> getMostRecentStage(@Nonnull Action action) {
-        return getRunningStage()
-                .filter(stage -> stage.getAction() == action)
-                .or(() -> {
-                    for (var i = stages.size() - 1; i >= 0; --i) {
-                        if (stages.get(i).getAction() == action) {
-                            return Optional.of(stages.get(i));
-                        }
-                    }
-                    return Optional.empty();
-                });
     }
 
     /**
-     * @return The number of stages ever completed for this pipeline
+     * @return Whether a new {@link ExecutionGroup} was marked as actively executing (false if there is none)
+     * @throws ThereIsStillAnActiveExecutionGroupException If there is still an {@link ExecutionGroup} being executed
      */
-    public int getStageCounter() {
-        // return this.stages.size() + (getRunningStage().isPresent() ? 1 : 0);
-        return this.stageCounter;
+    @Transient
+    public boolean retrieveNextActiveExecution() throws ThereIsStillAnActiveExecutionGroupException {
+        if (this.activeExecution != null) {
+            throw new ThereIsStillAnActiveExecutionGroupException(this, this.activeExecution);
+        }
+
+        if (!this.executionQueue.isEmpty()) {
+            this.activeExecution = this.executionQueue.remove(0);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Transient
+    public boolean activeExecutionGroupCouldSpawnFurtherStages() {
+        return this.activeExecution != null && this.activeExecution.hasRemainingExecutions();
+    }
+
+    @Transient
+    public boolean activeExecutionGroupHasNoFailedStages() {
+        return getActiveExecutionGroup()
+                .filter(group -> !group.isConfigureOnly())
+                .stream()
+                .flatMap(ExecutionGroup::getStages)
+                .map(Stage::getState)
+                .noneMatch(state -> state == State.Failed);
+    }
+
+
+    public boolean canRetrieveNextActiveExecution() {
+        return this.activeExecution == null && !this.executionQueue.isEmpty();
+    }
+
+    /**
+     * Ignores {@link ExecutionGroup} if it is active
+     *
+     * @param id The id of the {@link ExecutionGroup} to remove
+     * @return The removed {@link ExecutionGroup} or {@link Optional#empty()} if not found
+     */
+    public Optional<ExecutionGroup> removeExecutionGroup(@Nonnull String id) {
+
+        for (int i = 0; i < this.executionQueue.size(); ++i) {
+            if (this.executionQueue.get(i).getFullyQualifiedId().equals(id)) {
+                return Optional.of(this.executionQueue.remove(i));
+            }
+        }
+
+        for (int i = 0; i < this.executionHistory.size(); ++i) {
+            if (this.executionHistory.get(i).getFullyQualifiedId().equals(id)) {
+                return Optional.of(this.executionHistory.remove(i));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Nonnull
+    public Stream<ExecutionGroup> getExecutionHistory() {
+        return this.executionHistory.stream();
+    }
+
+    @Nonnull
+    public Optional<ExecutionGroup> getActiveExecutionGroup() {
+        return Optional.ofNullable(this.activeExecution);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<ExecutionGroup> getActiveOrNextExecutionGroup() {
+        if (this.activeExecution != null) {
+            return Optional.of(this.activeExecution);
+        } else if (!this.executionQueue.isEmpty()) {
+            return Optional.of(this.executionQueue.get(0));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<ExecutionGroup> getActiveOrPreviousExecutionGroup() {
+        if (this.activeExecution != null) {
+            return Optional.of(this.activeExecution);
+        } else if (!this.executionHistory.isEmpty()) {
+            return Optional.of(this.executionHistory.get(this.executionHistory.size() - 1));
+        } else {
+            return Optional.empty();
+        }
     }
 
 
     @Nonnull
     @Transient
-    public Stream<Stage> getAllStages() {
-        return Stream.concat(getCompletedStages(), getRunningStage().stream());
+    public Stream<ExecutionGroup> getActiveAndPastExecutionGroups() {
+        return Stream.concat(this.executionHistory.stream(), getActiveExecutionGroup().stream());
     }
 
     @Nonnull
-    public Optional<Stage> getStage(@Nonnull String id) {
-        return getAllStages().filter(s -> s.getId().equals(id)).findFirst();
-    }
-
-    @Nonnull
-    public Stream<Stage> getCompletedStages() {
-        return stages.stream();
+    public Stream<ExecutionGroup> getEnqueuedExecutions() {
+        return this.executionQueue.stream();
     }
 
     public void requestPause() {
@@ -203,85 +240,46 @@ public class Pipeline implements Cloneable {
         this.resumeNotification = null;
     }
 
-    @Nonnull
-    public Optional<EnqueuedStage> peekNextStage() {
-        if (this.enqueuedStages != null && !this.enqueuedStages.isEmpty()) {
-            return Optional.ofNullable(this.enqueuedStages.get(0));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    @Nonnull
-    public Optional<EnqueuedStage> popNextStage() {
-        if (this.enqueuedStages != null && !this.enqueuedStages.isEmpty()) {
-            return Optional.ofNullable(this.enqueuedStages.remove(0));
-        } else {
-            return Optional.empty();
-        }
-    }
-
+    @Transient
     public boolean hasEnqueuedStages() {
-        return this.enqueuedStages != null && !this.enqueuedStages.isEmpty();
+        return (this.activeExecution != null && this.activeExecution.hasRemainingExecutions()) || !this.executionQueue.isEmpty();
     }
 
-    public void enqueueStage(@Nonnull StageDefinition definition) {
-        this.enqueueStage(definition, Action.Execute);
-    }
-
-    public void enqueueStage(@Nonnull StageDefinition definition, @Nonnull Action action) {
-        this.enqueue(new EnqueuedStage(definition, action, null));
-    }
-
-    public void enqueueStageContinuation(@Nonnull StageDefinition definition, @Nullable String value) {
-        this.enqueue(new EnqueuedStage(
-                definition,
-                Action.Execute,
-                new WorkspaceConfiguration(
-                        WorkspaceConfiguration.WorkspaceMode.CONTINUATION,
-                        value
-                )
-        ));
-    }
-
-    public void enqueueStageStandalone(@Nonnull StageDefinition definition) {
-        this.enqueue(new EnqueuedStage(
-                definition,
-                Action.Execute,
-                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null)
-        ));
-    }
-
-    private void enqueue(@Nonnull EnqueuedStage stage) {
-        if (this.enqueuedStages == null) {
-            this.enqueuedStages = new ArrayList<>();
-        }
-        this.enqueuedStages.add(stage);
+    public int getExecutionCounter() {
+        return executionCounter;
     }
 
     @Nonnull
-    public Optional<EnqueuedStage> removeEnqueuedStage(int index) {
-        if (this.enqueuedStages != null && this.enqueuedStages.size() > index) {
-            return Optional.of(this.enqueuedStages.remove(index));
-        } else {
-            return Optional.empty();
-        }
+    private ExecutionGroupId incrementAndGetNextExecutionGroupId(@Nonnull String stageName) {
+        this.executionCounter += 1;
+        return new ExecutionGroupId(getProjectId(), executionCounter, stageName);
     }
 
     @Nonnull
-    public Stream<EnqueuedStage> getEnqueuedStages() {
-        if (this.enqueuedStages == null) {
-            return Stream.empty();
-        } else {
-            return this.enqueuedStages.stream();
-        }
+    public ExecutionGroupId enqueueConfiguration(@Nonnull StageDefinition definition) {
+        var id = incrementAndGetNextExecutionGroupId(definition.getName());
+        this.executionQueue.add(new ExecutionGroup(id, definition));
+        return id;
     }
 
     @Nonnull
-    public Strategy getStrategy() {
-        return this.strategy;
+    public ExecutionGroupId enqueueSingleExecution(
+            @Nonnull StageDefinition definition,
+            @Nonnull WorkspaceConfiguration workspaceConfiguration) {
+        var id = incrementAndGetNextExecutionGroupId(definition.getName());
+        this.executionQueue.add(new ExecutionGroup(id, definition, workspaceConfiguration));
+        return id;
     }
 
+    @Nonnull
+    public ExecutionGroupId enqueueRangedExecution(
+            @Nonnull StageDefinition definition,
+            @Nonnull WorkspaceConfiguration workspaceConfiguration,
+            @Nonnull Map<String, RangeWithStepSize> rangedValues) {
+        var id = incrementAndGetNextExecutionGroupId(definition.getName());
+        this.executionQueue.add(new ExecutionGroup(id, definition, rangedValues, workspaceConfiguration));
+        return id;
+    }
     @Nonnull
     public Optional<DeletionPolicy> getDeletionPolicy() {
         return Optional.ofNullable(this.deletionPolicy);
@@ -290,6 +288,12 @@ public class Pipeline implements Cloneable {
     public void setDeletionPolicy(@Nullable DeletionPolicy policy) {
         this.deletionPolicy = policy;
     }
+
+    @Nonnull
+    public Strategy getStrategy() {
+        return this.strategy;
+    }
+
 
     public void setStrategy(@Nonnull Strategy strategy) {
         this.strategy = strategy;
@@ -302,24 +306,6 @@ public class Pipeline implements Cloneable {
 
     public void setWorkspaceConfigurationMode(@Nonnull WorkspaceConfiguration.WorkspaceMode mode) {
         this.workspaceConfigurationMode = mode;
-    }
-
-
-    @Override
-    public Pipeline clone() {
-        return new Pipeline(
-                this.projectId,
-                pauseRequested,
-                pauseReason,
-                resumeNotification,
-                enqueuedStages != null ? new ArrayList<>(enqueuedStages) : null,
-                stages.stream().map(Stage::clone).collect(Collectors.toList()),
-                deletionPolicy,
-                strategy,
-                stage,
-                stageCounter,
-                workspaceConfigurationMode
-        );
     }
 
     public enum Strategy {

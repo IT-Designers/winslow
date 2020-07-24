@@ -1,7 +1,7 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.project.EnvVariable;
-import de.itdesigners.winslow.pipeline.EnqueuedStage;
+import de.itdesigners.winslow.api.pipeline.EnvVariable;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.springframework.lang.NonNull;
 
@@ -23,12 +23,12 @@ import java.util.stream.Stream;
  */
 public class EnvVariableResolver {
 
-    private @Nullable Map<String, String>             globalVariables;
-    private @Nullable Map<String, String>             pipelineDefinitionVariables;
-    private @Nullable Map<String, String>             stageDefinitionVariables;
-    private @Nullable Supplier<Stream<Stage>>         executionHistory;
-    private @Nullable Supplier<Stream<EnqueuedStage>> enqueuedStages;
-    private @Nullable String                          stageName;
+    private @Nullable Map<String, String>              globalVariables;
+    private @Nullable Map<String, String>              pipelineDefinitionVariables;
+    private @Nullable Map<String, String>              stageDefinitionVariables;
+    private @Nullable Supplier<Stream<ExecutionGroup>> executionHistory;
+    private @Nullable Supplier<Stream<ExecutionGroup>> enqueuedStages;
+    private @Nullable String                           stageName;
 
     @NonNull
     @CheckReturnValue
@@ -53,14 +53,14 @@ public class EnvVariableResolver {
 
     @NonNull
     @CheckReturnValue
-    public EnvVariableResolver withExecutionHistory(@Nullable Supplier<Stream<Stage>> history) {
+    public EnvVariableResolver withExecutionHistory(@Nullable Supplier<Stream<ExecutionGroup>> history) {
         this.executionHistory = history;
         return this;
     }
 
     @NonNull
     @CheckReturnValue
-    public EnvVariableResolver withEnqueuedStages(@Nullable Supplier<Stream<EnqueuedStage>> enqueued) {
+    public EnvVariableResolver withEnqueuedStages(@Nullable Supplier<Stream<ExecutionGroup>> enqueued) {
         this.enqueuedStages = enqueued;
         return this;
     }
@@ -133,8 +133,10 @@ public class EnvVariableResolver {
         if (this.executionHistory != null && this.stageName != null) {
             return this.executionHistory
                     .get()
+                    .filter(group -> group.getStageDefinition().getName().equals(this.stageName))
+                    .flatMap(ExecutionGroup::getStages)
                     //.filter(s -> s.getFinishState().map(state -> Stage.State.Succeeded == state).orElse(Boolean.FALSE))
-                    .filter(s -> this.stageName.equals(s.getDefinition().getName()))
+                    //.filter(s -> this.stageName.equals(s.getDefinition().getName()))
                     .reduce((first, second) -> second) // expect in order
                     .map(Stage::getEnv);
         } else {
@@ -148,9 +150,9 @@ public class EnvVariableResolver {
         if (this.enqueuedStages != null && this.stageName != null) {
             return this.enqueuedStages
                     .get()
-                    .filter(s -> this.stageName.equals(s.getDefinition().getName()))
+                    .filter(g -> this.stageName.equals(g.getStageDefinition().getName()))
                     .reduce((first, second) -> second) // expect in order
-                    .map(enqueued -> enqueued.getDefinition().getEnvironment());
+                    .map(enqueued -> enqueued.getStageDefinition().getEnvironment());
         } else {
             return Optional.empty();
         }

@@ -56,17 +56,22 @@ public class DelayedExecutor {
         }
     }
 
-    public synchronized boolean executeRandomlyDelayed(
+    public boolean executeRandomlyDelayed(
             @Nonnull String identifier,
             long millisDelayMin,
             long millisDelayMax,
             @Nonnull Runnable runnable) {
+        var delay = millisDelayMin + new Random().nextInt((int) (millisDelayMax - millisDelayMin));
+        LOG.info("Random offset for " + identifier + " determined to be " + delay + " ms");
+        return executeDelayed(identifier, delay, runnable);
+    }
+
+    public synchronized boolean executeDelayed(@Nonnull String identifier, long millisDelay, @Nonnull Runnable runnable) {
+
         if (this.runnables.containsKey(identifier)) {
             return false;
         } else {
-            var offset = millisDelayMin + new Random().nextInt((int) (millisDelayMax - millisDelayMin));
-            LOG.info("Random offset for " + identifier + " determined to be " + offset + " ms");
-            var plan = new Plan(System.currentTimeMillis() + offset, identifier, runnable);
+            var plan = new Plan(millisDelay, identifier, runnable);
             this.runnables.put(identifier, plan);
             this.runnableQueue.add(plan);
             this.runnableQueue.sort(Comparator.<Plan>comparingLong(planA -> planA.plannedTimeOfExecution).reversed());

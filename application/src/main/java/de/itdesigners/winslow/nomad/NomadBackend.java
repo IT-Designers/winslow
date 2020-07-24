@@ -5,10 +5,11 @@ import com.hashicorp.nomad.javasdk.*;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.api.node.GpuInfo;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.node.PlatformInfo;
+import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
 
@@ -140,6 +141,12 @@ public class NomadBackend implements Backend {
         } catch (NomadException e) {
             throw new IOException("Failed to list jobs", e);
         }
+    }
+
+    @Nonnull
+    @Override
+    public Optional<State> getState(@Nonnull StageId stageId) throws IOException {
+        return getState(stageId.getProjectId(), stageId.getFullyQualified());
     }
 
     @Nonnull

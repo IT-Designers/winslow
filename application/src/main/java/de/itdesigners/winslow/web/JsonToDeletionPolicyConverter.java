@@ -2,7 +2,7 @@ package de.itdesigners.winslow.web;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.itdesigners.winslow.api.project.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;

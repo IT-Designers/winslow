@@ -1,19 +1,24 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.Action;
-import de.itdesigners.winslow.api.project.EnvVariable;
-import de.itdesigners.winslow.api.project.State;
+import de.itdesigners.winslow.api.pipeline.EnvVariable;
+import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.EnqueuedStage;
+import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.junit.Test;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static junit.framework.TestCase.*;
@@ -77,21 +82,21 @@ public class EnvVariableResolverTest {
                                 Map.of("variable", "history")
                         )));
 
-        resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedStage(
+        resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedSingleExecutionStage(
                 "some-stage-name",
-                Action.Execute,
+                false,
                 Map.of("variable", "enqueued-stage-to-execute")
         )));
 
         assertEnvVariable(resolver.resolve().get("variable"), "variable", "enqueued-stage-to-execute", "pipeline");
 
-        resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedStage(
+        resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedSingleExecutionStage(
                 "some-stage-name",
-                Action.Execute,
+                false,
                 Map.of("variable", "enqueued-stage-to-execute")
-        ), constructEnqueuedStage(
+        ), constructEnqueuedSingleExecutionStage(
                 "some-stage-name",
-                Action.Configure,
+                true,
                 Map.of("variable", "enqueued-stage-to-configure")
         )));
 
@@ -151,9 +156,9 @@ public class EnvVariableResolverTest {
                         State.Succeeded,
                         Map.of("executed", "executed")
                 )))
-                .withEnqueuedStages(() -> Stream.of(constructEnqueuedStage(
+                .withEnqueuedStages(() -> Stream.of(constructEnqueuedSingleExecutionStage(
                         "some-stage-name",
-                        Action.Configure,
+                        true,
                         Map.of("enqueued", "enqueued")
                 )))
                 .resolve();
@@ -175,7 +180,7 @@ public class EnvVariableResolverTest {
     }
 
     @NonNull
-    private static Stage constructFinishedExecutionStage(
+    private static ExecutionGroup constructFinishedExecutionStage(
             @NonNull String name,
             @NonNull State finishState,
             @Nullable Map<String, String> env) {
@@ -183,15 +188,46 @@ public class EnvVariableResolverTest {
     }
 
     @NonNull
-    private static Stage constructFinishedStageWithAction(
+    private static ExecutionGroup constructFinishedStageWithAction(
             @NonNull String name,
             @NonNull State finishState,
             @Nullable Map<String, String> env,
             @Nonnull Action action) {
-        return new Stage(
-                "some-id",
+        return wrap(
+                name,
+                (gid) -> new Stage(
+                        gid.generateStageId(1),
+                        new Date(0L),
+                        null,
+                        new Date(),
+                        finishState,
+                        env,
+                        null,
+                        null,
+                        null
+                )
+        );
+    }
+
+    @Nonnull
+    private static ExecutionGroup wrap(
+            @Nonnull String stageDefName,
+            @Nonnull Function<ExecutionGroupId, Stage> stageBuilder) {
+        return wrapCustom(stageDefName, group -> group.addStage(stageBuilder.apply(group.getId())));
+    }
+
+    @Nonnull
+    private static ExecutionGroup wrapCustom(
+            @Nonnull String stageDefName,
+            @Nonnull Consumer<ExecutionGroup> stuffer) {
+        var group = new ExecutionGroup(
+                new ExecutionGroupId(
+                        "randomish-project",
+                        0,
+                        "randomish-human-readable"
+                ),
                 new StageDefinition(
-                        name,
+                        stageDefName,
                         null,
                         null,
                         null,
@@ -200,28 +236,26 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         null
-                ),
-                action,
-                new Date(0L),
-                null,
-                new Date(),
-                finishState,
-                env,
-                null,
-                null,
-                null,
-                null
+                )
         );
+        stuffer.accept(group);
+        return group;
     }
 
     @NonNull
-    private static EnqueuedStage constructEnqueuedStage(
-            @NonNull String name,
-            @Nonnull Action action,
+    private static ExecutionGroup constructEnqueuedSingleExecutionStage(
+            @Nonnull String stageDefName,
+            boolean configureOnly,
             @Nullable Map<String, String> env) {
-        return new EnqueuedStage(
+        return new ExecutionGroup(
+                new ExecutionGroupId(
+                        "randomish-project",
+                        0,
+                        "randomish-human-readable"
+                ),
+                configureOnly,
                 new StageDefinition(
-                        name,
+                        stageDefName,
                         null,
                         null,
                         null,
@@ -231,8 +265,10 @@ public class EnvVariableResolverTest {
                         null,
                         null
                 ),
-                action,
-                null
+                null,
+                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null),
+                new ArrayList<>(),
+                0
         );
     }
 }
