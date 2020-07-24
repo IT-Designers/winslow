@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
 
 import javax.annotation.Nonnull;
@@ -60,11 +61,11 @@ public class CommonUpdateConstraints {
         }
     }
 
-    public static void ensureNoActiveExecutionGroupOrActiveGroupIsExhausted(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
+    public static void ensureNoActiveExecutionGroupOrActiveGroupIsExhaustedOrHasFailed(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         var depleted = Optional
                 .ofNullable(pipelineReadOnly)
                 .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(g -> !g.hasRemainingExecutions())
+                .map(g -> !hasRemainingOrRunningStageExecutions(g))
                 .orElse(Boolean.TRUE);
         if (!depleted) {
             throw new PreconditionNotMetException("ExecutionGroup is not exhausted");
@@ -75,13 +76,13 @@ public class CommonUpdateConstraints {
         if (pipelineReadOnly != null) {
             var stillRelevant = pipelineReadOnly
                     .getActiveExecutionGroup()
-                    .map(g -> g.hasRemainingExecutions() || g.getRunningStages().count() > 0);
+                    .map(CommonUpdateConstraints::hasRemainingOrRunningStageExecutions);
 
             if (stillRelevant.orElse(Boolean.FALSE)) {
                 throw new PreconditionNotMetException("Pipeline still has an relevant active ExecutionGroup");
             }
 
-            if (stillRelevant.isEmpty() || !pipelineReadOnly.hasEnqueuedStages()) {
+            if (!pipelineReadOnly.hasEnqueuedStages()) {
                 throw new PreconditionNotMetException(
                         "Pipeline neither can archive active nor retrieve next ExecutionGroup");
             }
@@ -98,9 +99,9 @@ public class CommonUpdateConstraints {
     }
 
     public static boolean hasRemainingOrRunningStageExecutions(@Nonnull ExecutionGroup group) {
-        return group.hasRemainingExecutions() || group.getRunningStages().count() > 0;
+        return (group.hasRemainingExecutions() || group.getRunningStages().count() > 0)
+                && group.getStages().noneMatch(s -> s.getState() == State.Failed);
     }
-
     public static void ensureActiveExecutionGroupHasRemainingStageExecutions(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         if (!hasActiveExecutionGroupRemainingExecutions(pipelineReadOnly)) {
             throw new PreconditionNotMetException("Active ExecutionGroup has no remaining stage executions");
@@ -111,7 +112,7 @@ public class CommonUpdateConstraints {
         return Optional
                 .ofNullable(pipelineReadOnly)
                 .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(ExecutionGroup::hasRemainingExecutions)
+                .map(g -> g.hasRemainingExecutions() && g.getStages().noneMatch(s -> s.getState() == State.Failed))
                 .orElse(Boolean.FALSE);
     }
 

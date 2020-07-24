@@ -1,7 +1,6 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
-import de.itdesigners.winslow.config.ExecutionGroup;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +40,7 @@ public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdat
         ensureIsNotLockedByAnotherInstance(orchestrator, projectId);
         ensureNoElectionIsRunning(orchestrator, projectId);
         ensureHasNoRunningStages(pipelineReadOnly);
-        ensureNoActiveExecutionGroupOrActiveGroupIsExhausted(pipelineReadOnly);
+        ensureNoActiveExecutionGroupOrActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
         ensureArchivableOrRetrievableExecutionGroup(pipelineReadOnly);
     }
 
