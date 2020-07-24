@@ -1,7 +1,16 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {PipelineInfo, ResourceInfo, StageInfo} from '../api/pipeline-api.service';
+import {PipelineInfo, ResourceInfo} from '../api/pipeline-api.service';
 import {MatDialog} from '@angular/material';
-import {EnvVariable, HistoryEntry, ImageInfo, ProjectApiService, WorkspaceConfiguration, WorkspaceMode} from '../api/project-api.service';
+import {
+  EnvVariable,
+  ExecutionGroupInfo,
+  ImageInfo,
+  ProjectApiService,
+  RangedWithStepSize,
+  StageDefinitionInfo,
+  WorkspaceConfiguration,
+  WorkspaceMode
+} from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
 
 @Component({
@@ -16,19 +25,18 @@ export class StageExecutionSelectionComponent implements OnInit {
   @Input() pipelines: PipelineInfo[];
   @Input() pipelineSelectionDisabled = false;
 
-
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
-  @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageInfo>();
+  @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageDefinitionInfo>();
+  @Output('valid') private validEmitter = new EventEmitter<boolean>();
 
   defaultPipelineIdValue: string;
-  executionHistoryValue: HistoryEntry[] = null;
+  executionHistoryValue: ExecutionGroupInfo[] = null;
 
   selectedPipeline: PipelineInfo = null;
-  selectedStage: StageInfo = null;
+  selectedStage: StageDefinitionInfo = null;
   image = new ImageInfo();
   resources = new ResourceInfo();
   workspaceConfiguration = new WorkspaceConfiguration();
-  @Output('valid') private validEmitter = new EventEmitter<boolean>();
   valid = false;
 
   // env cache
@@ -37,6 +45,8 @@ export class StageExecutionSelectionComponent implements OnInit {
   requiredEnvironmentVariables: string[];
   envSubmitValue: any = null;
   envValid = false;
+  rangedEnvironmentVariablesValue: Map<string, RangedWithStepSize> = null;
+  rangedEnvironmentVariablesUpdated: Map<string, RangedWithStepSize> = null;
 
 
   static deepClone(image: object) {
@@ -63,6 +73,13 @@ export class StageExecutionSelectionComponent implements OnInit {
     this.updateValid();
   }
 
+  @Input()
+  set rangedEnvironmentVariables(map: Map<string, RangedWithStepSize>) {
+    this.rangedEnvironmentVariablesValue = map;
+    this.rangedEnvironmentVariablesUpdated = new Map();
+    this.updateValid();
+  }
+
 
   @Input()
   set defaultEnvironmentVariables(map: Map<string, string>) {
@@ -71,7 +88,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
-  set executionHistory(history: HistoryEntry[]) {
+  set executionHistory(history: ExecutionGroupInfo[]) {
     this.executionHistoryValue = history;
     this.workspaceConfigurationMode = this.workspaceConfiguration?.mode;
   }
@@ -81,9 +98,9 @@ export class StageExecutionSelectionComponent implements OnInit {
     if (mode != null) {
       let value = null;
       if (mode === WorkspaceMode.CONTINUATION && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
-        value = this.executionHistoryValue[0].stageId;
+        value = this.executionHistoryValue[0].id;
       }
-      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value);
+      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value, this.workspaceConfiguration?.sharedWithinGroup);
     } else {
       this.workspaceConfiguration = new WorkspaceConfiguration();
     }
@@ -99,6 +116,21 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   getEnv() {
     return this.envSubmitValue;
+  }
+
+  getRangedEnv() {
+    const fakeMap = {};
+    if (this.rangedEnvironmentVariablesValue != null) {
+      for (const key of this.rangedEnvironmentVariablesValue.keys()) {
+        fakeMap[key] = this.rangedEnvironmentVariablesValue.get(key);
+      }
+    }
+    if (this.rangedEnvironmentVariablesUpdated != null) {
+      for (const key of this.rangedEnvironmentVariablesUpdated.keys()) {
+        fakeMap[key] = this.rangedEnvironmentVariablesUpdated.get(key);
+      }
+    }
+    return fakeMap;
   }
 
   getImage(): ImageInfo {
@@ -166,18 +198,47 @@ export class StageExecutionSelectionComponent implements OnInit {
     return Number(value);
   }
 
-  setWorkspaceMode(checked: boolean, mode: WorkspaceMode, value: string = null) {
-    if (checked) {
-      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value);
+  setWorkspaceMode(update: boolean, mode: WorkspaceMode, value: string = null, sharedWithinGroup: boolean = null) {
+    if (update) {
+      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value, sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup);
     }
   }
 
   tryParseStageNumber(stageId: string, alt: number): number {
-    return this.api.tryParseStageNumber(stageId, alt);
+    return this.api.tryParseGroupNumber(stageId, alt);
   }
 
-  hasStageId(e: HistoryEntry): boolean {
-    return e.stageId != null;
+  addRangedEnvironmentVariable(
+    name: HTMLInputElement,
+    rangeStart: HTMLInputElement,
+    rangeEnd: HTMLInputElement,
+    stepSize: HTMLInputElement
+  ) {
+    if (this.rangedEnvironmentVariablesValue == null) {
+      this.rangedEnvironmentVariablesValue = new Map();
+    }
+    const range = new RangedWithStepSize();
+    range.min = Number(rangeStart.value.trim());
+    range.max = Number(rangeEnd.value.trim());
+    range.stepSize = Number(stepSize.value.trim());
+    this.rangedEnvironmentVariablesValue.set(name.value.trim(), range);
+
+    name.value = null;
+    name.focus();
   }
 
+  removeRangeDEnvironmentVariable(key: string) {
+    if (this.rangedEnvironmentVariablesValue != null) {
+      this.rangedEnvironmentVariablesValue.delete(key);
+      this.rangedEnvironmentVariablesUpdated.delete(key);
+    }
+  }
+
+  updateRangedEnv(key: string, min: string, max: string, stepSize: string) {
+    const range = new RangedWithStepSize();
+    range.min = Number(min);
+    range.max = Number(max);
+    range.stepSize = Number(stepSize);
+    this.rangedEnvironmentVariablesUpdated.set(key, range);
+  }
 }

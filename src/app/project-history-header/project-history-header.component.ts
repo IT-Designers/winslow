@@ -16,11 +16,12 @@ export class ProjectHistoryHeaderComponent implements OnInit {
   @Input() paused: boolean;
   @Input() enqueued: boolean;
   @Input() running: boolean;
-  @Input() showActiveControls: boolean;
-  @Input() showPassiveControls: boolean;
-  @Input() showResumeOnlyThisStage: boolean;
-  @Input() showDeleteEnqueued: boolean;
-  @Input() showUseAsBlueprint: boolean;
+  @Input() showActiveControls = true;
+  @Input() showPassiveControls = true;
+  @Input() showResumeOnlyThisStage = true;
+  @Input() showDeleteEnqueued = true;
+  @Input() showUseAsBlueprint = true;
+  @Input() showKillCurrentStage = false;
 
   @Output() clickResumeOnlyThisStage = new EventEmitter<MouseEvent>();
   @Output() clickResume = new EventEmitter<MouseEvent>();

@@ -1,15 +1,17 @@
 import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
-  Action,
   DeletionPolicy,
   EnvVariable,
-  HistoryEntry,
+  ExecutionGroupInfo,
   ImageInfo,
   LogEntry,
   LogSource,
   ParseError,
   ProjectApiService,
   ProjectInfo,
+  RangedWithStepSize,
+  StageDefinitionInfo,
+  StageInfo,
   State,
   StateInfo,
   WorkspaceConfiguration,
@@ -18,7 +20,7 @@ import {
 import {NotificationService} from '../notification.service';
 import {MatDialog, MatTabGroup} from '@angular/material';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {PipelineApiService, PipelineInfo, ResourceInfo, StageInfo} from '../api/pipeline-api.service';
+import {PipelineApiService, PipelineInfo, ResourceInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
 import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
 import {DialogService} from '../dialog.service';
@@ -35,114 +37,12 @@ import {environment} from '../../environments/environment';
 })
 export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
-  static TRUNCATE_TO_MAX_LINES = 5000;
-  static DEFAULT_VISIBLE_ITEM_COUNT_HISTORY = 10;
-
-  tabIndexOverview = Tab.Overview;
-
-  @ViewChild('tabGroup') tabs: MatTabGroup;
-  @ViewChild('console') htmlConsole: ElementRef<HTMLElement>;
-  @ViewChild('scrollBottomTarget') scrollBottomTarget: ElementRef<HTMLElement>;
-  @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
-
-  private projectValue: ProjectInfo;
-  probablyProjectPipelineId = null;
-
-  @Output('state') private stateEmitter = new EventEmitter<State>();
-  @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
-
-  filesAdditionalRoot: string = null;
-  filesNavigationTarget: string = null;
-
-  stateValue?: State = null;
-  history?: HistoryEntry[] = null;
-  logs?: LogEntry[] = null;
-  paused: boolean = null;
-  pauseReason?: string = null;
-  progress?: number;
-
-  deletionPolicyLocal?: DeletionPolicy;
-  deletionPolicyRemote?: DeletionPolicy;
-
-  watchHistory = false;
-  watchPaused = false;
-  watchLogs = false;
-  watchLogsInterval: any = null;
-  watchLogsId?: string = null;
-  watchLatestLogs = true;
-  watchDefinition = false;
-
-  loadLogsOnceAnyway = false;
-  loadHistoryAnyway = false;
-
-  longLoading = new LongLoadingDetector();
-
-  stickConsole = true;
-  consoleIsLoading = false;
-  scrollCallback;
-
-  pipelines: PipelineInfo[];
-
-  selectedPipeline: PipelineInfo = null;
-  selectedStage: StageInfo = null;
-  environmentVariables: Map<string, EnvVariable> = null;
-  defaultEnvironmentVariables: Map<string, string> = null;
-  workspaceConfigurationMode: WorkspaceMode = null;
-
-  rawPipelineDefinition: string = null;
-  rawPipelineDefinitionError: string = null;
-  rawPipelineDefinitionSuccess: string = null;
-
-  paramsSubscription: Subscription = null;
-  selectedTabIndex: number = Tab.Overview;
-  maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
-  workspaceMode: WorkspaceMode = null;
-
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
               private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
               private dialog: DialogService,
               private route: ActivatedRoute,
               private router: Router) {
-  }
-
-  private static deepClone(obj: any): any {
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  updateTabSelection(tab: string) {
-    for (let i = 0; i < 10; ++i) {
-      if (Tab[i] && Tab[i].toLowerCase() === tab) {
-        this.selectedTabIndex = i;
-        this.onSelectedTabChanged(this.selectedTabIndex);
-        break;
-      }
-    }
-  }
-
-  ngOnInit(): void {
-    this.setupFiles();
-    this.scrollCallback = () => this.onWindowScroll();
-    window.addEventListener('scroll', this.scrollCallback, true);
-
-    this.paramsSubscription = this.route.children[0].params.subscribe(params => {
-      if (params.tab != null) {
-        this.updateTabSelection(params.tab);
-      }
-    });
-  }
-
-  ngAfterViewInit() {
-    this.updateExecutionSelectionPipelines();
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.scrollCallback, true);
-    if (this.paramsSubscription) {
-      this.paramsSubscription.unsubscribe();
-      this.paramsSubscription = null;
-    }
   }
 
   @Input()
@@ -186,16 +86,119 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.projectValue;
   }
 
+  @Input()
+  public set state(value: StateInfo) {
+    this.update(value);
+  }
+
+  static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
+  static TRUNCATE_TO_MAX_LINES = 5000;
+  static DEFAULT_VISIBLE_ITEM_COUNT_HISTORY = 10;
+
+  tabIndexOverview = Tab.Overview;
+
+  @ViewChild('tabGroup') tabs: MatTabGroup;
+  @ViewChild('console') htmlConsole: ElementRef<HTMLElement>;
+  @ViewChild('scrollBottomTarget') scrollBottomTarget: ElementRef<HTMLElement>;
+  @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
+
+  private projectValue: ProjectInfo;
+  probablyProjectPipelineId = null;
+
+  @Output('state') private stateEmitter = new EventEmitter<State>();
+  @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
+
+  filesAdditionalRoot: string = null;
+  filesNavigationTarget: string = null;
+
+  stateValue?: State = null;
+  history?: ExecutionGroupInfo[] = null;
+  logs?: LogEntry[] = null;
+  paused: boolean = null;
+  pauseReason?: string = null;
+  progress?: number;
+
+  deletionPolicyLocal?: DeletionPolicy;
+  deletionPolicyRemote?: DeletionPolicy;
+
+  watchHistory = false;
+  watchPaused = false;
+  watchLogs = false;
+  watchLogsInterval: any = null;
+  watchLogsId?: string = null;
+  watchLatestLogs = true;
+  watchDefinition = false;
+
+  loadLogsOnceAnyway = false;
+  loadHistoryAnyway = false;
+
+  longLoading = new LongLoadingDetector();
+
+  stickConsole = true;
+  consoleIsLoading = false;
+  scrollCallback;
+
+  pipelines: PipelineInfo[];
+
+  selectedPipeline: PipelineInfo = null;
+  selectedStage: StageDefinitionInfo = null;
+  environmentVariables: Map<string, EnvVariable> = null;
+  defaultEnvironmentVariables: Map<string, string> = null;
+  rangedEnvironmentVariables: Map<string, RangedWithStepSize> = null;
+  workspaceConfigurationMode: WorkspaceMode = null;
+
+  rawPipelineDefinition: string = null;
+  rawPipelineDefinitionError: string = null;
+  rawPipelineDefinitionSuccess: string = null;
+
+  paramsSubscription: Subscription = null;
+  selectedTabIndex: number = Tab.Overview;
+  maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
+  workspaceMode: WorkspaceMode = null;
+
+  private static deepClone(obj: any): any {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  updateTabSelection(tab: string) {
+    for (let i = 0; i < 10; ++i) {
+      if (Tab[i] && Tab[i].toLowerCase() === tab) {
+        this.selectedTabIndex = i;
+        this.onSelectedTabChanged(this.selectedTabIndex);
+        break;
+      }
+    }
+  }
+
+  ngOnInit(): void {
+    this.setupFiles();
+    this.scrollCallback = () => this.onWindowScroll();
+    window.addEventListener('scroll', this.scrollCallback, true);
+
+    this.paramsSubscription = this.route.children[0].params.subscribe(params => {
+      if (params.tab != null) {
+        this.updateTabSelection(params.tab);
+      }
+    });
+  }
+
+  ngAfterViewInit() {
+    this.updateExecutionSelectionPipelines();
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.scrollCallback, true);
+    if (this.paramsSubscription) {
+      this.paramsSubscription.unsubscribe();
+      this.paramsSubscription = null;
+    }
+  }
+
   private updateExecutionSelectionPipelines() {
     if (this.executionSelection != null && this.project != null) {
       this.executionSelection.pipelines = [this.project.pipelineDefinition];
       this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
     }
-  }
-
-  @Input()
-  public set state(value: StateInfo) {
-    this.update(value);
   }
 
   update(info: StateInfo) {
@@ -211,10 +214,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.stateEmitter.emit(this.stateValue);
     this.pollWatched();
-  }
-
-  isConfigure(action: Action): boolean {
-    return Action.Configure === action;
   }
 
   isEnqueued(state = this.stateValue): boolean {
@@ -286,7 +285,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.watchLatestLogs || this.isStageRunning(this.watchLogsId)) {
       const skipLines = this.logs != null && this.logs.length > 0 ? this.logs[this.logs.length - 1].line : 0;
       const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
-      return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId);
+      return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId, this.watchLogsId);
     } else {
       if (this.logs != null && this.logs.length > 0 && this.logs[0].stageId === this.watchLogsId) {
         return Promise.reject('already loaded');
@@ -300,8 +299,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   isStageRunning(stageId: string) {
     if (this.history != null) {
       for (const entry of this.history) {
-        if (entry.stageId === stageId) {
-          return entry.state === State.Running;
+        // TODO double check!
+        if (stageId.startsWith(entry.id)) {
+          for (const stage of entry.stages) {
+            if (stage.id === stageId) {
+              return stage.state === State.Running;
+            }
+          }
         }
       }
     }
@@ -322,18 +326,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       .finally(() => this.longLoading.decrease());
   }
 
-  private updateHistory(history: any[]) {
+  private updateHistory(history: ExecutionGroupInfo[]) {
     history = history.reverse();
     return this.api.getProjectEnqueued(this.project.id)
       .then(enqueued => {
-        // remember state before adding to other history entires
-        for (let i = 0; i < enqueued.length; ++i) {
-          enqueued[i].enqueueIndex = i;
-          enqueued[i].enqueueControlSize = enqueued.length;
-        }
 
         this.loadHistoryAnyway = (enqueued.length > 0 && this.stateValue !== State.Paused)
-          || (history.length > 0 && history[0].state === State.Running);
+          || (history.length > 0 && history[0].hasRunningStages());
 
         const latest = enqueued.reverse();
         history.forEach(h => latest.push(h));
@@ -359,18 +358,26 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  enqueue(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo, workspaceConfiguration?: WorkspaceConfiguration) {
+  enqueue(
+    pipeline: PipelineInfo,
+    stageDefinitionInfo: StageDefinitionInfo,
+    env: any,
+    rangedEnv: any,
+    image: ImageInfo,
+    requiredResources?: ResourceInfo,
+    workspaceConfiguration?: WorkspaceConfiguration
+  ) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
-        if (pipeline.stages[i].name === stage.name) {
+        if (pipeline.stages[i].name === stageDefinitionInfo.name) {
           index = i;
           break;
         }
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.enqueue(this.project.id, index, env, image, requiredResources, workspaceConfiguration),
+          this.api.enqueue(this.project.id, index, env, rangedEnv, image, requiredResources, workspaceConfiguration),
           `Submitting selections`
         );
       }
@@ -379,7 +386,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  configure(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
+  configure(pipeline: PipelineInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
@@ -399,7 +406,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  configureGroup(pipeline: PipelineInfo, stage: StageInfo, env: any, image: ImageInfo) {
+  configureGroup(pipeline: PipelineInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo) {
     for (let i = 0; i < pipeline.stages.length; ++i) {
       if (stage.name === pipeline.stages[i].name) {
         return this.api.listProjects()
@@ -506,14 +513,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.longLoading.isLongLoading();
   }
 
-  openFolder(project: ProjectInfo, entry: HistoryEntry) {
-    this.tabs.selectedIndex = Tab.Files;
-    this.setupFiles(project);
-    this.filesNavigationTarget = `/workspaces/${entry.workspace}/`;
+  openFolder(project: ProjectInfo, group: ExecutionGroupInfo) {
+    if (group != null && group.stages != null && group.stages.length > 0) {
+      const stage = group.stages[group.stages.length - 1];
+      this.tabs.selectedIndex = Tab.Files;
+      this.setupFiles(project);
+      this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
+    }
   }
 
-  openTensorboard(project: ProjectInfo, entry: HistoryEntry) {
-    window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.stageId}/start`, '_blank');
+  openWorkspace(project: ProjectInfo, stage: StageInfo) {
+    this.tabs.selectedIndex = Tab.Files;
+    this.setupFiles(project);
+    this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
+  }
+
+  openTensorboard(project: ProjectInfo, entry: StageInfo) {
+    window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.id}/start`, '_blank');
   }
 
   private setupFiles(project = this.projectValue) {
@@ -523,12 +539,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
 
-  openLogs(entry?: HistoryEntry, watchLatestLogs = false) {
+  openLogs(entry?: StageInfo, watchLatestLogs = false) {
     this.tabs.selectedIndex = Tab.Logs;
     this.logs = null;
     this.watchLogs = true;
     if (entry != null) {
-      this.watchLogsId = entry.stageId;
+      this.watchLogsId = entry.id;
       this.watchLatestLogs = false;
     }
     if (watchLatestLogs) {
@@ -613,26 +629,28 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  killCurrentStage() {
+  killStage(stageId: string) {
     this.dialog.openAreYouSure(
-      `Kill currently running stage of project ${this.project.name}`,
-      () => this.api.killStage(this.project.id)
+      `Kill  running stage ${stageId}`,
+      () => this.api.killStage(this.project.id, stageId).then()
     );
   }
 
-  prepareEnqueue(entry: HistoryEntry) {
-    const stageInfo = new StageInfo();
-    stageInfo.image = ProjectViewComponent.deepClone(entry.imageInfo);
-    stageInfo.name = entry.stageName;
-    stageInfo.requiredEnvVariables = entry.env && entry.env.keys ? [...entry.env.keys()] : [];
-    stageInfo.requiredResources = entry.resourceRequirements;
+  killAllStages() {
+    this.dialog.openAreYouSure(
+      `Kill all running stages of project ${this.project.name}`,
+      () => this.api.killStage(this.project.id, null).then()
+    );
+  }
 
-    this.executionSelection.image = stageInfo.image;
-    this.executionSelection.resources = stageInfo.requiredResources;
-    this.executionSelection.selectedStage = stageInfo;
-    this.executionSelection.workspaceConfiguration = entry.workspaceConfiguration;
+  useAsBlueprint(group: ExecutionGroupInfo, entry?: StageInfo) {
+    this.executionSelection.image = group.stageDefinition.image;
+    this.executionSelection.resources = group.stageDefinition.requiredResources;
+    this.executionSelection.selectedStage = group.stageDefinition;
+    this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
     this.environmentVariables = new Map();
-    this.defaultEnvironmentVariables = entry.env;
+    this.defaultEnvironmentVariables = entry != null ? entry.env : new Map();
+    this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? new Map(group.rangedValues) : new Map();
     this.tabs.selectedIndex = Tab.Control;
   }
 
@@ -651,10 +669,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  cancelEnqueuedStage(index: number, controlSize: number) {
+  cancelEnqueuedStage(groupId: string) {
     this.dialog.openAreYouSure(
       `Remove enqueued stage from project ${this.project.name}`,
-      () => this.api.deleteEnqueued(this.project.id, index, controlSize)
+      () => this.api.deleteEnqueued(this.project.id, groupId).then()
     );
   }
 
@@ -673,7 +691,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedPipeline = info;
   }
 
-  onSelectedStageChanged(info: StageInfo) {
+  onSelectedStageChanged(info: StageDefinitionInfo) {
     this.selectedStage = info;
     if (this.selectedPipeline != null && this.selectedStage != null) {
       if (this.selectedPipeline.name === this.project.pipelineDefinition.name) {
@@ -884,7 +902,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   tryParseStageNumber(stageId: string, alt: number): number {
-    return this.api.tryParseStageNumber(stageId, alt);
+    return this.api.tryParseGroupNumber(stageId, alt);
   }
 
   workspaceModes(): WorkspaceMode[] {

@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {Action, HistoryEntry, ProjectApiService, ProjectInfo, State, StatsInfo} from '../api/project-api.service';
+import {Action, ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material';
 import {
@@ -21,11 +21,11 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
 
   @Output() openFiles = new EventEmitter<ProjectInfo>();
   @Output() openLogs = new EventEmitter<ProjectInfo>();
-  @Output() clickUseAsBlueprint = new EventEmitter<HistoryEntry>();
-  @Output() clickDeleteEnqueued = new EventEmitter<HistoryEntry>();
-  @Output() clickResumeSingle = new EventEmitter<HistoryEntry>();
-  @Output() clickResume = new EventEmitter<HistoryEntry>();
-  @Output() clickPause = new EventEmitter<HistoryEntry>();
+  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo?]>();
+  @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickPause = new EventEmitter<ExecutionGroupInfo>();
 
   schemeCpu = {domain: ['#DD4444']};
   schemeMemory = {domain: ['#44DD44']};
@@ -38,7 +38,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   lastSuccessfulStatsUpdate = 0;
   seriesInitialized = false;
 
-  mostRecent: HistoryEntry = null;
+  mostRecent: ExecutionGroupInfo = null;
   projectValue: ProjectInfo;
   memory: any[] = [];
   memoryMax = 1;
@@ -46,7 +46,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   cpuMax = 100;
   poll = null;
 
-  enqueued: HistoryEntry[] = [];
+  enqueued: ExecutionGroupInfo[] = [];
   pipelineActions: PipelineInfo[] = [];
 
   constructor(private api: ProjectApiService,
@@ -94,7 +94,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
       this.pipelines
         .getPipelineDefinitions()
         .then(def => {
-          this.pipelineActions = def.filter(pipe(p =>  p.hasActionMarkerFor(this.projectValue.pipelineDefinition.name)));
+          this.pipelineActions = def.filter(pipe(p => p.hasActionMarkerFor(this.projectValue.pipelineDefinition.name)));
         });
     }
     this.enqueued = [];
@@ -102,7 +102,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set history(history: HistoryEntry[]) {
+  set history(history: ExecutionGroupInfo[]) {
     this.mostRecent = null;
     this.enqueued = [];
     if (history && history.length > 0) {
@@ -110,9 +110,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
       for (const entry of history) {
         // because it is ordered, it starts with the enqueued ones
         // and then continues with the old ones
-        if (State.Enqueued !== entry.state && State.Running !== entry.state) {
-          break;
-        } else {
+        if (entry.enqueueIndex != null) {
           this.enqueued.push(entry);
         }
       }
@@ -237,20 +235,20 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  stop(pause: boolean) {
+  stop(pause: boolean, stageId: string = null) {
     if (this.projectValue) {
       this.dialog.openAreYouSure(
         `Halt stage of ${this.projectValue.name}`,
-        () => this.api.stopStage(this.projectValue.id, pause)
+        () => this.api.stopStage(this.projectValue.id, pause, stageId).then()
       );
     }
   }
 
-  kill() {
+  kill(stageId: string = null) {
     if (this.projectValue) {
       this.dialog.openAreYouSure(
         `Kill stage of ${this.projectValue.name}`,
-        () => this.api.killStage(this.projectValue.id)
+        () => this.api.killStage(this.projectValue.id, stageId).then()
       );
     }
   }

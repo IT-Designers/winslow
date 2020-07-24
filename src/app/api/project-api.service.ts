@@ -9,13 +9,24 @@ import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
 })
 export class ProjectApiService {
 
-  public cachedTags: string[] = [];
-
   constructor(private client: HttpClient) {
   }
 
+  public cachedTags: string[] = [];
+
   private static getUrl(more?: string) {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
+  }
+
+  private static fixExecutionGroupInfo(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
+    return groups.map(origin => {
+      origin.stages = origin.stages.map(stage => new StageInfo(stage));
+      return new ExecutionGroupInfo(origin);
+    });
+  }
+
+  static toMap(entry) {
+    return entry != null ? new Map(Object.keys(entry).map(key => [key, entry[key]])) : new Map();
   }
 
   private cacheTags(tags: string[]) {
@@ -62,40 +73,26 @@ export class ProjectApiService {
       .then(result => result.map(r => r != null ? new StateInfo(r) : null));
   }
 
-  getProjectHistory(projectId: string) {
-    return this.client.get<HistoryEntry[]>(ProjectApiService.getUrl(`${projectId}/history`))
+  getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
-      .then(result => {
-        return result.map(entry => this.fixRemoteHistoryEntry(entry));
-      });
+      .then(ProjectApiService.fixExecutionGroupInfo);
   }
 
-  getProjectEnqueued(projectId: string): Promise<HistoryEntry[]> {
-    return this.client.get<any[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
+  getProjectEnqueued(projectId: string): Promise<ExecutionGroupInfo[]> {
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
       .pipe(map(enqueued => {
-        return enqueued.map(entry => {
-          this.fixRemoteHistoryEntry(entry);
-          entry.state = State.Enqueued;
-          return entry;
-        });
+        const fixed = ProjectApiService.fixExecutionGroupInfo(enqueued);
+        for (let i = 0; i < fixed.length; ++i) {
+          fixed[i].enqueueIndex = i;
+        }
+        return fixed;
       }))
       .toPromise();
   }
 
-  private fixRemoteHistoryEntry(entry) {
-    entry.env = this.toMap(entry.env);
-    entry.envPipeline = this.toMap(entry.envPipeline);
-    entry.envSystem = this.toMap(entry.envSystem);
-    entry.envInternal = this.toMap(entry.envInternal);
-    return entry;
-  }
-
-  private toMap(entry) {
-    return entry != null ? new Map(Object.keys(entry).map(key => [key, entry[key]])) : new Map();
-  }
-
-  deleteEnqueued(projectId: string, index: number, controlSize) {
-    return this.client.delete<void>(ProjectApiService.getUrl(`${projectId}/enqueued/${index}/${controlSize}`)).toPromise();
+  deleteEnqueued(projectId: string, groupId: string): Promise<boolean> {
+    return this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${groupId}`)).toPromise();
   }
 
   getProjectPaused(projectId: string) {
@@ -109,9 +106,20 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  enqueue(projectId: string, nextStageIndex: number, env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null, workspaceConfiguration: WorkspaceConfiguration = null) {
+  enqueue(
+    projectId: string,
+    nextStageIndex: number,
+    env: any,
+    rangedEnv?: Map<string, RangedWithStepSize>,
+    image: ImageInfo = null,
+    requiredResources: ResourceInfo = null,
+    workspaceConfiguration: WorkspaceConfiguration = null
+  ) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
+    if (rangedEnv != null) {
+      form.set('rangedEnv', JSON.stringify(rangedEnv));
+    }
     form.set('stageIndex', '' + nextStageIndex);
     if (image != null) {
       form.set('image', JSON.stringify(image));
@@ -160,9 +168,9 @@ export class ProjectApiService {
     return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`)).toPromise();
   }
 
-  getLatestLogs(projectId: string, skipLines: number, expectingStageId: string) {
+  getLatestLogs(projectId: string, skipLines: number, expectingStageId: string, stageId: string = 'latest') {
     return this.client.get<LogEntry[]>(
-      ProjectApiService.getUrl(`${projectId}/logs/latest?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)
+      ProjectApiService.getUrl(`${projectId}/logs/${stageId}?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)
     ).toPromise();
   }
 
@@ -216,12 +224,22 @@ export class ProjectApiService {
       });
   }
 
-  stopStage(projectId: string, pause: boolean) {
-    return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/stop?pause=${pause}`), new FormData()).toPromise();
+  stopStage(projectId: string, pause: boolean, stageId: string = null): Promise<boolean> {
+    return this.client
+      .put<boolean>(ProjectApiService.getUrl(
+        `${projectId}/stop${stageId != null ? '/' + stageId : ''}?pause=${pause}`),
+        new FormData()
+      )
+      .toPromise();
   }
 
-  killStage(projectId: string) {
-    return this.client.put<void>(ProjectApiService.getUrl(`${projectId}/kill`), new FormData()).toPromise();
+  killStage(projectId: string, stageId: string = null): Promise<boolean> {
+    return this.client
+      .put<boolean>(ProjectApiService.getUrl(
+        `${projectId}/kill${stageId != null ? '/' + stageId : ''}`),
+        new FormData()
+      )
+      .toPromise();
   }
 
   setPipelineDefinition(projectId: string, pipelineId: string) {
@@ -258,8 +276,10 @@ export class ProjectApiService {
     return this.client.get<StatsInfo>(ProjectApiService.getUrl(`${projectId}/stats`)).toPromise();
   }
 
-  pruneHistory(projectId: string): Promise<HistoryEntry[]> {
-    return this.client.post<HistoryEntry[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), new FormData()).toPromise();
+  pruneHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
+    return this.client.post<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), new FormData())
+      .toPromise()
+      .then(ProjectApiService.fixExecutionGroupInfo);
   }
 
   getWorkspaceConfigurationMode(projectId: string): Promise<WorkspaceMode> {
@@ -273,11 +293,24 @@ export class ProjectApiService {
   }
 
 
+  tryParseGroupNumber(groupId: string, alt: number): number {
+    if (groupId != null) {
+      const split = groupId.split('_');
+      if (split.length >= 2) {
+        const parsed = Number(split[1]);
+        if (!Number.isNaN(parsed)) {
+          return parsed;
+        }
+      }
+    }
+    return alt;
+  }
+
   tryParseStageNumber(stageId: string, alt: number): number {
     if (stageId != null) {
       const split = stageId.split('_');
-      if (split.length >= 2) {
-        const parsed = Number(split[1]);
+      if (split.length >= 3) {
+        const parsed = Number(split[split.length - 1]);
         if (!Number.isNaN(parsed)) {
           return parsed;
         }
@@ -292,6 +325,7 @@ export enum State {
   Paused = 'Paused',
   Succeeded = 'Succeeded',
   Failed = 'Failed',
+  Preparing = 'Preparing',
   // local only
   Warning = 'Warning',
   Enqueued = 'Enqueued'
@@ -316,24 +350,97 @@ export class ProjectInfo {
   userInput: string[];
 }
 
-export class HistoryEntry {
-  stageId?: string;
+export class RangedWithStepSize {
+  min: number;
+  max: number;
+  stepSize: number;
+}
+
+export class ExecutionGroupInfo {
+  id: string;
+  configureOnly: boolean;
+  stageDefinition: StageDefinitionInfo;
+  rangedValues: Map<string, RangedWithStepSize>;
+  workspaceConfiguration: WorkspaceConfiguration;
+  stages: StageInfo[];
+  active: boolean;
+  // local only
+  enqueueIndex?: number;
+
+  constructor(origin: ExecutionGroupInfo = null) {
+    if (origin != null) {
+      Object.assign(this, origin);
+      this.rangedValues = ProjectApiService.toMap(origin.rangedValues);
+    }
+  }
+
+  public getMostRecentStage(): StageInfo {
+    for (const stage of [...this.stages].reverse()) {
+      if (stage.finishTime != null) {
+        return stage;
+      } else if (stage.startTime != null) {
+        return stage;
+      }
+    }
+    return null;
+  }
+
+  public getMostRecentStartOrFinishTime(): number {
+    const stage = this.getMostRecentStage();
+    if (stage?.startTime != null) {
+      return stage.startTime;
+    } else if (stage?.finishTime != null) {
+      return stage.finishTime;
+    } else {
+      return null;
+    }
+  }
+
+  public getMostRecentState(): State {
+    return this.getMostRecentStage()?.state;
+  }
+
+  public isMostRecentStateRunning() {
+    return this.getMostRecentState() === State.Running;
+  }
+
+  public hasRunningStages(): boolean {
+    for (const stage of this.stages) {
+      if (stage.state === State.Running) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+export class StageInfo {
+  id: string;
   startTime?: number;
   finishTime?: number;
   state?: State;
-  action: Action;
-  stageName: string;
   workspace?: string;
-  imageInfo?: ImageInfo;
   env: Map<string, string>;
   envPipeline: Map<string, string>;
   envSystem: Map<string, string>;
   envInternal: Map<string, string>;
-  // local only
-  enqueueIndex?: number;
-  enqueueControlSize?: number;
-  resourceRequirements?: ResourceInfo;
-  workspaceConfiguration: WorkspaceConfiguration;
+
+  constructor(origin: StageInfo = null) {
+    if (origin != null) {
+      Object.assign(this, origin);
+      this.env = ProjectApiService.toMap(origin.env);
+      this.envPipeline = ProjectApiService.toMap(origin.envPipeline);
+      this.envSystem = ProjectApiService.toMap(origin.envSystem);
+      this.envInternal = ProjectApiService.toMap(origin.envInternal);
+    }
+  }
+}
+
+export class StageDefinitionInfo {
+  name: string;
+  image?: ImageInfo;
+  requiredEnvVariables: string[];
+  requiredResources: ResourceInfo;
 }
 
 export enum LogSource {
@@ -434,10 +541,12 @@ export enum WorkspaceMode {
 export class WorkspaceConfiguration {
   mode: WorkspaceMode;
   value: string;
+  sharedWithinGroup: boolean;
 
-  constructor(mode: WorkspaceMode = WorkspaceMode.INCREMENTAL, value: string = null) {
+  constructor(mode: WorkspaceMode = WorkspaceMode.INCREMENTAL, value: string = null, sharedWithinGroup: boolean = true) {
     this.mode = mode;
     this.value = value;
+    this.sharedWithinGroup = sharedWithinGroup != null && sharedWithinGroup;
   }
 
 }
