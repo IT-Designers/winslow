@@ -264,6 +264,6 @@ export class StageExecutionSelectionComponent implements OnInit {
     const max = Math.max(value.min, value.max);
     const stp = Math.abs(value.stepSize);
     const dist = (max - min);
-    return Math.trunc((dist / stp) + 1) + 1;
+    return Math.ceil(dist / stp) + 1;
   }
 }
