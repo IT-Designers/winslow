@@ -266,6 +266,11 @@
         </button>
       </div>
 
+
+      <div class="whitespace-separator">
+        <mat-divider></mat-divider>
+      </div>
+
       <div class="whitespace-separator-top">
         <div class="whitespace-separator-top stage-control-item">
           <mat-card-subtitle>
@@ -308,8 +313,13 @@
             Update
           </button>
         </div>
+
+        <div class="whitespace-separator">
+          <mat-divider></mat-divider>
+        </div>
+
         <div class="stage-control-item">
-          <label [class.disabled]="!custom.checked">Default workspace configuration mode</label>
+          <label>Default workspace configuration mode</label>
           <mat-form-field>
             <mat-select #workspaceModeSelection [value]="this.workspaceMode">
               <ng-container *ngFor="let mode of workspaceModes()">
