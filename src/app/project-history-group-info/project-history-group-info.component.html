@@ -38,6 +38,14 @@
         <ng-template
           *ngTemplateOutlet="detailItem; context: { key: 'Ranged['+entry.key+']', value: '[' + entry.value.min+', ' + entry.value.max +'], ' + entry.value.stepSize }"></ng-template>
       </ng-container>
+
+      <h4>Environment Variables</h4>
+      <i *ngIf="executionGroup?.stageDefinition?.env?.size == 0">none</i>
+      <ng-container *ngFor="let e of executionGroup?.stageDefinition?.env | keyvalue">
+        <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
+        </ng-template>
+      </ng-container>
+
     </div>
   </mat-expansion-panel>
 
