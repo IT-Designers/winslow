@@ -1,3 +1,8 @@
+stages:
+  - build
+  - deploy
+  - downstream
+
 before_script:
   - git submodule sync --recursive
   - git submodule update --init --recursive
@@ -36,3 +41,12 @@ deploy:
     - docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-server
   dependencies:
     - build
+
+downstream:
+  stage: downstream
+  only:
+    refs:
+      - master
+  trigger:
+    project: trafficobservation/winslow/docker
+    strategy: depend
