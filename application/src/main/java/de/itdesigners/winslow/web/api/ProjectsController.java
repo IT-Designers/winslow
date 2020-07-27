@@ -297,59 +297,76 @@ public class ProjectsController {
                         .flatMap(project -> winslow
                                 .getOrchestrator()
                                 .getPipeline(project))
-                        .map(pipeline -> new StateInfo(
-                                getPipelineState(pipeline).orElse(null),
-                                pipeline
-                                        .getPauseReason()
-                                        .map(Pipeline.PauseReason::toString)
-                                        .orElse(null),
-                                pipeline
-                                        .getActiveExecutionGroup()
-                                        .flatMap(group -> {
-                                            if (group.getExpectedGroupSize() > 1) {
-                                                var running = group.getRunningStages().count();
-                                                var completed = group
-                                                        .getStages()
-                                                        .filter(s -> s.getFinishState().isPresent())
-                                                        .count();
-                                                var expected = group.getExpectedGroupSize();
-                                                if (completed == expected) {
-                                                    return Optional.empty();
-                                                } else {
-                                                    return Optional.of(String.format(
-                                                            "%d running, %d finished, %d expected",
-                                                            running,
-                                                            completed,
-                                                            expected
-                                                    ));
-                                                }
-                                            } else {
-                                                return Optional.of(group.getStageDefinition().getName());
-                                            }
-                                        })
-                                        .orElse(null),
-                                pipeline.getActiveExecutionGroup()
-                                        .flatMap(group -> {
-                                            if (group.getExpectedGroupSize() > 1) {
-                                                var expected = group.getExpectedGroupSize();
-                                                var completed = (int)group
-                                                        .getStages()
-                                                        .filter(s -> s.getFinishState().isPresent())
-                                                        .count() * 100;
-                                                return Optional.of(completed / expected);
-                                            } else {
-                                                return group
-                                                        .getStages()
-                                                        .map(Stage::getFullyQualifiedId)
-                                                        .map(winslow.getRunInfoRepository()::getProgressHint)
-                                                        .flatMap(Optional::stream)
-                                                        .findFirst();
-                                            }
-                                        })
-                                        .orElse(null),
-                                pipeline.hasEnqueuedStages()
-                        ))
+                        .map(this::getStateInfo)
                         .orElse(null));
+    }
+
+    @Nonnull
+    private StateInfo getStateInfo(@Nonnull Pipeline pipeline) {
+        var state = getPipelineState(pipeline).orElse(null);
+        var mostRecentStage = pipeline
+                .getActiveExecutionGroup()
+                .flatMap(group -> {
+                    if (group.getExpectedGroupSize() > 1) {
+                        var running = group.getRunningStages().count();
+                        var completed = group
+                                .getStages()
+                                .filter(s -> s.getFinishState().isPresent())
+                                .count();
+                        var expected = group.getExpectedGroupSize();
+                        if (completed == expected) {
+                            return Optional.empty();
+                        } else {
+                            return Optional.of(String.format(
+                                    "%d running, %d finished, %d expected",
+                                    running,
+                                    completed,
+                                    expected
+                            ));
+                        }
+                    } else {
+                        return Optional.of(group.getStageDefinition().getName());
+                    }
+                })
+                .orElse(null);
+
+        if (!pipeline.isPauseRequested() && pipeline
+                .getActiveExecutionGroup()
+                .map(g -> !g.isConfigureOnly() && g.getStages().count() == 0)
+                .orElse(Boolean.FALSE)) {
+            state           = State.Preparing;
+            mostRecentStage = "Searching a fitting execution node...";
+        }
+
+
+        return new StateInfo(
+                state,
+                pipeline
+                        .getPauseReason()
+                        .map(Pipeline.PauseReason::toString)
+                        .orElse(null),
+                mostRecentStage,
+                pipeline.getActiveExecutionGroup()
+                        .flatMap(group -> {
+                            if (group.getExpectedGroupSize() > 1) {
+                                var expected = group.getExpectedGroupSize();
+                                var completed = (int) group
+                                        .getStages()
+                                        .filter(s -> s.getFinishState().isPresent())
+                                        .count() * 100;
+                                return Optional.of(completed / expected);
+                            } else {
+                                return group
+                                        .getStages()
+                                        .map(Stage::getFullyQualifiedId)
+                                        .map(winslow.getRunInfoRepository()::getProgressHint)
+                                        .flatMap(Optional::stream)
+                                        .findFirst();
+                            }
+                        })
+                        .orElse(null),
+                pipeline.hasEnqueuedStages()
+        );
     }
 
     private Pipeline.Strategy getPipelineStrategy(@Nullable @RequestParam(value = "strategy", required = false) String strategy) {

@@ -742,7 +742,11 @@ public class Orchestrator {
         return pipelines.getPipeline(projectId).unsafe();
     }
 
+    /**
+     * @deprecated This can cause data-races, use {@link #enqueuePipelineUpdate(String, Consumer)} instead
+     */
     @Nonnull
+    @Deprecated
     public <T> Optional<T> updatePipeline(
             @Nonnull Project project,
             @Nonnull Function<Pipeline, T> updater) {
@@ -753,7 +757,10 @@ public class Orchestrator {
      * @param projectId Id of the {@link Project} to update the {@link Pipeline} for
      * @param updater   {@link Consumer} to invoke to update the {@link Pipeline}
      * @return Whether the {@link Consumer} was invoked
+     *
+     * @deprecated This can cause data-races, use {@link #enqueuePipelineUpdate(String, Consumer)} instead
      */
+    @Deprecated
     private boolean updatePipeline(
             @Nonnull String projectId,
             @Nonnull Consumer<Pipeline> updater) {
@@ -763,14 +770,18 @@ public class Orchestrator {
         }).orElse(Boolean.FALSE);
     }
 
-    private void enqueuePipelineUpdate(@Nonnull String projectId, @Nonnull Consumer<Pipeline> update) {
+    public void enqueuePipelineUpdate(@Nonnull String projectId, @Nonnull Consumer<Pipeline> update) {
         deferredPipelineUpdates
                 .computeIfAbsent(projectId, pid -> new ConcurrentLinkedQueue<>())
                 .add(update);
         tryTriggerDeferredPipelineUpdates(projectId);
     }
 
+    /**
+     * @deprecated This can cause data-races, use {@link #enqueuePipelineUpdate(String, Consumer)} instead
+     */
     @Nonnull
+    @Deprecated
     private <T> Optional<T> updatePipeline(
             @Nonnull String projectId,
             @Nonnull Function<Pipeline, T> update) {

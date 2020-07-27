@@ -134,25 +134,10 @@ public class LockBusElectionManagerAdapter {
             }
         }, () -> {
             if (nodeName.equals(election.getIssuer())) {
-                new Thread(() -> {
-                    var project   = orchestrator.getProjectUnsafe(election.getProjectId());
-                    var exclusive = project.flatMap(orchestrator::getPipelineExclusive);
-
-                    exclusive.ifPresentOrElse(
-                            container -> {
-                                var lock = container.getLock();
-                                try (lock) {
-                                    var pipeline = container.get().get();
-                                    pipeline.requestPause(Pipeline.PauseReason.NoFittingNodeFound);
-                                    container.update(pipeline);
-                                } catch (LockException | IOException e) {
-                                    LOG.log(Level.SEVERE, "Failed to pause pipeline", e);
-                                }
-                            },
-                            () -> LOG.severe(
-                                    "Failed to lock project to note resource exhaustion after Election of which me was the issuer")
-                    );
-                }).start();
+                orchestrator.enqueuePipelineUpdate(
+                        election.getProjectId(),
+                        pipeline -> pipeline.requestPause(Pipeline.PauseReason.NoFittingNodeFound)
+                );
             }
         });
     }
