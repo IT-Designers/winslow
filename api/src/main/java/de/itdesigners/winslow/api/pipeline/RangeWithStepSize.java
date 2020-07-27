@@ -28,10 +28,22 @@ public class RangeWithStepSize {
         return stepSize;
     }
 
+    private boolean isIntegerRange() {
+        return this.min == (float) (int) this.min
+                && this.max == (float) (int) this.max
+                && this.stepSize == (float) (int) this.stepSize;
+    }
+
     @Transient
-    public float getValue(int step) {
-        var current = ((float)step) * this.stepSize;
-        return Math.min(this.min + current, this.max);
+    public Number getValue(int step) {
+        var current = ((float) Math.max(0, step)) * this.stepSize;
+        var result  = Math.min(this.min + current, this.max);
+
+        if (isIntegerRange()) {
+            return (int) result;
+        } else {
+            return result;
+        }
     }
 
     @Transient
