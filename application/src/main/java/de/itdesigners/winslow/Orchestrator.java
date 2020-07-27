@@ -445,7 +445,6 @@ public class Orchestrator {
         }
 
         // this code cannot fail anymore
-        pipeline.resetResumeNotification();
         executionGroup.get().addStage(stage);
 
         return Optional.of(new Triplet<>(executionGroup.get(), stage, executor));

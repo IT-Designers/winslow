@@ -7,11 +7,16 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UserInputChecker implements AssemblerStep {
+
+    private           boolean                     resetResumeNotification = false;
+    private @Nullable Pipeline.ResumeNotification resumeNotification      = null;
+
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var pipeline           = context.getPipeline();
@@ -25,22 +30,26 @@ public class UserInputChecker implements AssemblerStep {
                 context.getSubmission()
         ).collect(Collectors.toList());
 
-        if (requiresConfirmation && isConfirmed(pipeline)) {
-            requiresConfirmation = false;
-        }
-
         if (!missingUserInput.isEmpty()) {
             throw new MissingUserInputException(missingUserInput);
         }
 
         if (requiresConfirmation) {
-            throw new MissingUserConfirmationException();
+            if (!isConfirmed(pipeline)) {
+                throw new MissingUserConfirmationException();
+            } else {
+                resetResumeNotification = true;
+                resumeNotification = pipeline.getResumeNotification().orElse(null);
+                pipeline.resetResumeNotification();
+            }
         }
     }
 
     @Override
     public void revert(@Nonnull Context context) {
-        // nothing to revert
+        if (resetResumeNotification) {
+            context.getPipeline().resume(resumeNotification);
+        }
     }
 
     private static boolean isConfirmed(@Nonnull Pipeline pipeline) {
