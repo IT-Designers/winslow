@@ -6,12 +6,14 @@ import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageDefinitionBuilder;
+import de.itdesigners.winslow.config.UserInput;
 import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,7 +86,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                                     .withEnvironment(env);
 
 
-                            // overwrite StageDefinition if there is already an
+                            // augment StageDefinition if there is already an
                             // execution instance of it
                             pipeline
                                     .getActiveAndPastExecutionGroups()
@@ -155,6 +157,18 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             try {
                 ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
                 pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration);
+
+                stageDefinition.getRequires().map(UserInput::getConfirmation).ifPresent(confirmation -> {
+                    var inThisCase = UserInput.Confirmation.Once == confirmation
+                        && pipeline
+                            .getExecutionHistory()
+                            .noneMatch(g -> g.getStageDefinition().getName().equals(stageDefinition.getName()));
+
+                    if (UserInput.Confirmation.Always == confirmation || inThisCase) {
+                        pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                    }
+                });
+
                 return pipeline;
             } catch (PreconditionNotMetException e) {
                 LOG.log(Level.SEVERE, "At least one precondition is no longer met, cannot perform update", e);
