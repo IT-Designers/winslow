@@ -82,7 +82,7 @@ public class CommonUpdateConstraints {
                 throw new PreconditionNotMetException("Pipeline still has an relevant active ExecutionGroup");
             }
 
-            if (!pipelineReadOnly.hasEnqueuedStages()) {
+            if (stillRelevant.isEmpty() && !pipelineReadOnly.hasEnqueuedStages()) {
                 throw new PreconditionNotMetException(
                         "Pipeline neither can archive active nor retrieve next ExecutionGroup");
             }
