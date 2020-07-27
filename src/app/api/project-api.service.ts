@@ -469,7 +469,7 @@ export class LogEntry {
 export class StateInfo {
   state: State;
   pauseReason?: string;
-  mostRecentStage?: string;
+  description?: string;
   stageProgress?: number;
   hasEnqueuedStages: boolean;
 
