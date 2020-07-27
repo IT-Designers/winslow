@@ -6,7 +6,7 @@ public class StateInfo {
 
     public final @Nullable State   state;
     public final @Nullable String  pauseReason;
-    public final @Nullable String  mostRecentStage;
+    public final @Nullable String  description;
     public final @Nullable Integer stageProgress;
     public final           boolean hasEnqueuedStages;
 
@@ -14,12 +14,12 @@ public class StateInfo {
     public StateInfo(
             @Nullable State state,
             @Nullable String pauseReason,
-            @Nullable String mostRecentStage,
+            @Nullable String description,
             @Nullable Integer stageProgress,
             boolean hasEnqueuedStages) {
         this.state             = state;
         this.pauseReason       = pauseReason;
-        this.mostRecentStage   = mostRecentStage;
+        this.description       = description;
         this.stageProgress     = stageProgress;
         this.hasEnqueuedStages = hasEnqueuedStages;
     }

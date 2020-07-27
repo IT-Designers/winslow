@@ -258,8 +258,18 @@ public class ProjectsController {
                     }
                 })
                 .or(() -> {
-                    var mostRecent = pipeline
+                    if (!pipeline.isPauseRequested() && pipeline
                             .getActiveExecutionGroup()
+                            .map(g -> !g.isConfigureOnly() && g.getStages().count() == 0)
+                            .orElse(Boolean.FALSE)) {
+                        return Optional.of(State.Preparing);
+                    } else {
+                        return Optional.empty();
+                    }
+                })
+                .or(() -> {
+                    var mostRecent = pipeline
+                            .getActiveOrPreviousExecutionGroup()
                             .map(ExecutionGroup::getStages)
                             .flatMap(s -> s.reduce((first, second) -> second))
                             .filter(s -> s.getFinishTime().isPresent())
@@ -279,7 +289,7 @@ public class ProjectsController {
                 })
                 .or(() -> {
                     if (!pipeline.isPauseRequested() && pipeline.hasEnqueuedStages()) {
-                        return Optional.of(State.Running);
+                        return Optional.of(State.Preparing);
                     } else {
                         return Optional.empty();
                     }
@@ -330,11 +340,7 @@ public class ProjectsController {
                 })
                 .orElse(null);
 
-        if (!pipeline.isPauseRequested() && pipeline
-                .getActiveExecutionGroup()
-                .map(g -> !g.isConfigureOnly() && g.getStages().count() == 0)
-                .orElse(Boolean.FALSE)) {
-            state           = State.Preparing;
+        if (State.Preparing == state) {
             mostRecentStage = "Searching a fitting execution node...";
         }
 
