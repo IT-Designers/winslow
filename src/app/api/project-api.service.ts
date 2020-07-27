@@ -477,30 +477,12 @@ export class StateInfo {
     Object.keys(json).forEach(key => this[key] = json[key]);
   }
 
-  hasEnqueuedFlag(): boolean {
-    return this.state !== State.Paused && this.state !== State.Running && this.hasEnqueuedStages;
-  }
-
-  hasWarningFlag(): boolean {
-    return this.state !== State.Failed && this.pauseReason != null;
-  }
-
   isRunning(): boolean {
-    return State.Running === this.actualState();
+    return State.Running === this.getState();
   }
 
-  actualState(): State {
-    let state = this.state;
-
-    if (this.hasEnqueuedFlag()) {
-      state = State.Enqueued;
-    }
-
-    if (this.hasWarningFlag()) {
-      state = State.Warning;
-    }
-
-    return state;
+  getState(): State {
+    return this.state;
   }
 }
 

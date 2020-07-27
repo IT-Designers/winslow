@@ -36,7 +36,7 @@
                        [class.selected]="project.id == selectedProject?.id">
           <app-project-view-header
             [project]="project"
-            [iconState]="stateInfo?.get(project.id)?.actualState()"
+            [iconState]="stateInfo?.get(project.id)?.getState()"
             [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
             [progress]="stateInfo?.get(project.id)?.stageProgress"
             [running]="stateInfo?.get(project.id)?.isRunning()"
