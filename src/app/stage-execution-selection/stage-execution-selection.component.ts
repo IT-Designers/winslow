@@ -6,7 +6,7 @@ import {
   ExecutionGroupInfo,
   ImageInfo,
   ProjectApiService,
-  RangedWithStepSize,
+  RangeWithStepSize,
   StageDefinitionInfo,
   WorkspaceConfiguration,
   WorkspaceMode
@@ -45,8 +45,8 @@ export class StageExecutionSelectionComponent implements OnInit {
   requiredEnvironmentVariables: string[];
   envSubmitValue: any = null;
   envValid = false;
-  rangedEnvironmentVariablesValue: Map<string, RangedWithStepSize> = null;
-  rangedEnvironmentVariablesUpdated: Map<string, RangedWithStepSize> = null;
+  rangedEnvironmentVariablesValue: Map<string, RangeWithStepSize> = null;
+  rangedEnvironmentVariablesUpdated: Map<string, RangeWithStepSize> = null;
 
 
   static deepClone(image: object) {
@@ -74,7 +74,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
-  set rangedEnvironmentVariables(map: Map<string, RangedWithStepSize>) {
+  set rangedEnvironmentVariables(map: Map<string, RangeWithStepSize>) {
     this.rangedEnvironmentVariablesValue = map;
     this.rangedEnvironmentVariablesUpdated = new Map();
     this.updateValid();
@@ -217,7 +217,7 @@ export class StageExecutionSelectionComponent implements OnInit {
     if (this.rangedEnvironmentVariablesValue == null) {
       this.rangedEnvironmentVariablesValue = new Map();
     }
-    const range = new RangedWithStepSize();
+    const range = new RangeWithStepSize();
     range.min = Number(rangeStart.value.trim());
     range.max = Number(rangeEnd.value.trim());
     range.stepSize = Number(stepSize.value.trim());
@@ -235,7 +235,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   updateRangedEnv(key: string, min: string, max: string, stepSize: string) {
-    const range = new RangedWithStepSize();
+    const range = new RangeWithStepSize();
     range.min = Number(min);
     range.max = Number(max);
     range.stepSize = Number(stepSize);
@@ -259,7 +259,7 @@ export class StageExecutionSelectionComponent implements OnInit {
     return Math.max(1, counter);
   }
 
-  private getStageCount(value: RangedWithStepSize): number {
+  private getStageCount(value: RangeWithStepSize): number {
     const min = Math.min(value.min, value.max);
     const max = Math.max(value.min, value.max);
     const stp = Math.abs(value.stepSize);

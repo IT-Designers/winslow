@@ -9,7 +9,7 @@ import {
   ParseError,
   ProjectApiService,
   ProjectInfo,
-  RangedWithStepSize,
+  RangeWithStepSize,
   StageDefinitionInfo,
   StageInfo,
   State,
@@ -144,7 +144,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedStage: StageDefinitionInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
   defaultEnvironmentVariables: Map<string, string> = null;
-  rangedEnvironmentVariables: Map<string, RangedWithStepSize> = null;
+  rangedEnvironmentVariables: Map<string, RangeWithStepSize> = null;
   workspaceConfigurationMode: WorkspaceMode = null;
 
   rawPipelineDefinition: string = null;

@@ -110,7 +110,7 @@ export class ProjectApiService {
     projectId: string,
     nextStageIndex: number,
     env: any,
-    rangedEnv?: Map<string, RangedWithStepSize>,
+    rangedEnv?: Map<string, RangeWithStepSize>,
     image: ImageInfo = null,
     requiredResources: ResourceInfo = null,
     workspaceConfiguration: WorkspaceConfiguration = null
@@ -350,7 +350,7 @@ export class ProjectInfo {
   userInput: string[];
 }
 
-export class RangedWithStepSize {
+export class RangeWithStepSize {
   min: number;
   max: number;
   stepSize: number;
@@ -360,7 +360,7 @@ export class ExecutionGroupInfo {
   id: string;
   configureOnly: boolean;
   stageDefinition: StageDefinitionInfo;
-  rangedValues: Map<string, RangedWithStepSize>;
+  rangedValues: Map<string, RangeWithStepSize>;
   workspaceConfiguration: WorkspaceConfiguration;
   stages: StageInfo[];
   active: boolean;
