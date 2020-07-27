@@ -40,7 +40,7 @@
             [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
             [progress]="stateInfo?.get(project.id)?.stageProgress"
             [running]="stateInfo?.get(project.id)?.isRunning()"
-            [mostRecentStage]="stateInfo?.get(project.id)?.mostRecentStage"
+            [mostRecentStage]="stateInfo?.get(project.id)?.description"
             (tagActionPrimary)="filter.toggleIncludedTag($event)"
             (tagActionSecondary)="filter.addExcludedTag($event)"
           ></app-project-view-header>
