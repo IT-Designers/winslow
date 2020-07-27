@@ -206,7 +206,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    this.stateValue = info.actualState();
+    this.stateValue = info.getState();
     this.pauseReason = info.pauseReason;
     this.progress = info.stageProgress;
 
