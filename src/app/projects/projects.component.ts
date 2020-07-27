@@ -212,7 +212,7 @@ class Effects {
         this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/running.mp3`));
         this.audio.loop = true;
         this.audio.play();
-      } else if (this.prev != null && this.prev.actualState() !== State.Failed && state.actualState() === State.Failed) {
+      } else if (this.prev != null && this.prev.getState() !== State.Failed && state.getState() === State.Failed) {
         if (this.audio != null) {
           this.audio.pause();
         }
