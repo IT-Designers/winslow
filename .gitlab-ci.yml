@@ -42,7 +42,7 @@ deploy:
   dependencies:
     - build
 
-downstream:
+release:
   stage: downstream
   only:
     refs:
