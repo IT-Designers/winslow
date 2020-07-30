@@ -47,7 +47,7 @@
   <div class="action-row">
     <mat-label class="title">Image Args</mat-label>
     <mat-form-field>
-      <input #imageArgs matInput required [value]="selectedStage.image?.args?.join(' ')"
+      <input #imageArgs matInput required [value]="argvToString(selectedStage.image?.args)"
              (change)="updateImageArgs($event.target.value)">
     </mat-form-field>
     <div class="controls">
@@ -125,7 +125,8 @@
       GPUs
     </mat-label>
     <mat-form-field>
-      <input #requiredGpus matInput required [value]="'' +(selectedStage.requiredResources.gpus != null ? selectedStage.requiredResources.gpus : 0)"
+      <input #requiredGpus matInput required
+             [value]="'' +(selectedStage.requiredResources.gpus != null ? selectedStage.requiredResources.gpus : 0)"
              [disabled]="!requireGpus.checked"
              (change)="resources.gpus = toNumber($event.target.value); updateValid()">
     </mat-form-field>
@@ -151,64 +152,117 @@
 
   <div class="action-row" *ngFor="let entry of rangedEnvironmentVariablesValue | keyvalue">
     <mat-label class="title">{{entry.key}}</mat-label>
-    <mat-form-field>
-      <input matInput placeholder="Start" type="number" step="0.1" value="{{entry.value.min}}"
-             (change)="updateRangedEnv(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeStart>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput placeholder="End" type="number" step="0.1" value="{{entry.value.max}}"
-             (change)="updateRangedEnv(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeEnd>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput placeholder="Step Size" type="number" step="0.01" value="{{entry.value.stepSize}}"
-             (change)="updateRangedEnv(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #stepSize>
-    </mat-form-field>
-    <div class="controls">
-      <button mat-icon-button color="primary"
-              [disabled]="rangeStart.value.trim() == entry.value.min
-                      && rangeEnd.value.trim() == entry.value.max
-                      && stepSize.value.trim() == entry.value.stepSize"
-              (click)="rangeStart.value = entry.value.min;
-                      rangeEnd.value = entry.value.max;
-                      stepSize.value = entry.value.stepSize"
-      >
-        <mat-icon class="material-icons-outlined">undo</mat-icon>
-      </button>
-      <button mat-icon-button color="warn"
-              (click)="removeRangeDEnvironmentVariable(entry.key)">
-        <mat-icon>delete</mat-icon>
-      </button>
-    </div>
+
+    <ng-container *ngIf="entry?.value?.DiscreteSteps != null">
+      <mat-form-field>
+        <input matInput placeholder="Start" type="number" step="0.1" value="{{entry?.value?.DiscreteSteps?.min}}"
+               (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)"
+               #rangeStart>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="End" type="number" step="0.1" value="{{entry?.value?.DiscreteSteps?.max}}"
+               (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeEnd>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Step Size" type="number" step="0.01"
+               value="{{entry?.value?.DiscreteSteps?.stepSize}}"
+               (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #stepSize>
+      </mat-form-field>
+      <div class="controls">
+        <button mat-icon-button color="primary"
+                [disabled]="rangeStart.value.trim() == entry?.value?.DiscreteSteps?.min
+                      && rangeEnd.value.trim() == entry?.value?.DiscreteSteps?.max
+                      && stepSize.value.trim() == entry?.value?.DiscreteSteps?.stepSize"
+                (click)="rangeStart.value = entry?.value?.DiscreteSteps?.min;
+                      rangeEnd.value = entry?.value?.DiscreteSteps?.max;
+                      stepSize.value = entry?.value?.DiscreteSteps?.stepSize"
+        >
+          <mat-icon class="material-icons-outlined">undo</mat-icon>
+        </button>
+        <button mat-icon-button color="warn"
+                (click)="removeRangedEnvironmentVariable(entry.key)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="entry?.value?.List != null">
+      <mat-form-field>
+        <input matInput placeholder="Comma separated values" value="{{argvToStringComma(entry?.value?.List?.values)}}"
+               (change)="setRangedList(entry.key, values.value)"
+               #values>
+      </mat-form-field>
+      <div class="controls">
+        <button mat-icon-button color="primary"
+                [disabled]="values.value.trim() == argvToStringComma(entry?.value?.List?.values)"
+                (click)="values.value = argvToStringComma(entry?.value?.List?.values)">
+          <mat-icon class="material-icons-outlined">undo</mat-icon>
+        </button>
+        <button mat-icon-button color="warn"
+                (click)="removeRangedEnvironmentVariable(entry.key)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </ng-container>
   </div>
 
   <div class="action-row">
-    <mat-form-field class="title">
-      <input matInput placeholder="Name" type="text" #name>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput placeholder="Start" type="number" step="0.1" value="0.0" #rangeStart>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput placeholder="End" type="number" step="0.1" value="1.0" #rangeEnd>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput placeholder="Step Size" type="number" step="0.01" value="0.15" #stepSize>
-    </mat-form-field>
-    <div class="controls">
-      <button dense mat-raised-button color="primary" #button
-              [disabled]="name.value.trim().length == 0
+    <ng-template #rangeSelection>
+      <mat-select value="{{rangeType}}" (valueChange)="rangeType = $event">
+        <mat-option *ngFor="let type of rangeTypes" value="{{type}}">{{type}}</mat-option>
+      </mat-select>
+    </ng-template>
+
+    <ng-container *ngIf="rangeType == rangeTypeRange">
+      <mat-form-field class="title">
+        <input matInput placeholder="Name" type="text" #name>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Start" type="number" step="0.1" value="0.0" #rangeStart>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="End" type="number" step="0.1" value="1.0" #rangeEnd>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Step Size" type="number" step="0.01" value="0.15" #stepSize>
+      </mat-form-field>
+      <div class="controls">
+        <button dense mat-raised-button color="primary" #button
+                [disabled]="name.value.trim().length == 0
                       || rangeStart.value.trim().length == 0
                       || rangeEnd.value.trim().length == 0
                       || stepSize.value.trim().length == 0"
-              (click)="addRangedEnvironmentVariable(name, rangeStart, rangeEnd, stepSize)"
-      >Add
-      </button>
-    </div>
+                (click)="addRangedEnvironmentVariable(name, rangeStart, rangeEnd, stepSize)"
+        >Add
+        </button>
+        <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="rangeType == rangeTypeList">
+      <mat-form-field class="title">
+        <input matInput placeholder="Name" type="text" #name>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Comma separated values" #values>
+      </mat-form-field>
+      <div class="controls">
+        <button dense mat-raised-button color="primary"
+                [disabled]="name.value.trim().length == 0 || values.value.trim().length == 0"
+                (click)="addRangedList(name, values)"
+        >Add
+        </button>
+        <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
+      </div>
+    </ng-container>
+
+
   </div>
   <div class="action-row">
     <div class="title"></div>
     <div>
-      This configuration will result in <b>{{expectedNumberOfStages()}}</b> stage{{expectedNumberOfStages() > 1 ? 's' : ''}}.
+      This configuration will result in <b>{{expectedNumberOfStages()}}</b>
+      stage{{expectedNumberOfStages() > 1 ? 's' : ''}}.
     </div>
     <div class="controls"></div>
   </div>
@@ -284,7 +338,8 @@
                   (valueChange)="setWorkspaceMode(true, WorkspaceMode.CONTINUATION, $event)">
         <ng-container *ngFor="let h of executionHistoryValue; let i = index">
           <mat-option *ngFor="let s of h.stages; let n = index"
-                      [value]="s.id">[{{tryParseStageNumber(h.id, executionHistoryValue.length - i)}}] {{s.workspace}}</mat-option>
+                      [value]="s.id">[{{tryParseStageNumber(h.id, executionHistoryValue.length - i)}}
+            ] {{s.workspace}}</mat-option>
         </ng-container>
       </mat-select>
     </mat-form-field>
