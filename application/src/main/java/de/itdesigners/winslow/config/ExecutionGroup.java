@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.config;
 
-import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
+import de.itdesigners.winslow.api.pipeline.RangedValue;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
@@ -18,16 +18,16 @@ import java.util.stream.Stream;
 
 public class ExecutionGroup {
 
-    private final @Nonnull  ExecutionGroupId                   id;
-    private final           boolean                            configureOnly;
-    private final @Nonnull  StageDefinition                    stageDefinition;
+    private final @Nonnull  ExecutionGroupId             id;
+    private final           boolean                      configureOnly;
+    private final @Nonnull  StageDefinition              stageDefinition;
     /**
      * Some kind of ordered Map is important here so that the {@link #groupCounter} retrieves the entries
      * in a reliable order
      */
-    private final @Nullable TreeMap<String, RangeWithStepSize> rangedValues;
-    private final @Nonnull  WorkspaceConfiguration             workspaceConfiguration;
-    private final @Nonnull  List<Stage>                        stages;
+    private final @Nullable TreeMap<String, RangedValue> rangedValues;
+    private final @Nonnull  WorkspaceConfiguration       workspaceConfiguration;
+    private final @Nonnull  List<Stage>                  stages;
 
     private int groupCounter;
 
@@ -67,7 +67,7 @@ public class ExecutionGroup {
     public ExecutionGroup(
             @Nonnull ExecutionGroupId id,
             @Nonnull StageDefinition stageDefinition,
-            @Nonnull Map<String, RangeWithStepSize> rangedValues,
+            @Nonnull Map<String, RangedValue> rangedValues,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
         this(id, false, stageDefinition, rangedValues, workspaceConfiguration, new ArrayList<>(), 0);
     }
@@ -81,7 +81,7 @@ public class ExecutionGroup {
             @Nonnull ExecutionGroupId id,
             boolean configureOnly,
             @Nonnull StageDefinition stageDefinition,
-            @Nullable Map<String, RangeWithStepSize> rangedValues,
+            @Nullable Map<String, RangedValue> rangedValues,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
             @Nullable List<Stage> stages,
             int groupCounter) {
@@ -226,7 +226,7 @@ public class ExecutionGroup {
                 .map(m -> m
                         .values()
                         .stream()
-                        .map(RangeWithStepSize::getStepCount)
+                        .map(RangedValue::getStepCount)
                         .reduce(1, (first, second) -> first * second)
                 ).orElseGet(() -> {
                     if (configureOnly) {
@@ -255,7 +255,7 @@ public class ExecutionGroup {
      * @return If non-empty: the varying values but unmodifiable
      */
     @Nonnull
-    public Optional<Map<String, RangeWithStepSize>> getRangedValues() {
+    public Optional<Map<String, RangedValue>> getRangedValues() {
         return Optional.ofNullable(rangedValues).map(Collections::unmodifiableMap);
     }
 

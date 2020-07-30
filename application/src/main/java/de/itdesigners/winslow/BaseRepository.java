@@ -10,6 +10,7 @@ import de.itdesigners.winslow.config.ExecutionGroupUpgrade;
 import de.itdesigners.winslow.config.PipelineUpgrade;
 import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.pipeline.Pipeline;
+import de.itdesigners.winslow.web.RangedValueJsonModule;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -81,9 +82,8 @@ public abstract class BaseRepository {
                 upgradeLoader.addDeserializer(ExecutionGroup.class, new ExecutionGroupUpgrade());
                 upgradeLoader.addDeserializer(Pipeline.class, new PipelineUpgrade());
 
-                return new ObjectMapper(new YAMLFactory())
+                return defaultObjectMapper()
                         .registerModule(new ParameterNamesModule())
-                        .registerModule(new Jdk8Module())
                         .registerModule(upgradeLoader)
                         .readValue(inputStream, clazz);
             } catch (IOException e) {
@@ -94,11 +94,20 @@ public abstract class BaseRepository {
         };
     }
 
+    @Nonnull
+    public static ObjectMapper defaultObjectMapper() {
+        return defaultObjectMapperModules(new ObjectMapper(new YAMLFactory()));
+    }
+
+    @Nonnull
+    public static ObjectMapper defaultObjectMapperModules(@Nonnull ObjectMapper mapper) {
+        return mapper
+                .registerModule(new RangedValueJsonModule())
+                .registerModule(new Jdk8Module());
+    }
+
     public static <T> Writer<T> defaultWriter() {
-        return (outputStream, value) ->
-                new ObjectMapper(new YAMLFactory())
-                        .registerModule(new Jdk8Module())
-                        .writeValue(outputStream, value);
+        return (outputStream, value) -> defaultObjectMapper().writeValue(outputStream, value);
     }
 
     @Nonnull

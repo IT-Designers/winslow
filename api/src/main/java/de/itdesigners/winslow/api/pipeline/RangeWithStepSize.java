@@ -3,7 +3,7 @@ package de.itdesigners.winslow.api.pipeline;
 import java.beans.ConstructorProperties;
 import java.beans.Transient;
 
-public class RangeWithStepSize {
+public class RangeWithStepSize implements RangedValue {
 
     private final float min;
     private final float max;
@@ -28,24 +28,27 @@ public class RangeWithStepSize {
         return stepSize;
     }
 
+    @Transient
     private boolean isIntegerRange() {
         return this.min == (float) (int) this.min
                 && this.max == (float) (int) this.max
                 && this.stepSize == (float) (int) this.stepSize;
     }
 
+    @Override
     @Transient
-    public Number getValue(int step) {
+    public String getValue(int step) {
         var current = ((float) Math.max(0, step)) * this.stepSize;
         var result  = Math.min(this.min + current, this.max);
 
         if (isIntegerRange()) {
-            return (int) result;
+            return String.valueOf((int)result);
         } else {
-            return result;
+            return String.valueOf(result);
         }
     }
 
+    @Override
     @Transient
     public int getStepCount() {
         return Math.max(0, (int) Math.ceil(Math.abs((this.max - this.min) / this.stepSize))) + 1;
