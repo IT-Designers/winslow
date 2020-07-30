@@ -42,38 +42,38 @@ public class RangeWithStepSizeTest {
     public void testStepCountOnAlignedMinMaxStepSize() {
         var range = new RangeWithStepSize(1, 9, 1);
         assertEquals(9, range.getStepCount());
-        assertEquals(1, range.getValue(0).floatValue(), 0);
-        assertEquals(2, range.getValue(1).floatValue(), 0);
-        assertEquals(3, range.getValue(2).floatValue(), 0);
-        assertEquals(4, range.getValue(3).floatValue(), 0);
-        assertEquals(5, range.getValue(4).floatValue(), 0);
-        assertEquals(6, range.getValue(5).floatValue(), 0);
-        assertEquals(7, range.getValue(6).floatValue(), 0);
-        assertEquals(8, range.getValue(7).floatValue(), 0);
-        assertEquals(9, range.getValue(8).floatValue(), 0);
+        assertEquals("1", range.getValue(0));
+        assertEquals("2", range.getValue(1));
+        assertEquals("3", range.getValue(2));
+        assertEquals("4", range.getValue(3));
+        assertEquals("5", range.getValue(4));
+        assertEquals("6", range.getValue(5));
+        assertEquals("7", range.getValue(6));
+        assertEquals("8", range.getValue(7));
+        assertEquals("9", range.getValue(8));
     }
 
     @Test
     public void testStepCountOnNotAlignedMinMaxStepSize() {
         var range = new RangeWithStepSize(1.5f, 8.f, 1.75f);
         assertEquals(5, range.getStepCount());
-        assertEquals(1.50f, range.getValue(0).floatValue(), 0);
-        assertEquals(3.25f, range.getValue(1).floatValue(), 0);
-        assertEquals(5.00f, range.getValue(2).floatValue(), 0);
-        assertEquals(6.75f, range.getValue(3).floatValue(), 0);
-        assertEquals(8.00f, range.getValue(4).floatValue(), 0);
+        assertEquals(String.valueOf(1.50f), range.getValue(0));
+        assertEquals(String.valueOf(3.25f), range.getValue(1));
+        assertEquals(String.valueOf(5.00f), range.getValue(2));
+        assertEquals(String.valueOf(6.75f), range.getValue(3));
+        assertEquals(String.valueOf(8.00f), range.getValue(4));
     }
 
     @Test
     public void testGetValueWithOutOfBoundsIndex() {
         var range = new RangeWithStepSize(1, 3, 1);
-        assertEquals(1, range.getValue(-4).floatValue(), 0f);
-        assertEquals(1, range.getValue(-1).floatValue(), 0f);
-        assertEquals(1, range.getValue(0).floatValue(), 0f);
-        assertEquals(2, range.getValue(1).floatValue(), 0f);
-        assertEquals(3, range.getValue(2).floatValue(), 0f);
-        assertEquals(3, range.getValue(5).floatValue(), 0f);
-        assertEquals(3, range.getValue(8999).floatValue(), 0f);
+        assertEquals(String.valueOf(1), range.getValue(-4));
+        assertEquals(String.valueOf(1), range.getValue(-1));
+        assertEquals(String.valueOf(1), range.getValue(0));
+        assertEquals(String.valueOf(2), range.getValue(1));
+        assertEquals(String.valueOf(3), range.getValue(2));
+        assertEquals(String.valueOf(3), range.getValue(5));
+        assertEquals(String.valueOf(3), range.getValue(8999));
     }
 
     @Test
@@ -81,23 +81,13 @@ public class RangeWithStepSizeTest {
         var range = new RangeWithStepSize(1, 9, 1);
         for (int i = 0; i < range.getStepCount() * 2; ++i) {
             var n = i - (range.getStepCount() / 2);
-            assertTrue(range.getValue(n) instanceof Integer);
+            try {
+                Integer.parseInt(range.getValue(n));
+            } catch (NumberFormatException e) {
+                fail(e.getMessage());
+            }
         }
         assertEquals(9, range.getStepCount());
-        assertTrue(range.getValue(-2) instanceof Integer);
-        assertTrue(range.getValue(-1) instanceof Integer);
-        assertTrue(range.getValue(0) instanceof Integer);
-        assertTrue(range.getValue(1) instanceof Integer);
-        assertTrue(range.getValue(2) instanceof Integer);
-        assertTrue(range.getValue(3) instanceof Integer);
-        assertTrue(range.getValue(4) instanceof Integer);
-        assertTrue(range.getValue(5) instanceof Integer);
-        assertTrue(range.getValue(6) instanceof Integer);
-        assertTrue(range.getValue(7) instanceof Integer);
-        assertTrue(range.getValue(8) instanceof Integer);
-        assertTrue(range.getValue(9) instanceof Integer);
-        assertTrue(range.getValue(10) instanceof Integer);
-        assertTrue(range.getValue(11) instanceof Integer);
     }
 
     @Test
@@ -106,7 +96,10 @@ public class RangeWithStepSizeTest {
         assertEquals(9, range.getStepCount());
         for (int i = 0; i < range.getStepCount() * 2; ++i) {
             var n = i - (range.getStepCount() / 2);
-            assertFalse(range.getValue(n) instanceof Integer);
+            assertThrows(
+                    NumberFormatException.class,
+                    () -> Integer.parseInt(range.getValue(n))
+            );
         }
     }
 
@@ -116,7 +109,10 @@ public class RangeWithStepSizeTest {
         assertEquals(9, range.getStepCount());
         for (int i = 0; i < range.getStepCount() * 2; ++i) {
             var n = i - (range.getStepCount() / 2);
-            assertFalse(range.getValue(n) instanceof Integer);
+            assertThrows(
+                    NumberFormatException.class,
+                    () -> Integer.parseInt(range.getValue(n))
+            );
         }
     }
 
@@ -126,7 +122,10 @@ public class RangeWithStepSizeTest {
         assertEquals(9, range.getStepCount());
         for (int i = 0; i < range.getStepCount() * 2; ++i) {
             var n = i - (range.getStepCount() / 2);
-            assertFalse(range.getValue(n) instanceof Integer);
+            assertThrows(
+                    NumberFormatException.class,
+                    () -> Integer.parseInt(range.getValue(n))
+            );
         }
     }
 }

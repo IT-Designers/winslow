@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
-import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
+import de.itdesigners.winslow.api.pipeline.RangedValue;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
@@ -275,7 +275,7 @@ public class Pipeline implements Cloneable {
     public ExecutionGroupId enqueueRangedExecution(
             @Nonnull StageDefinition definition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
-            @Nonnull Map<String, RangeWithStepSize> rangedValues) {
+            @Nonnull Map<String, RangedValue> rangedValues) {
         var id = incrementAndGetNextExecutionGroupId(definition.getName());
         this.executionQueue.add(new ExecutionGroup(id, definition, rangedValues, workspaceConfiguration));
         return id;
