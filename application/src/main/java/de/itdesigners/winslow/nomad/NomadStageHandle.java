@@ -90,7 +90,7 @@ public class NomadStageHandle implements StageHandle {
                             this.taskState = taskState;
                             this.state     = NomadBackend.toRunningStageState(taskState);
 
-                            if (NomadBackend.hasTaskFinished(taskState) && this.shutdownDelayedTime != null) {
+                            if (NomadBackend.hasTaskFinished(taskState) && this.shutdownDelayedTime == null) {
                                 this.shutdownDelayedTime = System.currentTimeMillis() + SHUTDOWN_DURATION_MS;
                             }
 
