@@ -6,21 +6,32 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import de.itdesigners.winslow.api.pipeline.RangeWithStepSize;
+import de.itdesigners.winslow.api.pipeline.RangedList;
 import de.itdesigners.winslow.api.pipeline.RangedValue;
 import de.itdesigners.winslow.config.DeserializerUtils;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
 
 public class RangedValueJsonModule extends SimpleModule {
 
-    public static final String TYPE_RANGE_WITH_STEP_SIZE = "DiscreteSteps";
+    public static final @Nonnull Map<Class<? extends RangedValue>, String> MAPPING = Map.of(
+            RangeWithStepSize.class, "DiscreteSteps",
+            RangedList.class, "List"
+    );
 
     public RangedValueJsonModule() {
         super(RangedValueJsonModule.class.getSimpleName());
 
+
         addDeserializer(RangedValue.class, new RangedValueJsonModule.Deserialize());
         addSerializer(RangedValue.class, new RangedValueJsonModule.Serialize());
-        addSerializer(RangeWithStepSize.class, new RangedValueJsonModule.Serialize());
+
+        for (var key : MAPPING.keySet()) {
+            addSerializer(key, new RangedValueJsonModule.Serialize());
+        }
     }
 
     @Override
@@ -35,19 +46,22 @@ public class RangedValueJsonModule extends SimpleModule {
                 DeserializationContext ctxt) throws IOException, JsonProcessingException {
             JsonNode node = p.getCodec().readTree(p);
 
-            if (node.has(TYPE_RANGE_WITH_STEP_SIZE)) {
-                return DeserializerUtils.deserializeWithDefaultDeserializer(
-                        node.get(TYPE_RANGE_WITH_STEP_SIZE),
-                        ctxt,
-                        RangeWithStepSize.class
-                );
-            } else {
-                return DeserializerUtils.deserializeWithDefaultDeserializer(
-                        node,
-                        ctxt,
-                        RangeWithStepSize.class
-                );
+            for (var entry : MAPPING.entrySet()) {
+                if (node.has(entry.getValue())) {
+                    return DeserializerUtils.deserializeWithDefaultDeserializer(
+                            node.get(entry.getValue()),
+                            ctxt,
+                            entry.getKey()
+                    );
+                }
             }
+
+            return DeserializerUtils.deserializeWithDefaultDeserializer(
+                    node,
+                    ctxt,
+                    RangeWithStepSize.class
+            );
+
         }
     }
 
@@ -57,19 +71,12 @@ public class RangedValueJsonModule extends SimpleModule {
                 RangedValue value,
                 JsonGenerator gen,
                 SerializerProvider serializers) throws IOException {
-            String type;
-
-            if (value instanceof RangeWithStepSize) {
-                type = TYPE_RANGE_WITH_STEP_SIZE;
-            } else {
-                throw new IOException("Unexpected RangedValue type " + value.getClass());
-            }
-
             DeserializerUtils.serializeWithDefaultSerializer(
                     value,
                     gen,
                     serializers,
-                    type
+                    Optional.ofNullable(MAPPING.get(value.getClass()))
+                            .orElseThrow(() -> new IOException("Unexpected RangedValue type " + value.getClass()))
             );
         }
     }
