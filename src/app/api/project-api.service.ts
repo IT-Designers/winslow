@@ -350,17 +350,72 @@ export class ProjectInfo {
   userInput: string[];
 }
 
+export class RangedValue {
+  DiscreteSteps?: RangeWithStepSize;
+  List?: RangedList;
+
+  constructor(origin?: RangedValue) {
+    if (origin != null) {
+      if (origin.DiscreteSteps != null) {
+        this.DiscreteSteps = new RangeWithStepSize(origin.DiscreteSteps);
+      } else if (origin.List != null) {
+        this.List = new RangedList(origin.List);
+      }
+    }
+  }
+
+  getStageCount(): number {
+    if (this.DiscreteSteps != null) {
+      return this.DiscreteSteps.getStageCount();
+    } else if (this.List != null) {
+      return this.List.getStageCount();
+    } else {
+      return 0;
+    }
+  }
+}
+
+export class RangedList {
+  values: string[];
+
+  constructor(origin?: RangedList) {
+    if (origin != null) {
+      this.values = origin.values ?? [];
+    }
+  }
+
+  getStageCount(): number {
+    return this.values.length;
+  }
+}
+
 export class RangeWithStepSize {
   min: number;
   max: number;
   stepSize: number;
+
+  constructor(origin?: RangeWithStepSize) {
+    if (origin != null) {
+      this.min = origin.min;
+      this.max = origin.max;
+      this.stepSize = origin.stepSize;
+    }
+  }
+
+  getStageCount(): number {
+    const min = Math.min(this.min, this.max);
+    const max = Math.max(this.min, this.max);
+    const stp = Math.abs(this.stepSize);
+    const dist = (max - min);
+    return Math.ceil(dist / stp) + 1;
+  }
 }
 
 export class ExecutionGroupInfo {
   id: string;
   configureOnly: boolean;
   stageDefinition: StageDefinitionInfo;
-  rangedValues: Map<string, RangeWithStepSize>;
+  rangedValues: Map<string, RangedValue>;
   workspaceConfiguration: WorkspaceConfiguration;
   stages: StageInfo[];
   active: boolean;
@@ -371,7 +426,11 @@ export class ExecutionGroupInfo {
     if (origin != null) {
       Object.assign(this, origin);
       this.stageDefinition = new StageDefinitionInfo(origin.stageDefinition);
-      this.rangedValues = ProjectApiService.toMap(origin.rangedValues);
+      this.rangedValues = new Map();
+
+      for (const [key, value] of ProjectApiService.toMap(origin.rangedValues)) {
+        this.rangedValues.set(key, new RangedValue(value));
+      }
     }
   }
 

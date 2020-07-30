@@ -5,7 +5,8 @@ import {
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
-  ProjectApiService,
+  ProjectApiService, RangedList,
+  RangedValue,
   RangeWithStepSize,
   StageDefinitionInfo,
   WorkspaceConfiguration,
@@ -19,6 +20,11 @@ import {parseArgsStringToArgv} from 'string-argv';
   styleUrls: ['./stage-execution-selection.component.css']
 })
 export class StageExecutionSelectionComponent implements OnInit {
+
+  rangeTypeRange = 'Range';
+  rangeTypeList = 'List';
+  rangeTypes: string[] = [this.rangeTypeRange, this.rangeTypeList];
+  rangeType: string = this.rangeTypeRange;
 
   WorkspaceMode = WorkspaceMode;
 
@@ -45,8 +51,8 @@ export class StageExecutionSelectionComponent implements OnInit {
   requiredEnvironmentVariables: string[];
   envSubmitValue: any = null;
   envValid = false;
-  rangedEnvironmentVariablesValue: Map<string, RangeWithStepSize> = null;
-  rangedEnvironmentVariablesUpdated: Map<string, RangeWithStepSize> = null;
+  rangedEnvironmentVariablesValue: Map<string, RangedValue> = null;
+  rangedEnvironmentVariablesUpdated: Map<string, RangedValue> = null;
 
 
   static deepClone(image: object) {
@@ -74,7 +80,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
-  set rangedEnvironmentVariables(map: Map<string, RangeWithStepSize>) {
+  set rangedEnvironmentVariables(map: Map<string, RangedValue>) {
     this.rangedEnvironmentVariablesValue = map;
     this.rangedEnvironmentVariablesUpdated = new Map();
     this.updateValid();
@@ -214,56 +220,99 @@ export class StageExecutionSelectionComponent implements OnInit {
     rangeEnd: HTMLInputElement,
     stepSize: HTMLInputElement
   ) {
-    if (this.rangedEnvironmentVariablesValue == null) {
-      this.rangedEnvironmentVariablesValue = new Map();
-    }
-    const range = new RangeWithStepSize();
-    range.min = Number(rangeStart.value.trim());
-    range.max = Number(rangeEnd.value.trim());
-    range.stepSize = Number(stepSize.value.trim());
-    this.rangedEnvironmentVariablesValue.set(name.value.trim(), range);
+    this.setRangedWithStepSize(
+      name.value.trim(),
+      rangeStart.value.trim(),
+      rangeEnd.value.trim(),
+      stepSize.value.trim()
+    );
 
     name.value = null;
     name.focus();
   }
 
-  removeRangeDEnvironmentVariable(key: string) {
-    if (this.rangedEnvironmentVariablesValue != null) {
-      this.rangedEnvironmentVariablesValue.delete(key);
-      this.rangedEnvironmentVariablesUpdated.delete(key);
-    }
+  addRangedList(
+    name: HTMLInputElement,
+    values: HTMLInputElement,
+  ) {
+    this.setRangedList(name.value.trim(), values.value.trim());
+    values.value = null;
+    name.value = null;
+    name.focus();
   }
 
-  updateRangedEnv(key: string, min: string, max: string, stepSize: string) {
-    const range = new RangeWithStepSize();
-    range.min = Number(min);
-    range.max = Number(max);
-    range.stepSize = Number(stepSize);
-    this.rangedEnvironmentVariablesUpdated.set(key, range);
+  removeRangedEnvironmentVariable(key: string) {
+    this.rangedEnvironmentVariablesValue?.delete(key);
+    this.rangedEnvironmentVariablesUpdated?.delete(key);
+  }
+
+  setRangedWithStepSize(key: string, min: string, max: string, stepSize: string) {
+    const value = new RangedValue();
+    value.DiscreteSteps = new RangeWithStepSize();
+    value.DiscreteSteps.min = Number(min);
+    value.DiscreteSteps.max = Number(max);
+    value.DiscreteSteps.stepSize = Number(stepSize);
+    this.insertRangedValue(key, value);
+  }
+
+  setRangedList(key: string, listStringToParse: string) {
+    const value = new RangedValue();
+    value.List = new RangedList();
+    value.List.values = listStringToParse.split(',').map(v => v.trim());
+    this.insertRangedValue(key, value);
+  }
+
+  insertRangedValue(key: string, value: RangedValue) {
+    if (this.rangedEnvironmentVariablesUpdated == null) {
+      this.rangedEnvironmentVariablesUpdated = new Map();
+    }
+    this.rangedEnvironmentVariablesUpdated.set(key, value);
+    if (this.rangedEnvironmentVariablesValue == null) {
+      this.rangedEnvironmentVariablesValue = new Map();
+    }
+    if (!this.rangedEnvironmentVariablesValue.has(key)) {
+      this.rangedEnvironmentVariablesValue.set(key, value);
+    }
   }
 
   expectedNumberOfStages(): number {
     let counter = 1;
     if (this.rangedEnvironmentVariablesUpdated != null) {
       for (const value of this.rangedEnvironmentVariablesUpdated.values()) {
-        counter *= this.getStageCount(value);
+        counter *= value.getStageCount();
       }
     }
     if (this.rangedEnvironmentVariablesValue != null) {
       for (const entry of this.rangedEnvironmentVariablesValue.entries()) {
         if (this.rangedEnvironmentVariablesUpdated == null || !this.rangedEnvironmentVariablesUpdated.has(entry[0])) {
-          counter *= this.getStageCount(entry[1]);
+          counter *= entry[1].getStageCount();
         }
       }
     }
     return Math.max(1, counter);
   }
 
-  private getStageCount(value: RangeWithStepSize): number {
-    const min = Math.min(value.min, value.max);
-    const max = Math.max(value.min, value.max);
-    const stp = Math.abs(value.stepSize);
-    const dist = (max - min);
-    return Math.ceil(dist / stp) + 1;
+  argvToString(args?: string[]): string {
+    if (args != null) {
+      return args
+        .map(arg => {
+          if (arg.indexOf(' ') >= 0) {
+            return `"${arg}"`;
+          } else {
+            return arg;
+          }
+        })
+        .join(' ');
+    } else {
+      return null;
+    }
+  }
+
+  argvToStringComma(args?: string[]): string {
+    if (args != null) {
+      return args.join(', ');
+    } else {
+      return null;
+    }
   }
 }
