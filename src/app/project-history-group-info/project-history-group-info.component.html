@@ -35,8 +35,14 @@
       <ng-template
         *ngTemplateOutlet="detailItem; context: { key: 'Workspace Supplement', value: executionGroup?.workspaceConfiguration?.value }"></ng-template>
       <ng-container *ngFor="let entry of executionGroup?.rangedValues | keyvalue">
-        <ng-template
-          *ngTemplateOutlet="detailItem; context: { key: 'Ranged['+entry.key+']', value: '[' + entry.value.min+', ' + entry.value.max +'], ' + entry.value.stepSize }"></ng-template>
+        <ng-container *ngIf="entry.value?.DiscreteSteps != null">
+          <ng-template
+            *ngTemplateOutlet="detailItem; context: {
+                key: 'Ranged/DiscreteSteps['+(entry.key)+']',
+                value: '[' + entry.value.DiscreteSteps.min+', ' + entry.value.DiscreteSteps.max +'], ' + entry.value.DiscreteSteps.stepSize
+              }">
+          </ng-template>
+        </ng-container>
       </ng-container>
 
       <h4>Environment Variables</h4>
