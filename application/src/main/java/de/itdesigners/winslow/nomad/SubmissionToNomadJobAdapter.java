@@ -18,7 +18,9 @@ import java.util.function.Consumer;
 
 public class SubmissionToNomadJobAdapter {
 
-    private static final @Nonnull String DOCKER_DRIVER = "docker";
+    private static final @Nonnull String DOCKER_DRIVER             = "docker";
+    private static final          int    NOMAD_MIN_RESERVABLE_CPU  = 100;
+    private static final          int    NOMAD_SYSTEM_RESERVED_CPU = 150;
 
     private final @Nonnull PlatformInfo info;
     private final @Nonnull NomadBackend backend;
@@ -179,7 +181,12 @@ public class SubmissionToNomadJobAdapter {
 
             if (requirements.getCpu() > 0) {
                 info.getCpuSingleCoreMaxFrequency()
-                    .ifPresent(max -> task.getResources().setCpu(requirements.getCpu() * max));
+                    .ifPresent(max -> {
+                        var compute = (requirements.getCpu() * max) - NOMAD_SYSTEM_RESERVED_CPU;
+                        if (compute > NOMAD_MIN_RESERVABLE_CPU) {
+                            task.getResources().setCpu(compute);
+                        }
+                    });
             }
 
             task.getResources().setMemoryMb((int) requirements.getMegabytesOfRam());
