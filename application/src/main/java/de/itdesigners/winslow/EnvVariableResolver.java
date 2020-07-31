@@ -3,7 +3,6 @@ package de.itdesigners.winslow;
 import de.itdesigners.winslow.api.pipeline.EnvVariable;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.pipeline.Stage;
 import org.springframework.lang.NonNull;
 
 import javax.annotation.CheckReturnValue;
@@ -137,11 +136,8 @@ public class EnvVariableResolver {
                             .getStages()
                             .allMatch(s -> Objects.equals(Optional.of(State.Succeeded), s.getFinishState()))
                     )
-                    .flatMap(ExecutionGroup::getStages)
-                    //.filter(s -> s.getFinishState().map(state -> Stage.State.Succeeded == state).orElse(Boolean.FALSE))
-                    //.filter(s -> this.stageName.equals(s.getDefinition().getName()))
-                    .reduce((first, second) -> second) // expect in order
-                    .map(Stage::getEnv);
+                    .reduce((first, second) -> second) // take the most recent one
+                    .map(group -> group.getStageDefinition().getEnvironment());
         } else {
             return Optional.empty();
         }
