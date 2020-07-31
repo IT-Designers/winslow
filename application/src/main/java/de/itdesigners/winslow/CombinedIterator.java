@@ -36,7 +36,7 @@ public class CombinedIterator<T> implements Iterator<T> {
             var offsetIndex    = (i + offset) % this.iterators.length;
             var iter           = this.iterators[offsetIndex];
             var beforeBreak    = System.currentTimeMillis();
-            var shallBreak     = iter.hasNext() && (next = iter.next()) != null && !tooLongOnThisIterator();
+            var shallBreak     = !tooLongOnThisIterator() && iter.hasNext() && (next = iter.next()) != null;
             var checkBreakTook = System.currentTimeMillis() - beforeBreak;
 
             if (checkBreakTook > 150) {
