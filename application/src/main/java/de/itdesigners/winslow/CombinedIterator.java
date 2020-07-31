@@ -32,11 +32,17 @@ public class CombinedIterator<T> implements Iterator<T> {
     @Override
     public T next() {
         T next = null;
+
+        // if to long on the current, move to the next
+        if (tooLongOnThisIterator()) {
+            setOffset(this.offset + 1);
+        }
+
         for (int i = 0; i < this.iterators.length; ++i) {
             var offsetIndex    = (i + offset) % this.iterators.length;
             var iter           = this.iterators[offsetIndex];
             var beforeBreak    = System.currentTimeMillis();
-            var shallBreak     = !tooLongOnThisIterator() && iter.hasNext() && (next = iter.next()) != null;
+            var shallBreak     = iter.hasNext() && (next = iter.next()) != null;
             var checkBreakTook = System.currentTimeMillis() - beforeBreak;
 
             if (checkBreakTook > 150) {
@@ -44,12 +50,16 @@ public class CombinedIterator<T> implements Iterator<T> {
             }
 
             if (shallBreak) {
-                offset        = offsetIndex; // remember last position as start position
-                offsetSinceMs = System.currentTimeMillis();
+                setOffset(offsetIndex); // remember last position as start position
                 break;
             }
         }
         return next;
+    }
+
+    private void setOffset(int offset) {
+        this.offset        = offset;
+        this.offsetSinceMs = System.currentTimeMillis();
     }
 
     private boolean tooLongOnThisIterator() {
