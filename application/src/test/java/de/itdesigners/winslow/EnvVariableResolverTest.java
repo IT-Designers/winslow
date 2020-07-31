@@ -127,7 +127,7 @@ public class EnvVariableResolverTest {
     }
 
     @Test
-    public void testConfiugreStageOverwritesExecutedStageWithRemovedVariables() {
+    public void testConfigureStageOverwritesExecutedStageWithRemovedVariables() {
         var resolved = new EnvVariableResolver()
                 .withStageName("some-stage-name")
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
@@ -195,13 +195,14 @@ public class EnvVariableResolverTest {
             @Nonnull Action action) {
         return wrap(
                 name,
+                env,
                 (gid) -> new Stage(
                         gid.generateStageId(1),
                         new Date(0L),
                         null,
                         new Date(),
                         finishState,
-                        env,
+                        null,
                         null,
                         null,
                         null
@@ -212,13 +213,15 @@ public class EnvVariableResolverTest {
     @Nonnull
     private static ExecutionGroup wrap(
             @Nonnull String stageDefName,
+            @Nullable Map<String, String> env,
             @Nonnull Function<ExecutionGroupId, Stage> stageBuilder) {
-        return wrapCustom(stageDefName, group -> group.addStage(stageBuilder.apply(group.getId())));
+        return wrapCustom(stageDefName, env, group -> group.addStage(stageBuilder.apply(group.getId())));
     }
 
     @Nonnull
     private static ExecutionGroup wrapCustom(
             @Nonnull String stageDefName,
+            @Nullable Map<String, String> env,
             @Nonnull Consumer<ExecutionGroup> stuffer) {
         var group = new ExecutionGroup(
                 new ExecutionGroupId(
@@ -232,7 +235,7 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         null,
-                        null,
+                        env,
                         null,
                         null,
                         null

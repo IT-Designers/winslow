@@ -1,14 +1,16 @@
 package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.EnvVariable;
-import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import org.springframework.lang.NonNull;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -131,11 +133,12 @@ public class EnvVariableResolver {
             return this.executionHistory
                     .get()
                     .filter(group -> group.getStageDefinition().getName().equals(this.stageName))
+                    /*
                     .filter(group -> group.getRunningStages().count() == 0)
                     .filter(group -> group
                             .getStages()
                             .allMatch(s -> Objects.equals(Optional.of(State.Succeeded), s.getFinishState()))
-                    )
+                    )*/
                     .reduce((first, second) -> second) // take the most recent one
                     .map(group -> group.getStageDefinition().getEnvironment());
         } else {
