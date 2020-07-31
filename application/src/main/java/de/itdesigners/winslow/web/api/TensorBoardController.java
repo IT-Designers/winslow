@@ -22,15 +22,20 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @RestController
 public class TensorBoardController {
+
+    private static final @Nonnull Logger LOG = Logger.getLogger(TensorBoardController.class.getSimpleName());
 
     @Autowired
     private ProxyRouting routing;
@@ -252,7 +257,16 @@ public class TensorBoardController {
     }
 
     private synchronized int getNextPort() {
-        return nextPort++;
+        for (int i = 0; i < 1000; i++) {
+            int port = nextPort++;
+            try (var socket = new ServerSocket(port)) {
+                socket.close();
+                return port;
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Port " + port + " already in use");
+            }
+        }
+        throw new RuntimeException("Unable  to find a free port to start tensorboard on");
     }
 
     @Nonnull
