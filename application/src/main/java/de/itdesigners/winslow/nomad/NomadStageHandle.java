@@ -126,7 +126,7 @@ public class NomadStageHandle implements StageHandle {
 
     @Override
     public boolean hasFinished() {
-        if (shutdownDelayedTime != null && shutdownDelayedTime > System.currentTimeMillis()) {
+        if (shutdownDelayedTime != null && shutdownDelayedTime > System.currentTimeMillis() && !isGone()) {
             return false;
         } else {
             return isGone() || hasFailed() || hasSucceeded();
