@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 public class CombinedIterator<T> implements Iterator<T> {
 
-    private static final long   MAX_TIME_PER_ITERATOR_MS = 1_000;
+    private static final long   MAX_TIME_PER_ITERATOR_MS = 100;
     private static final Logger LOG                      = Logger.getLogger(CombinedIterator.class.getSimpleName());
 
     @Nonnull private final Iterator<T>[] iterators;
