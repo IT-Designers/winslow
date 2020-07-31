@@ -9,6 +9,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 @JsonComponent
@@ -17,13 +18,26 @@ import java.util.List;
 public class JacksonConfiguration implements WebMvcConfigurer {
 
     @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new MappingJackson2HttpMessageConverter(BaseRepository.defaultObjectMapperModules(
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        for (var i = 0; i < converters.size(); ++i) {
+            if (converters.get(i) instanceof MappingJackson2HttpMessageConverter) {
+                // replace with custom mapper
+                converters.set(i, createConverter());
+                return;
+            }
+        }
+        // not present yet, add
+        converters.add(createConverter());
+    }
+
+    @Nonnull
+    private MappingJackson2HttpMessageConverter createConverter() {
+        return new MappingJackson2HttpMessageConverter(BaseRepository.defaultObjectMapperModules(
                 Jackson2ObjectMapperBuilder
                         .json()
                         .build()
                         .findAndRegisterModules()
-        )));
+        ));
     }
 
 }
