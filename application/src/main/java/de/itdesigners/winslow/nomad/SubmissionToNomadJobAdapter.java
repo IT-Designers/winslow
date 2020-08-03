@@ -99,7 +99,7 @@ public class SubmissionToNomadJobAdapter {
                         new TaskGroup()
                                 .setName(submission.getId().getFullyQualified())
                                 .setRestartPolicy(new RestartPolicy().setAttempts(0))
-                                .addTasks(task));
+                                .addTasks(task.setRestartPolicy(new RestartPolicy().setAttempts(0))));
 
     }
 
