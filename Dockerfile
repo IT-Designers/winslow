@@ -19,7 +19,7 @@ RUN bash -c 'distribution=$(. /etc/os-release;echo $ID$VERSION_ID) &&\
     rm -rf /tmp/* && \
     echo 'NEED_STATD=yes' >> /etc/default/nfs-common
 
-RUN curl -o nomad.zip https://releases.hashicorp.com/nomad/0.9.6/nomad_0.9.6_linux_amd64.zip && \
+RUN curl -o nomad.zip https://releases.hashicorp.com/nomad/0.11.3/nomad_0.11.3_linux_amd64.zip && \
     unzip nomad.zip && \
     rm nomad.zip && \
     mv nomad /usr/bin/nomad
