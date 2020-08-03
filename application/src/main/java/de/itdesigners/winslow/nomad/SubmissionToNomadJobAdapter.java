@@ -49,8 +49,10 @@ public class SubmissionToNomadJobAdapter {
             stage.finishNow(State.Succeeded);
             return new SubmissionResult(stage, new NoOpStageHandle());
         } else {
-            backend.getNewJobsApi().register(job);
-            return new SubmissionResult(stage, new NomadStageHandle(backend, submission.getId()));
+            try (var client = backend.getNewClient()) {
+                client.getJobsApi().register(job);
+                return new SubmissionResult(stage, new NomadStageHandle(backend, submission.getId()));
+            }
         }
     }
 

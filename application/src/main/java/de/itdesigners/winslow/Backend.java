@@ -7,11 +7,12 @@ import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.Nonnull;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface Backend {
+public interface Backend extends Closeable, AutoCloseable {
 
     @Nonnull
     Stream<String> listStages() throws IOException;

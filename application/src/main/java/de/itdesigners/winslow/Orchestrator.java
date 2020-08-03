@@ -18,6 +18,7 @@ import org.javatuples.Triplet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -38,7 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Orchestrator {
+public class Orchestrator implements Closeable, AutoCloseable {
 
     private static final Logger  LOG                   = Logger.getLogger(Orchestrator.class.getSimpleName());
     public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
@@ -884,6 +885,11 @@ public class Orchestrator {
     @Nonnull
     public static DeletionPolicy defaultDeletionPolicy() {
         return new DeletionPolicy(false, null);
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.backend.close();
     }
 
     private enum SimpleState {

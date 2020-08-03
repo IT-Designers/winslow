@@ -170,8 +170,8 @@ public class NomadStageHandle implements StageHandle {
     @Override
     public Iterator<LogEntry> getLogs() throws IOException {
         return new CombinedIterator<>(
-                LogStream.stdOutIter(backend.getNewClientApi(), this),
-                LogStream.stdErrIter(backend.getNewClientApi(), this),
+                LogStream.stdOutIter(backend.getNewClient(), this),
+                LogStream.stdErrIter(backend.getNewClient(), this),
                 new EventStream(this),
                 new EvaluationLogger(this)
         );
@@ -186,9 +186,9 @@ public class NomadStageHandle implements StageHandle {
             var alloc   = stageAllocation.get();
             var allocId = alloc.getId();
 
-            try {
-                var allocation = this.backend.getNewClient().getAllocationsApi().info(allocId).getValue();
-                var stats      = this.backend.getNewClientApi().stats(allocId).getValue();
+            try (var client = this.backend.getNewClient()) {
+                var allocation = client.getAllocationsApi().info(allocId).getValue();
+                var stats      = client.getClientApi(client.getConfig().getAddress()).stats(allocId).getValue();
                 // stats["DeviceStats"][0]
                 //                        .InstanceStats[<some-name>]
                 //                                      .Name: Quadro M2200

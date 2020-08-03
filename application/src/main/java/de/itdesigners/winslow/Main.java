@@ -55,8 +55,7 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        WebApi.Context webApi       = null;
-        Orchestrator   orchestrator = null;
+        WebApi.Context webApi = null;
 
         try {
             LOG.info("Loading NFS configuration for work-directory");
@@ -81,7 +80,7 @@ public class Main {
             // TODO
             NodeInfoUpdater.spawn(config.getNodesDirectory(), node);
 
-            orchestrator = new Orchestrator(
+            var orchestrator = new Orchestrator(
                     lockBus,
                     environment,
                     backend,
@@ -111,8 +110,9 @@ public class Main {
             tryFixMissingPipelinesOfProjects(orchestrator, projects);
 
             LOG.info("Letting Winslow run freely");
-            winslow.run();
-
+            try (orchestrator) {
+                winslow.run();
+            }
         } catch (IOException | LockException e) {
             e.printStackTrace();
         } finally {

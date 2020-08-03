@@ -79,8 +79,6 @@ public class TensorBoardController {
                 .getPipeline(project)
                 .orElseThrow();
 
-        var backend = winslow.getOrchestrator().getBackend();
-        var nomad   = backend instanceof NomadBackend ? ((NomadBackend) backend).getNewClient() : null;
 
         var workDirConf = winslow.getWorkDirectoryConfiguration();
         var nfsWorkDir  = workDirConf instanceof NfsWorkDirectory ? ((NfsWorkDirectory) workDirConf) : null;
@@ -92,109 +90,121 @@ public class TensorBoardController {
                 .filter(s -> s.getFullyQualifiedId().equals(stageId))
                 .findFirst();
 
-        if (nomad != null && nfsWorkDir != null && stage.isPresent()) {
+        var backend = winslow.getOrchestrator().getBackend();
+        var nomad   = backend instanceof NomadBackend ? ((NomadBackend) backend).getNewClient() : null;
 
-            if (activeBoards.containsKey(projectId)) {
-                var board = activeBoards.get(projectId);
-                if (board.stageId.equals(stageId)) {
-                    try {
-                        return probeAvailableOrRetry(
-                                request,
-                                board.port,
-                                board.destinationIp,
-                                board.publicUrl
-                        );
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        return null;
+        if (nomad != null) {
+            try (nomad) {
+                if (nfsWorkDir != null && stage.isPresent()) {
+
+                    if (activeBoards.containsKey(projectId)) {
+                        var board = activeBoards.get(projectId);
+                        if (board.stageId.equals(stageId)) {
+                            try {
+                                return probeAvailableOrRetry(
+                                        request,
+                                        board.port,
+                                        board.destinationIp,
+                                        board.publicUrl
+                                );
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                return null;
+                            }
+                        } else {
+                            try {
+                                nomad.getJobsApi().deregister(toNomadJobId(projectId));
+                            } catch (IOException | NomadException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                } else {
-                    try {
-                        nomad.getJobsApi().deregister(toNomadJobId(projectId));
-                    } catch (IOException | NomadException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
 
 
-            var task          = new Task();
-            var port          = getNextPort();
-            var nomadId       = toNomadJobId(projectId);
-            var routePath     = Path.of("tensorboard", projectId);
-            var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
+                    var task          = new Task();
+                    var port          = getNextPort();
+                    var nomadId       = toNomadJobId(projectId);
+                    var routePath     = Path.of("tensorboard", projectId);
+                    var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
 
-            task.setName("tensorboard");
-            task.setDriver("docker");
-            task.setConfig(new HashMap<>());
-            task.getConfig().put("image", "tensorflow/tensorflow:latest-gpu-py3");
-            task.getConfig().put(
-                    "args",
-                    List.of(
-                            "tensorboard",
-                            "--logdir",
-                            "/data/",
-                            "--path_prefix=" + routeLocation + "/",
-                            "--port",
-                            String.valueOf(port),
-                            "--host",
-                            "0.0.0.0"
-                    )
-            );
-            String routeDestinationIp = prepareRoutingDestinationIp(task, port);
-
-
-            SubmissionToNomadJobAdapter
-                    .getDockerNfsVolumesConfigurer(task)
-                    .accept(new DockerNfsVolumes(List.of(new DockerNfsVolume(
-                            "tensorboard-" + projectId + "-" + stageId + "-" + port,
-                            "/data/",
-                            nfsWorkDir.toExportedPath(workspaces.resolve(stage.get().getWorkspace().orElseThrow()))
-                                      .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"))
-                                      .toAbsolutePath()
-                                      .toString(),
-                            nfsWorkDir.getOptions(),
-                            true
-                    ))));
-
-            var job = new Job()
-                    .setId(nomadId)
-                    .addDatacenters("local")
-                    .setType("batch")
-                    .addTaskGroups(
-                            new TaskGroup()
-                                    .setName("group-" + nomadId)
-                                    .setRestartPolicy(new RestartPolicy().setAttempts(0))
-                                    .addTasks(task)
+                    task.setName("tensorboard");
+                    task.setDriver("docker");
+                    task.setConfig(new HashMap<>());
+                    task.getConfig().put("image", "tensorflow/tensorflow:latest-gpu-py3");
+                    task.getConfig().put(
+                            "args",
+                            List.of(
+                                    "tensorboard",
+                                    "--logdir",
+                                    "/data/",
+                                    "--path_prefix=" + routeLocation + "/",
+                                    "--port",
+                                    String.valueOf(port),
+                                    "--host",
+                                    "0.0.0.0"
+                            )
                     );
+                    String routeDestinationIp = prepareRoutingDestinationIp(task, port);
 
-            try {
-                nomad.getJobsApi().register(job);
-                var publicUrl = this.routing.addRoute(
-                        routePath,
-                        new ProxyRouting.Route(
-                                "http://" + routeDestinationIp + ":" + port + routeLocation,
-                                project::canBeAccessedBy
-                        )
-                );
 
-                this.activeBoards.put(projectId, new ActiveBoard(
-                        projectId,
-                        stageId,
-                        port,
-                        publicUrl,
-                        routeDestinationIp
-                ));
+                    SubmissionToNomadJobAdapter
+                            .getDockerNfsVolumesConfigurer(task)
+                            .accept(new DockerNfsVolumes(List.of(new DockerNfsVolume(
+                                    "tensorboard-" + projectId + "-" + stageId + "-" + port,
+                                    "/data/",
+                                    nfsWorkDir.toExportedPath(workspaces.resolve(stage
+                                                                                         .get()
+                                                                                         .getWorkspace()
+                                                                                         .orElseThrow()))
+                                              .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"))
+                                              .toAbsolutePath()
+                                              .toString(),
+                                    nfsWorkDir.getOptions(),
+                                    true
+                            ))));
 
-                return probeAvailableOrRetry(request, port, routeDestinationIp, publicUrl);
+                    var job = new Job()
+                            .setId(nomadId)
+                            .addDatacenters("local")
+                            .setType("batch")
+                            .addTaskGroups(
+                                    new TaskGroup()
+                                            .setName("group-" + nomadId)
+                                            .setRestartPolicy(new RestartPolicy().setAttempts(0))
+                                            .addTasks(task)
+                            );
 
-            } catch (IOException | NomadException | InterruptedException e) {
-                e.printStackTrace();
-                try {
-                    nomad.getJobsApi().deregister(nomadId);
-                } catch (IOException | NomadException ioException) {
-                    ioException.printStackTrace();
+                    try {
+                        nomad.getJobsApi().register(job);
+                        var publicUrl = this.routing.addRoute(
+                                routePath,
+                                new ProxyRouting.Route(
+                                        "http://" + routeDestinationIp + ":" + port + routeLocation,
+                                        project::canBeAccessedBy
+                                )
+                        );
+
+                        this.activeBoards.put(projectId, new ActiveBoard(
+                                projectId,
+                                stageId,
+                                port,
+                                publicUrl,
+                                routeDestinationIp
+                        ));
+
+                        return probeAvailableOrRetry(request, port, routeDestinationIp, publicUrl);
+
+                    } catch (IOException | NomadException | InterruptedException e) {
+                        e.printStackTrace();
+                        try {
+                            nomad.getJobsApi().deregister(nomadId);
+                        } catch (IOException | NomadException ioException) {
+                            ioException.printStackTrace();
+                        }
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         return null;

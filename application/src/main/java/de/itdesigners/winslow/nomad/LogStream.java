@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.nomad;
 
-import com.hashicorp.nomad.javasdk.ClientApi;
+import com.hashicorp.nomad.javasdk.NomadApiClient;
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 
 import javax.annotation.Nonnull;
@@ -71,23 +71,23 @@ public class LogStream implements Iterator<String> {
     }
 
     public static Iterator<LogEntry> stdOutIter(
-            @Nonnull ClientApi api,
+            @Nonnull NomadApiClient client,
             @Nonnull NomadStageHandle handle) throws IOException {
-        return stdIter(api, handle, "stdout", LogEntry::stdout);
+        return stdIter(client, handle, "stdout", LogEntry::stdout);
     }
 
     public static Iterator<LogEntry> stdErrIter(
-            @Nonnull ClientApi api,
+            @Nonnull NomadApiClient client,
             @Nonnull NomadStageHandle handle) throws IOException {
-        return stdIter(api, handle, "stderr", LogEntry::stderr);
+        return stdIter(client, handle, "stderr", LogEntry::stderr);
     }
 
     public static Iterator<LogEntry> stdIter(
-            @Nonnull ClientApi api,
+            @Nonnull NomadApiClient client,
             @Nonnull NomadStageHandle handle,
             @Nonnull String logType,
             @Nonnull Function<String, LogEntry> mapper) throws IOException {
-        var iter = LogStream.iter(api, handle, logType);
+        var iter = LogStream.iter(client, handle, logType);
         return new Iterator<>() {
             @Override
             public boolean hasNext() {
@@ -113,10 +113,10 @@ public class LogStream implements Iterator<String> {
     }
 
     private static Iterator<String> iter(
-            @Nonnull ClientApi api,
+            @Nonnull NomadApiClient client,
             @Nonnull NomadStageHandle handle,
             @Nonnull String logType) throws IOException {
-        return new LogStream(new LogInputStream(api, handle, logType));
+        return new LogStream(new LogInputStream(client, handle, logType));
     }
 
     @Override

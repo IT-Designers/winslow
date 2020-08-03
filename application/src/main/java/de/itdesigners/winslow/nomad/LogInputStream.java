@@ -3,6 +3,7 @@ package de.itdesigners.winslow.nomad;
 import com.hashicorp.nomad.apimodel.StreamFrame;
 import com.hashicorp.nomad.javasdk.ClientApi;
 import com.hashicorp.nomad.javasdk.FramedStream;
+import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Backoff;
 
@@ -14,6 +15,7 @@ import java.io.InputStream;
 
 public class LogInputStream extends InputStream implements AutoCloseable {
 
+    @Nonnull private final NomadApiClient   client;
     @Nonnull private final ClientApi        api;
     @Nonnull private final NomadStageHandle handle;
     @Nonnull private final String           logType;
@@ -25,10 +27,11 @@ public class LogInputStream extends InputStream implements AutoCloseable {
     private boolean              closed;
 
     public LogInputStream(
-            @Nonnull ClientApi api,
+            @Nonnull NomadApiClient client,
             @Nonnull NomadStageHandle handle,
             @Nonnull String logType) throws IOException {
-        this.api          = api;
+        this.client       = client;
+        this.api          = client.getClientApi(client.getConfig().getAddress());
         this.handle       = handle;
         this.logType      = logType;
         this.framedStream = this.tryOpen();
@@ -173,6 +176,7 @@ public class LogInputStream extends InputStream implements AutoCloseable {
         } finally {
             this.closed       = true;
             this.framedStream = null;
+            this.client.close();
         }
     }
 }

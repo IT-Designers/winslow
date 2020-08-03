@@ -1,7 +1,8 @@
 package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
-import com.hashicorp.nomad.javasdk.*;
+import com.hashicorp.nomad.javasdk.NomadApiClient;
+import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.api.node.GpuInfo;
@@ -13,7 +14,9 @@ import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Supplier;
@@ -22,7 +25,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class NomadBackend implements Backend {
+public class NomadBackend implements Backend, Closeable, AutoCloseable {
 
     private static final long   CACHE_TIME_MS                    = 750;
     private static final Logger LOG                              = Logger.getLogger(NomadBackend.class.getSimpleName());
@@ -83,10 +86,6 @@ public class NomadBackend implements Backend {
         }
     }
 
-    private List<GpuInfo> listGpus() throws IOException {
-        return listGpus(this.client);
-    }
-
     @Nonnull
     protected static List<GpuInfo> listGpus(@Nonnull NomadApiClient client) throws IOException {
         try {
@@ -116,8 +115,8 @@ public class NomadBackend implements Backend {
                             var vendor = (String) device.getVendor();
                             var name   = (String) device.getName();
                             return device.getInstances()
-                                    .stream()
-                                    .map(instance -> new GpuInfo(vendor, name));
+                                         .stream()
+                                         .map(instance -> new GpuInfo(vendor, name));
                         })
                         .forEach(gpuInfo::add);
             }
@@ -132,8 +131,9 @@ public class NomadBackend implements Backend {
     @Override
     @Nonnull
     public Stream<String> listStages() throws IOException {
-        try {
-            return getNewJobsApi()
+        try (var client = getNewClient()) {
+            return client
+                    .getJobsApi()
                     .list()
                     .getValue()
                     .stream()
@@ -157,8 +157,8 @@ public class NomadBackend implements Backend {
 
     @Override
     public void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        try {
-            getNewJobsApi().deregister(stage).getValue();
+        try (var client = getNewClient()) {
+            client.getJobsApi().deregister(stage).getValue();
         } catch (NomadException e) {
             throw new IOException("Failed to deregister job for " + pipeline + "/" + stage, e);
         }
@@ -166,10 +166,10 @@ public class NomadBackend implements Backend {
 
     @Override
     public void stop(@Nonnull String stage) throws IOException {
-        try {
+        try (var client = getNewClient()) {
             var allocation = getAllocation(stage);
             if (allocation.isPresent()) {
-                getNewAllocationsApi().signal(allocation.get().getId(), "SIGTERM", null);
+                client.getAllocationsApi().signal(allocation.get().getId(), "SIGTERM", null);
             }
         } catch (NomadException e) {
             throw new IOException("Failed to signal allocation for " + stage, e);
@@ -178,8 +178,8 @@ public class NomadBackend implements Backend {
 
     @Override
     public void kill(@Nonnull String stage) throws IOException {
-        try {
-            getNewJobsApi().deregister(stage).getValue();
+        try (var client = getNewClient()) {
+            client.getJobsApi().deregister(stage).getValue();
         } catch (NomadException e) {
             throw new IOException("Failed to deregister job for " + stage, e);
         }
@@ -197,8 +197,8 @@ public class NomadBackend implements Backend {
 
     @Override
     public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
-        try {
-            return getNewClient()
+        try (var client = getNewClient()) {
+            return client
                     .getNodesApi()
                     .list()
                     .getValue()
@@ -245,8 +245,8 @@ public class NomadBackend implements Backend {
                 // this could be the case if some other thread had the same thought and already has loaded
                 // the new allocations list
                 if (condition.get()) {
-                    try {
-                        this.cachedAllocs     = getNewAllocationsApi().list().getValue();
+                    try (var client = getNewClient()) {
+                        this.cachedAllocs     = client.getAllocationsApi().list().getValue();
                         this.cachedAllocsTime = System.currentTimeMillis();
                         this.cachedAllocsSync.notifyAll();
                     } catch (NomadException e) {
@@ -263,8 +263,8 @@ public class NomadBackend implements Backend {
     public List<Evaluation> getEvaluations() throws IOException {
         synchronized (this.cachedEvalsSync) {
             if (this.cachedEvals == null || cachedEvalsTime + CACHE_TIME_MS < System.currentTimeMillis()) {
-                try {
-                    this.cachedEvals     = getNewClient().getEvaluationsApi().list().getValue();
+                try (var client = getNewClient()) {
+                    this.cachedEvals     = client.getEvaluationsApi().list().getValue();
                     this.cachedEvalsTime = System.currentTimeMillis();
                 } catch (NomadException e) {
                     throw new IOException("Failed to update evaluations", e);
@@ -317,25 +317,10 @@ public class NomadBackend implements Backend {
     }
 
     @Nonnull
+    @CheckReturnValue
     public NomadApiClient getNewClient() {
         return new NomadApiClient(this.client.getConfig());
     }
-
-    @Nonnull
-    ClientApi getNewClientApi() {
-        return getNewClient().getClientApi(this.client.getConfig().getAddress());
-    }
-
-    @Nonnull
-    private AllocationsApi getNewAllocationsApi() {
-        return getNewClient().getAllocationsApi();
-    }
-
-    @Nonnull
-    protected JobsApi getNewJobsApi() {
-        return getNewClient().getJobsApi();
-    }
-
 
     @Nonnull
     public static State toRunningStageState(@Nonnull TaskState task) {
@@ -385,5 +370,10 @@ public class NomadBackend implements Backend {
         state.setFinishedAt(new Date());
         state.setState("dead");
         return state;
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.client.close();
     }
 }
