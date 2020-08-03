@@ -83,7 +83,8 @@ public class SubmissionToNomadJobAdapter {
                 .setName(submission.getId().getFullyQualified())
                 .setEnv(getVisibleEnvironmentVariables(submission))
                 .setConfig(new HashMap<>())
-                .setResources(new Resources());
+                .setResources(new Resources())
+                .setRestartPolicy(new RestartPolicy().setAttempts(0));
 
 
         submission.getExtension(DockerImage.class).ifPresent(getDockerImageConfigurer(task));
@@ -95,12 +96,13 @@ public class SubmissionToNomadJobAdapter {
                 .setId(submission.getId().getFullyQualified())
                 .addDatacenters("local")
                 .setType("batch")
+                .setReschedule(new ReschedulePolicy().setAttempts(0))
                 .addTaskGroups(
                         new TaskGroup()
                                 .setName(submission.getId().getFullyQualified())
                                 .setRestartPolicy(new RestartPolicy().setAttempts(0))
-                                .addTasks(task.setRestartPolicy(new RestartPolicy().setAttempts(0))));
-
+                                .addTasks(task)
+                );
     }
 
     private HashMap<String, String> getVisibleEnvironmentVariables(@Nonnull Submission submission) {
