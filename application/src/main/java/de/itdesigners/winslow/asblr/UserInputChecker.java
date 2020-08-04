@@ -39,7 +39,7 @@ public class UserInputChecker implements AssemblerStep {
                 throw new MissingUserConfirmationException();
             } else {
                 resetResumeNotification = true;
-                resumeNotification = pipeline.getResumeNotification().orElse(null);
+                resumeNotification      = pipeline.getResumeNotification().orElse(null);
                 pipeline.resetResumeNotification();
             }
         }
@@ -73,9 +73,12 @@ public class UserInputChecker implements AssemblerStep {
         return Stream
                 .concat(stageDefinition.getRequires().stream(), pipelineDefinition.getRequires().stream())
                 .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
-                .anyMatch(u -> !(u.getConfirmation() == UserInput.Confirmation.Once && pipeline
-                        .getActiveAndPastExecutionGroups()
-                        .anyMatch(g -> g.getStageDefinition().equals(stageDefinition))));
+                .anyMatch(u -> u.getConfirmation() == UserInput.Confirmation.Always || (
+                                  u.getConfirmation() == UserInput.Confirmation.Once && pipeline
+                                          .getActiveAndPastExecutionGroups()
+                                          .noneMatch(g -> g.getStageDefinition().getName().equals(stageDefinition.getName()))
+                          )
+                );
     }
 
     public static class FurtherUserInputRequiredException extends AssemblyException {

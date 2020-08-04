@@ -43,22 +43,6 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             return Optional
                     .ofNullable(pipelineReadOnly)
                     .flatMap(p -> generateNextStageDefinition(orchestrator, p))
-                    .filter(def -> def
-                            .getValue1()
-                            .getRequires()
-                            .map(r -> r.getConfirmation() != UserInput.Confirmation.Always)
-                            .orElse(Boolean.TRUE)
-                    )
-                    .filter(def -> def
-                            .getValue1()
-                            .getRequires()
-                            .map(r -> r.getConfirmation() != UserInput.Confirmation.Once
-                                    || pipelineReadOnly
-                                    .getExecutionHistory()
-                                    .anyMatch(h -> h.getStageDefinition().getName().equals(def.getValue1().getName()))
-                            )
-                            .orElse(Boolean.TRUE)
-                    )
                     .map(def -> new AutoEnqueueUpdate(def.getValue0(), def.getValue1()));
         } catch (PreconditionNotMetException e) {
             LOG.log(Level.FINE, "Missing precondition for pipeline update: " + e.getMessage(), e);
@@ -171,18 +155,27 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
         if (pipeline != null) {
             try {
                 ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
-                pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration);
 
-                stageDefinition.getRequires().map(UserInput::getConfirmation).ifPresent(confirmation -> {
-                    var inThisCase = UserInput.Confirmation.Once == confirmation
-                            && pipeline
-                            .getExecutionHistory()
-                            .noneMatch(g -> g.getStageDefinition().getName().equals(stageDefinition.getName()));
+                var requiredConfirmation = stageDefinition
+                        .getRequires()
+                        .map(UserInput::getConfirmation)
+                        .orElse(UserInput.Confirmation.Never);
 
-                    if (UserInput.Confirmation.Always == confirmation || inThisCase) {
-                        pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
-                    }
-                });
+                var inThisCase = UserInput.Confirmation.Once == requiredConfirmation
+                        && pipeline
+                        .getExecutionHistory()
+                        .noneMatch(g -> g.getStageDefinition().getName().equals(stageDefinition.getName()));
+
+                var requiresConfirmation = UserInput.Confirmation.Always == requiredConfirmation || inThisCase;
+                var hasConfirmation = pipeline
+                        .getResumeNotification()
+                        .orElse(null) == Pipeline.ResumeNotification.Confirmation;
+
+                if (requiresConfirmation && !hasConfirmation) {
+                    pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
+                } else {
+                    pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration);
+                }
 
                 return pipeline;
             } catch (PreconditionNotMetException e) {
