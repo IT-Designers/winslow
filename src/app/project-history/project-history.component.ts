@@ -10,6 +10,7 @@ export class ProjectHistoryComponent implements OnInit {
 
   visibleStages = 10;
 
+  @Input() firstEntry = true;
   @Input() entryNumber = 0;
   @Input() executionGroup: ExecutionGroupInfo;
   @Input() expanded = false;

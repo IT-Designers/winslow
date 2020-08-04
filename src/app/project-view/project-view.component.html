@@ -87,6 +87,7 @@
             *ngFor="let entry of history.slice(0, maxHistoryItemsToDisplay); index as i"
             class="history-list-item"
             [executionGroup]="entry"
+            [firstEntry]="i == 0"
             [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
             [expanded]="i < 5"
             [pipelineIsPaused]="paused"
