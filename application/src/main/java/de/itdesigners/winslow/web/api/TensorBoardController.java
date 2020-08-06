@@ -145,6 +145,7 @@ public class TensorBoardController {
                                     "0.0.0.0"
                             )
                     );
+                    task.setResources(new Resources().setMemoryMb(1024));
                     String routeDestinationIp = prepareRoutingDestinationIp(task, port);
 
 
