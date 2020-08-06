@@ -4,6 +4,7 @@ import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.fs.NfsWorkDirectory;
@@ -90,16 +91,28 @@ public class TensorBoardController {
                 .filter(s -> s.getFullyQualifiedId().equals(stageId))
                 .findFirst();
 
-        var backend = winslow.getOrchestrator().getBackend();
-        var nomad   = backend instanceof NomadBackend ? ((NomadBackend) backend).getNewClient() : null;
+        var backend      = winslow.getOrchestrator().getBackend();
+        var nomadBackend = backend instanceof NomadBackend ? ((NomadBackend) backend) : null;
+        var nomadApi     = backend instanceof NomadBackend ? ((NomadBackend) backend).getNewClient() : null;
 
-        if (nomad != null) {
-            try (nomad) {
+        if (nomadApi != null) {
+            try (nomadApi) {
                 if (nfsWorkDir != null && stage.isPresent()) {
+                    var nomadId = toNomadJobId(projectId);
 
                     if (activeBoards.containsKey(projectId)) {
                         var board = activeBoards.get(projectId);
-                        if (board.stageId.equals(stageId)) {
+                        var state = nomadBackend.getStateByNomadJogId(nomadId).orElse(State.Preparing);
+                        var failed = nomadBackend.hasAllocationFailed(nomadId).orElse(Boolean.FALSE);
+                        if (failed || (State.Running != state && State.Preparing != state)) {
+                            try {
+                                LOG.warning("Previous TensorBoard instance has failed");
+                                activeBoards.remove(projectId);
+                                nomadApi.getJobsApi().deregister(toNomadJobId(projectId));
+                            } catch (IOException | NomadException e) {
+                                e.printStackTrace();
+                            }
+                        } else if (board.stageId.equals(stageId)) {
                             try {
                                 return probeAvailableOrRetry(
                                         request,
@@ -114,7 +127,7 @@ public class TensorBoardController {
                         } else {
                             try {
                                 LOG.info("Project has running TensorBoard but for wrong stageId, " + stageId + " != " + board.stageId);
-                                nomad.getJobsApi().deregister(toNomadJobId(projectId));
+                                nomadApi.getJobsApi().deregister(toNomadJobId(projectId));
                             } catch (IOException | NomadException e) {
                                 e.printStackTrace();
                             }
@@ -124,7 +137,6 @@ public class TensorBoardController {
 
                     var task          = new Task();
                     var port          = getNextPort();
-                    var nomadId       = toNomadJobId(projectId);
                     var routePath     = Path.of("tensorboard", projectId);
                     var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
 
@@ -179,7 +191,7 @@ public class TensorBoardController {
 
                     try {
                         LOG.info("Starting new TensorBoard at " + routePath + ", internal port " + port + ", id " + nomadId);
-                        nomad.getJobsApi().register(job);
+                        nomadApi.getJobsApi().register(job);
                         var publicUrl = this.routing.addRoute(
                                 routePath,
                                 new ProxyRouting.Route(
@@ -201,7 +213,7 @@ public class TensorBoardController {
                     } catch (IOException | NomadException | InterruptedException e) {
                         e.printStackTrace();
                         try {
-                            nomad.getJobsApi().deregister(nomadId);
+                            nomadApi.getJobsApi().deregister(nomadId);
                         } catch (IOException | NomadException ioException) {
                             ioException.printStackTrace();
                         }

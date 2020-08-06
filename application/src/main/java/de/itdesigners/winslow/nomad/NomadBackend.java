@@ -152,7 +152,12 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
     @Nonnull
     @Override
     public Optional<State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        return getTaskState(stage).map(NomadBackend::toRunningStageState);
+        return getStateByNomadJogId(stage);
+    }
+
+    @Nonnull
+    public Optional<State> getStateByNomadJogId(@Nonnull String nomadStageId) throws IOException {
+        return getTaskState(nomadStageId).map(NomadBackend::toRunningStageState);
     }
 
     @Override
@@ -302,7 +307,7 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
                 );
     }
 
-    private Optional<Boolean> hasAllocationFailed(@Nonnull String stage) {
+    public Optional<Boolean> hasAllocationFailed(@Nonnull String stage) {
         try {
             return Optional.of(allocationFailed(stage));
         } catch (IOException e) {
