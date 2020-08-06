@@ -113,6 +113,7 @@ public class TensorBoardController {
                             }
                         } else {
                             try {
+                                LOG.info("Project has running TensorBoard but for wrong stageId, " + stageId + " != " + board.stageId);
                                 nomad.getJobsApi().deregister(toNomadJobId(projectId));
                             } catch (IOException | NomadException e) {
                                 e.printStackTrace();
@@ -170,11 +171,13 @@ public class TensorBoardController {
                             .addTaskGroups(
                                     new TaskGroup()
                                             .setName("group-" + nomadId)
+                                            .setReschedulePolicy(new ReschedulePolicy().setAttempts(0))
                                             .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                             .addTasks(task)
                             );
 
                     try {
+                        LOG.info("Starting new TensorBoard at " + routePath + ", internal port " + port + ", id " + nomadId);
                         nomad.getJobsApi().register(job);
                         var publicUrl = this.routing.addRoute(
                                 routePath,
