@@ -26,12 +26,15 @@ public class EventStream implements Iterator<LogEntry> {
 
     private void maybeEnqueue(long time, boolean err, @Nonnull String message) {
         if (message.length() > 0) {
-            message = MESSAGE_PREFIX + message;
-            if (logs.isEmpty() || !(message.equals(logs.peekLast().getMessage()) && time == logs
-                    .peekLast()
-                    .getTime())) {
-                logs.add(new LogEntry(time, LogEntry.Source.MANAGEMENT_EVENT, err, message));
-            }
+            message.lines()
+                   .forEach(line -> {
+                       line = MESSAGE_PREFIX + line;
+                       if (logs.isEmpty()
+                               || !(line.equals(logs.peekLast().getMessage())
+                               && time == logs.peekLast().getTime())) {
+                           logs.add(new LogEntry(time, LogEntry.Source.MANAGEMENT_EVENT, err, line));
+                       }
+                   });
         }
     }
 
