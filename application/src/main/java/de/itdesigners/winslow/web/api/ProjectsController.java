@@ -913,7 +913,11 @@ public class ProjectsController {
             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
         }
          */
-        maybeUpdateImageInfo(image, resultDefinition);
+        maybeUpdateStageImageConfig(image, resultDefinition);
+        base.getImage()
+            .flatMap(Image::getShmSizeMegabytes)
+            .ifPresent(shm -> resultDefinition.getImage().ifPresent(ri -> ri.setShmSizeMegabytes(shm)));
+
         if (action == Action.Configure) {
             pipeline.enqueueConfiguration(resultDefinition);
         } else if (rangedEnv == null || rangedEnv.isEmpty()) {
@@ -994,7 +998,7 @@ public class ProjectsController {
                 .build();
     }
 
-    private static void maybeUpdateImageInfo(
+    private static void maybeUpdateStageImageConfig(
             @Nullable ImageInfo image,
             @Nonnull StageDefinition stageDef) {
         if (image != null) {
