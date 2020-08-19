@@ -127,7 +127,7 @@ public class SubmissionToNomadJobAdapter {
 
             docker.getShmSizeMegabytes().ifPresent(shm -> {
                 task.getConfig().put("shm_size", shm * 1024L * 1024L);
-                task.getConfig().put("ulimit", Map.of("memlock", -1));
+                task.getConfig().put("ulimit", List.of(Map.of("memlock", -1)));
             });
 
         };
