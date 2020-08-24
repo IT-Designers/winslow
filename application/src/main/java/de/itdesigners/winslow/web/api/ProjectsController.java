@@ -926,7 +926,8 @@ public class ProjectsController {
             pipeline.enqueueRangedExecution(resultDefinition, workspaceConfiguration, rangedEnv);
         }
         resumeIfPausedByStageFailure(pipeline);
-        resumeIfWaitingForGoneStageConfiramtion(pipeline);
+        resumeIfWaitingForGoneStageConfirmation(pipeline);
+        resumeIfPausedByNoFittingNodeFound(pipeline);
     }
 
     @Nullable
@@ -961,7 +962,7 @@ public class ProjectsController {
         }
     }
 
-    private static void resumeIfWaitingForGoneStageConfiramtion(Pipeline pipeline) {
+    private static void resumeIfWaitingForGoneStageConfirmation(Pipeline pipeline) {
         if (Optional.of(Pipeline.PauseReason.ConfirmationRequired).equals(pipeline.getPauseReason())) {
             var noStageRequiresUserConfirmation = pipeline
                     .getEnqueuedExecutions()
@@ -979,6 +980,13 @@ public class ProjectsController {
 
     private static void resumeIfPausedByStageFailure(@Nonnull Pipeline pipeline) {
         if (Optional.of(Pipeline.PauseReason.StageFailure).equals(pipeline.getPauseReason())) {
+            pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+        }
+    }
+
+    private static void resumeIfPausedByNoFittingNodeFound(@Nonnull Pipeline pipeline) {
+        if (Optional.of(Pipeline.PauseReason.NoFittingNodeFound).equals(pipeline.getPauseReason())) {
+            pipeline.clearPauseReason();
             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
         }
     }
