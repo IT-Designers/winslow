@@ -1,10 +1,11 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {State} from '../api/project-api.service';
 
 @Component({
   selector: 'app-project-history-header',
   templateUrl: './project-history-header.component.html',
-  styleUrls: ['./project-history-header.component.css']
+  styleUrls: ['./project-history-header.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectHistoryHeaderComponent implements OnInit {
 

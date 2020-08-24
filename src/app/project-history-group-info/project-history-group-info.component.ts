@@ -1,10 +1,11 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ExecutionGroupInfo, ProjectApiService, StageInfo, State} from '../api/project-api.service';
 
 @Component({
   selector: 'app-project-history-group-info',
   templateUrl: './project-history-group-info.component.html',
-  styleUrls: ['./project-history-group-info.component.css']
+  styleUrls: ['./project-history-group-info.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectHistoryGroupInfoComponent implements OnInit {
 
