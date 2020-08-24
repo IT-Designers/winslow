@@ -1,10 +1,11 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ExecutionGroupInfo, StageInfo} from '../api/project-api.service';
 
 @Component({
   selector: 'app-project-history',
   templateUrl: './project-history.component.html',
-  styleUrls: ['./project-history.component.css']
+  styleUrls: ['./project-history.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectHistoryComponent implements OnInit {
 
@@ -26,7 +27,7 @@ export class ProjectHistoryComponent implements OnInit {
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
 
-  constructor() {
+  constructor(private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -35,10 +36,12 @@ export class ProjectHistoryComponent implements OnInit {
 
   set initiallyVisibleStages(count: number) {
     this.visibleStages = count;
+    this.cdr.markForCheck();
   }
 
   incrementVisibleStagesBy(increment: number) {
     this.visibleStages += increment;
+    this.cdr.markForCheck();
   }
 
 }
