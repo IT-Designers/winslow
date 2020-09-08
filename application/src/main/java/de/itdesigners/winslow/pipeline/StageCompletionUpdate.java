@@ -75,6 +75,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                             stage.finishNow(State.Succeeded);
                         } else {
                             stage.finishNow(State.Failed);
+                            pipeline.requestPause(Pipeline.PauseReason.StageFailure);
                         }
                         cleanupAfterStageExecution(orchestrator, stage.getFullyQualifiedId());
                         discardObsoleteWorkspaces(orchestrator, projectId, pipeline);
