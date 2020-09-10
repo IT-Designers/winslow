@@ -35,7 +35,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
             // "LOCK",
             "REPORT",
             "PROPPATCH",
-            "MKCOL"
+            "MKCOL",
+            "MOVE"
     );
 
     @Override

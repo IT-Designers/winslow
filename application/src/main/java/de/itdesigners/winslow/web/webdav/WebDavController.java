@@ -235,4 +235,19 @@ public class WebDavController {
         }
     }
 
+    @Move
+    public void moveDirectory(WebDavDirectory directory, WebDavDirectory newParent, String name, Request request) throws IOException {
+        var newDir = new WebDavDirectory(newParent.getRoot(), newParent.getPath().resolve(name));
+        if (isAllowedToAccess(request, directory) && isAllowedToAccess(request, newDir)) {
+            Files.move(directory.getFullPath(), newDir.getFullPath());
+        }
+    }
+
+    @Move
+    public void moveFile(WebDavFile directory, WebDavDirectory newParent, String name, Request request) throws IOException {
+        var newFile = new WebDavFile(newParent.getRoot(), newParent.getPath().resolve(name));
+        if (isAllowedToAccess(request, directory) && isAllowedToAccess(request, newFile)) {
+            Files.move(directory.getFullPath(), newFile.getFullPath());
+        }
+    }
 }
