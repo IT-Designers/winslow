@@ -41,7 +41,7 @@ public class FileAccessChecker {
             // root is allowed to do everything anywhere, no further check required
             var workspace = workspacePath.get();
             return user.hasSuperPrivileges() ||
-                    "".equals(workspace.toString()) ||
+                    workspace.toString().isEmpty() ||
                     (workspace.getNameCount() > 0 &&
                             projectResolver
                                     .apply(workspace.getName(0).toString()) // the work directory name is the project id
