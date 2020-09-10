@@ -47,7 +47,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
                     HttpServletRequest request,
                     HttpServletResponse response,
                     Object handler) throws Exception {
-                if (request.getRequestURI().startsWith("/"+ EXPORT_NAME + "/")) {
+                if (request.getRequestURI().startsWith("/"+ EXPORT_NAME + "/") || request.getRequestURI().equals("/" + EXPORT_NAME)) {
                     return !WEBDAV_METHODS.contains(request.getMethod());
                 } else {
                     return true;
@@ -82,6 +82,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
                 "io.milton.http.annotated.AnnotationResourceFactory"
         );
         registration.addInitParameter("controllerPackagesToScan", getClass().getPackageName());
+        registration.addInitParameter("controllerClassNames", WebDavController.class.getName());
         registration.addInitParameter("milton.configurator", MiltonConfiguration.class.getName());
         registration.setOrder(1);
         return registration;
