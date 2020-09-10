@@ -47,7 +47,11 @@ public class SpringConfiguration implements WebMvcConfigurer {
                     HttpServletRequest request,
                     HttpServletResponse response,
                     Object handler) throws Exception {
-                return !WEBDAV_METHODS.contains(request.getMethod());
+                if (request.getRequestURI().startsWith("/"+ EXPORT_NAME + "/")) {
+                    return !WEBDAV_METHODS.contains(request.getMethod());
+                } else {
+                    return true;
+                }
             }
 
             @Override
