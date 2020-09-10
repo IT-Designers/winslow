@@ -61,6 +61,7 @@ public class Security extends WebSecurityConfigurerAdapter {
         var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookiePath("/");
         http.csrf().csrfTokenRepository(repo);
+        http.csrf().ignoringAntMatchers("/webdav/**");
     }
 
 
