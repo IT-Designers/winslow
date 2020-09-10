@@ -2,53 +2,35 @@ package de.itdesigners.winslow.web.webdav;
 
 import io.milton.annotations.*;
 
+import javax.annotation.Nonnull;
+import java.io.*;
+import java.nio.file.Path;
 import java.util.Date;
 
-public class WebDavFile {
-    private String name;
-    private Date   createdDate;
-    private Date   modifiedDate;
-    private Long   contentLength;
-    private byte[] bytes;
+public class WebDavFile extends WebDavEntry {
 
-    public WebDavFile(String name, byte[] bytes) {
-        this.name = name;
-        this.bytes = bytes;
-        this.createdDate = new Date();
-        this.modifiedDate= new Date();
-        this.contentLength = (long) bytes.length;
-    }
-
-    @Name
-    public String getName() {
-        return name;
-    }
-
-    @UniqueId
-    public String getUniqueId() {
-        return name;
+    public WebDavFile(
+            @Nonnull Path root,
+            @Nonnull Path path) {
+        super(root, path);
     }
 
     @ModifiedDate
     public Date getModifiedDate() {
-        return modifiedDate;
-    }
-
-    @CreatedDate
-    public Date getCreatedDate() {
-        return createdDate;
+        return new Date(getFullPath().toFile().lastModified());
     }
 
     @ContentLength
-    public Long getContentLength() {
-        return (long) bytes.length;
+    public long getContentLength() {
+        return getFullPath().toFile().length();
     }
 
-    public byte[] getBytes() {
-        return bytes;
+    @Get
+    public InputStream getInputStream() throws FileNotFoundException {
+        return new FileInputStream(getFullPath().toFile());
     }
 
-    public void setBytes(byte[] bytes) {
-        this.bytes = bytes;
+    public OutputStream getOutputStream() throws FileNotFoundException {
+        return new FileOutputStream(getFullPath().toFile());
     }
 }

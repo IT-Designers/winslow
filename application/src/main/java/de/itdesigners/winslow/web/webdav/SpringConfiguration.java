@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Set;
 
+import static de.itdesigners.winslow.web.webdav.WebDavController.EXPORT_NAME;
+
 @Configuration
 @EnableWebMvc
 public class SpringConfiguration implements WebMvcConfigurer {
@@ -68,7 +70,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
         registration.setFilter(getMiltonFilter());
         registration.setName("MiltonFilter");
-        registration.addUrlPatterns("/webdav/*");
+        registration.addUrlPatterns("/" + EXPORT_NAME + "/*");
         //        registration.addInitParameter("milton.exclude.paths", "/myExcludedPaths,/moreExcludedPaths");
         registration.addInitParameter(
                 "resource.factory.class",
