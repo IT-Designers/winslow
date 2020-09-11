@@ -8,6 +8,12 @@
 
 }
 
+.history-comment {
+  flex-grow: 2;
+  text-align: end;
+  color: darkgray;
+}
+
 .history-control-icons {
   flex-grow: 1;
   text-align: end;

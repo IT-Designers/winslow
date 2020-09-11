@@ -15,6 +15,7 @@
         [enqueued]="executionGroup.enqueueIndex != null"
         [running]="executionGroup.active || executionGroup.isMostRecentStateRunning()"
         [paused]="pipelineIsPaused == true"
+        [comment]="executionGroup?.comment"
 
         (clickResume)="clickResume.emit(executionGroup)"
         (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(executionGroup)"
