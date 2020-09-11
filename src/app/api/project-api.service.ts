@@ -113,7 +113,8 @@ export class ProjectApiService {
     rangedEnv?: Map<string, RangeWithStepSize>,
     image: ImageInfo = null,
     requiredResources: ResourceInfo = null,
-    workspaceConfiguration: WorkspaceConfiguration = null
+    workspaceConfiguration: WorkspaceConfiguration = null,
+    comment: string = null
   ) {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
@@ -129,6 +130,9 @@ export class ProjectApiService {
     }
     if (workspaceConfiguration != null) {
       form.set('workspaceConfiguration', JSON.stringify(workspaceConfiguration));
+    }
+    if (comment != null) {
+      form.set('comment', comment);
     }
     return this.client.put(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
@@ -419,6 +423,7 @@ export class ExecutionGroupInfo {
   workspaceConfiguration: WorkspaceConfiguration;
   stages: StageInfo[];
   active: boolean;
+  comment?: string;
   // local only
   enqueueIndex?: number;
 
