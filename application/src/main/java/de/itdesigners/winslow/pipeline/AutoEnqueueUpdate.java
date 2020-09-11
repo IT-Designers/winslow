@@ -174,7 +174,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 if (requiresConfirmation && !hasConfirmation) {
                     pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 } else {
-                    pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration);
+                    pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration, "automatic");
                 }
 
                 return pipeline;

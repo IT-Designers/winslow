@@ -22,7 +22,8 @@ public class ExecutionGroupInfoConverter {
                         .getStages()
                         .map(StageInfoConverter::from)
                         .collect(Collectors.toList()),
-                active
+                active,
+                group.getComment()
         );
     }
 }

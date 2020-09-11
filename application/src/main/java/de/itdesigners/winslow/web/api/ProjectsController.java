@@ -752,7 +752,8 @@ public class ProjectsController {
             @RequestParam("stageIndex") int index,
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
-            @RequestParam(value = "workspaceConfiguration", required = false) @Nullable WorkspaceConfiguration workspaceConfiguration
+            @RequestParam(value = "workspaceConfiguration", required = false) @Nullable WorkspaceConfiguration workspaceConfiguration,
+            @RequestParam(value = "comment", required = false) @Nullable String comment
     ) {
         getProjectIfAllowedToAccess(user, projectId)
 
@@ -769,7 +770,8 @@ public class ProjectsController {
                                         rangedEnv,
                                         image,
                                         requiredResources,
-                                        workspaceConfiguration
+                                        workspaceConfiguration,
+                                        comment
                                 );
                                 return Boolean.TRUE;
                             })
@@ -787,7 +789,8 @@ public class ProjectsController {
             @RequestParam("projectIds") String[] projectIds,
             @RequestParam("env") Map<String, String> env,
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
-            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources
+            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
+            @RequestParam(value = "comment", required = false) @Nullable String comment
     ) {
         var stageDefinitionBase = getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
@@ -809,7 +812,8 @@ public class ProjectsController {
                                     stageDefinitionBase,
                                     env,
                                     image,
-                                    requiredResources
+                                    requiredResources,
+                                    comment
                             );
                             return Boolean.TRUE;
                         }))
@@ -842,7 +846,8 @@ public class ProjectsController {
                                                         .orElse(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
                                                 null,
                                                 null
-                                        )
+                                        ),
+                                        null
                                 );
                             }
 
@@ -858,8 +863,9 @@ public class ProjectsController {
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
             @Nullable ImageInfo image,
-            @Nullable ResourceInfo requiredResources) {
-        enqueueStage(pipeline, base, env, null, image, requiredResources, Action.Configure, null);
+            @Nullable ResourceInfo requiredResources,
+            @Nullable String comment) {
+        enqueueStage(pipeline, base, env, null, image, requiredResources, Action.Configure, null, comment);
     }
 
     private static void enqueueExecutionStage(
@@ -869,8 +875,19 @@ public class ProjectsController {
             @Nullable Map<String, RangedValue> rangedEnv,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
-            @Nullable WorkspaceConfiguration workspaceConfiguration) {
-        enqueueStage(pipeline, base, env, rangedEnv, image, requiredResources, Action.Execute, workspaceConfiguration);
+            @Nullable WorkspaceConfiguration workspaceConfiguration,
+            @Nullable String comment) {
+        enqueueStage(
+                pipeline,
+                base,
+                env,
+                rangedEnv,
+                image,
+                requiredResources,
+                Action.Execute,
+                workspaceConfiguration,
+                comment
+        );
     }
 
     private static void enqueueStage(
@@ -881,7 +898,8 @@ public class ProjectsController {
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nonnull Action action,
-            @Nullable WorkspaceConfiguration workspaceConfiguration) {
+            @Nullable WorkspaceConfiguration workspaceConfiguration,
+            @Nullable String comment) {
         if (workspaceConfiguration == null) {
             workspaceConfiguration = new WorkspaceConfiguration();
         }
@@ -919,9 +937,9 @@ public class ProjectsController {
             .ifPresent(shm -> resultDefinition.getImage().ifPresent(ri -> ri.setShmSizeMegabytes(shm)));
 
         if (action == Action.Configure) {
-            pipeline.enqueueConfiguration(resultDefinition);
+            pipeline.enqueueConfiguration(resultDefinition, comment);
         } else if (rangedEnv == null || rangedEnv.isEmpty()) {
-            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration);
+            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration, comment);
         } else {
             pipeline.enqueueRangedExecution(resultDefinition, workspaceConfiguration, rangedEnv);
         }

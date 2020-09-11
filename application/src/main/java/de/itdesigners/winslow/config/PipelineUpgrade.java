@@ -3,10 +3,9 @@ package de.itdesigners.winslow.config;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerFactory;
-import com.fasterxml.jackson.databind.deser.ResolvableDeserializer;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
@@ -101,7 +100,8 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                                     es.getDefinition().getName()
                                             ),
                                             es.getDefinition(),
-                                            es.getWorkspaceConfiguration()
+                                            es.getWorkspaceConfiguration(),
+                                            es.getComment().orElse(null)
                                     );
                                 case Configure:
                                     return new ExecutionGroup(
@@ -110,7 +110,8 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                                     executionCounter.incrementAndGet(),
                                                     es.getDefinition().getName()
                                             ),
-                                            es.getDefinition()
+                                            es.getDefinition(),
+                                            es.getComment().orElse(null)
                                     );
                                 default:
                                     throw new RuntimeException("Unexpected action for legacy storage " + es.getAction());

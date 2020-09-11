@@ -239,7 +239,8 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         null
-                )
+                ),
+                null
         );
         stuffer.accept(group);
         return group;
@@ -271,7 +272,8 @@ public class EnvVariableResolverTest {
                 null,
                 new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null),
                 new ArrayList<>(),
-                0
+                0,
+                null
         );
     }
 }

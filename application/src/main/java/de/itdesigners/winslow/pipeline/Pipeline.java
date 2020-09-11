@@ -256,18 +256,19 @@ public class Pipeline implements Cloneable {
     }
 
     @Nonnull
-    public ExecutionGroupId enqueueConfiguration(@Nonnull StageDefinition definition) {
+    public ExecutionGroupId enqueueConfiguration(@Nonnull StageDefinition definition, @Nullable String comment) {
         var id = incrementAndGetNextExecutionGroupId(definition.getName());
-        this.executionQueue.add(new ExecutionGroup(id, definition));
+        this.executionQueue.add(new ExecutionGroup(id, definition, comment));
         return id;
     }
 
     @Nonnull
     public ExecutionGroupId enqueueSingleExecution(
             @Nonnull StageDefinition definition,
-            @Nonnull WorkspaceConfiguration workspaceConfiguration) {
+            @Nonnull WorkspaceConfiguration workspaceConfiguration,
+            @Nullable String comment) {
         var id = incrementAndGetNextExecutionGroupId(definition.getName());
-        this.executionQueue.add(new ExecutionGroup(id, definition, workspaceConfiguration));
+        this.executionQueue.add(new ExecutionGroup(id, definition, workspaceConfiguration, comment));
         return id;
     }
 
@@ -280,6 +281,7 @@ public class Pipeline implements Cloneable {
         this.executionQueue.add(new ExecutionGroup(id, definition, rangedValues, workspaceConfiguration));
         return id;
     }
+
     @Nonnull
     public Optional<DeletionPolicy> getDeletionPolicy() {
         return Optional.ofNullable(this.deletionPolicy);
