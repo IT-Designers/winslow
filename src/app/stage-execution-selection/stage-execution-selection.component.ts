@@ -43,6 +43,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   image = new ImageInfo();
   resources = new ResourceInfo();
   workspaceConfiguration = new WorkspaceConfiguration();
+  comment = null;
   valid = false;
 
   // env cache
@@ -151,12 +152,17 @@ export class StageExecutionSelectionComponent implements OnInit {
     return this.workspaceConfiguration;
   }
 
+  getComment(): string {
+    return this.comment;
+  }
+
   loadStagesForPipeline(pipelineId: string) {
     this.selectedPipeline = null;
     this.selectedPipelineEmitter.emit(null);
     this.selectedStage = null;
     this.selectedStageEmitter.emit(null);
     this.environmentVariables = null;
+    this.comment = null;
 
     for (const pipeline of this.pipelines) {
       if (pipeline.id === pipelineId) {
