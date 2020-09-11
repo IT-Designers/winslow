@@ -365,7 +365,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     rangedEnv: any,
     image: ImageInfo,
     requiredResources?: ResourceInfo,
-    workspaceConfiguration?: WorkspaceConfiguration
+    workspaceConfiguration?: WorkspaceConfiguration,
+    comment?: string
   ) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
@@ -377,7 +378,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.enqueue(this.project.id, index, env, rangedEnv, image, requiredResources, workspaceConfiguration),
+          this.api.enqueue(this.project.id, index, env, rangedEnv, image, requiredResources, workspaceConfiguration, comment),
           `Submitting selections`
         );
       }
@@ -648,6 +649,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.executionSelection.resources = group.stageDefinition.requiredResources;
     this.executionSelection.selectedStage = group.stageDefinition;
     this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
+    this.executionSelection.comment = group.comment;
     this.environmentVariables = new Map();
     this.defaultEnvironmentVariables = entry != null ? new Map(entry.env) : new Map(group.stageDefinition.env);
     this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? new Map(group.rangedValues) : new Map();

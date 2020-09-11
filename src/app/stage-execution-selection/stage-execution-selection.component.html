@@ -58,6 +58,15 @@
       </button>
     </div>
   </div>
+
+  <div class="action-row">
+    <mat-label class="title">Comment</mat-label>
+    <mat-form-field>
+      <input matInput [value]="comment" (change)="comment = $event.target.value">
+    </mat-form-field>
+    <div class="controls">
+    </div>
+  </div>
 </ng-container>
 
 <ng-container *ngIf="environmentVariablesValue != null">
