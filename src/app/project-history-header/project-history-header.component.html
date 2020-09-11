@@ -4,8 +4,12 @@
 <div class="history-list-column history-item-no">{{itemNo}}</div>
 <div
   class="history-list-column history-item-date">{{toDate(time)}}</div>
-<div
-  class="history-list-column">{{isConfigure ? '[Configured] ' : ''}}{{stageName}}</div>
+<div class="history-list-column">
+  {{isConfigure ? '[Configured] ' : ''}}{{stageName}}
+</div>
+<div class="history-list-column history-comment">
+  {{comment}}
+</div>
 <div class="history-list-column history-control-icons">
   <mat-icon *ngIf="paused && showResumeOnlyThisStage"
             matTooltip="Resume only this stage" class="clickable"
