@@ -477,6 +477,18 @@ export class ExecutionGroupInfo {
     }
     return false;
   }
+
+  public getGroupSize(): number {
+    if (this.rangedValues?.size > 0) {
+      let size = 0;
+      for (const entry of this.rangedValues.entries()) {
+        size += entry[1].getStageCount();
+      }
+      return size;
+    } else {
+      return 1;
+    }
+  }
 }
 
 export class StageInfo {
