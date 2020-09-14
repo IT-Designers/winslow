@@ -1,3 +1,8 @@
+:host {
+  display: flex;
+  flex-grow: 1;
+}
+
 .project-selection-sidebar-item {
   height: 6em !important; /* TODO */
 }
