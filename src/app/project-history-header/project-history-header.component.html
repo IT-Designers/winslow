@@ -4,6 +4,12 @@
 <div class="history-list-column history-item-no">{{itemNo}}</div>
 <div
   class="history-list-column history-item-date">{{toDate(time)}}</div>
+<div class="history-list-column history-batch">
+  <mat-icon *ngIf="groupSize > 1"
+            [matTooltip]="'This group contains ' + groupSize + ' executions'">
+    batch_prediction
+  </mat-icon>
+</div>
 <div class="history-list-column">
   {{isConfigure ? '[Configured] ' : ''}}{{stageName}}
 </div>

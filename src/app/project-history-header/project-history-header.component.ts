@@ -15,6 +15,7 @@ export class ProjectHistoryHeaderComponent implements OnInit {
   @Input() time: number;
   @Input() stageName: string;
   @Input() comment: string;
+  @Input() groupSize: number;
   @Input() paused: boolean;
   @Input() enqueued: boolean;
   @Input() running: boolean;
