@@ -69,6 +69,7 @@
           [enqueued]="false"
           [running]="stage.state == State.Running"
           [paused]="stage.state == State.Paused"
+          [comment]="getRangeEnvVariableValues(stage)"
 
           (clickKillCurrentStage)="clickKillStage.emit(stage)"
           (clickUseAsBlueprint)="clickUseAsBlueprint.emit(stage)"
