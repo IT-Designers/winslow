@@ -101,7 +101,10 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                             ),
                                             es.getDefinition(),
                                             es.getWorkspaceConfiguration(),
-                                            es.getComment().orElse(null)
+                                            es.getComment()
+                                              .map(String::trim)
+                                              .filter(s -> !s.isEmpty())
+                                              .orElse(null)
                                     );
                                 case Configure:
                                     return new ExecutionGroup(
@@ -111,7 +114,10 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                                     es.getDefinition().getName()
                                             ),
                                             es.getDefinition(),
-                                            es.getComment().orElse(null)
+                                            es.getComment()
+                                              .map(String::trim)
+                                              .filter(s -> !s.isEmpty())
+                                              .orElse(null)
                                     );
                                 default:
                                     throw new RuntimeException("Unexpected action for legacy storage " + es.getAction());

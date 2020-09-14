@@ -202,9 +202,9 @@ public class ExecutionGroup {
     /**
      * @return A user comment for this execution group
      */
-    @Nullable
-    public String getComment() {
-        return comment;
+    @Nonnull
+    public Optional<String> getComment() {
+        return Optional.ofNullable(comment);
     }
 
     /**

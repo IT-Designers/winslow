@@ -83,6 +83,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 });
             });
         });
+
+        context
+                .getExecutionGroup()
+                .getComment()
+                .ifPresent(comment -> submission.withInternalEnvVariable(Env.SELF_PREFIX + "_GROUP_COMMENT", comment));
     }
 
     @Override
