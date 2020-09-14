@@ -2,10 +2,7 @@
   display: flex;
   flex-direction: row;
   flex-grow: 1;
-}
-
-.history-list-item {
-
+  overflow: hidden;
 }
 
 .history-batch {
@@ -25,11 +22,25 @@
   text-align: end;
 }
 
-.history-list-column:not(:first-child) {
-  padding-left: 1em;
-  overflow: hidden;
-}
-
 .state-icon-fix > span {
   align-items: center;
+}
+
+.history-list-column {
+  white-space: nowrap;
+}
+
+.history-list-column:not(:first-child) {
+  padding-left: 1em;
+}
+
+.history-list-column:not(:last-child):not(:first-child) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+.history-item-no, .history-item-date, .history-control-icons {
+  overflow: unset !important;
 }

@@ -13,7 +13,7 @@
 <div class="history-list-column">
   {{isConfigure ? '[Configured] ' : ''}}{{stageName}}
 </div>
-<div class="history-list-column history-comment">
+<div class="history-list-column history-comment" [matTooltip]="comment">
   {{comment}}
 </div>
 <div class="history-list-column history-control-icons">

@@ -44,4 +44,17 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   max(a: number, b: number) {
     return Math.max(a, b);
   }
+
+  getRangeEnvVariableValues(stage: StageInfo): string {
+    if (this.executionGroup.getGroupSize() > 1) {
+      return [...this.executionGroup
+        .rangedValues
+        .keys()]
+        .sort()
+        .map(e => e[0] + '=' + stage.env.get(e[0]))
+        .join(', ');
+    } else {
+      return null;
+    }
+  }
 }
