@@ -79,7 +79,6 @@ body {
   border: 1px solid silver;
   border-radius: 1em;
   padding: 1em;
-  margin: 1em 0;
   background-color: white;
 }
 
@@ -124,11 +123,6 @@ body {
   margin-top: 1.5em !important;
 }
 
-.auto-full-height {
-  height: calc(100vh - 6em);
-  padding: 1em 0;
-}
-
 /* --- Mat-Design Fixes --- */
 .mat-expansion-panel-header-description {
   flex-grow: 0 !important;
@@ -170,14 +164,20 @@ body {
 .vmenu-host {
   display: flex;
   flex-direction: row;
+  flex-grow: 1;
 }
 
 .vmenu-selection-container {
   display: flex;
   max-width: 30vw;
-  padding: 0.5em;
   flex-grow: 0;
   flex-shrink: 0;
+}
+
+.vmenu-selection-container .mat-card {
+  background-color: whitesmoke;
+  padding: 0.5em;
+  border-right: 1px solid lightgray;
 }
 
 .vmenu-selection {
@@ -192,6 +192,27 @@ body {
   background-color: #6495ED20;
   border-left: 1px solid cornflowerblue;
 }
+
+
+
+
+
+
+.container > * {
+  max-height: 100% !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 /* --- Mat-Design Fixes --- */
 .vmenu-selection mat-list-item:not(:last-child) {
   /* same color as the Mat-Design uses */
@@ -208,7 +229,7 @@ body {
   display: flex;
   flex-grow: 1;
   overflow: auto;
-  padding: 0.5em;
+  padding: 0;
 }
 /* --- Mat-Design Fixes --- */
 mat-card.vmenu-container-selection {
