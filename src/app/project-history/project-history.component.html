@@ -16,6 +16,7 @@
         [running]="executionGroup.active || executionGroup.isMostRecentStateRunning()"
         [paused]="pipelineIsPaused == true"
         [comment]="executionGroup?.comment"
+        [groupSize]="executionGroup.getGroupSize()"
 
         (clickResume)="clickResume.emit(executionGroup)"
         (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(executionGroup)"

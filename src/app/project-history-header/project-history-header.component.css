@@ -8,6 +8,12 @@
 
 }
 
+.history-batch {
+  width: 1.3em;
+  color: darkgray;
+  margin: -0.125em -0.5em auto;
+}
+
 .history-comment {
   flex-grow: 2;
   text-align: end;
@@ -21,6 +27,7 @@
 
 .history-list-column:not(:first-child) {
   padding-left: 1em;
+  overflow: hidden;
 }
 
 .state-icon-fix > span {
