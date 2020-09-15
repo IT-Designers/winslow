@@ -58,7 +58,7 @@ public class WebDavController {
 
     @Nonnull
     private static Optional<User> getUser(@Nonnull Request request) {
-        return getUser(request.getAuthorization());
+        return Optional.ofNullable(request.getAuthorization()).flatMap(WebDavController::getUser);
     }
 
     @Nonnull
