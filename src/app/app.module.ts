@@ -65,6 +65,8 @@ import { ProjectHistoryHeaderComponent } from './project-history-header/project-
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
 import { ProjectHistoryComponent } from './project-history/project-history.component';
 import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/project-history-group-info.component';
+import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
+import {RxStompConfig} from './rx-stomp.config';
 
 @NgModule({
     declarations: [
@@ -172,7 +174,19 @@ import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/pro
 
     ],
   providers: [
-    {provide: MatDialogRef, useValue: {}},
+    {
+      provide: MatDialogRef,
+      useValue: {}
+    },
+    {
+      provide: InjectableRxStompConfig,
+      useValue: RxStompConfig
+    },
+    {
+      provide: RxStompService,
+      useFactory: rxStompServiceFactory,
+      deps: [InjectableRxStompConfig]
+    }
   ],
   bootstrap: [AppComponent],
   entryComponents: [

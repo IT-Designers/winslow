@@ -1,7 +1,7 @@
 <app-loading-info [error]="loadError ? loadError.message : null" [loading]="projects == null"></app-loading-info>
 
-<div class="vmenu-host">
-  <div *ngIf="projects != null" class="vmenu-selection-container">
+<div *ngIf="projects != null" class="vmenu-host">
+  <div class="vmenu-selection-container">
     <mat-card class="vmenu-selection">
       <div style="position: sticky; top: 1em; z-index: 1">
         <mat-accordion>

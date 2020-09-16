@@ -2,17 +2,19 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
+import {RxStompService} from '@stomp/ng2-stompjs';
 import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
+import {SubscriptionHandler} from './subscription-handler';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectApiService {
 
-  constructor(private client: HttpClient) {
-  }
-
   public cachedTags: string[] = [];
+  private projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
+  private projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
 
   private static getUrl(more?: string) {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
@@ -27,6 +29,26 @@ export class ProjectApiService {
 
   static toMap(entry) {
     return entry != null ? new Map(Object.keys(entry).map(key => [key, entry[key]])) : new Map();
+  }
+
+
+  constructor(private client: HttpClient, private rxStompService: RxStompService) {
+    this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(rxStompService, '/projects');
+    this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(rxStompService, '/projects/states', s => new StateInfo(s));
+
+    this.projectSubscriptionHandler.subscribe((id, value) => {
+      if (value != null) {
+        this.cacheTags(value.tags);
+      }
+    });
+  }
+
+  public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
+    return this.projectSubscriptionHandler;
+  }
+
+  public getProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
+    return this.projectStateSubscriptionHandler;
   }
 
   private cacheTags(tags: string[]) {
@@ -49,21 +71,11 @@ export class ProjectApiService {
   }
 
   listProjects() {
-    return this.client
-      .get<ProjectInfo[]>(ProjectApiService.getUrl(null))
-      .pipe(map(projects => {
-        projects.forEach(project => this.cacheTags(project.tags));
-        return projects;
-      }))
-      .toPromise();
+    return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
   getProjectPipelineDefinition(projectId: string) {
     return this.client.get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`)).toPromise();
-  }
-
-  getProjectState(projectId: string) {
-    return this.client.get<State>(ProjectApiService.getUrl(`${projectId}/state`)).toPromise();
   }
 
   getProjectStates(projectIds: string[]) {
