@@ -271,7 +271,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                             }
                                     );
                                 } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                    LOG.log(Level.SEVERE, "Failed to force abort onto stage " + event.getSubject(), e);
+                                    LOG.log(Level.FINE, "Failed to force abort onto stage " + event.getSubject(), e);
                                 }
                             }
                         });
@@ -738,7 +738,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    private Optional<Pipeline> getPipeline(@Nonnull String projectId) {
+    public Optional<Pipeline> getPipeline(@Nonnull String projectId) {
         return pipelines.getPipeline(projectId).unsafe();
     }
 

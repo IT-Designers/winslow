@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Optional;
 
 public class Env {
 
@@ -15,6 +14,7 @@ public class Env {
     public static final String NODE_NAME          = SELF_PREFIX + "_NODE_NAME";
     public static final String STATIC_HTML        = SELF_PREFIX + "_STATIC_HTML";
     public static final String API_PATH           = SELF_PREFIX + "_API_PATH";
+    public static final String WEBSOCKET_PATH     = SELF_PREFIX + "_WEBSOCKET_PATH";
     public static final String NO_STAGE_EXECUTION = SELF_PREFIX + "_NO_STAGE_EXECUTION";
     public static final String NO_GPU_USAGE       = SELF_PREFIX + "_NO_GPU_USAGE";
     public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
@@ -52,6 +52,11 @@ public class Env {
     @Nonnull
     public static String getApiPath() {
         return System.getenv().getOrDefault(API_PATH, "/api/v1/");
+    }
+
+    @Nonnull
+    public static String getWebsocketPath() {
+        return System.getenv().getOrDefault(WEBSOCKET_PATH, "/ws/v1/");
     }
 
     public static boolean isNoStageExecutionSet() {

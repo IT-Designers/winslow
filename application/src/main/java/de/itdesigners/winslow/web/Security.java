@@ -62,8 +62,11 @@ public class Security extends WebSecurityConfigurerAdapter {
     private void configureCsrfToken(HttpSecurity http) throws Exception {
         var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookiePath("/");
-        http.csrf().csrfTokenRepository(repo);
-        http.csrf().ignoringAntMatchers("/" + EXPORT_NAME + "/**");
+        http.csrf().csrfTokenRepository(repo)
+            .and().csrf().ignoringAntMatchers("/" + EXPORT_NAME + "/**")
+            .and().csrf().ignoringAntMatchers(Env.getWebsocketPath() + "**")
+        .and().headers().frameOptions().sameOrigin()
+        ;
     }
 
 

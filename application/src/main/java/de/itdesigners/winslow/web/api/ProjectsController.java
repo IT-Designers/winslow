@@ -45,6 +45,15 @@ public class ProjectsController {
         this.winslow = winslow;
     }
 
+    public Optional<ProjectInfo> getProject(@Nonnull User user, @Nonnull String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> project.canBeAccessedBy(user))
+                .map(ProjectInfoConverter::from);
+    }
+
     @GetMapping("/projects")
     public Stream<ProjectInfo> listProjects(User user) {
         return winslow
@@ -312,7 +321,7 @@ public class ProjectsController {
     }
 
     @Nonnull
-    private StateInfo getStateInfo(@Nonnull Pipeline pipeline) {
+    public StateInfo getStateInfo(@Nonnull Pipeline pipeline) {
         var state = getPipelineState(pipeline).orElse(null);
         var mostRecentStage = pipeline
                 .getActiveExecutionGroup()

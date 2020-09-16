@@ -5,15 +5,16 @@ import de.itdesigners.winslow.LockedContainer;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
+import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
+import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,18 +22,42 @@ import java.util.stream.Stream;
 
 public class ProjectRepository extends BaseRepository {
 
-    private static final Logger LOG         = Logger.getLogger(ProjectRepository.class.getSimpleName());
+    private static final Logger LOG = Logger.getLogger(ProjectRepository.class.getSimpleName());
+
+    private final @Nonnull List<Consumer<Pair<String, Handle<Project>>>> projectChangeListeners
+            = Collections.synchronizedList(new ArrayList<>());
 
     public ProjectRepository(
             LockBus lockBus,
             WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
+        registerLockBusChangeListener();
+    }
+
+    private void registerLockBusChangeListener() {
+        this.lockBus.registerEventListener(Event.Command.RELEASE, event -> {
+            getProjectIdFromLockEventSubject(Path.of(event.getSubject())).ifPresent(projectId -> {
+                var handle = getProject(projectId);
+                if (handle.exists()) {
+                    var pair = new Pair<>(projectId, handle);
+                    this.projectChangeListeners.forEach(listener -> listener.accept(pair));
+                }
+            });
+        });
+    }
+
+    public void registerProjectChangeListener(@Nonnull Consumer<Pair<String, Handle<Project>>> changeListener) {
+        this.projectChangeListeners.add(changeListener);
+    }
+
+    public void removeProjectChangeListener(@Nonnull Consumer<Pair<String, Handle<Project>>> changeListener) {
+        this.projectChangeListeners.remove(changeListener);
     }
 
     public Optional<String> getProjectIdForLockSubject(@Nonnull String lockSubject) {
         var absolute = workDirectoryConfiguration.getPath().resolve(lockSubject);
-        var prefix = getRepositoryDirectory().relativize(absolute).toString();
-        var index = prefix.indexOf('.');
+        var prefix   = getRepositoryDirectory().relativize(absolute).toString();
+        var index    = prefix.indexOf('.');
 
         if (index > 0) {
             return Optional.of(prefix.substring(0, index));
@@ -113,5 +138,16 @@ public class ProjectRepository extends BaseRepository {
     public boolean deleteProject(String id) {
         var path = getRepositoryDirectory().resolve(Path.of(id).getFileName() + FILE_EXTENSION);
         return getProject(path).exclusive().map(LockedContainer::deleteOmitExceptions).orElse(false);
+    }
+
+    @Nonnull
+    private Optional<String> getProjectIdFromLockEventSubject(@Nonnull Path path) {
+        var pathDirectory = path.getParent();
+        var fileName = path.getFileName().toString();
+        if (getRepositoryDirectory().endsWith(pathDirectory) && fileName.endsWith(FILE_EXTENSION) && !fileName.endsWith(PipelineRepository.FILE_SUFFIX)) {
+            return Optional.of(fileName.substring(0, fileName.length() - FILE_EXTENSION.length()));
+        } else {
+            return Optional.empty();
+        }
     }
 }
