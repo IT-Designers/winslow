@@ -18,7 +18,8 @@ import {
   WorkspaceMode
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MatDialog, MatTabGroup} from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTabGroup } from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo, ResourceInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';

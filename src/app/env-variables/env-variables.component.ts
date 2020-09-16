@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
-import {MatDialog} from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
 import {EnvVariable} from '../api/project-api.service';
 
 @Component({
