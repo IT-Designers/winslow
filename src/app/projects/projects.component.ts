@@ -32,6 +32,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   selectedProjectId: string = null;
 
   paramsSubscription: Subscription = null;
+  projectSubscription: Subscription = null;
+  projectStateSubscription: Subscription = null;
   effects: Effects = null;
 
   constructor(readonly api: ProjectApiService,
@@ -44,25 +46,55 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.projects = null;
-    this.api.listProjects()
-      .then(projects => {
-        this.projects = projects.sort((a, b) => a.name.localeCompare(b.name));
-        this.updateSelectedProject();
-        setTimeout(() => this.pollAllProjectsForChanges(), 10);
-      })
-      .catch(error => this.loadError = error);
-    this.interval = setInterval(() => this.pollAllProjectsForChanges(), 3000);
+    this.createEffects();
+
+    this.projectSubscription = this.createProjectSubscription();
+    this.projectStateSubscription = this.createProjectStateSubscription();
+
     this.paramsSubscription = this.route.params.subscribe(params => {
       this.selectedProjectId = params.id;
       this.updateSelectedProject();
     });
+  }
 
+  private createEffects() {
     try {
       this.effects = new Effects(this.users);
     } catch (e) {
       // ignore all errors
     }
+  }
+
+  private createProjectSubscription() {
+    return this.api.getProjectSubscriptionHandler().subscribe((id, value) => {
+      const projects = this.projects == null ? [] : [...this.projects];
+      const index = projects.findIndex(project => project.id === id);
+      if (index >= 0) {
+        projects[index] = value;
+      } else {
+        projects.push(value);
+        projects.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      this.projects = projects;
+      if (this.selectedProjectId === id) {
+        this.selectedProject = value;
+      }
+    });
+  }
+
+  private createProjectStateSubscription() {
+    return this.api.getProjectStateSubscriptionHandler().subscribe((id, value) => {
+      const stateInfo = this.stateInfo == null ? new Map() : new Map(this.stateInfo);
+      if (stateInfo.has(id) && value == null) {
+        stateInfo.delete(id);
+      } else {
+        stateInfo.set(id, value);
+        if (this.selectedProject?.id === id && this.effects != null) {
+          this.effects.update(value);
+        }
+      }
+      this.stateInfo = stateInfo;
+    });
   }
 
   private updateSelectedProject() {
@@ -83,25 +115,13 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       this.paramsSubscription.unsubscribe();
       this.paramsSubscription = null;
     }
-  }
-
-  pollAllProjectsForChanges() {
-    this.views.forEach(view => view.longLoading.increase());
-    if (this.projectsFiltered != null && this.projectsFiltered.length > 0) {
-      const projectIds = this.projectsFiltered.map(project => project.id);
-      this.api.getProjectStates(projectIds)
-        .then(result => {
-          this.stateInfo = new Map<string, StateInfo>();
-          for (let i = 0; i < result.length; ++i) {
-            this.stateInfo.set(projectIds[i], result[i]);
-            if (this.selectedProject?.id === projectIds[i] && this.effects != null) {
-              this.effects.update(result[i]);
-            }
-          }
-        })
-        .finally(() => {
-          this.views.forEach(view => view.longLoading.decrease());
-        });
+    if (this.projectSubscription) {
+      this.projectSubscription.unsubscribe();
+      this.projectSubscription = null;
+    }
+    if (this.projectStateSubscription) {
+      this.projectStateSubscription.unsubscribe();
+      this.projectStateSubscription = null;
     }
   }
 
