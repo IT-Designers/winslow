@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import {RxStompService} from '@stomp/ng2-stompjs';
+import {RxStompState} from '@stomp/rx-stomp';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +8,15 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'winslow-ui-ng';
+
+  connected = false;
+
+  constructor(private rxStompService: RxStompService) {
+    rxStompService
+      .connectionState$
+      .subscribe((connected) => {
+        this.connected = (connected === RxStompState.OPEN);
+        console.log('connected: ' + this.connected);
+      });
+  }
 }
