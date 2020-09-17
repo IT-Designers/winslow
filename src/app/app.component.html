@@ -3,7 +3,8 @@
   <div class="top-menu">
     <app-topbar></app-topbar>
   </div>
-  <div class="container">
+  <div class="container" [class.grayscale]="!connected">
+    <app-loading-info [loading]="!connected"></app-loading-info>
     <router-outlet></router-outlet>
   </div>
 </div>

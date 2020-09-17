@@ -13,7 +13,7 @@ export class TopbarComponent implements OnInit {
 
   constructor(private rxStompService: RxStompService) {
     rxStompService
-      .connected$
+      .connectionState$
       .subscribe((connected) => {
         this.connected = (connected === RxStompState.OPEN);
       });
