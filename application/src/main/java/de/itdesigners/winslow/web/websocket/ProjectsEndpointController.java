@@ -2,6 +2,7 @@ package de.itdesigners.winslow.web.websocket;
 
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.pipeline.ExecutionGroupInfo;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StateInfo;
 import de.itdesigners.winslow.api.project.ProjectInfo;
@@ -9,9 +10,11 @@ import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.project.Project;
+import de.itdesigners.winslow.web.ExecutionGroupInfoConverter;
 import de.itdesigners.winslow.web.ProjectInfoConverter;
 import de.itdesigners.winslow.web.api.ProjectsController;
 import de.itdesigners.winslow.web.websocket.ChangeEvent.ChangeType;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
@@ -19,25 +22,29 @@ import org.springframework.stereotype.Controller;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.security.Principal;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Controller
 public class ProjectsEndpointController {
 
-    public static final @Nonnull String TOPIC_PREFIX                 = "/projects";
-    public static final @Nonnull String TOPIC_PROJECTS               = TOPIC_PREFIX;
-    public static final @Nonnull String TOPIC_PROJECT_STATES         = TOPIC_PREFIX + "/states";
-    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_STATS = TOPIC_PREFIX + "/%s/stats";
+    public static final @Nonnull String TOPIC_PREFIX                     = "/projects";
+    public static final @Nonnull String TOPIC_PROJECTS                   = TOPIC_PREFIX;
+    public static final @Nonnull String TOPIC_PROJECT_STATES             = TOPIC_PREFIX + "/states";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_STATS     = TOPIC_PREFIX + "/%s/stats";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_HISTORY   = TOPIC_PREFIX + "/%s/history";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_EXECUTING = TOPIC_PREFIX + "/%s/executing";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_ENQUEUED  = TOPIC_PREFIX + "/%s/enqueued";
 
     private final @Nonnull MessageSender      sender;
     private final @Nonnull Winslow            winslow;
     private final @Nonnull ProjectsController projects;
 
     private final @Nonnull Map<String, RunningProjectsEndpointPublisher> runningPublishers = new ConcurrentHashMap<>();
+
+    private final @Nonnull Map<String, Object> cache = Collections.synchronizedMap(new WeakHashMap<>());
 
     public ProjectsEndpointController(
             @Nonnull SimpMessagingTemplate simp,
@@ -89,15 +96,28 @@ public class ProjectsEndpointController {
         this.sender.publishProjectUpdate(winslow, topic, projectId, value, project);
     }
 
+    private void publishProjectUpdateCached(
+            @Nonnull String topic,
+            @Nonnull String projectId,
+            @Nullable Object value,
+            @Nullable Project project) {
+        var prev = this.cache.replace(topic, value);
+        if (!Objects.equals(prev, value)) {
+            this.cache.put(topic, value);
+            this.sender.publishProjectUpdate(winslow, topic, projectId, value, project);
+        }
+
+    }
+
     private void onProjectRelease(@Nonnull String projectId, @Nullable Project project) {
         if (project == null) {
             stopProjectPublisher(projectId);
-            publishProjectUpdate(TOPIC_PROJECTS, projectId, Collections.singletonList(null), project);
+            publishProjectUpdate(TOPIC_PROJECTS, projectId, Collections.singletonList(null), null);
         } else {
             publishProjectUpdate(
                     TOPIC_PROJECTS,
                     projectId,
-                    Collections.singletonList(ProjectInfoConverter.from(project)),
+                    ProjectInfoConverter.from(project),
                     project
             );
         }
@@ -106,14 +126,75 @@ public class ProjectsEndpointController {
     private void onPipelineRelease(@Nonnull String projectId, @Nullable Pipeline pipeline) {
         if (pipeline == null) {
             stopProjectPublisher(projectId);
-            publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, Collections.singletonList(null), null);
+            publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, null, null);
+            publishProjectUpdateCached(
+                    String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId),
+                    projectId,
+                    Collections.singletonList(null),
+                    null
+            );
+            publishProjectUpdateCached(
+                    String.format(TOPIC_PROJECT_SPECIFIC_EXECUTING, projectId),
+                    projectId,
+                    Collections.singletonList(null),
+                    null
+            );
+            publishProjectUpdateCached(
+                    String.format(TOPIC_PROJECT_SPECIFIC_ENQUEUED, projectId),
+                    projectId,
+                    Collections.singletonList(null),
+                    null
+            );
         } else {
             this.winslow.getProjectRepository().getProject(projectId).unsafe().ifPresent(project -> {
                 var info = projects.getStateInfo(pipeline);
                 createOrStopProjectPublisher(projectId, project, State.Running == info.state);
-                publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, Collections.singletonList(info), project);
+                publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, info, project);
+                publishProjectUpdateCached(
+                        String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId),
+                        projectId,
+                        getHistoryInfo(pipeline),
+                        project
+                );
+                publishProjectUpdateCached(
+                        String.format(TOPIC_PROJECT_SPECIFIC_EXECUTING, projectId),
+                        projectId,
+                        getExecutionInfo(pipeline),
+                        project
+                );
+                publishProjectUpdateCached(
+                        String.format(TOPIC_PROJECT_SPECIFIC_ENQUEUED, projectId),
+                        projectId,
+                        getEnqueuedInfo(pipeline),
+                        project
+                );
             });
         }
+    }
+
+    @Nonnull
+    private List<ExecutionGroupInfo> getEnqueuedInfo(@Nonnull Pipeline pipeline) {
+        return pipeline
+                .getEnqueuedExecutions()
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false))
+                .collect(Collectors.toList());
+    }
+
+    @Nonnull
+    private List<ExecutionGroupInfo> getExecutionInfo(@Nonnull Pipeline pipeline) {
+        return pipeline
+                .getActiveExecutionGroup()
+                .map(g -> ExecutionGroupInfoConverter.convert(g, true))
+                .map(Collections::singletonList)
+                .orElseGet(Collections::emptyList);
+    }
+
+    @Nonnull
+    private List<ExecutionGroupInfo> getHistoryInfo(@Nonnull Pipeline pipeline) {
+        return pipeline
+                .getExecutionHistory()
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false))
+                .collect(Collectors.toList());
     }
 
     private void createOrStopProjectPublisher(
@@ -155,6 +236,51 @@ public class ProjectsEndpointController {
                                 .stream()
                         ))
                 .orElse(Stream.empty());
+    }
+
+    @SubscribeMapping("/projects/{projectId}/history")
+    public Stream<ChangeEvent<String, List<ExecutionGroupInfo>>> subscribeProjectHistory(
+            @DestinationVariable("projectId") String projectId,
+            Principal principal) {
+        return getUser(principal)
+                .filter(user -> projects.getProject(user, projectId).isPresent())
+                .flatMap(user -> winslow.getOrchestrator().getPipeline(projectId))
+                .map(pipeline -> {
+                    var historyInfo = getHistoryInfo(pipeline);
+                    this.cache.put(String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId), historyInfo);
+                    return new ChangeEvent<>(ChangeType.CREATE, projectId, historyInfo);
+                })
+                .stream();
+    }
+
+    @SubscribeMapping("/projects/{projectId}/executing")
+    public Stream<ChangeEvent<String, List<ExecutionGroupInfo>>> subscribeProjectExecution(
+            @DestinationVariable("projectId") String projectId,
+            Principal principal) {
+        return getUser(principal)
+                .filter(user -> projects.getProject(user, projectId).isPresent())
+                .flatMap(user -> winslow.getOrchestrator().getPipeline(projectId))
+                .map(pipeline -> {
+                    var execInfo = getExecutionInfo(pipeline);
+                    this.cache.put(String.format(TOPIC_PROJECT_SPECIFIC_EXECUTING, projectId), execInfo);
+                    return new ChangeEvent<>(ChangeType.CREATE, projectId, execInfo);
+                })
+                .stream();
+    }
+
+    @SubscribeMapping("/projects/{projectId}/enqueued")
+    public Stream<ChangeEvent<String, List<ExecutionGroupInfo>>> subscribeProjectEnqueued(
+            @DestinationVariable("projectId") String projectId,
+            Principal principal) {
+        return getUser(principal)
+                .filter(user -> projects.getProject(user, projectId).isPresent())
+                .flatMap(user -> winslow.getOrchestrator().getPipeline(projectId))
+                .map(pipeline -> {
+                    var enquedInfo = getEnqueuedInfo(pipeline);
+                    this.cache.put(String.format(TOPIC_PROJECT_SPECIFIC_ENQUEUED, projectId), enquedInfo);
+                    return new ChangeEvent<>(ChangeType.CREATE, projectId, enquedInfo);
+                })
+                .stream();
     }
 
     @Nonnull

@@ -6,7 +6,6 @@ import de.itdesigners.winslow.project.Project;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
 
 import static de.itdesigners.winslow.web.websocket.ProjectsEndpointController.TOPIC_PROJECT_SPECIFIC_STATS;
 
@@ -21,7 +20,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
             @Nonnull MessageSender sender,
             @Nonnull Winslow winslow,
             @Nonnull Project project) {
-        this.sender = sender;
+        this.sender  = sender;
         this.winslow = winslow;
         this.project = project;
     }
@@ -36,10 +35,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
     }
 
     private void publishUpdate(@Nullable Stats stats) {
-        this.publishProjectUpdate(
-                String.format(TOPIC_PROJECT_SPECIFIC_STATS, project.getId()),
-                Collections.singletonList(stats)
-        );
+        this.publishProjectUpdate(String.format(TOPIC_PROJECT_SPECIFIC_STATS, project.getId()), stats);
     }
 
     @Override

@@ -8,6 +8,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Stream;
 
 import static de.itdesigners.winslow.web.websocket.ProjectsEndpointController.encapsulate;
 import static de.itdesigners.winslow.web.websocket.ProjectsEndpointController.getPermissionChecker;
@@ -32,14 +34,12 @@ public class MessageSender {
         }
     }
 
-    public void convertAndSend(
+    private void convertAndSend(
             @Nonnull String destination,
             @Nonnull Object value,
             @Nonnull PrincipalPermissionChecker permissionChecker) {
         this.simp.convertAndSend(destination, new PermissionCheckedPayload(permissionChecker, value));
     }
-
-
 
 
     public void publishProjectUpdate(
@@ -50,11 +50,29 @@ public class MessageSender {
             @Nullable Project project) {
         this.convertAndSend(
                 destination,
-                value instanceof Collection<?>
-                ? ((Collection<?>) value).stream().map(v -> encapsulate(projectId, v))
-                : encapsulate(projectId, value),
+                // encapsulate(projectId, value),
+                value instanceof IndividualEvents<?>
+                ? ((IndividualEvents<?>) value).encapsulated(projectId)
+                : Collections.singletonList(encapsulate(projectId, value)),
                 getPermissionChecker(winslow, project)
         );
     }
 
+    public static class IndividualEvents<T> {
+        protected final T value;
+
+        public IndividualEvents(T value) {
+            this.value = value;
+        }
+
+        public Object encapsulated(@Nonnull String projectId) {
+            if (value instanceof Stream<?>) {
+                return ((Stream<?>) value).map(v -> encapsulate(projectId, v));
+            } else if (value instanceof Collection<?>) {
+                return ((Collection<?>) value).stream().map(v -> encapsulate(projectId, v));
+            } else {
+                return Collections.singletonList(encapsulate(projectId, value));
+            }
+        }
+    }
 }
