@@ -1,20 +1,20 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {Action, ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
-import { MatDialog } from '@angular/material/dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
-import {pipe} from 'rxjs';
+import {pipe, Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-project-overview',
   templateUrl: './project-overview.component.html',
   styleUrls: ['./project-overview.component.css']
 })
-export class ProjectOverviewComponent implements OnInit, OnDestroy {
+export class ProjectOverviewComponent implements OnDestroy {
 
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
@@ -44,7 +44,7 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   memoryMax = 1;
   cpu: any[] = [];
   cpuMax = 100;
-  poll = null;
+  subscription: Subscription = null;
 
   enqueued: ExecutionGroupInfo[] = [];
   pipelineActions: PipelineInfo[] = [];
@@ -53,22 +53,6 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
               private dialog: DialogService,
               private createDialog: MatDialog,
               private  pipelines: PipelineApiService) {
-    this.poll = setInterval(() => {
-      const updateNonetheless = new Date().getTime() - this.lastSuccessfulStatsUpdate < 5_000;
-      if (this.projectValue && (State.Running === this.stateValue || updateNonetheless)) {
-        this.api.getStats(this.projectValue.id)
-          .then(stats => {
-            if (stats) {
-              this.lastSuccessfulStatsUpdate = new Date().getTime();
-            } else if (updateNonetheless) {
-              stats = new StatsInfo();
-            }
-            if (stats) {
-              this.onStatsUpdate(stats);
-            }
-          });
-      }
-    }, ProjectOverviewComponent.UPDATE_INTERVAL);
   }
 
   private static maxOfSeriesOr(series: any[], minimum: number, upperMax: number) {
@@ -90,6 +74,8 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
   @Input()
   set project(value: ProjectInfo) {
     this.projectValue = value;
+    this.unsubscribe();
+    this.subscribe();
     if (value != null) {
       this.pipelines
         .getPipelineDefinitions()
@@ -148,14 +134,8 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
     }];
   }
 
-
-  ngOnInit() {
-  }
-
   ngOnDestroy() {
-    if (this.poll) {
-      clearInterval(this.poll);
-    }
+    this.unsubscribe();
   }
 
   @Input()
@@ -296,5 +276,19 @@ export class ProjectOverviewComponent implements OnInit, OnDestroy {
     const green = ((sum / 5) % max) + min;
     const blue = ((sum / 3) % max) + min;
     return `rgba(${red}, ${green}, ${blue}, 0.45)`;
+  }
+
+  private subscribe() {
+    this.unsubscribe();
+    this.subscription = this.api.watchProjectStats(this.projectValue.id, stats => {
+      this.onStatsUpdate(stats);
+    });
+  }
+
+  private unsubscribe() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+      this.subscription = null;
+    }
   }
 }

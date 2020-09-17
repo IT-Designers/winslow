@@ -5,6 +5,9 @@ import {map} from 'rxjs/operators';
 import {RxStompService} from '@stomp/ng2-stompjs';
 import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
 import {SubscriptionHandler} from './subscription-handler';
+import {Subscription} from 'rxjs';
+import {Message} from '@stomp/stompjs';
+import {ChangeEvent} from './api.service';
 
 
 @Injectable({
@@ -50,6 +53,17 @@ export class ProjectApiService {
       }
     });
     this.cachedTags = this.cachedTags.sort();
+  }
+
+  public watchProjectStats(projectId: string, listener: (update: StatsInfo) => void): Subscription {
+    return this.rxStompService.watch(`/projects/${projectId}/stats`).subscribe((message: Message) => {
+      const events: ChangeEvent<string, StatsInfo>[] = JSON.parse(message.body);
+      events.forEach(event => {
+        if (event.identifier === projectId) {
+          listener(event.value ? event.value : new StatsInfo());
+        }
+      });
+    });
   }
 
   public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
@@ -281,10 +295,6 @@ export class ProjectApiService {
 
   getDefaultDeletionPolicy(projectId: string): Promise<DeletionPolicy> {
     return this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy/default`)).toPromise();
-  }
-
-  getStats(projectId: string): Promise<StatsInfo> {
-    return this.client.get<StatsInfo>(ProjectApiService.getUrl(`${projectId}/stats`)).toPromise();
   }
 
   pruneHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
