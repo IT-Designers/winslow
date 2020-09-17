@@ -23,3 +23,13 @@
   background-color: #00000011;
   border-radius: 0.35em;
 }
+
+
+
+.ws-connected {
+
+}
+
+.ws-disconnected {
+  filter: grayscale(100%);
+}
