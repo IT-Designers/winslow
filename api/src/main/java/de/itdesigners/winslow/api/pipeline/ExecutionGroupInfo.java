@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class ExecutionGroupInfo {
 
@@ -33,5 +34,36 @@ public class ExecutionGroupInfo {
         this.stages                 = stages;
         this.active                 = active;
         this.comment                = comment;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ExecutionGroupInfo that = (ExecutionGroupInfo) o;
+        return configureOnly == that.configureOnly &&
+                active == that.active &&
+                id.equals(that.id) &&
+                stageDefinition.equals(that.stageDefinition) &&
+                rangedValues.equals(that.rangedValues) &&
+                workspaceConfiguration.equals(that.workspaceConfiguration) &&
+                stages.equals(that.stages) &&
+                Objects.equals(comment, that.comment);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                id,
+                configureOnly,
+                stageDefinition,
+                rangedValues,
+                workspaceConfiguration,
+                stages,
+                active,
+                comment
+        );
     }
 }
