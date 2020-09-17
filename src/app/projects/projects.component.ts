@@ -26,7 +26,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   projects: ProjectInfo[] = null;
   projectsFiltered: ProjectInfo[] = null;
   stateInfo: Map<string, StateInfo> = null;
-  loadError = null;
   interval;
   selectedProject: ProjectInfo = null;
   selectedProjectId: string = null;
