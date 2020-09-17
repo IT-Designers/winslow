@@ -1205,8 +1205,10 @@ public class ProjectsController {
                 .filter(project -> project.canBeAccessedBy(user));
     }
 
+    @Deprecated(forRemoval = true)
     @GetMapping("projects/{projectId}/stats")
     public Optional<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
+        LOG.warning("Someone accessed the deprecated /stats api");
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
