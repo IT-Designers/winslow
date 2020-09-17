@@ -66,6 +66,29 @@ export class ProjectApiService {
     });
   }
 
+  private watchProjectExecutionGroupInfo(projectId: string, specialization: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+    return this.rxStompService.watch(`/projects/${projectId}/${specialization}`).subscribe((message: Message) => {
+      const events: ChangeEvent<string, ExecutionGroupInfo[]>[] = JSON.parse(message.body);
+      events.forEach(event => {
+        if (event.identifier === projectId) {
+          listener(event.value ? ProjectApiService.fixExecutionGroupInfo(event.value) : []);
+        }
+      });
+    });
+  }
+
+  public watchProjectHistory(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+    return this.watchProjectExecutionGroupInfo(projectId, 'history', listener);
+  }
+
+  public watchProjectExecutions(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+    return this.watchProjectExecutionGroupInfo(projectId, 'executing', listener);
+  }
+
+  public watchProjectEnqueued(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+    return this.watchProjectExecutionGroupInfo(projectId, 'enqueued', listener);
+  }
+
   public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
     return this.projectSubscriptionHandler;
   }
@@ -207,7 +230,7 @@ export class ProjectApiService {
     return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`)).toPromise();
   }
 
-  setProjectRawPipelineDefinition(projectId: string, raw: string): Promise<void|ParseError> {
+  setProjectRawPipelineDefinition(projectId: string, raw: string): Promise<void | ParseError> {
     const form = new FormData();
     form.set('raw', raw);
     return this.client.post<ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), form)
