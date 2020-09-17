@@ -412,8 +412,10 @@ public class ProjectsController {
                 .orElse(Boolean.FALSE);
     }
 
+    @Deprecated(forRemoval = true)
     @GetMapping("projects/{projectId}/paused")
     public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId) {
+        LOG.log(Level.WARNING, "Someone accessed the deprecated /paused api");
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -569,8 +571,10 @@ public class ProjectsController {
         return ResponseEntity.notFound().build();
     }
 
+    @Deprecated(forRemoval = true)
     @GetMapping("projects/{projectId}/pause-reason")
     public Optional<Pipeline.PauseReason> getPauseReason(User user, @PathVariable("projectId") String projectId) {
+        LOG.warning("Someone accessed the deprecated /paused-reason api");
         return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getPauseReason);
     }
 
