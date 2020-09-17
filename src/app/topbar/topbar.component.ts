@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {RxStompService} from '@stomp/ng2-stompjs';
+import {RxStompState} from '@stomp/rx-stomp';
 
 @Component({
   selector: 'app-topbar',
@@ -7,7 +9,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TopbarComponent implements OnInit {
 
-  constructor() { }
+  connected = false;
+
+  constructor(private rxStompService: RxStompService) {
+    rxStompService
+      .connected$
+      .subscribe((connected) => {
+        this.connected = (connected === RxStompState.OPEN);
+      });
+  }
 
   ngOnInit() {
   }
