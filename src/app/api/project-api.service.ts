@@ -43,14 +43,6 @@ export class ProjectApiService {
     });
   }
 
-  public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
-    return this.projectSubscriptionHandler;
-  }
-
-  public getProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
-    return this.projectStateSubscriptionHandler;
-  }
-
   private cacheTags(tags: string[]) {
     tags.forEach(tag => {
       if (this.cachedTags.indexOf(tag) < 0) {
@@ -60,29 +52,34 @@ export class ProjectApiService {
     this.cachedTags = this.cachedTags.sort();
   }
 
-  createProject(name: string, pipeline: PipelineInfo, tags?: string[]) {
+  public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
+    return this.projectSubscriptionHandler;
+  }
+
+  public getProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
+    return this.projectStateSubscriptionHandler;
+  }
+
+  createProject(name: string, pipeline: PipelineInfo, tags?: string[]): Promise<ProjectInfo> {
     const form = new FormData();
     form.append('name', name);
     form.append('pipeline', pipeline.id);
     if (tags != null) {
       form.set('tags', JSON.stringify(tags));
     }
-    return this.client.post<any>(ProjectApiService.getUrl(null), form).toPromise();
+    return this.client
+      .post<ProjectInfo>(ProjectApiService.getUrl(null), form)
+      .toPromise();
   }
 
-  listProjects() {
+  listProjects(): Promise<ProjectInfo[]> {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
-  getProjectPipelineDefinition(projectId: string) {
-    return this.client.get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`)).toPromise();
-  }
-
-  getProjectStates(projectIds: string[]) {
+  getProjectPipelineDefinition(projectId: string): Promise<PipelineInfo> {
     return this.client
-      .get<StateInfo[]>(ProjectApiService.getUrl(`states?projectIds=${projectIds.join(',')}`))
-      .toPromise()
-      .then(result => result.map(r => r != null ? new StateInfo(r) : null));
+      .get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
+      .toPromise();
   }
 
   getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
@@ -107,12 +104,8 @@ export class ProjectApiService {
     return this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${groupId}`)).toPromise();
   }
 
-  getProjectPaused(projectId: string) {
-    return this.client.get<boolean>(ProjectApiService.getUrl(`${projectId}/paused`)).toPromise();
-  }
-
-  action(projectId: string, actionId: string) {
-    return this.client.put(
+  action(projectId: string, actionId: string): Promise<void> {
+    return this.client.put<void>(
       ProjectApiService.getUrl(`${projectId}/action/${actionId}`),
       new FormData()
     ).toPromise();
@@ -127,7 +120,7 @@ export class ProjectApiService {
     requiredResources: ResourceInfo = null,
     workspaceConfiguration: WorkspaceConfiguration = null,
     comment: string = null
-  ) {
+  ): Promise<void> {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
     if (rangedEnv != null) {
@@ -146,13 +139,13 @@ export class ProjectApiService {
     if (comment != null) {
       form.set('comment', comment);
     }
-    return this.client.put(
+    return this.client.put<void>(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
       form
     ).toPromise();
   }
 
-  configureGroup(projectId: string, stageIndex: number, projectIds: string[], env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null) {
+  configureGroup(projectId: string, stageIndex: number, projectIds: string[], env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null): Promise<boolean[]> {
     const form = new FormData();
     form.set('stageIndex', '' + stageIndex);
     form.set('projectIds', JSON.stringify(projectIds));
@@ -169,19 +162,21 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  pause(projectId: string) {
+  pause(projectId: string): Promise<boolean> {
     return this.resume(projectId, true);
   }
 
-  resume(projectId: string, paused: boolean = false, singleStageOnly = false) {
-    return this.client.post(
+  resume(projectId: string, paused: boolean = false, singleStageOnly = false): Promise<boolean> {
+    return this.client.post<boolean>(
       ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`),
       new FormData()
     ).toPromise();
   }
 
-  getLog(projectId: string, stageId: string) {
-    return this.client.get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`)).toPromise();
+  getLog(projectId: string, stageId: string): Promise<LogEntry[]> {
+    return this.client
+      .get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`))
+      .toPromise();
   }
 
   getLatestLogs(projectId: string, skipLines: number, expectingStageId: string, stageId?: string) {
@@ -190,15 +185,15 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  getLogRawUrl(projectId: string, stageId: string) {
+  getLogRawUrl(projectId: string, stageId: string): string {
     return ProjectApiService.getUrl(`${projectId}/raw-logs/${stageId}`);
   }
 
-  getProjectRawPipelineDefinition(projectId: string) {
+  getProjectRawPipelineDefinition(projectId: string): Promise<string> {
     return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`)).toPromise();
   }
 
-  setProjectRawPipelineDefinition(projectId: string, raw: string) {
+  setProjectRawPipelineDefinition(projectId: string, raw: string): Promise<void|ParseError> {
     const form = new FormData();
     form.set('raw', raw);
     return this.client.post<ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), form)
@@ -210,10 +205,6 @@ export class ProjectApiService {
           return Promise.resolve(null);
         }
       });
-  }
-
-  getPauseReason(projectId: string) {
-    return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pause-reason`)).toPromise();
   }
 
   getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
@@ -229,10 +220,10 @@ export class ProjectApiService {
     return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/name`), form).toPromise();
   }
 
-  setTags(projectId: string, tags: string[]) {
+  setTags(projectId: string, tags: string[]): Promise<string[]> {
     const form = new FormData();
     form.set('tags', JSON.stringify(tags));
-    return this.client.post<void>(ProjectApiService.getUrl(`${projectId}/tags`), form)
+    return this.client.post<string[]>(ProjectApiService.getUrl(`${projectId}/tags`), form)
       .toPromise()
       .then(result => {
         this.cacheTags(tags);
@@ -258,12 +249,16 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  setPipelineDefinition(projectId: string, pipelineId: string) {
-    return this.client.post<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), new FormData()).toPromise();
+  setPipelineDefinition(projectId: string, pipelineId: string): Promise<boolean> {
+    return this.client
+      .post<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), new FormData())
+      .toPromise();
   }
 
-  delete(projectId: string) {
-    return this.client.delete(ProjectApiService.getUrl(`${projectId}`)).toPromise();
+  delete(projectId: string): Promise<string> {
+    return this.client
+      .delete<string>(ProjectApiService.getUrl(`${projectId}`))
+      .toPromise();
   }
 
   getDeletionPolicy(projectId: string): Promise<DeletionPolicy> {

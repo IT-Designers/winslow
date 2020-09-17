@@ -123,7 +123,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   deletionPolicyRemote?: DeletionPolicy;
 
   watchHistory = false;
-  watchPaused = false;
   watchLogs = false;
   watchLogsInterval: any = null;
   watchLogsId?: string = null;
@@ -229,9 +228,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.watchHistory && (this.isRunning() || this.loadHistoryAnyway || forceUpdateOnWatched)) {
       this.loadHistoryAnyway = false;
       this.loadHistory();
-    }
-    if (this.watchPaused && (this.isRunning() || forceUpdateOnWatched)) {
-      this.loadPaused();
     }
     if (this.watchLogs && (this.isRunning() || this.loadLogsOnceAnyway || forceUpdateOnWatched)) {
       if (!this.watchLogsInterval) {
@@ -341,13 +337,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
           this.history = latest;
         }
       });
-  }
-
-  loadPaused(): void {
-    this.longLoading.increase();
-    this.api.getProjectPaused(this.project.id)
-      .then(paused => this.paused = paused)
-      .finally(() => this.longLoading.decrease());
   }
 
 
@@ -486,7 +475,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.tabs.selectedIndex = index;
     }
 
-    this.watchPaused = this.conditionally(Tab.Control === index, () => this.loadPaused());
     this.watchHistory = this.conditionally(Tab.History === index || Tab.Overview === index, () => {
       this.maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
       this.loadHistory();
