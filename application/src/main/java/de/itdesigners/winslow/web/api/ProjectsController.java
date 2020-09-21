@@ -25,13 +25,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RestController
@@ -111,6 +109,32 @@ public class ProjectsController {
                             history.map(g -> ExecutionGroupInfoConverter.convert(g, false)),
                             active.map(g -> ExecutionGroupInfoConverter.convert(g, true)).stream()
                     );
+                });
+    }
+
+    @GetMapping("/projects/{projectId}/history/reversed/{startGroupId}/{count}")
+    public Stream<ExecutionGroupInfo> getPartialFromReversedHistory(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("startGroupId") String startGroupId,
+            @PathVariable("count") int count) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .stream()
+                .flatMap(project -> winslow.getOrchestrator().getPipeline(project).stream())
+                .flatMap(pipeline -> {
+                    var history = pipeline
+                            .getExecutionHistory()
+                            .sequential()
+                            .takeWhile(g -> !Objects.equals(g.getFullyQualifiedId(), startGroupId))
+                            .collect(Collectors.toList());
+
+                    Collections.reverse(history);
+
+                    return history
+                            .stream()
+                            .limit(count)
+                            .map(g -> ExecutionGroupInfoConverter.convert(g, false));
+
                 });
     }
 
