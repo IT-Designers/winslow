@@ -44,7 +44,8 @@ public class ProjectsEndpointController {
 
     private final @Nonnull Map<String, RunningProjectsEndpointPublisher> runningPublishers = new ConcurrentHashMap<>();
 
-    private final @Nonnull Map<String, Object> cache = Collections.synchronizedMap(new WeakHashMap<>());
+    // TODO missing cache cleanup
+    private final @Nonnull Map<String, Object> cache = new ConcurrentHashMap<>();
 
     public ProjectsEndpointController(
             @Nonnull SimpMessagingTemplate simp,
@@ -101,9 +102,38 @@ public class ProjectsEndpointController {
             @Nonnull String projectId,
             @Nullable Object value,
             @Nullable Project project) {
-        var prev = this.cache.replace(topic, value);
+        var prev = this.cache.put(topic, value);
         if (!Objects.equals(prev, value)) {
-            this.cache.put(topic, value);
+            this.sender.publishProjectUpdate(winslow, topic, projectId, value, project);
+        }
+
+    }
+
+    private void publishProjectUpdateCachedDelta(
+            @Nonnull String topic,
+            @Nonnull String projectId,
+            @Nullable Object value,
+            @Nullable Project project) {
+        var prev = this.cache.put(topic, value);
+        if (prev instanceof Collection<?> && value instanceof Collection<?>) {
+            var prevSize = ((Collection<?>) prev).size();
+            var currSize = ((Collection<?>) value).size();
+            if (prevSize <= currSize) {
+                // send only then new entries
+                this.sender.publishProjectUpdate(
+                        winslow,
+                        topic,
+                        projectId,
+                        ((Collection<?>) value)
+                                .stream()
+                                .skip(prevSize)
+                                .collect(Collectors.toList()),
+                        project
+                );
+            } else {
+                this.sender.publishProjectUpdate(winslow, topic, projectId, value, project);
+            }
+        } else if (!Objects.equals(prev, value)) {
             this.sender.publishProjectUpdate(winslow, topic, projectId, value, project);
         }
 
@@ -127,7 +157,7 @@ public class ProjectsEndpointController {
         if (pipeline == null) {
             stopProjectPublisher(projectId);
             publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, null, null);
-            publishProjectUpdateCached(
+            publishProjectUpdateCachedDelta(
                     String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId),
                     projectId,
                     Collections.singletonList(null),
@@ -150,7 +180,7 @@ public class ProjectsEndpointController {
                 var info = projects.getStateInfo(pipeline);
                 createOrStopProjectPublisher(projectId, project, State.Running == info.state);
                 publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, info, project);
-                publishProjectUpdateCached(
+                publishProjectUpdateCachedDelta(
                         String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId),
                         projectId,
                         getHistoryInfo(pipeline),
@@ -248,7 +278,12 @@ public class ProjectsEndpointController {
                 .map(pipeline -> {
                     var historyInfo = getHistoryInfo(pipeline);
                     this.cache.put(String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId), historyInfo);
-                    return new ChangeEvent<>(ChangeType.CREATE, projectId, historyInfo);
+                    var length = Math.max(0, historyInfo.size() - 5);
+                    return new ChangeEvent<>(
+                            ChangeType.CREATE,
+                            projectId,
+                            historyInfo.stream().skip(length).collect(Collectors.toList())
+                    );
                 })
                 .stream();
     }
@@ -276,9 +311,9 @@ public class ProjectsEndpointController {
                 .filter(user -> projects.getProject(user, projectId).isPresent())
                 .flatMap(user -> winslow.getOrchestrator().getPipeline(projectId))
                 .map(pipeline -> {
-                    var enquedInfo = getEnqueuedInfo(pipeline);
-                    this.cache.put(String.format(TOPIC_PROJECT_SPECIFIC_ENQUEUED, projectId), enquedInfo);
-                    return new ChangeEvent<>(ChangeType.CREATE, projectId, enquedInfo);
+                    var enqueuedInfo = getEnqueuedInfo(pipeline);
+                    this.cache.put(String.format(TOPIC_PROJECT_SPECIFIC_ENQUEUED, projectId), enqueuedInfo);
+                    return new ChangeEvent<>(ChangeType.CREATE, projectId, enqueuedInfo);
                 })
                 .stream();
     }
