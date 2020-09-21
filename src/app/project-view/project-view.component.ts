@@ -1,4 +1,15 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
 import {
   DeletionPolicy,
   EnvVariable,
@@ -38,60 +49,6 @@ import {environment} from '../../environments/environment';
 })
 export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
-
-  constructor(public api: ProjectApiService, private notification: NotificationService,
-              private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
-              private dialog: DialogService,
-              private route: ActivatedRoute,
-              private router: Router) {
-  }
-
-  @Input()
-  public set project(value: ProjectInfo) {
-    this.projectValue = value;
-    this.logs = null;
-    this.history = null;
-    this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
-    this.deletionPolicyLocal = null;
-    this.deletionPolicyRemote = null;
-    this.pollWatched(true);
-    this.setupFiles();
-    this.loadHistory();
-
-    this.pipelinesApi.getPipelineDefinitions().then(result => {
-      this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
-      this.probablyProjectPipelineId = null;
-      if (this.project && this.project.pipelineDefinition) {
-        for (const pipeline of this.pipelines) {
-          if (pipeline.name === this.project.pipelineDefinition.name) {
-            this.probablyProjectPipelineId = pipeline.id;
-            break;
-          }
-        }
-      }
-    });
-    this.updateExecutionSelectionPipelines();
-    this.api.getDeletionPolicy(this.project.id).then(policy => {
-      this.deletionPolicyLocal = policy;
-      this.deletionPolicyRemote = policy;
-    });
-
-    if (this.tabs) {
-      this.selectTabIndex(this.selectedTabIndex);
-    }
-
-    this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
-  }
-
-  public get project(): ProjectInfo {
-    return this.projectValue;
-  }
-
-  @Input()
-  public set state(value: StateInfo) {
-    this.update(value);
-  }
-
   static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
   static DEFAULT_VISIBLE_ITEM_COUNT_HISTORY = 10;
@@ -113,7 +70,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   filesNavigationTarget: string = null;
 
   stateValue?: State = null;
-  history?: ExecutionGroupInfo[] = null;
+
+  history: ExecutionGroupInfo[] = [];
+  historyProjectId: string = null;
+  historySubscription: Subscription = null;
+  historyEnqueued = 0;
+  historyEnqueuedSubscription: Subscription = null;
+  historyExecuting = 0;
+  historyExecutingSubscription: Subscription = null;
+
   logs?: LogEntry[] = null;
   paused: boolean = null;
   pauseReason?: string = null;
@@ -122,7 +87,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   deletionPolicyLocal?: DeletionPolicy;
   deletionPolicyRemote?: DeletionPolicy;
 
-  watchHistory = false;
   watchLogs = false;
   watchLogsInterval: any = null;
   watchLogsId?: string = null;
@@ -130,7 +94,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   watchDefinition = false;
 
   loadLogsOnceAnyway = false;
-  loadHistoryAnyway = false;
 
   longLoading = new LongLoadingDetector();
 
@@ -155,6 +118,59 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedTabIndex: number = Tab.Overview;
   maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
   workspaceMode: WorkspaceMode = null;
+
+  constructor(public api: ProjectApiService, private notification: NotificationService,
+              private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
+              private dialog: DialogService,
+              private route: ActivatedRoute,
+              private router: Router) {
+  }
+
+  @Input()
+  public set project(value: ProjectInfo) {
+    this.projectValue = value;
+    this.logs = null;
+    this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
+    this.deletionPolicyLocal = null;
+    this.deletionPolicyRemote = null;
+    this.pollWatched(true);
+    this.setupFiles();
+
+    this.pipelinesApi.getPipelineDefinitions().then(result => {
+      this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
+      this.probablyProjectPipelineId = null;
+      if (this.project && this.project.pipelineDefinition) {
+        for (const pipeline of this.pipelines) {
+          if (pipeline.name === this.project.pipelineDefinition.name) {
+            this.probablyProjectPipelineId = pipeline.id;
+            break;
+          }
+        }
+      }
+    });
+    this.updateExecutionSelectionPipelines();
+    this.api.getDeletionPolicy(this.project.id).then(policy => {
+      this.deletionPolicyLocal = policy;
+      this.deletionPolicyRemote = policy;
+    });
+
+    if (this.tabs) {
+      this.selectTabIndex(this.selectedTabIndex);
+    }
+
+    this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
+    this.resubscribeHistory(value.id);
+  }
+
+  public get project(): ProjectInfo {
+    return this.projectValue;
+  }
+
+  @Input()
+  public set state(value: StateInfo) {
+    this.update(value);
+  }
+
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -192,6 +208,63 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.paramsSubscription.unsubscribe();
       this.paramsSubscription = null;
     }
+    this.unsubscribeHistory();
+  }
+
+  private resubscribeHistory(projectId: string) {
+    if (this.historyProjectId !== projectId) {
+      this.unsubscribeHistory();
+      this.subscribeHistory(projectId);
+    } else {
+      console.warn('resubscribe request on same project id ' + projectId);
+    }
+  }
+
+  private unsubscribeHistory() {
+    this.historyProjectId = null;
+
+    if (this.historySubscription != null) {
+      this.historySubscription.unsubscribe();
+      this.historySubscription = null;
+    }
+
+    if (this.historyExecutingSubscription != null) {
+      this.historyExecutingSubscription.unsubscribe();
+      this.historyExecutingSubscription = null;
+    }
+
+    if (this.historyEnqueuedSubscription != null) {
+      this.historyEnqueuedSubscription.unsubscribe();
+      this.historyEnqueuedSubscription = null;
+    }
+  }
+
+  private subscribeHistory(projectId: string) {
+    this.history = [];
+    this.historyEnqueued = 0;
+    this.historyExecuting = 0;
+    this.historyProjectId = projectId;
+
+    this.historyEnqueuedSubscription = this.api.watchProjectEnqueued(projectId, executions => {
+      const offset = 0;
+      const length = this.historyEnqueued;
+      this.history.splice(offset, length, ...executions.reverse());
+      this.historyEnqueued = executions.length;
+    });
+
+    this.historyExecutingSubscription = this.api.watchProjectExecutions(projectId, executions => {
+      const offset = this.historyEnqueued;
+      const length = this.historyExecuting;
+      this.history.splice(offset, length, ...executions.reverse());
+      this.historyExecuting = executions.length;
+    });
+
+    this.historySubscription = this.api.watchProjectHistory(projectId, executions => {
+      const offset = this.historyEnqueued + this.historyExecuting;
+      const length = this.history.length - offset;
+      this.history.splice(offset, 0, ...executions.reverse());
+      console.log(executions);
+    });
   }
 
   private updateExecutionSelectionPipelines() {
@@ -225,10 +298,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   pollWatched(forceUpdateOnWatched = false): void {
-    if (this.watchHistory && (this.isRunning() || this.loadHistoryAnyway || forceUpdateOnWatched)) {
-      this.loadHistoryAnyway = false;
-      this.loadHistory();
-    }
     if (this.watchLogs && (this.isRunning() || this.loadLogsOnceAnyway || forceUpdateOnWatched)) {
       if (!this.watchLogsInterval) {
         this.watchLogsInterval = setInterval(() => this.loadLogs(), 1000);
@@ -308,37 +377,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     return false;
   }
-
-  loadHistory() {
-    this.longLoading.increase();
-    return this.api
-      .getProjectHistory(this.project.id)
-      .then(history => {
-        return this.updateHistory(history);
-      })
-      .catch(e => {
-        this.dialog.error(e);
-        console.log(e);
-      })
-      .finally(() => this.longLoading.decrease());
-  }
-
-  private updateHistory(history: ExecutionGroupInfo[]) {
-    history = history.reverse();
-    return this.api.getProjectEnqueued(this.project.id)
-      .then(enqueued => {
-
-        this.loadHistoryAnyway = (enqueued.length > 0 && this.stateValue !== State.Paused)
-          || (history.length > 0 && history[0].hasRunningStages());
-
-        const latest = enqueued.reverse();
-        history.forEach(h => latest.push(h));
-        if (this.history === null || this.history.length !== latest.length || JSON.stringify(this.history) !== JSON.stringify(latest)) {
-          this.history = latest;
-        }
-      });
-  }
-
 
   toDate(time: number) {
     if (time) {
@@ -475,10 +513,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.tabs.selectedIndex = index;
     }
 
-    this.watchHistory = this.conditionally(Tab.History === index || Tab.Overview === index, () => {
-      this.maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
-      this.loadHistory();
-    });
     this.watchLogs = this.conditionally(Tab.Logs === index, () => this.loadLogs());
     this.watchDefinition = this.conditionally(Tab.PipelineDefinition === index, () => this.loadRawPipelineDefinition());
   }
@@ -885,15 +919,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   pruneHistory() {
     this.dialog.openAreYouSure(
       `Delete all failed stages of this project`,
-      () => this.api.pruneHistory(this.projectValue.id)
-        .then(updatedHistory => {
-          return this.updateHistory(updatedHistory);
-        }),
+      () => this.api.pruneHistory(this.projectValue.id).then()
     );
   }
 
   tryParseStageNumber(stageId: string, alt: number): number {
     return this.api.tryParseGroupNumber(stageId, alt);
+  }
+
+  trackHistory(index: number, value: ExecutionGroupInfo): string {
+    return value.id;
   }
 
   workspaceModes(): WorkspaceMode[] {

@@ -23,10 +23,14 @@ export class ProjectApiService {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
-  private static fixExecutionGroupInfo(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
+  private static fixExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {
+    origin.stages = origin.stages.map(stage => new StageInfo(stage));
+    return new ExecutionGroupInfo(origin);
+  }
+
+  private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
     return groups.map(origin => {
-      origin.stages = origin.stages.map(stage => new StageInfo(stage));
-      return new ExecutionGroupInfo(origin);
+      return this.fixExecutionGroupInfo(origin);
     });
   }
 
@@ -71,7 +75,7 @@ export class ProjectApiService {
       const events: ChangeEvent<string, ExecutionGroupInfo[]>[] = JSON.parse(message.body);
       events.forEach(event => {
         if (event.identifier === projectId) {
-          listener(event.value ? ProjectApiService.fixExecutionGroupInfo(event.value) : []);
+          listener(event.value ? ProjectApiService.fixExecutionGroupInfoArray(event.value) : []);
         }
       });
     });
@@ -86,7 +90,14 @@ export class ProjectApiService {
   }
 
   public watchProjectEnqueued(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
-    return this.watchProjectExecutionGroupInfo(projectId, 'enqueued', listener);
+    return this.watchProjectExecutionGroupInfo(projectId, 'enqueued', groups => {
+      if (groups != null) {
+        for (let i = 0; i < groups.length; ++i) {
+          groups[i].enqueueIndex = i;
+        }
+      }
+      listener(groups);
+    });
   }
 
   public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
@@ -122,13 +133,13 @@ export class ProjectApiService {
   getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
     return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
-      .then(ProjectApiService.fixExecutionGroupInfo);
+      .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
   getProjectEnqueued(projectId: string): Promise<ExecutionGroupInfo[]> {
     return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
       .pipe(map(enqueued => {
-        const fixed = ProjectApiService.fixExecutionGroupInfo(enqueued);
+        const fixed = ProjectApiService.fixExecutionGroupInfoArray(enqueued);
         for (let i = 0; i < fixed.length; ++i) {
           fixed[i].enqueueIndex = i;
         }
@@ -323,7 +334,7 @@ export class ProjectApiService {
   pruneHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
     return this.client.post<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), new FormData())
       .toPromise()
-      .then(ProjectApiService.fixExecutionGroupInfo);
+      .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
   getWorkspaceConfigurationMode(projectId: string): Promise<WorkspaceMode> {
