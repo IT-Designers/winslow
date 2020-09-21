@@ -84,7 +84,7 @@
 
       <mat-accordion [multi]="true">
         <app-project-history
-          *ngFor="let entry of history.slice(0, maxHistoryItemsToDisplay); index as i; trackBy:trackHistory"
+          *ngFor="let entry of history; index as i; trackBy:trackHistory"
           class="history-list-item"
           [executionGroup]="entry"
           [firstEntry]="i == 0"
