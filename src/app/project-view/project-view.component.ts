@@ -1,15 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  ViewChild
-} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
   DeletionPolicy,
   EnvVariable,
@@ -19,8 +8,8 @@ import {
   LogSource,
   ParseError,
   ProjectApiService,
-  ProjectInfo, RangedValue,
-  RangeWithStepSize,
+  ProjectInfo,
+  RangedValue,
   StageDefinitionInfo,
   StageInfo,
   State,
@@ -29,8 +18,8 @@ import {
   WorkspaceMode
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import { MatDialog } from '@angular/material/dialog';
-import { MatTabGroup } from '@angular/material/tabs';
+import {MatDialog} from '@angular/material/dialog';
+import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo, ResourceInfo} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
@@ -51,7 +40,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
-  static DEFAULT_VISIBLE_ITEM_COUNT_HISTORY = 10;
 
   tabIndexOverview = Tab.Overview;
 
@@ -78,6 +66,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   historyEnqueuedSubscription: Subscription = null;
   historyExecuting = 0;
   historyExecutingSubscription: Subscription = null;
+  historyCanLoadMoreEntries: boolean = true;
 
   logs?: LogEntry[] = null;
   paused: boolean = null;
@@ -116,7 +105,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
-  maxHistoryItemsToDisplay = ProjectViewComponent.DEFAULT_VISIBLE_ITEM_COUNT_HISTORY;
   workspaceMode: WorkspaceMode = null;
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
@@ -244,6 +232,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.historyEnqueued = 0;
     this.historyExecuting = 0;
     this.historyProjectId = projectId;
+    this.historyCanLoadMoreEntries = true;
 
     this.historyEnqueuedSubscription = this.api.watchProjectEnqueued(projectId, executions => {
       const offset = 0;
@@ -263,7 +252,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       const offset = this.historyEnqueued + this.historyExecuting;
       const length = this.history.length - offset;
       this.history.splice(offset, 0, ...executions.reverse());
-      console.log(executions);
     });
   }
 
@@ -904,8 +892,31 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
-  incrementMaxHistoryItemsToDisplay(range: number = 1) {
-    this.maxHistoryItemsToDisplay += range;
+  loadMoreHistoryEntries(count: number = 1) {
+    const projectId = this.projectValue.id;
+    const groupId = this.history[this.history.length - 1].id;
+    this.historyCanLoadMoreEntries = false;
+    this.dialog.openLoadingIndicator(
+      this.api.getProjectPartialHistory(
+        projectId,
+        groupId,
+        count
+      ).then(entries => {
+        if (this.projectValue.id === projectId) {
+          if (entries != null && entries.length > 0) {
+            this.history.push(...entries);
+            this.historyCanLoadMoreEntries = entries.length >= count;
+          } else {
+            this.historyCanLoadMoreEntries = false;
+          }
+        }
+      }, err => {
+        console.error(err);
+      }),
+      `Digging out old history entries`,
+      true,
+      true
+    );
   }
 
   updatePublicAccess(checked: boolean) {
