@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.messaging.MessageSecur
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,6 +32,13 @@ public class WebSocketConfiguration extends AbstractSecurityWebSocketMessageBrok
     public void registerStompEndpoints(@Nonnull StompEndpointRegistry registry) {
         registry.addEndpoint(Env.getWebsocketPath()).setAllowedOrigins("*");
         registry.addEndpoint(Env.getWebsocketPath()).setAllowedOrigins("*").withSockJS();
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.setMessageSizeLimit(10 * 1024 * 1024);
+        registration.setSendBufferSizeLimit(10 * 1024 * 1024);
+        registration.setSendTimeLimit(5_000);
     }
 
     @Override
