@@ -2,6 +2,9 @@ package de.itdesigners.winslow.web.websocket;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.project.Project;
+import de.itdesigners.winslow.web.JacksonConfiguration;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -29,8 +32,18 @@ public class MessageSender {
     private MessageConverter getMessageConverter(@Nonnull MessageConverter messageConverter) {
         if (messageConverter instanceof WrappedMessageConverter) {
             return messageConverter;
+        } else if (messageConverter instanceof CompositeMessageConverter) {
+            var composite = (CompositeMessageConverter) messageConverter;
+            for (int i = 0; i < composite.getConverters().size(); ++i) {
+                if (composite.getConverters().get(i) instanceof MappingJackson2MessageConverter) {
+                    composite.getConverters().set(i, JacksonConfiguration.messageConverter());
+                    return new WrappedMessageConverter(composite);
+                }
+            }
+            composite.getConverters().add(JacksonConfiguration.messageConverter());
+            return new WrappedMessageConverter(composite);
         } else {
-            return new WrappedMessageConverter(messageConverter);
+            throw new RuntimeException("Unsupported parent MessageConverter");
         }
     }
 
