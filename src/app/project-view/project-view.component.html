@@ -105,18 +105,18 @@
       </mat-accordion>
 
       <div class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
-        <button *ngIf="history.length > maxHistoryItemsToDisplay"
-                mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(10)">
+        <button *ngIf="historyCanLoadMoreEntries"
+                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(10)">
           <mat-icon>expand_more</mat-icon>
           Show 10 More
         </button>
-        <button *ngIf="history.length > maxHistoryItemsToDisplay"
-                mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(50)">
+        <button *ngIf="historyCanLoadMoreEntries"
+                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(50)">
           <mat-icon>arrow_downward</mat-icon>
           Show 50 More
         </button>
-        <button *ngIf="history.length > maxHistoryItemsToDisplay"
-                mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(history.length)">
+        <button *ngIf="historyCanLoadMoreEntries"
+                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(1000000)">
           <mat-icon style="transform: rotate(90deg)">double_arrow</mat-icon>
           Show All
         </button>
