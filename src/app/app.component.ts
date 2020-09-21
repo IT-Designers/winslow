@@ -16,7 +16,6 @@ export class AppComponent {
       .connectionState$
       .subscribe((connected) => {
         this.connected = (connected === RxStompState.OPEN);
-        console.log('connected: ' + this.connected);
       });
   }
 }
