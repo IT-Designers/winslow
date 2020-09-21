@@ -80,53 +80,52 @@
     <ng-template matTabContent>
       <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
-      <ng-container *ngIf="history != null">
-        <i *ngIf="history.length == 0">This project has no history yet</i>
+      <i *ngIf="history.length == 0">This project has no history yet</i>
 
-        <mat-accordion [multi]="true">
-          <app-project-history
-            *ngFor="let entry of history.slice(0, maxHistoryItemsToDisplay); index as i"
-            class="history-list-item"
-            [executionGroup]="entry"
-            [firstEntry]="i == 0"
-            [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
-            [expanded]="i < 5"
-            [pipelineIsPaused]="paused"
+      <mat-accordion [multi]="true">
+        <app-project-history
+          *ngFor="let entry of history.slice(0, maxHistoryItemsToDisplay); index as i; trackBy:trackHistory"
+          class="history-list-item"
+          [executionGroup]="entry"
+          [firstEntry]="i == 0"
+          [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
+          [expanded]="i < 5"
+          [pipelineIsPaused]="paused"
 
-            (clickResume)="updateRequestPause(false)"
-            (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
-            (clickDelete)="cancelEnqueuedStage(entry.id)"
-            (clickPauseAfterThis)="updateRequestPause(true)"
-            (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
-            (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
-            (clickOpenLogs)="openLogs($event)"
-            (clickOpenWorkspace)="openWorkspace(project, $event)"
-            (clickOpenTensorboard)="openTensorboard(project, $event)"
-          ></app-project-history>
-        </mat-accordion>
+          (clickResume)="updateRequestPause(false)"
+          (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
+          (clickDelete)="cancelEnqueuedStage(entry.id)"
+          (clickPauseAfterThis)="updateRequestPause(true)"
+          (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
+          (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
+          (clickOpenLogs)="openLogs($event)"
+          (clickOpenWorkspace)="openWorkspace(project, $event)"
+          (clickOpenTensorboard)="openTensorboard(project, $event)"
+        ></app-project-history>
+      </mat-accordion>
 
-        <div class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
-          <button *ngIf="history.length > maxHistoryItemsToDisplay"
-                  mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(10)">
-            <mat-icon>expand_more</mat-icon>
-            Show 10 More
-          </button>
-          <button *ngIf="history.length > maxHistoryItemsToDisplay"
-                  mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(50)">
-            <mat-icon>arrow_downward</mat-icon>
-            Show 50 More
-          </button>
-          <button *ngIf="history.length > maxHistoryItemsToDisplay"
-                  mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(history.length)">
-            <mat-icon style="transform: rotate(90deg)">double_arrow</mat-icon>
-            Show All
-          </button>
-          <button mat-stroked-button color="warn" (click)="pruneHistory()">
-            <mat-icon>cleaning_services</mat-icon>
-            Delete Failed
-          </button>
-        </div>
-      </ng-container>
+      <div class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
+        <button *ngIf="history.length > maxHistoryItemsToDisplay"
+                mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(10)">
+          <mat-icon>expand_more</mat-icon>
+          Show 10 More
+        </button>
+        <button *ngIf="history.length > maxHistoryItemsToDisplay"
+                mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(50)">
+          <mat-icon>arrow_downward</mat-icon>
+          Show 50 More
+        </button>
+        <button *ngIf="history.length > maxHistoryItemsToDisplay"
+                mat-stroked-button color="primary" (click)="incrementMaxHistoryItemsToDisplay(history.length)">
+          <mat-icon style="transform: rotate(90deg)">double_arrow</mat-icon>
+          Show All
+        </button>
+        <button mat-stroked-button color="warn" (click)="pruneHistory()">
+          <mat-icon>cleaning_services</mat-icon>
+          Delete Failed
+        </button>
+      </div>
+
     </ng-template>
   </mat-tab>
 
