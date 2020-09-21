@@ -47,7 +47,7 @@ export class DialogService {
     return v => this.errorCatcher(promise(v));
   }
 
-  openLoadingIndicator(toExecute: Promise<any>, text?: string, withSuccessNotification = true) {
+  openLoadingIndicator(toExecute: Promise<any>, text?: string, withSuccessNotification = true, showLoadingImmediately = false) {
     const options: SweetAlertOptions = {
       icon: 'info',
       titleText: 'Please wait',
@@ -63,7 +63,11 @@ export class DialogService {
 
     // try to prevent the loading popup from being displayed if it would only be visible for a really short moment
     toExecute.finally(() => this.show(options, withSuccessNotification, state, true));
-    setTimeout(() => this.show(options, withSuccessNotification, state), 500);
+    if (showLoadingImmediately) {
+      this.show(options, withSuccessNotification, state);
+    } else {
+      setTimeout(() => this.show(options, withSuccessNotification, state), 500);
+    }
   }
 
   private show(options: SweetAlertOptions, withSuccessNotification: boolean, state, done = false) {

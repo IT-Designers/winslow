@@ -30,7 +30,7 @@ export class ProjectApiService {
 
   private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
     return groups.map(origin => {
-      return this.fixExecutionGroupInfo(origin);
+      return ProjectApiService.fixExecutionGroupInfo(origin);
     });
   }
 
@@ -128,6 +128,12 @@ export class ProjectApiService {
     return this.client
       .get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
       .toPromise();
+  }
+
+  getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
+      .toPromise()
+      .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
   getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
