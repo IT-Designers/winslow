@@ -810,12 +810,30 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
+    public Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull StageId id) {
+        return this.getLogs(project, id.getFullyQualified());
+    }
+
+    @Nonnull
     public Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull String stageId) {
+        return this.getLogs(project.getId(), stageId);
+    }
+
+    @Nonnull
+    public Stream<LogEntry> getLogs(@Nonnull String projectId, @Nonnull String stageId) {
         try {
-            return LogReader.stream(logs.getRawInputStreamNonExclusive(project.getId(), stageId));
+            return LogReader.stream(logs.getRawInputStreamNonExclusive(projectId, stageId));
         } catch (FileNotFoundException e) {
             return Stream.empty();
         }
+    }
+
+    public long getLogSize(@Nonnull Project project, @Nonnull StageId id) {
+        return getLogSize(project, id.getFullyQualified());
+    }
+
+    public long getLogSize(@Nonnull Project project, @Nonnull String stageId) {
+        return logs.getLogSize(project.getId(), stageId);
     }
 
     private Executor startExecutor(

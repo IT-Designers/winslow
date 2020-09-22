@@ -1,7 +1,5 @@
 package de.itdesigners.winslow.web.websocket;
 
-import javax.annotation.Nonnull;
-
 public interface Pollable {
 
     void poll();

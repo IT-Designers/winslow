@@ -60,6 +60,14 @@ public class LogRepository extends BaseRepository {
         return Files.deleteIfExists(path);
     }
 
+    public long getLogSize(
+            @Nonnull String projectId,
+            @Nonnull String stageId) {
+        var path = getLogFile(projectId, stageId);
+        var file = path.toFile();
+        return file.length();
+    }
+
     @Nonnull
     public InputStream getRawInputStreamNonExclusive(
             @Nonnull String projectId,

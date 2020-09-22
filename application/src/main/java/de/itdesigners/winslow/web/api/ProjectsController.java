@@ -487,8 +487,8 @@ public class ProjectsController {
                                                     project,
                                                     stage.getFullyQualifiedId()
                                             )  // do not stream in parallel!
-                                            .skip(skip)
                                             .sequential()
+                                            .skip(skip)
                                             .map(entry -> new LogEntryInfo(
                                                     line.incrementAndGet(),
                                                     stage.getFullyQualifiedId(),

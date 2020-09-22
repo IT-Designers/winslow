@@ -3,6 +3,7 @@ package de.itdesigners.winslow.web.websocket;
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.ExecutionGroupInfo;
+import de.itdesigners.winslow.api.pipeline.LogEntryInfo;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StateInfo;
 import de.itdesigners.winslow.api.project.ProjectInfo;
@@ -30,19 +31,21 @@ import java.util.stream.Stream;
 @Controller
 public class ProjectsEndpointController {
 
-    public static final @Nonnull String TOPIC_PREFIX                     = "/projects";
-    public static final @Nonnull String TOPIC_PROJECTS                   = TOPIC_PREFIX;
-    public static final @Nonnull String TOPIC_PROJECT_STATES             = TOPIC_PREFIX + "/states";
-    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_STATS     = TOPIC_PREFIX + "/%s/stats";
-    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_HISTORY   = TOPIC_PREFIX + "/%s/history";
-    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_EXECUTING = TOPIC_PREFIX + "/%s/executing";
-    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_ENQUEUED  = TOPIC_PREFIX + "/%s/enqueued";
+    public static final @Nonnull String TOPIC_PREFIX                       = "/projects";
+    public static final @Nonnull String TOPIC_PROJECTS                     = TOPIC_PREFIX;
+    public static final @Nonnull String TOPIC_PROJECT_STATES               = TOPIC_PREFIX + "/states";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_STATS       = TOPIC_PREFIX + "/%s/stats";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_LOGS_LATEST = TOPIC_PREFIX + "/%s/logs/latest";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_LOGS_STAGE  = TOPIC_PREFIX + "/%s/logs/%s";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_HISTORY     = TOPIC_PREFIX + "/%s/history";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_EXECUTING   = TOPIC_PREFIX + "/%s/executing";
+    public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_ENQUEUED    = TOPIC_PREFIX + "/%s/enqueued";
 
     private final @Nonnull MessageSender      sender;
     private final @Nonnull Winslow            winslow;
     private final @Nonnull ProjectsController projects;
 
-    private final @Nonnull Map<String, RunningProjectsEndpointPublisher> runningPublishers = new ConcurrentHashMap<>();
+    private final @Nonnull Map<String, CoolDownWrapper<RunningProjectsEndpointPublisher>> runningPublishers = new ConcurrentHashMap<>();
 
     // TODO missing cache cleanup
     private final @Nonnull Map<String, Object> cache = new ConcurrentHashMap<>();
@@ -78,7 +81,19 @@ public class ProjectsEndpointController {
         var thread = new Thread(() -> {
             while (true) {
                 var last = System.currentTimeMillis();
-                this.runningPublishers.values().forEach(Pollable::poll);
+                var completed = this.runningPublishers
+                        .entrySet()
+                        .stream()
+                        .peek(e -> e.getValue().poll())
+                        .filter(e -> e.getValue().hasCompleted())
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList());
+
+                completed
+                        .stream()
+                        .map(this.runningPublishers::remove)
+                        .forEach(Pollable::pollAndClose);
+
                 var diff = 1_000 - (System.currentTimeMillis() - last);
                 LockBus.ensureSleepMs(Math.max(100, diff));
             }
@@ -232,17 +247,26 @@ public class ProjectsEndpointController {
             @Nonnull Project project,
             boolean shouldBeRunning) {
         if (shouldBeRunning) {
-            this.runningPublishers.computeIfAbsent(
-                    projectId,
-                    _pid -> new RunningProjectsEndpointPublisher(sender, winslow, project)
-            ).updateProject(project);
+            this.runningPublishers
+                    .computeIfAbsent(
+                            projectId,
+                            _pid -> new CoolDownWrapper<>(new RunningProjectsEndpointPublisher(
+                                    sender,
+                                    winslow,
+                                    project
+                            ))
+                    )
+                    .value
+                    .updateProject(project);
         } else {
             stopProjectPublisher(projectId);
         }
     }
 
     private void stopProjectPublisher(@Nonnull String projectId) {
-        Optional.ofNullable(this.runningPublishers.remove(projectId)).ifPresent(Pollable::pollAndClose);
+        Optional
+                .ofNullable(this.runningPublishers.get(projectId))
+                .ifPresent(CoolDownWrapper::startCooldown);
     }
 
     @SubscribeMapping("/projects")
@@ -318,6 +342,56 @@ public class ProjectsEndpointController {
                 .stream();
     }
 
+    @SubscribeMapping("/projects/{projectId}/logs/latest")
+    public Stream<ChangeEvent<String, List<LogEntryInfo>>> subscribeLogsLatest(
+            @DestinationVariable("projectId") String projectId,
+            Principal principal) {
+        return Stream.of(
+                getUser(principal)
+                        .filter(user -> projects.getProject(user, projectId).isPresent())
+                        .flatMap(user -> Optional
+                                .ofNullable(this.runningPublishers.get(projectId))
+                                .map(w -> w.value.getLogEntryLatestUpToHead())
+                        )
+                        .map(logs -> new ChangeEvent<>(ChangeType.CREATE, projectId, logs))
+                        .orElseGet(() -> new ChangeEvent<>(
+                                ChangeType.CREATE,
+                                projectId,
+                                RunningProjectsEndpointPublisher.getLogEntryLatestUpToHead(
+                                        winslow,
+                                        projectId,
+                                        id -> Long.MAX_VALUE
+                                )
+                        ))
+        );
+    }
+
+    @SubscribeMapping("/projects/{projectId}/logs/{stageId}")
+    public Stream<ChangeEvent<String, List<LogEntryInfo>>> subscribeLogsLatestForStage(
+            @DestinationVariable("projectId") String projectId,
+            @DestinationVariable("stageId") String stageId,
+            Principal principal) {
+        return Stream.of(
+                getUser(principal)
+                        .filter(user -> projects.getProject(user, projectId).isPresent())
+                        .flatMap(user -> Optional
+                                .ofNullable(this.runningPublishers.get(projectId))
+                                .map(w -> w.value.getLogEntryUpToHead(stageId))
+                        )
+                        .map(logs -> new ChangeEvent<>(ChangeType.CREATE, projectId, logs))
+                        .orElseGet(() -> new ChangeEvent<>(
+                                ChangeType.CREATE,
+                                projectId,
+                                RunningProjectsEndpointPublisher.getLogEntryUpToHead(
+                                        winslow,
+                                        projectId,
+                                        id -> Long.MAX_VALUE,
+                                        stageId
+                                )
+                        ))
+        );
+    }
+
     @Nonnull
     public Optional<User> getUser(@Nullable Principal principal) {
         return getUser(winslow, principal);
@@ -346,5 +420,37 @@ public class ProjectsEndpointController {
                 identifier,
                 value
         );
+    }
+
+    private static class CoolDownWrapper<T extends Pollable> implements Pollable {
+        public                int counter = -1;
+        public final @Nonnull T   value;
+
+        private CoolDownWrapper(@Nonnull T value) {
+            this.value = value;
+        }
+
+        public boolean hasCompleted() {
+            return counter == 0;
+        }
+
+        public void startCooldown() {
+            if (this.counter < 0) {
+                this.counter = 3;
+            }
+        }
+
+        @Override
+        public void poll() {
+            this.value.poll();
+            if (this.counter > 0) {
+                this.counter -= 1;
+            }
+        }
+
+        @Override
+        public void close() {
+            this.value.close();
+        }
     }
 }
