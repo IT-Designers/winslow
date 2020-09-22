@@ -934,7 +934,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
-  trackByLogs(log: LogEntry) {
+  trackLog(log: LogEntry) {
     return log?.line;
   }
 }
