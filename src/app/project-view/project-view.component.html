@@ -145,8 +145,8 @@
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
         <div class="console-controls">
           <button mat-raised-button color="accent"
-                  [disabled]="watchLatestLogs"
-                  (click)="showLatestLogs(null)">Show log of most recent Stage
+                  [disabled]="logsDisplayedLatest"
+                  (click)="showLatestLogs(false)">Show log of most recent Stage
           </button>
           <button mat-stroked-button
                   (click)="forceReloadLogs()"
@@ -181,7 +181,7 @@
           <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
         <pre class="console-container">
           <code *ngIf="logs != null" class="console"
-          ><ng-container *ngFor="let log of logs"
+          ><ng-container *ngFor="let log of logs; trackBy:trackLog"
           ><span
           ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{log.line}}</span
           ><span [class.console-err]="log.error"

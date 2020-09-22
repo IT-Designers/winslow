@@ -7,13 +7,15 @@ import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
 import {SubscriptionHandler} from './subscription-handler';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
-import {ChangeEvent} from './api.service';
+import {ChangeEvent, ChangeType} from './api.service';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectApiService {
+
+  static LOGS_LATEST = 'latest';
 
   public cachedTags: string[] = [];
   private projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
@@ -97,6 +99,17 @@ export class ProjectApiService {
         }
       }
       listener(groups);
+    });
+  }
+
+  public watchLogs(projectId: string, listener: (logs: LogEntry[]) => void, stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
+    return this.rxStompService.watch(`/projects/${projectId}/logs/${stageId}`).subscribe(message => {
+      const events: ChangeEvent<string, LogEntry[]>[] = JSON.parse(message.body);
+      events.forEach(event => {
+        if (event.value) {
+          listener(event.value);
+        }
+      });
     });
   }
 
@@ -224,18 +237,6 @@ export class ProjectApiService {
     return this.client.post<boolean>(
       ProjectApiService.getUrl(`${projectId}/paused/${paused}${singleStageOnly ? '?strategy=once' : ''}`),
       new FormData()
-    ).toPromise();
-  }
-
-  getLog(projectId: string, stageId: string): Promise<LogEntry[]> {
-    return this.client
-      .get<LogEntry[]>(ProjectApiService.getUrl(`${projectId}/logs/${stageId}`))
-      .toPromise();
-  }
-
-  getLatestLogs(projectId: string, skipLines: number, expectingStageId: string, stageId?: string) {
-    return this.client.get<LogEntry[]>(
-      ProjectApiService.getUrl(`${projectId}/logs/${stageId ?? 'latest'}?skipLines=${skipLines}&expectingStageId=${expectingStageId}`)
     ).toPromise();
   }
 
