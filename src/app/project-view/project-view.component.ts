@@ -38,8 +38,8 @@ import {environment} from '../../environments/environment';
 })
 export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  static ALWAYS_INCLUDE_FIRST_N_LINES = 100;
   static TRUNCATE_TO_MAX_LINES = 5000;
+  static LOGS_LATEST = ProjectApiService.LOGS_LATEST;
 
   tabIndexOverview = Tab.Overview;
 
@@ -60,15 +60,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   stateValue?: State = null;
 
   history: ExecutionGroupInfo[] = [];
-  historyProjectId: string = null;
+  subscribedProjectId: string = null;
   historySubscription: Subscription = null;
   historyEnqueued = 0;
   historyEnqueuedSubscription: Subscription = null;
   historyExecuting = 0;
   historyExecutingSubscription: Subscription = null;
-  historyCanLoadMoreEntries: boolean = true;
+  historyCanLoadMoreEntries = true;
 
-  logs?: LogEntry[] = null;
+  logs?: LogEntry[] = [];
+  logsDisplayed?: string = null;
+  logsDisplayedLatest = false;
+  logSubscription: Subscription = null;
   paused: boolean = null;
   pauseReason?: string = null;
   progress?: number;
@@ -76,13 +79,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   deletionPolicyLocal?: DeletionPolicy;
   deletionPolicyRemote?: DeletionPolicy;
 
-  watchLogs = false;
-  watchLogsInterval: any = null;
-  watchLogsId?: string = null;
-  watchLatestLogs = true;
   watchDefinition = false;
-
-  loadLogsOnceAnyway = false;
 
   longLoading = new LongLoadingDetector();
 
@@ -107,6 +104,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedTabIndex: number = Tab.Overview;
   workspaceMode: WorkspaceMode = null;
 
+
   constructor(public api: ProjectApiService, private notification: NotificationService,
               private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
               private dialog: DialogService,
@@ -117,7 +115,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   public set project(value: ProjectInfo) {
     this.projectValue = value;
-    this.logs = null;
+    this.logs = [];
     this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
     this.deletionPolicyLocal = null;
     this.deletionPolicyRemote = null;
@@ -147,7 +145,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
-    this.resubscribeHistory(value.id);
+    this.resubscribe(value.id);
   }
 
   public get project(): ProjectInfo {
@@ -196,21 +194,70 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.paramsSubscription.unsubscribe();
       this.paramsSubscription = null;
     }
-    this.unsubscribeHistory();
+    this.unsubscribe();
   }
 
-  private resubscribeHistory(projectId: string) {
-    if (this.historyProjectId !== projectId) {
-      this.unsubscribeHistory();
-      this.subscribeHistory(projectId);
+  private resubscribe(projectId: string) {
+    if (this.subscribedProjectId !== projectId) {
+      this.unsubscribe();
+      this.subscribe(projectId);
     } else {
       console.warn('resubscribe request on same project id ' + projectId);
     }
   }
 
-  private unsubscribeHistory() {
-    this.historyProjectId = null;
+  private unsubscribe() {
+    this.subscribedProjectId = null;
+    this.unsubscribeHistory();
+    this.unsubscribeLogs();
+  }
 
+  private subscribe(projectId: string) {
+    this.subscribedProjectId = projectId;
+    this.subscribeHistory(projectId);
+    this.subscribeLogs(projectId);
+  }
+
+  private resubscribeLogs(projectId: string, stageId = ProjectViewComponent.LOGS_LATEST) {
+    this.unsubscribeLogs();
+    this.logs = [];
+    this.logsDisplayed = null;
+    this.subscribeLogs(projectId, stageId);
+  }
+
+  private unsubscribeLogs() {
+    if (this.logSubscription) {
+      this.logSubscription.unsubscribe();
+      this.logSubscription = null;
+    }
+  }
+
+  private subscribeLogsIfNotSubscribed(projectId: string, stageId = ProjectViewComponent.LOGS_LATEST) {
+    if (this.logSubscription == null) {
+      this.subscribeLogs(projectId, stageId);
+    }
+  }
+
+  private subscribeLogs(projectId: string, stageId = ProjectViewComponent.LOGS_LATEST) {
+    if (stageId == null) {
+      stageId = ProjectViewComponent.LOGS_LATEST;
+    }
+    this.logsDisplayedLatest = ProjectViewComponent.LOGS_LATEST === stageId;
+    this.logSubscription = this.api.watchLogs(projectId, (logs) => {
+      if (logs?.length > 0) {
+        if (this.logs == null || this.logs.length === 0 || this.logs[0].stageId !== logs[0].stageId) {
+          this.logsDisplayed = logs[0].stageId;
+          this.logs = [];
+        }
+        this.logs.push(...logs);
+        this.scrollConsoleToBottom();
+      } else {
+        this.logs = [];
+      }
+    }, stageId);
+  }
+
+  private unsubscribeHistory() {
     if (this.historySubscription != null) {
       this.historySubscription.unsubscribe();
       this.historySubscription = null;
@@ -231,7 +278,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.history = [];
     this.historyEnqueued = 0;
     this.historyExecuting = 0;
-    this.historyProjectId = projectId;
     this.historyCanLoadMoreEntries = true;
 
     this.historyEnqueuedSubscription = this.api.watchProjectEnqueued(projectId, executions => {
@@ -286,69 +332,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   pollWatched(forceUpdateOnWatched = false): void {
-    if (this.watchLogs && (this.isRunning() || this.loadLogsOnceAnyway || forceUpdateOnWatched)) {
-      if (!this.watchLogsInterval) {
-        this.watchLogsInterval = setInterval(() => this.loadLogs(), 1000);
-      }
-      this.loadLogs();
-    } else if (this.watchLogsInterval) {
-      clearInterval(this.watchLogsInterval);
-      this.watchLogsInterval = null;
-    } else if (this.watchDefinition && this.rawPipelineDefinition == null) {
+    if (this.watchDefinition && this.rawPipelineDefinition == null) {
       this.loadRawPipelineDefinition();
     }
   }
 
-  loadLogs() {
-    if (this.consoleIsLoading) {
-      return;
-    }
-    this.consoleIsLoading = true;
-    this.longLoading.increase();
-    return this.requestLogs()
-      .then(logs => {
-        if (this.logs == null) {
-          this.logs = [];
-        }
-        this.loadLogsOnceAnyway = this.isRunning();
-        if (logs.length > 0 && this.logs.length > 0 && logs[0].stageId !== this.logs[0].stageId) {
-          this.logs = null;
-          return this.loadLogs();
-        } else {
-          logs.forEach(entry => this.logs.push(entry));
-          if (this.logs.length > ProjectViewComponent.TRUNCATE_TO_MAX_LINES) {
-            this.logs.splice(
-              ProjectViewComponent.ALWAYS_INCLUDE_FIRST_N_LINES,
-              this.logs.length - ProjectViewComponent.TRUNCATE_TO_MAX_LINES
-            );
-          }
-          if (logs.length > 0) {
-            this.scrollConsoleToBottom();
-            // execute it also after the DOM update
-            setTimeout(() => this.scrollConsoleToBottom());
-          }
-        }
-      })
-      .finally(() => {
-        this.longLoading.decrease();
-        this.consoleIsLoading = false;
-      });
-  }
-
-  requestLogs() {
-    if (this.watchLatestLogs || this.isStageRunning(this.watchLogsId)) {
-      const skipLines = this.logs != null && this.logs.length > 0 ? this.logs[this.logs.length - 1].line : 0;
-      const expectingStageId = this.logs != null && this.logs.length > 0 ? this.logs[0].stageId : null;
-      return this.api.getLatestLogs(this.project.id, skipLines, expectingStageId, this.watchLogsId);
-    } else {
-      if (this.logs != null && this.logs.length > 0 && this.logs[0].stageId === this.watchLogsId) {
-        return Promise.reject('already loaded');
-      } else {
-        this.logs = [];
-        return this.api.getLog(this.project.id, this.watchLogsId);
-      }
-    }
-  }
 
   isStageRunning(stageId?: string) {
     if (this.history != null && stageId != null) {
@@ -501,13 +489,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.tabs.selectedIndex = index;
     }
 
-    this.watchLogs = this.conditionally(Tab.Logs === index, () => this.loadLogs());
+    this.conditionally(
+      Tab.Logs === index,
+      () => this.subscribeLogsIfNotSubscribed(this.projectValue.id, this.logsDisplayedLatest ? null : this.logsDisplayed),
+      () => this.unsubscribeLogs()
+    );
     this.watchDefinition = this.conditionally(Tab.PipelineDefinition === index, () => this.loadRawPipelineDefinition());
   }
 
-  conditionally(condition: boolean, fn): boolean {
+  conditionally(condition: boolean, fn, fnAlt = null): boolean {
     if (condition) {
       fn();
+    } else if (fnAlt != null) {
+      fnAlt();
     }
     return condition;
   }
@@ -553,26 +547,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   openLogs(entry?: StageInfo, watchLatestLogs = false) {
     this.tabs.selectedIndex = Tab.Logs;
-    this.logs = null;
-    this.watchLogs = true;
-    if (entry != null) {
-      this.watchLogsId = entry.id;
-      this.watchLatestLogs = false;
-    }
-    if (watchLatestLogs) {
-      this.watchLatestLogs = true;
-    }
+    this.resubscribeLogs(this.projectValue.id, watchLatestLogs ? null : (entry?.id ?? this.logsDisplayed));
   }
 
   showLatestLogs(force: boolean) {
-    if (!this.watchLatestLogs || force) {
-      this.logs = null;
-      this.watchLogs = true;
-      this.watchLogsId = null;
-      this.watchLatestLogs = true;
-      this.loadLogsOnceAnyway = true;
-      this.loadLogs();
-    }
+    this.resubscribeLogs(this.projectValue.id);
   }
 
   sourceIsManagement(source: LogSource) {
@@ -580,8 +559,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   forceReloadLogs() {
-    this.logs = [];
-    this.loadLogs();
+    this.resubscribeLogs(this.projectValue.id, this.logsDisplayed);
   }
 
   setName(name: string) {
@@ -954,6 +932,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
         }),
       `Updating workspace configuration mode`,
     );
+  }
+
+  trackByLogs(log: LogEntry) {
+    return log?.line;
   }
 }
 
