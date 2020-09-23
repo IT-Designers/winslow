@@ -7,7 +7,7 @@ import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
 import {SubscriptionHandler} from './subscription-handler';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
-import {ChangeEvent, ChangeType} from './api.service';
+import {ChangeEvent} from './api.service';
 
 
 @Injectable({
