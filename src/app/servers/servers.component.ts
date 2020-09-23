@@ -1,5 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
+import {Subscription} from 'rxjs';
+import {ChangeType} from '../api/api.service';
 
 @Component({
   selector: 'app-servers',
@@ -10,57 +12,45 @@ export class ServersComponent implements OnInit, OnDestroy {
 
   nodes: NodeInfo[] = [];
   loadError = null;
-  interval = null;
+  subscription: Subscription = null;
 
   constructor(private api: NodesApiService) {
   }
 
   ngOnInit() {
-    this.updateNodes()
-      .then(success => this.interval = setInterval(() => this.updateNodes(), 1_000));
+    this.subscription = this.api.watchNodes(update => {
+      switch (update.type) {
+        case ChangeType.CREATE:
+          this.nodes.push(update.value);
+          this.sortNodesByName();
+          break;
+        case ChangeType.UPDATE:
+          const indexUpdate = this.nodes.findIndex(value => value.name === update.identifier);
+          if (indexUpdate >= 0) {
+            this.nodes[indexUpdate]?.update(update.value);
+          } else {
+            this.nodes.push(update.value);
+            this.sortNodesByName();
+          }
+          break;
+        case ChangeType.DELETE:
+          const indexDelete = this.nodes.findIndex(value => value.name === update.identifier);
+          if (indexDelete >= 0) {
+            delete this.nodes[indexDelete];
+          }
+          break;
+      }
+    });
+  }
+
+  sortNodesByName() {
+    this.nodes = this.nodes.sort((a, b) => a.name > b.name ? 1 : -1);
   }
 
   ngOnDestroy(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+      this.subscription = null;
     }
-  }
-
-  updateNodes() {
-    return this.api
-      .getAllNodeInfo()
-      .toPromise()
-      .then(result => {
-        const nodes = result.sort((a, b) => a.name > b.name ? 1 : -1); // sort by name
-        // remove missing
-        for (let i = 0; i < this.nodes.length; ++i) {
-          let found = false;
-          for (const node of nodes) {
-            if (node.name === this.nodes[i].name) {
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            this.nodes.splice(i, 1);
-            i -= 1;
-          }
-        }
-        // add new
-        for (let i = 0; i < nodes.length; ++i) {
-          if (this.nodes.length <= i) {
-            this.nodes.push(nodes[i]);
-          } else if (this.nodes[i].name !== nodes[i].name) {
-            this.nodes.splice(i, 0, nodes[i]);
-          } else if (this.nodes[i].update !== null) {
-            this.nodes[i].update(nodes[i]);
-          }
-        }
-      })
-      .catch(e => {
-        this.nodes = null;
-        this.loadError = e;
-      });
   }
 }
