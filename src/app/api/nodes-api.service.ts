@@ -1,13 +1,18 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {RxStompService} from '@stomp/ng2-stompjs';
+import {ChangeEvent} from './api.service';
+import {Subscription} from 'rxjs';
+import {Message} from '@stomp/stompjs';
+import {StatsInfo} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NodesApiService {
 
-  constructor(private client: HttpClient) {
+  constructor(private client: HttpClient, private rxStompService: RxStompService) {
   }
 
   getAllNodeInfo() {
@@ -15,6 +20,13 @@ export class NodesApiService {
   }
   getNodeInfo(node: string) {
     return this.client.get<NodeInfo>(`${environment.apiLocation}nodes/${node}`);
+  }
+
+  public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
+    return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
+      const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
+      events.forEach(event => listener(event));
+    });
   }
 }
 
