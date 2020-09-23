@@ -57,4 +57,16 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
       return null;
     }
   }
+
+  trackExecutionGroup(value: ExecutionGroupInfo): string {
+    return value.id;
+  }
+
+  trackStageInfo(value: StageInfo): string {
+    return value.id;
+  }
+
+  trackKey(keyValue: any): any {
+    return keyValue.key;
+  }
 }
