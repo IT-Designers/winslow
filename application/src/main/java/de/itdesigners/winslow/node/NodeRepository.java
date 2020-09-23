@@ -152,12 +152,22 @@ public class NodeRepository extends BaseRepository {
     }
 
     @Nonnull
+    public Stream<NodeInfo> loadActiveNodes() {
+        return listActiveNodePaths().map(this::readNode);
+    }
+
+    @Nonnull
     public Optional<NodeInfo> getNodeInfo(@Nonnull String name) {
         return listActiveNodePaths()
                 .filter(p -> p.getFileName().toString().equals(name))
                 .findFirst()
-                // hardcoded Toml because NodeInfoUpdate also uses hardcoded Toml...
-                .map(p -> new Toml().read(p.toFile()).<NodeInfo>to(NodeInfo.class));
+                .map(this::readNode);
+    }
+
+    @Nonnull
+    private NodeInfo readNode(@Nonnull Path p) {
+        // hardcoded Toml because NodeInfoUpdate also uses hardcoded Toml...
+        return new Toml().read(p.toFile()).<NodeInfo>to(NodeInfo.class);
     }
 
     public void updateNodeInfo(@Nonnull NodeInfo node) throws IOException {

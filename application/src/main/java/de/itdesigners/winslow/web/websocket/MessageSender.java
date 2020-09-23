@@ -54,6 +54,20 @@ public class MessageSender {
         this.simp.convertAndSend(destination, new PermissionCheckedPayload(permissionChecker, value));
     }
 
+    @Nonnull
+    public SimpMessagingTemplate getSimp() {
+        return simp;
+    }
+
+    public void publishForAnybody(@Nonnull String destination, @Nonnull Object payload) {
+        this.simp.convertAndSend(
+                destination,
+                new PermissionCheckedPayload(
+                        principal -> true,
+                        payload
+                )
+        );
+    }
 
     public void publishProjectUpdate(
             @Nonnull Winslow winslow,

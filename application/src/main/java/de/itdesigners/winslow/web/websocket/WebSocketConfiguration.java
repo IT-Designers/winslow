@@ -24,7 +24,10 @@ public class WebSocketConfiguration extends AbstractSecurityWebSocketMessageBrok
 
     @Override
     public void configureMessageBroker(@Nonnull MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/projects", "/private", "/private/projects");
+        registry.enableSimpleBroker(
+                ProjectsEndpointController.TOPIC_PREFIX,
+                NodesEndpointController.TOPIC_PREFIX
+        );
         registry.setApplicationDestinationPrefixes("/");
     }
 
