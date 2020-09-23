@@ -34,7 +34,7 @@
         *ngTemplateOutlet="detailItem; context: { key: 'Workspace Shared Within Group', value: executionGroup?.workspaceConfiguration?.sharedWithinGroup }"></ng-template>
       <ng-template
         *ngTemplateOutlet="detailItem; context: { key: 'Workspace Supplement', value: executionGroup?.workspaceConfiguration?.value }"></ng-template>
-      <ng-container *ngFor="let entry of executionGroup?.rangedValues | keyvalue">
+      <ng-container *ngFor="let entry of executionGroup?.rangedValues | keyvalue; trackBy:trackKey">
         <ng-container *ngIf="entry.value?.DiscreteSteps != null">
           <ng-template
             *ngTemplateOutlet="detailItem; context: {
@@ -47,7 +47,7 @@
 
       <h4>Environment Variables</h4>
       <i *ngIf="executionGroup?.stageDefinition?.env?.size == 0">none</i>
-      <ng-container *ngFor="let e of executionGroup?.stageDefinition?.env | keyvalue">
+      <ng-container *ngFor="let e of executionGroup?.stageDefinition?.env | keyvalue; trackBy:trackKey">
         <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
         </ng-template>
       </ng-container>
@@ -56,7 +56,7 @@
   </mat-expansion-panel>
 
   <mat-expansion-panel
-    *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i">
+    *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i; trackBy:trackStageInfo">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <app-project-history-header
@@ -92,28 +92,28 @@
 
       <h4>Stage Environment Variables</h4>
       <i *ngIf="stage?.env.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.env | keyvalue">
+      <ng-container *ngFor="let e of stage?.env | keyvalue; trackBy:trackKey">
         <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
         </ng-template>
       </ng-container>
 
       <h4>Pipeline Environment Variables</h4>
       <i *ngIf="stage?.envPipeline.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.envPipeline | keyvalue">
+      <ng-container *ngFor="let e of stage?.envPipeline | keyvalue; trackBy:trackKey">
         <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
         </ng-template>
       </ng-container>
 
       <h4>System Environment Variables</h4>
       <i *ngIf="stage?.envSystem.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.envSystem | keyvalue">
+      <ng-container *ngFor="let e of stage?.envSystem | keyvalue; trackBy:trackKey">
         <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
         </ng-template>
       </ng-container>
 
       <h4>Internal Environment Variables</h4>
       <i *ngIf="stage?.envInternal.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.envInternal | keyvalue">
+      <ng-container *ngFor="let e of stage?.envInternal | keyvalue; trackBy:trackKey">
         <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
         </ng-template>
       </ng-container>
