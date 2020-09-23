@@ -79,8 +79,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   deletionPolicyLocal?: DeletionPolicy;
   deletionPolicyRemote?: DeletionPolicy;
 
-  watchDefinition = false;
-
   longLoading = new LongLoadingDetector();
 
   stickConsole = true;
@@ -119,7 +117,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
     this.deletionPolicyLocal = null;
     this.deletionPolicyRemote = null;
-    this.pollWatched(true);
     this.setupFiles();
 
     this.pipelinesApi.getPipelineDefinitions().then(result => {
@@ -320,7 +317,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.paused = this.stateValue === State.Paused || this.pauseReason != null;
 
     this.stateEmitter.emit(this.stateValue);
-    this.pollWatched();
   }
 
   isEnqueued(state = this.stateValue): boolean {
@@ -329,29 +325,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   isRunning(state = this.stateValue): boolean {
     return State.Running === state;
-  }
-
-  pollWatched(forceUpdateOnWatched = false): void {
-    if (this.watchDefinition && this.rawPipelineDefinition == null) {
-      this.loadRawPipelineDefinition();
-    }
-  }
-
-
-  isStageRunning(stageId?: string) {
-    if (this.history != null && stageId != null) {
-      for (const entry of this.history) {
-        // TODO double check!
-        if (stageId.startsWith(entry.id)) {
-          for (const stage of entry.stages) {
-            if (stage.id === stageId) {
-              return stage.state === State.Running;
-            }
-          }
-        }
-      }
-    }
-    return false;
   }
 
   toDate(time: number) {
@@ -494,7 +467,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       () => this.subscribeLogsIfNotSubscribed(this.projectValue.id, this.logsDisplayedLatest ? null : this.logsDisplayed),
       () => this.unsubscribeLogs()
     );
-    this.watchDefinition = this.conditionally(Tab.PipelineDefinition === index, () => this.loadRawPipelineDefinition());
+    this.conditionally(
+      Tab.PipelineDefinition === index,
+      () => this.loadRawPipelineDefinition(),
+      () => this.rawPipelineDefinition = null
+    );
   }
 
   conditionally(condition: boolean, fn, fnAlt = null): boolean {
@@ -539,7 +516,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setupFiles(project = this.projectValue) {
-    if (this.projectValue != null) {
+    if (project != null) {
       this.filesAdditionalRoot = `${project.name};workspaces/${project.id}`;
     }
   }
