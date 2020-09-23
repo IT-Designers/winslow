@@ -8,6 +8,7 @@ import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.NfsWorkDirectory;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
+import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.node.unix.UnixNode;
 import de.itdesigners.winslow.nomad.NomadBackend;
 import de.itdesigners.winslow.nomad.NomadGpuDetectorNodeWrapper;
@@ -68,6 +69,7 @@ public class Main {
             var logs            = new LogRepository(lockBus, config);
             var projects        = new ProjectRepository(lockBus, config);
             var settings        = new SettingsRepository(lockBus, config);
+            var nodes           = new NodeRepository(lockBus, config);
 
             LOG.info("Preparing the orchestrator");
             var repository      = new PipelineRepository(lockBus, config);
@@ -78,7 +80,7 @@ public class Main {
             var backend         = new NomadBackend(node.getPlatformInfo(), nomadClient);
 
             // TODO
-            NodeInfoUpdater.spawn(config.getNodesDirectory(), node);
+            NodeInfoUpdater.spawn(nodes, node);
 
             var orchestrator = new Orchestrator(
                     lockBus,
@@ -99,7 +101,7 @@ public class Main {
             }
 
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(nodeName, orchestrator, config, lockBus, resourceManager, projects, settings);
+            var winslow = new Winslow(orchestrator, config, lockBus, resourceManager, projects, settings, nodes);
 
 
             if (!Env.isNoWebApiSet()) {

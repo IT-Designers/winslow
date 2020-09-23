@@ -38,13 +38,13 @@ public class Winslow implements Runnable {
     @Nonnull private final SettingsRepository           settingsRepository;
 
     public Winslow(
-            @Nonnull String nodeName,
             @Nonnull Orchestrator orchestrator,
             @Nonnull WorkDirectoryConfiguration configuration,
             @Nonnull LockBus lockBus,
             @Nonnull ResourceManager resourceManager,
             @Nonnull ProjectRepository projectRepository,
-            @Nonnull SettingsRepository settingsRepository) throws IOException {
+            @Nonnull SettingsRepository settingsRepository,
+            @Nonnull NodeRepository nodeRepository) throws IOException {
         this.orchestrator    = orchestrator;
         this.configuration   = configuration;
         this.resourceManager = resourceManager;
@@ -53,8 +53,8 @@ public class Winslow implements Runnable {
         this.userRepository     = new UserRepository(groupRepository);
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = projectRepository;
-        this.nodeRepository     = new NodeRepository(lockBus, configuration);
         this.settingsRepository = settingsRepository;
+        this.nodeRepository     = nodeRepository;
 
         for (var user : Env.getRootUsers()) {
             userRepository.createUser(user, true);
