@@ -50,15 +50,17 @@ public class UnixGpuInfoParser {
                     process.getInputStream(),
                     StandardCharsets.UTF_8
             ))) {
-                var line  = reader.readLine();
-                var split = line.split(NVIDIA_SEPARATOR);
-                info.add(new GpuInfo(
-                        "nvidia-" + split[0], // index
-                        "nvidia",
-                        split[1], // name
-                        Float.parseFloat(split[2]),
-                        Float.parseFloat(split[3])
-                ));
+                var line  = (String) null;
+                while ((line = reader.readLine()) != null) {
+                    var split = line.split(NVIDIA_SEPARATOR);
+                    info.add(new GpuInfo(
+                            "nvidia-" + split[0], // index
+                            "nvidia",
+                            split[1], // name
+                            Float.parseFloat(split[2]),
+                            Float.parseFloat(split[3])
+                    ));
+                }
             } catch (IndexOutOfBoundsException e) {
                 throw new IOException("Invalid line returned by call", e);
             }
