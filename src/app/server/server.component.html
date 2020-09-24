@@ -92,5 +92,23 @@
         </div>
       </div>
     </div>
+    <div *ngIf="node?.gpuInfo?.length > 0" class="graph-container-item">
+      <h3>GPU Utilization</h3>
+      <div class="graph">
+        <div class="ngx-graph-wrapper">
+          <ngx-charts-area-chart
+            [animations]="false"
+            [scheme]="schemeGpuComputeMemory"
+            [results]="gpus"
+            [legend]="true"
+            [xAxis]="true"
+            [yAxis]="true"
+            [timeline]="false"
+            [showYAxisLabel]="true"
+            [yAxisLabel]="unitGpu+'%'"
+          ></ngx-charts-area-chart>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
