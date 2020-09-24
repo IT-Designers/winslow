@@ -25,11 +25,14 @@ import javax.annotation.Nullable;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Controller
 public class ProjectsEndpointController {
+
+    private static final @Nonnull Logger LOG = Logger.getLogger(ProjectsEndpointController.class.getSimpleName());
 
     public static final @Nonnull String TOPIC_PREFIX                       = "/projects";
     public static final @Nonnull String TOPIC_PROJECTS                     = TOPIC_PREFIX;
@@ -91,6 +94,7 @@ public class ProjectsEndpointController {
 
                 completed
                         .stream()
+                        .peek(stage -> LOG.info("Publisher for " + stage + " has stopped"))
                         .map(this.runningPublishers::remove)
                         .forEach(Pollable::pollAndClose);
 
@@ -258,8 +262,10 @@ public class ProjectsEndpointController {
                     )
                     .value
                     .updateProject(project);
+            LOG.info("Publisher for " + projectId + " has been started");
         } else {
             stopProjectPublisher(projectId);
+            LOG.info("Publisher for " + projectId + " has been requested to stop");
         }
     }
 
