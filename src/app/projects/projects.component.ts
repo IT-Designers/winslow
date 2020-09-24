@@ -246,9 +246,10 @@ class Effects {
         this.audio.loop = false;
         this.audio.play();
       }
-      this.prev = state;
     } catch (e) {
       // ignore all errors
+    } finally {
+      this.prev = state;
     }
   }
 }
