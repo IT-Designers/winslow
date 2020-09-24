@@ -53,4 +53,8 @@ export class ServersComponent implements OnInit, OnDestroy {
       this.subscription = null;
     }
   }
+
+  public trackNodeInfo(nodeInfo: NodeInfo): string {
+    return nodeInfo?.name;
+  }
 }

@@ -41,36 +41,57 @@ export class NodeInfo {
 
   // local only
   update: (node: NodeInfo) => void;
+
+  constructor(name: string, cpuModel: string, cpuCores: number, buildInfo?: BuildInfo) {
+    this.name = name;
+    this.cpuInfo = new CpuInfo(cpuModel, cpuCores);
+    this.memInfo = new MemInfo();
+    this.netInfo = new NetInfo();
+    this.diskInfo = new DiskInfo();
+    this.gpuInfo = [];
+    this.buildInfo = buildInfo == null ? new BuildInfo() : buildInfo;
+  }
+
 }
 
 export class CpuInfo {
   modelName: string;
   utilization: number[];
+
+  constructor(model: string, cores: number) {
+    this.modelName = model;
+    this.utilization = [];
+    for (let i = 0; i < cores; ++i) {
+      this.utilization.push(0);
+    }
+  }
+
 }
 
 export class MemInfo {
-  memoryTotal: number;
-  memoryFree: number;
-  systemCache: number;
-  swapTotal: number;
-  swapFree: number;
+  memoryTotal = 0;
+  memoryFree = 0;
+  systemCache = 0;
+  swapTotal = 0;
+  swapFree = 0;
 }
 
 export class NetInfo {
-  transmitting: number;
-  receiving: number;
+  transmitting = 0;
+  receiving = 0;
 }
 
 export class DiskInfo {
-  reading: number;
-  writing: number;
-  free: number;
-  used: number;
+  reading = 0;
+  writing = 0;
+  free = 0;
+  used = 0;
 }
 
 export class GpuInfo {
   vendor: string;
   name: string;
+
 }
 
 export class BuildInfo {
