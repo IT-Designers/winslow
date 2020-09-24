@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
 
 @Component({
@@ -7,6 +7,11 @@ import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
   styleUrls: ['./server.component.css']
 })
 export class ServerComponent implements OnInit {
+
+  constructor(private nodes: NodesApiService) {
+  }
+
+  static readonly MAX_ENTRIES = 120;
 
   @Input('node') node: NodeInfo;
 
@@ -52,11 +57,17 @@ export class ServerComponent implements OnInit {
       '#00FF00',
     ]
   };
+
+  private static orNow(date?: Date): Date {
+    if (date == null) {
+      return new Date();
+    } else {
+      return date;
+    }
+  }
+
   diskUsageLabelFormatting = value => value + ' GiB';
   diskUsageToolTipFormatting = value => value.value.toFixed(1) + ' GiB';
-
-  constructor(private nodes: NodesApiService) {
-  }
 
   bytesToGigabyte(bytes: number) {
     return bytes / (1024 * 1024 * 1024);
@@ -71,6 +82,15 @@ export class ServerComponent implements OnInit {
   }
 
   ngOnInit() {
+    const backupNode = this.node;
+    this.node = new NodeInfo(this.node.name, this.node.cpuInfo.modelName, this.node.cpuInfo.utilization.length, this.node.buildInfo);
+
+    const date = new Date();
+    for (let i = ServerComponent.MAX_ENTRIES; i >= 0; --i) {
+      this.update(new Date(date.getTime() - (i * 1000)));
+    }
+
+    this.node = backupNode;
     this.node.update = (node) => {
       // load all the new goodies without replacing the object
       Object.keys(node).forEach(key => {
@@ -78,22 +98,25 @@ export class ServerComponent implements OnInit {
       });
       this.update();
     };
+    this.update(date);
   }
 
-  update() {
+  update(date: Date = null) {
+    date = ServerComponent.orNow(date);
+
     if (this.memory.length === 0) {
       this.initMemorySeries();
     }
 
     if (this.node.memInfo) {
-      this.updateMemorySeries();
+      this.updateMemorySeries(date);
     }
 
     if (this.network.length === 0) {
       this.initNetworkSeries();
     }
     if (this.node.netInfo) {
-      this.updateNetworkSeries();
+      this.updateNetworkSeries(date);
       this.scaleNetwork();
     }
 
@@ -104,7 +127,7 @@ export class ServerComponent implements OnInit {
       this.initDiskUsageSeries();
     }
     if (this.node.diskInfo) {
-      this.updateDiskSeries();
+      this.updateDiskSeries(date);
       this.updateDiskUsageSeries();
       this.scaleDisk();
     }
@@ -148,8 +171,8 @@ export class ServerComponent implements OnInit {
     });
   }
 
-  private updateMemorySeries() {
-    const date = new Date();
+  private updateMemorySeries(date: Date = null) {
+    date = ServerComponent.orNow(date);
     this.memory[0].series.push({
       name: date,
       value: this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree),
@@ -164,8 +187,8 @@ export class ServerComponent implements OnInit {
     });
     this.memory = [this.memory[0], this.memory[1], this.memory[2]];
     for (const entry of this.memory) {
-      if (entry.series.length > 120) {
-        entry.series.splice(0, entry.series.length - 120);
+      if (entry.series.length > ServerComponent.MAX_ENTRIES) {
+        entry.series.splice(0, entry.series.length - ServerComponent.MAX_ENTRIES);
       }
     }
     this.memory = [this.memory[0], this.memory[1], this.memory[2]];
@@ -183,10 +206,10 @@ export class ServerComponent implements OnInit {
     });
   }
 
-  private updateNetworkSeries() {
-    this.rawNetwork.push([new Date(), [this.node.netInfo.transmitting, this.node.netInfo.receiving]]);
-    if (this.rawNetwork.length > 120) {
-      this.rawNetwork.splice(0, this.rawNetwork.length - 120);
+  private updateNetworkSeries(date: Date = null) {
+    this.rawNetwork.push([ServerComponent.orNow(date), [this.node.netInfo.transmitting, this.node.netInfo.receiving]]);
+    if (this.rawNetwork.length > ServerComponent.MAX_ENTRIES) {
+      this.rawNetwork.splice(0, this.rawNetwork.length - ServerComponent.MAX_ENTRIES);
     }
   }
 
@@ -202,10 +225,10 @@ export class ServerComponent implements OnInit {
     });
   }
 
-  private updateDiskSeries() {
-    this.rawDisk.push([new Date(), [this.node.diskInfo.writing, this.node.diskInfo.reading]]);
-    if (this.rawDisk.length > 120) {
-      this.rawDisk.splice(0, this.rawDisk.length - 120);
+  private updateDiskSeries(date: Date = null) {
+    this.rawDisk.push([ServerComponent.orNow(date), [this.node.diskInfo.writing, this.node.diskInfo.reading]]);
+    if (this.rawDisk.length > ServerComponent.MAX_ENTRIES) {
+      this.rawDisk.splice(0, this.rawDisk.length - ServerComponent.MAX_ENTRIES);
     }
   }
 
