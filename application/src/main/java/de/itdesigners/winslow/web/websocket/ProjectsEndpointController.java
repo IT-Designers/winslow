@@ -405,16 +405,17 @@ public class ProjectsEndpointController {
 
     @Nonnull
     public static Optional<User> getUser(@Nonnull Winslow winslow, @Nullable Principal principal) {
-        var userName = Env.isDevEnv()
-                       ? Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER))
-                       : Optional.<String>empty();
-        return userName
-                .or(() -> Optional.ofNullable(principal).map(Principal::getName))
-                .flatMap(winslow.getUserRepository()::getUserOrCreateAuthenticated);
+        var devUserName = Env.isDevEnv()
+                          ? Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER))
+                          : Optional.<String>empty();
+        var userName = devUserName.or(() -> Optional.ofNullable(principal).map(Principal::getName));
+        LOG.info("getUser=" + userName);
+        return userName.flatMap(winslow.getUserRepository()::getUserOrCreateAuthenticated);
     }
 
     @Nonnull
     public static PrincipalPermissionChecker getPermissionChecker(@Nonnull Winslow winslow, @Nullable Project project) {
+        LOG.info("PrincipalPermissionChecker checks for canBeAccessedBy=" + (project != null));
         return project != null
                ? p -> ProjectsEndpointController.getUser(winslow, p).filter(project::canBeAccessedBy).isPresent()
                : p -> ProjectsEndpointController.getUser(winslow, p).isPresent();
