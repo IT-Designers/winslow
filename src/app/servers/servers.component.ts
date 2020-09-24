@@ -21,9 +21,6 @@ export class ServersComponent implements OnInit, OnDestroy {
     this.subscription = this.api.watchNodes(update => {
       switch (update.type) {
         case ChangeType.CREATE:
-          this.nodes.push(update.value);
-          this.sortNodesByName();
-          break;
         case ChangeType.UPDATE:
           const indexUpdate = this.nodes.findIndex(value => value.name === update.identifier);
           if (indexUpdate >= 0) {
@@ -36,7 +33,7 @@ export class ServersComponent implements OnInit, OnDestroy {
         case ChangeType.DELETE:
           const indexDelete = this.nodes.findIndex(value => value.name === update.identifier);
           if (indexDelete >= 0) {
-            delete this.nodes[indexDelete];
+            this.nodes.splice(indexDelete, 1);
           }
           break;
       }
