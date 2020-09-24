@@ -23,7 +23,7 @@
     "@angular/router": "^10.1.1",
     "@stomp/ng2-stompjs": "^7.2.0",
     "@sweetalert2/ngx-sweetalert2": "^8.1.1",
-    "@swimlane/ngx-charts": "^12.1.0",
+    "@swimlane/ngx-charts": "^16.0.0",
     "ngx-monaco-editor": "^8.1.1",
     "rxjs": "~6.5.5",
     "string-argv": "^0.3.1",
