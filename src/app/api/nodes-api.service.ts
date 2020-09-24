@@ -1,25 +1,15 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../environments/environment';
 import {RxStompService} from '@stomp/ng2-stompjs';
 import {ChangeEvent} from './api.service';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
-import {StatsInfo} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NodesApiService {
 
-  constructor(private client: HttpClient, private rxStompService: RxStompService) {
-  }
-
-  getAllNodeInfo() {
-    return this.client.get<NodeInfo[]>(`${environment.apiLocation}nodes`);
-  }
-  getNodeInfo(node: string) {
-    return this.client.get<NodeInfo>(`${environment.apiLocation}nodes/${node}`);
+  constructor(private rxStompService: RxStompService) {
   }
 
   public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
@@ -42,14 +32,18 @@ export class NodeInfo {
   // local only
   update: (node: NodeInfo) => void;
 
-  constructor(name: string, cpuModel: string, cpuCores: number, buildInfo?: BuildInfo) {
+  constructor(name: string, cpuInfo: CpuInfo, memInfo: MemInfo, gpus: GpuInfo[], buildInfo?: BuildInfo) {
     this.name = name;
-    this.cpuInfo = new CpuInfo(cpuModel, cpuCores);
-    this.memInfo = new MemInfo();
+    this.cpuInfo = new CpuInfo(cpuInfo.modelName, cpuInfo.utilization.length);
+    this.memInfo = new MemInfo(memInfo.memoryTotal, memInfo.swapTotal);
     this.netInfo = new NetInfo();
     this.diskInfo = new DiskInfo();
     this.gpuInfo = [];
     this.buildInfo = buildInfo == null ? new BuildInfo() : buildInfo;
+
+    for (const gpu of gpus) {
+      this.gpuInfo.push(new GpuInfo(gpu.id, gpu.vendor, gpu.name));
+    }
   }
 
 }
@@ -74,6 +68,13 @@ export class MemInfo {
   systemCache = 0;
   swapTotal = 0;
   swapFree = 0;
+
+  constructor(memoryTotal: number, swapTotal: number) {
+    this.memoryTotal = memoryTotal;
+    this.memoryFree = memoryTotal;
+    this.swapTotal = swapTotal;
+    this.swapFree = swapTotal;
+  }
 }
 
 export class NetInfo {
@@ -89,9 +90,17 @@ export class DiskInfo {
 }
 
 export class GpuInfo {
+  id: string;
   vendor: string;
   name: string;
+  computeUtilization = 0;
+  memoryUtilization = 0;
 
+  constructor(id: string, vendor: string, name: string) {
+    this.id = id;
+    this.vendor = vendor;
+    this.name = name;
+  }
 }
 
 export class BuildInfo {

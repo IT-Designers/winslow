@@ -20,12 +20,15 @@ export class ServerComponent implements OnInit {
   disk: any[] = [];
   diskUsage: any[] = [];
   cpus: any[] = [];
+  gpus: any[] = [];
 
   rawNetwork: [Date, number[]][] = [];
   rawDisk: [Date, number[]][] = [];
+  rawGpu: [Date, number[]][] = [];
 
   unitNetwork = '';
   unitDisk = '';
+  unitGpu = '';
 
   colorSchemeDiskUsageW95 = {
     domain: [
@@ -58,6 +61,14 @@ export class ServerComponent implements OnInit {
     ]
   };
 
+  schemeGpuComputeMemory = this.colorScheme;
+  // {
+  //   domain: [
+  //     '#FF000099',
+  //     '#00FF0099',
+  //   ]
+  // };
+
   private static orNow(date?: Date): Date {
     if (date == null) {
       return new Date();
@@ -83,7 +94,13 @@ export class ServerComponent implements OnInit {
 
   ngOnInit() {
     const backupNode = this.node;
-    this.node = new NodeInfo(this.node.name, this.node.cpuInfo.modelName, this.node.cpuInfo.utilization.length, this.node.buildInfo);
+    this.node = new NodeInfo(
+      this.node.name,
+      this.node.cpuInfo,
+      this.node.memInfo,
+      this.node.gpuInfo,
+      this.node.buildInfo
+    );
 
     const date = new Date();
     for (let i = ServerComponent.MAX_ENTRIES; i >= 0; --i) {
@@ -134,6 +151,51 @@ export class ServerComponent implements OnInit {
 
     if (this.node.cpuInfo && this.node.cpuInfo.utilization) {
       this.updateCpuSeries();
+    }
+
+    if (this.gpus.length === 0) {
+      this.initGpuSeries();
+    }
+    if (this.node?.gpuInfo?.length > 0) {
+      this.updateGpuSeries(date);
+    }
+  }
+
+  private updateGpuSeries(date: Date = null) {
+    date = ServerComponent.orNow(date);
+    let counter = 0;
+    for (const gpu of this.node.gpuInfo) {
+      this.gpus[counter++].series.push({
+        name: date,
+        value: Number(Math.max(0, Math.min(100, gpu.computeUtilization)))
+      });
+      this.gpus[counter++].series.push({
+        name: date,
+        value: Number(Math.max(0, Math.min(100, gpu.memoryUtilization)))
+      });
+    }
+
+    for (const entry of this.gpus) {
+      if (entry.series.length > ServerComponent.MAX_ENTRIES) {
+        entry.series.splice(0, entry.series.length - ServerComponent.MAX_ENTRIES);
+      }
+    }
+
+    this.gpus = [...this.gpus];
+  }
+
+
+  private initGpuSeries() {
+    this.gpus = [];
+    for (const gpu of this.node.gpuInfo) {
+      this.gpus.push({
+        name: 'GPU/' + gpu.name,
+        series: []
+      });
+      this.gpus.push({
+        name: 'MEM/' + gpu.name,
+        series: []
+      });
     }
   }
 
