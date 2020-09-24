@@ -26,7 +26,7 @@ public class PermissionCheckedPayload implements PrincipalPermissionChecker {
     }
 
     @Override
-    public boolean allowed(@Nullable Principal principal) {
-        return getChecker().allowed(principal);
+    public boolean allowed(@Nullable String user) {
+        return getChecker().allowed(user);
     }
 }
