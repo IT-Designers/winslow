@@ -54,11 +54,11 @@ public class UnixGpuInfoParser {
                 while ((line = reader.readLine()) != null) {
                     var split = line.split(NVIDIA_SEPARATOR);
                     info.add(new GpuInfo(
-                            "nvidia-" + split[0], // index
+                            "nvidia-" + split[0].trim(), // index
                             "nvidia",
-                            split[1], // name
-                            Float.parseFloat(split[2]),
-                            Float.parseFloat(split[3])
+                            split[1].trim(), // name
+                            Float.parseFloat(split[2].trim()),
+                            Float.parseFloat(split[3].trim())
                     ));
                 }
             } catch (IndexOutOfBoundsException e) {
