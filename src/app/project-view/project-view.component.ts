@@ -212,7 +212,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   private subscribe(projectId: string) {
     this.subscribedProjectId = projectId;
     this.subscribeHistory(projectId);
-    this.subscribeLogs(projectId);
   }
 
   private resubscribeLogs(projectId: string, stageId = ProjectViewComponent.LOGS_LATEST) {
