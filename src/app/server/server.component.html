@@ -92,14 +92,14 @@
         </div>
       </div>
     </div>
-    <div *ngIf="node?.gpuInfo?.length > 0" class="graph-container-item">
-      <h3>GPU Utilization</h3>
+    <div *ngFor="let node of node?.gpuInfo; index as i; trackBy:trackGpu" class="graph-container-item">
+      <h3>GPU Utilization {{node.name}} <small>({{node.id}})</small></h3>
       <div class="graph">
         <div class="ngx-graph-wrapper">
           <ngx-charts-area-chart
             [animations]="false"
             [scheme]="schemeGpuComputeMemory"
-            [results]="gpus"
+            [results]="gpus.slice(i*2, i*2+2)"
             [legend]="true"
             [xAxis]="true"
             [yAxis]="true"

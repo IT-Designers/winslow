@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
+import {GpuInfo, NodeInfo, NodesApiService} from '../api/nodes-api.service';
 
 @Component({
   selector: 'app-server',
@@ -64,10 +64,8 @@ export class ServerComponent implements OnInit {
   schemeGpuComputeMemory = {
 //    domain: ['#FF6666', '#66FF66', '#6666FF', '#777777']
     domain: [
-      '#FF000070', '#FF7F0070',
-      '#FFFF0070', '#00FF0070',
-      '#005FF070', '#0000FF70',
-      '#4B008270', '#9400D370'
+      '#FF0000',
+      '#00FF00',
     ]
   };
 
@@ -191,11 +189,11 @@ export class ServerComponent implements OnInit {
     this.gpus = [];
     for (const gpu of this.node.gpuInfo) {
       this.gpus.push({
-        name: 'GPU/' + gpu.name + '/' + gpu.id,
+        name: 'Compute',
         series: []
       });
       this.gpus.push({
-        name: 'MEM/' + gpu.name + '/' + gpu.id,
+        name: 'Memory Bus',
         series: []
       });
     }
@@ -374,5 +372,9 @@ export class ServerComponent implements OnInit {
       case 5:
         return 'Pi';
     }
+  }
+
+  trackGpu(gpuInfo: GpuInfo): string {
+    return gpuInfo?.id;
   }
 }
