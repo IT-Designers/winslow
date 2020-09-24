@@ -112,26 +112,32 @@ public abstract class BaseRepository {
 
     @Nonnull
     protected static <T> Optional<T> getUnsafe(Path path, Reader<T> reader) {
-        try (InputStream inputStream = new FileInputStream(path.toFile())) {
-            return Optional.of(reader.load(inputStream));
-        } catch (IOException e) {
-            if (!(e instanceof FileNotFoundException)) {
-                LOG.log(Level.SEVERE, "Failed to load file " + path, e);
+        for (int i = 0; i < 15; ++i) {
+            try (InputStream inputStream = new FileInputStream(path.toFile())) {
+                return Optional.of(reader.load(inputStream));
+            } catch (IOException e) {
+                if (!(e instanceof FileNotFoundException)) {
+                    LOG.log(Level.SEVERE, "Failed to load file " + path, e);
+                }
+                LockBus.ensureSleepMs(i * 10);
             }
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     @Nonnull
     protected static Optional<String> getUnsafeString(Path path) {
-        try {
-            return Optional.ofNullable(Files.readString(path));
-        } catch (IOException e) {
-            if (!(e instanceof FileNotFoundException)) {
-                LOG.log(Level.SEVERE, "Failed to load file " + path, e);
+        for (int i = 0; i < 15; ++i) {
+            try {
+                return Optional.ofNullable(Files.readString(path));
+            } catch (IOException e) {
+                if (!(e instanceof FileNotFoundException)) {
+                    LOG.log(Level.SEVERE, "Failed to load file " + path, e);
+                }
+                LockBus.ensureSleepMs(i * 10);
             }
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     protected boolean isLocked(@Nonnull Path path) {
