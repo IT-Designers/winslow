@@ -61,13 +61,15 @@ export class ServerComponent implements OnInit {
     ]
   };
 
-  schemeGpuComputeMemory = this.colorScheme;
-  // {
-  //   domain: [
-  //     '#FF000099',
-  //     '#00FF0099',
-  //   ]
-  // };
+  schemeGpuComputeMemory = {
+//    domain: ['#FF6666', '#66FF66', '#6666FF', '#777777']
+    domain: [
+      '#FF000070', '#FF7F0070',
+      '#FFFF0070', '#00FF0070',
+      '#005FF070', '#0000FF70',
+      '#4B008270', '#9400D370'
+    ]
+  };
 
   private static orNow(date?: Date): Date {
     if (date == null) {
