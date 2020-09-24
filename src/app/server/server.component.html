@@ -15,7 +15,7 @@
     <div class="server-details">
       <span><strong>CPU</strong> {{node.cpuInfo.modelName}}</span>
       <span><strong>MEM</strong> {{getTotalMemoryFormatted()}}</span>
-      <span *ngFor="let gpu of node.gpuInfo"><strong>GPU</strong> {{gpu.vendor.toUpperCase()}} {{gpu.name}}</span>
+      <span *ngFor="let gpu of node.gpuInfo; trackBy:trackGpu"><strong>GPU</strong> {{gpu.vendor.toUpperCase()}} {{gpu.name}}</span>
     </div>
     <strong class="whitespace-separator-top" style="margin-bottom: -2em">Disk Usage</strong>
     <div>

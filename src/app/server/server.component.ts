@@ -153,12 +153,13 @@ export class ServerComponent implements OnInit {
       this.updateCpuSeries();
     }
 
-    if (this.gpus.length === 0) {
-      this.initGpuSeries();
-    }
     if (this.node?.gpuInfo?.length > 0) {
+      if (this.gpus.length === 0) {
+        this.initGpuSeries();
+      }
       this.updateGpuSeries(date);
     }
+
   }
 
   private updateGpuSeries(date: Date = null) {
@@ -181,7 +182,7 @@ export class ServerComponent implements OnInit {
       }
     }
 
-    this.gpus = [...this.gpus];
+    // this.gpus = [...this.gpus];
   }
 
 
