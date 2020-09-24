@@ -85,6 +85,7 @@ public class WebSocketConfiguration extends AbstractSecurityWebSocketMessageBrok
                             LOG.info("Message allowed to be delivered to user " + Optional
                                     .ofNullable(header.getUser())
                                     .map(Principal::getName) + ": " + allowed);
+                            LOG.info("SessionId=" + header.getSessionId()+", "+header.getSessionAttributes());
                             return allowed;
                         }
                         return true;
