@@ -86,48 +86,6 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
         }
     }
 
-    @Nonnull
-    protected static List<GpuInfo> listGpus(@Nonnull NomadApiClient client) throws IOException {
-        try {
-            var ids = client
-                    .getNodesApi()
-                    .list()
-                    .getValue()
-                    .stream()
-                    .map(NodeListStub::getId)
-                    .collect(Collectors.toList());
-
-            var gpuInfo = new ArrayList<GpuInfo>();
-
-            for (var id : ids) {
-                Optional.ofNullable(
-                        client
-                                .getNodesApi()
-                                .info(id)
-                                .getValue()
-                                .getNodeResources()
-                )
-                        .map(NodeResources::getDevices)
-                        .stream()
-                        .flatMap(Collection::stream)
-                        .filter(device -> "gpu".equals(device.getType()))
-                        .flatMap(device -> {
-                            var vendor = (String) device.getVendor();
-                            var name   = (String) device.getName();
-                            return device.getInstances()
-                                         .stream()
-                                         .map(instance -> new GpuInfo(vendor, name));
-                        })
-                        .forEach(gpuInfo::add);
-            }
-
-            return gpuInfo;
-
-        } catch (NomadException e) {
-            throw new IOException("Failed to contact Nomad instance", e);
-        }
-    }
-
     @Override
     @Nonnull
     public Stream<String> listStages() throws IOException {

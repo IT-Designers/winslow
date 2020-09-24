@@ -11,7 +11,6 @@ import de.itdesigners.winslow.node.NodeInfoUpdater;
 import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.node.unix.UnixNode;
 import de.itdesigners.winslow.nomad.NomadBackend;
-import de.itdesigners.winslow.nomad.NomadGpuDetectorNodeWrapper;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.resource.PathConfiguration;
@@ -127,12 +126,7 @@ public class Main {
     @Nonnull
     private static Node getNode(@Nonnull String nodeName, @Nonnull NomadApiClient nomadClient) throws IOException {
         // TODO
-        var unixNode = new UnixNode(nodeName);
-        if (Env.isNoGpuUsageSet()) {
-            return unixNode;
-        } else {
-            return new NomadGpuDetectorNodeWrapper(unixNode, nomadClient);
-        }
+        return new UnixNode(nodeName);
     }
 
     @Nonnull
