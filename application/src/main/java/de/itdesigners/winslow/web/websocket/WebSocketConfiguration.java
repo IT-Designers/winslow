@@ -64,8 +64,8 @@ public class WebSocketConfiguration extends AbstractSecurityWebSocketMessageBrok
 
     @Override
     protected boolean sameOriginDisabled() {
-        return Env.isDevEnv();
-        // return true;
+        // return Env.isDevEnv();
+        return true;
     }
 
     private static class PermissionCheckedInterceptor implements ChannelInterceptor {
