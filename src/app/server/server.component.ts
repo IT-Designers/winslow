@@ -189,11 +189,11 @@ export class ServerComponent implements OnInit {
     this.gpus = [];
     for (const gpu of this.node.gpuInfo) {
       this.gpus.push({
-        name: 'GPU/' + gpu.name,
+        name: 'GPU/' + gpu.name + '/' + gpu.id,
         series: []
       });
       this.gpus.push({
-        name: 'MEM/' + gpu.name,
+        name: 'MEM/' + gpu.name + '/' + gpu.id,
         series: []
       });
     }
