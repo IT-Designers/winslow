@@ -349,6 +349,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         discardable,
+                        null,
                         null
                 ),
                 null,

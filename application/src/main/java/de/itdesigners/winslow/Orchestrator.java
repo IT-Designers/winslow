@@ -474,6 +474,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new WorkspaceCreator(this, environment))
                             .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
+                            .add(new LogParserRegisterer(getResourceManager()))
                             .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
                                 result.getStage().startNow();
                                 executor.setStageHandle(result.getHandle());
@@ -757,7 +758,6 @@ public class Orchestrator implements Closeable, AutoCloseable {
      * @param projectId Id of the {@link Project} to update the {@link Pipeline} for
      * @param updater   {@link Consumer} to invoke to update the {@link Pipeline}
      * @return Whether the {@link Consumer} was invoked
-     *
      * @deprecated This can cause data-races, use {@link #enqueuePipelineUpdate(String, Consumer)} instead
      */
     @Deprecated

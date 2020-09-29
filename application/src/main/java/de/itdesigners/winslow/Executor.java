@@ -75,10 +75,18 @@ public class Executor {
         this.stageHandle = handle;
     }
 
+    /**
+     * Logs an internal info message
+     * @param message Message to log
+     */
     public void logInf(@Nonnull String message) {
         log(false, message);
     }
 
+    /**
+     * Logs an internal error message
+     * @param message Message to log
+     */
     public void logErr(@Nonnull String message) {
         log(true, message);
     }
@@ -100,7 +108,7 @@ public class Executor {
         );
     }
 
-    private Iterator<LogEntry> getIterator() {
+    private Iterator<LogEntry> getLogIterator() {
         return new Iterator<>() {
             Iterator<LogEntry> logs = null;
 
@@ -138,7 +146,7 @@ public class Executor {
         var stageHandle = this.stageHandle;
         try (lockHeart) {
             try (logOutput; stageHandle) {
-                var iter    = getIterator();
+                var iter    = getLogIterator();
                 var backoff = new Backoff(250, 950, 2f);
 
                 LogWriter
@@ -168,7 +176,7 @@ public class Executor {
                                         })
                                         .map(Supplier::get)
                         ))
-                        .addConsumer(this::notifyLogConsumer)
+                        .addConsumer(this::notifyLogConsumerIfStdout)
                         .runInForeground();
 
                 logOutput.flush();
@@ -219,12 +227,24 @@ public class Executor {
         this.keepRunning = false;
     }
 
-    private synchronized void notifyLogConsumer(@Nonnull LogEntry entry) {
-        this.logConsumer.forEach(consumer -> consumer.accept(entry));
+    private synchronized void notifyLogConsumerIfStdout(@Nonnull LogEntry entry) {
+        if (LogEntry.Source.STANDARD_IO == entry.getSource()) {
+            this.logConsumer.forEach(consumer -> consumer.accept(entry));
+        }
     }
 
+    /**
+     * Adds the given consumer to the list of consumers to be notified on <b>STDIO</b> logs.
+     * Internal logs (like {@link de.itdesigners.winslow.api.pipeline.LogEntry.Source#MANAGEMENT_EVENT})
+     * are not passed to the given consumer.
+     * @param consumer {@link Consumer} to add
+     */
     public synchronized void addLogEntryConsumer(@Nonnull Consumer<LogEntry> consumer) {
         this.logConsumer.add(consumer);
+    }
+
+    public synchronized void removeLogEntryConsumer(@Nonnull Consumer<LogEntry> consumer) {
+        this.logConsumer.remove(consumer);
     }
 
     private synchronized void notifyShutdownListeners() {

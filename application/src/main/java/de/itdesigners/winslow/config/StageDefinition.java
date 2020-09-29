@@ -2,12 +2,10 @@ package de.itdesigners.winslow.config;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class StageDefinition {
+
     private final @Nonnull  String              name;
     private final @Nullable String              desc;
     private final @Nullable Image               image;
@@ -17,6 +15,7 @@ public class StageDefinition {
     private final @Nullable Highlight           highlight;
     private final           boolean             discardable;
     private final           boolean             privileged;
+    private final @Nonnull  List<LogParser>     logParsers;
 
     public StageDefinition(
             @Nonnull String name,
@@ -28,7 +27,8 @@ public class StageDefinition {
             @Nullable Highlight highlight,
             // null-able for backwards compatibility
             @Nullable Boolean discardable,
-            @Nullable Boolean privileged) {
+            @Nullable Boolean privileged,
+            @Nullable List<LogParser> logParsers) {
         this.name        = name;
         this.desc        = description;
         this.image       = image;
@@ -38,6 +38,10 @@ public class StageDefinition {
         this.highlight   = highlight;
         this.discardable = discardable != null && discardable;
         this.privileged  = privileged != null && privileged;
+        this.logParsers  = Optional
+                .ofNullable(logParsers)
+                .map(Collections::unmodifiableList)
+                .orElseGet(Collections::emptyList);
         this.check();
     }
 
@@ -93,6 +97,11 @@ public class StageDefinition {
      */
     public boolean isPrivileged() {
         return privileged;
+    }
+
+    @Nonnull
+    public List<LogParser> getLogParsers() {
+        return logParsers;
     }
 
     @Override

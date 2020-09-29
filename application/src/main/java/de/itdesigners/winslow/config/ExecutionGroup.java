@@ -152,7 +152,8 @@ public class ExecutionGroup {
                             map,
                             stageDefinition.getHighlight().orElse(null),
                             stageDefinition.isDiscardable(),
-                            stageDefinition.isPrivileged()
+                            stageDefinition.isPrivileged(),
+                            stageDefinition.getLogParsers()
                     )
             ));
         } else if (this.stages.isEmpty()) {

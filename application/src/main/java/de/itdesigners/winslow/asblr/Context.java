@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Executor;
+import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.pipeline.Pipeline;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class Context {
@@ -90,6 +92,12 @@ public class Context {
                 .orElseThrow(() -> new AssemblyException("Failed to load value for " + type));
     }
 
+    /**
+     * Logs an internal message with the given level
+     * @param level Categorization of the log
+     * @param message Message to log
+     * @param t {@link Throwable} to append to the logs
+     */
     public void log(@Nonnull Level level, @Nonnull String message, @Nonnull Throwable t) {
         var baos = new ByteArrayOutputStream();
         try (var ps = new PrintStream(baos)) {
@@ -99,6 +107,11 @@ public class Context {
         baos.toString(StandardCharsets.UTF_8).lines().forEach(line -> log(level, line));
     }
 
+    /**
+     * Logs an internal message with the given level
+     * @param level Categorization of the log
+     * @param message Message to log
+     */
     public void log(@Nonnull Level level, @Nonnull String message) {
         if (this.executor != null) {
             if (level.intValue() == Level.INFO.intValue()) {
@@ -106,6 +119,21 @@ public class Context {
             } else if (level.intValue() > Level.INFO.intValue()) {
                 this.executor.logErr(message);
             }
+        }
+    }
+
+    /**
+     * @see Executor#addLogEntryConsumer(Consumer)
+     */
+    public void addLogListener(@Nonnull Consumer<LogEntry> listener) {
+        if (this.executor != null) {
+            this.executor.addLogEntryConsumer(listener);
+        }
+    }
+
+    public void removeLogListener(@Nonnull Consumer<LogEntry> listener) {
+        if (this.executor != null) {
+            this.executor.removeLogEntryConsumer(listener);
         }
     }
 

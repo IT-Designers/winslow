@@ -177,7 +177,8 @@ public class PipelinesController {
                                             Map.of("SOME", "VALUE"),
                                             null,
                                             false,
-                                            false
+                                            false,
+                                            null
                                     ), new StageDefinition(
                                             "Auto Nvidia Stage",
                                             "Automatically generated stage description",
@@ -191,7 +192,8 @@ public class PipelinesController {
                                             Map.of("ANOTHER", "VALUE"),
                                             null,
                                             true,
-                                            false
+                                            false,
+                                            null
                                     ), new StageDefinition(
                                             "Auto Stage 3",
                                             "Downloading more RAM for speedup",
@@ -201,7 +203,8 @@ public class PipelinesController {
                                             Map.of("GIMME", "MOAR RAM"),
                                             null,
                                             null,
-                                            false
+                                            false,
+                                            null
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
                                     null,

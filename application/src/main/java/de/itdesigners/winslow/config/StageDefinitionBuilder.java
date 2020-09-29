@@ -3,10 +3,7 @@ package de.itdesigners.winslow.config;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class StageDefinitionBuilder {
 
@@ -21,6 +18,7 @@ public class StageDefinitionBuilder {
     private @Nullable Optional<Highlight>           highlight;
     private @Nullable Optional<Boolean>             discardable;
     private @Nullable Map<String, String>           additionalEnv;
+    private @Nullable Optional<List<LogParser>>     logParsers;
 
     @Nonnull
     @CheckReturnValue
@@ -87,6 +85,13 @@ public class StageDefinitionBuilder {
 
     @Nonnull
     @CheckReturnValue
+    public StageDefinitionBuilder withLogParsers(@Nullable List<LogParser> logParsers) {
+        this.logParsers = Optional.ofNullable(logParsers);
+        return this;
+    }
+
+    @Nonnull
+    @CheckReturnValue
     public StageDefinitionBuilder withHighlight(@Nullable Highlight highlight) {
         this.highlight = Optional.ofNullable(highlight);
         return this;
@@ -128,7 +133,11 @@ public class StageDefinitionBuilder {
                 Optional.ofNullable(either(
                         Optional.ofNullable(this.template).map(StageDefinition::isPrivileged),
                         Optional.ofNullable(this.base).map(StageDefinition::isPrivileged)
-                )).orElse(Boolean.FALSE)
+                )).orElse(Boolean.FALSE),
+                either(
+                        this.logParsers,
+                        Optional.of(this.template.getLogParsers())
+                )
         );
     }
 
