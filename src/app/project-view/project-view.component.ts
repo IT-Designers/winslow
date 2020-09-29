@@ -112,12 +112,29 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Input()
   public set project(value: ProjectInfo) {
+    const changed = this.projectValue?.id !== value?.id;
     this.projectValue = value;
-    this.logs = [];
-    this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
-    this.deletionPolicyLocal = null;
-    this.deletionPolicyRemote = null;
-    this.setupFiles();
+
+    if (changed) {
+      this.logs = [];
+      this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
+
+      this.deletionPolicyLocal = null;
+      this.deletionPolicyRemote = null;
+      this.api.getDeletionPolicy(this.project.id).then(policy => {
+        this.deletionPolicyLocal = policy;
+        this.deletionPolicyRemote = policy;
+      });
+
+      this.setupFiles();
+
+      if (this.tabs) {
+        this.selectTabIndex(this.selectedTabIndex);
+      }
+
+      this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
+      this.resubscribe(value.id);
+    }
 
     this.pipelinesApi.getPipelineDefinitions().then(result => {
       this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
@@ -132,17 +149,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
     this.updateExecutionSelectionPipelines();
-    this.api.getDeletionPolicy(this.project.id).then(policy => {
-      this.deletionPolicyLocal = policy;
-      this.deletionPolicyRemote = policy;
-    });
 
-    if (this.tabs) {
-      this.selectTabIndex(this.selectedTabIndex);
-    }
-
-    this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
-    this.resubscribe(value.id);
   }
 
   public get project(): ProjectInfo {
