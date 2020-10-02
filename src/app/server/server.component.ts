@@ -110,10 +110,12 @@ export class ServerComponent implements OnInit {
     this.node = backupNode;
     this.node.update = (node) => {
       // load all the new goodies without replacing the object
-      Object.keys(node).forEach(key => {
-        this.node[key] = node[key];
-      });
-      this.update();
+      if (node != null) {
+        Object.keys(node).forEach(key => {
+          this.node[key] = node[key];
+        });
+        this.update();
+      }
     };
     this.update(date);
   }
