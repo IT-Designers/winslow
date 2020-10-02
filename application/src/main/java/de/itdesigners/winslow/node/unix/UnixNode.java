@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,6 +30,8 @@ public class UnixNode implements Node {
     @Nonnull private       List<UnixDiskIoParser.DiskInfo>     prevDiskInfo;
 
     @Nonnull private final PlatformInfo platformInfo;
+
+    private boolean hasGpus = true;
 
     public UnixNode(@Nonnull String name) throws IOException {
         this.name         = name;
@@ -140,7 +143,8 @@ public class UnixNode implements Node {
         var memInfo  = loadMemInfo();
         var netInfo  = loadNetInfo();
         var diskInfo = loadDiskInfo();
-        var gpuInfo  = UnixGpuInfoParser.loadGpuInfo();
+        var gpuInfo  = hasGpus ? UnixGpuInfoParser.loadGpuInfo() : Collections.<GpuInfo>emptyList();
+        this.hasGpus = this.hasGpus && !gpuInfo.isEmpty();
         return new NodeInfo(name, cpuInfo, memInfo, netInfo, diskInfo, gpuInfo);
     }
 

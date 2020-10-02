@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.node.unix;
 
+import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.api.node.GpuInfo;
 
 import java.io.BufferedReader;
@@ -28,7 +29,7 @@ public class UnixGpuInfoParser {
         try {
             return getNvidiaGpuInfo();
         } catch (InterruptedException | IOException e) {
-            LOG.log(Level.WARNING, "Failed to collect GPU info of nvidia devices", e);
+            LOG.log(Env.isDevEnv() ? Level.WARNING : Level.FINE, "Failed to collect GPU info of nvidia devices", e);
             return Stream.empty();
         }
     }
