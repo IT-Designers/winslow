@@ -204,7 +204,7 @@ export class ServerComponent implements OnInit {
     const cpus = this.node.cpuInfo.utilization;
     const cpusReplacement = [];
     for (let i = 0; i < cpus.length; ++i) {
-      const value = Number(Math.max(0, Math.min(100, cpus[i] * 100)));
+      const value = Number(Math.max(0.1, Math.min(100, cpus[i] * 100)));
       cpusReplacement.push({
         name: i,
         value
