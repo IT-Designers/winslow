@@ -14,16 +14,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.WatchKey;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.nio.file.StandardWatchEventKinds.*;
 
 public class NodeRepository extends BaseRepository {
 
@@ -53,31 +49,44 @@ public class NodeRepository extends BaseRepository {
     private void startWatcherDaemon() {
         var thread = new Thread(() -> {
             try {
+                // NFS does not support WatchServices... ... ... ... y tho :/
+                var lastModified = new HashMap<String, Long>();
                 var directory    = getRepositoryDirectory();
-                var watchService = directory.getFileSystem().newWatchService();
-                getRepositoryDirectory().register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-
-                var queue = new ArrayDeque<Pair<String, Long>>();
+                var queue        = new LinkedList<String>();
 
                 while (true) {
-                    Optional
-                            .ofNullable(watchService.poll(1, TimeUnit.SECONDS))
-                            .filter(WatchKey::isValid)
-                            .stream()
-                            .peek(key -> notifyListeners(queue, key))
-                            .forEach(WatchKey::reset);
+                    try (var stream = Files.list(directory)) {
+                        stream
+                                .filter(p -> !p.getFileName().toString().startsWith(TEMP_FILE_PREFIX))
+                                .map(p -> new Pair<>(p.getFileName().toString(), p.toFile().lastModified()))
+                                .filter(p -> !lastModified.containsKey(p.getValue0()) || p.getValue1() > lastModified.get(
+                                        p.getValue0()))
+                                .forEach(p -> {
+                                    queue.remove(p.getValue0());
+                                    queue.push(p.getValue0()); // move it to the end
+
+                                    var type = lastModified.containsKey(p.getValue0())
+                                               ? ChangeEvent.ChangeType.CREATE
+                                               : ChangeEvent.ChangeType.UPDATE;
+                                    notifyListeners(type, p.getValue0());
+                                    lastModified.put(p.getValue0(), p.getValue1());
+                                });
+
+                    }
 
 
                     while (Optional
                             .ofNullable(queue.peek())
-                            .filter(e -> System.currentTimeMillis() - e.getValue1() >= ACTIVE_MAX_MS_DIFF)
+                            .filter(e -> System.currentTimeMillis() - lastModified.get(e) >= ACTIVE_MAX_MS_DIFF)
                             .isPresent()) {
-                        notifyListenersAboutDeletion(queue.pop().getValue0());
+                        var node = queue.pop();
+                        lastModified.remove(node);
+                        notifyListeners(ChangeEvent.ChangeType.DELETE, node);
                     }
-
+                    LockBus.ensureSleepMs(1000);
                 }
 
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 LOG.log(Level.SEVERE, "Watcher thread failed", e);
             }
         });
@@ -86,46 +95,12 @@ public class NodeRepository extends BaseRepository {
         thread.start();
     }
 
-    private void notifyListenersAboutDeletion(String removed) {
+    private void notifyListeners(@Nonnull ChangeEvent.ChangeType type, @Nonnull String node) {
         synchronized (listeners) {
-            listeners.forEach(listener -> listener.accept(
-                    ChangeEvent.ChangeType.DELETE,
-                    removed
-            ));
+            listeners.forEach(listener -> listener.accept(type, node));
         }
     }
 
-    private void notifyListeners(@Nonnull Deque<Pair<String, Long>> cacheQueue, @Nonnull WatchKey key) {
-        if (!listeners.isEmpty()) {
-            synchronized (listeners) {
-                key
-                        .pollEvents()
-                        .stream()
-                        .filter(e -> e.context() instanceof Path
-                                && !((Path) e.context())
-                                .getFileName()
-                                .toString()
-                                .startsWith(TEMP_FILE_PREFIX)
-                        )
-                        .forEach(event -> {
-                            var path = (Path) event.context();
-                            var name = path.getFileName().toString();
-                            var type = (ChangeEvent.ChangeType) null;
-
-                            if (cacheQueue.removeIf(p -> p.getValue0().equals(name))) {
-                                type = ChangeEvent.ChangeType.UPDATE;
-                            } else {
-                                type = ChangeEvent.ChangeType.CREATE;
-                            }
-
-                            cacheQueue.add(new Pair<>(name, System.currentTimeMillis()));
-
-                            final var fType = type;
-                            listeners.forEach(listener -> listener.accept(fType, name));
-                        });
-            }
-        }
-    }
 
     @Nonnull
     @Override
