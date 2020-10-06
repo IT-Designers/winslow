@@ -83,6 +83,18 @@ public class ProjectsEndpointController {
 
     private void startPollDaemon() {
         var thread = new Thread(() -> {
+            winslow
+                    .getOrchestrator()
+                    .getProjects()
+                    .getProjects()
+                    .flatMap(handle -> handle.unsafe().stream())
+                    .filter(project -> winslow.getOrchestrator().getPipeline(project).flatMap(pipeline -> pipeline
+                            .getActiveExecutionGroup()
+                            .map(g -> g.getStages().anyMatch(stage -> stage.getState() == State.Running)))
+                            .orElse(Boolean.FALSE)
+                    )
+                    .forEach(project -> createOrStopProjectPublisher(project.getId(), project, true));
+
             while (true) {
                 var last = System.currentTimeMillis();
                 var completed = this.runningPublishers
