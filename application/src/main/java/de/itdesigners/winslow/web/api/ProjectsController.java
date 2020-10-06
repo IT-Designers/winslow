@@ -528,9 +528,10 @@ public class ProjectsController {
                                                    .getLogRepository()
                                                    .getRawInputStreamNonExclusive(
                                                            projectId,
-                                                           stageId
+                                                           stageId,
+                                                           0L
                                                    ));
-                    } catch (FileNotFoundException e) {
+                    } catch (IOException e) {
                         return Optional.empty();
                     }
                 })

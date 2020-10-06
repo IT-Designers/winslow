@@ -83,13 +83,13 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                 id -> new LogFileInfo()
         );
 
+        var previousSize = info.fileSize;
         if (info.checkIfLargerAndUpdate(winslow.getOrchestrator().getLogSize(project, stageId))) {
             return Optional
                     .of(winslow
                                 .getOrchestrator()
-                                .getLogs(project, stage.getId())
+                                .getLogs(project, stage.getId(), previousSize)
                                 .sequential()
-                                .skip(info.lines)
                                 .map(e -> new LogEntryInfo(info.lines++, stageId, e))
                                 .collect(Collectors.toList())
                     )

@@ -71,9 +71,25 @@ public class LogRepository extends BaseRepository {
     @Nonnull
     public InputStream getRawInputStreamNonExclusive(
             @Nonnull String projectId,
-            @Nonnull String stageId) throws FileNotFoundException {
+            @Nonnull String stageId,
+            long skipBytesLineAligned) throws IOException {
         var path = getLogFile(projectId, stageId);
-        return new FileInputStream(path.toFile());
+        var fis  = new FileInputStream(path.toFile());
+        if (skipBytesLineAligned >= 1) {
+            try {
+                fis.skip(skipBytesLineAligned - 1);
+                while (true) {
+                    int read = fis.read();
+                    if (read < 0 || read == '\n') {
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                fis.close();
+                throw e;
+            }
+        }
+        return fis;
     }
 
     private Path getLogFile(@Nonnull String projectId, @Nonnull String stageId) {

@@ -815,15 +815,29 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
+    public Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull StageId id, long skipBytes) {
+        return this.getLogs(project, id.getFullyQualified(), skipBytes);
+    }
+
+    @Nonnull
     public Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull String stageId) {
-        return this.getLogs(project.getId(), stageId);
+        return this.getLogs(project.getId(), stageId, 0L);
+    }
+
+    @Nonnull
+    public Stream<LogEntry> getLogs(@Nonnull Project project, @Nonnull String stageId, long skipBytes) {
+        return this.getLogs(project.getId(), stageId, skipBytes);
     }
 
     @Nonnull
     public Stream<LogEntry> getLogs(@Nonnull String projectId, @Nonnull String stageId) {
+        return this.getLogs(projectId, stageId, 0L);
+    }
+
+    public Stream<LogEntry> getLogs(@Nonnull String projectId, @Nonnull String stageId, long skipBytes) {
         try {
-            return LogReader.stream(logs.getRawInputStreamNonExclusive(projectId, stageId));
-        } catch (FileNotFoundException e) {
+            return LogReader.stream(logs.getRawInputStreamNonExclusive(projectId, stageId, skipBytes));
+        } catch (IOException e) {
             return Stream.empty();
         }
     }

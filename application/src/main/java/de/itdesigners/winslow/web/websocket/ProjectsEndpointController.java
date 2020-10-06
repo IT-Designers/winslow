@@ -100,7 +100,7 @@ public class ProjectsEndpointController {
                         .forEach(Pollable::pollAndClose);
 
                 var diff = 1_000 - (System.currentTimeMillis() - last);
-                LockBus.ensureSleepMs(Math.max(MAX_LOG_ENTRIES, diff));
+                LockBus.ensureSleepMs(Math.max(100, diff));
             }
         });
 
