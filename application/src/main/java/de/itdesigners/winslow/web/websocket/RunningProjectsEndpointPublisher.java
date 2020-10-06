@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static de.itdesigners.winslow.web.websocket.ProjectsEndpointController.*;
@@ -98,18 +99,19 @@ public class RunningProjectsEndpointPublisher implements Pollable {
         }
     }
 
-    public synchronized List<LogEntryInfo> getLogEntryLatestUpToHead() {
+    public synchronized List<LogEntryInfo> getLogEntryLatestUpToHead(@Nullable Integer maxEntries) {
         return getLogEntryLatestUpToHead(
                 winslow,
                 project.getId(),
                 id -> Optional
                         .ofNullable(this.logFileSize.get(id.getFullyQualified()))
                         .map(i -> i.lines)
-                        .orElse(Long.MAX_VALUE)
+                        .orElse(Long.MAX_VALUE),
+                maxEntries
         );
     }
 
-    public synchronized List<LogEntryInfo> getLogEntryUpToHead(@Nonnull String stageId) {
+    public synchronized List<LogEntryInfo> getLogEntryUpToHead(@Nonnull String stageId, @Nullable Integer maxEntries) {
         return getLogEntryUpToHead(
                 winslow,
                 project.getId(),
@@ -117,14 +119,16 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                         .ofNullable(this.logFileSize.get(id.getFullyQualified()))
                         .map(i -> i.lines)
                         .orElse(Long.MAX_VALUE),
-                stageId
+                stageId,
+                maxEntries
         );
     }
 
     public static List<LogEntryInfo> getLogEntryLatestUpToHead(
             @Nonnull Winslow winslow,
             @Nonnull String projectId,
-            @Nonnull Function<StageId, Long> logFileLimitCallback) {
+            @Nonnull Function<StageId, Long> logFileLimitCallback,
+            @Nullable Integer maxEntries) {
         return winslow
                 .getOrchestrator()
                 .getPipeline(projectId)
@@ -134,7 +138,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                         .flatMap(ExecutionGroup::getStages)
                         .sequential()
                         .reduce((first, second) -> second)
-                        .map(stage -> loadLogs(winslow, projectId, logFileLimitCallback, stage))
+                        .map(stage -> loadLogs(winslow, projectId, logFileLimitCallback, stage, maxEntries))
                 )
                 .orElseGet(Collections::emptyList);
     }
@@ -143,7 +147,8 @@ public class RunningProjectsEndpointPublisher implements Pollable {
             @Nonnull Winslow winslow,
             @Nonnull String projectId,
             @Nonnull Function<StageId, Long> logFileLimitCallback,
-            @Nonnull String stageId) {
+            @Nonnull String stageId,
+            @Nullable Integer maxEntries) {
         return winslow
                 .getOrchestrator()
                 .getPipeline(projectId)
@@ -152,7 +157,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                         .flatMap(ExecutionGroup::getStages)
                         .filter(stage -> stage.getFullyQualifiedId().equals(stageId))
                         .findAny()
-                        .map(stage -> loadLogs(winslow, projectId, logFileLimitCallback, stage))
+                        .map(stage -> loadLogs(winslow, projectId, logFileLimitCallback, stage, maxEntries))
                 )
                 .orElseGet(Collections::emptyList);
     }
@@ -161,10 +166,16 @@ public class RunningProjectsEndpointPublisher implements Pollable {
     private static List<LogEntryInfo> loadLogs(
             @Nonnull Winslow winslow,
             @Nonnull String projectId,
-            @Nonnull Function<StageId, Long> logFileLimitCallback, Stage stage) {
+            @Nonnull Function<StageId, Long> logFileLimitCallback,
+            @Nonnull Stage stage,
+            @Nullable Integer maxEntries) {
+        if (maxEntries != null && maxEntries < 0) {
+            return Collections.emptyList();
+        }
+
         var line  = new AtomicLong(0L);
         var limit = logFileLimitCallback.apply(stage.getId());
-        return winslow
+        var stream = winslow
                 .getOrchestrator()
                 .getLogs(projectId, stage.getFullyQualifiedId())
                 .sequential()
@@ -173,8 +184,32 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                         line.getAndIncrement(),
                         stage.getFullyQualifiedId(),
                         e
-                ))
-                .collect(Collectors.toList());
+                ));
+        if (maxEntries == null || maxEntries == 0) {
+            return stream.collect(Collectors.toList());
+        } else {
+            return new ArrayList<>(
+                    stream
+                            .sequential()
+                            .collect(
+                                    Collector.<LogEntryInfo, ArrayDeque<LogEntryInfo>>of(
+                                            ArrayDeque::new,
+                                            (queue, entry) -> {
+                                                while (queue.size() >= maxEntries) {
+                                                    queue.pollFirst();
+                                                }
+                                                queue.add(entry);
+                                            },
+                                            (acc1, acc2) -> {
+                                                while (!acc1.isEmpty()) {
+                                                    acc2.addFirst(acc1.pollLast());
+                                                }
+                                                return acc2;
+                                            }
+                                    )
+                            )
+            );
+        }
     }
 
     @Override

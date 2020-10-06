@@ -43,6 +43,7 @@ public class ProjectsEndpointController {
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_HISTORY     = TOPIC_PREFIX + "/%s/history";
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_EXECUTING   = TOPIC_PREFIX + "/%s/executing";
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_ENQUEUED    = TOPIC_PREFIX + "/%s/enqueued";
+    public static final          int    MAX_LOG_ENTRIES                    = 1024;
 
     private final @Nonnull MessageSender      sender;
     private final @Nonnull Winslow            winslow;
@@ -99,7 +100,7 @@ public class ProjectsEndpointController {
                         .forEach(Pollable::pollAndClose);
 
                 var diff = 1_000 - (System.currentTimeMillis() - last);
-                LockBus.ensureSleepMs(Math.max(100, diff));
+                LockBus.ensureSleepMs(Math.max(MAX_LOG_ENTRIES, diff));
             }
         });
 
@@ -357,7 +358,7 @@ public class ProjectsEndpointController {
                         .filter(user -> projects.getProject(user, projectId).isPresent())
                         .flatMap(user -> Optional
                                 .ofNullable(this.runningPublishers.get(projectId))
-                                .map(w -> w.value.getLogEntryLatestUpToHead())
+                                .map(w -> w.value.getLogEntryLatestUpToHead(MAX_LOG_ENTRIES))
                         )
                         .map(logs -> new ChangeEvent<>(ChangeType.CREATE, projectId, logs))
                         .orElseGet(() -> new ChangeEvent<>(
@@ -366,7 +367,8 @@ public class ProjectsEndpointController {
                                 RunningProjectsEndpointPublisher.getLogEntryLatestUpToHead(
                                         winslow,
                                         projectId,
-                                        id -> Long.MAX_VALUE
+                                        id -> Long.MAX_VALUE,
+                                        MAX_LOG_ENTRIES
                                 )
                         ))
         );
@@ -382,7 +384,7 @@ public class ProjectsEndpointController {
                         .filter(user -> projects.getProject(user, projectId).isPresent())
                         .flatMap(user -> Optional
                                 .ofNullable(this.runningPublishers.get(projectId))
-                                .map(w -> w.value.getLogEntryUpToHead(stageId))
+                                .map(w -> w.value.getLogEntryUpToHead(stageId, MAX_LOG_ENTRIES))
                         )
                         .map(logs -> new ChangeEvent<>(ChangeType.CREATE, projectId, logs))
                         .orElseGet(() -> new ChangeEvent<>(
@@ -392,7 +394,8 @@ public class ProjectsEndpointController {
                                         winslow,
                                         projectId,
                                         id -> Long.MAX_VALUE,
-                                        stageId
+                                        stageId,
+                                        MAX_LOG_ENTRIES
                                 )
                         ))
         );
