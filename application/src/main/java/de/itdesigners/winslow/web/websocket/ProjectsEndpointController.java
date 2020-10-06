@@ -43,7 +43,7 @@ public class ProjectsEndpointController {
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_HISTORY     = TOPIC_PREFIX + "/%s/history";
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_EXECUTING   = TOPIC_PREFIX + "/%s/executing";
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_ENQUEUED    = TOPIC_PREFIX + "/%s/enqueued";
-    public static final          int    MAX_LOG_ENTRIES                    = 1024;
+    public static final          int    MAX_LOG_ENTRIES                    = 10240;
 
     private final @Nonnull MessageSender      sender;
     private final @Nonnull Winslow            winslow;
