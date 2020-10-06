@@ -22,12 +22,16 @@ export class ServersComponent implements OnInit, OnDestroy {
       switch (update.type) {
         case ChangeType.CREATE:
         case ChangeType.UPDATE:
-          const indexUpdate = this.nodes.findIndex(value => value.name === update.identifier);
-          if (indexUpdate >= 0) {
-            this.nodes[indexUpdate]?.update(update.value);
-          } else {
-            this.nodes.push(update.value);
-            this.sortNodesByName();
+          if (update.value != null) {
+            const indexUpdate = this.nodes.findIndex(value => value.name === update.identifier);
+            if (indexUpdate >= 0) {
+              if (this.nodes[indexUpdate]?.update != null) {
+                this.nodes[indexUpdate]?.update(update.value);
+              }
+            } else {
+              this.nodes.push(update.value);
+              this.sortNodesByName();
+            }
           }
           break;
         case ChangeType.DELETE:
