@@ -14,9 +14,9 @@ plugin "docker" {
   config {
     allow_privileged = true
 
-   gc {
-    image_delay = "2d"
-   }
+    gc {
+      image_delay = "96h"
+    }
   
   }
 }
