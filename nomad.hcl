@@ -13,9 +13,10 @@ client {
 plugin "docker" {
   config {
     allow_privileged = true
-  }
 
-  gc {
+   gc {
     image_delay = "2d"
+   }
+  
   }
 }
