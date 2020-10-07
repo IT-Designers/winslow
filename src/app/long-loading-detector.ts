@@ -5,6 +5,8 @@ export class LongLoadingDetector {
 
   longLoading = false;
 
+  flags: Set<string> = new Set();
+
   constructor(msForCategorizationAsLongLoading = 1_000) {
     this.loadingCount = 0;
     this.longLoadingMs = msForCategorizationAsLongLoading;
@@ -12,6 +14,10 @@ export class LongLoadingDetector {
 
   increase() {
     this.loadingCount += 1;
+    this.increaseCheck();
+  }
+
+  private increaseCheck() {
     if (this.loadingSince == null) {
       this.loadingSince = new Date().getTime();
       setTimeout(() => this.checkLongLoading(), this.longLoadingMs + 5);
@@ -20,10 +26,26 @@ export class LongLoadingDetector {
 
   decrease() {
     this.loadingCount -= 1;
-    if (this.loadingCount <= 0) {
+    this.decreaseCheck();
+  }
+
+  private decreaseCheck() {
+    if (this.loadingCount + this.flags.size <= 0) {
       this.loadingSince = null;
       this.checkLongLoading();
     }
+  }
+
+  raise(flag: string) {
+    if (!this.flags.has(flag)) {
+      this.flags.add(flag);
+      this.increaseCheck();
+    }
+  }
+
+  clear(flag: string) {
+    this.flags.delete(flag);
+    this.decreaseCheck();
   }
 
   checkLongLoading() {

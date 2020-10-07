@@ -38,8 +38,69 @@ import {environment} from '../../environments/environment';
 })
 export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
+
+  constructor(public api: ProjectApiService, private notification: NotificationService,
+              private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
+              private dialog: DialogService,
+              private route: ActivatedRoute,
+              private router: Router) {
+  }
+
+  @Input()
+  public set project(value: ProjectInfo) {
+    const changed = this.projectValue?.id !== value?.id;
+    this.projectValue = value;
+
+    if (changed) {
+      this.logs = [];
+      this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
+
+      this.deletionPolicyLocal = null;
+      this.deletionPolicyRemote = null;
+      this.api.getDeletionPolicy(this.project.id).then(policy => {
+        this.deletionPolicyLocal = policy;
+        this.deletionPolicyRemote = policy;
+      });
+
+      this.setupFiles();
+
+      if (this.tabs) {
+        this.selectTabIndex(this.selectedTabIndex);
+      }
+
+      this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
+      this.resubscribe(value.id);
+    }
+
+    this.pipelinesApi.getPipelineDefinitions().then(result => {
+      this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
+      this.probablyProjectPipelineId = null;
+      if (this.project && this.project.pipelineDefinition) {
+        for (const pipeline of this.pipelines) {
+          if (pipeline.name === this.project.pipelineDefinition.name) {
+            this.probablyProjectPipelineId = pipeline.id;
+            break;
+          }
+        }
+      }
+    });
+    this.updateExecutionSelectionPipelines();
+
+  }
+
+  public get project(): ProjectInfo {
+    return this.projectValue;
+  }
+
+  @Input()
+  public set state(value: StateInfo) {
+    this.update(value);
+  }
+
   static TRUNCATE_TO_MAX_LINES = 5000;
   static LOGS_LATEST = ProjectApiService.LOGS_LATEST;
+
+  private static readonly LONG_LOADING_FLAG_LOGS = 'logs';
 
   tabIndexOverview = Tab.Overview;
 
@@ -101,65 +162,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
   workspaceMode: WorkspaceMode = null;
-
-
-  constructor(public api: ProjectApiService, private notification: NotificationService,
-              private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
-              private dialog: DialogService,
-              private route: ActivatedRoute,
-              private router: Router) {
-  }
-
-  @Input()
-  public set project(value: ProjectInfo) {
-    const changed = this.projectValue?.id !== value?.id;
-    this.projectValue = value;
-
-    if (changed) {
-      this.logs = [];
-      this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
-
-      this.deletionPolicyLocal = null;
-      this.deletionPolicyRemote = null;
-      this.api.getDeletionPolicy(this.project.id).then(policy => {
-        this.deletionPolicyLocal = policy;
-        this.deletionPolicyRemote = policy;
-      });
-
-      this.setupFiles();
-
-      if (this.tabs) {
-        this.selectTabIndex(this.selectedTabIndex);
-      }
-
-      this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
-      this.resubscribe(value.id);
-    }
-
-    this.pipelinesApi.getPipelineDefinitions().then(result => {
-      this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
-      this.probablyProjectPipelineId = null;
-      if (this.project && this.project.pipelineDefinition) {
-        for (const pipeline of this.pipelines) {
-          if (pipeline.name === this.project.pipelineDefinition.name) {
-            this.probablyProjectPipelineId = pipeline.id;
-            break;
-          }
-        }
-      }
-    });
-    this.updateExecutionSelectionPipelines();
-
-  }
-
-  public get project(): ProjectInfo {
-    return this.projectValue;
-  }
-
-  @Input()
-  public set state(value: StateInfo) {
-    this.update(value);
-  }
 
 
   private static deepClone(obj: any): any {
@@ -245,8 +247,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     if (stageId == null) {
       stageId = ProjectViewComponent.LOGS_LATEST;
     }
+    this.longLoading.raise(ProjectViewComponent.LONG_LOADING_FLAG_LOGS);
     this.logsDisplayedLatest = ProjectViewComponent.LOGS_LATEST === stageId;
     this.logSubscription = this.api.watchLogs(projectId, (logs) => {
+      this.longLoading.clear(ProjectViewComponent.LONG_LOADING_FLAG_LOGS);
       if (logs?.length > 0) {
         if (this.logs == null || this.logs.length === 0 || this.logs[0].stageId !== logs[0].stageId) {
           this.logsDisplayed = logs[0].stageId;
