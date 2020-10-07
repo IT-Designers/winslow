@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.api.pipeline;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class StateInfo {
 
@@ -22,5 +23,24 @@ public class StateInfo {
         this.description       = description;
         this.stageProgress     = stageProgress;
         this.hasEnqueuedStages = hasEnqueuedStages;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        StateInfo stateInfo = (StateInfo) o;
+        return hasEnqueuedStages == stateInfo.hasEnqueuedStages &&
+                state == stateInfo.state &&
+                Objects.equals(pauseReason, stateInfo.pauseReason) &&
+                Objects.equals(description, stateInfo.description) &&
+                Objects.equals(stageProgress, stateInfo.stageProgress);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(state, pauseReason, description, stageProgress, hasEnqueuedStages);
     }
 }

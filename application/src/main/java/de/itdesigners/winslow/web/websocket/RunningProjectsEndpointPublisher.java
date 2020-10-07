@@ -2,12 +2,13 @@ package de.itdesigners.winslow.web.websocket;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.LogEntryInfo;
+import de.itdesigners.winslow.api.pipeline.StateInfo;
 import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.Project;
+import de.itdesigners.winslow.web.api.ProjectsController;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,12 +22,14 @@ import static de.itdesigners.winslow.web.websocket.ProjectsEndpointController.*;
 
 public class RunningProjectsEndpointPublisher implements Pollable {
 
-    private final @Nonnull Map<String, LogFileInfo> logFileSize = new HashMap<>();
+    private final @Nonnull Map<String, LogFileInfo> logFileSize    = new HashMap<>();
 
     private final @Nonnull MessageSender sender;
     private final @Nonnull Winslow       winslow;
 
     private @Nonnull Project project;
+
+    private @Nullable StateInfo prevStateInfo;
 
 
     public RunningProjectsEndpointPublisher(
@@ -59,20 +62,32 @@ public class RunningProjectsEndpointPublisher implements Pollable {
         this.publishProjectUpdate(String.format(TOPIC_PROJECT_SPECIFIC_LOGS_STAGE, project.getId(), stageId), entries);
     }
 
+    private void publishStateInfoUpdate(@Nullable StateInfo info) {
+        if (!Objects.equals(prevStateInfo, info)) {
+            this.publishProjectUpdate(TOPIC_PROJECT_STATES, info);
+            this.prevStateInfo = info;
+        }
+    }
+
     @Override
     public void poll() {
         winslow.getOrchestrator().getRunningStageStats(project).ifPresent(this::publishUpdate);
-        winslow.getOrchestrator()
-               .getPipeline(project)
-               .flatMap(Pipeline::getActiveExecutionGroup)
-               .stream()
-               .flatMap(ExecutionGroup::getStages)
-               .sequential()
-               .reduce((first, second) -> second)
-               .ifPresent(stage -> this.getLogEntryLatestAfterHead(stage).ifPresent(logs -> {
-                   publishUpdate(logs);
-                   publishUpdate(logs, stage.getFullyQualifiedId());
-               }));
+        winslow.getOrchestrator().getPipeline(project).ifPresent(pipeline -> {
+            pipeline
+                    .getActiveExecutionGroup()
+                    .stream()
+                    .flatMap(ExecutionGroup::getStages)
+                    .sequential()
+                    .reduce((first, second) -> second)
+                    .ifPresent(stage -> this.getLogEntryLatestAfterHead(stage).ifPresent(logs -> {
+                        publishUpdate(logs);
+                        publishUpdate(logs, stage.getFullyQualifiedId());
+                    }));
+
+            // TODO
+            publishStateInfoUpdate(ProjectsController.getStateInfo(winslow, pipeline));
+        });
+
 
     }
 

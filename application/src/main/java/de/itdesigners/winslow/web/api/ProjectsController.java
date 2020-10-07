@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -276,10 +275,10 @@ public class ProjectsController {
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
-                        .flatMap(this::getPipelineState));
+                        .flatMap(ProjectsController::getPipelineState));
     }
 
-    private Optional<State> getPipelineState(@Nonnull Pipeline pipeline) {
+    private static Optional<State> getPipelineState(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveExecutionGroup()
                 .map(ExecutionGroup::getRunningStages)
@@ -346,6 +345,11 @@ public class ProjectsController {
 
     @Nonnull
     public StateInfo getStateInfo(@Nonnull Pipeline pipeline) {
+        return getStateInfo(winslow, pipeline);
+    }
+
+    @Nonnull
+    public static StateInfo getStateInfo(@Nonnull Winslow winslow, @Nonnull Pipeline pipeline) {
         var state = getPipelineState(pipeline).orElse(null);
         var mostRecentStage = pipeline
                 .getActiveExecutionGroup()
