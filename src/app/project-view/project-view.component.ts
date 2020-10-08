@@ -537,16 +537,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resubscribeLogs(this.projectValue.id, watchLatestLogs ? null : (entry?.id ?? this.logsDisplayed));
   }
 
-  showLatestLogs(force: boolean) {
+  showLatestLogs() {
     this.resubscribeLogs(this.projectValue.id);
+  }
+
+  forceReloadLogs() {
+    this.resubscribeLogs(this.projectValue.id, this.logsDisplayedLatest ? null : this.logsDisplayed);
   }
 
   sourceIsManagement(source: LogSource) {
     return source === LogSource.MANAGEMENT_EVENT;
-  }
-
-  forceReloadLogs() {
-    this.resubscribeLogs(this.projectValue.id, this.logsDisplayed);
   }
 
   setName(name: string) {
