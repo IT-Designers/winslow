@@ -67,6 +67,7 @@ import { ProjectHistoryComponent } from './project-history/project-history.compo
 import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/project-history-group-info.component';
 import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
 import {RxStompConfig} from './rx-stomp.config';
+import { LogViewComponent } from './log-view/log-view.component';
 
 @NgModule({
     declarations: [
@@ -103,6 +104,7 @@ import {RxStompConfig} from './rx-stomp.config';
         ProjectDiskUsageDialogComponent,
         ProjectHistoryComponent,
         ProjectHistoryGroupInfoComponent,
+        LogViewComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
