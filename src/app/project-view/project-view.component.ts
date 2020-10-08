@@ -52,11 +52,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.projectValue = value;
 
     if (changed) {
-      this.logs = [];
       this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
-
-      this.logsDisplayed = null;
-      this.logsDisplayedLatest = true;
 
       this.deletionPolicyLocal = null;
       this.deletionPolicyRemote = null;
@@ -101,18 +97,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   static TRUNCATE_TO_MAX_LINES = 5000;
-  static LOGS_LATEST = ProjectApiService.LOGS_LATEST;
 
-  private static readonly LONG_LOADING_FLAG_LOGS = 'logs';
 
   tabIndexOverview = Tab.Overview;
 
   @ViewChild('tabGroup') tabs: MatTabGroup;
-  @ViewChild('console') htmlConsole: ElementRef<HTMLElement>;
-  @ViewChild('scrollBottomTarget') scrollBottomTarget: ElementRef<HTMLElement>;
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
 
-  private projectValue: ProjectInfo;
+  projectValue: ProjectInfo;
   probablyProjectPipelineId = null;
 
   @Output('state') private stateEmitter = new EventEmitter<State>();
@@ -121,6 +113,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   filesAdditionalRoot: string = null;
   filesNavigationTarget: string = null;
 
+  stageIdToDisplayLogsFor: string = null;
   stateValue?: State = null;
 
   history: ExecutionGroupInfo[] = [];
@@ -132,10 +125,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   historyExecutingSubscription: Subscription = null;
   historyCanLoadMoreEntries = true;
 
-  logs?: LogEntry[] = [];
-  logsDisplayed?: string = null;
-  logsDisplayedLatest = false;
-  logSubscription: Subscription = null;
   paused: boolean = null;
   pauseReason?: string = null;
   progress?: number;
@@ -144,10 +133,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   deletionPolicyRemote?: DeletionPolicy;
 
   longLoading = new LongLoadingDetector();
-
-  stickConsole = true;
-  consoleIsLoading = false;
-  scrollCallback;
 
   pipelines: PipelineInfo[];
 
@@ -183,9 +168,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.setupFiles();
-    this.scrollCallback = () => this.onWindowScroll();
-    window.addEventListener('scroll', this.scrollCallback, true);
-
     this.paramsSubscription = this.route.children[0].params.subscribe(params => {
       if (params.tab != null) {
         this.updateTabSelection(params.tab);
@@ -198,7 +180,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.scrollCallback, true);
     if (this.paramsSubscription) {
       this.paramsSubscription.unsubscribe();
       this.paramsSubscription = null;
@@ -218,53 +199,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   private unsubscribe() {
     this.subscribedProjectId = null;
     this.unsubscribeHistory();
-    this.unsubscribeLogs();
   }
 
   private subscribe(projectId: string) {
     this.subscribedProjectId = projectId;
     this.subscribeHistory(projectId);
-  }
-
-  private resubscribeLogs(projectId: string, stageId = ProjectViewComponent.LOGS_LATEST) {
-    this.unsubscribeLogs();
-    this.logs = [];
-    this.logsDisplayed = null;
-    this.subscribeLogs(projectId, stageId);
-  }
-
-  private unsubscribeLogs() {
-    if (this.logSubscription) {
-      this.logSubscription.unsubscribe();
-      this.logSubscription = null;
-    }
-  }
-
-  private subscribeLogsIfNotSubscribed(projectId: string, stageId = ProjectViewComponent.LOGS_LATEST) {
-    if (this.logSubscription == null) {
-      this.subscribeLogs(projectId, stageId);
-    }
-  }
-
-  private subscribeLogs(projectId: string, stageId = ProjectViewComponent.LOGS_LATEST) {
-    if (stageId == null) {
-      stageId = ProjectViewComponent.LOGS_LATEST;
-    }
-    this.longLoading.raise(ProjectViewComponent.LONG_LOADING_FLAG_LOGS);
-    this.logsDisplayedLatest = ProjectViewComponent.LOGS_LATEST === stageId;
-    this.logSubscription = this.api.watchLogs(projectId, (logs) => {
-      this.longLoading.clear(ProjectViewComponent.LONG_LOADING_FLAG_LOGS);
-      if (logs?.length > 0) {
-        if (this.logs == null || this.logs.length === 0 || this.logs[0].stageId !== logs[0].stageId) {
-          this.logsDisplayed = logs[0].stageId;
-          this.logs = [];
-        }
-        this.logs.push(...logs);
-        this.scrollConsoleToBottom();
-      } else {
-        this.logs = [];
-      }
-    }, stageId);
   }
 
   private unsubscribeHistory() {
@@ -338,14 +277,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   isRunning(state = this.stateValue): boolean {
     return State.Running === state;
-  }
-
-  toDate(time: number) {
-    if (time) {
-      return new Date(time).toLocaleString();
-    } else {
-      return '';
-    }
   }
 
   enqueue(
@@ -476,11 +407,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.conditionally(
-      Tab.Logs === index,
-      () => this.subscribeLogsIfNotSubscribed(this.projectValue.id, this.logsDisplayedLatest ? null : this.logsDisplayed),
-      () => this.unsubscribeLogs()
-    );
-    this.conditionally(
       Tab.PipelineDefinition === index,
       () => this.loadRawPipelineDefinition(),
       () => this.rawPipelineDefinition = null
@@ -536,20 +462,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   openLogs(entry?: StageInfo, watchLatestLogs = false) {
+    this.stageIdToDisplayLogsFor = entry?.id;
     this.tabs.selectedIndex = Tab.Logs;
-    this.resubscribeLogs(this.projectValue.id, watchLatestLogs ? null : (entry?.id ?? this.logsDisplayed));
-  }
-
-  showLatestLogs() {
-    this.resubscribeLogs(this.projectValue.id);
-  }
-
-  forceReloadLogs() {
-    this.resubscribeLogs(this.projectValue.id, this.logsDisplayedLatest ? null : this.logsDisplayed);
-  }
-
-  sourceIsManagement(source: LogSource) {
-    return source === LogSource.MANAGEMENT_EVENT;
   }
 
   setName(name: string) {
@@ -570,43 +484,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
         this.deletedEmitter.emit(true);
       })
     );
-  }
-
-  onConsoleScroll($event: Event) {
-    const element = $event.target as HTMLDivElement;
-    this.stickConsole = (element.scrollHeight - element.clientHeight) <= element.scrollTop;
-  }
-
-  onWindowScroll() {
-    if (this.htmlConsole != null) {
-      const rangeSize = 50;
-      let element = this.htmlConsole.nativeElement;
-      let offset = element.offsetHeight - window.innerHeight + rangeSize;
-
-      while (element) {
-        offset += element.offsetTop;
-        element = element.offsetParent as HTMLElement;
-      }
-
-      this.stickConsole = offset <= window.scrollY + rangeSize && offset >= window.scrollY - rangeSize;
-    }
-  }
-
-  scrollConsoleToTop() {
-    this.stickConsole = false;
-    this.htmlConsole.nativeElement.scrollTop = 0;
-  }
-
-  scrollConsoleToBottom(overwrite = false) {
-    if (this.stickConsole || overwrite) {
-      this.stickConsole = true;
-      setTimeout(() => {
-        if (this.htmlConsole) {
-          this.htmlConsole.nativeElement.scrollTop = 9_999_999_999;
-        }
-      });
-      setTimeout(() => this.scrollToBottomTarget());
-    }
   }
 
   killStage(stageId: string) {
@@ -633,21 +510,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.defaultEnvironmentVariables = entry != null ? new Map(entry.env) : new Map(group.stageDefinition.env);
     this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? new Map(group.rangedValues) : new Map();
     this.tabs.selectedIndex = Tab.Control;
-  }
-
-  private scrollToBottomTarget(smooth = true) {
-    this.scrollBottomTarget.nativeElement.scrollIntoView({
-      behavior: smooth ? 'smooth' : 'auto',
-      block: 'end'
-    });
-  }
-
-  scrollConsoleToBottomTimeout(checked: boolean) {
-    setTimeout(() => {
-      if (checked) {
-        this.scrollConsoleToBottom(checked);
-      }
-    });
   }
 
   cancelEnqueuedStage(groupId: string) {
@@ -725,14 +587,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     p.pipelineDefinition = ProjectViewComponent.deepClone(pipeline);
     p.pipelineDefinition.id = pid;
     this.project = p;
-  }
-
-  downloadUrl() {
-    if (this.logs != null && this.logs.length > 0) {
-      return this.api.getLogRawUrl(this.project.id, this.logs[0].stageId);
-    } else {
-      return '';
-    }
   }
 
   checkPipelineDefinition(raw: string) {
@@ -922,10 +776,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
         }),
       `Updating workspace configuration mode`,
     );
-  }
-
-  trackLog(log: LogEntry) {
-    return log?.line;
   }
 }
 
