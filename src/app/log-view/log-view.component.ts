@@ -1,5 +1,5 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {LogEntry, LogSource, ProjectApiService, ProjectInfo} from '../api/project-api.service';
+import {LogEntry, LogSource, ProjectApiService, ProjectInfo, State} from '../api/project-api.service';
 import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../long-loading-detector';
 
@@ -22,22 +22,34 @@ export class LogViewComponent implements OnInit, OnDestroy {
   logs?: LogEntry[] = [];
   displayLatest = false;
 
+  stateSubscription: Subscription = null;
   logSubscription: Subscription = null;
   longLoading = new LongLoadingDetector();
 
   stickConsole = true;
   downloadUrl: string = '';
+  projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
 
-  constructor(private api: ProjectApiService) { }
+  constructor(private api: ProjectApiService) {
+  }
 
   ngOnInit(): void {
     window.addEventListener('scroll', this.scrollCallback, true);
+    this.stateSubscription = this.api.getProjectStateSubscriptionHandler().subscribe((id, info) => {
+      if (id === this.selectedProject?.id && info != null) {
+        this.projectHasRunningStage = State.Running === info.getState();
+      }
+    });
   }
 
   ngOnDestroy() {
     window.removeEventListener('scroll', this.scrollCallback, true);
     this.unsubscribe();
+    if (this.stateSubscription) {
+      this.stateSubscription.unsubscribe();
+      this.stateSubscription = null;
+    }
   }
 
   onWindowScroll() {
@@ -70,6 +82,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
       this.selectedStageId = null;
       this.displayLatest = true;
       this.resubscribe(value.id, this.selectedStageId);
+      this.projectHasRunningStage = false;
     }
   }
 
@@ -122,8 +135,6 @@ export class LogViewComponent implements OnInit, OnDestroy {
       }
     }, stageId);
   }
-
-
 
 
   showLatestLogs() {

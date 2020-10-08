@@ -1,0 +1,10 @@
+<button mat-stroked-button [matMenuTriggerFor]="appMenu" color="warn" [disabled]="disabled">
+  <mat-menu #appMenu xPosition="before">
+    <button mat-menu-item (click)="stop(true)"><mat-icon>emoji_people</mat-icon>By politely asking and pause</button>
+    <button mat-menu-item (click)="stop(false)"><mat-icon>emoji_people</mat-icon>By politely asking and continue</button>
+    <button mat-menu-item (click)="kill()"><mat-icon>fireplace</mat-icon>By killing it</button>
+  </mat-menu>
+  <mat-icon>pan_tool</mat-icon>
+  <span *ngIf="showText" style="margin: 0 0.4em 0 0.9em">Stop</span>
+  <mat-icon>more_vert</mat-icon>
+</button>

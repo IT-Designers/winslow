@@ -68,6 +68,7 @@ import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/pro
 import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
 import {RxStompConfig} from './rx-stomp.config';
 import { LogViewComponent } from './log-view/log-view.component';
+import { StopButtonComponent } from './stop-button/stop-button.component';
 
 @NgModule({
     declarations: [
@@ -105,6 +106,7 @@ import { LogViewComponent } from './log-view/log-view.component';
         ProjectHistoryComponent,
         ProjectHistoryGroupInfoComponent,
         LogViewComponent,
+        StopButtonComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
