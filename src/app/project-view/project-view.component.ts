@@ -55,6 +55,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.logs = [];
       this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
 
+      this.logsDisplayed = null;
+      this.logsDisplayedLatest = true;
+
       this.deletionPolicyLocal = null;
       this.deletionPolicyRemote = null;
       this.api.getDeletionPolicy(this.project.id).then(policy => {
