@@ -4,12 +4,14 @@
           [disabled]="displayLatest"
           (click)="showLatestLogs()">Show log of most recent Stage
   </button>
-  <button mat-stroked-button
-          (click)="forceReloadLogs()"
-  >
+  <button mat-stroked-button (click)="forceReloadLogs()">
     <mat-icon>loop</mat-icon>
     Force Reload
   </button>
+  <app-stop-button style="display: flex;"
+    [project]="selectedProject"
+    [disabled]="!projectHasRunningStage"
+  ></app-stop-button>
 
   <div class="vertical-center-with-margin">
     <mat-slide-toggle (click)="scrollConsoleToBottom(true)"

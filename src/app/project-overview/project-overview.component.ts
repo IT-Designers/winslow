@@ -215,24 +215,6 @@ export class ProjectOverviewComponent implements OnDestroy {
     }
   }
 
-  stop(pause: boolean, stageId: string = null) {
-    if (this.projectValue) {
-      this.dialog.openAreYouSure(
-        `Halt stage of ${this.projectValue.name}`,
-        () => this.api.stopStage(this.projectValue.id, pause, stageId).then()
-      );
-    }
-  }
-
-  kill(stageId: string = null) {
-    if (this.projectValue) {
-      this.dialog.openAreYouSure(
-        `Kill stage of ${this.projectValue.name}`,
-        () => this.api.killStage(this.projectValue.id, stageId).then()
-      );
-    }
-  }
-
   isConfigure(action: Action) {
     return Action.Configure === action;
   }
