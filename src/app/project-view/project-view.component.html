@@ -141,59 +141,10 @@
 
   <mat-tab label="Logs">
     <ng-template matTabContent>
-      <div class="flex-grow flex-grow-column max-height">
-        <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-        <div class="console-controls">
-          <button mat-raised-button color="accent"
-                  [disabled]="logsDisplayedLatest"
-                  (click)="showLatestLogs()">Show log of most recent Stage
-          </button>
-          <button mat-stroked-button
-                  (click)="forceReloadLogs()"
-          >
-            <mat-icon>loop</mat-icon>
-            Force Reload
-          </button>
-
-          <div class="vertical-center-with-margin">
-            <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
-                              labelPosition="before"
-                              [checked]="stickConsole"
-                              (change)="this.scrollConsoleToBottomTimeout($event.checked)">
-              Stick to the Bottom
-            </mat-slide-toggle>
-          </div>
-          <div class="console-scroll-up-down">
-            <button mat-icon-button>
-              <mat-icon class="material-icons-outlined">
-                <a href="{{downloadUrl()}}" target="_blank">cloud_download</a>
-              </mat-icon>
-            </button>
-            <button mat-stroked-button (click)="scrollConsoleToTop()">
-              <mat-icon>arrow_upward</mat-icon>
-            </button>
-            <button mat-stroked-button (click)="scrollConsoleToBottom(true)">
-              <mat-icon>arrow_downward</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div class="logs-container">
-          <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
-        <pre class="console-container">
-          <code *ngIf="logs != null" class="console"
-          ><ng-container *ngFor="let log of logs; trackBy:trackLog"
-          ><span
-          ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{log.line}}</span
-          ><span [class.console-err]="log.error"
-                 [class.console-mgmt]="sourceIsManagement(log.source)"
-          >{{log.message}}</span
-          ></span
-          ></ng-container
-          ></code>
-        </pre>
-          </div>
-        </div>
-      </div>
+      <app-log-view class="flex-grow flex-grow-column max-height"
+        [project]="projectValue"
+        [selectedStage]="stageIdToDisplayLogsFor"
+      ></app-log-view>
     </ng-template>
   </mat-tab>
 
@@ -340,4 +291,3 @@
     </ng-template>
   </mat-tab>
 </mat-tab-group>
-<div #scrollBottomTarget></div>
