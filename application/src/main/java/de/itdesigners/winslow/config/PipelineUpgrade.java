@@ -70,7 +70,6 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                 "deletionPolicy",
                 DeletionPolicy.class
         );
-        var strategy     = node.get("strategy").traverse(p.getCodec()).readValueAs(Pipeline.Strategy.class);
         var runningStage = readNullable(node, p.getCodec(), "runningStage", ExecutionGroup.class);
         var stageCounter = readNullable(node, p.getCodec(), "stageCounter", Integer.class);
         var workspace = readNullable(
@@ -134,7 +133,6 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                 pauseReason,
                 resumeNotification,
                 deletionPolicy,
-                strategy,
                 workspace,
                 executionCounter.get()
         );

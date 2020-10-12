@@ -412,14 +412,6 @@ public class ProjectsController {
         );
     }
 
-    private Pipeline.Strategy getPipelineStrategy(@Nullable @RequestParam(value = "strategy", required = false) String strategy) {
-        return Optional
-                .ofNullable(strategy)
-                .filter(str -> "once".equals(str.toLowerCase()))
-                .map(str -> Pipeline.Strategy.MoveForwardOnce)
-                .orElse(Pipeline.Strategy.MoveForwardUntilEnd);
-    }
-
     @PostMapping("projects/{projectId}/paused/{paused}")
     public boolean setProjectNextStage(
             User user,
@@ -432,8 +424,11 @@ public class ProjectsController {
                         pipeline.requestPause();
                         return Boolean.TRUE;
                     } else {
-                        pipeline.setStrategy(getPipelineStrategy(strategy));
-                        pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+                        if ("once".equalsIgnoreCase(strategy)) {
+                            pipeline.resume(Pipeline.ResumeNotification.RunSingleThenPause);
+                        } else {
+                            pipeline.resume(Pipeline.ResumeNotification.Confirmation);
+                        }
                         return Boolean.FALSE;
                     }
                 }))

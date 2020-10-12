@@ -359,22 +359,14 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        switch (pipeline.getStrategy()) {
-            case MoveForwardOnce:
-                pipeline.requestPause();
-            case MoveForwardUntilEnd:
-                return startNextPipelineStage(lock, definition, pipeline).map(result -> {
-                    hookUpResourceReservationAndFreeingHandler(
-                            result.getValue0().getStageDefinition(),
-                            result.getValue2()
-                    );
-                    pipeline.clearPauseReason();
-                    return Boolean.TRUE;
-                }).orElse(Boolean.FALSE);
-            default:
-                LOG.log(Level.SEVERE, "Unknown pipeline strategy: " + pipeline.getStrategy());
-                return false;
-        }
+        return startNextPipelineStage(lock, definition, pipeline).map(result -> {
+            hookUpResourceReservationAndFreeingHandler(
+                    result.getValue0().getStageDefinition(),
+                    result.getValue2()
+            );
+            pipeline.clearPauseReason();
+            return Boolean.TRUE;
+        }).orElse(Boolean.FALSE);
     }
 
     private void hookUpResourceReservationAndFreeingHandler(

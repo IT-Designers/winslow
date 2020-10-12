@@ -1,5 +1,6 @@
 package de.itdesigners.winslow;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -96,7 +97,10 @@ public abstract class BaseRepository {
 
     @Nonnull
     public static ObjectMapper defaultObjectMapper() {
-        return defaultObjectMapperModules(new ObjectMapper(new YAMLFactory()));
+        return defaultObjectMapperModules(new ObjectMapper(new YAMLFactory()).configure(
+                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                false
+        ));
     }
 
     @Nonnull

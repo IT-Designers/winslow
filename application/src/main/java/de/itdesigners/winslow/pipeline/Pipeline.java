@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.pipeline;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.RangedValue;
 import de.itdesigners.winslow.api.pipeline.State;
@@ -25,14 +26,12 @@ public class Pipeline implements Cloneable {
     private @Nullable PauseReason                          pauseReason        = null;
     private @Nullable ResumeNotification                   resumeNotification = null;
     private @Nullable DeletionPolicy                       deletionPolicy;
-    private @Nonnull  Strategy                             strategy;
     private @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode;
 
     private int executionCounter;
 
     public Pipeline(@Nonnull String projectId) {
         this.projectId        = projectId;
-        this.strategy         = Strategy.MoveForwardUntilEnd;
         this.executionCounter = 0;
 
         this.executionHistory = new ArrayList<>();
@@ -48,7 +47,6 @@ public class Pipeline implements Cloneable {
             "pauseReason",
             "resumeNotification",
             "deletionPolicy",
-            "strategy",
             "workspaceConfigurationMode",
             "executionCounter"
     })
@@ -61,7 +59,6 @@ public class Pipeline implements Cloneable {
             @Nullable PauseReason pauseReason,
             @Nullable ResumeNotification resumeNotification,
             @Nullable DeletionPolicy deletionPolicy,
-            @Nonnull Strategy strategy,
             @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode,
             int executionCounter) {
         this.projectId                  = projectId;
@@ -72,7 +69,6 @@ public class Pipeline implements Cloneable {
         this.pauseReason                = pauseReason;
         this.resumeNotification         = resumeNotification;
         this.deletionPolicy             = deletionPolicy;
-        this.strategy                   = strategy;
         this.workspaceConfigurationMode = workspaceConfigurationMode;
         this.executionCounter           = executionCounter;
     }
@@ -292,26 +288,12 @@ public class Pipeline implements Cloneable {
     }
 
     @Nonnull
-    public Strategy getStrategy() {
-        return this.strategy;
-    }
-
-
-    public void setStrategy(@Nonnull Strategy strategy) {
-        this.strategy = strategy;
-    }
-
-    @Nonnull
     public Optional<WorkspaceConfiguration.WorkspaceMode> getWorkspaceConfigurationMode() {
         return Optional.ofNullable(workspaceConfigurationMode);
     }
 
     public void setWorkspaceConfigurationMode(@Nonnull WorkspaceConfiguration.WorkspaceMode mode) {
         this.workspaceConfigurationMode = mode;
-    }
-
-    public enum Strategy {
-        MoveForwardUntilEnd, MoveForwardOnce,
     }
 
     public enum PauseReason {
