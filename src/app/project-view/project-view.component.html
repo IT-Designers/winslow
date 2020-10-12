@@ -59,6 +59,7 @@
         Save configuration
       </button>
       <button mat-raised-button color="primary"
+              [matMenuTriggerFor]="enqueueMenu"
               [disabled]="!executionSelection.valid"
               (click)="enqueue(
                   executionSelection.selectedPipeline,
@@ -72,6 +73,22 @@
                 )">
         <mat-icon>send</mat-icon>
         Enqueue
+        <mat-icon>more_vert</mat-icon>
+        <mat-menu #enqueueMenu xPosition="before">
+          <button mat-menu-item (click)="enqueue(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getRangedEnv(),
+                  executionSelection.getImage(),
+                  executionSelection.getResourceRequirements(),
+                  executionSelection.getWorkspaceConfiguration(),
+                  executionSelection.getComment(),
+                  true
+                )">
+            But run only the single next stage
+          </button>
+        </mat-menu>
       </button>
     </div>
   </mat-tab>

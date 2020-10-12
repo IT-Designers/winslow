@@ -18,7 +18,7 @@
 </div>
 <div class="history-list-column history-control-icons">
   <mat-icon *ngIf="paused && showResumeOnlyThisStage"
-            matTooltip="Resume only this stage" class="clickable"
+            matTooltip="Resume only one stage" class="clickable"
             (click)="$event.stopPropagation(); clickResumeOnlyThisStage.emit($event)">
     skip_next
   </mat-icon>
