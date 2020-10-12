@@ -73,6 +73,14 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                                 .getRunInfoRepository()
                                 .hasLogRedirectionCompletedSuccessfullyHint(stage.getFullyQualifiedId())) {
                             stage.finishNow(State.Succeeded);
+
+                            var remaining = pipeline.getActiveExecutionGroup().map(ExecutionGroup::hasRemainingExecutions).orElse(Boolean.FALSE);
+                            var singleExec = pipeline.getResumeNotification().map(n -> Pipeline.ResumeNotification.RunSingleThenPause == n).orElse(Boolean.FALSE);
+
+                            if (!remaining && singleExec) {
+                                pipeline.resetResumeNotification();
+                                pipeline.requestPause();
+                            }
                         } else {
                             stage.finishNow(State.Failed);
                             pipeline.requestPause(Pipeline.PauseReason.StageFailure);

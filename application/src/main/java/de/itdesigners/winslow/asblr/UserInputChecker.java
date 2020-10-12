@@ -23,7 +23,6 @@ public class UserInputChecker implements AssemblerStep {
         var pipelineDefinition = context.getPipelineDefinition();
         var stageDefinition    = context.getSubmission().getStageDefinition();
 
-        var singleExecution = isSingleExecution(pipeline);
         var requiresConfirmation = isConfirmationRequiredForNextStage(pipelineDefinition, stageDefinition, pipeline);
         var missingUserInput = hasMissingUserInput(
                 pipelineDefinition,
@@ -44,10 +43,6 @@ public class UserInputChecker implements AssemblerStep {
                 pipeline.resetResumeNotification();
             }
         }
-
-        if (singleExecution) {
-            pipeline.requestPause();
-        }
     }
 
     @Override
@@ -63,18 +58,6 @@ public class UserInputChecker implements AssemblerStep {
                 case Confirmation:
                 case RunSingleThenPause:
                     return Boolean.TRUE;
-                default:
-                    return Boolean.FALSE;
-            }
-        }).orElse(Boolean.FALSE);
-    }
-
-    private static boolean isSingleExecution(@Nonnull Pipeline pipeline) {
-        return pipeline.getResumeNotification().map(notification -> {
-            switch (notification) {
-                case RunSingleThenPause:
-                    return Boolean.TRUE;
-                case Confirmation:
                 default:
                     return Boolean.FALSE;
             }
