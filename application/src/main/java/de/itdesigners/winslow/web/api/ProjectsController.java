@@ -795,7 +795,8 @@ public class ProjectsController {
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
             @RequestParam(value = "workspaceConfiguration", required = false) @Nullable WorkspaceConfiguration workspaceConfiguration,
-            @RequestParam(value = "comment", required = false) @Nullable String comment
+            @RequestParam(value = "comment", required = false) @Nullable String comment,
+            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle
     ) {
         getProjectIfAllowedToAccess(user, projectId)
 
@@ -813,7 +814,8 @@ public class ProjectsController {
                                         image,
                                         requiredResources,
                                         workspaceConfiguration,
-                                        comment
+                                        comment,
+                                        runSingle
                                 );
                                 return Boolean.TRUE;
                             })
@@ -832,7 +834,8 @@ public class ProjectsController {
             @RequestParam("env") Map<String, String> env,
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
-            @RequestParam(value = "comment", required = false) @Nullable String comment
+            @RequestParam(value = "comment", required = false) @Nullable String comment,
+            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle
     ) {
         var stageDefinitionBase = getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
@@ -855,7 +858,8 @@ public class ProjectsController {
                                     env,
                                     image,
                                     requiredResources,
-                                    comment
+                                    comment,
+                                    runSingle
                             );
                             return Boolean.TRUE;
                         }))
@@ -906,8 +910,9 @@ public class ProjectsController {
             @Nonnull Map<String, String> env,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
-            @Nullable String comment) {
-        enqueueStage(pipeline, base, env, null, image, requiredResources, Action.Configure, null, comment);
+            @Nullable String comment,
+            boolean runSingle) {
+        enqueueStage(pipeline, base, env, null, image, requiredResources, Action.Configure, null, comment, runSingle);
     }
 
     private static void enqueueExecutionStage(
@@ -918,7 +923,8 @@ public class ProjectsController {
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
-            @Nullable String comment) {
+            @Nullable String comment,
+            boolean runSingle) {
         enqueueStage(
                 pipeline,
                 base,
@@ -928,7 +934,8 @@ public class ProjectsController {
                 requiredResources,
                 Action.Execute,
                 workspaceConfiguration,
-                comment
+                comment,
+                runSingle
         );
     }
 
@@ -941,7 +948,8 @@ public class ProjectsController {
             @Nullable ResourceInfo requiredResources,
             @Nonnull Action action,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
-            @Nullable String comment) {
+            @Nullable String comment,
+            boolean runSingle) {
         if (workspaceConfiguration == null) {
             workspaceConfiguration = new WorkspaceConfiguration();
         }
@@ -985,9 +993,14 @@ public class ProjectsController {
         } else {
             pipeline.enqueueRangedExecution(resultDefinition, workspaceConfiguration, rangedEnv);
         }
-        resumeIfPausedByStageFailure(pipeline);
-        resumeIfWaitingForGoneStageConfirmation(pipeline);
-        resumeIfPausedByNoFittingNodeFound(pipeline);
+        if (runSingle) {
+            pipeline.clearPauseReason();
+            pipeline.resume(Pipeline.ResumeNotification.RunSingleThenPause);
+        } else {
+            resumeIfPausedByStageFailure(pipeline);
+            resumeIfWaitingForGoneStageConfirmation(pipeline);
+            resumeIfPausedByNoFittingNodeFound(pipeline);
+        }
     }
 
     @Nullable
@@ -1040,6 +1053,7 @@ public class ProjectsController {
 
     private static void resumeIfPausedByStageFailure(@Nonnull Pipeline pipeline) {
         if (Optional.of(Pipeline.PauseReason.StageFailure).equals(pipeline.getPauseReason())) {
+            pipeline.clearPauseReason();
             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
         }
     }

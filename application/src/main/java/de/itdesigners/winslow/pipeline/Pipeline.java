@@ -322,6 +322,7 @@ public class Pipeline implements Cloneable {
     }
 
     public enum ResumeNotification {
-        Confirmation
+        Confirmation,
+        RunSingleThenPause,
     }
 }
