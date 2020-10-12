@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.pipeline.EnqueuedStage;
@@ -34,6 +35,9 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
         if (node.has("runningStage") || node.has("stageCounter")) {
             return upgrade(p, node);
         } else {
+            if (node instanceof ObjectNode) {
+                ((ObjectNode) node).remove("strategy");
+            }
             // return ctxt.readValue(node.traverse(), Pipeline.class);
             return DeserializerUtils.deserializeWithDefaultDeserializer(node, ctxt, Pipeline.class);
         }

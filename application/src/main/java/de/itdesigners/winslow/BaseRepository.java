@@ -97,10 +97,7 @@ public abstract class BaseRepository {
 
     @Nonnull
     public static ObjectMapper defaultObjectMapper() {
-        return defaultObjectMapperModules(new ObjectMapper(new YAMLFactory()).configure(
-                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                false
-        ));
+        return defaultObjectMapperModules(new ObjectMapper(new YAMLFactory()));
     }
 
     @Nonnull
