@@ -186,7 +186,8 @@ export class ProjectApiService {
     image: ImageInfo = null,
     requiredResources: ResourceInfo = null,
     workspaceConfiguration: WorkspaceConfiguration = null,
-    comment: string = null
+    comment: string = null,
+    runSingle: boolean = false,
   ): Promise<void> {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
@@ -205,6 +206,9 @@ export class ProjectApiService {
     }
     if (comment != null) {
       form.set('comment', comment);
+    }
+    if (runSingle != null) {
+      form.set('runSingle', '' + runSingle);
     }
     return this.client.put<void>(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
