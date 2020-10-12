@@ -58,22 +58,25 @@
         <mat-icon>save</mat-icon>
         Save configuration
       </button>
-      <button mat-raised-button color="primary"
+      <button mat-raised-button color="primary" #enqueueMenuTrigger="matMenuTrigger"
               [matMenuTriggerFor]="enqueueMenu"
               [disabled]="!executionSelection.valid"
-              (click)="enqueue(
-                  executionSelection.selectedPipeline,
-                  executionSelection.selectedStage,
-                  executionSelection.getEnv(),
-                  executionSelection.getRangedEnv(),
-                  executionSelection.getImage(),
-                  executionSelection.getResourceRequirements(),
-                  executionSelection.getWorkspaceConfiguration(),
-                  executionSelection.getComment()
-                )">
+              (click)="$event.preventDefault();
+                       $event.stopPropagation();
+                       enqueueMenuTrigger.closeMenu();
+                       enqueue(
+                          executionSelection.selectedPipeline,
+                          executionSelection.selectedStage,
+                          executionSelection.getEnv(),
+                          executionSelection.getRangedEnv(),
+                          executionSelection.getImage(),
+                          executionSelection.getResourceRequirements(),
+                          executionSelection.getWorkspaceConfiguration(),
+                          executionSelection.getComment()
+                        )">
         <mat-icon>send</mat-icon>
         Enqueue
-        <mat-icon>more_vert</mat-icon>
+        <mat-icon (click)="$event.preventDefault(); $event.stopPropagation(); enqueueMenuTrigger.openMenu()">more_vert</mat-icon>
         <mat-menu #enqueueMenu xPosition="before">
           <button mat-menu-item (click)="enqueue(
                   executionSelection.selectedPipeline,
@@ -84,9 +87,24 @@
                   executionSelection.getResourceRequirements(),
                   executionSelection.getWorkspaceConfiguration(),
                   executionSelection.getComment(),
+                  false,
                   true
                 )">
-            But run only the single next stage
+            Enqueue and resume pipeline
+          </button>
+          <button mat-menu-item (click)="enqueue(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getRangedEnv(),
+                  executionSelection.getImage(),
+                  executionSelection.getResourceRequirements(),
+                  executionSelection.getWorkspaceConfiguration(),
+                  executionSelection.getComment(),
+                  true,
+                  true
+                )">
+            Enqueue and resume single
           </button>
         </mat-menu>
       </button>
@@ -159,8 +177,8 @@
   <mat-tab label="Logs">
     <ng-template matTabContent>
       <app-log-view class="flex-grow flex-grow-column max-height"
-        [project]="projectValue"
-        [selectedStage]="stageIdToDisplayLogsFor"
+                    [project]="projectValue"
+                    [selectedStage]="stageIdToDisplayLogsFor"
       ></app-log-view>
     </ng-template>
   </mat-tab>
