@@ -289,6 +289,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     workspaceConfiguration?: WorkspaceConfiguration,
     comment?: string,
     runSingle?: boolean,
+    resume?: boolean,
   ) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
@@ -300,7 +301,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.enqueue(this.project.id, index, env, rangedEnv, image, requiredResources, workspaceConfiguration, comment, runSingle),
+          this.api.enqueue(this.project.id, index, env, rangedEnv, image, requiredResources, workspaceConfiguration, comment, runSingle, resume),
           `Submitting selections`
         );
       }

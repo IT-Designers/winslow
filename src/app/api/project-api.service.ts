@@ -188,6 +188,7 @@ export class ProjectApiService {
     workspaceConfiguration: WorkspaceConfiguration = null,
     comment: string = null,
     runSingle: boolean = false,
+    resume?: boolean,
   ): Promise<void> {
     const form = new FormData();
     form.set('env', JSON.stringify(env));
@@ -209,6 +210,9 @@ export class ProjectApiService {
     }
     if (runSingle != null) {
       form.set('runSingle', '' + runSingle);
+    }
+    if (resume != null) {
+      form.set('resume', '' + resume);
     }
     return this.client.put<void>(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
