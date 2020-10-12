@@ -791,7 +791,8 @@ public class ProjectsController {
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
             @RequestParam(value = "workspaceConfiguration", required = false) @Nullable WorkspaceConfiguration workspaceConfiguration,
             @RequestParam(value = "comment", required = false) @Nullable String comment,
-            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle
+            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle,
+            @RequestParam(value = "resume", required = false, defaultValue = "false") boolean resume
     ) {
         getProjectIfAllowedToAccess(user, projectId)
 
@@ -810,7 +811,8 @@ public class ProjectsController {
                                         requiredResources,
                                         workspaceConfiguration,
                                         comment,
-                                        runSingle
+                                        runSingle,
+                                        resume
                                 );
                                 return Boolean.TRUE;
                             })
@@ -830,7 +832,8 @@ public class ProjectsController {
             @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
             @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
             @RequestParam(value = "comment", required = false) @Nullable String comment,
-            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle
+            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle,
+            @RequestParam(value = "resume", required = false, defaultValue = "false") boolean resume
     ) {
         var stageDefinitionBase = getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
@@ -854,7 +857,8 @@ public class ProjectsController {
                                     image,
                                     requiredResources,
                                     comment,
-                                    runSingle
+                                    runSingle,
+                                    resume
                             );
                             return Boolean.TRUE;
                         }))
@@ -906,8 +910,21 @@ public class ProjectsController {
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nullable String comment,
-            boolean runSingle) {
-        enqueueStage(pipeline, base, env, null, image, requiredResources, Action.Configure, null, comment, runSingle);
+            boolean runSingle,
+            boolean resume) {
+        enqueueStage(
+                pipeline,
+                base,
+                env,
+                null,
+                image,
+                requiredResources,
+                Action.Configure,
+                null,
+                comment,
+                runSingle,
+                resume
+        );
     }
 
     private static void enqueueExecutionStage(
@@ -919,7 +936,9 @@ public class ProjectsController {
             @Nullable ResourceInfo requiredResources,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
             @Nullable String comment,
-            boolean runSingle) {
+            boolean runSingle,
+            boolean resume
+    ) {
         enqueueStage(
                 pipeline,
                 base,
@@ -930,7 +949,8 @@ public class ProjectsController {
                 Action.Execute,
                 workspaceConfiguration,
                 comment,
-                runSingle
+                runSingle,
+                resume
         );
     }
 
@@ -944,7 +964,9 @@ public class ProjectsController {
             @Nonnull Action action,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
             @Nullable String comment,
-            boolean runSingle) {
+            boolean runSingle,
+            boolean resume
+    ) {
         if (workspaceConfiguration == null) {
             workspaceConfiguration = new WorkspaceConfiguration();
         }
@@ -991,6 +1013,8 @@ public class ProjectsController {
         if (runSingle) {
             pipeline.clearPauseReason();
             pipeline.resume(Pipeline.ResumeNotification.RunSingleThenPause);
+        } else if (resume) {
+            pipeline.clearPauseReason();
         } else {
             resumeIfPausedByStageFailure(pipeline);
             resumeIfWaitingForGoneStageConfirmation(pipeline);
