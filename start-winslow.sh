@@ -30,7 +30,7 @@ if [ "$KEYSTORE_PATH_PKCS12" != "" ]; then
 fi
 
 if [ "$HTTP" == "" ] && [ "$HTTPS" == "" ]; then
-    ADDITIONAL+=" WINSLOW_NO_WEB_API=true "
+    ADDITIONAL+="-e WINSLOW_NO_WEB_API=true "
 fi
 
 
