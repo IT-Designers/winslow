@@ -29,6 +29,10 @@ if [ "$KEYSTORE_PATH_PKCS12" != "" ]; then
     ADDITIONAL="$ADDITIONAL -p $HTTPS:8080 -v $KEYSTORE_PATH_PKCS12:/keystore.p12:ro -e SERVER_SSL_KEY_STORE_TYPE=PKCS12 -e SERVER_SSL_KEY_STORE=file:/keystore.p12 -e SECURITY_REQUIRE_SSL=true -e SERVER_SSL_KEY_STORE_PASSWORD="
 fi
 
+if [ "$HTTP" == "" ] && [ "$HTTPS" == "" ]; then
+    ADDITIONAL+=" WINSLOW_NO_WEB_API=true "
+fi
+
 
 echo ""
 echo ""
