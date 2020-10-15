@@ -16,7 +16,7 @@ NODE_NAME="$(hostname)"
 CONTAINER_NAME="winslow"
 GPUS="$(ls /dev/ | grep -i nvidia | wc -l)"
 WORKDIR="/winslow/"
-
+SERVER_PORT="$HTTP"
 SUDO=""
 
 if [ "$(id -u)" -ne 0 ] && [ "$(id --name -G | grep -i docker | wc -l)" -eq 0 ]; then
@@ -26,8 +26,17 @@ fi
 $SUDO docker pull $IMAGE
 
 if [ "$KEYSTORE_PATH_PKCS12" != "" ]; then
-    ADDITIONAL="$ADDITIONAL -v $KEYSTORE_PATH_PKCS12:/keystore.p12:ro -e SERVER_SSL_KEY_STORE_TYPE=PKCS12 -e SERVER_SSL_KEY_STORE=file:/keystore.p12 -e SECURITY_REQUIRE_SSL=true -e SERVER_SSL_KEY_STORE_PASSWORD="
+    SERVER_PORT="$HTTPS"
+    ADDITIONAL+="-e WINSLOW_WEB_HTTP_REDIRECT=$HTTP,$HTTPS "
+    ADDITIONAL+="-e WINSLOW_WEB_REQUIRE_SECURE=true "
+
+    ADDITIONAL+="-v $KEYSTORE_PATH_PKCS12:/keystore.p12:ro "
+    ADDITIONAL+="-e SERVER_SSL_KEY_STORE_TYPE=PKCS12 "
+    ADDITIONAL+="-e SERVER_SSL_KEY_STORE=file:/keystore.p12 "
+    ADDITIONAL+="-e SECURITY_REQUIRE_SSL=true "
+    ADDITIONAL+="-e SERVER_SSL_KEY_STORE_PASSWORD= "
 fi
+
 
 if [ "$HTTP" == "" ] && [ "$HTTPS" == "" ]; then
     ADDITIONAL+="-e WINSLOW_NO_WEB_API=true "
@@ -41,6 +50,7 @@ echo " :::::  Going to create Winslow Container with the following settings"
 echo ""
 echo "   HTTP Port    '$HTTP'"
 echo "   HTTPS Port   '$HTTPS'"
+echo "   Server Port  '$SERVER_PORT'"
 echo "   Docker Image '$IMAGE'"
 echo "   Storage Type '$STORAGE_TYPE' @ '$STORAGE_PATH'"
 echo ""
@@ -67,6 +77,7 @@ $SUDO docker run -it --rm --privileged \
     $(if [ "$GPUS" -gt 0 ]; then echo "--gpus all"; fi) \
     $(if [ "$HTTP" != "" ] ; then echo " -p $HTTP:8080"; fi) \
     $(if [ "$HTTPS" != "" ] ; then echo " -p $HTTPS:8080"; fi) \
+    $(if [ "$SERVER_PORT" != "" ]; then echo "-e SERVER_PORT=$SERVER_PORT"; fi) \
     $ADDITIONAL \
     -e WINSLOW_STORAGE_TYPE=$STORAGE_TYPE \
     -e WINSLOW_STORAGE_PATH=$STORAGE_PATH \
