@@ -35,7 +35,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
             "PUT",
 
             METHOD_PROPFIND,
-            // "LOCK",
+            "LOCK",
             "REPORT",
             "PROPPATCH",
             "MKCOL",
