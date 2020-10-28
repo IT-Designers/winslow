@@ -81,7 +81,7 @@ public class Env {
     }
 
     private static boolean isTrueOr1(@Nullable String env) {
-        return Boolean.parseBoolean(env) || "1".equals(env);
+        return "1".equals(env) || Boolean.parseBoolean(env);
     }
 
     public static boolean isLdapAuthEnabled() {
