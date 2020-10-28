@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.web.webdav;
 
+import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.auth.User;
@@ -47,11 +48,11 @@ public class WebDavController {
     }
 
     private boolean isAllowedToAccess(@Nonnull User user, @Nonnull WebDavEntry entry) {
-        return getChecker().isAllowedToAccessPath(user, entry.getPath());
+        return Env.isDevEnv() || getChecker().isAllowedToAccessPath(user, entry.getPath());
     }
 
     private boolean isAllowedToAccess(@Nonnull Request request, @Nonnull WebDavEntry entry) {
-        return getUser(request)
+        return Env.isDevEnv() || getUser(request)
                 .map(user -> isAllowedToAccess(user, entry))
                 .orElse(Boolean.FALSE);
     }
