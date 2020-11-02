@@ -256,10 +256,12 @@ export class FilesComponent implements OnInit {
             const now = new Date();
             const timeDiff = now.getTime() - this.dataUpload.uploads[index][4].getTime();
             const byteDiff = event.loaded - this.dataUpload.uploads[index][1];
+            const byteSec = byteDiff / (timeDiff / 1000);
+            const MOVING_AVERAGE_SAMPLES = 20;
 
             this.dataUpload.uploads[index][1] = event.loaded;
             this.dataUpload.uploads[index][2] = event.total;
-            this.dataUpload.uploads[index][3] = byteDiff / (timeDiff / 1000);
+            this.dataUpload.uploads[index][3] = ((MOVING_AVERAGE_SAMPLES - 1) * this.dataUpload.uploads[index][3] + byteSec) / MOVING_AVERAGE_SAMPLES;
             this.dataUpload.uploads[index][4] = now;
           }
         });
