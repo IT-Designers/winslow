@@ -263,6 +263,11 @@ export class FilesComponent implements OnInit {
             this.dataUpload.uploads[index][2] = event.total;
             this.dataUpload.uploads[index][3] = ((MOVING_AVERAGE_SAMPLES - 1) * this.dataUpload.uploads[index][3] + byteSec) / MOVING_AVERAGE_SAMPLES;
             this.dataUpload.uploads[index][4] = now;
+
+            const timeSinceStart = now.getTime() - this.dataUpload.uploads[index][6].getTime();
+            const byteSecSinceStart = event.loaded / (timeSinceStart / 1000);
+
+            this.dataUpload.uploads[index][5] = byteSecSinceStart;
           }
         });
         return upload
@@ -296,7 +301,7 @@ export class FilesComponent implements OnInit {
       err: null,
     };
     for (let i = 0; i < files.length; ++i) {
-      this.dataUpload.uploads.push([files.item(i).name, 0, 1, 0, new Date()]);
+      this.dataUpload.uploads.push([files.item(i).name, 0, 1, 0, new Date(), 0, new Date()]);
     }
   }
 
@@ -445,7 +450,7 @@ export class FilesComponent implements OnInit {
 }
 
 export interface UploadFilesProgress {
-  uploads: [string, number, number, number, Date][];
+  uploads: [string, number, number, number, Date, number, Date][];
   closable: boolean;
   err: any;
 }
