@@ -6,7 +6,6 @@ import {DialogService, InputDefinition} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
 import Swal from 'sweetalert2';
 import {StorageApiService} from '../api/storage-api.service';
-import {by} from 'protractor';
 
 @Component({
   selector: 'app-files',
@@ -420,19 +419,25 @@ export class FilesComponent implements OnInit {
     return this.toHumanTimeEstimate(remainingSeconds);
   }
 
-  toHumanTimeEstimate(time: number) {
-    let exponent = 0;
-    while (Math.round(time / 60) > 0 && exponent < 2) {
-      time = Number(time / 60);
-      exponent += 1;
-    }
-    switch (exponent) {
-      case 0:
-        return Math.max(1, Math.round(time)) + 's';
-      case 1:
-        return Math.round(time) + 'm';
-      case 2:
-        return Math.round(time) + 'h';
+  toHumanTimeEstimate(seconds: number) {
+    const minutes = seconds / 60;
+    const hours = minutes / 60;
+    const days = hours / 24;
+
+    if (days > 1) {
+      const daysD = Math.round(days);
+      return daysD + 'd ' + Math.round((days - daysD) * 24) + 'h';
+
+    } else if (hours > 1) {
+      const hoursD = Math.round(hours);
+      return hoursD + 'h ' + Math.round((hours - hoursD) * 60) + 'm';
+
+    } else if (minutes > 1) {
+      const minutesD = Math.round(minutes);
+      return minutesD + 'm ' + Math.round((minutes - minutesD) * 60) + 's';
+
+    } else {
+      return Math.max(1, Math.round(seconds)) + 's';
     }
   }
 }
