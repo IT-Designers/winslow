@@ -64,16 +64,17 @@ echo ""
 
 sleep 1
 
-if [ $($SUDO docker ps --filter "name=$CONTAINER_NAME" | wc -l) -gt 1 ]; then
+if [ $($SUDO docker ps -a --filter "name=$CONTAINER_NAME" | wc -l) -gt 1 ]; then
     echo " ::::: Stopping already running Winslow instance"
-    $SUDO docker stop "$CONTAINER_NAME" > /dev/null && echo "  :::: Done" || (echo " :::: Failed"; exit 1)
+    $SUDO docker stop "$CONTAINER_NAME" > /dev/null
+    $SUDO docker rm "$CONTAINER_NAME" > /dev/null && echo "  :::: Done" || (echo " :::: Failed"; exit 1)
 fi
 
 
 echo " ::::: Starting Winslow Container now"
-$SUDO docker run -it --rm --privileged \
+echo $SUDO docker run -itd --rm --privileged \
     --name "$CONTAINER_NAME" \
-    $(if [ "$GPUS" -gt 0 ]; then echo "--gpus all"; fi) \
+    $(if [ "$GPUS" -gt 0 ]; then echo " --gpus all"; fi) \
     $(if [ "$HTTP" != "" ] ; then echo " -p $HTTP:8080"; fi) \
     $(if [ "$HTTPS" != "" ] ; then echo " -p $HTTPS:8080"; fi) \
     $(if [ "$WEB_PORT" != "" ]; then echo "-e SERVER_PORT=$WEB_PORT"; fi) \
@@ -82,7 +83,8 @@ $SUDO docker run -it --rm --privileged \
     -e WINSLOW_STORAGE_PATH=$STORAGE_PATH \
     -e WINSLOW_WORK_DIRECTORY=$WORKDIR \
     -e "WINSLOW_NODE_NAME=$NODE_NAME" \
-    $(if [ "$NODE_TYPE" == "observer" ]; then echo "-e WINSLOW_NO_STAGE_EXECUTION=1"; fi) \
+    $(if [ "$NODE_TYPE" == "observer" ]; then echo " -e WINSLOW_NO_STAGE_EXECUTION=1 "; fi) \
     -v /var/run/docker.sock:/var/run/docker.sock \
     $IMAGE \
-    $PARAMS
+    $PARAMS | bash
+
