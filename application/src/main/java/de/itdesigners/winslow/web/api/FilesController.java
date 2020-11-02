@@ -10,6 +10,8 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -19,8 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -28,10 +30,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -141,24 +140,54 @@ public class FilesController {
     public void uploadResourceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) {
-        uploadFile(request, user, file, resourceManager.getResourceDirectory().orElseThrow(), decompressArchive);
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
+        ServletFileUpload upload = new ServletFileUpload();
+        var               file   = upload.getItemIterator(request).next();
+        uploadFile(
+                request,
+                user,
+                file.openStream(),
+                resourceManager.getResourceDirectory().orElseThrow(),
+                decompressArchive
+        );
+    }
+
+    public void uploadResourceFile(
+            HttpServletRequest request,
+            User user,
+            @Nonnull InputStream upload,
+            boolean decompressArchive) {
+        uploadFile(request, user, upload, resourceManager.getResourceDirectory().orElseThrow(), decompressArchive);
     }
 
     @PostMapping(value = {"/files/workspaces/**"})
     public void uploadWorkspaceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) {
-        uploadFile(request, user, file, resourceManager.getWorkspacesDirectory().orElseThrow(), decompressArchive);
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
+        ServletFileUpload upload = new ServletFileUpload();
+        var               file   = upload.getItemIterator(request).next();
+        uploadFile(
+                request,
+                user,
+                file.openStream(),
+                resourceManager.getWorkspacesDirectory().orElseThrow(),
+                decompressArchive
+        );
+    }
+
+    public void uploadWorkspaceFile(
+            HttpServletRequest request,
+            User user,
+            @Nonnull InputStream upload,
+            boolean decompressArchive) {
+        uploadFile(request, user, upload, resourceManager.getWorkspacesDirectory().orElseThrow(), decompressArchive);
     }
 
     public void uploadFile(
             HttpServletRequest request,
             User user,
-            MultipartFile file,
+            @Nonnull InputStream upload,
             @Nonnull Path directory,
             boolean decompressArchive) {
         normalizedPath(request)
@@ -170,9 +199,9 @@ public class FilesController {
                     if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
                         try {
                             if (!decompressArchive) {
-                                file.transferTo(path);
+                                StreamUtils.copy(upload, new ImmediateOutputStream(Files.newOutputStream(path)));
                             } else {
-                                decompressArchiveContentTo(file, path);
+                                decompressArchiveContentTo(upload, path);
                             }
                             return true;
                         } catch (IOException e) {
@@ -187,16 +216,16 @@ public class FilesController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    private void decompressArchiveContentTo(MultipartFile file, Path path) throws IOException {
+    private void decompressArchiveContentTo(InputStream inputStream, Path path) throws IOException {
         var fileName = path.getFileName().toString();
         var target   = path.getParent();
 
         if (fileName.endsWith(".zip")) {
-            try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+            try (ZipInputStream zis = new ZipInputStream(inputStream)) {
                 decompressZipArchiveContentTo(zis, target);
             }
         } else if (fileName.endsWith(".tar.gz")) {
-            try (GzipCompressorInputStream gcis = new GzipCompressorInputStream(file.getInputStream())) {
+            try (GzipCompressorInputStream gcis = new GzipCompressorInputStream(inputStream)) {
                 try (TarArchiveInputStream tais = new TarArchiveInputStream(gcis)) {
                     decompressTarGzArchiveContentTo(tais, target);
                 }
@@ -452,7 +481,7 @@ public class FilesController {
                 pullGitRepo(path);
                 return ResponseEntity.ok("");
             } else if (optionGitCheckout instanceof String) {
-                checkoutGitRepo(path, (String)optionGitCheckout);
+                checkoutGitRepo(path, (String) optionGitCheckout);
                 return ResponseEntity.ok("");
             } else {
                 return ResponseEntity.notFound().build();

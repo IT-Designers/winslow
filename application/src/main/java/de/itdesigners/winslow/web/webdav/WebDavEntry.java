@@ -39,10 +39,16 @@ public abstract class WebDavEntry {
         return root.resolve(path);
     }
 
+    @UniqueId
+    public String getId() {
+        System.out.println(path.toString());
+        return path.toString();
+    }
+
     @Name
     @Nonnull
     public String getName() {
-        return name;
+        return name + "_name";
     }
 
     @UniqueId

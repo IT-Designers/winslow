@@ -18,7 +18,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -514,7 +513,7 @@ public class FilesControllerTest {
         controller.uploadResourceFile(
                 constructRequest("my-project-id/se.zip"),
                 getProjectOwner(),
-                constructUploadFile(content, content.available()),
+                content,
                 decompress
         );
 
@@ -617,7 +616,7 @@ public class FilesControllerTest {
         controller.uploadResourceFile(
                 constructRequest("my-project-id/se.tar.gz"),
                 getProjectOwner(),
-                constructUploadFile(content, content.available()),
+                content,
                 decompress
         );
 
@@ -896,92 +895,9 @@ public class FilesControllerTest {
         );
     }
 
-    private static MultipartFile constructUploadFile(@Nonnull InputStream is, long size) {
-        return new MultipartFile() {
-            @Override
-            public String getName() {
-                return null;
-            }
-
-            @Override
-            public String getOriginalFilename() {
-                return null;
-            }
-
-            @Override
-            public String getContentType() {
-                return null;
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public long getSize() {
-                return size;
-            }
-
-            @Override
-            public byte[] getBytes() throws IOException {
-                return is.readAllBytes();
-            }
-
-            @Override
-            public InputStream getInputStream() throws IOException {
-                return is;
-            }
-
-            @Override
-            public void transferTo(File dest) throws IOException, IllegalStateException {
-                this.transferTo(dest.toPath());
-            }
-        };
-    }
-
-    private static MultipartFile constructUploadFile(@Nonnull String content) {
-        return new MultipartFile() {
-            @Override
-            public String getName() {
-                return null;
-            }
-
-            @Override
-            public String getOriginalFilename() {
-                return null;
-            }
-
-            @Override
-            public String getContentType() {
-                return null;
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public long getSize() {
-                return 0;
-            }
-
-            @Override
-            public byte[] getBytes() throws IOException {
-                return new byte[0];
-            }
-
-            @Override
-            public InputStream getInputStream() throws IOException {
-                return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-            }
-
-            @Override
-            public void transferTo(File file) throws IOException, IllegalStateException {
-                this.transferTo(file.toPath());
-            }
-        };
+    @Nonnull
+    private static InputStream constructUploadFile(@Nonnull String content) {
+        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
     private static HttpServletRequest constructRequest(@Nonnull String path) {

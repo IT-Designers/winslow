@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.web.webdav;
 
 import de.itdesigners.winslow.auth.User;
+import io.milton.annotations.DisplayName;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

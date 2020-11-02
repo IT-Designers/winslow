@@ -1,6 +1,8 @@
 package de.itdesigners.winslow.web.webdav;
 
-import io.milton.annotations.*;
+import io.milton.annotations.ContentLength;
+import io.milton.annotations.Get;
+import io.milton.annotations.ModifiedDate;
 
 import javax.annotation.Nonnull;
 import java.io.*;
