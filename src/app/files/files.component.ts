@@ -6,6 +6,7 @@ import {DialogService, InputDefinition} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
 import Swal from 'sweetalert2';
 import {StorageApiService} from '../api/storage-api.service';
+import {by} from 'protractor';
 
 @Component({
   selector: 'app-files',
@@ -253,8 +254,14 @@ export class FilesComponent implements OnInit {
         const upload = this.api.uploadFile(this.latestPath, files.item(index), decompress);
         upload.subscribe(event => {
           if (event.type === HttpEventType.UploadProgress) {
+            const now = new Date();
+            const timeDiff = now.getTime() - this.dataUpload.uploads[index][4].getTime();
+            const byteDiff = event.loaded - this.dataUpload.uploads[index][1];
+
             this.dataUpload.uploads[index][1] = event.loaded;
             this.dataUpload.uploads[index][2] = event.total;
+            this.dataUpload.uploads[index][3] = byteDiff / (timeDiff / 1000);
+            this.dataUpload.uploads[index][4] = now;
           }
         });
         return upload
@@ -288,7 +295,7 @@ export class FilesComponent implements OnInit {
       err: null,
     };
     for (let i = 0; i < files.length; ++i) {
-      this.dataUpload.uploads.push([files.item(i).name, 0, 1]);
+      this.dataUpload.uploads.push([files.item(i).name, 0, 1, 0, new Date()]);
     }
   }
 
@@ -402,10 +409,37 @@ export class FilesComponent implements OnInit {
       return '';
     }
   }
+
+  getSpeed(bytesPerSecond: number): string {
+    return FileInfo.toFileSizeHumanReadable(bytesPerSecond) + '/s';
+  }
+
+  getRemaining(bytesPerSecond: number, current: number, total: number): string {
+    const remaining = total - current;
+    const remainingSeconds = remaining / bytesPerSecond;
+    console.log(this.toHumanTimeEstimate(remainingSeconds));
+    return this.toHumanTimeEstimate(remainingSeconds);
+  }
+
+  toHumanTimeEstimate(time: number) {
+    let exponent = 0;
+    while (Math.round(time / 60) > 0 && exponent < 2) {
+      time = Number(time / 60);
+      exponent += 1;
+    }
+    switch (exponent) {
+      case 0:
+        return Math.max(1, Math.round(time)) + 's';
+      case 1:
+        return Math.round(time) + 'm';
+      case 2:
+        return Math.round(time) + 'h';
+    }
+  }
 }
 
 export interface UploadFilesProgress {
-  uploads: [string, number, number][];
+  uploads: [string, number, number, number, Date][];
   closable: boolean;
   err: any;
 }

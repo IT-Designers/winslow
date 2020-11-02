@@ -130,7 +130,7 @@ export class FileInfo {
   }
 
 
-  static toFileSizeHumanReadable(fileSize?: number): string {
+  public static toFileSizeHumanReadable(fileSize?: number): string {
     if (fileSize != null) {
       let suffix = 0;
       let value = fileSize;
