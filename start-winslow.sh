@@ -75,8 +75,8 @@ echo " ::::: Starting Winslow Container now"
 echo $SUDO docker run -itd --rm --privileged \
     --name "$CONTAINER_NAME" \
     $(if [ "$GPUS" -gt 0 ]; then echo " --gpus all"; fi) \
-    $(if [ "$HTTP" != "" ] ; then echo " -p $HTTP:8080"; fi) \
-    $(if [ "$HTTPS" != "" ] ; then echo " -p $HTTPS:8080"; fi) \
+    $(if [ "$HTTP" != "" ] ; then echo " -p $HTTP:$WEB_PORT"; fi) \
+    $(if [ "$HTTPS" != "" ] ; then echo " -p $HTTPS:$WEB_PORT"; fi) \
     $(if [ "$WEB_PORT" != "" ]; then echo "-e SERVER_PORT=$WEB_PORT"; fi) \
     $ADDITIONAL \
     -e WINSLOW_STORAGE_TYPE=$STORAGE_TYPE \
