@@ -417,7 +417,6 @@ export class FilesComponent implements OnInit {
   getRemaining(bytesPerSecond: number, current: number, total: number): string {
     const remaining = total - current;
     const remainingSeconds = remaining / bytesPerSecond;
-    console.log(this.toHumanTimeEstimate(remainingSeconds));
     return this.toHumanTimeEstimate(remainingSeconds);
   }
 
