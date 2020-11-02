@@ -41,14 +41,13 @@ public abstract class WebDavEntry {
 
     @UniqueId
     public String getId() {
-        System.out.println(path.toString());
         return path.toString();
     }
 
     @Name
     @Nonnull
     public String getName() {
-        return name + "_name";
+        return name;
     }
 
     @UniqueId
