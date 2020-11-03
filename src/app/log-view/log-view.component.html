@@ -42,7 +42,7 @@
     <div #scrollTopTarget></div>
     <pre class="console-container">
           <code *ngIf="logs != null" class="console"
-          ><ng-container *ngFor="let log of logs; trackBy:line"
+          ><ng-container *ngFor="let log of logs; trackBy:lineId"
           ><span
           ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{log.line}}</span
           ><span [class.console-err]="log.error"
