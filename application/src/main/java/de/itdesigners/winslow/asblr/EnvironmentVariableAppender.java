@@ -84,6 +84,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
             });
         });
 
+        context.getExecutionGroup().getRangedValues().ifPresent(ranged -> {
+            var string = String.join(",", ranged.keySet());
+            context.getSubmission().withInternalEnvVariable(Env.SELF_PREFIX + "_RANGED_ENV_VARIABLES", string);
+        });
+
         context
                 .getExecutionGroup()
                 .getComment()
