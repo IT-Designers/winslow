@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class EnvironmentVariableAppender implements AssemblerStep {
 
@@ -21,11 +22,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var pipeline           = context.getPipeline();
+        var pipeline = context.getPipeline();
         var pipelineDefinition = context.getPipelineDefinition();
-        var stageDefinition    = context.getSubmission().getStageDefinition();
-        var timeMs             = System.currentTimeMillis();
-        var timeS              = timeMs / 1_000;
+        var stageDefinition = context.getSubmission().getStageDefinition();
+        var timeMs = System.currentTimeMillis();
+        var timeS = timeMs / 1_000;
 
         var submission = context
                 .getSubmission()
@@ -85,8 +86,23 @@ public class EnvironmentVariableAppender implements AssemblerStep {
         });
 
         context.getExecutionGroup().getRangedValues().ifPresent(ranged -> {
-            var string = String.join(",", ranged.keySet());
-            context.getSubmission().withInternalEnvVariable(Env.SELF_PREFIX + "_RANGED_ENV_VARIABLES", string);
+            context.getSubmission()
+                   .withInternalEnvVariable(
+                           Env.SELF_PREFIX + "_RANGED_ENV_VARIABLE_NAMES",
+                           String.join(";", ranged.keySet())
+                   )
+                   .withInternalEnvVariable(
+                           Env.SELF_PREFIX + "_RANGED_ENV_VARIABLES",
+                           ranged
+                                   .keySet()
+                                   .stream()
+                                   .map(key -> key + ":" + context
+                                           .getSubmission()
+                                           .getStageDefinition()
+                                           .getEnvironment()
+                                           .get(key))
+                                   .collect(Collectors.joining(";"))
+                   );
         });
 
         context
