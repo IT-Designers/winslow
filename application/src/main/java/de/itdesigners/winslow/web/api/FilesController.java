@@ -23,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -106,7 +105,7 @@ public class FilesController {
     }
 
 
-    @PutMapping(value = {"/files/resources/**"})
+    @PostMapping(value = {"/files/resources/**"})
     public Optional<String> createResourceDirectory(HttpServletRequest request, User user) {
         return resourceManager
                 .getResourceDirectory()
@@ -117,7 +116,7 @@ public class FilesController {
                 .map(Path::toString);
     }
 
-    @PutMapping(value = {"/files/workspaces/**"})
+    @PostMapping(value = {"/files/workspaces/**"})
     public Optional<String> createWorkspaceDirectory(HttpServletRequest request, User user) {
         return resourceManager
                 .getWorkspacesDirectory()
@@ -137,13 +136,20 @@ public class FilesController {
                 );
     }
 
-    @PostMapping(value = {"/files/resources/**"})
+    @PutMapping(value = {"/files/resources/**"})
     public void uploadResourceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException {
-        uploadFile(request, user, file.getInputStream(), resourceManager.getResourceDirectory().orElseThrow(), decompressArchive);
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
+        ServletFileUpload upload = new ServletFileUpload();
+        var               file   = upload.getItemIterator(request).next();
+        uploadFile(
+                request,
+                user,
+                file.openStream(),
+                resourceManager.getResourceDirectory().orElseThrow(),
+                decompressArchive
+        );
     }
 
     public void uploadResourceFile(
@@ -154,13 +160,20 @@ public class FilesController {
         uploadFile(request, user, upload, resourceManager.getResourceDirectory().orElseThrow(), decompressArchive);
     }
 
-    @PostMapping(value = {"/files/workspaces/**"})
+    @PutMapping(value = {"/files/workspaces/**"})
     public void uploadWorkspaceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException {
-        uploadFile(request, user, file.getInputStream(), resourceManager.getWorkspacesDirectory().orElseThrow(), decompressArchive);
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
+        ServletFileUpload upload = new ServletFileUpload();
+        var               file   = upload.getItemIterator(request).next();
+        uploadFile(
+                request,
+                user,
+                file.openStream(),
+                resourceManager.getWorkspacesDirectory().orElseThrow(),
+                decompressArchive
+        );
     }
 
     public void uploadWorkspaceFile(

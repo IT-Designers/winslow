@@ -61,22 +61,24 @@ public class ProjectsController {
                 .map(ProjectInfoConverter::from);
     }
 
+    private static class CreateData {
+        public @Nonnull  String       name;
+        public @Nonnull  String       pipeline;
+        public @Nullable List<String> tags;
+    }
+
     @PostMapping("/projects")
-    public Optional<ProjectInfo> createProject(
-            User user,
-            @RequestParam("name") String name,
-            @RequestParam("pipeline") String pipelineId,
-            @RequestParam(value = "tags", required = false) List<String> tags) {
+    public Optional<ProjectInfo> createProject(User user, @RequestBody CreateData body) {
         return winslow
                 .getPipelineRepository()
-                .getPipeline(pipelineId)
+                .getPipeline(body.pipeline)
                 .unsafe()
                 .flatMap(pipelineDefinition -> winslow
                         .getProjectRepository()
                         .createProject(user, pipelineDefinition, project -> {
-                            project.setName(name);
-                            if (tags != null && tags.size() > 0) {
-                                project.setTags(tags.toArray(new String[0]));
+                            project.setName(body.name);
+                            if (body.tags != null && body.tags.size() > 0) {
+                                project.setTags(body.tags.toArray(new String[0]));
                             }
                         })
                         .filter(project -> {
@@ -176,11 +178,12 @@ public class ProjectsController {
                 );
     }
 
-    @PostMapping("/projects/{projectId}/name")
+    @PutMapping("/projects/{projectId}/name")
     public ResponseEntity<String> setProjectName(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam("name") String name) throws LockException, IOException {
+            @RequestBody String name
+    ) throws LockException, IOException {
         var canAccess = winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -218,11 +221,12 @@ public class ProjectsController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/projects/{projectId}/tags")
+    @PutMapping("/projects/{projectId}/tags")
     public ResponseEntity<String[]> setProjectTags(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam("tags") String[] tags) throws LockException, IOException {
+            @RequestBody String[] tags
+    ) throws LockException, IOException {
         var canAccess = winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -329,7 +333,7 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/states")
-    public Stream<StateInfo> getProjectComplexStates(User user, @RequestParam("projectIds") String[] projectIds) {
+    public Stream<StateInfo> getProjectComplexStates(User user, @RequestBody String[] projectIds) {
         return Stream
                 .of(projectIds)
                 .map(winslow.getProjectRepository()::getProject)
@@ -412,19 +416,23 @@ public class ProjectsController {
         );
     }
 
-    @PostMapping("projects/{projectId}/paused/{paused}")
+    private static class PauseData {
+        public           boolean paused;
+        public @Nullable String  strategy;
+    }
+
+    @PutMapping("projects/{projectId}/paused")
     public boolean setProjectNextStage(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable("paused") boolean paused,
-            @RequestParam(value = "strategy", required = false) @Nullable String strategy) {
+            @RequestBody PauseData body) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-                    if (paused) {
+                    if (body.paused) {
                         pipeline.requestPause();
                         return Boolean.TRUE;
                     } else {
-                        if ("once".equalsIgnoreCase(strategy)) {
+                        if ("once".equalsIgnoreCase(body.strategy)) {
                             pipeline.resume(Pipeline.ResumeNotification.RunSingleThenPause);
                         } else {
                             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
@@ -447,13 +455,17 @@ public class ProjectsController {
                 .orElse(false);
     }
 
+    private static class LogData {
+        public @Nullable Long skipLines;
+        public @Nullable String expectingStageId;
+    }
+
     @GetMapping("projects/{projectId}/logs/{stageId}")
     public Stream<LogEntryInfo> getProjectStageLogsLatest(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId,
-            @RequestParam(value = "skipLines", defaultValue = "0", required = false) long skipLines,
-            @RequestParam(value = "expectingStageId", defaultValue = "0", required = false) String expectingStageId) {
+            @RequestBody LogData body) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
@@ -472,8 +484,8 @@ public class ProjectsController {
                         .reduce((first, second) -> second)
                         .stream()
                         .flatMap(stage -> {
-                            var skip = skipLines;
-                            if (expectingStageId != null && !expectingStageId.equals(stage.getFullyQualifiedId())) {
+                            var skip = body.skipLines != null ? body.skipLines : 0;
+                            if (body.expectingStageId != null && !body.expectingStageId.equals(stage.getFullyQualifiedId())) {
                                 skip = 0;
                             }
 
@@ -556,11 +568,11 @@ public class ProjectsController {
                 });
     }
 
-    @PostMapping("projects/{projectId}/pipeline-definition-raw")
+    @PutMapping("projects/{projectId}/pipeline-definition-raw")
     public ResponseEntity<String> setProjectRawDefinition(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam("raw") String raw) throws IOException, LockException {
+            @RequestBody String raw) throws IOException, LockException {
 
         var definition = (PipelineDefinition) null;
 
@@ -626,11 +638,11 @@ public class ProjectsController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("projects/{projectId}/deletion-policy")
+    @PutMapping("projects/{projectId}/deletion-policy")
     public ResponseEntity<DeletionPolicy> setDeletionPolicyNumberOfWorkspacesOfSucceededStagesToKeep(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam("value") DeletionPolicy policy) {
+            @RequestBody DeletionPolicy policy) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -650,11 +662,11 @@ public class ProjectsController {
         return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getWorkspaceConfigurationMode);
     }
 
-    @PostMapping("projects/{projectId}/workspace-configuration-mode")
+    @PutMapping("projects/{projectId}/workspace-configuration-mode")
     public ResponseEntity<WorkspaceConfiguration.WorkspaceMode> setWorkspaceConfigurationMode(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam("value") WorkspaceConfiguration.WorkspaceMode mode) {
+            @RequestBody WorkspaceConfiguration.WorkspaceMode mode) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
@@ -742,7 +754,7 @@ public class ProjectsController {
                 ));
     }
 
-    @PostMapping("projects/{projectId}/pipeline/{pipelineId}")
+    @PutMapping("projects/{projectId}/pipeline/{pipelineId}")
     public ResponseEntity<Boolean> setPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId,
@@ -780,19 +792,23 @@ public class ProjectsController {
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("projects/{projectId}/enqueued")
+    private static class EnqueueData {
+        public @Nonnull  Map<String, String>      env;
+        public @Nullable Map<String, RangedValue> rangedEnv;
+        public           int                      stageIndex;
+        public @Nullable ImageInfo                image;
+        public @Nullable ResourceInfo             requiredResources;
+        public @Nullable WorkspaceConfiguration   workspaceConfiguration;
+        public @Nullable String                   comment;
+        public @Nullable Boolean                  runSingle;
+        public @Nullable Boolean                  resume;
+    }
+
+    @PostMapping("projects/{projectId}/enqueued")
     public void enqueueStageToExecute(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam("env") Map<String, String> env,
-            @RequestParam(value = "rangedEnv", required = false) @Nullable Map<String, RangedValue> rangedEnv,
-            @RequestParam("stageIndex") int index,
-            @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
-            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
-            @RequestParam(value = "workspaceConfiguration", required = false) @Nullable WorkspaceConfiguration workspaceConfiguration,
-            @RequestParam(value = "comment", required = false) @Nullable String comment,
-            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle,
-            @RequestParam(value = "resume", required = false, defaultValue = "false") boolean resume
+            @RequestBody EnqueueData body
     ) {
         getProjectIfAllowedToAccess(user, projectId)
 
@@ -800,19 +816,19 @@ public class ProjectsController {
 
                     // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
-                    return getStageDefinitionNoClone(project, index)
+                    return getStageDefinitionNoClone(project, body.stageIndex)
                             .map(stageDef -> {
                                 enqueueExecutionStage(
                                         pipeline,
                                         stageDef,
-                                        env,
-                                        rangedEnv,
-                                        image,
-                                        requiredResources,
-                                        workspaceConfiguration,
-                                        comment,
-                                        runSingle,
-                                        resume
+                                        body.env,
+                                        body.rangedEnv,
+                                        body.image,
+                                        body.requiredResources,
+                                        body.workspaceConfiguration,
+                                        body.comment,
+                                        body.runSingle != null && body.runSingle,
+                                        body.resume != null && body.resume
                                 );
                                 return Boolean.TRUE;
                             })
@@ -822,30 +838,27 @@ public class ProjectsController {
                 .orElseThrow();
     }
 
-    @PutMapping("projects/{projectId}/enqueued-on-others")
+    private static class EnqueueOnOtherData extends EnqueueData {
+        public @Nonnull String[] projectIds;
+    }
+
+    @PostMapping("projects/{projectId}/enqueued-on-others")
     public Stream<Boolean> enqueueStageOnOthersToConfigure(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestParam("stageIndex") int index,
-            @RequestParam("projectIds") String[] projectIds,
-            @RequestParam("env") Map<String, String> env,
-            @RequestParam(value = "image", required = false) @Nullable ImageInfo image,
-            @RequestParam(value = "requiredResources", required = false) @Nullable ResourceInfo requiredResources,
-            @RequestParam(value = "comment", required = false) @Nullable String comment,
-            @RequestParam(value = "runSingle", required = false, defaultValue = "false") boolean runSingle,
-            @RequestParam(value = "resume", required = false, defaultValue = "false") boolean resume
+            @RequestBody EnqueueOnOtherData body
     ) {
         var stageDefinitionBase = getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
-                    return getStageDefinitionNoClone(project, index);
+                    return getStageDefinitionNoClone(project, body.stageIndex);
                 }))
                 .orElseThrow()
                 .orElseThrow();
 
         return Stream
-                .of(projectIds)
+                .of(body.projectIds)
                 .map(id -> winslow.getProjectRepository().getProject(id).unsafe())
                 .map(maybeProject -> maybeProject
                         .filter(project -> project.canBeAccessedBy(user))
@@ -853,23 +866,23 @@ public class ProjectsController {
                             enqueueConfigureStage(
                                     pipeline,
                                     stageDefinitionBase,
-                                    env,
-                                    image,
-                                    requiredResources,
-                                    comment,
-                                    runSingle,
-                                    resume
+                                    body.env,
+                                    body.image,
+                                    body.requiredResources,
+                                    body.comment,
+                                    body.runSingle != null && body.runSingle,
+                                    body.resume != null && body.resume
                             );
                             return Boolean.TRUE;
                         }))
                         .orElse(Boolean.FALSE));
     }
 
-    @PutMapping("projects/{projectId}/action/{actionId}")
+    @PostMapping("projects/{projectId}/action")
     public void enqueueAction(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable("actionId") String actionId) {
+            @RequestBody String actionId) {
         getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getPipelineRepository()
@@ -1165,7 +1178,8 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable(value = "stageId", required = false) @Nullable String stageId,
-            @RequestParam(name = "pause", required = false, defaultValue = "true") boolean pause) throws LockException {
+            @RequestBody Boolean pause
+    ) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(p -> winslow
                         .getOrchestrator()
@@ -1179,7 +1193,7 @@ public class ProjectsController {
                 )
                 .allMatch(stage -> {
                     try {
-                        if (pause) {
+                        if (pause != null && pause) {
                             winslow.getOrchestrator().updatePipeline(
                                     getProjectIfAllowedToAccess(user, projectId).get(),
                                     pipeline -> {
@@ -1275,7 +1289,7 @@ public class ProjectsController {
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
 
-    @PostMapping("projects/{projectId}/public")
+    @PutMapping("projects/{projectId}/public")
     public ResponseEntity<Boolean> setPublic(
             User user,
             @PathVariable("projectId") String projectId,

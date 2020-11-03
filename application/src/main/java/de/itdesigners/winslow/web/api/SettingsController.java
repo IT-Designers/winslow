@@ -3,10 +3,7 @@ package de.itdesigners.winslow.web.api;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.auth.User;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.Nonnull;
@@ -35,7 +32,7 @@ public class SettingsController {
     @PostMapping("/settings/global-env")
     public void setEnvironmentVariables(
             @Nonnull User user,
-            @RequestParam("env") Map<String, String> env) throws IOException {
+            @RequestBody Map<String, String> env) throws IOException {
         if (!canUserAccess(user)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } else {

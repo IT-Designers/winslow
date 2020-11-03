@@ -69,7 +69,7 @@ public class PipelinesController {
     @PutMapping("pipelines/{pipeline}/raw")
     public ResponseEntity<String> setPipeline(
             @PathVariable("pipeline") String pipeline,
-            @RequestParam("raw") String raw) throws IOException {
+            @RequestBody String raw) throws IOException {
         PipelineDefinition definition = null;
 
         try {
@@ -99,7 +99,7 @@ public class PipelinesController {
     }
 
     @PostMapping("pipelines/check")
-    public ResponseEntity<String> checkPipelineDef(@RequestParam("raw") String raw) throws JsonProcessingException {
+    public ResponseEntity<String> checkPipelineDef(@RequestBody String raw) throws JsonProcessingException {
         try {
             tryParsePipelineDef(raw);
             return ResponseEntity.ok(null);
@@ -151,8 +151,8 @@ public class PipelinesController {
         }
     }
 
-    @PutMapping("pipelines/create")
-    public Optional<PipelineInfo> createPipeline(@RequestParam("name") String name) {
+    @PostMapping("pipelines/create")
+    public Optional<PipelineInfo> createPipeline(@RequestBody String name) {
         var id = PipelineDefinitionRepository.derivePipelineIdFromName(name);
         return this.winslow
                 .getPipelineRepository()
