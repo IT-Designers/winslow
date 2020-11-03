@@ -27,7 +27,7 @@ export class FilesApiService {
   createDirectory(path: string): Promise<any> {
     return this
       .client
-      .put(FilesApiService.getUrl(path), null)
+      .post(FilesApiService.getUrl(path), null)
       .toPromise();
   }
 
@@ -47,7 +47,7 @@ export class FilesApiService {
 
     return this
       .client
-      .post(
+      .put(
         FilesApiService.getUrl(pathToDirectory + file.name + params),
         form,
         {reportProgress: true, observe: 'events'}
