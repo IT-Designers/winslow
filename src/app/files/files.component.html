@@ -97,7 +97,7 @@
             <p>{{upload.name}}</p>
             <div>
               <div>Overall: {{getSpeed(upload.overallUploadSpeed)}} - {{getRemaining(upload.overallUploadSpeed, upload.loaded, upload.total)}} </div>
-              <div>Current: {{getSpeed(upload.currentUploadSpeed)}} - {{getRemaining(upload.currentUploadSpeed, upload.loaded, upload.total)}}</div>
+              <div *ngIf="!upload.completed">Current: {{getSpeed(upload.currentUploadSpeed)}} - {{getRemaining(upload.currentUploadSpeed, upload.loaded, upload.total)}}</div>
             </div>
             <mat-progress-bar mode="determinate" value="{{ upload.loaded / upload.total * 100 }}"></mat-progress-bar>
           </ng-container>

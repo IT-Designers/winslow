@@ -245,14 +245,15 @@ export class FilesComponent implements OnInit {
 
     const instance = {
       swal: this.swalUpload.fire(),
-      uploader: null
+      uploader: null,
+      updater: null
     };
 
     instance.uploader = (index: number): Promise<void> => {
       if (index < files.length) {
         const upload = this.api.uploadFile(this.latestPath, files.item(index), decompress);
         upload.subscribe(event => {
-          if (event.type === HttpEventType.UploadProgress || event.type === HttpEventType.Sent) {
+          if (event.type === HttpEventType.UploadProgress || event.type === HttpEventType.ResponseHeader) {
 
             const now = new Date();
 
@@ -264,12 +265,18 @@ export class FilesComponent implements OnInit {
 
               this.dataUpload.uploads[index].loaded = event.loaded;
               this.dataUpload.uploads[index].total = event.total;
-              this.dataUpload.uploads[index].currentUploadSpeed = ((MOVING_AVERAGE_SAMPLES - 1) * this.dataUpload.uploads[index].currentUploadSpeed + byteSec) / MOVING_AVERAGE_SAMPLES;
+              this.dataUpload.uploads[index].currentUploadSpeed = (
+                (MOVING_AVERAGE_SAMPLES - 1 + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff)
+                  * this.dataUpload.uploads[index].currentUploadSpeed
+                  + (byteSec * timeDiff)
+                ) / (MOVING_AVERAGE_SAMPLES + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff + timeDiff);
               this.dataUpload.uploads[index].currentUploadSpeedLastUpdate = now;
+              this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff = timeDiff;
+            } else {
+              this.dataUpload.uploads[index].completed = true;
             }
 
-            const timeSinceStart = now.getTime() - this.dataUpload.uploads[index].overallUploadStarted.getTime();
-            this.dataUpload.uploads[index].overallUploadSpeed = this.dataUpload.uploads[index].total / (timeSinceStart / 1000);
+            this.updateProgress(now, this.dataUpload.uploads[index]);
           }
         });
         return upload
@@ -286,14 +293,30 @@ export class FilesComponent implements OnInit {
     };
 
     setTimeout(() => Swal.getConfirmButton().setAttribute('disabled', ''));
+
+    instance.updater = setInterval(() => this.updateOverall(), 1000);
     instance
       .uploader(0)
       .then(r => this.updateViewHint())
       .finally(() => {
         this.dataUpload.closable = true;
         this.swalUpload.showConfirmButton = true;
+        clearInterval(instance.updater);
         Swal.getConfirmButton().removeAttribute('disabled');
       });
+  }
+
+  private updateOverall(now: Date = new Date()) {
+    for (const progress of this.dataUpload.uploads) {
+      if (progress.loaded > 0 && !progress.completed) {
+        this.updateProgress(now, progress);
+      }
+    }
+  }
+
+  private updateProgress(now: Date, progress: UploadProgress) {
+    const timeSinceStart = now.getTime() - progress.overallUploadStarted.getTime();
+    progress.overallUploadSpeed = progress.loaded / (timeSinceStart / 1000);
   }
 
   private prepareDataUpload(files: FileList) {
@@ -309,8 +332,10 @@ export class FilesComponent implements OnInit {
         total: 1,
         currentUploadSpeed: 0,
         currentUploadSpeedLastUpdate: new Date(),
+        currentUploadSpeedLastTimeDiff: 0,
         overallUploadSpeed: 0,
-        overallUploadStarted: new Date()
+        overallUploadStarted: new Date(),
+        completed: false
       });
     }
   }
@@ -465,8 +490,10 @@ export interface UploadProgress {
   total: number;
   currentUploadSpeed: number;
   currentUploadSpeedLastUpdate: Date;
+  currentUploadSpeedLastTimeDiff: number;
   overallUploadSpeed: number;
   overallUploadStarted: Date;
+  completed: boolean
 }
 
 export interface UploadFilesProgress {
