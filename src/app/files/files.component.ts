@@ -252,22 +252,24 @@ export class FilesComponent implements OnInit {
       if (index < files.length) {
         const upload = this.api.uploadFile(this.latestPath, files.item(index), decompress);
         upload.subscribe(event => {
-          if (event.type === HttpEventType.UploadProgress) {
+          if (event.type === HttpEventType.UploadProgress || event.type === HttpEventType.Sent) {
+
             const now = new Date();
-            const timeDiff = now.getTime() - this.dataUpload.uploads[index][4].getTime();
-            const byteDiff = event.loaded - this.dataUpload.uploads[index][1];
-            const byteSec = byteDiff / (timeDiff / 1000);
-            const MOVING_AVERAGE_SAMPLES = 20;
 
-            this.dataUpload.uploads[index][1] = event.loaded;
-            this.dataUpload.uploads[index][2] = event.total;
-            this.dataUpload.uploads[index][3] = ((MOVING_AVERAGE_SAMPLES - 1) * this.dataUpload.uploads[index][3] + byteSec) / MOVING_AVERAGE_SAMPLES;
-            this.dataUpload.uploads[index][4] = now;
+            if (event.type === HttpEventType.UploadProgress) {
+              const MOVING_AVERAGE_SAMPLES = 20;
+              const timeDiff = now.getTime() - this.dataUpload.uploads[index].currentUploadSpeedLastUpdate.getTime();
+              const byteDiff = event.loaded - this.dataUpload.uploads[index].loaded;
+              const byteSec = byteDiff / (timeDiff / 1000);
 
-            const timeSinceStart = now.getTime() - this.dataUpload.uploads[index][6].getTime();
-            const byteSecSinceStart = event.loaded / (timeSinceStart / 1000);
+              this.dataUpload.uploads[index].loaded = event.loaded;
+              this.dataUpload.uploads[index].total = event.total;
+              this.dataUpload.uploads[index].currentUploadSpeed = ((MOVING_AVERAGE_SAMPLES - 1) * this.dataUpload.uploads[index].currentUploadSpeed + byteSec) / MOVING_AVERAGE_SAMPLES;
+              this.dataUpload.uploads[index].currentUploadSpeedLastUpdate = now;
+            }
 
-            this.dataUpload.uploads[index][5] = byteSecSinceStart;
+            const timeSinceStart = now.getTime() - this.dataUpload.uploads[index].overallUploadStarted.getTime();
+            this.dataUpload.uploads[index].overallUploadSpeed = this.dataUpload.uploads[index].total / (timeSinceStart / 1000);
           }
         });
         return upload
@@ -301,7 +303,15 @@ export class FilesComponent implements OnInit {
       err: null,
     };
     for (let i = 0; i < files.length; ++i) {
-      this.dataUpload.uploads.push([files.item(i).name, 0, 1, 0, new Date(), 0, new Date()]);
+      this.dataUpload.uploads.push({
+        name: files.item(i).name,
+        loaded: 0,
+        total: 1,
+        currentUploadSpeed: 0,
+        currentUploadSpeedLastUpdate: new Date(),
+        overallUploadSpeed: 0,
+        overallUploadStarted: new Date()
+      });
     }
   }
 
@@ -449,8 +459,18 @@ export class FilesComponent implements OnInit {
   }
 }
 
+export interface UploadProgress {
+  name: string;
+  loaded: number;
+  total: number;
+  currentUploadSpeed: number;
+  currentUploadSpeedLastUpdate: Date;
+  overallUploadSpeed: number;
+  overallUploadStarted: Date;
+}
+
 export interface UploadFilesProgress {
-  uploads: [string, number, number, number, Date, number, Date][];
+  uploads: UploadProgress[];
   closable: boolean;
   err: any;
 }

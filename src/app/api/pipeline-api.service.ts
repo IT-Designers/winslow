@@ -19,15 +19,11 @@ export class PipelineApiService {
   }
 
   checkPipelineDefinition(raw: string) {
-    const form = new FormData();
-    form.set('raw', raw);
-    return this.client.post<string>(PipelineApiService.getUrl(`check`), form).toPromise();
+    return this.client.post<string>(PipelineApiService.getUrl(`check`), raw).toPromise();
   }
 
   updatePipelineDefinition(pipeline: string, raw: string) {
-    const form = new FormData();
-    form.set('raw', raw);
-    return this.client.put<string|ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), form).toPromise();
+    return this.client.put<string|ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw).toPromise();
   }
 
   getPipelineDefinition(pipeline: string) {
@@ -46,11 +42,9 @@ export class PipelineApiService {
   }
 
   createPipelineDefinition(name: string) {
-    const form = new FormData();
-    form.set('name', name);
     return this
       .client
-      .put<PipelineInfo>(PipelineApiService.getUrl(`create`), form)
+      .post<PipelineInfo>(PipelineApiService.getUrl(`create`), name)
       .toPromise()
       .then(info => new PipelineInfo(info));
   }
