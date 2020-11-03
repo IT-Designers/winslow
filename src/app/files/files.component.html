@@ -94,11 +94,12 @@
       <mat-list *ngIf="dataUpload != null">
         <mat-list *ngFor="let upload of dataUpload.uploads">
           <ng-container>
-            <p>{{upload[0]}}</p>
+            <p>{{upload.name}}</p>
             <div>
-              <div>Overall: {{getSpeed(upload[5])}} - {{getRemaining(upload[5], upload[1], upload[2])}} </div><div>Current: {{getSpeed(upload[3])}} - {{getRemaining(upload[3], upload[1], upload[2])}}</div>
+              <div>Overall: {{getSpeed(upload.overallUploadSpeed)}} - {{getRemaining(upload.overallUploadSpeed, upload.loaded, upload.total)}} </div>
+              <div>Current: {{getSpeed(upload.currentUploadSpeed)}} - {{getRemaining(upload.currentUploadSpeed, upload.loaded, upload.total)}}</div>
             </div>
-            <mat-progress-bar mode="determinate" value="{{ upload[1] / upload[2] * 100 }}"></mat-progress-bar>
+            <mat-progress-bar mode="determinate" value="{{ upload.loaded / upload.total * 100 }}"></mat-progress-bar>
           </ng-container>
         </mat-list>
       </mat-list>
