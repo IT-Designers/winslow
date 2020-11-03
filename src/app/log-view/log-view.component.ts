@@ -184,8 +184,8 @@ export class LogViewComponent implements OnInit, OnDestroy {
   }
 
 
-  line(log: LogEntry): number {
-    return log?.line;
+  lineId(log: LogEntry): string {
+    return log?.stageId + log?.line;
   }
 
   sourceIsManagement(source: LogSource) {
