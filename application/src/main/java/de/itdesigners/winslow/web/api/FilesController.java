@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -140,16 +141,9 @@ public class FilesController {
     public void uploadResourceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
-        ServletFileUpload upload = new ServletFileUpload();
-        var               file   = upload.getItemIterator(request).next();
-        uploadFile(
-                request,
-                user,
-                file.openStream(),
-                resourceManager.getResourceDirectory().orElseThrow(),
-                decompressArchive
-        );
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException {
+        uploadFile(request, user, file.getInputStream(), resourceManager.getResourceDirectory().orElseThrow(), decompressArchive);
     }
 
     public void uploadResourceFile(
@@ -164,16 +158,9 @@ public class FilesController {
     public void uploadWorkspaceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
-        ServletFileUpload upload = new ServletFileUpload();
-        var               file   = upload.getItemIterator(request).next();
-        uploadFile(
-                request,
-                user,
-                file.openStream(),
-                resourceManager.getWorkspacesDirectory().orElseThrow(),
-                decompressArchive
-        );
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException {
+        uploadFile(request, user, file.getInputStream(), resourceManager.getWorkspacesDirectory().orElseThrow(), decompressArchive);
     }
 
     public void uploadWorkspaceFile(
