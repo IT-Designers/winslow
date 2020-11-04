@@ -24,6 +24,7 @@
     "@stomp/ng2-stompjs": "^7.2.0",
     "@sweetalert2/ngx-sweetalert2": "^8.1.1",
     "@swimlane/ngx-charts": "^16.0.0",
+    "fontsource-roboto": "^3.0.3",
     "ngx-monaco-editor": "^8.1.1",
     "rxjs": "~6.5.5",
     "string-argv": "^0.3.1",
