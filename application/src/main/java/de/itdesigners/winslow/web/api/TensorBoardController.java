@@ -102,8 +102,8 @@ public class TensorBoardController {
 
                     if (activeBoards.containsKey(projectId)) {
                         var board = activeBoards.get(projectId);
-                        var state = nomadBackend.getStateByNomadJogId(nomadId).orElse(State.Preparing);
-                        var failed = nomadBackend.hasAllocationFailed(nomadId).orElse(Boolean.FALSE);
+                        var state = nomadBackend.getStateByNomadJogId(nomadId).orElse(State.Failed);
+                        var failed = nomadBackend.hasAllocationFailed(nomadId).orElse(Boolean.TRUE);
                         if (failed || (State.Running != state && State.Preparing != state)) {
                             try {
                                 LOG.warning("Previous TensorBoard instance has failed");
