@@ -27,7 +27,7 @@
         <li *ngFor="let file of directories(path)">
           <p class="directory" [attr.data-path]="file.path">
             <i
-              class="material-icons directory-toggle directory-{{directories(file.path) != null ? 'close' : 'open'}}"
+              class="material-icons-outlined directory-toggle directory-{{directories(file.path) != null ? 'close' : 'open'}}"
               (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right'}}
             </i>
             <i
