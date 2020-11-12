@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -72,29 +73,58 @@ public class LogParserRegisterer implements AssemblerStep {
             return Stream.empty();
         }
 
-        var destination = path.resolve(parser.getDestination());
-        if (destination.startsWith(path)) {
+        var parserDestination = path.resolve(parser.getDestination());
+        if (parserDestination.startsWith(path)) {
             try {
                 var pattern = Pattern.compile(parser.getMatcher());
                 var formatter = new Formatter(
                         parser.getFormatter(),
                         context.getSubmission()::getEnvVariable
                 );
+
+                boolean dynamicDestination = parser.getDestination().contains("$");
+
+                final BiFunction<LogEntry, Matcher, Optional<Path>> destinationResolver;
+
+                if (dynamicDestination) {
+                    var destinationFormatter = new Formatter(
+                            parser.getDestination(),
+                            context.getSubmission()::getEnvVariable
+                    );
+                    destinationResolver = (entry, matcher) -> {
+                        var destinationName = destinationFormatter.format(entry, matcher);
+                        var destinationPath = path.resolve(destinationName);
+                        return Optional.of(destinationPath).filter(p -> p.startsWith(path));
+                    };
+                } else {
+                    var destination = Optional.of(parserDestination);
+                    destinationResolver = (_e, _m) -> destination;
+                }
+
                 return Stream.of(entry -> {
                     var message = entry.getMessage();
                     var matcher = pattern.matcher(message);
+
                     if (matcher.find()) {
-                        try {
-                            Files.write(
-                                    destination,
-                                    List.of(formatter.format(entry, matcher)),
-                                    StandardCharsets.UTF_8,
-                                    StandardOpenOption.APPEND,
-                                    StandardOpenOption.CREATE
-                            );
-                        } catch (IOException e) {
-                            context.log(Level.SEVERE, "Failed to write to destination", e);
-                        }
+                        destinationResolver.apply(entry, matcher).ifPresentOrElse(
+                                destination -> {
+                                    try {
+                                        Files.write(
+                                                destination,
+                                                List.of(formatter.format(entry, matcher)),
+                                                StandardCharsets.UTF_8,
+                                                StandardOpenOption.APPEND,
+                                                StandardOpenOption.CREATE
+                                        );
+                                    } catch (IOException e) {
+                                        context.log(Level.SEVERE, "Failed to write to destination", e);
+                                    }
+                                },
+                                () -> context.log(
+                                        Level.WARNING,
+                                        "Invalid destination path, at least one line is ignored"
+                                )
+                        );
                     }
                 });
             } catch (PatternSyntaxException pse) {
