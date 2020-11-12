@@ -51,7 +51,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
         .rangedValues
         .keys()]
         .sort()
-        .map(e => e[0] + '=' + stage.env.get(e[0]))
+        .map(e => e + '=' + stage.env.get(e))
         .join(', ');
     } else {
       return null;
