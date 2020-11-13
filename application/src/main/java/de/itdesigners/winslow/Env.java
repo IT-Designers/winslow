@@ -7,6 +7,9 @@ import java.net.UnknownHostException;
 
 public class Env {
 
+    private static final int LOCK_DURATION_MIN_MS     = 10 * 1_000; // 10s
+    private static final int LOCK_DURATION_DEFAULT_MS = 5 * 60 * 1_000; // 5min
+
     public static final String SELF_PREFIX        = "WINSLOW";
     public static final String DEV_ENV            = SELF_PREFIX + "_DEV_ENV";
     public static final String DEV_REMOTE_USER    = SELF_PREFIX + "_DEV_REMOTE_USER";
@@ -20,6 +23,7 @@ public class Env {
     public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
     public static final String DEV_ENV_IP         = SELF_PREFIX + "_DEV_ENV_IP";
     public static final String WEB_REQUIRE_SECURE = SELF_PREFIX + "_WEB_REQUIRE_SECURE";
+    public static final String LOCK_DURATION_MS   = SELF_PREFIX + "_LOCK_DURATION_MS";
 
     public static final String LDAP_URL = SELF_PREFIX + "_LDAP_URL";
     // public static final String LDAP_MANAGER_DN          = SELF_PREFIX + "_LDAP_MANAGER_DN";
@@ -74,6 +78,15 @@ public class Env {
     public static boolean requireSecure() {
         // 'SECURITY_REQUIRE_SSL' is an old and deprecated springboot property but might be used here and there
         return isTrueOr1(System.getenv("SECURITY_REQUIRE_SSL")) || isTrueOr1(System.getenv(WEB_REQUIRE_SECURE));
+    }
+
+    public static int lockDurationMs() {
+        try {
+            var duration = Integer.parseInt(System.getenv().get(LOCK_DURATION_MS));
+            return Integer.max(LOCK_DURATION_MIN_MS, duration);
+        } catch (Throwable t) {
+            return LOCK_DURATION_DEFAULT_MS;
+        }
     }
 
     public static boolean isDevEnv() {
