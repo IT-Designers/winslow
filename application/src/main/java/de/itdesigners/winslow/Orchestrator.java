@@ -288,7 +288,11 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     public void kill(@Nonnull Stage stage) throws LockException {
-        this.lockBus.publishCommand(Event.Command.KILL, stage.getFullyQualifiedId());
+        this.kill(stage.getFullyQualifiedId());
+    }
+
+    public void kill(@Nonnull String fullyQualifiedStageId) throws LockException {
+        this.lockBus.publishCommand(Event.Command.KILL, fullyQualifiedStageId);
     }
 
     private void pollPipelineForUpdate(@Nonnull String id) {

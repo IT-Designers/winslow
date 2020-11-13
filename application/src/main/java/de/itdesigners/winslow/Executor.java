@@ -50,7 +50,15 @@ public class Executor {
         this.stage        = stage;
         this.orchestrator = orchestrator;
         this.logOutput    = orchestrator.getLogRepository().getRawOutputStream(pipeline, stage);
-        this.lockHeart    = new LockHeart(logOutput.getLock());
+        this.lockHeart    = new LockHeart(logOutput.getLock(), () -> {
+            logErr("LockHeart stopped unexpectedly");
+            try {
+                orchestrator.kill(stage);
+            } catch (LockException e) {
+                logErr("Failed to cleanup orchestrator: " + e);
+            }
+            fail();
+        });
 
         this.intervalInvoker.addListener(this::statsUpdater);
 
