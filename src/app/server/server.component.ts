@@ -96,6 +96,7 @@ export class ServerComponent implements OnInit {
     const backupNode = this.node;
     this.node = new NodeInfo(
       this.node.name,
+      this.node.time,
       this.node.cpuInfo,
       this.node.memInfo,
       this.node.gpuInfo,
@@ -110,7 +111,7 @@ export class ServerComponent implements OnInit {
     this.node = backupNode;
     this.node.update = (node) => {
       // load all the new goodies without replacing the object
-      if (node != null) {
+      if (node != null && node.time !== this.node.time) {
         Object.keys(node).forEach(key => {
           this.node[key] = node[key];
         });
