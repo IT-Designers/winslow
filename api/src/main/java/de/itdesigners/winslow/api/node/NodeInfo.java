@@ -1,13 +1,15 @@
 package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
 public class NodeInfo {
 
-    private final @Nonnull String        name;
-    private final @Nonnull CpuInfo       cpuInfo;
+    private final @Nonnull String  name;
+    private final          long    time;
+    private final @Nonnull CpuInfo cpuInfo;
     private final @Nonnull MemInfo       memInfo;
     private final @Nonnull NetInfo       netInfo;
     private final @Nonnull DiskInfo      diskInfo;
@@ -16,23 +18,29 @@ public class NodeInfo {
 
     public NodeInfo(
             @Nonnull String name,
+            @Nullable Long time,
             @Nonnull CpuInfo cpuInfo,
             @Nonnull MemInfo memInfo,
             @Nonnull NetInfo netInfo,
             @Nonnull DiskInfo diskInfo,
             @Nonnull List<GpuInfo> gpuInfo) {
-        this.name      = name;
-        this.cpuInfo   = cpuInfo;
-        this.memInfo   = memInfo;
-        this.netInfo   = netInfo;
-        this.diskInfo  = diskInfo;
-        this.gpuInfo   = Collections.unmodifiableList(gpuInfo);
-        this.buildInfo = new BuildInfo();
+        this.name    = name;
+        this.time    = time != null ? time : 0;
+        this.cpuInfo = cpuInfo;
+        this.memInfo    = memInfo;
+        this.netInfo    = netInfo;
+        this.diskInfo   = diskInfo;
+        this.gpuInfo    = Collections.unmodifiableList(gpuInfo);
+        this.buildInfo  = new BuildInfo();
     }
 
     @Nonnull
     public String getName() {
         return name;
+    }
+
+    public long getTime() {
+        return time;
     }
 
     @Nonnull

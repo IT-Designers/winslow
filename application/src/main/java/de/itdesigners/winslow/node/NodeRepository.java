@@ -25,7 +25,7 @@ public class NodeRepository extends BaseRepository {
 
     private static final Logger LOG                = Logger.getLogger(NodeRepository.class.getSimpleName());
     private static final String TEMP_FILE_PREFIX   = ".";
-    private static final long   ACTIVE_MAX_MS_DIFF = 5_000;
+    private static final long   ACTIVE_MAX_MS_DIFF = 15_000;
 
     private final @Nonnull List<BiConsumer<ChangeEvent.ChangeType, String>> listeners = new ArrayList<>();
 

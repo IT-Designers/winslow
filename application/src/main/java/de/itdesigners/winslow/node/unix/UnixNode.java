@@ -145,7 +145,7 @@ public class UnixNode implements Node {
         var diskInfo = loadDiskInfo();
         var gpuInfo  = hasGpus ? UnixGpuInfoParser.loadGpuInfo() : Collections.<GpuInfo>emptyList();
         this.hasGpus = this.hasGpus && !gpuInfo.isEmpty();
-        return new NodeInfo(name, cpuInfo, memInfo, netInfo, diskInfo, gpuInfo);
+        return new NodeInfo(name, System.currentTimeMillis(), cpuInfo, memInfo, netInfo, diskInfo, gpuInfo);
     }
 
     @Nonnull
