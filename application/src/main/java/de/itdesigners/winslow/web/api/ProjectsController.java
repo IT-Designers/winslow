@@ -1028,6 +1028,7 @@ public class ProjectsController {
             pipeline.resume(Pipeline.ResumeNotification.RunSingleThenPause);
         } else if (resume) {
             pipeline.clearPauseReason();
+            pipeline.resume(Pipeline.ResumeNotification.Confirmation);
         } else {
             resumeIfPausedByStageFailure(pipeline);
             resumeIfWaitingForGoneStageConfirmation(pipeline);
