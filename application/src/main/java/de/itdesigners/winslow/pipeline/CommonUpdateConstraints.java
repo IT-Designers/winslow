@@ -99,8 +99,8 @@ public class CommonUpdateConstraints {
     }
 
     public static boolean hasRemainingOrRunningStageExecutions(@Nonnull ExecutionGroup group) {
-        return (group.hasRemainingExecutions() || group.getRunningStages().count() > 0)
-                && group.getStages().noneMatch(s -> s.getState() == State.Failed);
+        return group.getRunningStages().count() > 0 || (group.hasRemainingExecutions()
+                && group.getStages().noneMatch(s -> s.getState() == State.Failed));
     }
     public static void ensureActiveExecutionGroupHasRemainingStageExecutions(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         if (!hasActiveExecutionGroupRemainingExecutions(pipelineReadOnly)) {
