@@ -187,6 +187,14 @@ public abstract class BaseRepository {
 
     private <T> LockedContainer.Writer<T> lockedWriter(Path path, Writer<T> writer) {
         return (l, value) -> {
+            // TODO remove
+            if (value instanceof Pipeline) {
+                var stages = ((Pipeline) value).getActiveExecutionGroup().stream()
+                                  .flatMap(ExecutionGroup::getStages)
+                                  .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
+                                  .collect(Collectors.toList());
+                LOG.info("Writing, AEG Stages: " + String.join(", ", stages));
+            }
             if (value != null) {
                 var tmp = path.resolveSibling("." + path.getFileName().toString() + ".new");
                 try (OutputStream outputStream = new LockedOutputStream(tmp.toFile(), l)) {
@@ -208,7 +216,16 @@ public abstract class BaseRepository {
     private <T> LockedContainer.Reader<T> lockedReader(Path path, Reader<T> reader) {
         return lock -> {
             try (InputStream inputStream = new LockedInputStream(path.toFile(), lock)) {
-                return reader.load(inputStream);
+                var loaded = reader.load(inputStream);
+                // TODO remove
+                if (loaded instanceof Pipeline) {
+                    var stages = ((Pipeline) loaded).getActiveExecutionGroup().stream()
+                                                   .flatMap(ExecutionGroup::getStages)
+                                                   .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
+                                                   .collect(Collectors.toList());
+                    LOG.info("Writing, AEG Stages: " + String.join(", ", stages));
+                }
+                return loaded;
             } catch (FileNotFoundException e) {
                 return null;
             }
