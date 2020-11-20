@@ -310,6 +310,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     })
                     .forEach(u -> {
                         try {
+                            // TODO remove
+                            LOG.info("evaluateUpdatesWithExclusivePipelineAccess: " +String.join(",", u.listPipelineUpdates()));
                             u.evaluateUpdatesWithExclusivePipelineAccess();
                         } catch (LockException | IOException e) {
                             LOG.log(Level.SEVERE, "Failed to update pipeline", e);

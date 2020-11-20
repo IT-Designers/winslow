@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class PipelineUpdater {
 
@@ -101,6 +102,10 @@ public class PipelineUpdater {
 
     public boolean hasPipelineUpdatesThatRequireExclusiveAccess() {
         return !this.pipelineUpdates.isEmpty();
+    }
+
+    public List<String> listPipelineUpdates() {
+        return this.pipelineUpdates.stream().map(u -> u.getClass().getSimpleName()).collect(Collectors.toList());
     }
 
     public void evaluateUpdatesWithExclusivePipelineAccess() throws IOException, LockException {
