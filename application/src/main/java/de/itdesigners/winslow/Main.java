@@ -1,6 +1,9 @@
 package de.itdesigners.winslow;
 
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.ConsoleAppender;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itdesigners.winslow.api.node.NodeInfo;
@@ -19,6 +22,8 @@ import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.WebApi;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.boot.logging.java.SimpleFormatter;
+import org.springframework.boot.logging.logback.ColorConverter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -169,6 +174,20 @@ public class Main {
             LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
             var           root    = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
             root.setLevel(ch.qos.logback.classic.Level.INFO);
+            root.detachAndStopAllAppenders();
+
+            // from spring-boot, simplified default.xml
+            PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+            logEncoder.setContext(context);
+            logEncoder.setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS} -%5p --- [%15.15t] %-40.40logger{39} : %m%n%ex");
+            logEncoder.start();
+
+            var appender = new ConsoleAppender<ILoggingEvent>();
+            appender.setContext(context);
+            appender.setEncoder(logEncoder);
+            appender.start();
+
+            root.addAppender(appender);
         } catch (Throwable t) {
             t.printStackTrace(System.err);
         }
