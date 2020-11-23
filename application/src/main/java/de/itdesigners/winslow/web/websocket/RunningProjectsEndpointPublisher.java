@@ -22,7 +22,7 @@ import static de.itdesigners.winslow.web.websocket.ProjectsEndpointController.*;
 
 public class RunningProjectsEndpointPublisher implements Pollable {
 
-    private final @Nonnull Map<String, LogFileInfo> logFileSize    = new HashMap<>();
+    private final @Nonnull Map<String, LogFileInfo> logFileSize = new HashMap<>();
 
     private final @Nonnull MessageSender sender;
     private final @Nonnull Winslow       winslow;
@@ -78,11 +78,15 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                     .stream()
                     .flatMap(ExecutionGroup::getStages)
                     .sequential()
+                    .flatMap(stage -> this
+                            .getLogEntryLatestAfterHead(stage)
+                            .map(logs -> {
+                                publishUpdate(logs, stage.getFullyQualifiedId());
+                                return logs;
+                            }).stream()
+                    )
                     .reduce((first, second) -> second)
-                    .ifPresent(stage -> this.getLogEntryLatestAfterHead(stage).ifPresent(logs -> {
-                        publishUpdate(logs);
-                        publishUpdate(logs, stage.getFullyQualifiedId());
-                    }));
+                    .ifPresent(this::publishUpdate);
 
             // TODO
             publishStateInfoUpdate(ProjectsController.getStateInfo(winslow, pipeline));
