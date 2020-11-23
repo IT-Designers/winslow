@@ -184,7 +184,10 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
                                 .flatMap(Requirements.Gpu::getVendor);
 
                         var gpuAvailable = Optional
-                                .ofNullable(entry.getValue().getAttributes().get(DRIVER_ATTRIBUTE_DOCKER_RUNTIMES))
+                                .ofNullable(entry)
+                                .flatMap(e -> Optional.ofNullable(e.getValue()))
+                                .flatMap(v -> Optional.ofNullable(v.getAttributes()))
+                                .flatMap(a -> Optional.ofNullable(a.get(DRIVER_ATTRIBUTE_DOCKER_RUNTIMES)))
                                 .filter(runtimes -> runtimes.contains(gpuVendor.orElse(DEFAULT_GPU_VENDOR)))
                                 .isPresent();
 
