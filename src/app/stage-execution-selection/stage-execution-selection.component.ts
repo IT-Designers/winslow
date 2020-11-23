@@ -273,12 +273,11 @@ export class StageExecutionSelectionComponent implements OnInit {
       this.rangedEnvironmentVariablesUpdated = new Map();
     }
     this.rangedEnvironmentVariablesUpdated.set(key, value);
+
     if (this.rangedEnvironmentVariablesValue == null) {
       this.rangedEnvironmentVariablesValue = new Map();
     }
-    if (!this.rangedEnvironmentVariablesValue.has(key)) {
-      this.rangedEnvironmentVariablesValue.set(key, value);
-    }
+    this.rangedEnvironmentVariablesValue.set(key, value);
   }
 
   expectedNumberOfStages(): number {
