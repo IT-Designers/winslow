@@ -1,5 +1,6 @@
 package de.itdesigners.winslow;
 
+import ch.qos.logback.classic.LoggerContext;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itdesigners.winslow.api.node.NodeInfo;
@@ -16,6 +17,7 @@ import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.resource.PathConfiguration;
 import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.WebApi;
+import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
@@ -162,5 +164,13 @@ public class Main {
         // SpringBoot is using SLF4... so setup the bridge early
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
+
+        try {
+            LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+            var           root    = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+            root.setLevel(ch.qos.logback.classic.Level.INFO);
+        } catch (Throwable t) {
+            t.printStackTrace(System.err);
+        }
     }
 }
