@@ -204,7 +204,7 @@ public abstract class BaseRepository {
                     throw e;
                 }
                 // TODO remove
-                Files.copy(path, path.resolveSibling(path.getFileName().toString() + "." + System.currentTimeMillis()));
+                Files.copy(path, path.resolveSibling(path.getFileName().toString() + "." + System.currentTimeMillis() + "." + Env.getNodeName()));
                 // move after the file has been closed and therefore after it has been flushed
                 Files.move(tmp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             } else if (Files.isRegularFile(path)) {
