@@ -223,7 +223,7 @@ public abstract class BaseRepository {
                                                    .flatMap(ExecutionGroup::getStages)
                                                    .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
                                                    .collect(Collectors.toList());
-                    LOG.info("Writing, AEG Stages: " + String.join(", ", stages));
+                    LOG.info("Reading, AEG Stages: " + String.join(", ", stages));
                 }
                 return loaded;
             } catch (FileNotFoundException e) {
