@@ -2,7 +2,7 @@
   <mat-expansion-panel-header>
     <mat-panel-title>
       <app-project-history-header
-        [state]="executionGroup.getMostRecentState()"
+        [state]="executionGroup.getMostRelevantState()"
         [isConfigure]="executionGroup.configureOnly"
         [itemNo]="entryNumber"
         [time]="executionGroup.getMostRecentStartOrFinishTime()"

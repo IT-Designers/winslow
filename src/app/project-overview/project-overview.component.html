@@ -84,7 +84,7 @@
 <div class="flex-grow-column whitespace-separator-top" style="margin: 1em 4em 3em 4em">
   <ng-container *ngFor="let entry of enqueued; index as i">
     <app-project-history-header
-      [state]="entry.getMostRecentState()"
+      [state]="entry.getMostRelevantState()"
       [isConfigure]="entry.configureOnly"
       [itemNo]="enqueued.length - i"
       [time]="entry.getMostRecentStartOrFinishTime()"

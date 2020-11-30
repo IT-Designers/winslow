@@ -499,6 +499,15 @@ export class ExecutionGroupInfo {
     }
   }
 
+  hasStagesState(state: State): boolean {
+    for (const stage of this.stages) {
+      if (stage.state === state) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public getMostRecentStage(): StageInfo {
     for (const stage of [...this.stages].reverse()) {
       if (stage.finishTime != null) {
@@ -521,12 +530,17 @@ export class ExecutionGroupInfo {
     }
   }
 
-  public getMostRecentState(): State {
+  public getMostRelevantState(): State {
+    for (const state of [State.Running, State.Preparing, State.Failed]) {
+      if (this.hasStagesState(state)) {
+        return state;
+      }
+    }
     return this.getMostRecentStage()?.state;
   }
 
   public isMostRecentStateRunning() {
-    return this.getMostRecentState() === State.Running;
+    return this.getMostRelevantState() === State.Running;
   }
 
   public hasRunningStages(): boolean {
