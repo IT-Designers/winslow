@@ -521,7 +521,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
                 enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
-                    pipelineToUpdate.requestPause();
+                    pipelineToUpdate.requestPause(Pipeline.PauseReason.StageFailure);
                     pipelineToUpdate.getActiveExecutionGroup().ifPresentOrElse(
                             group -> {
                                 try {
