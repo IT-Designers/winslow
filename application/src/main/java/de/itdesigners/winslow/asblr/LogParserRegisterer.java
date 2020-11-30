@@ -147,7 +147,6 @@ public class LogParserRegisterer implements AssemblerStep {
 
 
     private static class Formatter {
-        public static final          String                                                     ENV_PREFIX    = "ENV_";
         public static final          char                                                       MARKER        = '$';
         public static final          int                                                        MARKER_LENGTH = 1;
         public static final @Nonnull Map<String, TriConsumer<StringBuilder, LogEntry, Matcher>> GLOBAL_BLOCKS = Map.of(
@@ -223,16 +222,11 @@ public class LogParserRegisterer implements AssemblerStep {
             var upperCase = name.toUpperCase();
             return Optional
                     .ofNullable(GLOBAL_BLOCKS.get(upperCase))
-                    .or(() -> {
-                        if (upperCase.startsWith(ENV_PREFIX)) {
-                            var withoutPrefix = upperCase.substring(ENV_PREFIX.length());
-                            return environment
-                                    .apply(withoutPrefix)
-                                    .map(value -> (builder, e, matcher) -> builder.append(value));
-                        } else {
-                            return Optional.empty();
-                        }
-                    });
+                    .or(() -> environment
+                            .apply(name)
+                            .or(() -> environment.apply(upperCase))
+                            .map(value -> (builder, e, matcher) -> builder.append(value))
+                    );
         }
     }
 }
