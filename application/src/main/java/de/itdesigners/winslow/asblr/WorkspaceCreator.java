@@ -9,14 +9,19 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class WorkspaceCreator implements AssemblerStep {
@@ -216,14 +221,17 @@ public class WorkspaceCreator implements AssemblerStep {
             @Nonnull Path workspaceTarget) throws AssemblyException {
 
         var pipeline = context.getPipeline();
-        var workDirBefore = pipeline
+        var workspaces = pipeline
                 .getExecutionHistory()
                 .filter(group -> !group.isConfigureOnly())
-                .reduce((first, second) -> second) // get the most recent group
+                .filter(group -> group.getStages().allMatch(stage -> stage.getState() == State.Succeeded))
+                .flatMap(group -> group.getStages().flatMap(s -> s.getWorkspace().stream()))
+                .collect(Collectors.toList());
+
+        Collections.reverse(workspaces);
+
+        var workDirBefore = workspaces
                 .stream()
-                .flatMap(ExecutionGroup::getStages)
-                .filter(stage -> stage.getState() == State.Succeeded)
-                .flatMap(stage -> stage.getWorkspace().stream())
                 .flatMap(workspace -> {
                     var path = environment.getResourceManager().getWorkspace(Path.of(workspace));
                     if (path.isPresent()) {
@@ -236,7 +244,7 @@ public class WorkspaceCreator implements AssemblerStep {
                         return Stream.empty();
                     }
                 })
-                .reduce((first, second) -> second) // get the last successful stage
+                .findFirst() // get the most recent existing workspace of successful stage
                 .or(() -> environment
                         .getResourceManager()
                         .getWorkspace(getInitWorkspacePath(pipeline.getProjectId())));
