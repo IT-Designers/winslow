@@ -102,6 +102,7 @@ public class CommonUpdateConstraints {
         return group.getRunningStages().count() > 0 || (group.hasRemainingExecutions()
                 && group.getStages().noneMatch(s -> s.getState() == State.Failed));
     }
+
     public static void ensureActiveExecutionGroupHasRemainingStageExecutions(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         if (!hasActiveExecutionGroupRemainingExecutions(pipelineReadOnly)) {
             throw new PreconditionNotMetException("Active ExecutionGroup has no remaining stage executions");
@@ -112,7 +113,9 @@ public class CommonUpdateConstraints {
         return Optional
                 .ofNullable(pipelineReadOnly)
                 .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(g -> g.hasRemainingExecutions() && g.getStages().noneMatch(s -> s.getState() == State.Failed))
+                .map(g -> g.hasRemainingExecutions()
+                        && (g.getStageDefinition().getIgnoreFailuresWithinExecutionGroup()
+                            || g.getStages().noneMatch(s -> s.getState() == State.Failed)))
                 .orElse(Boolean.FALSE);
     }
 

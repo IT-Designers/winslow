@@ -1,6 +1,5 @@
 package de.itdesigners.winslow.pipeline;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.RangedValue;
 import de.itdesigners.winslow.api.pipeline.State;

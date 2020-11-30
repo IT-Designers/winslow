@@ -153,7 +153,8 @@ public class ExecutionGroup {
                             stageDefinition.getHighlight().orElse(null),
                             stageDefinition.isDiscardable(),
                             stageDefinition.isPrivileged(),
-                            stageDefinition.getLogParsers()
+                            stageDefinition.getLogParsers(),
+                            stageDefinition.getIgnoreFailuresWithinExecutionGroup()
                     )
             ));
         } else if (this.stages.isEmpty()) {

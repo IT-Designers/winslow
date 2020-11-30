@@ -17,7 +17,6 @@ import java.util.Date;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 
 public class ObsoleteWorkspaceFinderTest {
 
@@ -349,6 +348,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         discardable,
+                        null,
                         null,
                         null
                 ),

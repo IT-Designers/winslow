@@ -16,6 +16,7 @@ public class StageDefinition {
     private final           boolean             discardable;
     private final           boolean             privileged;
     private final @Nonnull  List<LogParser>     logParsers;
+    private final           boolean             ignoreFailuresWithinExecutionGroup;
 
     public StageDefinition(
             @Nonnull String name,
@@ -28,20 +29,22 @@ public class StageDefinition {
             // null-able for backwards compatibility
             @Nullable Boolean discardable,
             @Nullable Boolean privileged,
-            @Nullable List<LogParser> logParsers) {
-        this.name        = name;
-        this.desc        = description;
-        this.image       = image;
-        this.requires    = requirements;
-        this.userInput   = requires;
-        this.env         = environment;
-        this.highlight   = highlight;
-        this.discardable = discardable != null && discardable;
-        this.privileged  = privileged != null && privileged;
-        this.logParsers  = Optional
+            @Nullable List<LogParser> logParsers,
+            @Nullable Boolean ignoreFailuresWithinExecutionGroup) {
+        this.name                               = name;
+        this.desc                               = description;
+        this.image                              = image;
+        this.requires                           = requirements;
+        this.userInput                          = requires;
+        this.env                                = environment;
+        this.highlight                          = highlight;
+        this.discardable                        = discardable != null && discardable;
+        this.privileged                         = privileged != null && privileged;
+        this.logParsers                         = Optional
                 .ofNullable(logParsers)
                 .map(Collections::unmodifiableList)
                 .orElseGet(Collections::emptyList);
+        this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
         this.check();
     }
 
@@ -104,6 +107,10 @@ public class StageDefinition {
         return logParsers;
     }
 
+    public boolean getIgnoreFailuresWithinExecutionGroup() {
+        return this.ignoreFailuresWithinExecutionGroup;
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + "}#" + this
@@ -139,13 +146,26 @@ public class StageDefinition {
                 highlight,
                 stageDefinition.highlight
         ) && Objects.equals(
-                this.discardable,
+                discardable,
                 stageDefinition.discardable
+        ) && Objects.equals(
+                ignoreFailuresWithinExecutionGroup,
+                stageDefinition.ignoreFailuresWithinExecutionGroup
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, desc, image, requires, userInput, env, highlight, this.discardable);
+        return Objects.hash(
+                name,
+                desc,
+                image,
+                requires,
+                userInput,
+                env,
+                highlight,
+                discardable,
+                ignoreFailuresWithinExecutionGroup
+        );
     }
 }

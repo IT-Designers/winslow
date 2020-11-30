@@ -83,7 +83,6 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                             }
                         } else {
                             stage.finishNow(State.Failed);
-                            pipeline.requestPause(Pipeline.PauseReason.StageFailure);
                         }
                         cleanupAfterStageExecution(orchestrator, stage.getFullyQualifiedId());
                         discardObsoleteWorkspaces(orchestrator, projectId, pipeline);
@@ -91,6 +90,15 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                     .count();
 
             if (changes > 0) {
+                pipeline.getActiveExecutionGroup().ifPresent(active -> {
+                    var hasFailed = active.getStages().anyMatch(s -> s.getState() == State.Failed);
+                    var hasRemaining = active.hasRemainingExecutions();
+                    var ignoreFailures = active.getStageDefinition().getIgnoreFailuresWithinExecutionGroup();
+
+                    if ((hasFailed && !hasRemaining) || (hasFailed && !ignoreFailures)) {
+                        pipeline.requestPause(Pipeline.PauseReason.StageFailure);
+                    }
+                });
                 return pipeline;
             }
         }

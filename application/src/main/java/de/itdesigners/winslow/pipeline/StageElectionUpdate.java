@@ -56,7 +56,9 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
         ensureIsNotLockedByAnotherInstance(orchestrator, projectId);
         ensureNoElectionIsRunning(orchestrator, projectId);
         ensureHasStageDefinitionToDeploy(pipelineReadOnly);
+
         ensureActiveExecutionGroupHasRemainingStageExecutions(pipelineReadOnly);
+
         ensureNotPaused(pipelineReadOnly);
         ensureNoStageInPreparationPhase(pipelineReadOnly);
     }
