@@ -74,6 +74,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
     public StrictHttpFirewall httpFirewall() {
         StrictHttpFirewall firewall = new StrictHttpFirewall();
         firewall.setAllowedHttpMethods(new ArrayList<>(WEBDAV_METHODS));
+        firewall.setAllowSemicolon(true);
         return firewall;
     }
 
