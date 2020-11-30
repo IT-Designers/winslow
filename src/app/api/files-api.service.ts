@@ -11,8 +11,11 @@ export class FilesApiService {
   }
 
   static getUrl(more?: string) {
-    while (more != null && more.startsWith('/')) {
-      more = more.substr(1);
+    if (more != null) {
+      while (more.startsWith('/')) {
+        more = more.substr(1);
+      }
+      more = more.split(';').join('%3B');
     }
     return `${environment.apiLocation}files${more != null ? `/${more}` : ''}`;
   }
