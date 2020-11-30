@@ -11,10 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -65,12 +62,21 @@ public class LogParserRegisterer implements AssemblerStep {
             @Nonnull Context context,
             @Nonnull Path path,
             @Nonnull LogParser parser) {
-        if (!PARSER_TYPE_REGEX_MATCHER_CSV.equals(parser.getType())) {
+        if (!PARSER_TYPE_REGEX_MATCHER_CSV.equals(parser.getType()) && !parser.getType().startsWith(
+                PARSER_TYPE_REGEX_MATCHER_CSV + ":")) {
             context.log(
                     Level.SEVERE,
                     "Ignoring parser with unknown type - only '" + PARSER_TYPE_REGEX_MATCHER_CSV + "' is supported at the moment"
             );
             return Stream.empty();
+        }
+
+        final Parameters parameters;
+
+        if (parser.getType().startsWith(PARSER_TYPE_REGEX_MATCHER_CSV + ":")) {
+            parameters  = parseParameters(parser.getType().substring(PARSER_TYPE_REGEX_MATCHER_CSV.length() + 1));
+        } else {
+            parameters = new Parameters();
         }
 
         var parserDestination = path.resolve(parser.getDestination());
@@ -101,8 +107,16 @@ public class LogParserRegisterer implements AssemblerStep {
                     destinationResolver = (_e, _m) -> destination;
                 }
 
+                var lines = Math.max(1, parameters.lines);
+                var lineBuffer = new ArrayDeque<String>(lines);
+
                 return Stream.of(entry -> {
-                    var message = entry.getMessage();
+                    while (lineBuffer.size() >= lines) {
+                        lineBuffer.removeFirst();
+                    }
+                    lineBuffer.add(entry.getMessage());
+
+                    var message = String.join(System.lineSeparator(), lineBuffer);
                     var matcher = pattern.matcher(message);
 
                     if (matcher.find()) {
@@ -135,6 +149,34 @@ public class LogParserRegisterer implements AssemblerStep {
             context.log(Level.WARNING, "Invalid destination path, at least one parser is ignored");
             return Stream.empty();
         }
+    }
+
+    private Parameters parseParameters(String parameters) {
+        var keyValues = new HashMap<String, String>();
+        var result    = new Parameters();
+
+        for (var param : parameters.split(";")) {
+            var params = param.split("=", 2);
+            if (params.length == 2) {
+                keyValues.put(params[0], params[1]);
+            } else {
+                keyValues.put(params[0], Boolean.TRUE.toString());
+            }
+        }
+
+        if (keyValues.containsKey("lines")) {
+            try {
+                result.lines = Integer.parseInt(keyValues.get("lines"));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
+    private static class Parameters {
+        public int lines;
     }
 
     private static class LogParsers {
