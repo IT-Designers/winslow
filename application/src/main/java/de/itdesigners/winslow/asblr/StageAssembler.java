@@ -29,6 +29,7 @@ public class StageAssembler {
         for (int i = 0; i < this.steps.size(); ++i) {
             try {
                 if (this.steps.get(i).applicable(context)) {
+                    context.ensureAssemblyHasNotBeenAborted();
                     context.log(Level.INFO, "Assembly step " + this.steps.get(i).getClass().getSimpleName());
                     this.steps.get(i).assemble(context);
                 }

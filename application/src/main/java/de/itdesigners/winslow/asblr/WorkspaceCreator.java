@@ -9,12 +9,12 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -104,22 +104,13 @@ public class WorkspaceCreator implements AssemblerStep {
                             + ",pipelineOutput=" + pipelineOutput
             );
         } else {
-            if (!context.getSubmission().isConfigureOnly()
-                    && workspaceMode == WorkspaceMode.INCREMENTAL
-                    && (!workspaceConfiguration.isSharedWithinGroup() || !workspaceExistedBefore)) {
-                copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
-                        context,
-                        workspace.get()
-                );
-            }
-
-
             var workspacesRootDir      = workspacesRoot.get();
             var resourcesAbsolute      = resources.get();
             var workspaceAbsolute      = workspace.get();
             var pipelineInputAbsolute  = pipelineInput.get();
             var pipelineOutputAbsolute = pipelineOutput.get();
 
+            // store the configuration first to allow reverts
             context.store(new WorkspaceConfiguration(
                     workspacesRootDir.relativize(resourcesAbsolute),
                     workspacesRootDir.relativize(workspaceAbsolute),
@@ -130,6 +121,15 @@ public class WorkspaceCreator implements AssemblerStep {
                     pipelineInputAbsolute,
                     pipelineOutputAbsolute
             ));
+
+            if (!context.getSubmission().isConfigureOnly()
+                    && workspaceMode == WorkspaceMode.INCREMENTAL
+                    && (!workspaceConfiguration.isSharedWithinGroup() || !workspaceExistedBefore)) {
+                copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
+                        context,
+                        workspace.get()
+                );
+            }
         }
     }
 
@@ -253,14 +253,18 @@ public class WorkspaceCreator implements AssemblerStep {
             try (var walk = Files.walk(workDirBefore.get())) {
                 failure = walk.flatMap(path -> {
                     try {
+                        context.ensureAssemblyHasNotBeenAborted();
                         var file = path.toFile();
                         var dst  = workspaceTarget.resolve(dirBefore.relativize(path));
                         if (file.isDirectory()) {
                             Files.createDirectories(dst);
                         } else {
-                            Files.copy(path, dst);
+                            context.log(Level.INFO, "..." + dst.getFileName());
+                            copyFileWhile(path, dst, () -> !context.hasAssemblyBeenAborted());
                         }
                         return Stream.empty();
+                    } catch (AssemblyException e) {
+                        return Stream.of(new IOException(e));
                     } catch (IOException e) {
                         return Stream.of(e);
                     }
@@ -274,6 +278,22 @@ public class WorkspaceCreator implements AssemblerStep {
             }
         } else {
             context.log(Level.WARNING, "No previous valid workspace directory found");
+        }
+    }
+
+    private void copyFileWhile(@Nonnull Path source, @Nonnull Path destination,  @Nonnull Supplier<Boolean> condition) throws IOException {
+        try (var fis = new FileInputStream(source.toFile())) {
+            try (var fos = new FileOutputStream(destination.toFile())) {
+                while (condition.get()) {
+                    var chunk = new byte[64 * 1024 * 1024];
+                    var read  = fis.read(chunk, 0, chunk.length);
+                    if (read >= 0) {
+                        fos.write(chunk, 0, read);
+                    } else {
+                        break;
+                    }
+                }
+            }
         }
     }
 }

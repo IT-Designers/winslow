@@ -137,9 +137,13 @@ public class Context {
         }
     }
 
-    public void finishedEarly() {
-        if (this.executor != null) {
-            this.executor.stop();
+    public boolean hasAssemblyBeenAborted() {
+        return this.executor != null && this.executor.hasBeenKilled();
+    }
+
+    public void ensureAssemblyHasNotBeenAborted() throws AssemblyException {
+        if (this.hasAssemblyBeenAborted()) {
+            throw new AssemblyException("Stage assembly has been aborted");
         }
     }
 }

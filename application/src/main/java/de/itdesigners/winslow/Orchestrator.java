@@ -250,8 +250,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         var executor = this.executors.remove(event.getSubject());
         if (null != executor) {
             try {
-                executor.logErr("Received KILL signal");
-                this.backend.kill(event.getSubject());
+                executor.kill();
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, "Failed to request the backend to kill stage " + event.getSubject(), e);
             } finally {
@@ -293,6 +292,10 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     public void kill(@Nonnull String fullyQualifiedStageId) throws LockException {
         this.lockBus.publishCommand(Event.Command.KILL, fullyQualifiedStageId);
+    }
+
+    public void killLocally(@Nonnull String fullyQualifiedStageId) throws IOException {
+        this.backend.kill(fullyQualifiedStageId);
     }
 
     private void pollPipelineForUpdate(@Nonnull String id) {

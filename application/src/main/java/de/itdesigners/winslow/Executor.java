@@ -41,6 +41,7 @@ public class Executor {
     private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
     private boolean                 keepRunning = true;
     private boolean                 failed      = false;
+    private boolean                 killed      = false;
 
     public Executor(
             @Nonnull String pipeline,
@@ -51,13 +52,14 @@ public class Executor {
         this.orchestrator = orchestrator;
         this.logOutput    = orchestrator.getLogRepository().getRawOutputStream(pipeline, stage);
         this.lockHeart    = new LockHeart(logOutput.getLock(), () -> {
-            logErr("LockHeart stopped unexpectedly");
             try {
-                orchestrator.kill(stage);
-            } catch (LockException e) {
+                logErr("LockHeart stopped unexpectedly");
+                this.killNoLog();
+            } catch (IOException e) {
                 logErr("Failed to cleanup orchestrator: " + e);
+            } finally {
+                this.fail();
             }
-            fail();
         });
 
         this.intervalInvoker.addListener(this::statsUpdater);
@@ -66,6 +68,31 @@ public class Executor {
         thread.setName(pipeline + "." + stage + ".executor");
         thread.setDaemon(false);
         thread.start();
+    }
+
+    public void kill() throws IOException {
+        try {
+            logErr("Received KILL signal");
+            killNoLog();
+        } finally {
+            this.killed = true;
+        }
+    }
+
+    private void killNoLog() throws IOException {
+        orchestrator.killLocally(stage);
+    }
+
+    private void sendSilentKillRequest() {
+        try {
+            orchestrator.killLocally(stage);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to silently kill stage=" + stage, e);
+        }
+    }
+
+    public boolean hasBeenKilled() {
+        return this.killed;
     }
 
     private void statsUpdater() {
@@ -85,6 +112,7 @@ public class Executor {
 
     /**
      * Logs an internal info message
+     *
      * @param message Message to log
      */
     public void logInf(@Nonnull String message) {
@@ -93,6 +121,7 @@ public class Executor {
 
     /**
      * Logs an internal error message
+     *
      * @param message Message to log
      */
     public void logErr(@Nonnull String message) {
@@ -194,6 +223,8 @@ public class Executor {
             } catch (Throwable e) {
                 LOG.log(Level.SEVERE, "Log writer failed", e);
             } finally {
+                // ensure the backend process has stopped!
+                this.sendSilentKillRequest();
                 this.logBuffer = null;
                 this.notifyShutdownListeners();
                 this.logOutput.getLock().release();
@@ -245,6 +276,7 @@ public class Executor {
      * Adds the given consumer to the list of consumers to be notified on <b>STDIO</b> logs.
      * Internal logs (like {@link de.itdesigners.winslow.api.pipeline.LogEntry.Source#MANAGEMENT_EVENT})
      * are not passed to the given consumer.
+     *
      * @param consumer {@link Consumer} to add
      */
     public synchronized void addLogEntryConsumer(@Nonnull Consumer<LogEntry> consumer) {
