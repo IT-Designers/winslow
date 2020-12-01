@@ -23,7 +23,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
 
-  projects: ProjectInfo[] = null;
+  projects: ProjectInfo[] = [];
   projectsFiltered: ProjectInfo[] = null;
   stateInfo: Map<string, StateInfo> = null;
   interval;
