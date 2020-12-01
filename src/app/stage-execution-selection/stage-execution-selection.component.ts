@@ -258,27 +258,26 @@ export class StageExecutionSelectionComponent implements OnInit {
     value.DiscreteSteps.min = Number(min);
     value.DiscreteSteps.max = Number(max);
     value.DiscreteSteps.stepSize = Number(stepSize);
-    this.insertRangedValue(key, value);
+    this.setRangedValue(key, value);
   }
 
   setRangedList(key: string, listStringToParse: string) {
     const value = new RangedValue();
     value.List = new RangedList();
     value.List.values = listStringToParse.split(',').map(v => v.trim());
-    this.insertRangedValue(key, value);
+    this.setRangedValue(key, value);
   }
 
-  insertRangedValue(key: string, value: RangedValue) {
+  setRangedValue(key: string, value: RangedValue) {
     if (this.rangedEnvironmentVariablesUpdated == null) {
       this.rangedEnvironmentVariablesUpdated = new Map();
     }
     this.rangedEnvironmentVariablesUpdated.set(key, value);
+
     if (this.rangedEnvironmentVariablesValue == null) {
       this.rangedEnvironmentVariablesValue = new Map();
     }
-    if (!this.rangedEnvironmentVariablesValue.has(key)) {
-      this.rangedEnvironmentVariablesValue.set(key, value);
-    }
+    this.rangedEnvironmentVariablesValue.set(key, value);
   }
 
   expectedNumberOfStages(): number {

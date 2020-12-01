@@ -1,11 +1,9 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
   DeletionPolicy,
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
-  LogEntry,
-  LogSource,
   ParseError,
   ProjectApiService,
   ProjectInfo,
