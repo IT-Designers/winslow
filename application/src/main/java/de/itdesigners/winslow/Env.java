@@ -58,7 +58,7 @@ public class Env {
 
     @Nonnull
     public static Optional<String> getStoragePath() {
-        return Optional.ofNullable(System.getenv().getOrDefault(STORAGE_TYPE, null));
+        return Optional.ofNullable(System.getenv().getOrDefault(STORAGE_PATH, null));
     }
 
     @Nullable
