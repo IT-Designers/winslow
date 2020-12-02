@@ -4,7 +4,7 @@ FROM nexus.itd-intern.de/winslow/component-html as html
 FROM openjdk:11-jre-slim-buster
 
 RUN apt update && \
-    apt install iproute2 nfs-common curl gnupg unzip -y && \
+    apt install iproute2 nfs-common curl gnupg unzip lsof -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
