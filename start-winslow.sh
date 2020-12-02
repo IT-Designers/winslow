@@ -84,6 +84,7 @@ echo $SUDO docker run -itd --rm --privileged \
     -e WINSLOW_WORK_DIRECTORY=$WORKDIR \
     -e "WINSLOW_NODE_NAME=$NODE_NAME" \
     $(if [ "$NODE_TYPE" == "observer" ]; then echo " -e WINSLOW_NO_STAGE_EXECUTION=1 "; fi) \
+    $(if [ "$STORAGE_TYPE" == "bind" ]; then echo " -v $STORAGE_PATH:/winslow"; fi) \
     -v /var/run/docker.sock:/var/run/docker.sock \
     $IMAGE \
     $PARAMS | bash
