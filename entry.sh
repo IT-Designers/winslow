@@ -23,7 +23,7 @@ echo "  :::: Starting nomad"
 #start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --exec /usr/bin/nomad -- agent -config /etc/nomad/nomad.hcl
 start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --startas /bin/bash -- -c "/usr/bin/nomad agent -config /etc/nomad/nomad.hcl &> /var/log/nomad.log"
 
-for _ in $(seq 15); do
+for _ in {1..15}; do
   sleep 1
   echo "       Probing nomad... ($_)"
   if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN) ]; then
@@ -33,7 +33,7 @@ done
 
 if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN) ]; then
   echo "       Probing nomad... succeeded"
-elif
+else
   echo "       Probing nomad... failed"
   exit 2
 fi
