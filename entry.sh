@@ -15,12 +15,28 @@ if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then
   done
 fi
 
+
+export NOMAD_PORT=4646
 export NOMAD_PID_FILE=/run/nomad.pid
 
 echo "  :::: Starting nomad"
 #start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --exec /usr/bin/nomad -- agent -config /etc/nomad/nomad.hcl
 start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --startas /bin/bash -- -c "/usr/bin/nomad agent -config /etc/nomad/nomad.hcl &> /var/log/nomad.log"
-sleep 8
+
+for _ in $(seq 15); do
+  sleep 1
+  echo "       Probing nomad..."
+  if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN) ]; then
+    break
+  fi
+done
+
+if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN) ]; then
+  echo "       Probing nomad... succeeded"
+elif
+  echo "       Probing nomad... failed"
+  exit 2
+fi
 
 echo "  :::: Preparing Winslow startup env"
 mkdir -p "$WINSLOW_WORK_DIRECTORY"
@@ -35,8 +51,11 @@ if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
 #    mount.nfs -o intr,soft,async "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
     mount.nfs -o intr,soft,async,lookupcache=none "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
 
-elif [ "$WINSLOW_STORAGE_TYPE" -ne "" ]; then
-    echo "Error: nknown Storage Type: $WINSLOW_STORAGE_TYPE"
+elif [ "$WINSLOW_STORAGE_TYPE" == "bind" ]; then
+    echo "    :: Storage is provided through binding"
+
+elif [ "$WINSLOW_STORAGE_TYPE" != "" ]; then
+    echo "Error: unknown storage type: $WINSLOW_STORAGE_TYPE"
     exit 1
 fi
     
