@@ -27,7 +27,7 @@ for _ in $(seq 15); do
   sleep 1
   echo "       Probing nomad..."
   if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN) ]; then
-    break
+    break;
   fi
 done
 
