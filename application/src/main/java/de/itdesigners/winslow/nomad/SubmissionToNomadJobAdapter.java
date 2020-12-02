@@ -11,6 +11,7 @@ import de.itdesigners.winslow.pipeline.*;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
@@ -90,7 +91,7 @@ public class SubmissionToNomadJobAdapter {
 
 
         submission.getExtension(DockerImage.class).ifPresent(getDockerImageConfigurer(task));
-        submission.getExtension(DockerNfsVolumes.class).ifPresent(getDockerNfsVolumesConfigurer(task));
+        submission.getExtension(DockerVolumes.class).ifPresent(getDockerNfsVolumesConfigurer(task));
         submission.getStageDefinition().getRequirements().ifPresent(getResourceRequirementsConfigurer(task));
 
 
@@ -135,36 +136,57 @@ public class SubmissionToNomadJobAdapter {
 
     @Nonnull
     @CheckReturnValue
-    public static Consumer<DockerNfsVolumes> getDockerNfsVolumesConfigurer(Task task) {
+    public static Consumer<DockerVolumes> getDockerNfsVolumesConfigurer(Task task) {
         return list -> {
             var configList = (List<Map<String, Object>>) task.getConfig().computeIfAbsent(
                     "mounts",
                     (s) -> new ArrayList<Map<String, Object>>()
             );
             for (var volume : list.getVolumes()) {
-                configList.add(Map.of(
-                        "type", "volume",
-                        "target", volume.getTargetPath(),
-                        "source", volume.getName(),
-                        "readonly", volume.isReadonly(),
-                        "volume_options",
-                        List.of(Map.<String, Object>of(
-                                "driver_config",
-                                Map.of(
-                                        "name", "local",
-                                        "options", List.of(Map.<String, Object>of(
-                                                "type",
-                                                "nfs",
-                                                "o",
-                                                volume.getOptions(),
-                                                "device",
-                                                ":" + volume.getServerPath()
-                                        ))
-                                )
-                        ))
-                ));
+                configList.add(getMount(volume).orElseThrow());
             }
         };
+    }
+
+    @Nonnull
+    private static Optional<Map<String, Object>> getMount(@Nonnull DockerVolume volume) {
+        switch (volume.getType().toLowerCase()) {
+            case "nfs": return Optional.of(getNfsVolumeMount(volume));
+            case "bind": return Optional.of(getBindVolumeMount(volume));
+            default: return Optional.empty();
+        }
+    }
+
+    @Nonnull
+    private static Map<String, Object> getNfsVolumeMount(@Nonnull DockerVolume volume) {
+        return Map.of(
+                "type", "volume",
+                "target", volume.getContainerPath(),
+                "source", volume.getName(),
+                "readonly", volume.isReadonly(),
+                "volume_options",
+                List.of(Map.<String, Object>of(
+                        "driver_config",
+                        Map.of(
+                                "name", "local",
+                                "options", List.of(Map.<String, Object>of(
+                                        "type", "nfs",
+                                        "o", volume.getOptions(),
+                                        "device", volume.getHostPath()
+                                ))
+                        )
+                ))
+        );
+    }
+
+    @Nonnull
+    private static Map<String, Object> getBindVolumeMount(@Nonnull DockerVolume volume) {
+        return Map.of(
+                "type", "bind",
+                "target", volume.getContainerPath(),
+                "source", volume.getHostPath(),
+                "readonly", volume.isReadonly()
+        );
     }
 
     @Nonnull

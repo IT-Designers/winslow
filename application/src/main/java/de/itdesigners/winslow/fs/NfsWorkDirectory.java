@@ -55,7 +55,7 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
         throw new IOException("Working director '" + workDir + "' is not mounted");
     }
 
-    private static BufferedReader newReaderForOneOf(@Nonnull String...files) throws IOException {
+    private static BufferedReader newReaderForOneOf(@Nonnull String... files) throws IOException {
         return new BufferedReader(new InputStreamReader(openOneOf(files)));
     }
 
@@ -84,7 +84,17 @@ public class NfsWorkDirectory implements WorkDirectoryConfiguration {
         return workDirectory;
     }
 
-    public Optional<Path> toExportedPath(Path workDirPath) {
+    @Nonnull
+    @Override
+    public Optional<DockerVolumeTargetConfiguration> getDockerVolumeConfiguration(@Nonnull Path path) {
+        return toExportedPath(path).map(p -> new DockerVolumeTargetConfiguration(
+                "nfs",
+                getOptions(),
+                ":" + p.toString()
+        ));
+    }
+
+    private Optional<Path> toExportedPath(Path workDirPath) {
         try {
             return Optional.of(new File(this.serverExport)
                                        .toPath()

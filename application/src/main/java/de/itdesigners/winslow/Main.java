@@ -7,9 +7,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itdesigners.winslow.api.node.NodeInfo;
-import de.itdesigners.winslow.fs.LockBus;
-import de.itdesigners.winslow.fs.LockException;
-import de.itdesigners.winslow.fs.NfsWorkDirectory;
+import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
 import de.itdesigners.winslow.node.NodeRepository;
@@ -22,8 +20,6 @@ import de.itdesigners.winslow.resource.ResourceManager;
 import de.itdesigners.winslow.web.WebApi;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.boot.logging.java.SimpleFormatter;
-import org.springframework.boot.logging.logback.ColorConverter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -39,6 +35,7 @@ public class Main {
     public static void main(String[] args) throws UnknownHostException {
         configureLogger();
         final String workDirectory = Env.getWorkDirectory();
+        final String storageType   = Env.getStorageType();
         final String nodeName      = Env.getNodeName();
 
         System.out.println();
@@ -57,6 +54,7 @@ public class Main {
         System.out.println();
         System.out.println("             node name = " + nodeName);
         System.out.println("        work-directory = " + workDirectory);
+        System.out.println("          storage-type = " + storageType);
         System.out.println("             log-level = INFO");
         System.out.println("                  mode = STANDALONE");
         System.out.println();
@@ -66,7 +64,7 @@ public class Main {
 
         try {
             LOG.info("Loading NFS configuration for work-directory");
-            NfsWorkDirectory config = NfsWorkDirectory.loadFromCurrentConfiguration(Path.of(workDirectory));
+            WorkDirectoryConfiguration config = getWorkDirectoryConfiguration(workDirectory, storageType);
 
             LOG.info("Preparing environment");
             var lockBus         = new LockBus(nodeName, config.getEventsDirectory());
@@ -127,6 +125,22 @@ public class Main {
             if (webApi != null) {
                 webApi.stop();
             }
+        }
+    }
+
+    @Nonnull
+    private static WorkDirectoryConfiguration getWorkDirectoryConfiguration(
+            String workDirectory,
+            String storageType) throws IOException {
+        switch (storageType.toLowerCase()) {
+            case "nfs":
+                return NfsWorkDirectory.loadFromCurrentConfiguration(Path.of(workDirectory));
+            case "bind":
+                return new BindWorkspaceDirectory(Path.of(workDirectory));
+            default:
+                System.err.println("Invalid storage type: " + storageType.toLowerCase());
+                System.exit(1);
+                throw new IOException("Invalid storage type: " + storageType.toLowerCase());
         }
     }
 

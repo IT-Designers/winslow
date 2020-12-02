@@ -2,11 +2,15 @@ package de.itdesigners.winslow.fs;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public interface WorkDirectoryConfiguration {
 
     @Nonnull
     Path getPath();
+
+    @Nonnull
+    Optional<DockerVolumeTargetConfiguration> getDockerVolumeConfiguration(@Nonnull Path path);
 
     @Nonnull
     default Path getProjectsDirectory() {

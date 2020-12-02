@@ -1,10 +1,9 @@
 package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Env;
-import de.itdesigners.winslow.api.pipeline.Action;
-import de.itdesigners.winslow.fs.NfsWorkDirectory;
-import de.itdesigners.winslow.pipeline.DockerNfsVolume;
-import de.itdesigners.winslow.pipeline.DockerNfsVolumes;
+import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
+import de.itdesigners.winslow.pipeline.DockerVolume;
+import de.itdesigners.winslow.pipeline.DockerVolumes;
 import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.CheckReturnValue;
@@ -12,7 +11,7 @@ import javax.annotation.Nonnull;
 import java.nio.file.Path;
 import java.util.List;
 
-public class NfsWorkspaceMount implements AssemblerStep {
+public class WorkspaceMount implements AssemblerStep {
 
     private static final String TARGET_PATH_RESOURCES          = "/resources";
     private static final String TARGET_PATH_PIPELINE_INPUT     = "/input";
@@ -25,10 +24,10 @@ public class NfsWorkspaceMount implements AssemblerStep {
     private static final String ENV_DIR_PIPELINE_OUTPUT    = Env.SELF_PREFIX + "_DIR_OUTPUT";
     private static final String ENV_DIR_WORKSPACE          = Env.SELF_PREFIX + "_DIR_WORKSPACE";
 
-    @Nonnull private final NfsWorkDirectory nfsWorkDirectory;
+    @Nonnull private final WorkDirectoryConfiguration workDirConf;
 
-    public NfsWorkspaceMount(@Nonnull NfsWorkDirectory nfsWorkDirectory) {
-        this.nfsWorkDirectory = nfsWorkDirectory;
+    public WorkspaceMount(@Nonnull WorkDirectoryConfiguration workDirConf) {
+        this.workDirConf = workDirConf;
     }
 
     @Override
@@ -45,7 +44,7 @@ public class NfsWorkspaceMount implements AssemblerStep {
                 .withWorkspaceDirectory(config.getWorkspaceDirectory().toString())
                 .withInternalEnvVariable(ENV_DIR_WORKSPACE, TARGET_PATH_PIPELINE_WORKSPACE);
 
-        submission = submission.withExtension(new DockerNfsVolumes(List.of(
+        submission = submission.withExtension(new DockerVolumes(List.of(
                 volume(
                         submission,
                         stageId.getFullyQualified(),
@@ -83,23 +82,23 @@ public class NfsWorkspaceMount implements AssemblerStep {
 
     @Nonnull
     @CheckReturnValue
-    private DockerNfsVolume volume(
+    private DockerVolume volume(
             @Nonnull Submission submission,
             @Nonnull String stageId,
             @Nonnull String env,
             @Nonnull Path target,
             @Nonnull String targetFromWithin,
             boolean readonly) throws AssemblyException {
-        submission = submission.withInternalEnvVariable(env, targetFromWithin);
-        return new DockerNfsVolume(
+        submission.withInternalEnvVariable(env, targetFromWithin);
+        var config = this.workDirConf
+                .getDockerVolumeConfiguration(target)
+                .orElseThrow(() -> new AssemblyException("Failed to retrieve volume configuration for target=" + targetFromWithin));
+        return new DockerVolume(
                 stageId + "_" + env,
+                config.getType(),
                 targetFromWithin,
-                nfsWorkDirectory
-                        .toExportedPath(target)
-                        .orElseThrow(() -> new AssemblyException("Failed to retrieve exported path of " + target + " for " + targetFromWithin))
-                        .toAbsolutePath()
-                        .toString(),
-                nfsWorkDirectory.getOptions(),
+                config.getTargetPath(),
+                config.getOptions().orElse(""),
                 readonly
         );
     }

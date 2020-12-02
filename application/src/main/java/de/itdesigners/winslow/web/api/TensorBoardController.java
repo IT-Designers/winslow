@@ -7,11 +7,10 @@ import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.fs.NfsWorkDirectory;
 import de.itdesigners.winslow.nomad.NomadBackend;
 import de.itdesigners.winslow.nomad.SubmissionToNomadJobAdapter;
-import de.itdesigners.winslow.pipeline.DockerNfsVolume;
-import de.itdesigners.winslow.pipeline.DockerNfsVolumes;
+import de.itdesigners.winslow.pipeline.DockerVolume;
+import de.itdesigners.winslow.pipeline.DockerVolumes;
 import de.itdesigners.winslow.web.ProxyRouting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,9 +81,7 @@ public class TensorBoardController {
 
 
         var workDirConf = winslow.getWorkDirectoryConfiguration();
-        var nfsWorkDir  = workDirConf instanceof NfsWorkDirectory ? ((NfsWorkDirectory) workDirConf) : null;
-
-        var workspaces = winslow.getResourceManager().getWorkspacesDirectory().orElseThrow().toAbsolutePath();
+        var workspaces  = winslow.getResourceManager().getWorkspacesDirectory().orElseThrow().toAbsolutePath();
         var stage = pipeline
                 .getActiveAndPastExecutionGroups()
                 .flatMap(ExecutionGroup::getStages)
@@ -97,12 +94,12 @@ public class TensorBoardController {
 
         if (nomadApi != null) {
             try (nomadApi) {
-                if (nfsWorkDir != null && stage.isPresent()) {
+                if (stage.isPresent()) {
                     var nomadId = toNomadJobId(projectId);
 
                     if (activeBoards.containsKey(projectId)) {
-                        var board = activeBoards.get(projectId);
-                        var state = nomadBackend.getStateByNomadJogId(nomadId).orElse(State.Failed);
+                        var board  = activeBoards.get(projectId);
+                        var state  = nomadBackend.getStateByNomadJogId(nomadId).orElse(State.Failed);
                         var failed = nomadBackend.hasAllocationFailed(nomadId).orElse(Boolean.TRUE);
                         if (failed || (State.Running != state && State.Preparing != state)) {
                             try {
@@ -160,20 +157,19 @@ public class TensorBoardController {
                     task.setResources(new Resources().setMemoryMb(1024));
                     String routeDestinationIp = prepareRoutingDestinationIp(task, port);
 
+                    var volume = workDirConf
+                            .getDockerVolumeConfiguration(workspaces.resolve(stage.get().getWorkspace().orElseThrow()))
+                            .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"));
+
 
                     SubmissionToNomadJobAdapter
                             .getDockerNfsVolumesConfigurer(task)
-                            .accept(new DockerNfsVolumes(List.of(new DockerNfsVolume(
+                            .accept(new DockerVolumes(List.of(new DockerVolume(
                                     "tensorboard-" + projectId + "-" + stageId + "-" + port,
+                                    volume.getType(),
                                     "/data/",
-                                    nfsWorkDir.toExportedPath(workspaces.resolve(stage
-                                                                                         .get()
-                                                                                         .getWorkspace()
-                                                                                         .orElseThrow()))
-                                              .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"))
-                                              .toAbsolutePath()
-                                              .toString(),
-                                    nfsWorkDir.getOptions(),
+                                    volume.getTargetPath(),
+                                    volume.getOptions().orElse(""),
                                     true
                             ))));
 

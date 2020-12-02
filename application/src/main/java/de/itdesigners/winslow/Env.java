@@ -14,6 +14,7 @@ public class Env {
     public static final String DEV_ENV            = SELF_PREFIX + "_DEV_ENV";
     public static final String DEV_REMOTE_USER    = SELF_PREFIX + "_DEV_REMOTE_USER";
     public static final String WORK_DIRECTORY     = SELF_PREFIX + "_WORK_DIRECTORY";
+    public static final String STORAGE_TYPE       = SELF_PREFIX + "_STORAGE_TYPE";
     public static final String NODE_NAME          = SELF_PREFIX + "_NODE_NAME";
     public static final String STATIC_HTML        = SELF_PREFIX + "_STATIC_HTML";
     public static final String API_PATH           = SELF_PREFIX + "_API_PATH";
@@ -46,6 +47,12 @@ public class Env {
     @Nonnull
     public static String getWorkDirectory() {
         return System.getenv().getOrDefault(WORK_DIRECTORY, "/winslow/");
+    }
+
+
+    @Nonnull
+    public static String getStorageType() {
+        return System.getenv().getOrDefault(STORAGE_TYPE, "bind");
     }
 
     @Nullable

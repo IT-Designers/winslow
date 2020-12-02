@@ -6,7 +6,10 @@ import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.config.*;
-import de.itdesigners.winslow.fs.*;
+import de.itdesigners.winslow.fs.Event;
+import de.itdesigners.winslow.fs.Lock;
+import de.itdesigners.winslow.fs.LockBus;
+import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.pipeline.*;
 import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
@@ -473,7 +476,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new EnvLogger())
                             .add(new UserInputChecker())
                             .add(new WorkspaceCreator(this, environment))
-                            .add(new NfsWorkspaceMount((NfsWorkDirectory) environment.getWorkDirectoryConfiguration()))
+                            .add(new WorkspaceMount(environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
                             .add(new LogParserRegisterer(getResourceManager()))
                             .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
