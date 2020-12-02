@@ -26,12 +26,12 @@ start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --backg
 for _ in {1..15}; do
   sleep 1
   echo "       Probing nomad... ($_)"
-  if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN) ]; then
+  if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN > /dev/null) ]; then
     break;
   fi
 done
 
-if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN) ]; then
+if [ $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN > /dev/null) ]; then
   echo "       Probing nomad... succeeded"
 else
   echo "       Probing nomad... failed"
