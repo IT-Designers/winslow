@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Optional;
 
 public class Env {
 
@@ -15,6 +16,7 @@ public class Env {
     public static final String DEV_REMOTE_USER    = SELF_PREFIX + "_DEV_REMOTE_USER";
     public static final String WORK_DIRECTORY     = SELF_PREFIX + "_WORK_DIRECTORY";
     public static final String STORAGE_TYPE       = SELF_PREFIX + "_STORAGE_TYPE";
+    public static final String STORAGE_PATH       = SELF_PREFIX + "_STORAGE_PATH";
     public static final String NODE_NAME          = SELF_PREFIX + "_NODE_NAME";
     public static final String STATIC_HTML        = SELF_PREFIX + "_STATIC_HTML";
     public static final String API_PATH           = SELF_PREFIX + "_API_PATH";
@@ -49,10 +51,14 @@ public class Env {
         return System.getenv().getOrDefault(WORK_DIRECTORY, "/winslow/");
     }
 
-
     @Nonnull
     public static String getStorageType() {
         return System.getenv().getOrDefault(STORAGE_TYPE, "bind");
+    }
+
+    @Nonnull
+    public static Optional<String> getStoragePath() {
+        return Optional.ofNullable(System.getenv().getOrDefault(STORAGE_TYPE, null));
     }
 
     @Nullable

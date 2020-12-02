@@ -136,7 +136,9 @@ public class Main {
             case "nfs":
                 return NfsWorkDirectory.loadFromCurrentConfiguration(Path.of(workDirectory));
             case "bind":
-                return new BindWorkspaceDirectory(Path.of(workDirectory));
+                var workDir = Path.of(workDirectory);
+                var storDir = Env.getStoragePath().map(Path::of).orElse(workDir);
+                return new BindWorkspaceDirectory(workDir, storDir);
             default:
                 System.err.println("Invalid storage type: " + storageType.toLowerCase());
                 System.exit(1);
