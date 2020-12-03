@@ -78,14 +78,15 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                     .stream()
                     .flatMap(ExecutionGroup::getStages)
                     .sequential()
-                    .flatMap(stage -> this
+                    .map(stage -> this
                             .getLogEntryLatestAfterHead(stage)
                             .map(logs -> {
                                 publishUpdate(logs, stage.getFullyQualifiedId());
                                 return logs;
-                            }).stream()
+                            })
                     )
                     .reduce((first, second) -> second)
+                    .flatMap(s -> s)
                     .ifPresent(this::publishUpdate);
 
             // TODO
