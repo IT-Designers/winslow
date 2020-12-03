@@ -196,6 +196,7 @@ public abstract class BaseRepository {
                 LOG.info("Writing, AEG Stages: " + String.join(", ", stages));
             }
             if (value != null) {
+                // TODO what about duplicate impl in class AtomicWriteByUsingTempFile!?
                 var tmp = path.resolveSibling("." + path.getFileName().toString() + ".new");
                 try (OutputStream outputStream = new LockedOutputStream(tmp.toFile(), l)) {
                     writer.store(outputStream, value);
