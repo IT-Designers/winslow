@@ -112,7 +112,7 @@ public class LockBusElectionManagerAdapter {
     private void handleElectionClosed(@Nonnull Election election) {
         election.getMostFittingParticipant().ifPresentOrElse(participant -> {
             if (nodeName.equals(participant)) {
-                new Thread(() -> {
+                var thread = new Thread(() -> {
                     var project    = orchestrator.getProjectUnsafe(election.getProjectId());
                     var definition = project.map(Project::getPipelineDefinition);
                     var exclusive  = project.flatMap(orchestrator::getPipelineExclusive);
@@ -130,7 +130,9 @@ public class LockBusElectionManagerAdapter {
                             },
                             () -> LOG.severe("Failed to lock project which should be executed by this node by election")
                     );
-                }).start();
+                });
+                thread.setName(election.getProjectId() + ".win");
+                thread.start();
             }
         }, () -> {
             if (nodeName.equals(election.getIssuer())) {

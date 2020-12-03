@@ -96,7 +96,7 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
         try {
             ensureAllPreconditionsAreMet(orchestrator, projectId, pipeline);
             // TODO use the DelayedExecutor a scheduler or something more clever?
-            new Thread(() -> {
+            var thread = new Thread(() -> {
                 try {
                     var duration = 2_000L;
                     var puffer   = 100L;
@@ -107,7 +107,9 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
                 } catch (LockException | IOException e) {
                     LOG.log(Level.SEVERE, "Failed to have an election for project " + projectId);
                 }
-            }).start();
+            });
+            thread.setName(getClass().getSimpleName());
+            thread.start();
         } catch (PreconditionNotMetException e) {
             LOG.log(Level.SEVERE, "At least one precondition is no longer met, cannot start election", e);
         }

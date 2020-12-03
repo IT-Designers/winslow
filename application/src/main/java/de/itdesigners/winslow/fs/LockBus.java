@@ -376,7 +376,11 @@ public class LockBus {
         // from the other might be reasonable...?
         Stream.ofNullable(this.listener.get(event.getCommand()))
               .flatMap(List::stream)
-              .forEach(listener -> new Thread(() -> listener.accept(event)).start());
+              .forEach(listener -> {
+                  var thread = new Thread(() -> listener.accept(event));
+                  thread.setName(event.getId()+".evt");
+                  thread.start();
+              });
     }
 
     private void initEventCounter() throws IOException {

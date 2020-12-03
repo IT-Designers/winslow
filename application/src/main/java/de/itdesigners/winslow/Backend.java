@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 public interface Backend extends Closeable, AutoCloseable {
 
     @Nonnull
+    @Deprecated
     Stream<String> listStages() throws IOException;
 
     @Nonnull

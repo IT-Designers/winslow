@@ -464,7 +464,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull StageId stageId,
             @Nonnull Executor executor,
             @Nonnull Map<String, String> globalEnvironmentVariables) {
-        new Thread(() -> {
+        var thread = new Thread(() -> {
             var projectId = pipeline.getProjectId();
             var assembler = new StageAssembler();
 
@@ -483,7 +483,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                 result.getStage().startNow();
                                 executor.setStageHandle(result.getHandle());
                                 lock.waitForRelease();
-                                enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
+                                // do not update deferred, update as soon as possible!
+                                updatePipeline(projectId, pipelineToUpdate -> {
                                     try {
                                         pipelineToUpdate
                                                 .getActiveExecutionGroup()
@@ -541,7 +542,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 });
                 cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
             }
-        }).start();
+        });
+        thread.setName(stageId.getFullyQualified());
+        thread.start();
     }
 
     private void cleanupOnAssembleError(

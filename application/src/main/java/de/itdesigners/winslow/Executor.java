@@ -65,7 +65,7 @@ public class Executor {
         this.intervalInvoker.addListener(this::statsUpdater);
 
         var thread = new Thread(this::run);
-        thread.setName(pipeline + "." + stage + ".executor");
+        thread.setName(pipeline + "." + stage + ".exctr");
         thread.setDaemon(false);
         thread.start();
     }
