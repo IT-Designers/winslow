@@ -121,7 +121,8 @@ public class LockBusElectionManagerAdapter {
                             container -> {
                                 try (var lock = container.getLock()) {
                                     var pipeline = container.get().get();
-                                    if (orchestrator.startPipeline(lock, definition.get(), pipeline)) {
+                                    var projectId = pipeline.getProjectId();
+                                    if (orchestrator.startPipeline(lock, projectId, definition.get(), pipeline)) {
                                         container.update(pipeline);
                                     }
                                 } catch (LockException | IOException e) {

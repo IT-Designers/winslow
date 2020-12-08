@@ -152,7 +152,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
 
     @Nonnull
-    Election.Participation judgeParticipationScore(@Nonnull ResourceAllocationMonitor.Set<Long> required) {
+    Election.Participation judgeParticipationScore(@Nonnull ResourceAllocationMonitor.ResourceSet<Long> required) {
         return new Election.Participation(
                 monitor.getAffinity(required),
                 monitor.getAversion(required)
@@ -175,11 +175,11 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    ResourceAllocationMonitor.Set<Long> getRequiredResources(@Nonnull StageDefinition definition) {
+    ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
         return definition
                 .getRequirements()
                 .map(this::toResourceSet)
-                .orElseGet(ResourceAllocationMonitor.Set::new);
+                .orElseGet(ResourceAllocationMonitor.ResourceSet::new);
     }
 
     @Nonnull
@@ -331,8 +331,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    private ResourceAllocationMonitor.Set<Long> toResourceSet(@Nonnull Requirements requirements) {
-        return new ResourceAllocationMonitor.Set<Long>()
+    private ResourceAllocationMonitor.ResourceSet<Long> toResourceSet(@Nonnull Requirements requirements) {
+        return new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(
                         ResourceAllocationMonitor.StandardResources.CPU,
                         (long) requirements.getCpu()
@@ -369,10 +369,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     protected boolean startPipeline(
             @Nonnull Lock lock,
+            @Nonnull String projectId,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
         return startNextPipelineStage(lock, definition, pipeline).map(result -> {
             hookUpResourceReservationAndFreeingHandler(
+                    projectId,
                     result.getValue0().getStageDefinition(),
                     result.getValue2()
             );
@@ -382,12 +384,13 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     private void hookUpResourceReservationAndFreeingHandler(
+            @Nonnull String projectId,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Executor executor) {
         var requiredResources = getRequiredResources(stageDefinition);
-        this.monitor.reserve(requiredResources);
+        this.monitor.reserve(projectId, requiredResources);
         executor.addShutdownCompletedListener(() -> {
-            this.monitor.free(requiredResources);
+            this.monitor.free(projectId, requiredResources);
             takeAllPipelinesThatWereRecordedForMissingResources().forEach(this::pollPipelineForUpdate);
         });
     }

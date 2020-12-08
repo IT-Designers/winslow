@@ -10,50 +10,55 @@ import java.util.Map;
 
 public class ResourceAllocationMonitor {
 
-    private static final Set<Long> MINIMUM = new Set<Long>()
+    private static final ResourceSet<Long> MINIMUM = new ResourceSet<Long>()
             .with(StandardResources.CPU, 1L)
             .with(StandardResources.RAM, 300L * 1024L * 1024L);
 
-    private final @Nonnull Set<Long>  resources;
-    private final @Nonnull Set<Float> affinity;
-    private final @Nonnull Set<Float> aversion;
+    private final @Nonnull ResourceSet<Long>  resources;
+    private final @Nonnull ResourceSet<Float> affinity;
+    private final @Nonnull ResourceSet<Float> aversion;
 
-    private @Nonnull Set<Long> reserved;
+    private @Nonnull Map<String, ResourceSet<Long>> reserved;
 
-    public ResourceAllocationMonitor(@Nonnull Set<Long> resources) {
+    public ResourceAllocationMonitor(@Nonnull ResourceSet<Long> resources) {
         this(resources, defaultAffinity(resources), defaultAversion(resources));
     }
 
     public ResourceAllocationMonitor(
-            @Nonnull Set<Long> resources,
-            @Nonnull Set<Float> affinity,
-            @Nonnull Set<Float> aversion) {
+            @Nonnull ResourceSet<Long> resources,
+            @Nonnull ResourceSet<Float> affinity,
+            @Nonnull ResourceSet<Float> aversion) {
         this.resources = resources;
         this.affinity  = affinity;
         this.aversion  = aversion;
 
-        this.reserved = new Set<>();
+        this.reserved = new HashMap<>();
     }
 
-    public synchronized void reserve(@Nonnull Set<Long> set) {
+    public synchronized void reserve(@Nonnull String token, @Nonnull ResourceSet<Long> set) {
+        var reserved = this.reserved.computeIfAbsent(token, p -> new ResourceSet<>());
         for (Map.Entry<String, Long> entry : set.entries.entrySet()) {
-            this.reserved.entries.put(
+            reserved.entries.put(
                     entry.getKey(),
-                    this.reserved.getOrDefault(entry.getKey(), 0L) + entry.getValue()
+                    reserved.getOrDefault(entry.getKey(), 0L) + entry.getValue()
             );
         }
     }
 
-    public synchronized void free(@Nonnull Set<Long> set) {
+    public synchronized void free(@Nonnull String token, @Nonnull ResourceSet<Long> set) {
+        var reserved = this.reserved.computeIfAbsent(token, p -> new ResourceSet<>());
         for (Map.Entry<String, Long> entry : set.entries.entrySet()) {
-            this.reserved.entries.put(
+            reserved.entries.put(
                     entry.getKey(),
-                    this.reserved.getOrDefault(entry.getKey(), entry.getValue()) - entry.getValue()
+                    Math.max(0, reserved.getOrDefault(entry.getKey(), entry.getValue()) - entry.getValue())
             );
+        }
+        if (set.entries.values().stream().allMatch(v -> v == 0)) {
+            this.reserved.remove(token);
         }
     }
 
-    public synchronized boolean couldReserveConsideringReservations(@Nonnull Set<Long> set) {
+    public synchronized boolean couldReserveConsideringReservations(@Nonnull ResourceSet<Long> set) {
         for (Map.Entry<String, Long> entry : set.entries.entrySet()) {
             if (entry.getValue() > getAvailable(entry.getKey())) {
                 return false;
@@ -62,7 +67,7 @@ public class ResourceAllocationMonitor {
         return true;
     }
 
-    public synchronized boolean couldReserveNotConsideringReservations(@Nonnull Set<Long> set) {
+    public synchronized boolean couldReserveNotConsideringReservations(@Nonnull ResourceSet<Long> set) {
         for (Map.Entry<String, Long> entry : set.entries.entrySet()) {
             if (entry.getValue() > resources.getOrDefault(entry.getKey(), 0L)) {
                 return false;
@@ -73,10 +78,14 @@ public class ResourceAllocationMonitor {
 
     @Nonnull
     private Long getAvailable(@Nonnull String resource) {
-        return this.resources.getOrDefault(resource, 0L) - this.reserved.getOrDefault(resource, 0L);
+        return this.resources.getOrDefault(resource, 0L)
+                - this.reserved.values()
+                               .stream()
+                               .mapToLong(v -> v.getOrDefault(resource, 0L))
+                               .sum();
     }
 
-    public float getAffinity(@Nonnull Set<Long> resources) {
+    public float getAffinity(@Nonnull ResourceSet<Long> resources) {
         var result = 1.f;
 
         var combinedKeys = new HashSet<String>();
@@ -102,7 +111,7 @@ public class ResourceAllocationMonitor {
     }
 
     private Long getResourceRequirement(
-            @Nonnull Set<Long> resources,
+            @Nonnull ResourceSet<Long> resources,
             @Nonnull String resource) {
         var required = resources.getOrDefault(resource, 0L);
         var minimum  = MINIMUM.getOrDefault(resource, 0L);
@@ -114,7 +123,7 @@ public class ResourceAllocationMonitor {
         return this.affinity.getOrDefault(resource, 1.0f);
     }
 
-    public float getAversion(@Nonnull Set<Long> resources) {
+    public float getAversion(@Nonnull ResourceSet<Long> resources) {
         var result = 0.f;
 
         var combinedKeys = new HashSet<String>();
@@ -157,17 +166,8 @@ public class ResourceAllocationMonitor {
         }
     }
 
-    public static class Set<T> {
+    public static class ResourceSet<T> {
         protected final Map<String, T> entries = new HashMap<>();
-
-        public static Set<Long> from(@Nonnull Requirements requirements) {
-            return new Set<Long>()
-                    .with(StandardResources.RAM, requirements.getMegabytesOfRam() * 1024 * 1024)
-                    .with(
-                            StandardResources.GPU,
-                            requirements.getGpu().map(Requirements.Gpu::getCount).map(Number::longValue).orElse(0L)
-                    );
-        }
 
         @Nonnull
         @CheckReturnValue
@@ -183,21 +183,23 @@ public class ResourceAllocationMonitor {
 
         @Nonnull
         @CheckReturnValue
-        public Set<T> with(@Nonnull StandardResources resource, T value) {
+        public ResourceSet<T> with(@Nonnull StandardResources resource, T value) {
             return this.with(resource.name, value);
         }
 
         @Nonnull
         @CheckReturnValue
-        public Set<T> with(@Nonnull String resource, T value) {
+        public ResourceSet<T> with(@Nonnull String resource, T value) {
             this.entries.put(resource, value);
             return this;
         }
 
         @Override
         public String toString() {
-            var builder = new StringBuilder("Set@{");
+            var builder = new StringBuilder(getClass().getSimpleName());
             var size    = this.entries.size();
+
+            builder.append("@{");
 
             for (var entry : this.entries.entrySet()) {
                 builder.append(entry.getKey())
@@ -210,20 +212,23 @@ public class ResourceAllocationMonitor {
                 }
             }
 
-            return builder.append("}#").append(hashCode()).toString();
+            return builder
+                    .append("}#")
+                    .append(hashCode())
+                    .toString();
         }
     }
 
     @Nonnull
-    private static Set<Float> defaultAffinity(@Nonnull Set<Long> resources) {
-        var set = new Set<Float>();
+    private static ResourceSet<Float> defaultAffinity(@Nonnull ResourceSet<Long> resources) {
+        var set = new ResourceSet<Float>();
         resources.entries.keySet().forEach(key -> set.entries.put(key, 1.0f));
         return set;
     }
 
     @Nonnull
-    private static Set<Float> defaultAversion(@Nonnull Set<Long> resources) {
-        var set = new Set<Float>();
+    private static ResourceSet<Float> defaultAversion(@Nonnull ResourceSet<Long> resources) {
+        var set = new ResourceSet<Float>();
         resources.entries.keySet().forEach(key -> set.entries.put(key, 1.0f));
         if (set.entries.containsKey(StandardResources.GPU.name)) {
             var clone           = new HashMap<>(set.entries);

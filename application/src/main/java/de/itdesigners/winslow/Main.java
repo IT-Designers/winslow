@@ -153,8 +153,8 @@ public class Main {
     }
 
     @Nonnull
-    private static ResourceAllocationMonitor.Set<Long> toResourceSet(@Nonnull NodeInfo info) {
-        return new ResourceAllocationMonitor.Set<Long>()
+    private static ResourceAllocationMonitor.ResourceSet<Long> toResourceSet(@Nonnull NodeInfo info) {
+        return new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(ResourceAllocationMonitor.StandardResources.CPU, (long) info.getCpuInfo().getUtilization().size())
                 .with(ResourceAllocationMonitor.StandardResources.RAM, info.getMemInfo().getMemoryTotal())
                 .with(ResourceAllocationMonitor.StandardResources.GPU, (long) info.getGpuInfo().size());

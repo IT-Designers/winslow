@@ -9,7 +9,7 @@ public class ResourceAllocationMonitorTest {
 
     @Test
     public void testCouldReserveWithMatchingRequirements() {
-        var set = new ResourceAllocationMonitor.Set<Long>()
+        var set = new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(ResourceAllocationMonitor.StandardResources.GPU, 2L)
                 .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L);
         var monitor = new ResourceAllocationMonitor(set);
@@ -19,11 +19,11 @@ public class ResourceAllocationMonitorTest {
     @Test
     public void testCouldReserveWithTooHighRequirements() {
         var monitor = new ResourceAllocationMonitor(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 2L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L));
         assertFalse(monitor.couldReserveConsideringReservations(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 3L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L)
         ));
@@ -32,11 +32,11 @@ public class ResourceAllocationMonitorTest {
     @Test
     public void testCouldReserveWithLowerRequirements() {
         var monitor = new ResourceAllocationMonitor(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 2L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L));
         assertTrue(monitor.couldReserveConsideringReservations(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 2L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L)
         ));
@@ -44,32 +44,33 @@ public class ResourceAllocationMonitorTest {
 
     @Test
     public void testCouldReserveWithMultipleRequirements() {
+        var token = "the-test-token";
         var monitor = new ResourceAllocationMonitor(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 3L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024 * 1024L * 1024L)
         );
-        var firstSet = new ResourceAllocationMonitor.Set<Long>()
+        var firstSet = new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(ResourceAllocationMonitor.StandardResources.GPU, 1L)
                 .with(ResourceAllocationMonitor.StandardResources.RAM, 512 * 1024L * 1024L);
         assertTrue(monitor.couldReserveConsideringReservations(firstSet));
-        monitor.reserve(firstSet);
+        monitor.reserve(token, firstSet);
         assertTrue(monitor.couldReserveConsideringReservations(firstSet));
-        monitor.reserve(firstSet);
+        monitor.reserve(token, firstSet);
         assertFalse(monitor.couldReserveConsideringReservations(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 1L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024 * 1024L * 1024L)
         ));
-        monitor.free(firstSet);
+        monitor.free(token, firstSet);
         assertFalse(monitor.couldReserveConsideringReservations(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 1L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024 * 1024L * 1024L)
         ));
-        monitor.free(firstSet);
+        monitor.free(token, firstSet);
         assertTrue(monitor.couldReserveConsideringReservations(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 1L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024 * 1024L * 1024L)
         ));
@@ -80,7 +81,7 @@ public class ResourceAllocationMonitorTest {
         var node    = createComputeNode();
         var gpuNode = createGpuNode();
 
-        var computeTask = new ResourceAllocationMonitor.Set<Long>()
+        var computeTask = new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(ResourceAllocationMonitor.StandardResources.CPU, 1L)
                 .with(ResourceAllocationMonitor.StandardResources.RAM, 512 * 1024 * 1024L);
 
@@ -92,7 +93,7 @@ public class ResourceAllocationMonitorTest {
         var node    = createComputeNode();
         var gpuNode = createGpuNode();
 
-        var computeTask = new ResourceAllocationMonitor.Set<Long>();
+        var computeTask = new ResourceAllocationMonitor.ResourceSet<Long>();
 
         assertTrue(node.getAversion(computeTask) < gpuNode.getAversion(computeTask));
     }
@@ -102,7 +103,7 @@ public class ResourceAllocationMonitorTest {
         var node    = createComputeNode();
         var gpuNode = createGpuNode();
 
-        var gpuTask = new ResourceAllocationMonitor.Set<Long>()
+        var gpuTask = new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(ResourceAllocationMonitor.StandardResources.GPU, 1L);
 
         assertTrue(node.getAversion(gpuTask) > gpuNode.getAversion(gpuTask));
@@ -113,19 +114,22 @@ public class ResourceAllocationMonitorTest {
         var node    = createComputeNode();
         var gpuNode = createGpuNode();
 
-        var computeTask = new ResourceAllocationMonitor.Set<Long>();
-        var gpuTask = new ResourceAllocationMonitor.Set<Long>()
+        var computeTask = new ResourceAllocationMonitor.ResourceSet<Long>();
+        var gpuTask = new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(ResourceAllocationMonitor.StandardResources.GPU, 1L);
 
         // reserve all GPUs
-        gpuNode.reserve(new ResourceAllocationMonitor.Set<Long>().with(
-                ResourceAllocationMonitor.StandardResources.GPU,
-                100L
-        ));
+        gpuNode.reserve(
+                "the-token",
+                new ResourceAllocationMonitor.ResourceSet<Long>().with(
+                        ResourceAllocationMonitor.StandardResources.GPU,
+                        100L
+                )
+        );
 
         // cannot reserve further GPUs
         assertFalse(gpuNode.couldReserveConsideringReservations(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 1L)
         ));
 
@@ -136,7 +140,7 @@ public class ResourceAllocationMonitorTest {
 
     private ResourceAllocationMonitor createGpuNode() {
         return new ResourceAllocationMonitor(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.CPU, 4L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L)
                         .with(ResourceAllocationMonitor.StandardResources.GPU, 100L)
@@ -145,7 +149,7 @@ public class ResourceAllocationMonitorTest {
 
     private ResourceAllocationMonitor createComputeNode() {
         return new ResourceAllocationMonitor(
-                new ResourceAllocationMonitor.Set<Long>()
+                new ResourceAllocationMonitor.ResourceSet<Long>()
                         .with(ResourceAllocationMonitor.StandardResources.CPU, 1L)
                         .with(ResourceAllocationMonitor.StandardResources.RAM, 1024L * 1024L * 1024L)
         );
