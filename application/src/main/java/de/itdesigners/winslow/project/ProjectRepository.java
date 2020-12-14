@@ -59,7 +59,7 @@ public class ProjectRepository extends BaseRepository {
         var prefix   = getRepositoryDirectory().relativize(absolute).toString();
         var index    = prefix.indexOf('.');
 
-        if (index > 0) {
+        if (index > 0 && absolute.startsWith(getRepositoryDirectory())) {
             return Optional.of(prefix.substring(0, index));
         } else {
             return Optional.empty();
