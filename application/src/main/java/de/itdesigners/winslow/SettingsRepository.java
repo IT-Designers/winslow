@@ -1,5 +1,6 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.settings.UserResourceLimitation;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
@@ -65,6 +66,10 @@ public class SettingsRepository extends BaseRepository {
         return getRepositoryDirectory().resolve("env.properties");
     }
 
+    private Path getUserResourceLimitationPath() {
+        return getRepositoryDirectory().resolve("user-resource-limitation.yml");
+    }
+
     @Nonnull
     public Map<String, String> getGlobalEnvironmentVariables() throws IOException {
         return Collections.unmodifiableMap(getOrLoadGlobalEnvironmentVariables());
@@ -109,6 +114,17 @@ public class SettingsRepository extends BaseRepository {
             this.globalEnvironmentVariables = new TreeMap<>(variables);
         } catch (LockException e) {
             throw new IOException("Lock expired too early", e);
+        }
+    }
+
+    @Nonnull
+    public Handle<UserResourceLimitation> getUserResourceLimitations() {
+        return createHandle(getUserResourceLimitationPath(), UserResourceLimitation.class);
+    }
+
+    public void updateUserResourceLimitations(@Nonnull UserResourceLimitation limit) throws IOException {
+        try (var container = getUserResourceLimitations().exclusive(MAX_LOCK_RETRIES).orElseThrow(IOException::new)) {
+            container.update(limit);
         }
     }
 
