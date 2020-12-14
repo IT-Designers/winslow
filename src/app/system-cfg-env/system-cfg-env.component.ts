@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {EnvSettingsApiService} from '../api/env-settings-api.service';
+import {SettingsApiService} from '../api/settings-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService} from '../dialog.service';
 
@@ -19,7 +19,7 @@ export class SystemCfgEnvComponent implements OnInit {
   longLoadingExternallySet = false;
   loadError = null;
 
-  constructor(private api: EnvSettingsApiService, private dialog: DialogService) {
+  constructor(private api: SettingsApiService, private dialog: DialogService) {
   }
 
   ngOnInit() {

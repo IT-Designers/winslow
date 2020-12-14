@@ -1,0 +1,51 @@
+<app-loading-info [error]="loadError?.message"
+                  [loading]="!longLoadingExternallySet && longLoadingValue.isLongLoading()"></app-loading-info>
+
+<ng-container *ngIf="loadError == null">
+  <div class="header">
+    <mat-card-title>System Resource Limitations</mat-card-title>
+    <button mat-raised-button color="primary" class="align-right-using-margin" #saveBtn (click)="save()">
+      Save
+    </button>
+  </div>
+
+  <div class="whitespace-separator-top list">
+    <h4>Limitation per User</h4>
+
+
+    <div class="row">
+      <app-checkable-number-input
+        name="Limit CPU"
+        unit="Cores"
+        [value]="limitServer?.cpu"
+        [minValue]="1"
+        (valueChange)="cpuLimitChanged($event)"
+      ></app-checkable-number-input>
+    </div>
+
+
+    <div class="row">
+      <app-checkable-number-input
+        name="Limit MEM"
+        unit="Megabytes"
+        [value]="limitServer?.mem"
+        [minValue]="100"
+        (valueChange)="memLimitChanged($event)"
+      ></app-checkable-number-input>
+    </div>
+
+
+    <div class="row">
+      <app-checkable-number-input
+        name="Limit GPU"
+        unit="Cards"
+        [value]="limitServer?.gpu"
+        [minValue]="1"
+        (valueChange)="gpuLimitChanged($event)"
+      ></app-checkable-number-input>
+    </div>
+
+
+  </div>
+
+</ng-container>

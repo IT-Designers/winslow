@@ -1,0 +1,20 @@
+<input type="checkbox" class="vertical-center-with-margin"
+       *ngIf="checkable"
+       [checked]="value != null"
+       (change)="onCheckedUpdate($event)">
+<span class="vertical-center-with-margin flex-grow-normal">{{name}}</span>
+<mat-form-field class="flex-grow-a-lot">
+  <input matInput
+         [placeholder]="unit"
+         [disabled]="value == null && checkable"
+         [value]="value"
+         (change)="onValueUpdate($event)">
+</mat-form-field>
+<div class="vertical-center-with-margin">
+  <button mat-icon-button color="primary"
+          *ngIf="revertable"
+          [disabled]="value == valueOriginal"
+          (click)="value = valueOriginal">
+    <mat-icon class="material-icons-outlined">undo</mat-icon>
+  </button>
+</div>
