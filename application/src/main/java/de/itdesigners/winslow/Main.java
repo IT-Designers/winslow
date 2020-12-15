@@ -79,12 +79,12 @@ public class Main {
             var repository      = new PipelineRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
-            var node            = getNode(nodeName, nomadClient);
-            var resourceMonitor = new ResourceAllocationMonitor(toResourceSet(node.loadInfo()));
+            var resourceMonitor = new ResourceAllocationMonitor();
+            var node            = getNode(nodeName, resourceMonitor);
             var backend         = new NomadBackend(node.getPlatformInfo(), nomadClient);
 
-            // TODO
             NodeInfoUpdater.spawn(nodes, node);
+            resourceMonitor.setAvailableResources(toResourceSet(node.loadInfo()));
 
             var orchestrator = new Orchestrator(
                     lockBus,
@@ -147,9 +147,11 @@ public class Main {
     }
 
     @Nonnull
-    private static Node getNode(@Nonnull String nodeName, @Nonnull NomadApiClient nomadClient) throws IOException {
+    private static Node getNode(
+            @Nonnull String nodeName,
+            @Nonnull ResourceAllocationMonitor monitor) throws IOException {
         // TODO
-        return new UnixNode(nodeName);
+        return new UnixNode(nodeName, monitor);
     }
 
     @Nonnull

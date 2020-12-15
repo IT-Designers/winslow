@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.node.unix;
 
+import de.itdesigners.winslow.ResourceAllocationMonitor;
 import de.itdesigners.winslow.api.node.*;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.PlatformInfo;
@@ -29,16 +30,18 @@ public class UnixNode implements Node {
     @Nonnull private       List<UnixNetIoParser.InterfaceInfo> prevNetBytes;
     @Nonnull private       List<UnixDiskIoParser.DiskInfo>     prevDiskInfo;
 
-    @Nonnull private final PlatformInfo platformInfo;
+    @Nonnull private final PlatformInfo              platformInfo;
+    @Nonnull private final ResourceAllocationMonitor resourceAllocationMonitor;
 
     private boolean hasGpus = true;
 
-    public UnixNode(@Nonnull String name) throws IOException {
-        this.name         = name;
-        this.prevCpuTimes = getCpuTimes(resolveStat());
-        this.prevNetBytes = getInterfaceInfo(resolveNetDev());
-        this.prevDiskInfo = getDiskInfo(resolveDiskstats());
-        this.platformInfo = loadPlatformInfo();
+    public UnixNode(@Nonnull String name, @Nonnull ResourceAllocationMonitor monitor) throws IOException {
+        this.name                      = name;
+        this.prevCpuTimes              = getCpuTimes(resolveStat());
+        this.prevNetBytes              = getInterfaceInfo(resolveNetDev());
+        this.prevDiskInfo              = getDiskInfo(resolveDiskstats());
+        this.platformInfo              = loadPlatformInfo();
+        this.resourceAllocationMonitor = monitor;
     }
 
     @Nonnull
@@ -145,7 +148,8 @@ public class UnixNode implements Node {
         var diskInfo = loadDiskInfo();
         var gpuInfo  = hasGpus ? UnixGpuInfoParser.loadGpuInfo() : Collections.<GpuInfo>emptyList();
         this.hasGpus = this.hasGpus && !gpuInfo.isEmpty();
-        return new NodeInfo(name, System.currentTimeMillis(), cpuInfo, memInfo, netInfo, diskInfo, gpuInfo);
+        var allocInfo = loadAllocInfo();
+        return new NodeInfo(name, System.currentTimeMillis(), cpuInfo, memInfo, netInfo, diskInfo, gpuInfo, allocInfo);
     }
 
     @Nonnull
@@ -250,5 +254,18 @@ public class UnixNode implements Node {
                     .getDiskInfoConsiderOnlyPhysicalInterfaces(lines)
                     .collect(Collectors.toUnmodifiableList());
         }
+    }
+
+    private List<AllocInfo> loadAllocInfo() {
+        var result = new ArrayList<AllocInfo>();
+        for (var entry : this.resourceAllocationMonitor.getAllocationReport().entrySet()) {
+            result.add(new AllocInfo(
+                    entry.getKey(),
+                    entry.getValue().getOrDefault(ResourceAllocationMonitor.StandardResources.CPU, 0L),
+                    entry.getValue().getOrDefault(ResourceAllocationMonitor.StandardResources.RAM, 0L),
+                    entry.getValue().getOrDefault(ResourceAllocationMonitor.StandardResources.GPU, 0L)
+            ));
+        }
+        return result;
     }
 }
