@@ -297,6 +297,7 @@ public class WorkspaceCreator implements AssemblerStep {
                     var read  = fis.read(chunk, 0, chunk.length);
                     if (read >= 0) {
                         fos.write(chunk, 0, read);
+                        fos.flush(); // this is slower, but reliefs the storage from write stress (like a nfs backend)
                     } else {
                         break;
                     }
