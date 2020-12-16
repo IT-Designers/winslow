@@ -290,7 +290,7 @@ public class WorkspaceCreator implements AssemblerStep {
                                             context.log(
                                                     Level.INFO,
                                                     "..." + dst.getFileName() + String.format(
-                                                            ", %-3d %%, %d bytes/s, %d bytes in total",
+                                                            ", %3d %%, %d bytes/s, %d bytes in total",
                                                             lenPerc,
                                                             bytesSec,
                                                             fileLen
@@ -328,7 +328,7 @@ public class WorkspaceCreator implements AssemblerStep {
         try (var fis = new FileInputStream(source.toFile())) {
             try (var fos = new FileOutputStream(destination.toFile())) {
                 while (condition.get()) {
-                    var chunk = new byte[4 * 1024 * 1024]; // TODO dynamic probing, need to support less than 7MiB/s
+                    var chunk = new byte[512 * 1024]; // TODO dynamic probing, need to support less than 7MiB/s
                     var read  = fis.read(chunk, 0, chunk.length);
                     if (read >= 0) {
                         fos.write(chunk, 0, read);
