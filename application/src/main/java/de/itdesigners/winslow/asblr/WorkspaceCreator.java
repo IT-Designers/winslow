@@ -271,17 +271,30 @@ public class WorkspaceCreator implements AssemblerStep {
                             context.log(Level.INFO, "..." + dst.getFileName());
                             copyFileWhile(path, dst, new Supplier<Boolean>() {
                                 long lastGetCall = System.currentTimeMillis();
+                                long lastFileLen = 0;
+                                float totalBytes = (float) path.toFile().length();
 
                                 @Override
                                 public Boolean get() {
                                     if (System.currentTimeMillis() - lastGetCall > 2_000) {
+                                        var timeDiff = System.currentTimeMillis() - lastGetCall;
                                         lastGetCall = System.currentTimeMillis();
+
                                         if (dst.toFile().exists()) {
+                                            var fileLen  = dst.toFile().length();
+                                            var lenDiff  = fileLen - lastFileLen;
+                                            var lenPerc  = (int) (((float) fileLen / totalBytes) * 100.0f);
+                                            var bytesSec = (int) (((float) lenDiff / (float) timeDiff) * 1000.0f);
+                                            lastFileLen = fileLen;
+
                                             context.log(
                                                     Level.INFO,
-                                                    "..." + dst.getFileName() + ", " + dst
-                                                            .toFile()
-                                                            .length() + " bytes copied"
+                                                    "..." + dst.getFileName() + String.format(
+                                                            ", %-3d %%, %d bytes/s, %d bytes in total",
+                                                            lenPerc,
+                                                            bytesSec,
+                                                            fileLen
+                                                    )
                                             );
                                         }
                                     }
