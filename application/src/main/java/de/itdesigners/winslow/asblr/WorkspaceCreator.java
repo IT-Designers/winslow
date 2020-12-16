@@ -65,7 +65,7 @@ public class WorkspaceCreator implements AssemblerStep {
             workspaceContinuation = Optional.of(Path.of(baseWorkspace));
         }
 
-        var pathOfWorkspace      = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(
+        var pathOfWorkspace = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(
                 context.getStageId(),
                 workspaceConfiguration.isSharedWithinGroup()
         ));
@@ -81,8 +81,8 @@ public class WorkspaceCreator implements AssemblerStep {
         }
 
         var workspaceExistedBefore = environment.getResourceManager().existsWorkspace(pathOfWorkspace);
-        var workspacesRoot = environment.getResourceManager().getWorkspacesDirectory();
-        var resources      = environment.getResourceManager().getResourceDirectory();
+        var workspacesRoot         = environment.getResourceManager().getWorkspacesDirectory();
+        var resources              = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(
                 pathOfWorkspace,
                 workspaceMode != WorkspaceMode.CONTINUATION && !workspaceConfiguration.isSharedWithinGroup()
@@ -267,8 +267,27 @@ public class WorkspaceCreator implements AssemblerStep {
                         if (file.isDirectory()) {
                             Files.createDirectories(dst);
                         } else {
+
                             context.log(Level.INFO, "..." + dst.getFileName());
-                            copyFileWhile(path, dst, () -> !context.hasAssemblyBeenAborted());
+                            copyFileWhile(path, dst, new Supplier<Boolean>() {
+                                long lastGetCall = System.currentTimeMillis();
+
+                                @Override
+                                public Boolean get() {
+                                    if (System.currentTimeMillis() - lastGetCall > 2_000) {
+                                        lastGetCall = System.currentTimeMillis();
+                                        if (dst.toFile().exists()) {
+                                            context.log(
+                                                    Level.INFO,
+                                                    "..." + dst.getFileName() + ", " + dst
+                                                            .toFile()
+                                                            .length() + " bytes copied"
+                                            );
+                                        }
+                                    }
+                                    return !context.hasAssemblyBeenAborted();
+                                }
+                            });
                         }
                         return Stream.empty();
                     } catch (AssemblyException e) {
@@ -289,7 +308,10 @@ public class WorkspaceCreator implements AssemblerStep {
         }
     }
 
-    private void copyFileWhile(@Nonnull Path source, @Nonnull Path destination,  @Nonnull Supplier<Boolean> condition) throws IOException {
+    private void copyFileWhile(
+            @Nonnull Path source,
+            @Nonnull Path destination,
+            @Nonnull Supplier<Boolean> condition) throws IOException {
         try (var fis = new FileInputStream(source.toFile())) {
             try (var fos = new FileOutputStream(destination.toFile())) {
                 while (condition.get()) {
