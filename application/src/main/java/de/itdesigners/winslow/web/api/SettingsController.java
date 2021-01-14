@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
-import de.itdesigners.winslow.api.settings.UserResourceLimitation;
+import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,7 +52,7 @@ public class SettingsController {
     }
 
     @GetMapping("/settings/user-res-limit")
-    public Optional<UserResourceLimitation> getUserResourceLimitation(@Nonnull User user) {
+    public Optional<ResourceLimitation> getUserResourceLimitation(@Nonnull User user) {
         return Optional
                 .of(user)
                 .filter(User::isSuperUser)
@@ -60,15 +60,15 @@ public class SettingsController {
     }
 
     @PostMapping("/settings/user-res-limit")
-    public Optional<UserResourceLimitation> setUserResourceLimitation(
+    public Optional<ResourceLimitation> setUserResourceLimitation(
             @Nonnull User user,
-            @RequestBody UserResourceLimitation limit) {
+            @RequestBody ResourceLimitation limit) {
         return Optional
                 .of(user)
                 .filter(User::isSuperUser)
                 .flatMap(u -> {
                     try {
-                        winslow.getSettingsRepository().updateUserResourceLimitations(new UserResourceLimitation(
+                        winslow.getSettingsRepository().updateUserResourceLimitations(new ResourceLimitation(
                                 Optional.ofNullable(limit.cpu).map(l -> Math.max(1, l)).orElse(null),
                                 Optional.ofNullable(limit.mem).map(l -> Math.max(100, l)).orElse(null),
                                 Optional.ofNullable(limit.gpu).map(l -> Math.max(1, l)).orElse(null)

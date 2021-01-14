@@ -1,6 +1,6 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.settings.UserResourceLimitation;
+import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
@@ -118,11 +118,11 @@ public class SettingsRepository extends BaseRepository {
     }
 
     @Nonnull
-    public Handle<UserResourceLimitation> getUserResourceLimitations() {
-        return createHandle(getUserResourceLimitationPath(), UserResourceLimitation.class);
+    public Handle<ResourceLimitation> getUserResourceLimitations() {
+        return createHandle(getUserResourceLimitationPath(), ResourceLimitation.class);
     }
 
-    public void updateUserResourceLimitations(@Nonnull UserResourceLimitation limit) throws IOException {
+    public void updateUserResourceLimitations(@Nonnull ResourceLimitation limit) throws IOException {
         try (var container = getUserResourceLimitations().exclusive(MAX_LOCK_RETRIES).orElseThrow(IOException::new)) {
             container.update(limit);
         }
