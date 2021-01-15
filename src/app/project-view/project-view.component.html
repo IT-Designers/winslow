@@ -76,7 +76,8 @@
                         )">
         <mat-icon>send</mat-icon>
         Enqueue
-        <mat-icon (click)="$event.preventDefault(); $event.stopPropagation(); enqueueMenuTrigger.openMenu()">more_vert</mat-icon>
+        <mat-icon (click)="$event.preventDefault(); $event.stopPropagation(); enqueueMenuTrigger.openMenu()">more_vert
+        </mat-icon>
         <mat-menu #enqueueMenu xPosition="before">
           <button mat-menu-item (click)="enqueue(
                   executionSelection.selectedPipeline,
@@ -300,24 +301,39 @@
             Update
           </button>
         </div>
+      </div>
 
-        <div class="whitespace-separator">
-          <mat-divider></mat-divider>
-        </div>
+      <div class="whitespace-separator">
+        <mat-divider></mat-divider>
+      </div>
 
-        <div class="stage-control-item">
-          <label>Default workspace configuration mode</label>
-          <mat-form-field>
-            <mat-select #workspaceModeSelection [value]="this.workspaceMode">
-              <ng-container *ngFor="let mode of workspaceModes()">
-                <mat-option [value]="mode">{{mode}}</mat-option>
-              </ng-container>
-            </mat-select>
-          </mat-form-field>
-          <button mat-stroked-button color="primary" (click)="setWorkspaceMode(workspaceModeSelection.value)">
-            Update
-          </button>
-        </div>
+
+      <div class="whitespace-separator-top">
+        <app-resource-limitation
+          class="whitespace-separator-top "
+          title="Project specific Resource Limitation"
+          [limit]="resourceLimit"
+          (limit)="setResourceLimitation($event)"
+        ></app-resource-limitation>
+
+      </div>
+
+      <div class="whitespace-separator">
+        <mat-divider></mat-divider>
+      </div>
+
+      <div class="stage-control-item">
+        <label>Default workspace configuration mode</label>
+        <mat-form-field>
+          <mat-select #workspaceModeSelection [value]="this.workspaceMode">
+            <ng-container *ngFor="let mode of workspaceModes()">
+              <mat-option [value]="mode">{{mode}}</mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button color="primary" (click)="setWorkspaceMode(workspaceModeSelection.value)">
+          Update
+        </button>
       </div>
 
       <div class="stage-control-item whitespace-separator-top">

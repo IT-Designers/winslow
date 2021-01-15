@@ -38,16 +38,16 @@
   flex-grow: 1;
 }
 
+.stage-control-item button:not(:first-child), .stage-control-item-controls button:not(:first-child) {
+  margin-right: 1em;
+  margin-left: 1em;
+}
+
 .stage-control-item-controls {
   display: flex;
   justify-content: center;
   margin-top: 3em;
   margin-bottom: 1em;
-}
-
-.stage-control-item button:not(:first-child), .stage-control-item-controls button:not(:first-child) {
-  margin-right: 1em;
-  margin-left: 1em;
 }
 
 .stage-control-item-env-list {
