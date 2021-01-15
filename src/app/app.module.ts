@@ -71,6 +71,7 @@ import { LogViewComponent } from './log-view/log-view.component';
 import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
+import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
 
 @NgModule({
     declarations: [
@@ -111,6 +112,7 @@ import { CheckableNumberInputComponent } from './checkable-number-input/checkabl
         StopButtonComponent,
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
+        ResourceLimitationComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
