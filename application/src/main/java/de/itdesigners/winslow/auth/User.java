@@ -1,5 +1,7 @@
 package de.itdesigners.winslow.auth;
 
+import de.itdesigners.winslow.api.settings.ResourceLimitation;
+
 import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -43,6 +45,11 @@ public class User {
     @Nonnull
     public Stream<String> getGroups() {
         return this.resolver.getAssignedGroups(this.name);
+    }
+
+    @Nonnull
+    public Optional<ResourceLimitation> getResourceLimitation() {
+        return Optional.empty();
     }
 
     @Override
