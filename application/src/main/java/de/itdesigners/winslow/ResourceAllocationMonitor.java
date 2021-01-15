@@ -2,9 +2,7 @@ package de.itdesigners.winslow;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 public class ResourceAllocationMonitor {
 
@@ -17,9 +15,19 @@ public class ResourceAllocationMonitor {
     private final @Nonnull ResourceSet<Float>             aversion  = new ResourceSet<>();
     private final @Nonnull Map<String, ResourceSet<Long>> reserved  = new HashMap<>();
 
+    private final @Nonnull List<Runnable> changeListeners = new ArrayList<>();
+
     protected ResourceAllocationMonitor withResourcesAvailable(@Nonnull ResourceSet<Long> resources) {
         this.setAvailableResources(resources);
         return this;
+    }
+
+    public synchronized void addChangeListener(@Nonnull Runnable listener) {
+        this.changeListeners.add(listener);
+    }
+
+    private synchronized void notifyChangeListeners() {
+        this.changeListeners.forEach(Runnable::run);
     }
 
     public synchronized void setAvailableResources(@Nonnull ResourceSet<Long> resources) {
@@ -39,6 +47,7 @@ public class ResourceAllocationMonitor {
                     reserved.getOrDefault(entry.getKey(), 0L) + entry.getValue()
             );
         }
+        this.notifyChangeListeners();
     }
 
     public synchronized void free(@Nonnull String token, @Nonnull ResourceSet<Long> set) {
@@ -52,6 +61,7 @@ public class ResourceAllocationMonitor {
         if (set.entries.values().stream().allMatch(v -> v == 0)) {
             this.reserved.remove(token);
         }
+        this.notifyChangeListeners();
     }
 
     public synchronized boolean couldReserveConsideringReservations(@Nonnull ResourceSet<Long> set) {
