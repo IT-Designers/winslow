@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class AllocInfo {
 
@@ -31,7 +32,48 @@ public class AllocInfo {
 
     public long getGpu() {
         return gpu;
+    }
 
+    @Nonnull
+    public AllocInfo add(@Nonnull AllocInfo info) {
+        return this.add(info, this.title);
+    }
 
+    @Nonnull
+    public AllocInfo add(@Nonnull AllocInfo info, @Nonnull String title) {
+        return new AllocInfo(
+                title,
+                this.cpu + info.cpu,
+                this.memory + info.memory,
+                this.gpu + info.gpu
+        );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        AllocInfo allocInfo = (AllocInfo) o;
+        return cpu == allocInfo.cpu &&
+                memory == allocInfo.memory &&
+                gpu == allocInfo.gpu &&
+                title.equals(allocInfo.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(title, cpu, memory, gpu);
+    }
+
+    @Override
+    public String toString() {
+        return "AllocInfo{" +
+                "title='" + title + '\'' +
+                ", cpu=" + cpu +
+                ", memory=" + memory +
+                ", gpu=" + gpu +
+                "}@"+hashCode();
     }
 }
