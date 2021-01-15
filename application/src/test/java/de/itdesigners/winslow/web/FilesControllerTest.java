@@ -69,7 +69,8 @@ public class FilesControllerTest {
                         null,
                         null,
                         null
-                )
+                ),
+                null
         )));
         controller        = new FilesController(resourceManager, fileAccessChecker);
 

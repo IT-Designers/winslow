@@ -3,6 +3,7 @@ package de.itdesigners.winslow.web.api;
 import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.api.pipeline.*;
 import de.itdesigners.winslow.api.project.*;
+import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
@@ -24,7 +25,10 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1285,5 +1289,38 @@ public class ProjectsController {
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+
+    @GetMapping("projects/{projectId}/resource-limitation")
+    public Optional<ResourceLimitation> getResourceLimitation(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId) {
+        return getProjectIfAllowedToAccess(user, projectId).flatMap(Project::getResourceLimitation);
+    }
+
+    @PutMapping("projects/{projectId}/resource-limitation")
+    public ResponseEntity<ResourceLimitation> setResourceLimitation(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @RequestBody(required = false) ResourceLimitation limitation) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive()
+                .flatMap(container -> {
+                    try (container) {
+                        return container.getNoThrow().filter(p -> p.canBeAccessedBy(user)).map(project -> {
+                            try {
+                                project.setResourceLimitation(limitation);
+                                container.update(project);
+                                return ResponseEntity.ok(limitation);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                return ResponseEntity.notFound().<ResourceLimitation>build();
+                            }
+                        });
+                    }
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
 }

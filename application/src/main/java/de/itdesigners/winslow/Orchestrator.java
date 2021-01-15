@@ -5,11 +5,14 @@ import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.asblr.*;
+import de.itdesigners.winslow.auth.User;
+import de.itdesigners.winslow.auth.UserRepository;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.Lock;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
+import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.pipeline.*;
 import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
@@ -55,6 +58,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull private final RunInfoRepository  hints;
     @Nonnull private final LogRepository      logs;
     @Nonnull private final SettingsRepository settings;
+    @Nonnull private final UserRepository     users;
+    @Nonnull private final NodeRepository     nodes;
     @Nonnull private final String             nodeName;
 
     @Nonnull private final Map<String, Executor>     executors         = new ConcurrentHashMap<>();
@@ -78,6 +83,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
             @Nonnull SettingsRepository settings,
+            @Nonnull UserRepository users,
+            @Nonnull NodeRepository nodes,
             @Nonnull String nodeName,
             @Nonnull ResourceAllocationMonitor monitor,
             boolean executeStages) {
@@ -89,6 +96,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
         this.hints         = hints;
         this.logs          = logs;
         this.settings      = settings;
+        this.users         = users;
+        this.nodes         = nodes;
         this.nodeName      = nodeName;
         this.monitor       = monitor;
         this.executeStages = executeStages;
@@ -317,7 +326,10 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     .forEach(u -> {
                         try {
                             // TODO remove
-                            LOG.info("evaluateUpdatesWithExclusivePipelineAccess: " +String.join(",", u.listPipelineUpdates()));
+                            LOG.info("evaluateUpdatesWithExclusivePipelineAccess: " + String.join(
+                                    ",",
+                                    u.listPipelineUpdates()
+                            ));
                             u.evaluateUpdatesWithExclusivePipelineAccess();
                         } catch (LockException | IOException e) {
                             LOG.log(Level.SEVERE, "Failed to update pipeline", e);
@@ -355,9 +367,34 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public Optional<Boolean> hasResourcesToExecuteNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
-                .map(group -> group.isConfigureOnly()
-                        || this.monitor.couldReserveConsideringReservations(getRequiredResources(group.getStageDefinition()))
-                );
+                .map(group -> {
+                    if (group.isConfigureOnly()) {
+                        return true;
+                    }
+
+                    var resources = getRequiredResources(group.getStageDefinition());
+                    var wouldExceedLimit = getProjectUnsafe(pipeline.getProjectId()).map(project -> {
+                        var allocView = new DistributedAllocationView(project.getOwner(), pipeline.getProjectId());
+
+                        var settingsLimit = settings.getUserResourceLimitations().unsafe();
+                        var userLimit = users.getUser(project.getOwner()).flatMap(User::getResourceLimitation);
+
+
+                        if (settingsLimit.isPresent() && userLimit.isPresent()) {
+                            allocView.setUserLimit(settingsLimit.get().min(userLimit.get()));
+                        } else {
+                            settingsLimit.or(() -> userLimit).ifPresent(allocView::setUserLimit);
+                        }
+
+                        allocView.loadAllocInfo(
+                                nodes.loadActiveNodes().flatMap(info -> info.getAllocInfo().stream()),
+                                new CachedFunction<>(this::getProjectUnsafe)
+                        );
+                        return allocView.wouldResourcesExceedLimit(resources);
+                    }).orElse(Boolean.FALSE);
+
+                    return !wouldExceedLimit && this.monitor.couldReserveConsideringReservations(resources);
+                });
     }
 
     public Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
