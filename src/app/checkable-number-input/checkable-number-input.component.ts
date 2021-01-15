@@ -34,7 +34,11 @@ export class CheckableNumberInputComponent implements OnInit {
   }
 
   onValueUpdate($event?: Event) {
-    this.valueChange.emit(Number($event.target.value));
+    if ($event != null) {
+      this.valueChange.emit(Number(($event.target as HTMLInputElement).value));
+    } else {
+      this.valueChange.emit(this.value);
+    }
   }
 
   @Input('value')
