@@ -91,6 +91,62 @@ public class DistributedAllocationViewTests {
     }
 
     @Test
+    public void testExceedWithoutLimit0NoGpu() {
+        var view = new DistributedAllocationView(USER_ID, PROJECT_ID);
+        view.loadAllocInfo(getAllocations(), projectId -> {
+            if (PROJECT_ID.equals(projectId)) {
+                return Optional.of(getBasicProject(USER_ID, projectId, null));
+            } else {
+                return Optional.empty();
+            }
+        });
+
+        assertFalse(view.wouldResourcesExceedLimit(
+                new ResourceAllocationMonitor.ResourceSet<Long>()
+                        .with(ResourceAllocationMonitor.StandardResources.CPU, 0L)
+                        .with(ResourceAllocationMonitor.StandardResources.RAM, 0L)
+        ));
+    }
+
+    @Test
+    public void testExceedWithoutLimit0() {
+        var view = new DistributedAllocationView(USER_ID, PROJECT_ID);
+        view.loadAllocInfo(getAllocations(), projectId -> {
+            if (PROJECT_ID.equals(projectId)) {
+                return Optional.of(getBasicProject(USER_ID, projectId, null));
+            } else {
+                return Optional.empty();
+            }
+        });
+
+        assertFalse(view.wouldResourcesExceedLimit(
+                new ResourceAllocationMonitor.ResourceSet<Long>()
+                        .with(ResourceAllocationMonitor.StandardResources.CPU, 0L)
+                        .with(ResourceAllocationMonitor.StandardResources.RAM, 0L)
+                        .with(ResourceAllocationMonitor.StandardResources.GPU, 0L)
+        ));
+    }
+
+    @Test
+    public void testExceedWithoutLimit1() {
+        var view = new DistributedAllocationView(USER_ID, PROJECT_ID);
+        view.loadAllocInfo(getAllocations(), projectId -> {
+            if (PROJECT_ID.equals(projectId)) {
+                return Optional.of(getBasicProject(USER_ID, projectId, null));
+            } else {
+                return Optional.empty();
+            }
+        });
+
+        assertFalse(view.wouldResourcesExceedLimit(
+                new ResourceAllocationMonitor.ResourceSet<Long>()
+                        .with(ResourceAllocationMonitor.StandardResources.CPU, 1L)
+                        .with(ResourceAllocationMonitor.StandardResources.RAM, 1L)
+                        .with(ResourceAllocationMonitor.StandardResources.GPU, 1L)
+        ));
+    }
+
+    @Test
     public void testExceedWithShallowLimit() {
         var view = new DistributedAllocationView(USER_ID, PROJECT_ID);
         view.loadAllocInfo(getAllocations(), projectId -> {
