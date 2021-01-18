@@ -44,13 +44,15 @@ public class Winslow implements Runnable {
             @Nonnull ResourceManager resourceManager,
             @Nonnull ProjectRepository projectRepository,
             @Nonnull SettingsRepository settingsRepository,
-            @Nonnull NodeRepository nodeRepository) throws IOException {
+            @Nonnull NodeRepository nodeRepository,
+            @Nonnull GroupRepository groupRepository,
+            @Nonnull UserRepository userRepository) throws IOException {
         this.orchestrator    = orchestrator;
         this.configuration   = configuration;
         this.resourceManager = resourceManager;
+        this.groupRepository = groupRepository;
+        this.userRepository  = userRepository;
 
-        this.groupRepository    = new GroupRepository();
-        this.userRepository     = new UserRepository(groupRepository);
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = projectRepository;
         this.settingsRepository = settingsRepository;

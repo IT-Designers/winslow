@@ -5,7 +5,6 @@ import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
-import de.itdesigners.winslow.api.node.GpuInfo;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
@@ -18,11 +17,13 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class NomadBackend implements Backend, Closeable, AutoCloseable {

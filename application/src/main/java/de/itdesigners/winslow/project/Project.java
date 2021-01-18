@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.project;
 
+import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
 
@@ -16,9 +17,10 @@ public class Project {
     private @Nullable List<String> groups;
     private @Nullable List<String> tags;
 
-    private @Nonnull PipelineDefinition pipeline;
-    private @Nonnull String             name;
-    private          boolean            publicAccess;
+    private @Nonnull  PipelineDefinition pipeline;
+    private @Nonnull  String             name;
+    private           boolean            publicAccess;
+    private @Nullable ResourceLimitation resourceLimit;
 
     Project(@Nonnull String id, @Nonnull String owner, @Nonnull PipelineDefinition pipeline) {
         this.id       = id;
@@ -27,7 +29,7 @@ public class Project {
         this.name     = "[no name]";
     }
 
-    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "public", "pipelineDefinition"})
+    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "public", "pipelineDefinition", "resourceLimit"})
     public Project(
             @Nonnull String id,
             @Nonnull String owner,
@@ -35,14 +37,16 @@ public class Project {
             @Nullable Iterable<String> tags,
             @Nonnull String name,
             @Nullable Boolean publicAccess,
-            @Nonnull PipelineDefinition pipelineDefinition) {
-        this.id           = id;
-        this.owner        = owner;
-        this.groups       = null;
-        this.tags         = null;
-        this.pipeline     = pipelineDefinition;
-        this.name         = name;
-        this.publicAccess = Objects.requireNonNullElse(publicAccess, false);
+            @Nonnull PipelineDefinition pipelineDefinition,
+            @Nullable ResourceLimitation resourceLimit) {
+        this.id            = id;
+        this.owner         = owner;
+        this.groups        = null;
+        this.tags          = null;
+        this.pipeline      = pipelineDefinition;
+        this.name          = name;
+        this.publicAccess  = Objects.requireNonNullElse(publicAccess, false);
+        this.resourceLimit = resourceLimit;
 
         if (groups != null) {
             groups.forEach(this::addGroup);
@@ -159,5 +163,14 @@ public class Project {
                                this.groups,
                                Collections::emptyList
                        )::contains);
+    }
+
+    @Nonnull
+    public Optional<ResourceLimitation> getResourceLimitation() {
+        return Optional.ofNullable(this.resourceLimit);
+    }
+
+    public void setResourceLimitation(@Nullable ResourceLimitation limit) {
+        this.resourceLimit = limit;
     }
 }

@@ -98,9 +98,13 @@ public class LogRepository extends BaseRepository {
 
     @Nonnull
     public Optional<String> getProjectIdForLogPath(@Nonnull Path path) {
+        var rootDir = this.workDirectoryConfiguration.getPath();
+        var dirPath = rootDir.relativize(this.workDirectoryConfiguration.getLogsDirectory());
+
         var name  = path.getFileName().toString();
         var index = name.indexOf(PROJECT_STAGE_SEPARATOR);
-        if (index >= 0) {
+
+        if (index >= 0 && path.startsWith(dirPath)) {
             return Optional.of(name.substring(0, index));
         } else {
             return Optional.empty();

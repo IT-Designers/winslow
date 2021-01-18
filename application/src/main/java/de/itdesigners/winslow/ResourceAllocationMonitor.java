@@ -1,12 +1,8 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.config.Requirements;
-
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 public class ResourceAllocationMonitor {
 
@@ -14,25 +10,33 @@ public class ResourceAllocationMonitor {
             .with(StandardResources.CPU, 1L)
             .with(StandardResources.RAM, 300L * 1024L * 1024L);
 
-    private final @Nonnull ResourceSet<Long>  resources;
-    private final @Nonnull ResourceSet<Float> affinity;
-    private final @Nonnull ResourceSet<Float> aversion;
+    private final @Nonnull ResourceSet<Long>              resources = new ResourceSet<>();
+    private final @Nonnull ResourceSet<Float>             affinity  = new ResourceSet<>();
+    private final @Nonnull ResourceSet<Float>             aversion  = new ResourceSet<>();
+    private final @Nonnull Map<String, ResourceSet<Long>> reserved  = new HashMap<>();
 
-    private @Nonnull Map<String, ResourceSet<Long>> reserved;
+    private final @Nonnull List<Runnable> changeListeners = new ArrayList<>();
 
-    public ResourceAllocationMonitor(@Nonnull ResourceSet<Long> resources) {
-        this(resources, defaultAffinity(resources), defaultAversion(resources));
+    protected ResourceAllocationMonitor withResourcesAvailable(@Nonnull ResourceSet<Long> resources) {
+        this.setAvailableResources(resources);
+        return this;
     }
 
-    public ResourceAllocationMonitor(
-            @Nonnull ResourceSet<Long> resources,
-            @Nonnull ResourceSet<Float> affinity,
-            @Nonnull ResourceSet<Float> aversion) {
-        this.resources = resources;
-        this.affinity  = affinity;
-        this.aversion  = aversion;
+    public synchronized void addChangeListener(@Nonnull Runnable listener) {
+        this.changeListeners.add(listener);
+    }
 
-        this.reserved = new HashMap<>();
+    private synchronized void notifyChangeListeners() {
+        this.changeListeners.forEach(Runnable::run);
+    }
+
+    public synchronized void setAvailableResources(@Nonnull ResourceSet<Long> resources) {
+        this.resources.entries.clear();
+        this.resources.entries.putAll(resources.entries);
+        this.affinity.entries.clear();
+        this.affinity.entries.putAll(defaultAffinity(resources).entries);
+        this.aversion.entries.clear();
+        this.aversion.entries.putAll(defaultAversion(resources).entries);
     }
 
     public synchronized void reserve(@Nonnull String token, @Nonnull ResourceSet<Long> set) {
@@ -43,6 +47,7 @@ public class ResourceAllocationMonitor {
                     reserved.getOrDefault(entry.getKey(), 0L) + entry.getValue()
             );
         }
+        this.notifyChangeListeners();
     }
 
     public synchronized void free(@Nonnull String token, @Nonnull ResourceSet<Long> set) {
@@ -56,6 +61,7 @@ public class ResourceAllocationMonitor {
         if (set.entries.values().stream().allMatch(v -> v == 0)) {
             this.reserved.remove(token);
         }
+        this.notifyChangeListeners();
     }
 
     public synchronized boolean couldReserveConsideringReservations(@Nonnull ResourceSet<Long> set) {
@@ -74,6 +80,16 @@ public class ResourceAllocationMonitor {
             }
         }
         return true;
+    }
+
+    public synchronized Map<String, ResourceSet<Long>> getAllocationReport() {
+        var map = new HashMap<String, ResourceSet<Long>>(this.reserved.size());
+        for (var entry : this.reserved.entrySet()) {
+            if (entry.getValue().entries.values().stream().mapToLong(l -> l).sum() > 0) {
+                map.put(entry.getKey(), new ResourceSet<>(entry.getValue()));
+            }
+        }
+        return map;
     }
 
     @Nonnull
@@ -168,6 +184,13 @@ public class ResourceAllocationMonitor {
 
     public static class ResourceSet<T> {
         protected final Map<String, T> entries = new HashMap<>();
+
+        public ResourceSet() {
+        }
+
+        public ResourceSet(@Nonnull ResourceSet<T> copySource) {
+            this.entries.putAll(copySource.entries);
+        }
 
         @Nonnull
         @CheckReturnValue

@@ -47,7 +47,8 @@ public class FileAccessCheckerTest {
                                 null,
                                 null,
                                 null
-                        )
+                        ),
+                        null
                 ))
         );
     }

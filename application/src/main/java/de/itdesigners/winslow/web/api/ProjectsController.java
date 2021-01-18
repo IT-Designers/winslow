@@ -2,7 +2,8 @@ package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.api.pipeline.*;
-import de.itdesigners.winslow.api.project.ProjectInfo;
+import de.itdesigners.winslow.api.project.*;
+import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
@@ -24,7 +25,10 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,14 +65,8 @@ public class ProjectsController {
                 .map(ProjectInfoConverter::from);
     }
 
-    private static class CreateData {
-        public @Nonnull  String       name;
-        public @Nonnull  String       pipeline;
-        public @Nullable List<String> tags;
-    }
-
     @PostMapping("/projects")
-    public Optional<ProjectInfo> createProject(User user, @RequestBody CreateData body) {
+    public Optional<ProjectInfo> createProject(User user, @RequestBody ProjectCreateRequest body) {
         return winslow
                 .getPipelineRepository()
                 .getPipeline(body.pipeline)
@@ -416,16 +414,11 @@ public class ProjectsController {
         );
     }
 
-    private static class PauseData {
-        public           boolean paused;
-        public @Nullable String  strategy;
-    }
-
     @PutMapping("projects/{projectId}/paused")
     public boolean setProjectNextStage(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestBody PauseData body) {
+            @RequestBody UpdatePauseRequest body) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     if (body.paused) {
@@ -455,17 +448,12 @@ public class ProjectsController {
                 .orElse(false);
     }
 
-    private static class LogData {
-        public @Nullable Long skipLines;
-        public @Nullable String expectingStageId;
-    }
-
     @GetMapping("projects/{projectId}/logs/{stageId}")
     public Stream<LogEntryInfo> getProjectStageLogsLatest(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId,
-            @RequestBody LogData body) {
+            @RequestBody LogLinesRequest body) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
@@ -792,23 +780,11 @@ public class ProjectsController {
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private static class EnqueueData {
-        public @Nonnull  Map<String, String>      env;
-        public @Nullable Map<String, RangedValue> rangedEnv;
-        public           int                      stageIndex;
-        public @Nullable ImageInfo                image;
-        public @Nullable ResourceInfo             requiredResources;
-        public @Nullable WorkspaceConfiguration   workspaceConfiguration;
-        public @Nullable String                   comment;
-        public @Nullable Boolean                  runSingle;
-        public @Nullable Boolean                  resume;
-    }
-
     @PostMapping("projects/{projectId}/enqueued")
     public void enqueueStageToExecute(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestBody EnqueueData body
+            @RequestBody EnqueueRequest body
     ) {
         getProjectIfAllowedToAccess(user, projectId)
 
@@ -838,15 +814,11 @@ public class ProjectsController {
                 .orElseThrow();
     }
 
-    private static class EnqueueOnOtherData extends EnqueueData {
-        public @Nonnull String[] projectIds;
-    }
-
     @PostMapping("projects/{projectId}/enqueued-on-others")
     public Stream<Boolean> enqueueStageOnOthersToConfigure(
             User user,
             @PathVariable("projectId") String projectId,
-            @RequestBody EnqueueOnOtherData body
+            @RequestBody EnqueueOnOtherRequest body
     ) {
         var stageDefinitionBase = getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
@@ -1317,5 +1289,38 @@ public class ProjectsController {
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+
+    @GetMapping("projects/{projectId}/resource-limitation")
+    public Optional<ResourceLimitation> getResourceLimitation(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId) {
+        return getProjectIfAllowedToAccess(user, projectId).flatMap(Project::getResourceLimitation);
+    }
+
+    @PutMapping("projects/{projectId}/resource-limitation")
+    public ResponseEntity<ResourceLimitation> setResourceLimitation(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @RequestBody(required = false) ResourceLimitation limitation) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive()
+                .flatMap(container -> {
+                    try (container) {
+                        return container.getNoThrow().filter(p -> p.canBeAccessedBy(user)).map(project -> {
+                            try {
+                                project.setResourceLimitation(limitation);
+                                container.update(project);
+                                return ResponseEntity.ok(limitation);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                return ResponseEntity.notFound().<ResourceLimitation>build();
+                            }
+                        });
+                    }
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
 }

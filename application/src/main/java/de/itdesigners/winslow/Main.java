@@ -7,6 +7,8 @@ import ch.qos.logback.core.ConsoleAppender;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itdesigners.winslow.api.node.NodeInfo;
+import de.itdesigners.winslow.auth.GroupRepository;
+import de.itdesigners.winslow.auth.UserRepository;
 import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
@@ -74,17 +76,20 @@ public class Main {
             var projects        = new ProjectRepository(lockBus, config);
             var settings        = new SettingsRepository(lockBus, config);
             var nodes           = new NodeRepository(lockBus, config);
+            var groupRepository = new GroupRepository();
+            var userRepository  = new UserRepository(groupRepository);
 
             LOG.info("Preparing the orchestrator");
             var repository      = new PipelineRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
-            var node            = getNode(nodeName, nomadClient);
-            var resourceMonitor = new ResourceAllocationMonitor(toResourceSet(node.loadInfo()));
+            var resourceMonitor = new ResourceAllocationMonitor();
+            var node            = getNode(nodeName, resourceMonitor);
             var backend         = new NomadBackend(node.getPlatformInfo(), nomadClient);
 
-            // TODO
-            NodeInfoUpdater.spawn(nodes, node);
+            var updater = NodeInfoUpdater.spawn(nodes, node);
+            resourceMonitor.setAvailableResources(toResourceSet(node.loadInfo()));
+            resourceMonitor.addChangeListener(updater::updateNoThrows);
 
             var orchestrator = new Orchestrator(
                     lockBus,
@@ -95,6 +100,8 @@ public class Main {
                     attributes,
                     logs,
                     settings,
+                    userRepository,
+                    nodes,
                     nodeName,
                     resourceMonitor,
                     !Env.isNoStageExecutionSet()
@@ -105,7 +112,17 @@ public class Main {
             }
 
             LOG.info("Assembling Winslow");
-            var winslow = new Winslow(orchestrator, config, lockBus, resourceManager, projects, settings, nodes);
+            var winslow = new Winslow(
+                    orchestrator,
+                    config,
+                    lockBus,
+                    resourceManager,
+                    projects,
+                    settings,
+                    nodes,
+                    groupRepository,
+                    userRepository
+            );
 
 
             if (!Env.isNoWebApiSet()) {
@@ -147,9 +164,11 @@ public class Main {
     }
 
     @Nonnull
-    private static Node getNode(@Nonnull String nodeName, @Nonnull NomadApiClient nomadClient) throws IOException {
+    private static Node getNode(
+            @Nonnull String nodeName,
+            @Nonnull ResourceAllocationMonitor monitor) throws IOException {
         // TODO
-        return new UnixNode(nodeName);
+        return new UnixNode(nodeName, monitor);
     }
 
     @Nonnull

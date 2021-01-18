@@ -291,7 +291,28 @@ public abstract class BaseRepository {
 
         @Nonnull
         public Optional<LockedContainer<T>> exclusive() {
-            return BaseRepository.this.getLocked(path, reader, writer);
+            return exclusive(reader, writer);
+        }
+
+        @Nonnull
+        public Optional<LockedContainer<T>> exclusive(Reader<T> reader, Writer<T> writer) {
+            return exclusive(reader, writer, DEFAULT_RETRY_COUNT);
+        }
+
+        @Nonnull
+        public Optional<LockedContainer<T>> exclusive(int retryCount) {
+            return exclusive(reader, writer, retryCount);
+        }
+
+        @Nonnull
+        public Optional<LockedContainer<T>> exclusive(Reader<T> reader, Writer<T> writer, int retryCount) {
+            return BaseRepository.this.getLocked(path, reader, writer, retryCount, e -> {
+                if (e instanceof LockAlreadyExistsException) {
+                    LOG.log(Level.FINE, "Failed to lock " + path, e);
+                } else {
+                    LOG.log(Level.WARNING, "Failed to lock" + path, e);
+                }
+            });
         }
 
         public boolean isLocked() {
