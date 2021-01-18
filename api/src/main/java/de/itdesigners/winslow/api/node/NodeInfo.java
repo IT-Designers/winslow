@@ -2,6 +2,7 @@ package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,6 +18,16 @@ public class NodeInfo {
     private final @Nonnull BuildInfo       buildInfo;
     private final @Nonnull List<AllocInfo> allocInfo;
 
+    @ConstructorProperties({
+            "name",
+            "time",
+            "cpuInfo",
+            "memInfo",
+            "netInfo",
+            "diskInfo",
+            "gpuInfo",
+            "buildInfo"
+    })
     public NodeInfo(
             @Nonnull String name,
             @Nullable Long time,
