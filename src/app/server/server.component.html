@@ -30,6 +30,9 @@
         [tooltipDisabled]="false"
       ></ngx-charts-pie-chart>
     </div>
+    <div *ngIf="node?.uptime" class="server-details server-build-info whitespace-separator-top">
+      <span>Up since {{uptimeToDateTime(node.time, node?.uptime)}}</span>
+    </div>
     <div *ngIf="node.buildInfo" class="server-details server-build-info whitespace-separator-top">
       <span>{{node.buildInfo.commitHashShort}}, {{node.buildInfo.date}}</span>
     </div>
