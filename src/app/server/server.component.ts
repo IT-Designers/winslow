@@ -97,6 +97,7 @@ export class ServerComponent implements OnInit {
     this.node = new NodeInfo(
       this.node.name,
       this.node.time,
+      this.node.uptime,
       this.node.cpuInfo,
       this.node.memInfo,
       this.node.gpuInfo,
@@ -380,5 +381,13 @@ export class ServerComponent implements OnInit {
 
   trackGpu(gpuInfo: GpuInfo): string {
     return gpuInfo?.id;
+  }
+
+  uptimeToDateTime(time: number, uptime?: number): string {
+    if (uptime) {
+      return new Date(time - uptime).toLocaleString();
+    } else {
+      return '';
+    }
   }
 }

@@ -22,7 +22,10 @@ export class NodesApiService {
 
 export class NodeInfo {
   name: string;
+  // The time this info was generated at (UNIX timestamp in ms)
   time: number;
+  // The time in ms this node is up for
+  uptime: number;
   cpuInfo: CpuInfo;
   memInfo: MemInfo;
   netInfo: NetInfo;
@@ -33,9 +36,10 @@ export class NodeInfo {
   // local only
   update: (node: NodeInfo) => void;
 
-  constructor(name: string, time: number, cpuInfo: CpuInfo, memInfo: MemInfo, gpus: GpuInfo[], buildInfo?: BuildInfo) {
+  constructor(name: string, time: number, uptime: number, cpuInfo: CpuInfo, memInfo: MemInfo, gpus: GpuInfo[], buildInfo?: BuildInfo) {
     this.name = name;
     this.time = time;
+    this.uptime = uptime;
     this.cpuInfo = new CpuInfo(cpuInfo.modelName, cpuInfo.utilization.length);
     this.memInfo = new MemInfo(memInfo.memoryTotal, memInfo.swapTotal);
     this.netInfo = new NetInfo();
