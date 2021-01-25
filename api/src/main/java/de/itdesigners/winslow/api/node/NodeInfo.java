@@ -5,8 +5,12 @@ import javax.annotation.Nullable;
 import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class NodeInfo {
+
+    private static final Logger LOG = Logger.getLogger(NodeInfo.class.getSimpleName());
 
     private final @Nonnull String          name;
     private final          long            time;
@@ -28,7 +32,7 @@ public class NodeInfo {
             "netInfo",
             "diskInfo",
             "gpuInfo",
-            "buildInfo"
+            "allocInfo"
     })
     public NodeInfo(
             @Nonnull String name,
@@ -103,6 +107,21 @@ public class NodeInfo {
 
     @Nonnull
     public List<AllocInfo> getAllocInfo() {
-        return allocInfo;
+        // debugging spurious NPEs
+        if (this.allocInfo == null) {
+            LOG.warning("allocInfo is null");
+            return Collections.emptyList();
+        }
+        return this.allocInfo
+                .stream()
+                .filter(i -> {
+                    if (i == null) {
+                        LOG.warning("allocInfo has at least one item which is null");
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                .collect(Collectors.toList());
     }
 }
