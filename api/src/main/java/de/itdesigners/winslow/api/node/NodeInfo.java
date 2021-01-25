@@ -10,6 +10,7 @@ public class NodeInfo {
 
     private final @Nonnull String          name;
     private final          long            time;
+    private final          long            uptime;
     private final @Nonnull CpuInfo         cpuInfo;
     private final @Nonnull MemInfo         memInfo;
     private final @Nonnull NetInfo         netInfo;
@@ -21,6 +22,7 @@ public class NodeInfo {
     @ConstructorProperties({
             "name",
             "time",
+            "uptime",
             "cpuInfo",
             "memInfo",
             "netInfo",
@@ -31,6 +33,7 @@ public class NodeInfo {
     public NodeInfo(
             @Nonnull String name,
             @Nullable Long time,
+            @Nullable Long uptime,
             @Nonnull CpuInfo cpuInfo,
             @Nonnull MemInfo memInfo,
             @Nonnull NetInfo netInfo,
@@ -38,6 +41,7 @@ public class NodeInfo {
             @Nonnull List<GpuInfo> gpuInfo,
             @Nullable List<AllocInfo> allocInfo) {
         this.name      = name;
+        this.uptime    = uptime != null ? uptime : 0;
         this.time      = time != null ? time : 0;
         this.cpuInfo   = cpuInfo;
         this.memInfo   = memInfo;
@@ -53,8 +57,18 @@ public class NodeInfo {
         return name;
     }
 
+    /**
+     * @return The time this info was generated at in ms
+     */
     public long getTime() {
         return time;
+    }
+
+    /**
+     * @return The time in ms this node is up for
+     */
+    public long getUptime() {
+        return this.uptime;
     }
 
     @Nonnull

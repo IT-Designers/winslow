@@ -25,6 +25,7 @@ public class UnixNode implements Node {
     public static final  String CPU_INFO_MODEL_PREFIX = "model name";
     public static final  String CPU_INFO_SEPARATOR    = ":";
 
+    private final          long                                uptime;
     @Nonnull private final String                              name;
     @Nonnull private       List<UnixCpuInfoParser.CpuTimes>    prevCpuTimes;
     @Nonnull private       List<UnixNetIoParser.InterfaceInfo> prevNetBytes;
@@ -36,6 +37,7 @@ public class UnixNode implements Node {
     private boolean hasGpus = true;
 
     public UnixNode(@Nonnull String name, @Nonnull ResourceAllocationMonitor monitor) throws IOException {
+        this.uptime                    = System.currentTimeMillis();
         this.name                      = name;
         this.prevCpuTimes              = getCpuTimes(resolveStat());
         this.prevNetBytes              = getInterfaceInfo(resolveNetDev());
@@ -142,6 +144,8 @@ public class UnixNode implements Node {
     @Nonnull
     @Override
     public NodeInfo loadInfo() throws IOException {
+        var time     = System.currentTimeMillis();
+        var uptime   = time - this.uptime;
         var cpuInfo  = loadCpuInfo();
         var memInfo  = loadMemInfo();
         var netInfo  = loadNetInfo();
@@ -149,7 +153,7 @@ public class UnixNode implements Node {
         var gpuInfo  = hasGpus ? UnixGpuInfoParser.loadGpuInfo() : Collections.<GpuInfo>emptyList();
         this.hasGpus = this.hasGpus && !gpuInfo.isEmpty();
         var allocInfo = loadAllocInfo();
-        return new NodeInfo(name, System.currentTimeMillis(), cpuInfo, memInfo, netInfo, diskInfo, gpuInfo, allocInfo);
+        return new NodeInfo(name, time, uptime, cpuInfo, memInfo, netInfo, diskInfo, gpuInfo, allocInfo);
     }
 
     @Nonnull
