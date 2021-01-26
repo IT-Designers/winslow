@@ -98,8 +98,8 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
             // TODO use the DelayedExecutor a scheduler or something more clever?
             var thread = new Thread(() -> {
                 try {
-                    var duration = 2_000L;
-                    var puffer   = 100L;
+                    var duration = 10_000L;
+                    var puffer   = 500L;
                     if (orchestrator.getElectionManager().maybeStartElection(projectId, duration + puffer)) {
                         LockBus.ensureSleepMs(duration);
                         orchestrator.getElectionManager().closeElection(projectId);
