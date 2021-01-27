@@ -54,7 +54,7 @@ public class Lock implements Closeable {
         var time = System.currentTimeMillis();
         if (this.token.getTime() + durationMs < time) {
             throw new LockException("Lock expired");
-        } else if (this.token.getTime() + (durationMs / 2) < time) {
+        } else if (this.token.getTime() + (durationMs / 3) < time) {
             this.token = this.lockBus.extend(this.token, durationMs);
         }
     }

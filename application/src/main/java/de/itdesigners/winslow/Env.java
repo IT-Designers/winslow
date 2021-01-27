@@ -8,8 +8,9 @@ import java.util.Optional;
 
 public class Env {
 
-    private static final int LOCK_DURATION_MIN_MS     = 10 * 1_000; // 10s
-    private static final int LOCK_DURATION_DEFAULT_MS = 5 * 60 * 1_000; // 5min
+    public static final int LOCK_DURATION_MIN_MS     = 10 * 1_000; // 10s
+    public static final int LOCK_DURATION_DEFAULT_MS = 5 * 60 * 1_000; // 5min
+    public static final int LOCK_DURATION_LOGS_MS    = LOCK_DURATION_DEFAULT_MS;
 
     public static final String SELF_PREFIX        = "WINSLOW";
     public static final String DEV_ENV            = SELF_PREFIX + "_DEV_ENV";

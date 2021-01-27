@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.project;
 
 import de.itdesigners.winslow.BaseRepository;
+import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.LockedOutputStream;
@@ -18,7 +19,7 @@ import java.util.logging.Level;
 
 public class LogRepository extends BaseRepository {
 
-    private static final int  LOCK_DURATION_MS        = 60_000;
+    private static final int  LOCK_DURATION_MS        = Env.LOCK_DURATION_LOGS_MS;
     public static final  char PROJECT_STAGE_SEPARATOR = '.';
 
     public LogRepository(
