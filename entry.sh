@@ -20,6 +20,7 @@ export NOMAD_PORT=4646
 export NOMAD_PID_FILE=/run/nomad.pid
 
 echo "  :::: Starting nomad"
+rm -rf /tmp/nomad-data-dir || true
 #start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --exec /usr/bin/nomad -- agent -config /etc/nomad/nomad.hcl
 start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --startas /bin/bash -- -c "/usr/bin/nomad agent -config /etc/nomad/nomad.hcl &> /var/log/nomad.log"
 
