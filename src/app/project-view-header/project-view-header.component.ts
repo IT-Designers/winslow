@@ -51,6 +51,6 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   }
 
   thumbnailUrl() {
-    return this.files.workspaceUrl(`${this.project.id}/thumbnail.png`);
+    return this.files.workspaceUrl(`${this.project.id}/output/thumbnail.jpg`);
   }
 }
