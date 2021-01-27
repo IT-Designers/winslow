@@ -59,7 +59,7 @@ public class WorkspaceCreator implements AssemblerStep {
                     .orElseThrow(() -> new AssemblyException(
                             "Failed to find continue workspace because a stage with the id " + stageId + " was not found"))
                     .getWorkspace()
-                    .orElseThrow(() -> new ClassCastException("Failed to continue on workspace of stage " + stageId + " because it has no workspace"));
+                    .orElseThrow(() -> new AssemblyException("Failed to continue on workspace of stage " + stageId + " because it has no workspace"));
 
 
             workspaceContinuation = Optional.of(Path.of(baseWorkspace));
