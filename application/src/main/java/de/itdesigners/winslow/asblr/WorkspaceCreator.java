@@ -270,9 +270,9 @@ public class WorkspaceCreator implements AssemblerStep {
 
                             context.log(Level.INFO, "..." + dst.getFileName());
                             copyFileWhile(path, dst, new Supplier<Boolean>() {
-                                long lastGetCall = System.currentTimeMillis();
+                                final float totalBytes = (float) path.toFile().length();
+                                long lastGetCall = System.currentTimeMillis() - 1_500;
                                 long lastFileLen = 0;
-                                float totalBytes = (float) path.toFile().length();
 
                                 @Override
                                 public Boolean get() {
