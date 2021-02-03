@@ -146,7 +146,7 @@ public class NodeRepository extends BaseRepository {
             return Optional.of(new Toml().read(p.toFile()).<NodeInfo>to(NodeInfo.class));
         } catch (Throwable t) {
             // if the file was not found, the FileNotFoundException is thrown encapsulated in a RuntimeException... :/
-            LOG.log(Level.WARNING, "Failed to read node for path=" + path, t);
+            LOG.log(Level.WARNING, "Failed to read node for path=" + p, t);
             return Optional.empty();
         }
     }
