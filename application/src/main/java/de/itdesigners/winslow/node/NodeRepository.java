@@ -111,7 +111,7 @@ public class NodeRepository extends BaseRepository {
     private Stream<Path> listActiveNodePaths() {
         try (var files = Files.list(getRepositoryDirectory())) {
             return files
-                    .filter(p -> !p.toString().startsWith(TEMP_FILE_PREFIX))
+                    .filter(p -> !p.getFileName().toString().startsWith(TEMP_FILE_PREFIX))
                     .filter(p -> System.currentTimeMillis() - p.toFile().lastModified() < ACTIVE_MAX_MS_DIFF)
                     .collect(Collectors.toList())
                     .stream();
@@ -128,7 +128,7 @@ public class NodeRepository extends BaseRepository {
 
     @Nonnull
     public Stream<NodeInfo> loadActiveNodes() {
-        return listActiveNodePaths().map(this::readNode);
+        return listActiveNodePaths().flatMap(p -> this.readNode(p).stream());
     }
 
     @Nonnull
@@ -136,13 +136,19 @@ public class NodeRepository extends BaseRepository {
         return listActiveNodePaths()
                 .filter(p -> p.getFileName().toString().equals(name))
                 .findFirst()
-                .map(this::readNode);
+                .flatMap(this::readNode);
     }
 
     @Nonnull
-    private NodeInfo readNode(@Nonnull Path p) {
-        // hardcoded Toml because NodeInfoUpdate also uses hardcoded Toml...
-        return new Toml().read(p.toFile()).<NodeInfo>to(NodeInfo.class);
+    private Optional<NodeInfo> readNode(@Nonnull Path p) {
+        try {
+            // hardcoded Toml because NodeInfoUpdate also uses hardcoded Toml...
+            return Optional.of(new Toml().read(p.toFile()).<NodeInfo>to(NodeInfo.class));
+        } catch (Throwable t) {
+            // if the file was not found, the FileNotFoundException is thrown encapsulated in a RuntimeException... :/
+            LOG.log(Level.WARNING, "Failed to read node for path=" + path, t);
+            return Optional.empty();
+        }
     }
 
     public void updateNodeInfo(@Nonnull NodeInfo node) throws IOException {
