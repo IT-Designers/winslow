@@ -24,6 +24,8 @@ public class LockBus {
 
     private static final Logger LOG = Logger.getLogger(LockBus.class.getSimpleName());
 
+    public static final int    LOCK_RETRY_READ_COOLDOWN_MS   = 100;
+    public static final int    LOCK_RETRY_READ_MAX_TRIALS    = 300; // with 100ms cooldown this is about 30s
     public static final int    LOCK_DURATION_OFFSET          = 1_000;
     public static final int    DURATION_SURELY_OUT_OF_DATE   = 5_000;
     public static final int    DURATION_FOR_UNREADABLE_FILES = 25_000;
@@ -120,7 +122,7 @@ public class LockBus {
                             int id   = Integer.parseInt(path.getFileName().toString());
 
                             while (id > eventCounter) {
-                                if (loadNextEvent(0).isEmpty()) {
+                                if (loadNextEvent().isEmpty()) {
                                     break;
                                 }
                             }
@@ -135,7 +137,7 @@ public class LockBus {
                     while (true) {
                         var path = nextEventPath();
                         if (Files.exists(path)) {
-                            loadNextEvent(5);
+                            loadNextEvent();
                         } else {
                             break;
                         }
@@ -378,7 +380,7 @@ public class LockBus {
               .flatMap(List::stream)
               .forEach(listener -> {
                   var thread = new Thread(() -> listener.accept(event));
-                  thread.setName(event.getId()+".evt");
+                  thread.setName(event.getId() + ".evt");
                   thread.start();
               });
     }
@@ -402,21 +404,20 @@ public class LockBus {
     }
 
     private Path nextEventPath() {
-        return this.eventDirectory.resolve(this.getEventFileNameForCurrentCounter());
+        return this.nextEventPath(eventCounter);
     }
 
-    private String getEventFileNameForCurrentCounter() {
-        return String.format("%08d", eventCounter);
+    private Path nextEventPath(int counter) {
+        return this.eventDirectory.resolve(this.getEventFileNameForCurrentCounter(counter));
+    }
+
+    private String getEventFileNameForCurrentCounter(int counter) {
+        return String.format("%08d", counter);
     }
 
     @Nonnull
-    private Optional<Event> loadNextEvent() throws LockException {
-        return this.loadNextEvent(10);
-    }
-
-    @Nonnull
-    private synchronized Optional<Event> loadNextEvent(int retryCount) throws LockException {
-        for (int i = 0; i < retryCount; ++i) {
+    private synchronized Optional<Event> loadNextEvent() throws LockException {
+        for (int i = 0; i < LOCK_RETRY_READ_MAX_TRIALS; ++i) {
             Path  path  = null;
             Event event = null;
             try {
@@ -432,14 +433,15 @@ public class LockBus {
                 LOG.fine("Failed to read next event because there is none");
                 return Optional.empty();
             } catch (Throwable e) {
-                if (i + 1 == retryCount || !fileJustCreated(path)) {
+                var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustCreated(path) && Files.exists(nextEventPath(i + 1));
+                if (i + 1 == LOCK_RETRY_READ_MAX_TRIALS || !fileJustCreated(path) || cooledDownAtLeastOnceAndHasNext) {
                     // max retries exceeded or file probably not actively written to
                     if (path != null && Files.exists(path)) {
                         this.eventCounter += 1; // do not try again
                     }
                     throw new LockException("Failed to parse event file: " + path, e);
                 } else {
-                    ensureSleepMs(100);
+                    ensureSleepMs(LOCK_RETRY_READ_COOLDOWN_MS);
                 }
             }
         }
@@ -463,7 +465,7 @@ public class LockBus {
     }
 
     private static boolean fileJustCreated(@Nullable Path path) {
-        return path != null && path.toFile().lastModified() - System.currentTimeMillis() < 1000;
+        return path != null && path.toFile().lastModified() - System.currentTimeMillis() < 10_000;
     }
 
     private void deleteOldEventFiles() {
