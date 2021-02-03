@@ -102,7 +102,7 @@ public class LockBusElectionManagerAdapter {
                     } catch (IOException | LockException e) {
                         LOG.log(
                                 Level.SEVERE,
-                                "Failed to participate in election for paroject " + election.getProjectId(),
+                                "Failed to participate in election for project=" + election.getProjectId(),
                                 e
                         );
                     }
