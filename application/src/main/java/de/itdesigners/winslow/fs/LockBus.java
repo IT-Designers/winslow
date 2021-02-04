@@ -436,7 +436,7 @@ public class LockBus {
                 LOG.fine("Failed to read next event because there is none");
                 return Optional.empty();
             } catch (Throwable e) {
-                var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustCreated(path) && Files.exists(nextEventPath(i + 1));
+                var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustCreated(path) && Files.exists(nextEventPath(this.eventCounter + 1));
                 if (i + 1 == LOCK_RETRY_READ_MAX_TRIALS || !fileJustCreated(path) || cooledDownAtLeastOnceAndHasNext) {
                     // max retries exceeded or file probably not actively written to
                     if (path != null && Files.exists(path)) {
