@@ -356,7 +356,10 @@ public class LockBus {
             case LOCK:
             case EXTEND:
                 this.locks.put(event.getSubject(), event);
-                LOG.fine("ADD/UPDATE lock for subject " + event.getSubject());
+                LOG.fine("ADD/UPDATE lock for subject " + event.getSubject()
+                                 + ", time=" + event.getTime()
+                                 + ", duration=" + event.getDuration()
+                );
                 break;
             case RELEASE:
                 var lock = this.locks.get(event.getSubject());
@@ -441,6 +444,7 @@ public class LockBus {
                     }
                     throw new LockException("Failed to parse event file: " + path, e);
                 } else {
+                    LOG.warning("Failed to read event, retrying after cooldown");
                     ensureSleepMs(LOCK_RETRY_READ_COOLDOWN_MS);
                 }
             }

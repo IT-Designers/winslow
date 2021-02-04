@@ -123,10 +123,16 @@ public class LockBusElectionManagerAdapter {
                                     var pipeline = container.get().get();
                                     var projectId = pipeline.getProjectId();
                                     if (orchestrator.startPipeline(lock, projectId, definition.get(), pipeline)) {
+                                        LOG.info("Updating pipeline...");
                                         container.update(pipeline);
+                                    } else {
+                                        LOG.info("No pipeline update available...");
                                     }
+                                    LOG.info("Closing lock=" + lock);
                                 } catch (LockException | IOException e) {
                                     LOG.log(Level.SEVERE, "Failed to start next stage", e);
+                                } finally {
+                                    LOG.info("Closed lock");
                                 }
                             },
                             () -> LOG.severe("Failed to lock project which should be executed by this node by election")

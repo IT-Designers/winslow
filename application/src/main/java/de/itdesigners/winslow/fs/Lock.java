@@ -62,7 +62,8 @@ public class Lock implements Closeable {
     public synchronized void waitForRelease() {
         while (!this.released) {
             try {
-                this.wait();
+                this.wait(1_000);
+                LOG.info("Lock not release yet, token=" + token);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -71,8 +72,7 @@ public class Lock implements Closeable {
 
     public synchronized void release() {
         if (!this.released) {
-            this.lockBus.release(this.token);
-            this.released = true;
+            this.released = this.lockBus.release(this.token);
             this.notifyAll();
         } else {
             LOG.log(
