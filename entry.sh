@@ -73,11 +73,15 @@ elif [ "$WINSLOW_STORAGE_TYPE" != "" ]; then
     echo "Error: unknown storage type: $WINSLOW_STORAGE_TYPE"
     exit 1
 fi
-    
+
+ANGENTLIB_DEBUGGER=""
+if [ "$WINSLOW_REMOTE_DEBUGGER" != "" && "$WINSLOW_REMOTE_DEBUGGER" != "0" ]; then
+    AGENTLIB_DEBUGGER=" -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6006 "
+fi
 
 echo "  :::: Starting winslow"
 echo ""
-java -jar /usr/bin/winslow.jar
+java $AGENTLIB_DEBUGGER -jar /usr/bin/winslow.jar
 
 start-stop-daemon --stop --name nomad --quiet --pidfile $NOMAD_PID_FILE
 
