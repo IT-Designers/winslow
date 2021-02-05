@@ -31,7 +31,7 @@ public class NodeInfoUpdater implements Runnable {
         return updater;
     }
 
-    public synchronized void update() throws IOException {
+    public void update() throws IOException {
         repository.updateNodeInfo(node.loadInfo());
         waitUntil = System.currentTimeMillis() + SLEEP_TIME_MS;
     }

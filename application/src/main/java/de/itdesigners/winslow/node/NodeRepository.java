@@ -151,7 +151,7 @@ public class NodeRepository extends BaseRepository {
         }
     }
 
-    public void updateNodeInfo(@Nonnull NodeInfo node) throws IOException {
+    public synchronized void updateNodeInfo(@Nonnull NodeInfo node) throws IOException {
         var name = Path.of(node.getName()).getFileName().toString();
         var path = getRepositoryDirectory().resolve(name);
         var temp = getRepositoryDirectory().resolve(TEMP_FILE_PREFIX + name);
