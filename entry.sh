@@ -75,7 +75,7 @@ elif [ "$WINSLOW_STORAGE_TYPE" != "" ]; then
 fi
 
 ANGENTLIB_DEBUGGER=""
-if [ "$WINSLOW_REMOTE_DEBUGGER" != "" && "$WINSLOW_REMOTE_DEBUGGER" != "0" ]; then
+if [ "$WINSLOW_REMOTE_DEBUGGER" != "" ] && [ "$WINSLOW_REMOTE_DEBUGGER" != "0" ]; then
     AGENTLIB_DEBUGGER=" -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6006 "
 fi
 
