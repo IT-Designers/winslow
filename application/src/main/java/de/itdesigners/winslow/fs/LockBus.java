@@ -473,7 +473,7 @@ public class LockBus {
     }
 
     private static boolean fileJustCreated(@Nullable Path path) {
-        return path != null && path.toFile().lastModified() - System.currentTimeMillis() < 10_000;
+        return path != null && System.currentTimeMillis() - path.toFile().lastModified()  < 10_000;
     }
 
     private void deleteOldEventFiles() {
