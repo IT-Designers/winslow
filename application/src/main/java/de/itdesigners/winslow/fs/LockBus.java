@@ -244,6 +244,10 @@ public class LockBus {
         return getValidLock(subject).isPresent();
     }
 
+    public boolean isLockedByThisInstance(String subject) {
+        return getValidLock(subject).map(e -> this.name.equals(e.getIssuer())).orElse(Boolean.FALSE);
+    }
+
     public boolean isLockedByAnotherInstance(String subject) {
         return getValidLock(subject).map(e -> !this.name.equals(e.getIssuer())).orElse(Boolean.FALSE);
     }

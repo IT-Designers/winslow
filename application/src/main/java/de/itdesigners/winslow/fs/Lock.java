@@ -63,6 +63,7 @@ public class Lock implements Closeable {
         while (!this.released) {
             try {
                 this.wait(1_000);
+                this.released = !this.lockBus.isLockedByThisInstance(this.token.getSubject());
                 LOG.info("Lock not release yet, token=" + token);
             } catch (InterruptedException e) {
                 e.printStackTrace();
