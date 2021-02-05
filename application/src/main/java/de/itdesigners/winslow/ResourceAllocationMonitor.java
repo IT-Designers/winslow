@@ -22,12 +22,21 @@ public class ResourceAllocationMonitor {
         return this;
     }
 
-    public synchronized void addChangeListener(@Nonnull Runnable listener) {
-        this.changeListeners.add(listener);
+    public void addChangeListener(@Nonnull Runnable listener) {
+        synchronized (this.changeListeners) {
+            this.changeListeners.add(listener);
+        }
     }
 
-    private synchronized void notifyChangeListeners() {
-        this.changeListeners.forEach(Runnable::run);
+    @Nonnull
+    private List<Runnable> getChangeListenersCopy() {
+        synchronized (this.changeListeners) {
+            return new ArrayList<>(this.changeListeners);
+        }
+    }
+
+    private void notifyChangeListeners() {
+        getChangeListenersCopy().forEach(Runnable::run);
     }
 
     public synchronized void setAvailableResources(@Nonnull ResourceSet<Long> resources) {
