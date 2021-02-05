@@ -213,7 +213,7 @@ public class LockBus {
             return true;
         } catch (LockException e) {
             e.printStackTrace();
-            return false;
+            return isLockedByThisInstance(token.getSubject());
         }
     }
 
