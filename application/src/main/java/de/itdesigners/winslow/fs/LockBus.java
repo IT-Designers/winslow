@@ -440,8 +440,8 @@ public class LockBus {
                 LOG.fine("Failed to read next event because there is none");
                 return Optional.empty();
             } catch (Throwable e) {
-                var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustCreated(path) && Files.exists(nextEventPath(this.eventCounter + 1));
-                if (i + 1 == LOCK_RETRY_READ_MAX_TRIALS || !fileJustCreated(path) || cooledDownAtLeastOnceAndHasNext) {
+                var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustModified(path) && Files.exists(nextEventPath(this.eventCounter + 1));
+                if (i + 1 == LOCK_RETRY_READ_MAX_TRIALS || !fileJustModified(path) || cooledDownAtLeastOnceAndHasNext) {
                     // max retries exceeded or file probably not actively written to
                     if (path != null && Files.exists(path)) {
                         this.eventCounter += 1; // do not try again
@@ -472,8 +472,8 @@ public class LockBus {
         }
     }
 
-    private static boolean fileJustCreated(@Nullable Path path) {
-        return path != null && System.currentTimeMillis() - path.toFile().lastModified()  < 10_000;
+    private static boolean fileJustModified(@Nullable Path path) {
+        return path != null && System.currentTimeMillis() - path.toFile().lastModified()  < 30_000;
     }
 
     private void deleteOldEventFiles() {
