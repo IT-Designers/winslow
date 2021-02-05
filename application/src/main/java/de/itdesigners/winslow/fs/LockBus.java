@@ -538,7 +538,7 @@ public class LockBus {
     }
 
     private static void logEvent(Event event) {
-        LOG.info(event.getId() + " " + event.getIssuer() + ": " + event.getCommand() + " " + event.getSubject());
+        LOG.info(event.getIssuer() + ": " + event.getCommand() + " " + event.getSubject());
     }
 
     interface EventSupplier {
