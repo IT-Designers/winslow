@@ -26,6 +26,7 @@ public class LockBus {
 
     public static final int    LOCK_RETRY_READ_COOLDOWN_MS   = 100;
     public static final int    LOCK_RETRY_READ_MAX_TRIALS    = 300; // with 100ms cooldown this is about 30s
+    public static final int    LOCK_RETRY_MIN_THRESHOLD      = LOCK_RETRY_READ_MAX_TRIALS / 20;
     public static final int    LOCK_DURATION_OFFSET          = 1_000;
     public static final int    DURATION_SURELY_OUT_OF_DATE   = 5_000;
     public static final int    DURATION_FOR_UNREADABLE_FILES = 25_000;
@@ -452,7 +453,7 @@ public class LockBus {
             } catch (Throwable e) {
                 var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustModified(path) && Files.exists(nextEventPath(
                         this.eventCounter + 1));
-                if (i + 1 == LOCK_RETRY_READ_MAX_TRIALS || !fileJustModified(path) || cooledDownAtLeastOnceAndHasNext) {
+                if (i > LOCK_RETRY_MIN_THRESHOLD && (i + 1 == LOCK_RETRY_READ_MAX_TRIALS || !fileJustModified(path) || cooledDownAtLeastOnceAndHasNext)) {
                     // max retries exceeded or file probably not actively written to
                     if (path != null && Files.exists(path)) {
                         this.eventCounter += 1; // do not try again
