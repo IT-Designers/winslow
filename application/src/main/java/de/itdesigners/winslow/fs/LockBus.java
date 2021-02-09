@@ -457,6 +457,10 @@ public class LockBus {
                     if (path != null && Files.exists(path)) {
                         this.eventCounter += 1; // do not try again
                     }
+                    LOG.warning("Aborting read attempt after " + i + " failures, " +
+                                        "justModified=" + fileJustModified(path) + ", " +
+                                        "hasNext=" + Files.exists(nextEventPath(this.eventCounter + 1))
+                    );
                     throw new LockException("Failed to parse event file: " + path, e);
                 } else {
                     LOG.warning("Failed to read event, retrying after cooldown");
