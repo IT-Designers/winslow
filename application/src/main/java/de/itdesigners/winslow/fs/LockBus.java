@@ -424,13 +424,23 @@ public class LockBus {
 
     @Nonnull
     private synchronized Optional<Event> loadNextEvent() throws LockException {
+
         for (int i = 0; i < LOCK_RETRY_READ_MAX_TRIALS; ++i) {
             Path  path  = null;
             Event event = null;
             try {
                 path  = this.nextEventPath();
                 event = loadEvent(path);
-                event.check();
+
+                if (event.isIncomplete() && !Files.exists(nextEventPath(this.eventCounter + 1))) {
+                    if (i > LOCK_RETRY_READ_MAX_TRIALS / 20) {
+                        LOG.warning("Event " + path + " still seems incomplete, attempt " + i);
+                    }
+                    ensureSleepMs(LOCK_RETRY_READ_COOLDOWN_MS);
+                    continue;
+                } else {
+                    event.check();
+                }
 
                 this.processEvent(event);
 
@@ -440,7 +450,8 @@ public class LockBus {
                 LOG.fine("Failed to read next event because there is none");
                 return Optional.empty();
             } catch (Throwable e) {
-                var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustModified(path) && Files.exists(nextEventPath(this.eventCounter + 1));
+                var cooledDownAtLeastOnceAndHasNext = i > 0 && !fileJustModified(path) && Files.exists(nextEventPath(
+                        this.eventCounter + 1));
                 if (i + 1 == LOCK_RETRY_READ_MAX_TRIALS || !fileJustModified(path) || cooledDownAtLeastOnceAndHasNext) {
                     // max retries exceeded or file probably not actively written to
                     if (path != null && Files.exists(path)) {
@@ -473,7 +484,7 @@ public class LockBus {
     }
 
     private static boolean fileJustModified(@Nullable Path path) {
-        return path != null && System.currentTimeMillis() - path.toFile().lastModified()  < 30_000;
+        return path != null && System.currentTimeMillis() - path.toFile().lastModified() < 30_000;
     }
 
     private void deleteOldEventFiles() {

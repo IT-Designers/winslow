@@ -14,7 +14,7 @@ public class Event {
     public Event(String id, Command command, long time, long duration, String subject, String issuer) {
         this.id       = id;
         this.command  = command;
-        this.time     = time;
+        this.time     = time == 0 ? System.currentTimeMillis() : time; // dont allow zero
         this.duration = duration;
         this.subject  = subject;
         this.issuer   = issuer;
@@ -37,10 +37,19 @@ public class Event {
         }
     }
 
+    public boolean isIncomplete() {
+        return this.id == null
+                || this.command == null
+                || this.time == 0
+                // || this.duration == 0 // valid value
+                || this.subject == null
+                || this.issuer == null;
+    }
+
     /**
      * @return The id of the {@link Event}, which is re-used on continues operations, such as {@link Command#EXTEND} or
-     *         {@link Command#RELEASE} and can therefore be used to map requests and responses unambiguously and
-     *         identify clashes on a subject
+     * {@link Command#RELEASE} and can therefore be used to map requests and responses unambiguously and
+     * identify clashes on a subject
      */
     public String getId() {
         return id;
