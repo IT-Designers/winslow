@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##### config starts here
+
 #HTTP="80"
 #HTTPS="443"
 #NODE_TYPE="executor"
@@ -7,7 +9,19 @@ NODE_TYPE="observer"
 STORAGE_TYPE="nfs"
 STORAGE_PATH="srv515.itd-intern.de:/data/streets/winslow"
 #KEYSTORE_PATH_PKCS12="/root/winslow.itd-intern.de.p12"
-ADDITIONAL="-p 446:4646 -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=michael"
+ADDITIONAL="-p 446:4646 "
+
+# for dev env
+# ADDITIONAL+=" -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=michael "
+
+# set this on the nfs-server!
+# ADDIIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
+
+# set this to disable auto-disabling Dirty-Bytes adjustment
+# IGNORE_NFSD=""
+
+
+##### common part starts here
 
 PARAMS="$@"
 #IMAGE="winslow"
@@ -63,6 +77,10 @@ echo "   Additional Winslow Parameters: '$PARAMS'"
 echo ""
 
 sleep 1
+if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ] && [ "$IGNORE_NFSD" == "" ]  && [ "$(pgrep nfsd)" != "" ]; then
+    echo " ::::: Disabling Dirty-Bytes adjustment because at least one nfsd process has been detected"
+    ADDIIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
+fi
 
 if [ $($SUDO docker ps -a --filter "name=$CONTAINER_NAME" | wc -l) -gt 1 ]; then
     echo " ::::: Stopping already running Winslow instance"
