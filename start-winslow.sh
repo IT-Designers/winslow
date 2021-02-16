@@ -16,7 +16,7 @@ ADDITIONAL+="-p 446:4646 "
 # ADDITIONAL+=" -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=michael "
 
 # set this on the nfs-server!
-# ADDIIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
+# ADDITIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
 
 # set this to disable auto-disabling Dirty-Bytes adjustment
 # IGNORE_NFSD=""
@@ -58,7 +58,7 @@ fi
 
 if [ "$STORAGE_TYPE" == "nfs" ] && [ "$IGNORE_NFSD" == "" ]  && [ "$(pgrep nfsd)" != "" ]; then
     echo " :::::  Disabling Dirty-Bytes adjustment because at least one nfsd process has been detected"
-    ADDIIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
+    ADDITIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
 fi
 
 echo " :::::  Going to create Winslow Container with the following settings"
