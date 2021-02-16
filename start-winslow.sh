@@ -55,10 +55,11 @@ if [ "$WEB_PORT" == "" ]; then
     ADDITIONAL+="-e WINSLOW_NO_WEB_API=true "
 fi
 
+if [ "$STORAGE_TYPE" == "nfs" ] && [ "$IGNORE_NFSD" == "" ]  && [ "$(pgrep nfsd)" != "" ]; then
+    echo " :::::  Disabling Dirty-Bytes adjustment because at least one nfsd process has been detected"
+    ADDIIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
+fi
 
-echo ""
-echo ""
-echo ""
 echo " :::::  Going to create Winslow Container with the following settings"
 echo ""
 echo "   HTTP Port    '$HTTP'"
@@ -77,10 +78,6 @@ echo "   Additional Winslow Parameters: '$PARAMS'"
 echo ""
 
 sleep 1
-if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ] && [ "$IGNORE_NFSD" == "" ]  && [ "$(pgrep nfsd)" != "" ]; then
-    echo " ::::: Disabling Dirty-Bytes adjustment because at least one nfsd process has been detected"
-    ADDIIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
-fi
 
 if [ $($SUDO docker ps -a --filter "name=$CONTAINER_NAME" | wc -l) -gt 1 ]; then
     echo " ::::: Stopping already running Winslow instance"
