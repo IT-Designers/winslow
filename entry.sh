@@ -53,11 +53,17 @@ if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
     }
 
     # Shrink the disk buffers to a more reasonable size. See http://lwn.net/Articles/572911/
-    # https://unix.stackexchange.com/questions/149029/pernicious-usb-stick-stall-problem-reverting-workaround-fix/149140
-    check_set_val "/proc/sys/vm/dirty_bytes" $((4*1024*1024))
-    check_set_val "/proc/sys/vm/dirty_background_bytes" $((4*1024*1024))
+    #     https://unix.stackexchange.com/questions/149029/pernicious-usb-stick-stall-problem-reverting-workaround-fix/149140
+    # but dont do this on the nfs-server
+    #     https://www.suse.com/support/kb/doc/?id=000017857
+    if [ "$WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT" != "" ] ; then
+        echo " ::::: Adjusting Dirty-Bytes for NFS Storage"
+        check_set_val "/proc/sys/vm/dirty_bytes" $((8*1024*1024))
+        check_set_val "/proc/sys/vm/dirty_background_bytes" $((8*1024*1024))
+    else
+        echo " ::::: Skipping Dirty-Bytes adjustment"
+    fi
 
-    
     mkdir -p /run/sendsigs.omit.d/
     service rpcbind start
 #    mount.nfs -o vers=4,intr,soft "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
