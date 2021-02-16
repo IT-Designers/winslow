@@ -9,9 +9,10 @@ NODE_TYPE="observer"
 STORAGE_TYPE="nfs"
 STORAGE_PATH="srv515.itd-intern.de:/data/streets/winslow"
 #KEYSTORE_PATH_PKCS12="/root/winslow.itd-intern.de.p12"
-ADDITIONAL="-p 446:4646 "
+ADDITIONAL=""
 
 # for dev env
+ADDITIONAL+="-p 446:4646 "
 # ADDITIONAL+=" -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=michael "
 
 # set this on the nfs-server!
