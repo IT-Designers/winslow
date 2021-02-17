@@ -268,10 +268,11 @@ public class LockBus {
     }
 
     private void ensureLocksAreUpToDate() {
+        var maxEventCounter = getMaxEventCounterNoThrows();
         while (true) {
             try {
                 // ensure all events have been loaded
-                if (loadNextEvent().isEmpty()) {
+                if (loadNextEvent().isEmpty() && maxEventCounter.map(c -> c < this.eventCounter).orElse(true)) {
                     break;
                 }
             } catch (LockException e) {
@@ -397,20 +398,46 @@ public class LockBus {
     }
 
     private void initEventCounter() throws IOException {
+        getMinEventCounter()
+                .filter(a -> a >= this.eventCounter)
+                .ifPresent(next -> {
+                    this.eventCounter = next;
+                });
+    }
+
+    @Nonnull
+    private Optional<Integer> getMinEventCounter() throws IOException {
         try (var stream = Files.list(eventDirectory)) {
-            stream
-                    .flatMap(p -> {
-                        try {
-                            return Stream.of(Integer.parseInt(p.getFileName().toString()));
-                        } catch (NumberFormatException ee) {
-                            return Stream.empty();
-                        }
-                    })
-                    .filter(a -> a >= this.eventCounter)
-                    .min(Comparator.comparingInt(a -> a))
-                    .ifPresent(next -> {
-                        this.eventCounter = next;
-                    });
+            return stream
+                    .flatMap(this::parseEventCounterFromPath)
+                    .min(Comparator.comparingInt(a -> a));
+        }
+    }
+
+    @Nonnull
+    private Optional<Integer> getMaxEventCounter() throws IOException {
+        try (var stream = Files.list(eventDirectory)) {
+            return stream
+                    .flatMap(this::parseEventCounterFromPath)
+                    .max(Comparator.comparingInt(a -> a));
+        }
+    }
+
+    @Nonnull
+    private Optional<Integer> getMaxEventCounterNoThrows() {
+        try {
+            return this.getMaxEventCounter();
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to determine the max event counter");
+            return Optional.empty();
+        }
+    }
+
+    private Stream<Integer> parseEventCounterFromPath(Path p) {
+        try {
+            return Stream.of(Integer.parseInt(p.getFileName().toString()));
+        } catch (NumberFormatException ee) {
+            return Stream.empty();
         }
     }
 
