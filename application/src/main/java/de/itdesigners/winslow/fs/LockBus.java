@@ -138,7 +138,10 @@ public class LockBus {
                     while (true) {
                         var path = nextEventPath();
                         if (Files.exists(path)) {
-                            loadNextEvent();
+                            if (loadNextEvent().isEmpty()) {
+                                // it did not load successfully
+                                LOG.log(Level.SEVERE, "Failed to load event from " + path);
+                            }
                         } else {
                             break;
                         }
