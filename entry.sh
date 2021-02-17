@@ -56,7 +56,7 @@ if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
     #     https://unix.stackexchange.com/questions/149029/pernicious-usb-stick-stall-problem-reverting-workaround-fix/149140
     # but dont do this on the nfs-server
     #     https://www.suse.com/support/kb/doc/?id=000017857
-    if [ "$WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT" != "" ] ; then
+    if [ "$WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT" == "" ] ; then
         echo " ::::: Adjusting Dirty-Bytes for NFS Storage"
         check_set_val "/proc/sys/vm/dirty_bytes" $((8*1024*1024))
         check_set_val "/proc/sys/vm/dirty_background_bytes" $((8*1024*1024))
