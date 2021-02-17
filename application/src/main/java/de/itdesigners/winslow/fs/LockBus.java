@@ -336,7 +336,7 @@ public class LockBus {
             var read = this.loadNextEvent();
 
             if (read.isEmpty()) {
-                throw new LockException("Failed to read written event");
+                throw new LockException("Failed to read written event, path: " + path);
 
             } else if (read.get().equals(event)) {
                 // it was me all along!
@@ -355,8 +355,8 @@ public class LockBus {
         }
     }
 
-    private synchronized void processEvent(Event event) {
-        logEvent(event);
+    private synchronized void processEvent(@Nonnull Path path, @Nonnull Event event) {
+        logEvent(path, event);
         switch (event.getCommand()) {
             case LOCK:
             case EXTEND:
@@ -443,7 +443,7 @@ public class LockBus {
                     event.check();
                 }
 
-                this.processEvent(event);
+                this.processEvent(path, event);
 
                 this.eventCounter += 1;
                 return Optional.of(event);
@@ -553,8 +553,8 @@ public class LockBus {
         return new Toml().read(content).to(Event.class);
     }
 
-    private static void logEvent(Event event) {
-        LOG.info(event.getIssuer() + ": " + event.getCommand() + " " + event.getSubject());
+    private static void logEvent(@Nonnull Path path, @Nonnull Event event) {
+        LOG.info(path.getFileName() + " " + event.getIssuer() + ": " + event.getCommand() + " " + event.getSubject());
     }
 
     interface EventSupplier {
