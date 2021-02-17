@@ -317,7 +317,7 @@ public class LockBus {
             try (var channel = FileChannel.open(pathLock, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
                 try (var lock = channel.lock()) {
                     if (Files.exists(path)) {
-                        throw new IOException("Target file already exists");
+                        throw new IOException("Target file already exists: " + path);
                     }
                     try {
                         Files.write(
