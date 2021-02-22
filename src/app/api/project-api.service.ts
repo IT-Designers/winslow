@@ -679,6 +679,7 @@ export class EnvVariable {
 export class DeletionPolicy {
   keepWorkspaceOfFailedStage: boolean;
   numberOfWorkspacesOfSucceededStagesToKeep?: number;
+  alwaysKeepMostRecentWorkspace?: boolean;
 }
 
 export class StatsInfo {
