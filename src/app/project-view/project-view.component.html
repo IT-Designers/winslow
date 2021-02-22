@@ -285,7 +285,7 @@
           </mat-form-field>
           <button mat-stroked-button color="primary"
                   [disabled]="deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
             Update
           </button>
         </div>
@@ -297,7 +297,19 @@
           ></mat-slide-toggle>
           <button mat-stroked-button color="primary"
                   [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+            Update
+          </button>
+        </div>
+        <div class="stage-control-item">
+          <label [class.disabled]="!custom.checked">Always keep most recent workspace</label>
+          <mat-slide-toggle #always
+                            [disabled]="deletionPolicyLocal == null || !custom.checked"
+                            [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
+          ></mat-slide-toggle>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
             Update
           </button>
         </div>

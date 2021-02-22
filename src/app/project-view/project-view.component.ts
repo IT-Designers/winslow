@@ -692,12 +692,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean) {
+  updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean, always: boolean) {
     let promise = null;
     if (set) {
       const policy = new DeletionPolicy();
       policy.numberOfWorkspacesOfSucceededStagesToKeep = Number(limitStr) > 0 ? Number(limitStr) : null;
       policy.keepWorkspaceOfFailedStage = keep;
+      policy.alwaysKeepMostRecentWorkspace = always;
       promise = this.api.updateDeletionPolicy(this.project.id, policy)
         .then(result => {
           this.deletionPolicyLocal = result;
