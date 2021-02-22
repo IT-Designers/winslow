@@ -119,7 +119,7 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedStage("workspace3", State.Succeeded),
                 // keep: first successful
                 constructFinishedStage("workspace4", State.Failed)
-                // delete: do not keep failed stages
+                // keep: most recent without successful follow-up
         );
 
         var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))
@@ -151,6 +151,29 @@ public class ObsoleteWorkspaceFinderTest {
 
         var expected = new ArrayList<>(List.of("workspace2"));
         assertEquals(expected.size(), obsolete.size());
+        expected.removeAll(obsolete);
+        assertEquals(Collections.emptyList(), expected);
+
+    }
+
+    @Test
+    public void testConsiderContinuedWorkspacesComplex2NoAlwaysKeep() {
+        var history = List.of(
+                constructFinishedStage("workspace1", State.Succeeded), // keep: second non-discardable successful
+                constructFinishedStage("workspace2", State.Failed), // delete: because of below
+                constructFinishedStage("workspace2", State.Failed), // delete: because of below
+                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded), // delete: discardable with succcessful follow-up
+                constructFinishedStage("workspace3", State.Succeeded), // keep:  first successful
+                constructFinishedStage("workspace3", State.Failed), // keep: because of above
+                constructFinishedStage("workspace4", State.Failed) // delete: because no keep of most recent
+        );
+
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2, false))
+                .withExecutionHistory(history)
+                .collectObsoleteWorkspaces();
+
+        var expected = new ArrayList<>(List.of("workspace2", "workspace4"));
+        // assertEquals(expected.size(), obsolete.size());
         expected.removeAll(obsolete);
         assertEquals(Collections.emptyList(), expected);
 

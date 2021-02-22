@@ -107,6 +107,12 @@ public class ObsoleteWorkspaceFinder {
     private void keepAllFailedWithinRangeIfKeepIsSet(
             @Nonnull List<String> obsolete,
             @Nonnull WorkspaceView view) {
+
+        // dont keep failed and dont keep most recent? -> nothing to do
+        if (!policy.getKeepWorkspaceOfFailedStage() && !policy.getAlwaysKeepMostRecentWorkspace()) {
+            return;
+        }
+
         boolean foundAtLeastOnceSuccessfulExecution                  = false;
         var     potentialDeletionsAndWhetherItHasSuccessfulFollowups = new HashMap<String, Boolean>();
         for (int i = 0; i < view.distanceToWorkspaces.size() && (!foundAtLeastOnceSuccessfulExecution || i < getNumberToKeep()); ++i) {
