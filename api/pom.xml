@@ -6,7 +6,7 @@
     <name>winslow-api</name>
     <artifactId>winslow-api</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>de.itdesigners</groupId>
