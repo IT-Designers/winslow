@@ -16,6 +16,14 @@
     </parent>
 
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <url>${env.NEXUS_URL_SNAPSHOTS}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
     <build>
         <plugins>
             <plugin>
