@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>de.itdesigners</groupId>
+        <groupId>de.itdesigners.winslow</groupId>
         <artifactId>winslow</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
