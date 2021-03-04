@@ -16,7 +16,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>nomad-java-sdk/sdk</module>
         <module>api</module>
         <module>application</module>
     </modules>
