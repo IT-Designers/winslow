@@ -13,7 +13,6 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -30,9 +29,9 @@ public class SwaggerConfiguration {
                 .paths(PathSelectors.any())
                 .build()
                 .genericModelSubstitutes(Optional.class)
-                .genericModelSubstitutes(List.class)
                 .genericModelSubstitutes(Stream.class)
                 .genericModelSubstitutes(ResponseEntity.class)
+                //.directModelSubstitute(InputStreamResource.class, InputStream.class)
                 .ignoredParameterTypes(User.class)
                 .apiInfo(apiEndpointsInfo());
     }
