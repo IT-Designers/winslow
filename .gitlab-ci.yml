@@ -19,9 +19,10 @@ build:
     - cp application/target/winslow*.jar .
     - mv application/target/site/jacoco coverage-report
     - awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
-    - mvn -pl api package
+    - mvn -pl .,api package
     - cp api/target/winslow*.jar .
-    - mvn -s settings.xml -pl api deploy
+    - cp target/winslow*.jar .
+    - mvn -s settings.xml -pl .,api deploy
   coverage: '/([\d]+\.[\d]+) % covered/'
   artifacts:
     name: winslow-$CI_COMMIT_SHORT_SHA
