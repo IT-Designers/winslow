@@ -2,6 +2,10 @@ package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.web.api.StorageController;
+import org.springframework.boot.web.server.ConfigurableWebServerFactory;
+import org.springframework.boot.web.server.ErrorPage;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.FileSystemResource;
@@ -40,10 +44,15 @@ public class PathMapping implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         // just show the index.html on errors
-        registry.setOrder(Ordered.HIGHEST_PRECEDENCE/2);
-        registry.addViewController("/error")
+        registry.setOrder(Ordered.HIGHEST_PRECEDENCE / 2);
+        registry.addViewController("/notFound")
                 .setStatusCode(HttpStatus.OK)
                 .setViewName("/index.html");
+    }
+
+    @Bean
+    public WebServerFactoryCustomizer<ConfigurableWebServerFactory> containerCustomizer() {
+        return container -> container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notFound"));
     }
 
     @Override
