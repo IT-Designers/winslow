@@ -409,6 +409,7 @@ public class FilesController {
                 e.printStackTrace();
             }
         }
+        attributes.put("last-modified", file.lastModified());
         return attributes;
     }
 
