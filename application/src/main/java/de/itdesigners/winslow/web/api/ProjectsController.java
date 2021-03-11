@@ -111,8 +111,32 @@ public class ProjectsController {
                 });
     }
 
-    @GetMapping("/projects/{projectId}/history/reversed/{startGroupId}/{count}")
+    @GetMapping("/projects/{projectId}/history/reversed/{count}")
     public Stream<ExecutionGroupInfo> getPartialFromReversedHistory(
+            User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("count") int count) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .stream()
+                .flatMap(project -> winslow.getOrchestrator().getPipeline(project).stream())
+                .flatMap(pipeline -> {
+                    var history = pipeline
+                            .getExecutionHistory()
+                            .sequential()
+                            .collect(Collectors.toList());
+
+                    Collections.reverse(history);
+
+                    return history
+                            .stream()
+                            .limit(count)
+                            .map(g -> ExecutionGroupInfoConverter.convert(g, false));
+
+                });
+    }
+
+    @GetMapping("/projects/{projectId}/history/reversed/{startGroupId}/{count}")
+    public Stream<ExecutionGroupInfo> getPartialFromReversedHistoryStartingAt(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("startGroupId") String startGroupId,
