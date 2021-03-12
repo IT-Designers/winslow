@@ -304,6 +304,7 @@ public class FilesController {
                                 .body((StreamingResponseBody) outputStream -> Files.copy(file.toPath(), outputStream));
                     } else {
                         return responseEntity
+                                .contentLength(aggregateSize(file))
                                 .contentType(new MediaType("application", "tar+gzip"))
                                 .body((StreamingResponseBody) outputStream -> {
                                     try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(outputStream)) {
