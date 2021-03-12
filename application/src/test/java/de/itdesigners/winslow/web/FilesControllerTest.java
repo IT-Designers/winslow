@@ -17,9 +17,12 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.Nonnull;
 import javax.servlet.*;
@@ -657,7 +660,8 @@ public class FilesControllerTest {
     public void testResourcesDownload() throws IOException {
         var response = controller.downloadResourceFile(
                 constructRequest("sub/directory/def.txt"),
-                getRoot()
+                getRoot(),
+                false
         );
         assertNotNull(response);
         assertNotNull(response.getBody());
@@ -675,18 +679,74 @@ public class FilesControllerTest {
     }
 
     @Test
-    public void testResourcesDownloadInvalid() {
+    public void testResourcesDownloadCompressed() throws IOException {
+        var response = controller.downloadResourceFile(
+                constructRequest("sub/directory/def.txt"),
+                getRoot(),
+                true
+        );
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertTrue(response.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION).get(0).contains("filename=\"def.txt.tar.gz\""));
+
+        var baos = new ByteArrayOutputStream();
+        response.getBody().writeTo(baos);
+        var content = baos.toByteArray();
+
+        try (GzipCompressorInputStream gcis = new GzipCompressorInputStream(new ByteArrayInputStream(content))) {
+            try (TarArchiveInputStream taos = new TarArchiveInputStream(gcis)) {
+
+                var entry = taos.getNextTarEntry();
+                assertEquals(entry.getName(), "def.txt");
+
+
+                baos = new ByteArrayOutputStream();
+                taos.transferTo(baos);
+                content = baos.toByteArray();
+
+                assertEquals((DEF_TXT.getBytes(StandardCharsets.UTF_8).length), content.length);
+                assertEquals(
+                        DEF_TXT.getBytes(StandardCharsets.UTF_8).length,
+                        response.getHeaders().getContentLength()
+                );
+            }
+        }
+
+    }
+
+    @Test
+    public void testResourcesDownloadInvalidNoExplicitCompress() {
+        testResourcesDownloadInvalid(false);
+    }
+
+    @Test
+    public void testResourcesDownloadInvalidExplicitCompress() {
+        testResourcesDownloadInvalid(true);
+    }
+
+    private void testResourcesDownloadInvalid(boolean explicitCompress) {
         assertNull(controller.downloadResourceFile(
                 constructRequest("sub/directory/def.txt_invalid"),
-                getRoot()
+                getRoot(),
+                explicitCompress
         ));
     }
 
     @Test
-    public void testResourcesDownloadUnauthorized() {
+    public void testResourcesDownloadUnauthorizedNoExplicitCompress() {
+        testResourcesDownloadUnauthorized(false);
+    }
+
+    @Test
+    public void testResourcesDownloadUnauthorizedExplicitCompress() {
+        testResourcesDownloadUnauthorized(true);
+    }
+
+    private void testResourcesDownloadUnauthorized(boolean explicitCompress) {
         assertNull(controller.downloadResourceFile(
                 constructRequest("sub/directory/def.txt"),
-                null
+                null,
+                explicitCompress
         ));
     }
 
@@ -694,7 +754,8 @@ public class FilesControllerTest {
     public void testWorkspaceDownload() throws IOException {
         var response = controller.downloadWorkspaceFile(
                 constructRequest("my-project-id/stage1/some.file"),
-                getRoot()
+                getRoot(),
+                false
         );
         assertNotNull(response);
         assertNotNull(response.getBody());
@@ -710,27 +771,94 @@ public class FilesControllerTest {
         );
     }
 
+
     @Test
-    public void testWorkspaceDownloadInvalid() {
+    public void testWorkspaceDownloadCompressed() throws IOException {
+        var response = controller.downloadWorkspaceFile(
+                constructRequest("my-project-id/stage1/some.file"),
+                getRoot(),
+                true
+        );
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertTrue(response.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION).get(0).contains("filename=\"some.file.tar.gz\""));
+
+        var baos = new ByteArrayOutputStream();
+        response.getBody().writeTo(baos);
+        var content = baos.toByteArray();
+
+
+        try (GzipCompressorInputStream gcis = new GzipCompressorInputStream(new ByteArrayInputStream(content))) {
+            try (TarArchiveInputStream taos = new TarArchiveInputStream(gcis)) {
+
+                var entry = taos.getNextTarEntry();
+                assertEquals(entry.getName(), "some.file");
+
+
+                baos = new ByteArrayOutputStream();
+                taos.transferTo(baos);
+                content = baos.toByteArray();
+
+                assertEquals((SOME_FILE.getBytes(StandardCharsets.UTF_8).length), content.length);
+                assertEquals(
+                        SOME_FILE.getBytes(StandardCharsets.UTF_8).length,
+                        response.getHeaders().getContentLength()
+                );
+            }
+        }
+    }
+
+
+    @Test
+    public void testWorkspaceDownloadInvalidNoExplicitCompress() {
+        testWorkspaceDownloadInvalid(false);
+    }
+
+    @Test
+    public void testWorkspaceDownloadInvalidExplicitCompress() {
+        testWorkspaceDownloadInvalid(true);
+    }
+
+    private void testWorkspaceDownloadInvalid(boolean explicitCompress) {
         assertNull(controller.downloadWorkspaceFile(
                 constructRequest("my-project-id/stage1/some.file_invalid"),
-                getRoot()
+                getRoot(),
+                explicitCompress
         ));
     }
 
     @Test
-    public void testWorkspaceDownloadUnauthorized() {
+    public void testWorkspaceDownloadUnauthorizedNoExplicitCompress() {
+        testWorkspaceDownloadUnauthorized(false);
+    }
+
+    @Test
+    public void testWorkspaceDownloadUnauthorizedExplicitCompress() {
+        testWorkspaceDownloadUnauthorized(true);
+    }
+
+    private void testWorkspaceDownloadUnauthorized(boolean explicitCompress) {
         assertNull(controller.downloadWorkspaceFile(
                 constructRequest("my-project-id/stage1/some.file"),
-                null
+                null,
+                explicitCompress
         ));
     }
 
     @Test
-    public void testWorkspaceDownloadNotAllowed() {
+    public void testWorkspaceDownloadNotAllowedNoExplicitCompress() {
+        testWorkspaceDownloadNotAllowed(false);
+    }
+    @Test
+    public void testWorkspaceDownloadNotAllowedExplicitCompress() {
+        testWorkspaceDownloadNotAllowed(true);
+    }
+
+    private void testWorkspaceDownloadNotAllowed(boolean explicitCompress) {
         assertNull(controller.downloadWorkspaceFile(
                 constructRequest("my-project-id/stage1/some.file"),
-                getUser("random-user", false)
+                getUser("random-user", false),
+                explicitCompress
         ));
     }
 
@@ -738,7 +866,8 @@ public class FilesControllerTest {
     public void testWorkspaceDownloadProjectOwner() throws IOException {
         var response = controller.downloadWorkspaceFile(
                 constructRequest("my-project-id/stage1/some.file"),
-                getProjectOwner()
+                getProjectOwner(),
+                false
         );
         assertNotNull(response);
         assertNotNull(response.getBody());
@@ -755,10 +884,56 @@ public class FilesControllerTest {
     }
 
     @Test
-    public void testResourceDownloadDirectory() throws IOException {
+    public void testWorkspaceDownloadProjectOwnerCompressed() throws IOException {
+        var response = controller.downloadWorkspaceFile(
+                constructRequest("my-project-id/stage1/some.file"),
+                getProjectOwner(),
+                true
+        );
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertTrue(response.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION).get(0).contains("filename=\"some.file.tar.gz\""));
+
+        var baos = new ByteArrayOutputStream();
+        response.getBody().writeTo(baos);
+        var content = baos.toByteArray();
+
+
+        try (GzipCompressorInputStream gcis = new GzipCompressorInputStream(new ByteArrayInputStream(content))) {
+            try (TarArchiveInputStream taos = new TarArchiveInputStream(gcis)) {
+
+                var entry = taos.getNextTarEntry();
+                assertEquals(entry.getName(), "some.file");
+
+
+                baos = new ByteArrayOutputStream();
+                taos.transferTo(baos);
+                content = baos.toByteArray();
+
+                assertEquals(SOME_FILE.getBytes(StandardCharsets.UTF_8).length, content.length);
+                assertEquals(
+                        SOME_FILE.getBytes(StandardCharsets.UTF_8).length,
+                        response.getHeaders().getContentLength()
+                );
+            }
+        }
+    }
+
+    @Test
+    public void testResourceDownloadDirectoryNoExplicitCompress() throws IOException {
+        testResourceDownloadDirectoryResponse(false);
+    }
+
+    @Test
+    public void testResourceDownloadDirectoryExplicitCompress() throws IOException {
+        testResourceDownloadDirectoryResponse(true);
+    }
+
+    private void testResourceDownloadDirectoryResponse(boolean explicitCompress) throws IOException {
         var response = controller.downloadResourceFile(
                 constructRequest("sub/"),
-                getProjectOwner()
+                getProjectOwner(),
+                explicitCompress
         );
         assertNotNull(response);
         assertNotNull(response.getBody());

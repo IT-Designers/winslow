@@ -266,26 +266,46 @@ public class FilesController {
     }
 
     @RequestMapping(value = {"/files/resources/**"}, method = RequestMethod.GET)
-    public ResponseEntity<StreamingResponseBody> downloadResourceFile(HttpServletRequest request, User user) {
-        return downloadFileOrDirectoryAsTarGz(request, user, resourceManager.getResourceDirectory().orElseThrow());
+    public ResponseEntity<StreamingResponseBody> downloadResourceFile(
+            HttpServletRequest request,
+            User user,
+            @RequestParam(value = "compressToArchive", required = false, defaultValue = "false") boolean compress) {
+        return downloadFileOrDirectoryAsTarGz(
+                request,
+                user,
+                resourceManager.getResourceDirectory().orElseThrow(),
+                compress
+        );
     }
 
     @RequestMapping(value = {"/files/workspaces/**"}, method = RequestMethod.GET)
-    public ResponseEntity<StreamingResponseBody> downloadWorkspaceFile(HttpServletRequest request, User user) {
-        return downloadFileOrDirectoryAsTarGz(request, user, resourceManager.getWorkspacesDirectory().orElseThrow());
+    public ResponseEntity<StreamingResponseBody> downloadWorkspaceFile(
+            HttpServletRequest request,
+            User user,
+            @RequestParam(value = "compressToArchive", required = false, defaultValue = "false") boolean compress) {
+        return downloadFileOrDirectoryAsTarGz(
+                request,
+                user,
+                resourceManager.getWorkspacesDirectory().orElseThrow(),
+                compress
+        );
     }
 
     public ResponseEntity<StreamingResponseBody> downloadFileOrDirectoryAsTarGz(
             HttpServletRequest request,
             User user,
-            @Nonnull Path directory) {
+            @Nonnull Path directory,
+            boolean compress) {
         return normalizedPath(request)
                 .map(directory::resolve)
                 .filter(path -> checker.isAllowedToAccessPath(user, path))
                 .filter(Files::exists)
                 .map(Path::toFile)
                 .map(file -> {
-                    var name = (file.isFile() ? file.getName() : file.getName() + ".tar.gz").replaceAll("\"", "");
+                    var name = (file.isFile() && !compress ? file.getName() : file.getName() + ".tar.gz").replaceAll(
+                            "\"",
+                            ""
+                    );
                     var responseEntity = ResponseEntity
                             .ok()
                             // Otherwise the download might result in a "f.txt" named file
@@ -301,7 +321,17 @@ public class FilesController {
                         return responseEntity
                                 .contentLength(file.length())
                                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                                .body((StreamingResponseBody) outputStream -> Files.copy(file.toPath(), outputStream));
+                                .body((StreamingResponseBody) outputStream -> {
+                                    if (compress) {
+                                        try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(outputStream)) {
+                                            try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
+                                                appendArchiveEntry(taos, file, file.getName());
+                                            }
+                                        }
+                                    } else {
+                                        Files.copy(file.toPath(), outputStream);
+                                    }
+                                });
                     } else {
                         return responseEntity
                                 .contentLength(aggregateSize(file))
@@ -323,16 +353,20 @@ public class FilesController {
         if (files != null) {
             for (var file : files) {
                 if (file.isFile()) {
-                    try (FileInputStream fis = new FileInputStream(file)) {
-                        taos.putArchiveEntry(taos.createArchiveEntry(file, root.relativize(file.toPath()).toString()));
-                        fis.transferTo(taos);
-                    } finally {
-                        taos.closeArchiveEntry();
-                    }
+                    appendArchiveEntry(taos, file, root.relativize(file.toPath()).toString());
                 } else if (file.isDirectory()) {
                     aggregateTarGzEntries(root, file, taos);
                 }
             }
+        }
+    }
+
+    private void appendArchiveEntry(@Nonnull TarArchiveOutputStream taos, @Nonnull File file, @Nonnull String entryName) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            taos.putArchiveEntry(taos.createArchiveEntry(file, entryName));
+            fis.transferTo(taos);
+        } finally {
+            taos.closeArchiveEntry();
         }
     }
 
