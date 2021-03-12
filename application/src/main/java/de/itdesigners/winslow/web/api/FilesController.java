@@ -324,7 +324,6 @@ public class FilesController {
             for (var file : files) {
                 if (file.isFile()) {
                     try (FileInputStream fis = new FileInputStream(file)) {
-                        System.out.println(root.relativize(file.toPath()));
                         taos.putArchiveEntry(taos.createArchiveEntry(file, root.relativize(file.toPath()).toString()));
                         fis.transferTo(taos);
                     } finally {
