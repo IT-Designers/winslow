@@ -82,6 +82,8 @@ fi
 
 ANGENTLIB_DEBUGGER=""
 if [ "$WINSLOW_REMOTE_DEBUGGER" != "" ] && [ "$WINSLOW_REMOTE_DEBUGGER" != "0" ]; then
+    whereis java
+    java -version
     AGENTLIB_DEBUGGER=" -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:6006 "
 fi
 
