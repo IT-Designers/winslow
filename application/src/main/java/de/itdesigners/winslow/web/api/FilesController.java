@@ -140,13 +140,13 @@ public class FilesController {
     public void uploadResourceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
-        ServletFileUpload upload = new ServletFileUpload();
-        var               file   = upload.getItemIterator(request).next();
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive,
+            @RequestParam(name = "rawBody", defaultValue = "false", required = false) boolean rawBody
+            ) throws IOException, FileUploadException {
         uploadFile(
                 request,
                 user,
-                file.openStream(),
+                rawBody ? request.getInputStream() : new ServletFileUpload().getItemIterator(request).next().openStream(),
                 resourceManager.getResourceDirectory().orElseThrow(),
                 decompressArchive
         );
@@ -164,13 +164,13 @@ public class FilesController {
     public void uploadWorkspaceFile(
             HttpServletRequest request,
             User user,
-            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive) throws IOException, FileUploadException {
-        ServletFileUpload upload = new ServletFileUpload();
-        var               file   = upload.getItemIterator(request).next();
+            @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive,
+            @RequestParam(name = "rawBody", defaultValue = "false", required = false) boolean rawBody
+    ) throws IOException, FileUploadException {
         uploadFile(
                 request,
                 user,
-                file.openStream(),
+                rawBody ? request.getInputStream() : new ServletFileUpload().getItemIterator(request).next().openStream(),
                 resourceManager.getWorkspacesDirectory().orElseThrow(),
                 decompressArchive
         );
