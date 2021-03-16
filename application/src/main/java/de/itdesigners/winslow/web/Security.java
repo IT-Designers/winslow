@@ -65,8 +65,7 @@ public class Security extends WebSecurityConfigurerAdapter {
         http.csrf().csrfTokenRepository(repo)
             .and().csrf().ignoringAntMatchers("/" + EXPORT_NAME + "/**")
             .and().csrf().ignoringAntMatchers(Env.getWebsocketPath() + "**")
-        .and().headers().frameOptions().sameOrigin()
-        ;
+        .and().headers().frameOptions().sameOrigin();
     }
 
 
