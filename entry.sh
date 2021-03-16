@@ -7,12 +7,14 @@ KEYSTORE="$JAVA_HOME/lib/security/cacerts"
 
 if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then 
   (update-ca-certificates)
+  IFS_OLD=$IFS
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR" -type f); do
     echo "Importing $f"
     (keytool -delete -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias "$f" || true)
     (keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias "$f" -file "$f")
   done
+  IFS=$IFS_OLD
 fi
 
 
