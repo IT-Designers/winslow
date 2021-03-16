@@ -6,12 +6,12 @@ trap 'kill -KILL $(pgrep nfs)' KILL
 KEYSTORE="$JAVA_HOME/lib/security/cacerts"
 
 if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then 
-  update-ca-certificates
+  (update-ca-certificates)
   IFS=$'\n'
   for f in $(find "$WINSLOW_CA_CERT_DIR" -type f); do
     echo "Importing $f"
-    keytool -delete -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias "$f" || true
-    keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias "$f" -file "$f"
+    (keytool -delete -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias "$f" || true)
+    (keytool -import -trustcacerts -keystore -cacerts -storepass changeit -noprompt -alias "$f" -file "$f")
   done
 fi
 
@@ -89,7 +89,9 @@ fi
 
 echo "  :::: Starting winslow"
 echo ""
-java $AGENTLIB_DEBUGGER -jar /usr/bin/winslow.jar
+JAVA_CMD="java $AGENTLIB_DEBUGGER -jar /usr/bin/winslow.jar"
+echo "$JAVA_CMD"
+$JAVA_CMD
 
 start-stop-daemon --stop --name nomad --quiet --pidfile $NOMAD_PID_FILE
 
