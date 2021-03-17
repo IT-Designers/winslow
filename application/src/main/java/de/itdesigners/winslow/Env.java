@@ -27,6 +27,7 @@ public class Env {
     public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
     public static final String DEV_ENV_IP         = SELF_PREFIX + "_DEV_ENV_IP";
     public static final String WEB_REQUIRE_SECURE = SELF_PREFIX + "_WEB_REQUIRE_SECURE";
+    public static final String WEB_NO_SSL_DEBUG   = SELF_PREFIX + "_WEB_NO_SSL_DEBUG";
     public static final String LOCK_DURATION_MS   = SELF_PREFIX + "_LOCK_DURATION_MS";
 
     public static final String LDAP_URL = SELF_PREFIX + "_LDAP_URL";
@@ -91,7 +92,10 @@ public class Env {
 
     public static boolean requireSecure() {
         // 'SECURITY_REQUIRE_SSL' is an old and deprecated springboot property but might be used here and there
-        return isTrueOr1(System.getenv("SECURITY_REQUIRE_SSL")) || isTrueOr1(System.getenv(WEB_REQUIRE_SECURE));
+        return !isTrueOr1(WEB_NO_SSL_DEBUG) && (
+                isTrueOr1(System.getenv("SECURITY_REQUIRE_SSL"))
+                        || isTrueOr1(System.getenv(WEB_REQUIRE_SECURE))
+        );
     }
 
     public static int lockDurationMs() {
