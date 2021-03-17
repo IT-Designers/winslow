@@ -12,23 +12,23 @@ public class Env {
     public static final int LOCK_DURATION_DEFAULT_MS = 5 * 60 * 1_000; // 5min
     public static final int LOCK_DURATION_LOGS_MS    = LOCK_DURATION_DEFAULT_MS;
 
-    public static final String SELF_PREFIX        = "WINSLOW";
-    public static final String DEV_ENV            = SELF_PREFIX + "_DEV_ENV";
-    public static final String DEV_REMOTE_USER    = SELF_PREFIX + "_DEV_REMOTE_USER";
-    public static final String WORK_DIRECTORY     = SELF_PREFIX + "_WORK_DIRECTORY";
-    public static final String STORAGE_TYPE       = SELF_PREFIX + "_STORAGE_TYPE";
-    public static final String STORAGE_PATH       = SELF_PREFIX + "_STORAGE_PATH";
-    public static final String NODE_NAME          = SELF_PREFIX + "_NODE_NAME";
-    public static final String STATIC_HTML        = SELF_PREFIX + "_STATIC_HTML";
-    public static final String API_PATH           = SELF_PREFIX + "_API_PATH";
-    public static final String WEBSOCKET_PATH     = SELF_PREFIX + "_WEBSOCKET_PATH";
-    public static final String NO_STAGE_EXECUTION = SELF_PREFIX + "_NO_STAGE_EXECUTION";
-    public static final String NO_GPU_USAGE       = SELF_PREFIX + "_NO_GPU_USAGE";
-    public static final String NO_WEB_API         = SELF_PREFIX + "_NO_WEB_API";
-    public static final String DEV_ENV_IP         = SELF_PREFIX + "_DEV_ENV_IP";
-    public static final String WEB_REQUIRE_SECURE = SELF_PREFIX + "_WEB_REQUIRE_SECURE";
-    public static final String WEB_NO_SSL_DEBUG   = SELF_PREFIX + "_WEB_NO_SSL_DEBUG";
-    public static final String LOCK_DURATION_MS   = SELF_PREFIX + "_LOCK_DURATION_MS";
+    public static final String SELF_PREFIX          = "WINSLOW";
+    public static final String DEV_ENV              = SELF_PREFIX + "_DEV_ENV";
+    public static final String DEV_REMOTE_USER      = SELF_PREFIX + "_DEV_REMOTE_USER";
+    public static final String WORK_DIRECTORY       = SELF_PREFIX + "_WORK_DIRECTORY";
+    public static final String STORAGE_TYPE         = SELF_PREFIX + "_STORAGE_TYPE";
+    public static final String STORAGE_PATH         = SELF_PREFIX + "_STORAGE_PATH";
+    public static final String NODE_NAME            = SELF_PREFIX + "_NODE_NAME";
+    public static final String STATIC_HTML          = SELF_PREFIX + "_STATIC_HTML";
+    public static final String API_PATH             = SELF_PREFIX + "_API_PATH";
+    public static final String WEBSOCKET_PATH       = SELF_PREFIX + "_WEBSOCKET_PATH";
+    public static final String NO_STAGE_EXECUTION   = SELF_PREFIX + "_NO_STAGE_EXECUTION";
+    public static final String NO_GPU_USAGE         = SELF_PREFIX + "_NO_GPU_USAGE";
+    public static final String NO_WEB_API           = SELF_PREFIX + "_NO_WEB_API";
+    public static final String DEV_ENV_IP           = SELF_PREFIX + "_DEV_ENV_IP";
+    public static final String WEB_REQUIRE_SECURE   = SELF_PREFIX + "_WEB_REQUIRE_SECURE";
+    public static final String WEB_ALLOW_HTTP_DEBUG = SELF_PREFIX + "_WEB_ALLOW_HTTP_DEBUG";
+    public static final String LOCK_DURATION_MS     = SELF_PREFIX + "_LOCK_DURATION_MS";
 
     public static final String LDAP_URL = SELF_PREFIX + "_LDAP_URL";
     // public static final String LDAP_MANAGER_DN          = SELF_PREFIX + "_LDAP_MANAGER_DN";
@@ -92,7 +92,7 @@ public class Env {
 
     public static boolean requireSecure() {
         // 'SECURITY_REQUIRE_SSL' is an old and deprecated springboot property but might be used here and there
-        return !isTrueOr1(WEB_NO_SSL_DEBUG) && (
+        return !isTrueOr1(WEB_ALLOW_HTTP_DEBUG) && (
                 isTrueOr1(System.getenv("SECURITY_REQUIRE_SSL"))
                         || isTrueOr1(System.getenv(WEB_REQUIRE_SECURE))
         );
