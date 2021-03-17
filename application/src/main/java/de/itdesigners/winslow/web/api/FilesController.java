@@ -199,7 +199,9 @@ public class FilesController {
                     if ((parent.toFile().exists() || parent.toFile().mkdirs()) && parent.toFile().isDirectory()) {
                         try {
                             if (!decompressArchive) {
-                                StreamUtils.copy(upload, Files.newOutputStream(path));
+                                try (var fos = Files.newOutputStream(path)) {
+                                    StreamUtils.copy(upload, fos);
+                                }
                             } else {
                                 decompressArchiveContentTo(upload, path);
                             }
