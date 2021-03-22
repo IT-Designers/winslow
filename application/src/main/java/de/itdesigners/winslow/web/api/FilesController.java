@@ -336,7 +336,7 @@ public class FilesController {
                                 });
                     } else {
                         return responseEntity
-                                .contentLength(aggregateSize(file))
+                                .header("X-Content-Length-Hint", String.valueOf(aggregateSize(file)))
                                 .contentType(new MediaType("application", "tar+gzip"))
                                 .body((StreamingResponseBody) outputStream -> {
                                     try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(outputStream)) {
