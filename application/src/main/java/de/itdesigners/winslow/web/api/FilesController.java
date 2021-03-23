@@ -15,6 +15,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -577,6 +579,15 @@ public class FilesController {
                     .setDirectory(path.resolve(gitDir).toFile());
             if (branch != null) {
                 command = command.setBranch(branch);
+            }
+            try {
+                var userInfo = new URL(repoUrl).getUserInfo();
+                if (userInfo != null) {
+                    var split = userInfo.split(":", 2);
+                    command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(split[0], split[1]));
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();;
             }
             command.call().close();
         }
