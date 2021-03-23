@@ -14,7 +14,10 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.GitCommand;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -580,32 +583,38 @@ public class FilesController {
             if (branch != null) {
                 command = command.setBranch(branch);
             }
-            try {
-                var userInfo = new URL(repoUrl).getUserInfo();
-                if (userInfo != null) {
-                    var split = userInfo.split(":", 2);
-                    command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(split[0], split[1]));
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();;
-            }
-            command.call().close();
+
+            maybeSetCredentialsFromUrl(command).call().close();
         }
     }
 
     private void pullGitRepo(@Nonnull Path path) throws GitAPIException, IOException {
         try (var repo = Git.open(path.toFile())) {
-            repo.pull().call();
+            maybeSetCredentialsFromUrl(repo.pull()).call();
         }
     }
 
     private void checkoutGitRepo(@Nonnull Path path, @Nonnull String branch) throws GitAPIException, IOException {
         try (var repo = Git.open(path.toFile())) {
             repo.clean().setCleanDirectories(true).setForce(true).call();
-            repo.pull().setRemoteBranchName(branch).call();
+            maybeSetCredentialsFromUrl(repo.pull()).setRemoteBranchName(branch).call();
             repo.branchCreate().setForce(true).setName(branch).setStartPoint("origin/" + branch).call();
             repo.checkout().setName(branch).call();
         }
+    }
+    @Nonnull
+    private <TC extends TransportCommand<?, ?>> TC  maybeSetCredentialsFromUrl(@Nonnull TC command) {
+        try {
+            var url = command.getRepository().getConfig().getString("remote", "origin", "url");
+            var userInfo = new URL(url).getUserInfo();
+            if (userInfo != null) {
+                var split = userInfo.split(":", 2);
+                command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(split[0], split[1]));
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();;
+        }
+        return command;
     }
 
     @Nonnull
