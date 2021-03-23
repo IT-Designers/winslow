@@ -142,11 +142,13 @@ public class FilesController {
             User user,
             @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive,
             @RequestParam(name = "rawBody", defaultValue = "false", required = false) boolean rawBody
-            ) throws IOException, FileUploadException {
+    ) throws IOException, FileUploadException {
         uploadFile(
                 request,
                 user,
-                rawBody ? request.getInputStream() : new ServletFileUpload().getItemIterator(request).next().openStream(),
+                rawBody
+                ? request.getInputStream()
+                : new ServletFileUpload().getItemIterator(request).next().openStream(),
                 resourceManager.getResourceDirectory().orElseThrow(),
                 decompressArchive
         );
@@ -170,7 +172,9 @@ public class FilesController {
         uploadFile(
                 request,
                 user,
-                rawBody ? request.getInputStream() : new ServletFileUpload().getItemIterator(request).next().openStream(),
+                rawBody
+                ? request.getInputStream()
+                : new ServletFileUpload().getItemIterator(request).next().openStream(),
                 resourceManager.getWorkspacesDirectory().orElseThrow(),
                 decompressArchive
         );
@@ -325,7 +329,8 @@ public class FilesController {
                                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                                 .body((StreamingResponseBody) outputStream -> {
                                     if (compress) {
-                                        try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(outputStream)) {
+                                        try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(
+                                                outputStream)) {
                                             try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
                                                 appendArchiveEntry(taos, file, file.getName());
                                             }
@@ -363,7 +368,10 @@ public class FilesController {
         }
     }
 
-    private void appendArchiveEntry(@Nonnull TarArchiveOutputStream taos, @Nonnull File file, @Nonnull String entryName) throws IOException {
+    private void appendArchiveEntry(
+            @Nonnull TarArchiveOutputStream taos,
+            @Nonnull File file,
+            @Nonnull String entryName) throws IOException {
         try (FileInputStream fis = new FileInputStream(file)) {
             taos.putArchiveEntry(taos.createArchiveEntry(file, entryName));
             fis.transferTo(taos);
@@ -508,11 +516,33 @@ public class FilesController {
                 }
                 return ResponseEntity.ok("");
             } else if (optionGitClone instanceof String) {
-                cloneGitRepo(
-                        path,
-                        (String) optionGitClone,
-                        optionGitBranch instanceof String ? (String) optionGitBranch : null
-                );
+                final var handle = new Thread() {
+                    public GitAPIException exception = null;
+
+                    {
+                        setName("Git Checkout");
+                        setDaemon(true); // abort if necessary
+                        start();
+                    }
+
+                    @Override
+                    public void run() {
+                        try {
+                            cloneGitRepo(
+                                    path,
+                                    (String) optionGitClone,
+                                    optionGitBranch instanceof String ? (String) optionGitBranch : null
+                            );
+                        } catch (GitAPIException e) {
+                            this.exception = e;
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                handle.join(10_000);
+                if (handle.exception != null) {
+                    throw handle.exception;
+                }
                 return ResponseEntity.ok("");
             } else if (optionGitPull instanceof String) {
                 pullGitRepo(path);
