@@ -59,7 +59,7 @@ public class WorkspaceMount implements AssemblerStep {
                         ENV_DIR_PIPELINE_INPUT,
                         config.getPipelineInputDirectoryAbsolute(),
                         TARGET_PATH_PIPELINE_INPUT,
-                        true
+                        false
                 ),
                 volume(
                         submission,
