@@ -75,6 +75,7 @@ if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
 #    mount.nfs -o intr,soft,async,lookupcache=none "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
     mount.nfs -o intr,soft,async "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
     mount.nfs -o intr,soft,lookupcache=none "$WINSLOW_STORAGE_PATH/run" "$WINSLOW_WORK_DIRECTORY/run"
+    mount.nfs -o intr,soft,lookupcache=none "$WINSLOW_STORAGE_PATH/projects" "$WINSLOW_WORK_DIRECTORY/projects"
 
 elif [ "$WINSLOW_STORAGE_TYPE" == "bind" ]; then
     echo "    :: Storage is provided through binding"
