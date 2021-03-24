@@ -75,9 +75,11 @@ if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
 #    mount.nfs -o intr,soft,async,lookupcache=none "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
     COMMON_NFS_OPTIONS=noatime,nodiratime
     mount.nfs -o $COMMON_NFS_OPTIONS,async "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
+    # lookupcache=none to immidiately detect new directory entries (event files)
+    # noac             to immidiately detect file changes (to project files)
     mount.nfs -o $COMMON_NFS_OPTIONS,lookupcache=none "$WINSLOW_STORAGE_PATH/run" "$WINSLOW_WORK_DIRECTORY/run"
-    mount.nfs -o $COMMON_NFS_OPTIONS,lookupcache=none "$WINSLOW_STORAGE_PATH/projects" "$WINSLOW_WORK_DIRECTORY/projects"
-    mount.nfs -o $COMMON_NFS_OPTIONS,lookupcache=none "$WINSLOW_STORAGE_PATH/pipelines" "$WINSLOW_WORK_DIRECTORY/pipelines"
+    mount.nfs -o $COMMON_NFS_OPTIONS,noac             "$WINSLOW_STORAGE_PATH/projects" "$WINSLOW_WORK_DIRECTORY/projects"
+    mount.nfs -o $COMMON_NFS_OPTIONS,noac             "$WINSLOW_STORAGE_PATH/pipelines" "$WINSLOW_WORK_DIRECTORY/pipelines"
 
 elif [ "$WINSLOW_STORAGE_TYPE" == "bind" ]; then
     echo "    :: Storage is provided through binding"
