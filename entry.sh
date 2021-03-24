@@ -72,7 +72,9 @@ if [ "$WINSLOW_STORAGE_TYPE" == "nfs" ]; then
 #    mount.nfs -o intr,soft "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
 #    mount.nfs -o intr,soft,sync "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
 #    mount.nfs -o intr,soft,async "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
-    mount.nfs -o intr,soft,async,lookupcache=none "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
+#    mount.nfs -o intr,soft,async,lookupcache=none "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
+    mount.nfs -o intr,soft,async "$WINSLOW_STORAGE_PATH" "$WINSLOW_WORK_DIRECTORY"
+    mount.nfs -o intr,soft,sync "$WINSLOW_STORAGE_PATH/run" "$WINSLOW_WORK_DIRECTORY/run"
 
 elif [ "$WINSLOW_STORAGE_TYPE" == "bind" ]; then
     echo "    :: Storage is provided through binding"
