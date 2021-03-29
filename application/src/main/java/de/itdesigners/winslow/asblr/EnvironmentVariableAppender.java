@@ -68,7 +68,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
         stageDefinition.getRequirements().ifPresent(requirements -> {
             var sub = context
                     .getSubmission()
-                    //.withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CPU_CORES", String.valueOf(requirements.getCpu()))
+                    .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CORES", String.valueOf(requirements.getCpu()))
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_MB",
                             String.valueOf(requirements.getMegabytesOfRam())
