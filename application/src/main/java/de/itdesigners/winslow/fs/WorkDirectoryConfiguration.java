@@ -14,22 +14,26 @@ public interface WorkDirectoryConfiguration {
 
     @Nonnull
     default Path getProjectsDirectory() {
-        return getPath().resolve("projects");
+        // prevent the FileSystem from leaking through
+        return Path.of(getPath().resolve("projects").toUri());
     }
 
     @Nonnull
     default Path getEventsDirectory() {
-        return getRunDirectory().resolve("events");
+        // prevent the FileSystem from leaking through
+        return Path.of(getRunDirectory().resolve("events").toUri());
     }
 
     @Nonnull
     default Path getPipelinesDirectory() {
-        return getPath().resolve("pipelines");
+        // prevent the FileSystem from leaking through
+        return Path.of(getPath().resolve("pipelines").toUri());
     }
 
     @Nonnull
     default Path getLogsDirectory() {
-        return getPath().resolve("logs");
+        // prevent the FileSystem from leaking through
+        return Path.of(getPath().resolve("logs").toUri());
     }
 
     /**
@@ -45,16 +49,19 @@ public interface WorkDirectoryConfiguration {
      */
     @Nonnull
     default Path getRunDirectory() {
-        return getPath().resolve("run");
+        // prevent the FileSystem from leaking through
+        return Path.of(getPath().resolve("run").toUri());
     }
 
     @Nonnull
     default Path getNodesDirectory() {
-        return getRunDirectory().resolve("nodes");
+        // prevent the FileSystem from leaking through
+        return Path.of(getRunDirectory().resolve("nodes").toUri());
     }
 
     @Nonnull
     default Path getSettingsDirectory() {
-        return getPath().resolve("settings");
+        // prevent the FileSystem from leaking through
+        return Path.of(getPath().resolve("settings").toUri());
     }
 }
