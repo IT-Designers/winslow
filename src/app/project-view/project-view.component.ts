@@ -7,7 +7,7 @@ import {
   ParseError,
   ProjectApiService,
   ProjectInfo,
-  RangedValue,
+  RangedValue, ResourceLimitation,
   StageDefinitionInfo,
   StageInfo,
   State,
@@ -66,6 +66,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
+      this.api.getResourceLimitation(this.projectValue.id).then(limit => this.resourceLimit = limit);
       this.resubscribe(value.id);
     }
 
@@ -148,6 +149,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
   workspaceMode: WorkspaceMode = null;
+  resourceLimit: ResourceLimitation = null;
 
 
   private static deepClone(obj: any): any {
@@ -690,12 +692,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean) {
+  updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean, always: boolean) {
     let promise = null;
     if (set) {
       const policy = new DeletionPolicy();
       policy.numberOfWorkspacesOfSucceededStagesToKeep = Number(limitStr) > 0 ? Number(limitStr) : null;
       policy.keepWorkspaceOfFailedStage = keep;
+      policy.alwaysKeepMostRecentWorkspace = always;
       promise = this.api.updateDeletionPolicy(this.project.id, policy)
         .then(result => {
           this.deletionPolicyLocal = result;
@@ -775,6 +778,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
           this.workspaceMode = mode;
         }),
       `Updating workspace configuration mode`,
+    );
+  }
+
+  setResourceLimitation(limit?: ResourceLimitation) {
+    this.dialog.openLoadingIndicator(
+      this.api.setResourceLimitation(this.projectValue.id, limit)
+        .then(l => {
+          this.resourceLimit = l;
+        }),
+      `Updating resource limitation`
     );
   }
 }

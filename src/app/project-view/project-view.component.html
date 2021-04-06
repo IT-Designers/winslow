@@ -76,7 +76,8 @@
                         )">
         <mat-icon>send</mat-icon>
         Enqueue
-        <mat-icon (click)="$event.preventDefault(); $event.stopPropagation(); enqueueMenuTrigger.openMenu()">more_vert</mat-icon>
+        <mat-icon (click)="$event.preventDefault(); $event.stopPropagation(); enqueueMenuTrigger.openMenu()">more_vert
+        </mat-icon>
         <mat-menu #enqueueMenu xPosition="before">
           <button mat-menu-item (click)="enqueue(
                   executionSelection.selectedPipeline,
@@ -270,7 +271,7 @@
           </mat-card-subtitle>
           <button mat-stroked-button color="primary"
                   [disabled]="deletionPolicyLocal === deletionPolicyRemote"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
             Update
           </button>
         </div>
@@ -284,7 +285,7 @@
           </mat-form-field>
           <button mat-stroked-button color="primary"
                   [disabled]="deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
             Update
           </button>
         </div>
@@ -296,28 +297,55 @@
           ></mat-slide-toggle>
           <button mat-stroked-button color="primary"
                   [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked)">
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
             Update
           </button>
         </div>
-
-        <div class="whitespace-separator">
-          <mat-divider></mat-divider>
-        </div>
-
         <div class="stage-control-item">
-          <label>Default workspace configuration mode</label>
-          <mat-form-field>
-            <mat-select #workspaceModeSelection [value]="this.workspaceMode">
-              <ng-container *ngFor="let mode of workspaceModes()">
-                <mat-option [value]="mode">{{mode}}</mat-option>
-              </ng-container>
-            </mat-select>
-          </mat-form-field>
-          <button mat-stroked-button color="primary" (click)="setWorkspaceMode(workspaceModeSelection.value)">
+          <label [class.disabled]="!custom.checked">Always keep most recent workspace</label>
+          <mat-slide-toggle #always
+                            [disabled]="deletionPolicyLocal == null || !custom.checked"
+                            [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
+          ></mat-slide-toggle>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
             Update
           </button>
         </div>
+      </div>
+
+      <div class="whitespace-separator">
+        <mat-divider></mat-divider>
+      </div>
+
+
+      <div class="whitespace-separator-top">
+        <app-resource-limitation
+          class="whitespace-separator-top "
+          title="Project specific Resource Limitation"
+          [limit]="resourceLimit"
+          (limit)="setResourceLimitation($event)"
+        ></app-resource-limitation>
+
+      </div>
+
+      <div class="whitespace-separator">
+        <mat-divider></mat-divider>
+      </div>
+
+      <div class="stage-control-item">
+        <label>Default workspace configuration mode</label>
+        <mat-form-field>
+          <mat-select #workspaceModeSelection [value]="this.workspaceMode">
+            <ng-container *ngFor="let mode of workspaceModes()">
+              <mat-option [value]="mode">{{mode}}</mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button color="primary" (click)="setWorkspaceMode(workspaceModeSelection.value)">
+          Update
+        </button>
       </div>
 
       <div class="stage-control-item whitespace-separator-top">

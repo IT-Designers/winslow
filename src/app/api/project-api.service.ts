@@ -357,6 +357,21 @@ export class ProjectApiService {
   }
 
 
+  getResourceLimitation(projectId: string): Promise<ResourceLimitation> {
+    return this
+      .client
+      .get<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`))
+      .toPromise();
+  }
+
+  setResourceLimitation(projectId: string, limit: ResourceLimitation): Promise<ResourceLimitation> {
+    return this
+      .client
+      .put<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`), limit)
+      .toPromise();
+  }
+
+
   tryParseGroupNumber(groupId: string, alt: number): number {
     if (groupId != null) {
       const split = groupId.split('_');
@@ -664,6 +679,7 @@ export class EnvVariable {
 export class DeletionPolicy {
   keepWorkspaceOfFailedStage: boolean;
   numberOfWorkspacesOfSucceededStagesToKeep?: number;
+  alwaysKeepMostRecentWorkspace?: boolean;
 }
 
 export class StatsInfo {
@@ -690,4 +706,24 @@ export class WorkspaceConfiguration {
     this.sharedWithinGroup = sharedWithinGroup != null && sharedWithinGroup;
   }
 
+}
+
+export class ResourceLimitation {
+  cpu?: number = null;
+  mem?: number = null;
+  gpu?: number = null;
+
+  constructor(src?: ResourceLimitation) {
+    this.cpu = src?.cpu;
+    this.mem = src?.mem;
+    this.gpu = src?.gpu;
+  }
+
+  static equals(a?: ResourceLimitation, b?: ResourceLimitation) {
+    if (a != null && b != null) {
+      return a.cpu === b.cpu && a.mem === b.mem && a.gpu === b.gpu;
+    } else {
+      return a == null && b == null;
+    }
+  }
 }

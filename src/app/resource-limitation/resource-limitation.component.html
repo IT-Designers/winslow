@@ -1,0 +1,45 @@
+<div class="data-row">
+  <mat-card-subtitle>
+    <mat-slide-toggle
+      #resourceLimit
+      [checked]="remote != null"
+      (change)="maybeInitLocal($event.checked)">
+      {{title}}
+    </mat-slide-toggle>
+  </mat-card-subtitle>
+  <button mat-stroked-button color="primary"
+          [disabled]="localRemoteEq()"
+          (click)="submitLocal()">
+    Update
+  </button>
+</div>
+<div class="data-row">
+  <label [class.disabled]="!resourceLimit.checked">CPU cores</label>
+  <mat-form-field>
+    <input #limitCpu matInput type="number"
+           [disabled]="!resourceLimit.checked"
+           [value]="local != null ? ''+local.cpu : null"
+           (change)="local.cpu = toNumberOrNull($event.target.value)"
+           [min]="0">
+  </mat-form-field>
+</div>
+<div class="data-row">
+  <label [class.disabled]="!resourceLimit.checked">RAM (MiB)</label>
+  <mat-form-field>
+    <input #limitMem matInput type="number"
+           [disabled]="!resourceLimit.checked"
+           [value]="local != null ? ''+local.mem : null"
+           (change)="local.mem = toNumberOrNull($event.target.value)"
+           [min]="0">
+  </mat-form-field>
+</div>
+<div class="data-row">
+  <label [class.disabled]="!resourceLimit.checked">GPUs</label>
+  <mat-form-field>
+    <input #limitGpu matInput type="number"
+           [disabled]="!resourceLimit.checked"
+           [value]="local != null ? ''+local.gpu : null"
+           (change)="local.gpu = toNumberOrNull($event.target.value)"
+           [min]="0">
+  </mat-form-field>
+</div>

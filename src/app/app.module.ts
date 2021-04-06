@@ -69,6 +69,9 @@ import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '
 import {RxStompConfig} from './rx-stomp.config';
 import { LogViewComponent } from './log-view/log-view.component';
 import { StopButtonComponent } from './stop-button/stop-button.component';
+import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
+import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
+import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
 
 @NgModule({
     declarations: [
@@ -107,6 +110,9 @@ import { StopButtonComponent } from './stop-button/stop-button.component';
         ProjectHistoryGroupInfoComponent,
         LogViewComponent,
         StopButtonComponent,
+        SystemCfgResLimitComponent,
+        CheckableNumberInputComponent,
+        ResourceLimitationComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -139,7 +145,15 @@ import { StopButtonComponent } from './stop-button/stop-button.component';
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
             {path: 'about', component: AboutComponent},
-            {path: 'system', component: SystemViewComponent},
+
+            {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
+            {
+              path: 'system',
+              children: [{
+                path: ':cfg',
+                component: SystemViewComponent
+              }]
+            },
         ]),
 
         BrowserModule,
