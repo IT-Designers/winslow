@@ -65,7 +65,7 @@ public class Main {
         WebApi.Context webApi = null;
 
         try {
-            LOG.info("Loading NFS configuration for work-directory");
+            LOG.info("Loading configuration for work-directory");
             WorkDirectoryConfiguration config = getWorkDirectoryConfiguration(workDirectory, storageType);
 
             LOG.info("Preparing environment");
