@@ -1,0 +1,90 @@
+@media (min-width: 60em) {
+  .separator {
+    flex-grow: 0 !important;
+    border-left: 1px solid silver !important;
+  }
+
+  .server-overview {
+    flex-basis: 0 !important;
+    max-width: 30em !important;
+  }
+
+  .graph-container {
+    flex-basis: 0 !important;
+  }
+
+  .server {
+    flex-direction: row !important;
+  }
+}
+
+.server {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-direction: column;
+  padding: 1em;
+  overflow: auto;
+}
+
+.server-overview {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 1%;
+  overflow: hidden;
+  text-align: center;
+  padding: 3em 0;
+}
+
+.server-details > * {
+  display: block;
+}
+
+.server-build-info {
+  color: silver;
+}
+
+.server-overview .ngx-graph-wrapper {
+  flex-grow: 1 !important;
+  flex-shrink: 2 !important;
+  max-height: 20em;
+}
+
+.separator {
+  flex-grow: 0;
+  border-bottom: 1px solid silver;
+}
+
+.graph-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 2;
+  overflow: auto;
+}
+
+.graph-container-item {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 1em;
+}
+
+
+
+.graph-container .graph-container-item:not(:last-child) {
+  border-bottom: 1px solid silver;
+}
+
+.graph {
+  display: flex;
+  padding-left: 2em;
+  overflow: hidden;
+}
+
+.ngx-graph-wrapper {
+  overflow: hidden;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
