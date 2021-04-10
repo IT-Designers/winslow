@@ -74,6 +74,7 @@ import { CheckableNumberInputComponent } from './checkable-number-input/checkabl
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
 import { ServerNewComponent } from './server-new/server-new.component';
 import { ServersNewComponent } from './servers-new/servers-new.component';
+import { NgxEchartsModule } from 'ngx-echarts';
 
 @NgModule({
     declarations: [
@@ -194,6 +195,7 @@ import { ServersNewComponent } from './servers-new/servers-new.component';
         MatChipsModule,
         MatMenuModule,
         MatRadioModule,
+        NgxEchartsModule,
 
     ],
   providers: [
