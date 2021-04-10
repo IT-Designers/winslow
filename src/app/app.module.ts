@@ -72,6 +72,8 @@ import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
+import { ServerNewComponent } from './server-new/server-new.component';
+import { ServersNewComponent } from './servers-new/servers-new.component';
 
 @NgModule({
     declarations: [
@@ -113,6 +115,8 @@ import { ResourceLimitationComponent } from './resource-limitation/resource-limi
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
         ResourceLimitationComponent,
+        ServerNewComponent,
+        ServersNewComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -144,6 +148,7 @@ import { ResourceLimitationComponent } from './resource-limitation/resource-limi
             {path: 'pipelines', component: PipelinesComponent},
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
+            {path: 'servers_new', component: ServersNewComponent},
             {path: 'about', component: AboutComponent},
 
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},

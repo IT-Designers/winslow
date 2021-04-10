@@ -1,0 +1,10 @@
+<app-loading-info [error]="loadError ? loadError.message : null" [loading]="nodes == null"></app-loading-info>
+
+<div class="servers">
+  <ng-container *ngFor="let node of nodes; trackBy:trackNodeInfo">
+    <app-server-new
+      [node]="node"
+      class="overview-element"
+    ></app-server-new>
+  </ng-container>
+</div>
