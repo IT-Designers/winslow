@@ -87,6 +87,21 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
         }
     }
 
+    private boolean isHealthyDriverDetected(@Nonnull DriverInfo driverInfo) {
+        boolean success = driverInfo.getHealthy() && driverInfo.getDetected();
+        if (!success) {
+            LOG.severe(
+                    "Nomad is not healthy("
+                            + driverInfo.getHealthy()
+                            + ") or docker was not detected("
+                            + driverInfo.getDetected()
+                            + "): "
+                            + driverInfo.getHealthDescription()
+            );
+        }
+        return success;
+    }
+
     @Override
     @Nonnull
     public Stream<String> listStages() throws IOException {
@@ -194,7 +209,7 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
 
                         return !gpuRequired || gpuAvailable;
                     })
-                    .anyMatch(entry -> entry.getValue().getHealthy() && entry.getValue().getDetected());
+                    .anyMatch(entry -> isHealthyDriverDetected(entry.getValue()));
         } catch (IOException | NomadException e) {
             e.printStackTrace();
             return false;
