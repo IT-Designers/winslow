@@ -29,8 +29,10 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.security.Principal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -514,9 +516,10 @@ public class FilesControllerTest {
     public void testZipArchiveUpload(boolean decompress) throws IOException {
         var abcContent = "Se Compressed File Content";
         var archive    = new ByteArrayOutputStream();
+        var lastMod    = FileTime.from(1337L, TimeUnit.SECONDS); // zip only supports full seconds
 
         try (ZipOutputStream zos = new ZipOutputStream(archive)) {
-            zos.putNextEntry(new ZipEntry("bernd/abc.txt"));
+            zos.putNextEntry(new ZipEntry("bernd/abc.txt").setLastModifiedTime(lastMod));
             var baos = new ByteArrayOutputStream();
             try (PrintStream ps = new PrintStream(baos)) {
                 ps.print(abcContent);
@@ -525,7 +528,7 @@ public class FilesControllerTest {
             zos.flush();
             zos.closeEntry();
 
-            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/abc.txt"));
+            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/abc.txt").setLastModifiedTime(lastMod));
             baos = new ByteArrayOutputStream();
             try (PrintStream ps = new PrintStream(baos)) {
                 ps.print(abcContent);
@@ -534,11 +537,11 @@ public class FilesControllerTest {
             zos.flush();
             zos.closeEntry();
 
-            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/"));
+            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/").setLastModifiedTime(lastMod));
             zos.flush();
             zos.closeEntry();
 
-            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/xyz.txt"));
+            zos.putNextEntry(new ZipEntry("bernd/blubb/bli/xyz.txt").setLastModifiedTime(lastMod));
             baos = new ByteArrayOutputStream();
             try (PrintStream ps = new PrintStream(baos)) {
                 ps.print(abcContent);
@@ -547,7 +550,7 @@ public class FilesControllerTest {
             zos.flush();
             zos.closeEntry();
 
-            zos.putNextEntry(new ZipEntry("bli/blubb/def.txt"));
+            zos.putNextEntry(new ZipEntry("bli/blubb/def.txt").setLastModifiedTime(lastMod));
             baos = new ByteArrayOutputStream();
             try (PrintStream ps = new PrintStream(baos)) {
                 ps.print(abcContent);
@@ -568,26 +571,34 @@ public class FilesControllerTest {
         );
 
         if (decompress) {
-            assertEquals(abcContent, Files.readString(
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bernd/abc.txt")
-            ));
-            assertEquals(abcContent, Files.readString(
+                            .resolve("my-project-id/bernd/abc.txt"),
+                    abcContent,
+                    lastMod.toMillis()
+            );
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bernd/blubb/bli/abc.txt")
-            ));
-            assertEquals(abcContent, Files.readString(
+                            .resolve("my-project-id/bernd/blubb/bli/abc.txt"),
+                    abcContent,
+                    lastMod.toMillis()
+            );
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bernd/blubb/bli/xyz.txt")
-            ));
-            assertEquals(abcContent, Files.readString(
+                            .resolve("my-project-id/bernd/blubb/bli/xyz.txt"),
+                    abcContent,
+                    lastMod.toMillis()
+            );
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bli/blubb/def.txt")
-            ));
+                            .resolve("my-project-id/bli/blubb/def.txt"),
+                    abcContent,
+                    lastMod.toMillis()
+            );
         } else {
             assertArrayEquals(
                     archive.toByteArray(),
@@ -599,6 +610,11 @@ public class FilesControllerTest {
         }
     }
 
+    private void assertFileContentTime(@Nonnull Path path, @Nonnull String content, long time) throws IOException {
+        assertEquals(content, Files.readString(path));
+        assertEquals(time, Files.getLastModifiedTime(path).toMillis());
+    }
+
     @Test
     public void testTarGzArchiveUpload() throws IOException {
         testTarGzArchiveUpload(false);
@@ -608,6 +624,7 @@ public class FilesControllerTest {
     public void testTarGzArchiveUpload(boolean decompress) throws IOException {
         var abcContent = "Se Compressed File Content";
         var archive    = new ByteArrayOutputStream();
+        var time       = 4242_000L; // tar-gz only supports whole seconds
 
         try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(archive)) {
             try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
@@ -618,6 +635,7 @@ public class FilesControllerTest {
                 var array        = baos.toByteArray();
                 var archiveEntry = new TarArchiveEntry("bernd/abc.txt");
                 archiveEntry.setSize(array.length);
+                archiveEntry.setModTime(time);
                 taos.putArchiveEntry(archiveEntry);
                 new ByteArrayInputStream(array).transferTo(taos);
                 taos.flush();
@@ -630,6 +648,7 @@ public class FilesControllerTest {
                 array        = baos.toByteArray();
                 archiveEntry = new TarArchiveEntry("bernd/bli/blubb/abc.txt");
                 archiveEntry.setSize(array.length);
+                archiveEntry.setModTime(time);
                 taos.putArchiveEntry(archiveEntry);
                 new ByteArrayInputStream(array).transferTo(taos);
                 taos.flush();
@@ -642,6 +661,7 @@ public class FilesControllerTest {
                 array        = baos.toByteArray();
                 archiveEntry = new TarArchiveEntry("bernd/bli/blubb/xyz.txt");
                 archiveEntry.setSize(array.length);
+                archiveEntry.setModTime(time);
                 taos.putArchiveEntry(archiveEntry);
                 new ByteArrayInputStream(array).transferTo(taos);
                 taos.flush();
@@ -654,6 +674,7 @@ public class FilesControllerTest {
                 array        = baos.toByteArray();
                 archiveEntry = new TarArchiveEntry("bernd/bli/def.txt");
                 archiveEntry.setSize(array.length);
+                archiveEntry.setModTime(time);
                 taos.putArchiveEntry(archiveEntry);
                 new ByteArrayInputStream(array).transferTo(taos);
                 taos.flush();
@@ -672,26 +693,34 @@ public class FilesControllerTest {
         );
 
         if (decompress) {
-            assertEquals(abcContent, Files.readString(
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bernd/abc.txt")
-            ));
-            assertEquals(abcContent, Files.readString(
+                            .resolve("my-project-id/bernd/abc.txt"),
+                    abcContent,
+                    time
+            );
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bernd/bli/blubb/abc.txt")
-            ));
-            assertEquals(abcContent, Files.readString(
+                            .resolve("my-project-id/bernd/bli/blubb/abc.txt"),
+                    abcContent,
+                    time
+            );
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bernd/bli/blubb/xyz.txt")
-            ));
-            assertEquals(abcContent, Files.readString(
+                            .resolve("my-project-id/bernd/bli/blubb/xyz.txt"),
+                    abcContent,
+                    time
+            );
+            assertFileContentTime(
                     workDirectory
                             .resolve(pathConfiguration.getRelativePathOfResources())
-                            .resolve("my-project-id/bernd/bli/def.txt")
-            ));
+                            .resolve("my-project-id/bernd/bli/def.txt"),
+                    abcContent,
+                    time
+            );
         } else {
             assertArrayEquals(
                     archive.toByteArray(),

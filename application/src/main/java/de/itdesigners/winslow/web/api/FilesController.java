@@ -234,7 +234,7 @@ public class FilesController {
                                 try (var fos = Files.newOutputStream(path)) {
                                     StreamUtils.copy(upload, fos);
                                     if (lastModified != null) {
-                                        Files.setLastModifiedTime(path, FileTime.from(lastModified, TimeUnit.MILLISECONDS));
+                                        Files.setLastModifiedTime(path, FileTime.fromMillis(lastModified));
                                     }
                                 }
                             } else {
@@ -282,6 +282,7 @@ public class FilesController {
                 }
                 try (FileOutputStream fos = new FileOutputStream(file.toFile())) {
                     zis.transferTo(fos);
+                    Files.setLastModifiedTime(file, entry.getLastModifiedTime());
                 }
             }
         }
@@ -297,6 +298,7 @@ public class FilesController {
                 }
                 try (FileOutputStream fos = new FileOutputStream(file.toFile())) {
                     tais.transferTo(fos);
+                    Files.setLastModifiedTime(file, FileTime.fromMillis(entry.getModTime().getTime()));
                 }
             }
         }
