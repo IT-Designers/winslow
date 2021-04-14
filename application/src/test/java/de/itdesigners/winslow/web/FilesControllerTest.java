@@ -19,10 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.Nonnull;
 import javax.servlet.*;
@@ -345,7 +343,8 @@ public class FilesControllerTest {
                 constructRequest("bitcoin.privatekey"),
                 getRoot(),
                 constructUploadFile(ABC_TXT),
-                false
+                false,
+                null
         );
         String content = Files.readString(
                 workDirectory
@@ -356,12 +355,33 @@ public class FilesControllerTest {
     }
 
     @Test
+    public void testResourceUploadLastModified() throws IOException {
+        controller.uploadResourceFile(
+                constructRequest("bitcoin.privatekey"),
+                getRoot(),
+                constructUploadFile(ABC_TXT),
+                false,
+                1337L
+        );
+
+        assertEquals(
+                1337L,
+                Files.getLastModifiedTime(
+                        workDirectory
+                                .resolve(pathConfiguration.getRelativePathOfResources())
+                                .resolve("bitcoin.privatekey")
+                ).toMillis()
+        );
+    }
+
+    @Test
     public void testResourceUploadOverwrite() throws IOException {
         controller.uploadResourceFile(
                 constructRequest("abc.txt"),
                 getRoot(),
                 constructUploadFile(DEF_TXT),
-                false
+                false,
+                null
         );
         String content = Files.readString(
                 workDirectory
@@ -380,7 +400,8 @@ public class FilesControllerTest {
                         constructRequest("bitcoin.privatekey"),
                         null,
                         constructUploadFile(ABC_TXT),
-                        false
+                        false,
+                        null
                 )
         );
         assertFalse(Files.exists(
@@ -396,7 +417,8 @@ public class FilesControllerTest {
                 constructRequest("my-project-id/bitcoin.privatekey"),
                 getRoot(),
                 constructUploadFile(ABC_TXT),
-                false
+                false,
+                null
         );
         String content = Files.readString(
                 workDirectory
@@ -404,6 +426,26 @@ public class FilesControllerTest {
                         .resolve("my-project-id/bitcoin.privatekey")
         );
         assertEquals(ABC_TXT, content);
+    }
+
+    @Test
+    public void testWorkspaceUploadLastModified() throws IOException {
+        controller.uploadWorkspaceFile(
+                constructRequest("my-project-id/bitcoin.privatekey"),
+                getRoot(),
+                constructUploadFile(ABC_TXT),
+                false,
+                1337L
+        );
+
+        assertEquals(
+                1337L,
+                Files.getLastModifiedTime(
+                        workDirectory
+                                .resolve(pathConfiguration.getRelativePathOfWorkspaces())
+                                .resolve("my-project-id/bitcoin.privatekey")
+                ).toMillis()
+        );
     }
 
     @Test
@@ -415,7 +457,8 @@ public class FilesControllerTest {
                         constructRequest("my-project-id/bitcoin.privatekey"),
                         null,
                         constructUploadFile(ABC_TXT),
-                        false
+                        false,
+                        null
                 )
         );
         assertFalse(Files.exists(
@@ -434,7 +477,8 @@ public class FilesControllerTest {
                         constructRequest("my-project-id/bitcoin.privatekey"),
                         getUser("random-guy", false),
                         constructUploadFile(ABC_TXT),
-                        false
+                        false,
+                        null
                 )
         );
         assertFalse(Files.exists(
@@ -450,7 +494,8 @@ public class FilesControllerTest {
                 constructRequest("my-project-id/bitcoin.privatekey"),
                 getProjectOwner(),
                 constructUploadFile(ABC_TXT),
-                false
+                false,
+                null
         );
         String content = Files.readString(
                 workDirectory
@@ -518,7 +563,8 @@ public class FilesControllerTest {
                 constructRequest("my-project-id/se.zip"),
                 getProjectOwner(),
                 content,
-                decompress
+                decompress,
+                null
         );
 
         if (decompress) {
@@ -621,7 +667,8 @@ public class FilesControllerTest {
                 constructRequest("my-project-id/se.tar.gz"),
                 getProjectOwner(),
                 content,
-                decompress
+                decompress,
+                null
         );
 
         if (decompress) {
@@ -687,7 +734,11 @@ public class FilesControllerTest {
         );
         assertNotNull(response);
         assertNotNull(response.getBody());
-        assertTrue(response.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION).get(0).contains("filename=\"def.txt.tar.gz\""));
+        assertTrue(response
+                           .getHeaders()
+                           .get(HttpHeaders.CONTENT_DISPOSITION)
+                           .get(0)
+                           .contains("filename=\"def.txt.tar.gz\""));
 
         var baos = new ByteArrayOutputStream();
         response.getBody().writeTo(baos);
@@ -781,7 +832,11 @@ public class FilesControllerTest {
         );
         assertNotNull(response);
         assertNotNull(response.getBody());
-        assertTrue(response.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION).get(0).contains("filename=\"some.file.tar.gz\""));
+        assertTrue(response
+                           .getHeaders()
+                           .get(HttpHeaders.CONTENT_DISPOSITION)
+                           .get(0)
+                           .contains("filename=\"some.file.tar.gz\""));
 
         var baos = new ByteArrayOutputStream();
         response.getBody().writeTo(baos);
@@ -849,6 +904,7 @@ public class FilesControllerTest {
     public void testWorkspaceDownloadNotAllowedNoExplicitCompress() {
         testWorkspaceDownloadNotAllowed(false);
     }
+
     @Test
     public void testWorkspaceDownloadNotAllowedExplicitCompress() {
         testWorkspaceDownloadNotAllowed(true);
@@ -892,7 +948,11 @@ public class FilesControllerTest {
         );
         assertNotNull(response);
         assertNotNull(response.getBody());
-        assertTrue(response.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION).get(0).contains("filename=\"some.file.tar.gz\""));
+        assertTrue(response
+                           .getHeaders()
+                           .get(HttpHeaders.CONTENT_DISPOSITION)
+                           .get(0)
+                           .contains("filename=\"some.file.tar.gz\""));
 
         var baos = new ByteArrayOutputStream();
         response.getBody().writeTo(baos);

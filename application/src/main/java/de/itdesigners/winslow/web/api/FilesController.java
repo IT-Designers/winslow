@@ -14,10 +14,8 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -39,13 +37,17 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @RestController
 public class FilesController {
+
+    public static final String ATTR_LAST_MODIFIED = "last-modified";
 
     private final ResourceManager   resourceManager;
     private final FileAccessChecker checker;
@@ -146,7 +148,8 @@ public class FilesController {
             HttpServletRequest request,
             User user,
             @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive,
-            @RequestParam(name = "rawBody", defaultValue = "false", required = false) boolean rawBody
+            @RequestParam(name = "rawBody", defaultValue = "false", required = false) boolean rawBody,
+            @RequestParam(name = "lastModified", required = false) Long lastModified
     ) throws IOException, FileUploadException {
         uploadFile(
                 request,
@@ -155,7 +158,8 @@ public class FilesController {
                 ? request.getInputStream()
                 : new ServletFileUpload().getItemIterator(request).next().openStream(),
                 resourceManager.getResourceDirectory().orElseThrow(),
-                decompressArchive
+                decompressArchive,
+                lastModified
         );
     }
 
@@ -163,8 +167,16 @@ public class FilesController {
             HttpServletRequest request,
             User user,
             @Nonnull InputStream upload,
-            boolean decompressArchive) {
-        uploadFile(request, user, upload, resourceManager.getResourceDirectory().orElseThrow(), decompressArchive);
+            boolean decompressArchive,
+            @Nullable Long lastModified) {
+        uploadFile(
+                request,
+                user,
+                upload,
+                resourceManager.getResourceDirectory().orElseThrow(),
+                decompressArchive,
+                lastModified
+        );
     }
 
     @PutMapping(value = {"/files/workspaces/**"})
@@ -172,7 +184,8 @@ public class FilesController {
             HttpServletRequest request,
             User user,
             @RequestParam(name = "decompressArchive", defaultValue = "false", required = false) boolean decompressArchive,
-            @RequestParam(name = "rawBody", defaultValue = "false", required = false) boolean rawBody
+            @RequestParam(name = "rawBody", defaultValue = "false", required = false) boolean rawBody,
+            @RequestParam(name = "lastModified", required = false) Long lastModified
     ) throws IOException, FileUploadException {
         uploadFile(
                 request,
@@ -181,7 +194,8 @@ public class FilesController {
                 ? request.getInputStream()
                 : new ServletFileUpload().getItemIterator(request).next().openStream(),
                 resourceManager.getWorkspacesDirectory().orElseThrow(),
-                decompressArchive
+                decompressArchive,
+                lastModified
         );
     }
 
@@ -189,8 +203,16 @@ public class FilesController {
             HttpServletRequest request,
             User user,
             @Nonnull InputStream upload,
-            boolean decompressArchive) {
-        uploadFile(request, user, upload, resourceManager.getWorkspacesDirectory().orElseThrow(), decompressArchive);
+            boolean decompressArchive,
+            @Nullable Long lastModified) {
+        uploadFile(
+                request,
+                user,
+                upload,
+                resourceManager.getWorkspacesDirectory().orElseThrow(),
+                decompressArchive,
+                lastModified
+        );
     }
 
     public void uploadFile(
@@ -198,7 +220,8 @@ public class FilesController {
             User user,
             @Nonnull InputStream upload,
             @Nonnull Path directory,
-            boolean decompressArchive) {
+            boolean decompressArchive,
+            @Nullable Long lastModified) {
         normalizedPath(request)
                 .flatMap(path -> Optional
                         .of(directory.resolve(path))
@@ -210,6 +233,9 @@ public class FilesController {
                             if (!decompressArchive) {
                                 try (var fos = Files.newOutputStream(path)) {
                                     StreamUtils.copy(upload, fos);
+                                    if (lastModified != null) {
+                                        Files.setLastModifiedTime(path, FileTime.from(lastModified, TimeUnit.MILLISECONDS));
+                                    }
                                 }
                             } else {
                                 decompressArchiveContentTo(upload, path);
@@ -458,7 +484,7 @@ public class FilesController {
                 e.printStackTrace();
             }
         }
-        attributes.put("last-modified", file.lastModified());
+        attributes.put(ATTR_LAST_MODIFIED, file.lastModified());
         return attributes;
     }
 
@@ -602,17 +628,19 @@ public class FilesController {
             repo.checkout().setName(branch).call();
         }
     }
+
     @Nonnull
-    private <TC extends TransportCommand<?, ?>> TC  maybeSetCredentialsFromUrl(@Nonnull TC command) {
+    private <TC extends TransportCommand<?, ?>> TC maybeSetCredentialsFromUrl(@Nonnull TC command) {
         try {
-            var url = command.getRepository().getConfig().getString("remote", "origin", "url");
+            var url      = command.getRepository().getConfig().getString("remote", "origin", "url");
             var userInfo = new URL(url).getUserInfo();
             if (userInfo != null) {
                 var split = userInfo.split(":", 2);
                 command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(split[0], split[1]));
             }
         } catch (Throwable t) {
-            t.printStackTrace();;
+            t.printStackTrace();
+            ;
         }
         return command;
     }
