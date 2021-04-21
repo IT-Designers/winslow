@@ -88,3 +88,7 @@
   flex-grow: 1;
   flex-shrink: 1;
 }
+
+.demo-chart {
+  height: 400px;
+}

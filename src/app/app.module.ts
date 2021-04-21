@@ -75,6 +75,7 @@ import { ResourceLimitationComponent } from './resource-limitation/resource-limi
 import { ServerNewComponent } from './server-new/server-new.component';
 import { ServersNewComponent } from './servers-new/servers-new.component';
 import { NgxEchartsModule } from 'ngx-echarts';
+import * as echarts from 'echarts';
 
 @NgModule({
     declarations: [
@@ -195,7 +196,9 @@ import { NgxEchartsModule } from 'ngx-echarts';
         MatChipsModule,
         MatMenuModule,
         MatRadioModule,
-        NgxEchartsModule,
+        NgxEchartsModule.forRoot({
+          echarts: { init: echarts.init }
+        }),
 
     ],
   providers: [
