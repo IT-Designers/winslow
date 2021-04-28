@@ -1,5 +1,7 @@
 package de.itdesigners.winslow.api.node;
 
+import java.util.Objects;
+
 /**
  * All units are bytes or bytes per second
  */
@@ -32,5 +34,30 @@ public class DiskInfo {
 
     public long getUsed() {
         return used;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        DiskInfo diskInfo = (DiskInfo) o;
+        return reading == diskInfo.reading && writing == diskInfo.writing && free == diskInfo.free && used == diskInfo.used;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(reading, writing, free, used);
+    }
+
+    @Override
+    public String toString() {
+        return "DiskInfo{" +
+                "reading=" + reading +
+                ", writing=" + writing +
+                ", free=" + free +
+                ", used=" + used +
+                "}@" + hashCode();
     }
 }
