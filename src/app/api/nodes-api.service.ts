@@ -3,21 +3,56 @@ import {RxStompService} from '@stomp/ng2-stompjs';
 import {ChangeEvent} from './api.service';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NodesApiService {
 
-  constructor(private rxStompService: RxStompService) {
-  }
+    constructor(
+        private rxStompService: RxStompService,
+        private client: HttpClient) {
+    }
 
-  public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
-    return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
-      const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
-      events.forEach(event => listener(event));
-    });
-  }
+    static getUrl(more?: string) {
+        if (more != null) {
+            while (more.startsWith('/')) {
+                more = more.substr(1);
+            }
+        }
+        return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
+    }
+
+    public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
+        return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
+            const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
+            events.forEach(event => listener(event));
+        });
+    }
+
+    /**
+     * Retrieves the `NodeInfo` for all active nodes
+     */
+    public getNodes(): Promise<NodeInfo> {
+        return this.client
+            .get<NodeInfo>(NodesApiService.getUrl())
+            .toPromise();
+    }
+
+    /**
+     * Retrieves `NodeUtilization`-reports for a given time span
+     *
+     * @param nodeName The name of the node to return the utilization report for
+     * @param from Unix epoch timestamp in millis from when to fetch the earliest report
+     * @param to Unix epoch timestamp in millis from when to fetch the last report
+     */
+    public getNodeUtilization(nodeName: string, from?: number, to?: number): Promise<NodeUtilization[]> {
+        return this.client
+            .get<NodeUtilization[]>(NodesApiService.getUrl(nodeName + '/utilization'))
+            .toPromise();
+    }
 }
 
 export class NodeInfo {
@@ -113,4 +148,15 @@ export class BuildInfo {
   date: string;
   commitHashShort: string;
   commitHashLong: string;
+}
+
+export class NodeUtilization {
+  time: number;
+  uptime: number;
+  cpuUtilization: number[];
+  memoryInfo: MemInfo;
+  netInfo: NetInfo;
+  diskInfo: DiskInfo;
+  gpuComputeUtilization: number[];
+  gpuMemoryUtilization: number[];
 }
