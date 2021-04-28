@@ -101,6 +101,15 @@ public class NodeUtilization {
     }
 
     @Nonnull
+    public static Optional<NodeUtilization> fromCsvLineNoThrows(@Nonnull String line) {
+        try {
+            return Optional.of(fromCsvLine(line));
+        } catch (Throwable t) {
+            return Optional.empty();
+        }
+    }
+
+    @Nonnull
     public static NodeUtilization fromCsvLine(@Nonnull String line) {
         var split = Arrays.stream(line.split(CSV_TOP_LEVEL_SEPARATOR)).iterator();
         return new NodeUtilization(
