@@ -4,6 +4,7 @@ import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
 import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.api.node.NodeInfo;
+import de.itdesigners.winslow.api.node.NodeUtilization;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 import de.itdesigners.winslow.web.websocket.ChangeEvent;
@@ -11,9 +12,12 @@ import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -23,11 +27,24 @@ import java.util.stream.Stream;
 
 public class NodeRepository extends BaseRepository {
 
-    private static final Logger LOG                = Logger.getLogger(NodeRepository.class.getSimpleName());
-    private static final String TEMP_FILE_PREFIX   = ".";
-    private static final long   ACTIVE_MAX_MS_DIFF = 15_000;
+    private static final Logger LOG = Logger.getLogger(NodeRepository.class.getSimpleName());
 
-    private final @Nonnull List<BiConsumer<ChangeEvent.ChangeType, String>> listeners = new ArrayList<>();
+    private static final String TEMP_FILE_PREFIX     = ".";
+    public static final  String CSV_SUFFIX_SEPARATOR = ".";
+    public static final  String CSV_SUFFIX           = ".csv";
+
+    private static final long ACTIVE_NODE_MAX_AGE_MS = Duration.ofSeconds(15).toMillis();
+    public static final  long MAX_RETENTION_TIME_MS  = Duration.ofDays(7).toMillis();
+
+    // ext4 has 12 indirect block pointers to 4kib
+    // public static final long CSV_MAGIC_FILE_SIZE_LIMIT = 12 * 4 * 1024;
+    // ext4 has 12 direct and 128 indirect block pointers to 4kib
+    public static final long CSV_MAGIC_FILE_SIZE_LIMIT = (12 + 128) * 4 * 1024;
+
+
+    private final @Nonnull List<BiConsumer<ChangeEvent.ChangeType, String>> listeners       = new ArrayList<>();
+    private final @Nonnull Map<String, Path>                                utilizationPath = new HashMap<>();
+
 
     public NodeRepository(LockBus lockBus, WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
         super(lockBus, workDirectoryConfiguration);
@@ -77,7 +94,7 @@ public class NodeRepository extends BaseRepository {
 
                     while (Optional
                             .ofNullable(queue.peek())
-                            .filter(e -> System.currentTimeMillis() - lastModified.get(e) >= ACTIVE_MAX_MS_DIFF)
+                            .filter(e -> System.currentTimeMillis() - lastModified.get(e) >= ACTIVE_NODE_MAX_AGE_MS)
                             .isPresent()) {
                         var node = queue.pop();
                         lastModified.remove(node);
@@ -111,8 +128,13 @@ public class NodeRepository extends BaseRepository {
     private Stream<Path> listActiveNodePaths() {
         try (var files = Files.list(getRepositoryDirectory())) {
             return files
-                    .filter(p -> !p.getFileName().toString().startsWith(TEMP_FILE_PREFIX))
-                    .filter(p -> System.currentTimeMillis() - p.toFile().lastModified() < ACTIVE_MAX_MS_DIFF)
+                    .filter(p -> {
+                        var fileName = p.getFileName().toString();
+                        return Files.isRegularFile(p)
+                                && !fileName.startsWith(TEMP_FILE_PREFIX)
+                                && !fileName.endsWith(CSV_SUFFIX);
+                    })
+                    .filter(p -> System.currentTimeMillis() - p.toFile().lastModified() < ACTIVE_NODE_MAX_AGE_MS)
                     .collect(Collectors.toList())
                     .stream();
         } catch (IOException e) {
@@ -161,5 +183,146 @@ public class NodeRepository extends BaseRepository {
         } finally {
             Files.deleteIfExists(temp);
         }
+    }
+
+    private Path getNodeUtilizationLogDirectory(@Nonnull String nodeName) {
+        return getRepositoryDirectory().resolve(nodeName + "-log");
+    }
+
+    private Path getUtilizationLogPath(@Nonnull String nodeName, long time) {
+        return getNodeUtilizationLogDirectory(nodeName).resolve(nodeName + CSV_SUFFIX_SEPARATOR + time + CSV_SUFFIX);
+    }
+
+    public void updateUtilizationLog(@Nonnull NodeInfo info) throws IOException {
+        updateUtilizationLog(info.getName(), NodeUtilization.from(info));
+    }
+
+    public synchronized void updateUtilizationLog(
+            @Nonnull String nodeName,
+            @Nonnull NodeUtilization utilization) throws IOException {
+        var line = (utilization.toCsvLine() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
+        var path = Optional
+                .ofNullable(this.utilizationPath.get(nodeName))
+                .filter(p -> {
+                    try {
+                        if (Files.size(p) + line.length <= CSV_MAGIC_FILE_SIZE_LIMIT) {
+                            return true;
+                        }
+                    } catch (Throwable t) {
+                        LOG.log(Level.FINE, "Failed to retrieve file size for " + p, t);
+                    }
+                    return false;
+                })
+                .orElseGet(() -> {
+                    var p = getUtilizationLogPath(nodeName, utilization.time);
+                    try {
+                        Files.createDirectories(p.getParent());
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Failed to create directory for utilization log file: " + p, e);
+                    }
+                    return p;
+                });
+
+
+        Files.write(
+                path,
+                line,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND,
+                StandardOpenOption.SYNC,
+                StandardOpenOption.DSYNC
+        );
+
+        this.utilizationPath.put(nodeName, path);
+        deleteOldUtilizationLogs(nodeName);
+    }
+
+    private void deleteOldUtilizationLogs(@Nonnull String nodeName) {
+        var logs = listNodeUtilizationLogs(nodeName);
+        var retainedElementCount = logs
+                .stream()
+                .sorted(Comparator.reverseOrder())
+                .takeWhile(path -> {
+                    try {
+                        return Files.getLastModifiedTime(path).toMillis()
+                                + MAX_RETENTION_TIME_MS
+                                > System.currentTimeMillis();
+                    } catch (IOException e) {
+                        LOG.log(Level.WARNING, "Failed to get last modified time for " + path, e);
+                        return true;
+                    }
+                })
+                .peek(p -> logs.remove(logs.size() - 1))
+                .count();
+
+        if (retainedElementCount > 0) {
+            logs.forEach(p -> {
+                try {
+                    System.out.println("Deleting " + p);
+                    Files.deleteIfExists(p);
+                } catch (IOException e) {
+                    LOG.log(Level.WARNING, "Failed to delete log file " + p, e);
+                }
+            });
+        }
+    }
+
+    @Nonnull
+    private List<Path> listNodeUtilizationLogs(@Nonnull String nodeName) {
+        try (var files = Files.list(getNodeUtilizationLogDirectory(nodeName))) {
+            return files.collect(Collectors.toList());
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to list nodes", e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Nonnull
+    public Stream<NodeUtilization> getNodeUtilizationBetween(
+            @Nonnull String nodeName,
+            long timeStart,
+            long timeEnd) {
+        return listNodeUtilizationLogsBetween(nodeName, timeStart, timeEnd)
+                .flatMap(path -> {
+                    try {
+                        return Files.lines(path, StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        LOG.log(Level.WARNING, "Failed to read lines of " + path, e);
+                        return Stream.empty();
+                    }
+                })
+                .map(NodeUtilization::fromCsvLineNoThrows)
+                .flatMap(Optional::stream)
+                .filter(u -> u.time >= timeStart && u.time <= timeEnd);
+    }
+
+    @Nonnull
+    private Stream<Path> listNodeUtilizationLogsBetween(@Nonnull String nodeName, long timeStart, long timeEnd) {
+        return listNodeUtilizationLogs(nodeName)
+                .stream()
+                .sorted()
+                .filter(p -> {
+                    try {
+                        var lastModify = Files.getLastModifiedTime(p).toMillis();
+                        var timeCreate = extractTimestampFromUtilizationLogFileName(
+                                nodeName,
+                                p.getFileName().toString()
+                        );
+                        return (timeCreate >= timeStart && timeCreate <= timeEnd)
+                                || (lastModify >= timeStart && lastModify <= timeEnd);
+                    } catch (Throwable t) {
+                        LOG.log(Level.WARNING, "Failed to determine modify or create time: " + p, t);
+                        return false;
+                    }
+                });
+    }
+
+
+    private long extractTimestampFromUtilizationLogFileName(@Nonnull String nodeName, @Nonnull String fileName) {
+        var timestamp = fileName.substring(
+                nodeName.length() + CSV_SUFFIX_SEPARATOR.length(),
+                fileName.length() - CSV_SUFFIX.length()
+        );
+        return Long.parseLong(timestamp);
     }
 }

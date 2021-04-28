@@ -32,8 +32,10 @@ public class NodeInfoUpdater implements Runnable {
     }
 
     public void update() throws IOException {
-        repository.updateNodeInfo(node.loadInfo());
-        waitUntil = System.currentTimeMillis() + SLEEP_TIME_MS;
+        var info = node.loadInfo();
+        waitUntil = info.getTime() + SLEEP_TIME_MS;
+        repository.updateNodeInfo(info);
+        repository.updateUtilizationLog(info);
     }
 
     public void updateNoThrows() {
