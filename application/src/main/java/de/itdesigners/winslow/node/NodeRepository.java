@@ -308,8 +308,10 @@ public class NodeRepository extends BaseRepository {
                                 nodeName,
                                 p.getFileName().toString()
                         );
-                        return (timeCreate >= timeStart && timeCreate <= timeEnd)
-                                || (lastModify >= timeStart && lastModify <= timeEnd);
+                        var startWithinRange         = timeCreate >= timeStart && timeCreate <= timeEnd;
+                        var endWithinRange           = lastModify >= timeStart && lastModify <= timeEnd;
+                        var rangeIsWithinStartAndEnd = timeStart >= timeCreate && timeEnd <= lastModify;
+                        return startWithinRange || endWithinRange || rangeIsWithinStartAndEnd;
                     } catch (Throwable t) {
                         LOG.log(Level.WARNING, "Failed to determine modify or create time: " + p, t);
                         return false;
