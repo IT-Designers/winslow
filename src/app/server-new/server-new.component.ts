@@ -406,6 +406,19 @@ export class ServerNewComponent implements OnInit {
       }
     };
     this.update(date);
+
+
+
+    let minutes = 10;
+    let end = Math.round(+new Date())
+    let start = end - minutes * 60;
+
+    this.nodes.getNodeUtilization(this.node.name, 1620493246438, 1620493354816).then(val => {
+      console.log("#####################################################");
+      console.log(start)
+      console.log(end)
+      console.log(val)
+    })
   }
 
   update(date: Date = null) {
@@ -547,7 +560,7 @@ export class ServerNewComponent implements OnInit {
 
     let cpuUsage = ((((cpus.reduce(function(a, b) { return a + b; }, 0))) * 100)/8).toFixed(0);
 
-    console.log(cpuUsage);
+
     this.mergeOptionCpu = {
       series: {
         data: [{
@@ -608,7 +621,6 @@ export class ServerNewComponent implements OnInit {
     }
     this.memory = [this.memory[0], this.memory[1], this.memory[2]];
 
-    console.log(this.memory[0]["series"]);
 
     this.mergeOptionMemory = {
       series: [
@@ -688,6 +700,7 @@ export class ServerNewComponent implements OnInit {
         },
       ],
     };
+
   }
 
   private initDiskSeries() {
