@@ -11,48 +11,55 @@ import {environment} from '../../environments/environment';
 })
 export class NodesApiService {
 
-    constructor(
-        private rxStompService: RxStompService,
-        private client: HttpClient) {
-    }
+  constructor(
+    private rxStompService: RxStompService,
+    private client: HttpClient) {
+  }
 
-    static getUrl(more?: string) {
-        if (more != null) {
-            while (more.startsWith('/')) {
-                more = more.substr(1);
-            }
-        }
-        return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
+  static getUrl(more?: string) {
+    if (more != null) {
+      while (more.startsWith('/')) {
+        more = more.substr(1);
+      }
     }
+    return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
+  }
 
-    public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
-        return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
-            const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
-            events.forEach(event => listener(event));
-        });
-    }
+  public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
+    return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
+      const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
+      events.forEach(event => listener(event));
+    });
+  }
 
-    /**
-     * Retrieves the `NodeInfo` for all active nodes
-     */
-    public getNodes(): Promise<NodeInfo> {
-        return this.client
-            .get<NodeInfo>(NodesApiService.getUrl())
-            .toPromise();
-    }
+  /**
+   * Retrieves the `NodeInfo` for all active nodes
+   */
+  public getNodes(): Promise<NodeInfo> {
+    return this.client
+      .get<NodeInfo>(NodesApiService.getUrl())
+      .toPromise();
+  }
 
-    /**
-     * Retrieves `NodeUtilization`-reports for a given time span
-     *
-     * @param nodeName The name of the node to return the utilization report for
-     * @param from Unix epoch timestamp in millis from when to fetch the earliest report
-     * @param to Unix epoch timestamp in millis from when to fetch the last report
-     */
-    public getNodeUtilization(nodeName: string, from?: number, to?: number): Promise<NodeUtilization[]> {
-        return this.client
-            .get<NodeUtilization[]>(NodesApiService.getUrl(nodeName + '/utilization'))
-            .toPromise();
-    }
+  /**
+   * Retrieves `NodeUtilization`-reports for a given time span
+   *
+   * @param nodeName The name of the node to return the utilization report for
+   * @param from Unix epoch timestamp in millis from when to fetch the earliest report
+   * @param to Unix epoch timestamp in millis from when to fetch the last report
+   */
+  public getNodeUtilization(nodeName: string, from?: number, to?: number): Promise<NodeUtilization[]> {
+    const params = [['from', from], ['to', to]]
+      .filter(p => p != null && p[1] != null)
+      .map(p => p[0] + '=' + p[1])
+      .join(',');
+
+    return this.client
+      .get<NodeUtilization[]>(NodesApiService.getUrl(
+        nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
+      ))
+      .toPromise();
+  }
 }
 
 export class NodeInfo {
