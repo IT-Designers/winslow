@@ -52,7 +52,7 @@ export class NodesApiService {
     const params = [['from', from], ['to', to]]
       .filter(p => p != null && p[1] != null)
       .map(p => p[0] + '=' + p[1])
-      .join(',');
+      .join('&');
 
     return this.client
       .get<NodeUtilization[]>(NodesApiService.getUrl(
