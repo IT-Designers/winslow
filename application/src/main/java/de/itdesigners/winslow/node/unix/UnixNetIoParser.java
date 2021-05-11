@@ -14,7 +14,7 @@ public class UnixNetIoParser {
 
     public static Stream<InterfaceInfo> getNetInfoConsiderOnlyPhysicalInterfaces(Stream<String> lines) throws IOException {
         return parseInterfaces(lines).flatMap(entry -> {
-            if (entry.getKey().startsWith("eth") || entry.getKey().startsWith("en")) {
+            if (entry.getKey().startsWith("eth") || entry.getKey().startsWith("en") || entry.getKey().startsWith("wl")) {
                 return Stream.of(entry.getValue());
             } else {
                 return Stream.empty();
