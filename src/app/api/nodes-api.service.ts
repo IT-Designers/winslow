@@ -74,11 +74,21 @@ export class NodeInfo {
   diskInfo: DiskInfo;
   gpuInfo: GpuInfo[];
   buildInfo: BuildInfo;
+  allocInfo: AllocInfo[];
 
   // local only
   update: (node: NodeInfo) => void;
 
-  constructor(name: string, time: number, uptime: number, cpuInfo: CpuInfo, memInfo: MemInfo, gpus: GpuInfo[], buildInfo?: BuildInfo) {
+  constructor(
+    name: string,
+    time: number,
+    uptime: number,
+    cpuInfo: CpuInfo,
+    memInfo: MemInfo,
+    gpus: GpuInfo[],
+    buildInfo?: BuildInfo,
+    allocInfo?: AllocInfo[]
+  ) {
     this.name = name;
     this.time = time;
     this.uptime = uptime;
@@ -88,6 +98,7 @@ export class NodeInfo {
     this.diskInfo = new DiskInfo();
     this.gpuInfo = [];
     this.buildInfo = buildInfo == null ? new BuildInfo() : buildInfo;
+    this.allocInfo = allocInfo == null ? [] : allocInfo;
 
     for (const gpu of gpus) {
       this.gpuInfo.push(new GpuInfo(gpu.id, gpu.vendor, gpu.name));
@@ -166,4 +177,11 @@ export class NodeUtilization {
   diskInfo: DiskInfo;
   gpuComputeUtilization: number[];
   gpuMemoryUtilization: number[];
+}
+
+export class AllocInfo {
+  title: string;
+  cpu: number;
+  memory: number;
+  gpu: number;
 }
