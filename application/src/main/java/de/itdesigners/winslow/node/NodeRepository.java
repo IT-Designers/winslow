@@ -258,7 +258,7 @@ public class NodeRepository extends BaseRepository {
         if (retainedElementCount > 0) {
             logs.forEach(p -> {
                 try {
-                    System.out.println("Deleting " + p);
+                    LOG.fine("Deleting utilization log " + p);
                     Files.deleteIfExists(p);
                 } catch (IOException e) {
                     LOG.log(Level.WARNING, "Failed to delete log file " + p, e);
