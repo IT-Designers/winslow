@@ -3,3 +3,47 @@
   padding: 1em;
 }
 
+.servers-header {
+  margin-bottom: 1em;
+}
+
+mat-grid-tile {
+  font-weight: bold;
+}
+
+.servers {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.selected-server-header {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border: 1px solid darkgrey;
+  background-color: ghostwhite;
+  margin-top: 20px;
+  height: 30px;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 30px;
+}
+
+.selected-server-body {
+  /* border-radius: 5px; */
+  border: 1px solid darkgrey;
+  background-color: white;
+  z-index: 999;
+  margin-top: -1px;
+  height: 300px;
+}
+
+.selected-server-footer {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border: 1px solid darkgrey;
+  background-color: white;
+  z-index: 999;
+  margin-top: -1px;
+  height: 50px;
+}
+

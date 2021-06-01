@@ -1,0 +1,27 @@
+.bar {
+  border-radius: 5px;
+  border: 1px solid darkgrey;
+  background-color: white;
+  z-index: 999;
+  /* margin-top: -1px; */
+}
+
+.chart {
+  height: 120%;
+  width: 100%;
+}
+
+#top, #bottom {
+  position:absolute;
+}
+#top {
+
+  top:0
+}
+#bottom {
+  height: 20px;
+  bottom:0;
+  padding-bottom: 1em;
+  font-size: 20;
+  font-weight: bold;
+}
