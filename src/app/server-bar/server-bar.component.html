@@ -1,0 +1,23 @@
+<div class="bar">
+  <mat-grid-list cols="10" rowHeight="60px">
+    <mat-grid-tile colspan='2'>Server</mat-grid-tile>
+    <mat-grid-tile colspan='1'>
+      <div echarts [options]="chartOptionCpu" class="chart" [merge]="mergeOptionCpu"></div>
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2'>
+      <div id="top" echarts [options]="chartOptionMemory" class="chart" [merge]="mergeOptionMemory"></div>
+      <!-- <div id="bottom">17.24 GB / 32 GB</div> -->
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2'>
+      <div id="top" echarts [options]="chartOptionNetwork" class="chart" [merge]="mergeOptionNetwork"></div>
+      <!-- <div id="bottom">TX: 128 MB/s / RX: 256 MB/s</div> -->
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2'>
+      <div id="top" echarts [options]="chartOptionDisk" class="chart" [merge]="mergeOptionDisk"></div>
+      <!-- <div id="bottom">W: 174 MB/s / R: 578 MB/s</div> -->
+    </mat-grid-tile>
+    <mat-grid-tile colspan='1'>
+      <div echarts [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu"></div>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>
