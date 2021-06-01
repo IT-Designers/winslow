@@ -299,6 +299,58 @@ export class ServerNewComponent implements OnInit {
     series: [],
   };
 
+
+
+  mergeOptionGpuHistory = {};
+  chartOptionGpuHistory = {
+    /*     title: {
+    text: 'GPU',
+    x: '50%',
+    y: '3%'
+  }, */
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        type: "cross",
+        label: {
+          backgroundColor: "#6a7985",
+        },
+      },
+    },
+    legend: {
+      orient: "vertical",
+      right: 10,
+      data: ["Compute", "Memory Bus"],
+    },
+    calculable: false,
+    xAxis: [
+      {
+        type: "time",
+        axisLabel: {
+          formatter: (function(value){
+            let now = new Date(value);
+            let zero = (now.getMinutes() < 10 ? ":0" : ":")
+            return now.getHours() + zero + now.getMinutes();
+          })
+        },
+        splitLine: {
+          show: false,
+        },
+      },
+    ],
+    yAxis: [
+      {
+        type: "value",
+        min: 0,
+        max: 100,
+        axisLabel: {
+          formatter: "{value} %",
+        },
+      },
+    ],
+    series: [],
+  };
+
   // ##############################################
   // ##############################################
   // ##############################################
@@ -407,17 +459,76 @@ export class ServerNewComponent implements OnInit {
     };
     this.update(date);
 
+    let gpu_history: any[] = [];
 
+    gpu_history.push({
+      name: "Compute",
+      series: [],
+    });
+    gpu_history.push({
+      name: "Memory Bus",
+      series: [],
+    });
 
-    let minutes = 10;
-    let end = Math.round(+new Date())
-    let start = end - minutes * 60;
+    let minutes = 120;
+    let to = new Date().getTime();
+    let from = to - (minutes * 60 * 1000);
 
-    this.nodes.getNodeUtilization(this.node.name, 1620493246438, 1620493354816).then(val => {
-      console.log("#####################################################");
-      console.log(start)
-      console.log(end)
+    console.log(from, to)
+
+    this.nodes.getNodeUtilization(this.node.name, from, to).then(val => {
+      let date = new Date(val[0]['time'])
       console.log(val)
+      console.log(val[0]['gpuComputeUtilization'])
+      console.log(val[0]['gpuMemoryUtilization'])
+      console.log(date)
+
+      for (const v of val) {
+        date = new Date(v.time)
+
+        gpu_history[0].series.push({
+          name: date,
+          value: [
+            date,
+            Number(Math.max(0, Math.min(100, v.gpuComputeUtilization[0]))),
+          ]
+        });
+
+        gpu_history[1].series.push({
+          name: date,
+          value: [
+            date,
+            Number(Math.max(0, Math.min(100, v.gpuMemoryUtilization[0]))),
+          ]
+        })
+      }
+
+      console.log(gpu_history)
+
+
+
+      this.mergeOptionGpuHistory = {
+        series: [
+          {
+            name: "Compute",
+            type: "line",
+            hoverAnimation: false,
+            showSymbol: false,
+            color: "#FF0000",
+            itemStyle: { normal: { areaStyle: { type: "default" } } },
+            data: gpu_history[0]["series"],
+          },
+          {
+            name: "Memory Bus",
+            type: "line",
+            hoverAnimation: false,
+            showSymbol: false,
+            color: "#00FF00",
+            itemStyle: { normal: { areaStyle: { type: "default" } } },
+            data: gpu_history[1]["series"],
+          },
+        ],
+      };
     })
   }
 
@@ -488,6 +599,8 @@ export class ServerNewComponent implements OnInit {
           entry.series.shift();
         }
       }
+
+      console.log(this.gpus)
 
       this.mergeOptionGpu = {
         series: [
@@ -678,7 +791,7 @@ export class ServerNewComponent implements OnInit {
       );
     }
 
-    this.mergeOptionDisk = {
+    this.mergeOptionNetwork = {
       series: [
         {
           name: "Tx",

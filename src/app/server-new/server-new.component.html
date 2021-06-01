@@ -119,5 +119,25 @@
         </div>
       </div>
     </div>
+
+    <div class="graph-container-item">
+      <h3>GPU Utilization History {{node.name}}</h3>
+      <div class="graph">
+        <div class="ngx-graph-wrapper">
+    <!--       <ngx-charts-area-chart
+            [animations]="false"
+            [scheme]="schemeGpuComputeMemory"
+            [results]="gpus.slice(i*2, i*2+2)"
+            [legend]="true"
+            [xAxis]="true"
+            [yAxis]="true"
+            [timeline]="false"
+            [showYAxisLabel]="true"
+            [yAxisLabel]="unitGpu+'%'"
+          ></ngx-charts-area-chart> -->
+          <div echarts [options]="chartOptionGpuHistory" class="demo-chart" [merge]="mergeOptionGpuHistory"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

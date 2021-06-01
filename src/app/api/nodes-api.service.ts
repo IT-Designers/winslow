@@ -49,9 +49,16 @@ export class NodesApiService {
      * @param to Unix epoch timestamp in millis from when to fetch the last report
      */
     public getNodeUtilization(nodeName: string, from?: number, to?: number): Promise<NodeUtilization[]> {
-        return this.client
-            .get<NodeUtilization[]>(NodesApiService.getUrl(nodeName + '/utilization'))
-            .toPromise();
+        const params = [['from', from], ['to', to]]
+        .filter(p => p != null && p[1] != null)
+        .map(p => p[0] + '=' + p[1])
+        .join('&');
+
+      return this.client
+        .get<NodeUtilization[]>(NodesApiService.getUrl(
+          nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
+        ))
+        .toPromise();
     }
 }
 
