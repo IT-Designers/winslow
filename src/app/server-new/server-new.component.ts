@@ -580,14 +580,14 @@ export class ServerNewComponent implements OnInit {
     let counter = 0;
     for (const gpu of this.node.gpuInfo) {
       this.gpus[counter++].series.push({
-        name: date,
+        name: date.toString(),
         value: [
           date,
           Number(Math.max(0, Math.min(100, gpu.computeUtilization))),
         ],
       });
       this.gpus[counter++].series.push({
-        name: date,
+        name: date.toString(),
         value: [
           date,
           Number(Math.max(0, Math.min(100, gpu.memoryUtilization))),
@@ -702,7 +702,7 @@ export class ServerNewComponent implements OnInit {
   private updateMemorySeries(date: Date = null) {
     date = ServerNewComponent.orNow(date);
     this.memory[0].series.push({
-      name: date,
+      name: date.toString(),
       value: [
         date,
         this.bytesToGigabyte(
@@ -711,11 +711,11 @@ export class ServerNewComponent implements OnInit {
       ],
     });
     this.memory[1].series.push({
-      name: date,
+      name: date.toString(),
       value: [date, this.bytesToGigabyte(this.node.memInfo.systemCache)],
     });
     this.memory[2].series.push({
-      name: date,
+      name: date.toString(),
       value: [
         date,
         this.bytesToGigabyte(
@@ -780,8 +780,8 @@ export class ServerNewComponent implements OnInit {
   }
 
   private updateNetworkSeries(date: Date = null) {
-    this.rawNetwork.push([
-      ServerNewComponent.orNow(date),
+        this.rawNetwork.push([
+          date = ServerNewComponent.orNow(date),
       [this.node.netInfo.transmitting, this.node.netInfo.receiving],
     ]);
     if (this.rawNetwork.length > ServerNewComponent.MAX_ENTRIES) {
@@ -922,12 +922,12 @@ export class ServerNewComponent implements OnInit {
       for (let n = 0; n < input[i][1].length; ++n) {
         if (output[n].series.length <= i) {
           output[n].series.push({
-            name: input[i][0],
+            name: input[i][0].toString(),
             value: [input[i][0], input[i][1][n] / div],
           });
         } else {
           output[n].series[i] = {
-            name: input[i][0],
+            name: input[i][0].toString(),
             value: [input[i][0], input[i][1][n] / div],
           };
         }
