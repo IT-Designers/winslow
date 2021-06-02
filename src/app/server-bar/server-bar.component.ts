@@ -11,10 +11,12 @@ export class ServerBarComponent {
 
   mergeOptionCpu = {};
   chartOptionCpu = {
+
     series: [
       {
         name: "CPU",
         type: "gauge",
+        radius: 27,
         startAngle: 90,
         endAngle: -270,
         pointer: {
@@ -26,12 +28,13 @@ export class ServerBarComponent {
           roundCap: true,
           clip: false,
           itemStyle: {
-            color: "#69B34C",
+            color: "#69B34C"
           },
         },
         axisLine: {
           lineStyle: {
             width: 5,
+
           },
         },
         splitLine: {
@@ -57,7 +60,7 @@ export class ServerBarComponent {
         detail: {
           width: 50,
           height: 14,
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: 'normal',
           color: "black",
           formatter: "{value}%",
@@ -68,21 +71,20 @@ export class ServerBarComponent {
 
   mergeOptionMemory = {};
   chartOptionMemory = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'shadow'
-        },
-        extraCssText: 'z-index: 9999'
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
     },
     // legend: {
     //   data: ["Heap", "Cache", "Swap"],
     //   itemWidth: 10
     // },
-    // grid: {
-    //   top: '25%',
-    //   bottom: '25%'
-    // },
+    grid: {
+      top: '25%',
+      bottom: '25%'
+    },
     xAxis: {
       type: "value",
       max: 32,
@@ -91,7 +93,7 @@ export class ServerBarComponent {
     yAxis: {
       type: "category",
       show: false,
-      data: ["Memory"],
+      data: ["Memory Usage in GB"],
     },
     series: [
       {
@@ -129,7 +131,7 @@ export class ServerBarComponent {
           focus: "series",
         },
         itemStyle: {
-          color: "#FF0D0D",
+          color: "#FF5050",
           barBorderRadius: [0, 3, 3, 0]
         },
         data: [3],
@@ -149,9 +151,16 @@ export class ServerBarComponent {
     //   y:'center',
     //   itemWidth: 10
     // },
-    // grid: {
-    //   right: '25%'
-    // },
+    grid: {
+      top: '5%',
+      bottom: '5%'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+    },
     xAxis: {
       type: "value",
       max: 1024,
@@ -160,6 +169,7 @@ export class ServerBarComponent {
     yAxis: {
       type: "category",
       show: false,
+      data: ["Network IO"],
     },
     series: [
       {
@@ -167,7 +177,7 @@ export class ServerBarComponent {
         type: "bar",
         showBackground: true,
         itemStyle: {
-          color: "#FF0D0D",
+          color: "#FF5050",
           borderRadius: 3,
         },
         data: [768],
@@ -197,31 +207,41 @@ export class ServerBarComponent {
     //   y:'center',
     //   itemWidth: 10
     // },
-    // grid: {
-    //   right: '25%'
-    // },
+    grid: {
+      top: '5%',
+      bottom: '5%'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      // formatter: 'Network<br>Write: {c0} MBit/s <br>Read: {c1} MBit/s'
+    },
     xAxis: {
       type: "value",
       max: 1024,
       show: false,
+
     },
     yAxis: {
       type: "category",
       show: false,
+      data: ["Disk IO"],
     },
     series: [
       {
-        name: "W",
+        name: "Write",
         type: "bar",
         showBackground: true,
         itemStyle: {
-          color: "#FF0D0D",
+          color: "#FF5050",
           borderRadius: 3
         },
         data: [1024],
       },
       {
-        name: "R",
+        name: "Read",
         type: "bar",
         showBackground: true,
         itemStyle: {
@@ -239,6 +259,7 @@ export class ServerBarComponent {
       {
         name: "GPU",
         type: "gauge",
+        radius: 27,
         startAngle: 90,
         endAngle: -270,
         pointer: {
@@ -250,7 +271,7 @@ export class ServerBarComponent {
           roundCap: true,
           clip: false,
           itemStyle: {
-            color: "#FF0D0D",
+            color: "#FF5050",
           },
         },
         axisLine: {
@@ -281,7 +302,7 @@ export class ServerBarComponent {
         detail: {
           width: 50,
           height: 14,
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: 'normal',
           color: "black",
           formatter: "{value}%",
@@ -346,7 +367,7 @@ export class ServerBarComponent {
     } else if (val < 80) {
       color = "#FF8E15";
     } else {
-      color = "#FF0D0D";
+      color = "#FF5050";
     }
 
     return color;
