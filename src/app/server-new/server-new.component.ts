@@ -474,14 +474,9 @@ export class ServerNewComponent implements OnInit {
     let to = new Date().getTime();
     let from = to - (minutes * 60 * 1000);
 
-    console.log(from, to)
 
     this.nodes.getNodeUtilization(this.node.name, from, to).then(val => {
       let date = new Date(val[0]['time'])
-      console.log(val)
-      console.log(val[0]['gpuComputeUtilization'])
-      console.log(val[0]['gpuMemoryUtilization'])
-      console.log(date)
 
       for (const v of val) {
         date = new Date(v.time)
@@ -502,9 +497,6 @@ export class ServerNewComponent implements OnInit {
           ]
         })
       }
-
-      console.log(gpu_history)
-
 
 
       this.mergeOptionGpuHistory = {
@@ -599,8 +591,6 @@ export class ServerNewComponent implements OnInit {
           entry.series.shift();
         }
       }
-
-      console.log(this.gpus)
 
       this.mergeOptionGpu = {
         series: [

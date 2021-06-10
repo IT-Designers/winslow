@@ -12,7 +12,7 @@ mat-grid-tile {
 }
 
 .servers {
-  max-width: 1080px;
+  max-width: 80%;
   margin: 0 auto;
 }
 
@@ -34,7 +34,7 @@ mat-grid-tile {
   background-color: white;
   z-index: 999;
   margin-top: -1px;
-  height: 300px;
+  /* height: 300px; */
 }
 
 .selected-server-footer {
@@ -47,3 +47,36 @@ mat-grid-tile {
   height: 50px;
 }
 
+.text-inside-grid {
+  position: absolute;
+  left: 10px;
+}
+
+.cpu-status-green {
+  background-color: #69B34C;
+  padding: 3px;
+  border-radius: 3px;
+  position: absolute;
+  left: 80px;
+}
+
+.cpu-status-yellow {
+  background-color: #FAB733;
+  padding: 3px;
+  border-radius: 3px;
+  position: absolute;
+  left: 80px;
+}
+
+.cpu-status-red {
+  background-color: #FF0D0D;
+  padding: 3px;
+  border-radius: 3px;
+  position: absolute;
+  left: 80px;
+}
+
+.chart {
+  height: 200px !important;
+  width: 100% !important;
+}
