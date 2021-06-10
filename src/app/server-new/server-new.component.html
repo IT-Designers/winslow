@@ -1,16 +1,7 @@
-<div *ngIf="node != null" class="server">
+<!-- <div *ngIf="node != null" class="server">
   <div class="server-overview">
     <h2 class="server-name">{{node.name}}</h2>
     <div class="ngx-graph-wrapper">
-     <!--  <ngx-charts-gauge
-        class="cpu-usage"
-        [animations]="true"
-        [scheme]="colorScheme"
-        [results]="cpus"
-        [legend]="false"
-        [showText]="false"
-        [tooltipDisabled]="true">
-      </ngx-charts-gauge> -->
       <div echarts [options]="chartOptionCpu" class="demo-chart" [merge]="mergeOptionCpu"></div>
     </div>
     <div class="server-details">
@@ -18,18 +9,7 @@
       <span><strong>MEM</strong> {{getTotalMemoryFormatted()}}</span>
       <span *ngFor="let gpu of node.gpuInfo; trackBy:trackGpu"><strong>GPU</strong> {{gpu.vendor.toUpperCase()}} {{gpu.name}}</span>
     </div>
-    <!-- <strong class="whitespace-separator-top" style="margin-bottom: -2em">Disk Usage</strong> -->
     <div>
-   <!--    <ngx-charts-pie-chart
-        [animations]="true"
-        [scheme]="colorSchemeDiskUsageW95"
-        [labels]="true"
-        [labelFormatting]="diskUsageLabelFormatting"
-        [results]="diskUsage"
-        [legend]="false"
-        [tooltipText]="diskUsageToolTipFormatting"
-        [tooltipDisabled]="false"
-      ></ngx-charts-pie-chart> -->
       <div echarts [options]="chartOptionDiskUsage" class="demo-chart" [merge]="mergeOptionDiskUsage"></div>
     </div>
     <div *ngIf="node?.uptime" class="server-details server-build-info whitespace-separator-top">
@@ -44,58 +24,22 @@
 
   <div class="graph-container">
     <div class="graph-container-item">
-     <!--  <h3>Memory usage</h3> -->
       <div class="graph">
         <div class="ngx-graph-wrapper">
-      <!--     <ngx-charts-area-chart-stacked
-            [animations]="false"
-            [scheme]="schemeMemory"
-            [results]="memory"
-            [legend]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [yScaleMax]="totalMemoryAllPools()"
-            [yScaleMin]="0"
-            [showYAxisLabel]="true"
-            [yAxisLabel]="'Gigabyte'"
-          ></ngx-charts-area-chart-stacked> -->
           <div echarts [options]="chartOptionMemory" class="demo-chart" [merge]="mergeOptionMemory"></div>
         </div>
       </div>
     </div>
     <div class="graph-container-item">
-      <!-- <h3>Network IO</h3> -->
       <div class="graph">
         <div class="ngx-graph-wrapper">
-         <!--  <ngx-charts-area-chart
-            [animations]="false"
-            [scheme]="schemeWriteRead"
-            [results]="network"
-            [legend]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [showYAxisLabel]="true"
-            [yAxisLabel]="unitNetwork+'Byte/s'"
-          ></ngx-charts-area-chart> -->
           <div echarts [options]="chartOptionNetwork" class="demo-chart" [merge]="mergeOptionNetwork"></div>
         </div>
       </div>
     </div>
     <div class="graph-container-item">
-     <!--  <h3>Disk IO</h3> -->
       <div class="graph">
         <div class="ngx-graph-wrapper">
-          <!-- <ngx-charts-area-chart
-            [animations]="false"
-            [scheme]="schemeWriteRead"
-            [results]="disk"
-            [legend]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [timeline]="false"
-            [showYAxisLabel]="true"
-            [yAxisLabel]="unitDisk+'Byte/s'"
-          ></ngx-charts-area-chart> -->
           <div echarts [options]="chartOptionDisk" class="demo-chart" [merge]="mergeOptionDisk"></div>
         </div>
       </div>
@@ -104,17 +48,6 @@
       <h3>GPU Utilization {{node.name}} <small>({{node.id}})</small></h3>
       <div class="graph">
         <div class="ngx-graph-wrapper">
-    <!--       <ngx-charts-area-chart
-            [animations]="false"
-            [scheme]="schemeGpuComputeMemory"
-            [results]="gpus.slice(i*2, i*2+2)"
-            [legend]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [timeline]="false"
-            [showYAxisLabel]="true"
-            [yAxisLabel]="unitGpu+'%'"
-          ></ngx-charts-area-chart> -->
           <div echarts [options]="chartOptionGpu" class="demo-chart" [merge]="mergeOptionGpu"></div>
         </div>
       </div>
@@ -124,20 +57,9 @@
       <h3>GPU Utilization History {{node.name}}</h3>
       <div class="graph">
         <div class="ngx-graph-wrapper">
-    <!--       <ngx-charts-area-chart
-            [animations]="false"
-            [scheme]="schemeGpuComputeMemory"
-            [results]="gpus.slice(i*2, i*2+2)"
-            [legend]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [timeline]="false"
-            [showYAxisLabel]="true"
-            [yAxisLabel]="unitGpu+'%'"
-          ></ngx-charts-area-chart> -->
           <div echarts [options]="chartOptionGpuHistory" class="demo-chart" [merge]="mergeOptionGpuHistory"></div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</div> -->

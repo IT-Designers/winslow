@@ -1,13 +1,18 @@
-import { Component } from "@angular/core";
-import { colorSets } from "@swimlane/ngx-charts";
+import { Component, Input, OnInit } from "@angular/core";
+import { GpuInfo, NodeInfo, NodesApiService } from "../api/nodes-api.service";
 
 @Component({
   selector: "app-server-bar",
   templateUrl: "./server-bar.component.html",
   styleUrls: ["./server-bar.component.css"],
 })
-export class ServerBarComponent {
-  constructor() {}
+export class ServerBarComponent implements OnInit {
+
+  @Input("node") node: NodeInfo;
+
+  constructor(private nodes: NodesApiService) {}
+
+  static readonly MAX_ENTRIES = 120;
 
   mergeOptionCpu = {};
   chartOptionCpu = {
@@ -106,7 +111,7 @@ export class ServerBarComponent {
           focus: "series",
         },
         itemStyle: {
-          color: "#69B34C",
+          color: "#007aff",
           barBorderRadius: [3, 0, 0, 3]
         },
         data: [12],
@@ -119,9 +124,9 @@ export class ServerBarComponent {
           focus: "series",
         },
         itemStyle: {
-          color: "#FAB733",
+          color: "#5ac8fa",
         },
-        data: [2],
+        data: [4],
       },
       {
         name: "Swap",
@@ -131,10 +136,10 @@ export class ServerBarComponent {
           focus: "series",
         },
         itemStyle: {
-          color: "#FF5050",
+          color: "#003876",
           barBorderRadius: [0, 3, 3, 0]
         },
-        data: [3],
+        data: [1],
       },
 
     ],
@@ -177,7 +182,7 @@ export class ServerBarComponent {
         type: "bar",
         showBackground: true,
         itemStyle: {
-          color: "#FF5050",
+          color: "#007aff",
           borderRadius: 3,
         },
         data: [768],
@@ -187,7 +192,7 @@ export class ServerBarComponent {
         type: "bar",
         showBackground: true,
         itemStyle: {
-          color: "#69B34C",
+          color: "#5ac8fa",
           borderRadius: 3
         },
         data: [256],
@@ -235,7 +240,7 @@ export class ServerBarComponent {
         type: "bar",
         showBackground: true,
         itemStyle: {
-          color: "#FF5050",
+          color: "#007aff",
           borderRadius: 3
         },
         data: [1024],
@@ -245,7 +250,7 @@ export class ServerBarComponent {
         type: "bar",
         showBackground: true,
         itemStyle: {
-          color: "#69B34C",
+          color: "#5ac8fa",
           borderRadius: 3
         },
         data: [578],
@@ -311,8 +316,40 @@ export class ServerBarComponent {
     ],
   };
 
+  average = (arr) => arr.reduce((p, c) => p + c, 0) / arr.length;
+
+  ngOnInit() {
+    const backupNode = this.node;
+    this.node = new NodeInfo(
+      this.node.name,
+      this.node.time,
+      this.node.uptime,
+      this.node.cpuInfo,
+      this.node.memInfo,
+      this.node.gpuInfo,
+      this.node.buildInfo
+    );
+
+    this.node = backupNode;
+    this.node.update = (node) => {
+      // load all the new goodies without replacing the object
+      if (node != null && node.time !== this.node.time) {
+        Object.keys(node).forEach(key => {
+          this.node[key] = node[key];
+        });
+      }
+      this.update();
+    };
+  }
+
   update() {
-    let cpuValue: number = +(Math.random() * 100).toFixed(0);
+    this.updateCpuStatus();
+    this.updateMemoryStatus();
+    this.updateGpuStatus();
+  }
+
+  private updateCpuStatus() {
+    let cpuValue: number = +(this.average(this.node.cpuInfo.utilization) * 100).toFixed(0);
 
     this.mergeOptionCpu = {
       series: [
@@ -334,8 +371,46 @@ export class ServerBarComponent {
         },
       ],
     };
+  }
 
-    let gpuValue: number = +(Math.random() * 100).toFixed(0);
+  private updateMemoryStatus() {
+    let heap = this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree).toFixed(2);
+    let cache = this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2);
+    let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2)
+
+    this.mergeOptionMemory = {
+      series: [
+        {
+          name: "Heap",
+          data: [
+            {value: heap}
+          ],
+        },
+        {
+          name: "Cache",
+          data: [
+            {value: cache}
+          ],
+        },
+        {
+          name: "Swap",
+          data: [
+            {value: swap}
+          ],
+        },
+      ],
+    };
+  }
+
+  private updateGpuStatus() {
+    let gpus: any[] = [];;
+
+    for (const gpu of this.node.gpuInfo) {
+      gpus.push(gpu.computeUtilization);
+      gpus.push(gpu.memoryUtilization);
+    }
+
+    let gpuValue = +this.average(gpus).toFixed(0);
 
     this.mergeOptionGpu = {
       series: [
@@ -371,5 +446,9 @@ export class ServerBarComponent {
     }
 
     return color;
+  }
+
+  bytesToGigabyte(bytes: number) {
+    return bytes / (1024 * 1024 * 1024);
   }
 }

@@ -2,10 +2,7 @@
 
 <div class="servers">
   <ng-container *ngFor="let node of nodes; trackBy:trackNodeInfo">
-<!--     <app-server-new
-      [node]="node"
-      class="overview-element"
-    ></app-server-new> -->
+
 
     <div class="servers-header">
       <mat-grid-list cols="10" rowHeight="20px" gutterSize="0px">
@@ -15,64 +12,107 @@
         <mat-grid-tile colspan='2'>Network IO</mat-grid-tile>
         <mat-grid-tile colspan='2'>Disk IO</mat-grid-tile>
         <mat-grid-tile colspan='1'>GPU</mat-grid-tile>
-        </mat-grid-list>
+      </mat-grid-list>
     </div>
+    <app-server-bar [node]="node"></app-server-bar>
+    <!-- <app-server-bar></app-server-bar>
     <app-server-bar></app-server-bar>
     <app-server-bar></app-server-bar>
-    <app-server-bar></app-server-bar>
-    <app-server-bar></app-server-bar>
-    <app-server-bar></app-server-bar>
+    <app-server-bar></app-server-bar> -->
 
-    <mat-grid-list cols="10" rowHeight="25px">
-      <mat-grid-tile colspan='2'></mat-grid-tile>
-      <mat-grid-tile colspan='1'>
+
+
+    <!-- <br><br>
+    <app-server-new
+      [node]="node"
+      class="overview-element">
+    </app-server-new> -->
+  </ng-container>
+
+  <mat-grid-list cols="10" rowHeight="25px">
+    <mat-grid-tile colspan='2'></mat-grid-tile>
+    <mat-grid-tile colspan='1'>
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2' [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#007aff;" rx="2"/>
+      </svg>
+      &nbsp; Heap &nbsp;&nbsp;
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#5ac8fa;" rx="2"/>
+      </svg>
+      &nbsp; Cache &nbsp;&nbsp;
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#003876;" rx="2"/>
+      </svg>
+      &nbsp; Swap
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2' [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#007aff;" rx="2"/>
+      </svg>
+      &nbsp; TX &nbsp;&nbsp;
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#5ac8fa;" rx="2"/>
+      </svg>
+      &nbsp; RX
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2' [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#007aff;" rx="2"/>
+      </svg>
+      &nbsp; Write &nbsp;&nbsp;
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#5ac8fa;" rx="2"/>
+      </svg>
+      &nbsp; Read
+    </mat-grid-tile>
+    <mat-grid-tile colspan='1'>
+    </mat-grid-tile>
+  </mat-grid-list>
+
+  <div class="selected-server-header">
+    Server
+  </div>
+  <div class="selected-server-body">
+    <mat-grid-list cols="4" rowHeight="50px" gutterSize="0px">
+      <mat-grid-tile>
+        <div class="text-inside-grid">CPU</div>
+        <div class="cpu-status-green"> {{ cpuUsage }}% </div>
+
+        <div *ngIf="cpuUsage < 30" class="cpu-status-green">{{ cpuUsage }}%</div>
+        <div *ngIf="cpuUsage >= 30 && cpuUsage < 70" class="cpu-status-yellow">{{ cpuUsage }}%</div>
+        <div *ngIf="cpuUsage >= 70" class="cpu-status-red">{{ cpuUsage }}%</div>
       </mat-grid-tile>
-      <mat-grid-tile colspan='2' [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
-        <svg width="10" height="10">
-          <rect width="10" height="10" style="fill:#69B34C;" rx="2"/>
-        </svg>
-        &nbsp; Heap &nbsp;&nbsp;
-        <svg width="10" height="10">
-          <rect width="10" height="10" style="fill:#FAB733;" rx="2"/>
-        </svg>
-        &nbsp; Cache &nbsp;&nbsp;
-        <svg width="10" height="10">
-          <rect width="10" height="10" style="fill:#FF0D0D;" rx="2"/>
-        </svg>
-        &nbsp; Swap
+      <mat-grid-tile>
+        <div class="text-inside-grid">Memory</div>
       </mat-grid-tile>
-      <mat-grid-tile colspan='2' [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
-        <svg width="10" height="10">
-          <rect width="10" height="10" style="fill:#FF0D0D;" rx="2"/>
-        </svg>
-        &nbsp; TX &nbsp;&nbsp;
-        <svg width="10" height="10">
-          <rect width="10" height="10" style="fill:#69B34C;" rx="2"/>
-        </svg>
-        &nbsp; RX
+      <mat-grid-tile>
+        <div class="text-inside-grid">Network IO</div>
       </mat-grid-tile>
-      <mat-grid-tile colspan='2' [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
-        <svg width="10" height="10">
-          <rect width="10" height="10" style="fill:#FF0D0D;" rx="2"/>
-        </svg>
-        &nbsp; Write &nbsp;&nbsp;
-        <svg width="10" height="10">
-          <rect width="10" height="10" style="fill:#69B34C;" rx="2"/>
-        </svg>
-        &nbsp; Read
-      </mat-grid-tile>
-      <mat-grid-tile colspan='1'>
+      <mat-grid-tile>
+        <div class="text-inside-grid">Disk IO</div>
       </mat-grid-tile>
     </mat-grid-list>
 
-    <div class="selected-server-header">
-      Server
-    </div>
-    <div class="selected-server-body">
+    <mat-grid-list cols="4" rowHeight="200px" gutterSize="0px">
+      <mat-grid-tile>
+          <div echarts [options]="chartOptionCpu" class="chart" [merge]="mergeOptionCpu"></div>
+      </mat-grid-tile>
+      <mat-grid-tile>
+        <div echarts [options]="chartOptionMemory" class="chart" [merge]="mergeOptionMemory"></div>
+      </mat-grid-tile>
+      <mat-grid-tile>
+        <div echarts [options]="chartOptionNetwork" class="chart" [merge]="mergeOptionNetwork"></div>
+      </mat-grid-tile>
+      <mat-grid-tile>
+        <div echarts [options]="chartOptionDisk" class="chart" [merge]="mergeOptionDisk"></div>
+      </mat-grid-tile>
+    </mat-grid-list>
 
-    </div>
-    <div class="selected-server-footer">
 
-    </div>
-  </ng-container>
+  </div>
+  <div class="selected-server-footer">
+
+  </div>
 </div>
