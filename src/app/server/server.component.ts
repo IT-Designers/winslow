@@ -278,7 +278,6 @@ export class ServerComponent implements OnInit {
     if (this.rawNetwork.length > ServerComponent.MAX_ENTRIES) {
       this.rawNetwork.splice(0, this.rawNetwork.length - ServerComponent.MAX_ENTRIES);
     }
-    console.log(this.network[0]['series'])
   }
 
 
