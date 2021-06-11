@@ -153,10 +153,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         // max: 32,
         axisLabel: {
           formatter: "{value} GiB",
-          // showMaxLabel: true,
-          // interval: 8
         },
-        scale : true,
+        // scale : true,
         // max : 32,
         min : 0,
         splitNumber : 4,
@@ -401,7 +399,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       value: [
         this.date,
         this.bytesToGigabyte(
-          this.nodes[0].memInfo.memoryTotal - this.nodes[0].memInfo.memoryFree
+          this.nodes[0].memInfo.memoryTotal - this.nodes[0].memInfo.memoryFree - this.nodes[0].memInfo.systemCache - (this.nodes[0].memInfo.swapTotal - this.nodes[0].memInfo.swapFree)
         ).toFixed(2),
       ],
     });
@@ -455,6 +453,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         {
           name: "Heap",
           type: "line",
+          stack: 'mem',
           hoverAnimation: false,
           showSymbol: false,
           color: "#007aff",
@@ -464,6 +463,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         {
           name: "Cache",
           type: "line",
+          stack: 'mem',
           hoverAnimation: false,
           showSymbol: false,
           color: "#5ac8fa",
@@ -473,6 +473,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         {
           name: "Swap",
           type: "line",
+          stack: 'mem',
           hoverAnimation: false,
           showSymbol: false,
           color: "#5856d6",
