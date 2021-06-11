@@ -374,7 +374,7 @@ export class ServerBarComponent implements OnInit {
   }
 
   private updateMemoryStatus() {
-    let heap = this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree).toFixed(2);
+    let heap = this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree - this.node.memInfo.systemCache - (this.node.memInfo.swapTotal - this.node.memInfo.swapFree)).toFixed(2);
     let cache = this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2);
     let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2)
 
