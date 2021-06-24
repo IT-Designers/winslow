@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { NodeInfo, NodesApiService } from "../api/nodes-api.service";
+import { GpuInfo, NodeInfo, NodesApiService } from "../api/nodes-api.service";
 import { Subscription } from "rxjs";
 import { ChangeType } from "../api/api.service";
 
@@ -13,6 +13,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   static readonly MAX_ENTRIES = 120;
 
   nodes: NodeInfo[] = [];
+  node: NodeInfo;
   loadError = null;
   subscription: Subscription = null;
 
@@ -21,6 +22,12 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   unitNetwork = "";
   unitDisk = "";
   unitGpu = "";
+
+  memoryTotal = "";
+  memoryFree = "";
+
+  diskTotal = "";
+  diskFree = "";
 
   average = (arr) => arr.reduce((p, c) => p + c, 0) / arr.length;
 
@@ -68,6 +75,17 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       this.disk[1].series.unshift({
         name: date.toString(),
         value: [date, ]
+      });
+
+      this.gpus.forEach(function (gpu) {
+        gpu[0].series.unshift({
+          name: date.toString(),
+        value: [date, ]
+        });
+        gpu[1].series.unshift({
+          name: date.toString(),
+        value: [date, ]
+        });
       });
     }
   }
@@ -149,14 +167,14 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     yAxis: [
       {
         type: "value",
-        // min: 0,
-        // max: 32,
+        min: 0,
+        max: 32,
         axisLabel: {
           formatter: "{value} GiB",
         },
         // scale : true,
         // max : 32,
-        min : 0,
+        //min : 0,
         splitNumber : 4,
         splitLine: {
           show: true,
@@ -272,9 +290,52 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     series: [],
   };
 
+  gpus: any[] = [];
+  mergeOptionGpu: any[]  = [];
+  chartOptionGpu = {
+    calculable: false,
+    grid: {
+      top: "10%",
+      bottom: "25",
+      left: "50",
+      right: "10"
+    },
+    xAxis: [
+      {
+        type: "time",
+        splitLine: {
+          show: false,
+        },
+        show: true,
+        axisLabel: {
+          formatter: function (value) {
+            const date = new Date(value);
+            if (date.getSeconds() === 0) {
+              let zero = (date.getMinutes() < 10 ? ":0" : ":")
+              return date.getHours() + zero + date.getMinutes();
+            }
+          },
+        }
+      },
+    ],
+    yAxis: {
+      type: "value",
+      axisLabel: {
+        formatter: "{value} %",
+      },
+      scale : true,
+      max : 100,
+      min : 0,
+      splitNumber : 5,
+      splitLine: {
+        show: true,
+      },
+    },
+
+    series: [],
+  };
+
   ngOnInit() {
-
-
     this.subscription = this.api.watchNodes((update) => {
       switch (update.type) {
         case ChangeType.CREATE:
@@ -292,6 +353,12 @@ export class ServersNewComponent implements OnInit, OnDestroy {
               this.sortNodesByName();
             }
 
+            // TODO -> get selected node information
+
+            this.node = this.nodes[0];
+            console.log(this.node)
+            console.log(this.node?.allocInfo)
+
             this.date = new Date();
             this.updateCpuStatus();
             this.updateMemoryStatus();
@@ -301,6 +368,15 @@ export class ServersNewComponent implements OnInit, OnDestroy {
             this.updateDiskSeries();
             this.scaleDisk();
             this.updateDiskStatus();
+
+
+            if (this.node?.gpuInfo?.length > 0) {
+              if (this.gpus.length === 0) {
+                this.initGpuSeries();
+              }
+              this.updateGpuSeries();
+            };
+            this.updateGpuStatus();
           }
           break;
         case ChangeType.DELETE:
@@ -352,16 +428,43 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     });
   }
 
+  private initGpuSeries() {
+    this.gpus = [];
+    let counter = 0;
+    this.node?.gpuInfo?.forEach(gpu => {
+      this.gpus.push({
+        name: "Compute",
+        series: [],
+      });
+      this.gpus.push({
+        name: "Memory Bus",
+        series: [],
+      });
+    });
+
+    for (let i = 0; i < 120; i++) {
+      var date = new Date();
+      date.setSeconds(date.getSeconds() - i);
+
+      this.gpus.forEach(function (gpu) {
+        gpu.series.unshift({
+          name: date.toString(),
+          value: [date, ]
+        });
+      });
+    }
+  }
+
   private updateCpuStatus() {
     this.cpuUsage = +(
-      this.average(this.nodes[0].cpuInfo.utilization) * 100
+      this.average(this.node.cpuInfo.utilization) * 100
     ).toFixed(0);
 
     this.cpus.push({
       name: this.date.toString(),
       value: [
         this.date,
-        (this.average(this.nodes[0].cpuInfo.utilization) * 100).toFixed(0),
+        (this.average(this.node.cpuInfo.utilization) * 100).toFixed(0),
       ],
     });
 
@@ -394,12 +497,16 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   private updateMemoryStatus() {
+
+    this.memoryTotal = this.bytesToGigabyte(this.node.memInfo.memoryTotal).toFixed(2);
+    this.memoryFree = this.bytesToGigabyte(this.node.memInfo.memoryFree).toFixed(2);
+
     this.memory[0].series.push({
       name: this.date.toString(),
       value: [
         this.date,
         this.bytesToGigabyte(
-          this.nodes[0].memInfo.memoryTotal - this.nodes[0].memInfo.memoryFree - this.nodes[0].memInfo.systemCache - (this.nodes[0].memInfo.swapTotal - this.nodes[0].memInfo.swapFree)
+          this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree - this.node.memInfo.systemCache - (this.node.memInfo.swapTotal - this.node.memInfo.swapFree)
         ).toFixed(2),
       ],
     });
@@ -407,7 +514,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       name: this.date.toString(),
       value: [
         this.date,
-        this.bytesToGigabyte(this.nodes[0].memInfo.systemCache).toFixed(2),
+        this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2),
       ],
     });
     this.memory[2].series.push({
@@ -415,7 +522,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       value: [
         this.date,
         this.bytesToGigabyte(
-          this.nodes[0].memInfo.swapTotal - this.nodes[0].memInfo.swapFree
+          this.node.memInfo.swapTotal - this.node.memInfo.swapFree
         ).toFixed(2),
       ],
     });
@@ -449,6 +556,11 @@ export class ServersNewComponent implements OnInit, OnDestroy {
                     `;
         },
       },
+      yAxis: [
+        {
+          max: this.bytesToGigabyte(this.node.memInfo.memoryTotal)
+        }
+      ],
       series: [
         {
           name: "Heap",
@@ -487,7 +599,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   private updateNetworkSeries(date: Date = null) {
     this.rawNetwork.push([
       date,
-      [this.nodes[0].netInfo.transmitting, this.nodes[0].netInfo.receiving],
+      [this.node.netInfo.transmitting, this.node.netInfo.receiving],
     ]);
     if (this.rawNetwork.length > ServersNewComponent.MAX_ENTRIES) {
       this.rawNetwork.splice(
@@ -553,7 +665,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   private updateDiskSeries() {
     this.rawDisk.push([
       this.date,
-      [this.nodes[0].diskInfo.writing, this.nodes[0].diskInfo.reading],
+      [this.node.diskInfo.writing, this.node.diskInfo.reading],
     ]);
     if (this.rawDisk.length > ServersNewComponent.MAX_ENTRIES) {
       this.rawDisk.shift();
@@ -561,6 +673,9 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   private updateDiskStatus() {
+    this.diskTotal = this.bytesToGigabyte(this.node.diskInfo.used).toFixed(0);
+    this.diskFree = this.bytesToGigabyte(this.node.diskInfo.free).toFixed(0);
+
     this.mergeOptionDisk = {
       tooltip: {
         trigger: 'axis',
@@ -611,6 +726,71 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         },
       ],
     };
+  }
+
+  private updateGpuSeries() {
+    let counter = 0;
+    for (const gpu of this.node.gpuInfo) {
+      this.gpus[counter++].series.push({
+        name: this.date.toString(),
+        value: [this.date, Number(Math.max(0, Math.min(100, gpu.computeUtilization)))]
+      });
+      this.gpus[counter++].series.push({
+        name: this.date.toString(),
+        value: [this.date, Number(Math.max(0, Math.min(100, gpu.memoryUtilization)))]
+      });
+    }
+  }
+
+  private updateGpuStatus() {
+
+    if (this.gpus[0].series.length > 120) {
+      this.gpus.forEach(gpu => gpu.series.shift())
+    }
+
+    let counter = 0;
+    this.gpus.forEach(gpu => {
+      this.mergeOptionGpu[counter++] = {
+        title: [{
+          left: '15%',
+          top: '1%',
+          text: 'GPU Utilization GeForce GTX 1080 Ti (nvidia-0)',
+          textStyle: {
+            fontSize: 10
+          }
+      }],
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+              type: 'shadow'
+          },
+          formatter: (params) => {
+            return ` ${params[0].seriesName}: ${params[0].value[1] + "%"}<br>
+                     ${params[1].seriesName}: ${params[1].value[1] + "%"} `;
+          },
+        },
+        series: [
+          {
+            name: "Compute",
+            type: "line",
+            hoverAnimation: false,
+            showSymbol: false,
+            color: "#007aff",
+            itemStyle: { normal: { areaStyle: { type: "default" } } },
+            data: this.gpus[counter-1]?.series,
+          },
+          {
+            name: "Memory Bus",
+            type: "line",
+            hoverAnimation: false,
+            showSymbol: false,
+            color: "#5ac8fa",
+            itemStyle: { normal: { areaStyle: { type: "default" } } },
+            data: this.gpus[counter]?.series,
+          },
+        ],
+      };
+    })
   }
 
   scaleNetwork() {
@@ -689,5 +869,17 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   bytesToGigabyte(bytes: number) {
     return bytes / (1024 * 1024 * 1024);
+  }
+
+  trackGpu(gpuInfo: GpuInfo): string {
+    return gpuInfo?.id;
+  }
+
+  uptimeToDateTime(time: number, uptime?: number): string {
+    if (uptime) {
+      return new Date(time - uptime).toLocaleString();
+    } else {
+      return '';
+    }
   }
 }
