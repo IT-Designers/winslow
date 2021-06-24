@@ -168,7 +168,8 @@ export class ServerBarComponent implements OnInit {
     },
     xAxis: {
       type: "value",
-      max: 1024,
+      // set max value to 120 Mebibyte (~1 Gbit)
+      max: 120,
       show: false,
     },
     yAxis: {
@@ -185,7 +186,7 @@ export class ServerBarComponent implements OnInit {
           color: "#007aff",
           borderRadius: 3,
         },
-        data: [768],
+        data: [],
       },
       {
         name: "RX",
@@ -195,7 +196,7 @@ export class ServerBarComponent implements OnInit {
           color: "#5ac8fa",
           borderRadius: 3
         },
-        data: [256],
+        data: [],
       },
     ],
   };
@@ -243,7 +244,7 @@ export class ServerBarComponent implements OnInit {
           color: "#007aff",
           borderRadius: 3
         },
-        data: [1024],
+        data: [],
       },
       {
         name: "Read",
@@ -253,7 +254,7 @@ export class ServerBarComponent implements OnInit {
           color: "#5ac8fa",
           borderRadius: 3
         },
-        data: [578],
+        data: [],
       },
     ],
   };
@@ -346,6 +347,8 @@ export class ServerBarComponent implements OnInit {
     this.updateCpuStatus();
     this.updateMemoryStatus();
     this.updateGpuStatus();
+    this.updateNetworkStatus();
+    this.updateDiskStatus();
   }
 
   private updateCpuStatus() {
@@ -402,6 +405,50 @@ export class ServerBarComponent implements OnInit {
     };
   }
 
+  private updateNetworkStatus() {
+    let receiving = this.bytesToMiByte(this.node.netInfo.receiving);
+    let transmitting = this.bytesToMiByte(this.node.netInfo.transmitting);
+
+    this.mergeOptionNetwork = {
+      series: [
+        {
+          name: "TX",
+          data: [
+            {value: transmitting}
+          ],
+        },
+        {
+          name: "RX",
+          data: [
+            {value: receiving}
+          ],
+        },
+      ],
+    };
+  }
+
+  updateDiskStatus() {
+    let write = this.bytesToMiByte(this.node.diskInfo.writing);
+    let read = this.bytesToMiByte(this.node.diskInfo.reading);
+
+    this.mergeOptionDisk = {
+      series: [
+        {
+          name: "Write",
+          data: [
+            {value: write}
+          ],
+        },
+        {
+          name: "Read",
+          data: [
+            {value: read}
+          ],
+        },
+      ],
+    };
+  }
+
   private updateGpuStatus() {
     let gpus: any[] = [];;
 
@@ -450,5 +497,9 @@ export class ServerBarComponent implements OnInit {
 
   bytesToGigabyte(bytes: number) {
     return bytes / (1024 * 1024 * 1024);
+  }
+
+  bytesToMiByte(bytes: number) {
+    return bytes / (1000 * 1000);
   }
 }
