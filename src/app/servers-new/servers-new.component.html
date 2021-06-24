@@ -74,7 +74,7 @@
   </mat-grid-list>
 
   <div class="selected-server-header">
-    Server
+    {{ this.node.name }}
   </div>
   <div class="selected-server-body">
     <mat-grid-list cols="4" rowHeight="50px" gutterSize="0px">
@@ -113,8 +113,65 @@
     </mat-grid-list>
 
 
-  </div>
-  <div class="selected-server-footer">
+    <mat-grid-list cols="4" rowHeight="50px" gutterSize="0px">
+      <mat-grid-tile>
+        <div class="text-inside-grid">GPU</div>
+      </mat-grid-tile>
+    </mat-grid-list>
 
+    <mat-grid-list cols="4" rowHeight="200px" gutterSize="0px">
+      <mat-grid-tile *ngFor="let node of nodes[0]?.gpuInfo; index as i; trackBy:trackGpu">
+          <div echarts [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu[i]"></div>
+      </mat-grid-tile>
+    </mat-grid-list>
+    <div class="center" [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#007aff;" rx="2"/>
+      </svg>
+      &nbsp; Compute &nbsp;&nbsp;
+      <svg width="10" height="10">
+        <rect width="10" height="10" style="fill:#5ac8fa;" rx="2"/>
+      </svg>
+      &nbsp; Memory Bus &nbsp;&nbsp;
+    </div>
+  </div>
+
+  <div class="selected-server-footer">
+    <mat-grid-list cols="10" rowHeight="90px" gutterSize="0px">
+      <mat-grid-tile colspan='5'>
+        <div class="intMatGrid">
+          <mat-grid-list cols="1" rowHeight="30px">
+            <mat-grid-tile>
+              <div class="text-inside-grid-first">CPU:</div>
+              <div class="text-inside-grid-second">{{ this.node.cpuInfo.modelName }}</div>
+            </mat-grid-tile>
+            <mat-grid-tile>
+              <div class="text-inside-grid-first">Memory:</div>
+              <div class="text-inside-grid-second">{{ this.memoryFree }} / {{ this.memoryTotal }} GB</div>
+            </mat-grid-tile>
+            <mat-grid-tile>
+              <div class="text-inside-grid-first">Disk:</div>
+              <div class="text-inside-grid-second">{{ this.diskFree }} / {{ this.diskTotal }} GB</div>
+            </mat-grid-tile>
+          </mat-grid-list>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan='5'>
+        <div class="intMatGrid">
+          <mat-grid-list cols="1" rowHeight="30px">
+            <mat-grid-tile>
+              <div *ngIf="node?.uptime" class="text-inside-grid-first">Uptime:</div>
+              <div *ngIf="node?.uptime" class="text-inside-grid-second">{{ uptimeToDateTime(this.node.time, this.node?.uptime) }}</div>
+            </mat-grid-tile>
+            <mat-grid-tile>
+              <div *ngIf="node.buildInfo" class="text-inside-grid-other">{{ this.node.buildInfo.commitHashShort }}</div>
+              </mat-grid-tile>
+            <mat-grid-tile>
+              <div *ngIf="node.buildInfo" class="text-inside-grid-other">{{ this.node.buildInfo.date }}</div>
+              </mat-grid-tile>
+          </mat-grid-list>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
   </div>
 </div>
