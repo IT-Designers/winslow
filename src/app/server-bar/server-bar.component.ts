@@ -382,6 +382,11 @@ export class ServerBarComponent implements OnInit {
     let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2)
 
     this.mergeOptionMemory = {
+      xAxis: [
+        {
+          max: this.bytesToGigabyte(this.node.memInfo.memoryTotal)
+        }
+      ],
       series: [
         {
           name: "Heap",
