@@ -1,10 +1,71 @@
-<div class="topbar">
+
+<mat-toolbar color="primary">
+  <mat-toolbar-row style="max-height: 55px;">
+    <a [routerLink]="['']">
+      <img
+        [class.ws-connected]="connected"
+        [class.ws-disconnected]="!connected"
+        src="assets/winslow_quadratic.svg" alt="Winslow Icon" style="height: 2.75em; padding: 0; max-height: 100%; vertical-align: bottom">
+    </a>
+    <div>
+      <a mat-button [routerLink]="['projects']" routerLinkActive="active">
+        <i class="material-icons material-icons-outlined">book</i> Projects
+      </a>
+      <a mat-button [routerLink]="['pipelines']" routerLinkActive="active">
+        <i class="material-icons">low_priority</i> Pipelines
+      </a>
+      <a mat-button [routerLink]="['files']" routerLinkActive="active">
+        <i class="material-icons">folder_open</i> Files
+      </a>
+      <a mat-button [routerLink]="['servers']" routerLinkActive="active">
+        <i class="material-icons">storage</i> Servers
+      </a>
+      <a mat-button [routerLink]="['servers_new']" routerLinkActive="active">
+        <i class="material-icons">storage</i> Servers (new)
+      </a>
+    </div>
+    <button mat-icon-button style="margin-left: auto">
+      <mat-icon (click)="sidenav.toggle()">
+        <i class="material-icons">settings</i>
+      </mat-icon>
+    </button>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-sidenav-container autosize="true">
+  <mat-sidenav #sidenav position="end">
+    <mat-nav-list>
+
+      <a mat-list-item [routerLink]="['about']" (click)="sidenav.close()">
+        <i class="material-icons">people</i>Users and Groups
+      </a>
+      <a mat-list-item [routerLink]="['system']" (click)="sidenav.close()">
+        <i class="material-icons">build</i>System
+      </a>
+      <a mat-list-item [routerLink]="['about']" (click)="sidenav.close()">
+        <i class="material-icons">info</i>About
+      </a>
+
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+
+      <router-outlet></router-outlet>
+
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+
+
+
+
+<!-- <div class="topbar">
   <a [routerLink]="['']" class="button fancy-button">
     <img
       [class.ws-connected]="connected"
       [class.ws-disconnected]="!connected"
       src="assets/winslow_quadratic.svg" alt="Winslow Icon" style="height: 2.75em; padding: 0; max-height: 100%">
-  </a>
+  </a> -->
   <!--
   <a [routerLink]="['']" class="button fancy-button">
     <i class="material-icons">home</i>Home
@@ -15,28 +76,29 @@
     <i class="material-icons material-icons-outlined">assessment</i>Actions
   </a>
   -->
-  <a [routerLink]="['projects']" class="button fancy-button">
+  <!-- <a [routerLink]="['projects']" class="button fancy-button" routerLinkActive="active" >
     <i class="material-icons material-icons-outlined">book</i>Projects
   </a>
-  <a [routerLink]="['pipelines']" class="button fancy-button">
+  <a [routerLink]="['pipelines']" class="button fancy-button" routerLinkActive="active">
     <i class="material-icons">low_priority</i>Pipelines
   </a>
-  <a [routerLink]="['files']" class="button fancy-button">
+  <a [routerLink]="['files']" class="button fancy-button" routerLinkActive="active">
     <i class="material-icons">folder_open</i>Files
   </a>
-  <a [routerLink]="['servers']" class="button fancy-button">
+  <a [routerLink]="['servers']" class="button fancy-button" routerLinkActive="active">
     <i class="material-icons">storage</i>Servers
   </a>
-  <a [routerLink]="['servers_new']" class="button fancy-button">
+  <a [routerLink]="['servers_new']" class="button fancy-button" routerLinkActive="active">
     <i class="material-icons">storage</i>Servers (new)
   </a>
-  <a style="margin-left: auto" [routerLink]="['about']" class="button fancy-button">
+  <a style="margin-left: auto" [routerLink]="['about']" class="button fancy-button" routerLinkActive="active">
     <i class="material-icons">people</i>Users and Groups
   </a>
-  <a [routerLink]="['system']" class="button fancy-button">
+  <a [routerLink]="['system']" class="button fancy-button" routerLinkActive="active">
     <i class="material-icons">build</i>System
   </a>
-  <a style="margin-right: 0.51em" [routerLink]="['about']" class="button fancy-button">
+  <a style="margin-right: 0.51em" [routerLink]="['about']" class="button fancy-button" routerLinkActive="active">
     <i class="material-icons">info</i>About
   </a>
-</div>
+</div> -->
+

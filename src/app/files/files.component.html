@@ -3,7 +3,7 @@
   [loading]="files == null || this.longLoading.isLongLoading()">
 </app-loading-info>
 
-<div class="container" *ngIf="files != null && loadError == null">
+<div class="container height" *ngIf="files != null && loadError == null">
   <div class="files-browser-path">
     <input type="text" class="files-browser-path" value="{{this.latestPath}}/"
            (keydown.enter)="navigateDirectlyTo($event.target.value)">

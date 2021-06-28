@@ -32,6 +32,8 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
@@ -77,6 +79,7 @@ import { ServersNewComponent } from './servers-new/servers-new.component';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
+
 
 @NgModule({
     declarations: [
@@ -190,6 +193,12 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
         MatSlideToggleModule,
         MatTabsModule,
         MatCheckboxModule,
+
+        MatToolbarModule,
+        MatSidenavModule,
+        MatListModule,
+        MatButtonModule,
+        MatIconModule,
 
         NgxChartsModule,
         MatCardModule,
