@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, ComponentFactoryResolver, OnDestroy, OnInit } from "@angular/core";
 import { GpuInfo, NodeInfo, NodesApiService } from "../api/nodes-api.service";
 import { Subscription } from "rxjs";
 import { ChangeType } from "../api/api.service";
@@ -14,10 +14,12 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   nodes: NodeInfo[] = [];
   node: NodeInfo;
+  selectedNodeIndex: number = null;
   loadError = null;
   subscription: Subscription = null;
 
   date: Date;
+  lastTimestamp: number;
 
   unitNetwork = "";
   unitDisk = "";
@@ -25,6 +27,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   memoryTotal = "";
   memoryFree = "";
+  memoryUsed = ";"
 
   diskTotal = "";
   diskFree = "";
@@ -36,58 +39,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.initNetworkSeries();
     this.initDiskSeries();
 
-    for (let i = 0; i < 120; i++) {
-      var date = new Date();
-      date.setSeconds(date.getSeconds() - i);
-
-      this.cpus.unshift({
-        name: date.toString(),
-        value: [date, ],
-      });
-
-      this.network[0].series.unshift({
-        name: date.toString(),
-        value: [date, ],
-      });
-      this.network[1].series.unshift({
-        name: date.toString(),
-        value: [date, ],
-      });
-
-      this.memory[0].series.unshift({
-        name: date.toString(),
-        value: [date, ]
-      });
-      this.memory[1].series.unshift({
-        name: date.toString(),
-        value: [date, ]
-      });
-      this.memory[2].series.unshift({
-        name: date.toString(),
-        value: [date, ]
-      });
-      this.memory = [this.memory[0], this.memory[1], this.memory[2]];
-
-      this.disk[0].series.unshift({
-        name: date.toString(),
-        value: [date, ]
-      });
-      this.disk[1].series.unshift({
-        name: date.toString(),
-        value: [date, ]
-      });
-
-      this.gpus.forEach(function (gpu) {
-        gpu[0].series.unshift({
-          name: date.toString(),
-        value: [date, ]
-        });
-        gpu[1].series.unshift({
-          name: date.toString(),
-        value: [date, ]
-        });
-      });
-    }
+    this.initTimeSeries();
   }
 
   cpus: any[] = [];
@@ -168,7 +120,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       {
         type: "value",
         min: 0,
-        max: 32,
+        // max: 32,
         axisLabel: {
           formatter: "{value} GiB",
         },
@@ -355,28 +307,45 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
             // TODO -> get selected node information
 
-            this.node = this.nodes[0];
-            console.log(this.node)
-            console.log(this.node?.allocInfo)
 
-            this.date = new Date();
-            this.updateCpuStatus();
-            this.updateMemoryStatus();
-            this.updateNetworkSeries(this.date)
-            this.scaleNetwork();
-            this.updateNetworkStatus();
-            this.updateDiskSeries();
-            this.scaleDisk();
-            this.updateDiskStatus();
+            if(this.selectedNodeIndex == null) {
+              this.node = this.nodes[0];
+            } else {
+              this.node = this.nodes[this.selectedNodeIndex];
+            }
+            // console.log(this.node)
+            // console.log(this.node?.allocInfo)
+
+            // save last timestamp
+            if(!this.lastTimestamp) {
+              this.lastTimestamp = this.node.time;
+            }
+
+            // check if new timestamp is different
+            // if yes, update diagrams
+            if (this.lastTimestamp != this.node.time) {
+              this.lastTimestamp = this.node.time;
+
+              this.date = new Date();
+              this.updateCpuStatus();
+              this.updateMemoryStatus();
+              this.updateNetworkSeries(this.date)
+              this.scaleNetwork();
+              this.updateNetworkStatus();
+              this.updateDiskSeries();
+              this.scaleDisk();
+              this.updateDiskStatus();
 
 
-            if (this.node?.gpuInfo?.length > 0) {
-              if (this.gpus.length === 0) {
-                this.initGpuSeries();
-              }
-              this.updateGpuSeries();
-            };
-            this.updateGpuStatus();
+              if (this.node?.gpuInfo?.length > 0) {
+                if (this.gpus.length === 0) {
+                  this.initGpuSeries();
+                }
+                this.updateGpuSeries();
+                this.updateGpuStatus();
+              };
+            }
+
           }
           break;
         case ChangeType.DELETE:
@@ -430,7 +399,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   private initGpuSeries() {
     this.gpus = [];
-    let counter = 0;
     this.node?.gpuInfo?.forEach(gpu => {
       this.gpus.push({
         name: "Compute",
@@ -450,6 +418,61 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         gpu.series.unshift({
           name: date.toString(),
           value: [date, ]
+        });
+      });
+    }
+  }
+
+  private initTimeSeries() {
+    for (let i = 0; i < 120; i++) {
+      var date = new Date();
+      date.setSeconds(date.getSeconds() - i);
+
+      this.cpus.unshift({
+        name: date.toString(),
+        value: [date, ],
+      });
+
+      this.network[0].series.unshift({
+        name: date.toString(),
+        value: [date, ],
+      });
+      this.network[1].series.unshift({
+        name: date.toString(),
+        value: [date, ],
+      });
+
+      this.memory[0].series.unshift({
+        name: date.toString(),
+        value: [date, ]
+      });
+      this.memory[1].series.unshift({
+        name: date.toString(),
+        value: [date, ]
+      });
+      this.memory[2].series.unshift({
+        name: date.toString(),
+        value: [date, ]
+      });
+      this.memory = [this.memory[0], this.memory[1], this.memory[2]];
+
+      this.disk[0].series.unshift({
+        name: date.toString(),
+        value: [date, ]
+      });
+      this.disk[1].series.unshift({
+        name: date.toString(),
+        value: [date, ]
+      });
+
+      this.gpus.forEach(function (gpu) {
+        gpu[0].series.unshift({
+          name: date.toString(),
+        value: [date, ]
+        });
+        gpu[1].series.unshift({
+          name: date.toString(),
+        value: [date, ]
         });
       });
     }
@@ -498,32 +521,32 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   private updateMemoryStatus() {
 
-    this.memoryTotal = this.bytesToGigabyte(this.node.memInfo.memoryTotal).toFixed(2);
-    this.memoryFree = this.bytesToGigabyte(this.node.memInfo.memoryFree).toFixed(2);
+    let heap = this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree).toFixed(2);
+    let cache = this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2);
+    let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2)
+
+    this.memoryTotal = this.bytesToGigabyte(this.node.memInfo.memoryTotal + this.node.memInfo.swapTotal).toFixed(2);
+    this.memoryUsed = (+heap + +cache + +swap).toFixed(2);
 
     this.memory[0].series.push({
       name: this.date.toString(),
       value: [
         this.date,
-        this.bytesToGigabyte(
-          this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree - this.node.memInfo.systemCache - (this.node.memInfo.swapTotal - this.node.memInfo.swapFree)
-        ).toFixed(2),
+        heap
       ],
     });
     this.memory[1].series.push({
       name: this.date.toString(),
       value: [
         this.date,
-        this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2),
+        cache,
       ],
     });
     this.memory[2].series.push({
       name: this.date.toString(),
       value: [
         this.date,
-        this.bytesToGigabyte(
-          this.node.memInfo.swapTotal - this.node.memInfo.swapFree
-        ).toFixed(2),
+        swap,
       ],
     });
     this.memory = [this.memory[0], this.memory[1], this.memory[2]];
@@ -558,7 +581,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       },
       yAxis: [
         {
-          max: this.bytesToGigabyte(this.node.memInfo.memoryTotal)
+          max: this.bytesToGigabyte(this.node.memInfo.memoryTotal + this.node.memInfo.swapTotal).toFixed(0)
         }
       ],
       series: [
@@ -673,7 +696,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   private updateDiskStatus() {
-    this.diskTotal = this.bytesToGigabyte(this.node.diskInfo.used).toFixed(0);
+    this.diskTotal = this.bytesToGigabyte(this.node.diskInfo.used + this.node.diskInfo.free).toFixed(0);
     this.diskFree = this.bytesToGigabyte(this.node.diskInfo.free).toFixed(0);
 
     this.mergeOptionDisk = {
@@ -748,13 +771,19 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       this.gpus.forEach(gpu => gpu.series.shift())
     }
 
+    let gpuName = [];
+
+    this.node.gpuInfo.forEach(gpu => {
+      gpuName.push(gpu.name + " (" + gpu.id + ")")
+    })
+
     let counter = 0;
     this.gpus.forEach(gpu => {
       this.mergeOptionGpu[counter++] = {
         title: [{
           left: '15%',
           top: '1%',
-          text: 'GPU Utilization GeForce GTX 1080 Ti (nvidia-0)',
+          text: gpuName[counter-1],
           textStyle: {
             fontSize: 10
           }
@@ -881,5 +910,24 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     } else {
       return '';
     }
+  }
+
+  setNode(index: number) {
+    this.selectedNodeIndex = index;
+
+    // remove series data from old node
+    this.gpus = [];
+
+    this.cpus = [];
+    this.memory = [];
+    this.network = [];
+    this.rawNetwork = [];
+    this.rawDisk = [];
+    this.disk = [];
+    this.initMemorySeries();
+    this.initNetworkSeries();
+    this.initDiskSeries();
+    this.initTimeSeries();
+
   }
 }
