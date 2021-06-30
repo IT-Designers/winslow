@@ -17,7 +17,8 @@
       <!-- <div id="bottom">W: 174 MB/s / R: 578 MB/s</div> -->
     </mat-grid-tile>
     <mat-grid-tile colspan='1'>
-      <div echarts [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu"></div>
+      <div echarts *ngIf="this.node.gpuInfo.length != 0" [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu"></div>
+      <div echarts *ngIf="this.node.gpuInfo.length == 0">N/A</div>
     </mat-grid-tile>
     <mat-grid-tile colspan='2'>
       ...
