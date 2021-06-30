@@ -101,7 +101,8 @@ export class ServerComponent implements OnInit {
       this.node.cpuInfo,
       this.node.memInfo,
       this.node.gpuInfo,
-      this.node.buildInfo
+      this.node.buildInfo,
+      this.node.allocInfo
     );
 
     const date = new Date();
@@ -202,6 +203,7 @@ export class ServerComponent implements OnInit {
         series: []
       });
     }
+    console.log(this.gpus)
   }
 
   private updateCpuSeries() {
