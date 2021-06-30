@@ -112,3 +112,13 @@ mat-grid-tile {
   font-weight: normal;
 }
 
+.history {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.mat-button-toggle-group {
+  height: 32px;
+  align-items: center;
+}
+
