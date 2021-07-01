@@ -30,7 +30,7 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
             @Nonnull String projectId,
             @Nullable Pipeline pipelineReadOnly) {
         try {
-            // be a mit more cautious and deny any locks
+            // be a bit more cautious and deny any locks
             ensureIsNotLocked(orchestrator, projectId);
             ensureAllPreconditionsAreMet(orchestrator, projectId, pipelineReadOnly);
             if (pipelineReadOnly != null && orchestrator

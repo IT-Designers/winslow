@@ -141,7 +141,11 @@ public class StageDefinitionBuilder {
                 Optional.ofNullable(either(
                         Optional.ofNullable(this.template).map(StageDefinition::getIgnoreFailuresWithinExecutionGroup),
                         Optional.ofNullable(this.base).map(StageDefinition::getIgnoreFailuresWithinExecutionGroup)
-                )).orElse(Boolean.FALSE)
+                )).orElse(Boolean.FALSE),
+                either(
+                        Optional.ofNullable(this.template).map(StageDefinition::getTags),
+                        Optional.ofNullable(this.base).map(StageDefinition::getTags)
+                )
         );
     }
 

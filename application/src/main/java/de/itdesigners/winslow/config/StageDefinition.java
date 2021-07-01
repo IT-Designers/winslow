@@ -17,6 +17,7 @@ public class StageDefinition {
     private final           boolean             privileged;
     private final @Nonnull  List<LogParser>     logParsers;
     private final           boolean             ignoreFailuresWithinExecutionGroup;
+    private final @Nullable List<String>        tags;
 
     public StageDefinition(
             @Nonnull String name,
@@ -30,7 +31,8 @@ public class StageDefinition {
             @Nullable Boolean discardable,
             @Nullable Boolean privileged,
             @Nullable List<LogParser> logParsers,
-            @Nullable Boolean ignoreFailuresWithinExecutionGroup) {
+            @Nullable Boolean ignoreFailuresWithinExecutionGroup,
+            @Nullable List<String> tags) {
         this.name                               = name;
         this.desc                               = description;
         this.image                              = image;
@@ -45,6 +47,7 @@ public class StageDefinition {
                 .map(Collections::unmodifiableList)
                 .orElseGet(Collections::emptyList);
         this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
+        this.tags                               = tags;
         this.check();
     }
 
@@ -113,8 +116,14 @@ public class StageDefinition {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + "}#" + this
+        return getClass()
+                .getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + "}#" + this
                 .hashCode();
+    }
+
+    @Nonnull
+    public List<String> getTags() {
+        return this.tags != null ? Collections.unmodifiableList(this.tags) : Collections.emptyList();
     }
 
     @Override
@@ -151,6 +160,9 @@ public class StageDefinition {
         ) && Objects.equals(
                 ignoreFailuresWithinExecutionGroup,
                 stageDefinition.ignoreFailuresWithinExecutionGroup
+        ) && Objects.equals(
+                tags,
+                stageDefinition.tags
         );
     }
 
@@ -165,7 +177,8 @@ public class StageDefinition {
                 env,
                 highlight,
                 discardable,
-                ignoreFailuresWithinExecutionGroup
+                ignoreFailuresWithinExecutionGroup,
+                tags
         );
     }
 }

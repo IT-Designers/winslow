@@ -72,7 +72,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     private final @Nonnull Map<String, Queue<Consumer<Pipeline>>> deferredPipelineUpdates = new ConcurrentHashMap<>();
-
+    private final @Nonnull Set<String>                            stageExecutionTags      = new ConcurrentSkipListSet<>();
 
     public Orchestrator(
             @Nonnull LockBus lockBus,
@@ -103,6 +103,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
         this.executeStages = executeStages;
 
         this.electionManager = new ElectionManager(lockBus);
+
+        this.stageExecutionTags.add("winslow:node:" + this.nodeName);
+        this.stageExecutionTags.add("winslow:server:" + this.nodeName);
     }
 
     public void start() {
@@ -157,6 +160,15 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull
     public ResourceManager getResourceManager() {
         return environment.getResourceManager();
+    }
+
+    public void addStageExecutionTag(@Nonnull String tag) {
+        this.stageExecutionTags.add(tag);
+    }
+
+    @Nonnull
+    public Iterable<String> getStageExecutionTags() {
+        return this.stageExecutionTags;
     }
 
 
@@ -377,7 +389,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                         var allocView = new DistributedAllocationView(project.getOwner(), pipeline.getProjectId());
 
                         var settingsLimit = settings.getUserResourceLimitations().unsafe();
-                        var userLimit = users.getUser(project.getOwner()).flatMap(User::getResourceLimitation);
+                        var userLimit     = users.getUser(project.getOwner()).flatMap(User::getResourceLimitation);
 
 
                         if (settingsLimit.isPresent() && userLimit.isPresent()) {
@@ -400,7 +412,14 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
-                .map(group -> group.isConfigureOnly() || this.backend.isCapableOfExecuting(group.getStageDefinition()));
+                .map(group -> {
+                    if (group.isConfigureOnly()) {
+                        return true;
+                    }
+                    boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().getTags());
+                    boolean backendCapable = this.backend.isCapableOfExecuting(group.getStageDefinition());
+                    return hasAllTags && backendCapable;
+                });
     }
 
 
