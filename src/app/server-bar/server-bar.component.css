@@ -14,3 +14,7 @@
 .mat-grid-tile {
   overflow:visible !important;
 }
+
+:host-context(.active) .bar {
+  background-color: aliceblue !important;
+}
