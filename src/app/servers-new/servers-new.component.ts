@@ -12,6 +12,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   static readonly MAX_ENTRIES = 120;
 
+  isClicked = [];
+  isLive = true;
   nodes: NodeInfo[] = [];
   node: NodeInfo;
   selectedNodeIndex: number = null;
@@ -309,6 +311,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
 
             if(this.selectedNodeIndex == null) {
+              this.selectedNodeIndex = 0;
               this.node = this.nodes[0];
             } else {
               this.node = this.nodes[this.selectedNodeIndex];
@@ -322,8 +325,9 @@ export class ServersNewComponent implements OnInit, OnDestroy {
             }
 
             // check if new timestamp is different
+            // and if charts are in live modus
             // if yes, update diagrams
-            if (this.lastTimestamp != this.node.time) {
+            if (this.lastTimestamp != this.node.time && this.isLive) {
               this.lastTimestamp = this.node.time;
 
               this.date = new Date();
@@ -912,7 +916,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     }
   }
 
-  setNode(index: number) {
+  setNode(index: number, ) {
     this.selectedNodeIndex = index;
 
     // remove series data from old node
@@ -930,4 +934,80 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.initTimeSeries();
 
   }
+
+  getHistory(hours) {
+
+    this.isLive = false;
+
+    const node: NodeInfo = this.nodes[this.selectedNodeIndex];
+    console.log(this.nodes)
+
+    const to = new Date();
+    const from = new Date().setHours(to.getHours() - hours);
+
+
+
+
+    this.api.getNodeUtilization(node.name, from, to.getTime()).then(val => {
+
+
+      let cpu = [];
+
+      val.map(d => {
+        const date = new Date(d.time)
+
+
+
+        cpu.push({
+          name: date.toString(),
+          value: [
+            date,
+            (this.average(d.cpuUtilization) * 100).toFixed(0),
+          ],
+        });
+
+        this.mergeOptionCpu = {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            },
+            formatter: (params) => {
+              return ` ${params[0].seriesName}: ${params[0].value[1] + "%"} `;
+            },
+          },
+          series: [
+            {
+              name: "CPU",
+              type: "line",
+              hoverAnimation: false,
+              showSymbol: false,
+              color: "#5ac8fa",
+              itemStyle: { normal: { areaStyle: { type: "default" } } },
+              data: cpu,
+            },
+          ],
+        };
+      })
+
+      console.log(cpu)
+
+      // for(var i = 0; i < val.length; i++){
+      //   cpu.push(this.average(val[i].cpuUtilization));
+      // }
+
+    });
+
+
+
+  }
+
+  // sliceIntoChunks(array, n) {
+  //   const res = [];
+  //   for (let i = 0; i < array.length; i += n) {
+  //       const chunk = array.slice(i, i + n);
+  //       res.push(chunk);
+  //   }
+  //   return res;
+  // }
 }

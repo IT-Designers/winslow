@@ -20,7 +20,7 @@ mat-grid-tile {
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   border: 1px solid darkgrey;
-  background-color: ghostwhite;
+  background-color: aliceblue;
   margin-top: 20px;
   height: 30px;
   text-align: center;
@@ -121,4 +121,3 @@ mat-grid-tile {
   height: 32px;
   align-items: center;
 }
-
