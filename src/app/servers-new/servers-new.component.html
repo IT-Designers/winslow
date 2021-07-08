@@ -14,14 +14,11 @@
     </mat-grid-list>
   </div>
 
-  <ng-container *ngFor="let node of nodes; trackBy:trackNodeInfo; let i = index">
-    <app-server-bar [node]="node" (click)="setNode(i)"></app-server-bar>
-
-    <!-- <br><br>
-    <app-server-new
-      [node]="node"
-      class="overview-element">
-    </app-server-new> -->
+  <ng-container *ngFor="let node of nodes; trackBy:trackNodeInfo; let i = index;">
+    <app-server-bar [class.active]="selectedNodeIndex === i"
+      [node]="node" (click)="setNode(i)">
+    </app-server-bar>
+    <div class="bar"></div>
   </ng-container>
 
   <mat-grid-list cols="12" rowHeight="25px">
@@ -76,11 +73,11 @@
 
       <div class="history">
         <mat-button-toggle-group value="live">
-          <mat-button-toggle value="live">Live</mat-button-toggle>
-          <mat-button-toggle value="last6h">last 6 hours</mat-button-toggle>
-          <mat-button-toggle value="last24h">last 24 hours</mat-button-toggle>
-          <mat-button-toggle value="last7d">last 7 days</mat-button-toggle>
-          <mat-button-toggle value="last31d">last 31 days</mat-button-toggle>
+          <mat-button-toggle value="live" (click)="setNode(this.selectedNodeIndex)">Live</mat-button-toggle>
+          <mat-button-toggle value="last6h" (click)="getHistory(6)">last 6 hours</mat-button-toggle>
+          <mat-button-toggle value="last24h" (click)="getHistory(24)">last 24 hours</mat-button-toggle>
+          <mat-button-toggle value="last7d" (click)="getHistory(24 * 7)">last 7 days</mat-button-toggle>
+          <mat-button-toggle value="last31d" (click)="getHistory(24 * 31)">last 31 days</mat-button-toggle>
         </mat-button-toggle-group>
       </div>
 
