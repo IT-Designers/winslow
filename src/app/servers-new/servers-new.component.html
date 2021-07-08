@@ -14,12 +14,27 @@
     </mat-grid-list>
   </div>
 
-  <ng-container *ngFor="let node of nodes; trackBy:trackNodeInfo; let i = index;">
-    <app-server-bar [class.active]="selectedNodeIndex === i"
+
+
+  <!-- no scrollbar if there are less than 7 servers -->
+  <div *ngIf="nodes.length<7">
+      <app-server-bar
+        *ngFor="let node of nodes; trackBy:trackNodeInfo; let i = index;"
+        [class.active]="selectedNodeIndex === i"
+        [node]="node" (click)="setNode(i)">
+      </app-server-bar>
+  </div>
+
+  <!-- add scrollbar if there are more than 7 servers -->
+  <div *ngIf="nodes.length>=7" [style.overflow]="'auto'" [style.height.px]="'434'">
+    <app-server-bar
+      *ngFor="let node of nodes; trackBy:trackNodeInfo; let i = index;"
+      [class.active]="selectedNodeIndex === i"
       [node]="node" (click)="setNode(i)">
     </app-server-bar>
-    <div class="bar"></div>
-  </ng-container>
+  </div>
+
+
 
   <mat-grid-list cols="12" rowHeight="25px">
     <mat-grid-tile colspan='2'></mat-grid-tile>
