@@ -39,6 +39,53 @@ public class NodeUtilization {
     }
 
     @Nonnull
+    public static NodeUtilization average(long time, long uptime, @Nonnull List<NodeUtilization> nodes) {
+        return new NodeUtilization(
+                time,
+                uptime,
+                transposedFloatAverage(nodes.stream().map(n -> n.cpuUtilization)),
+                new MemInfo(
+                        nodes.stream().mapToLong(n -> n.memoryInfo.getMemoryTotal()).max().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.memoryInfo.getMemoryFree()).average().orElse(0),
+                        nodes.stream().mapToLong(n -> n.memoryInfo.getSystemCache()).max().orElse(0),
+                        nodes.stream().mapToLong(n -> n.memoryInfo.getSwapTotal()).max().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.memoryInfo.getSwapFree()).average().orElse(0)
+                ),
+                new NetInfo(
+                        (long) nodes.stream().mapToLong(n -> n.netInfo.getReceiving()).average().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.netInfo.getTransmitting()).average().orElse(0)
+                ),
+                new DiskInfo(
+                        (long) nodes.stream().mapToLong(n -> n.diskInfo.getReading()).average().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.diskInfo.getWriting()).average().orElse(0),
+                        nodes.stream().mapToLong(n -> n.diskInfo.getFree()).min().orElse(0),
+                        nodes.stream().mapToLong(n -> n.diskInfo.getUsed()).max().orElse(0)
+                ),
+                transposedFloatAverage(nodes.stream().map(n -> n.gpuComputeUtilization)),
+                transposedFloatAverage(nodes.stream().map(n -> n.gpuMemoryUtilization))
+        );
+    }
+
+    private static List<Float> transposedFloatAverage(Stream<List<Float>> stream) {
+        var raw = stream.collect(Collectors.toUnmodifiableList());
+        var result    = raw.isEmpty() ? new ArrayList<Float>() : new ArrayList<>(raw.get(0));
+
+        // sum transposed
+        for (int i = 1; i < raw.size(); ++i) {
+            for (int n = 0; n < result.size(); ++n) {
+                result.set(n, result.get(n) + raw.get(i).get(n));
+            }
+        }
+
+        // divide each cell by element count
+        for (int n = 0; n < result.size(); ++n) {
+            result.set(n, result.get(n) / (float)raw.size());
+        }
+
+        return result;
+    }
+
+    @Nonnull
     public static NodeUtilization from(@Nonnull NodeInfo info) {
         return new NodeUtilization(
                 info.getTime(),
@@ -81,7 +128,7 @@ public class NodeUtilization {
                         CSV_LEVEL_2_SEPARATOR,
                         String.valueOf(this.netInfo.getReceiving()),
                         String.valueOf(this.netInfo.getTransmitting())
-                        ),
+                ),
                 String.join(
                         CSV_LEVEL_2_SEPARATOR,
                         String.valueOf(this.diskInfo.getReading()),

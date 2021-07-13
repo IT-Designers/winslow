@@ -281,8 +281,10 @@ public class NodeRepository extends BaseRepository {
     public Stream<NodeUtilization> getNodeUtilizationBetween(
             @Nonnull String nodeName,
             long timeStart,
-            long timeEnd) {
-        return listNodeUtilizationLogsBetween(nodeName, timeStart, timeEnd)
+            long timeEnd,
+            long chunkSpanMillis
+    ) {
+        var stream = listNodeUtilizationLogsBetween(nodeName, timeStart, timeEnd)
                 .flatMap(path -> {
                     try {
                         return Files.lines(path, StandardCharsets.UTF_8);
@@ -293,7 +295,36 @@ public class NodeRepository extends BaseRepository {
                 })
                 .map(NodeUtilization::fromCsvLineNoThrows)
                 .flatMap(Optional::stream)
-                .filter(u -> u.time >= timeStart && u.time <= timeEnd);
+                .filter(u -> u.time >= timeStart && u.time <= timeEnd)
+                .sorted(Comparator.comparingLong(a -> a.time));
+        if (chunkSpanMillis > 1) {
+            var raw     = stream.collect(Collectors.toUnmodifiableList());
+            var chunked = new ArrayList<List<NodeUtilization>>();
+
+            if (!raw.isEmpty()) {
+                long chunkStart = raw.get(0).time;
+                var  chunkList  = new ArrayList<NodeUtilization>();
+                chunked.add(chunkList);
+
+                for (var value : raw) {
+                    if (value.time < chunkStart + chunkSpanMillis) {
+                        chunkList.add(value);
+                    } else {
+                        chunkStart = value.time;
+                        chunkList  = new ArrayList<>();
+                        chunkList.add(value);
+                        chunked.add(chunkList);
+                    }
+                }
+            }
+
+            return chunked
+                    .stream()
+                    .filter(list -> !list.isEmpty())
+                    .map(list -> NodeUtilization.average(list.get(0).time, list.get(0).uptime, list));
+        } else {
+            return stream;
+        }
     }
 
     @Nonnull

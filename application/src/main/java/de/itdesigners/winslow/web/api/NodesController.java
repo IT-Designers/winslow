@@ -41,17 +41,27 @@ public class NodesController {
         return winslow.getNodeRepository().getNodeInfo(name);
     }
 
+    /***
+     * @param name The name of the node to retrieve the utilization for
+     * @param from Timestamp-millis for the start time range
+     * @param to Timestamp-millis for the end time range
+     * @param chunkSpanMillis Milliseconds to chunk values into
+     * @return Time series of {@link NodeUtilization}
+     */
     @GetMapping("/nodes/{name}/utilization")
     public Stream<NodeUtilization> getNodeUtilization(
             @PathVariable("name") String name,
             @RequestParam(required = false, name = "from") @Nullable Long from,
-            @RequestParam(required = false, name = "to") @Nullable Long to) {
+            @RequestParam(required = false, name = "to") @Nullable Long to,
+            @RequestParam(required = false, name = "chunkSpanMillis") @Nullable Long chunkSpanMillis
+    ) {
         return winslow
                 .getNodeRepository()
                 .getNodeUtilizationBetween(
                         name,
                         from != null ? from : System.currentTimeMillis() - Duration.ofMinutes(1).toMillis(),
-                        to != null ? to : System.currentTimeMillis()
+                        to != null ? to : System.currentTimeMillis(),
+                        chunkSpanMillis != null ? chunkSpanMillis : 1
                 );
     }
 
