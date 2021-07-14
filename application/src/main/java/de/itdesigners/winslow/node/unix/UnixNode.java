@@ -6,6 +6,7 @@ import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.PlatformInfo;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,9 +17,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class UnixNode implements Node {
+
+    private static final Logger LOG = Logger.getLogger(UnixNode.class.getSimpleName());
 
     private static final Path   PROC                  = Path.of("/", "proc");
     private static final Path   SYS                   = Path.of("/", "sys");
@@ -36,13 +40,17 @@ public class UnixNode implements Node {
 
     private boolean hasGpus = true;
 
-    public UnixNode(@Nonnull String name, @Nonnull ResourceAllocationMonitor monitor) throws IOException {
+    public UnixNode(
+            @Nonnull String name,
+            @Nullable PlatformInfo partialPlatformInfo,
+            @Nonnull ResourceAllocationMonitor monitor
+    ) throws IOException {
         this.uptime                    = System.currentTimeMillis();
         this.name                      = name;
         this.prevCpuTimes              = getCpuTimes(resolveStat());
         this.prevNetBytes              = getInterfaceInfo(resolveNetDev());
         this.prevDiskInfo              = getDiskInfo(resolveDiskstats());
-        this.platformInfo              = loadPlatformInfo();
+        this.platformInfo              = loadPlatformInfo(partialPlatformInfo);
         this.resourceAllocationMonitor = monitor;
     }
 
@@ -95,8 +103,18 @@ public class UnixNode implements Node {
     }
 
     @Nonnull
-    private PlatformInfo loadPlatformInfo() throws IOException {
-        return new PlatformInfo(tryLoadCpuMaxFreqMhz().orElse(null));
+    private PlatformInfo loadPlatformInfo(@Nullable PlatformInfo partialInfo) throws IOException {
+        var cpuMaxFreq = tryLoadCpuMaxFreqMhz().orElse(null);
+
+        if (cpuMaxFreq != null && partialInfo != null && partialInfo.maxFrequencyCpu != null && !cpuMaxFreq.equals(
+                partialInfo.maxFrequencyCpu)) {
+            LOG.warning("Partial PlatformInfo differs, partial.maxFrequencyCpu(" + partialInfo.maxFrequencyCpu + ") != " + cpuMaxFreq);
+        }
+        return new PlatformInfo(
+                partialInfo != null && partialInfo.maxFrequencyCpu != null
+                ? partialInfo.maxFrequencyCpu
+                : cpuMaxFreq
+        );
     }
 
     @Nonnull

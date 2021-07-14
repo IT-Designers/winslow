@@ -13,6 +13,7 @@ import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
 import de.itdesigners.winslow.node.NodeRepository;
+import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.node.unix.UnixNode;
 import de.itdesigners.winslow.nomad.NomadBackend;
 import de.itdesigners.winslow.project.LogRepository;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
@@ -84,9 +86,13 @@ public class Main {
             var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
             var resourceMonitor = new ResourceAllocationMonitor();
-            var node            = getNode(nodeName, resourceMonitor);
-            var backend         = new NomadBackend(node.getPlatformInfo(), nomadClient);
+            var node            = getNode(
+                    nodeName,
+                    tryRetrieveNomadPlatformInfoNoThrows(nomadClient).orElse(null),
+                    resourceMonitor
+            );
 
+            var backend         = new NomadBackend(node.getPlatformInfo(), nomadClient);
             var updater = NodeInfoUpdater.spawn(nodes, node);
             resourceMonitor.setAvailableResources(toResourceSet(node.loadInfo()));
             resourceMonitor.addChangeListener(updater::updateNoThrows);
@@ -164,11 +170,27 @@ public class Main {
     }
 
     @Nonnull
+    private static Optional<PlatformInfo> tryRetrieveNomadPlatformInfoNoThrows(@Nonnull NomadApiClient client) {
+        try {
+            LOG.info("Collecting platform information from Nomad");
+            var stub         = client.getNodesApi().list().getValue().get(0);
+            var node         = client.getNodesApi().info(stub.getId()).getValue();
+            var cpuFrequency = node.getAttributes().get("cpu.frequency");
+            return Optional.ofNullable(cpuFrequency).map(Integer::parseInt).map(PlatformInfo::new);
+        } catch (Throwable e) {
+            LOG.log(Level.WARNING, "Failed to retrieve (partial) PlatformInfo from Nomad");
+            return Optional.empty();
+        }
+
+    }
+
+    @Nonnull
     private static Node getNode(
             @Nonnull String nodeName,
+            @Nullable PlatformInfo partialPlatformInfo,
             @Nonnull ResourceAllocationMonitor monitor) throws IOException {
         // TODO
-        return new UnixNode(nodeName, monitor);
+        return new UnixNode(nodeName, partialPlatformInfo, monitor);
     }
 
     @Nonnull
