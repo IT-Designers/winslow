@@ -17,6 +17,10 @@ plugin "docker" {
     gc {
       image_delay = "96h"
     }
+
+    volumes {
+      enabled = true
+    }
   
   }
 }
