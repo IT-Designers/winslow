@@ -11,7 +11,6 @@ import de.itdesigners.winslow.pipeline.*;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
@@ -151,9 +150,12 @@ public class SubmissionToNomadJobAdapter {
     @Nonnull
     private static Optional<Map<String, Object>> getMount(@Nonnull DockerVolume volume) {
         switch (volume.getType().toLowerCase()) {
-            case "nfs": return Optional.of(getNfsVolumeMount(volume));
-            case "bind": return Optional.of(getBindVolumeMount(volume));
-            default: return Optional.empty();
+            case "nfs":
+                return Optional.of(getNfsVolumeMount(volume));
+            case "bind":
+                return Optional.of(getBindVolumeMount(volume));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -211,9 +213,10 @@ public class SubmissionToNomadJobAdapter {
             if (requirements.getCpu() > 0) {
                 info.getCpuSingleCoreMaxFrequency()
                     .ifPresent(max -> {
-                        var compute = (requirements.getCpu() * max) - NOMAD_SYSTEM_RESERVED_CPU;
+                        // TODO magic number, I dont know why, but somehow this is necessary
+                        var compute = ((requirements.getCpu() * max) - NOMAD_SYSTEM_RESERVED_CPU) / 3.5f;
                         if (compute > NOMAD_MIN_RESERVABLE_CPU) {
-                            task.getResources().setCpu(compute);
+                            task.getResources().setCpu((int) compute);
                         }
                     });
             }
