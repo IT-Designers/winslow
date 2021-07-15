@@ -12,8 +12,11 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   static readonly MAX_ENTRIES = 120;
 
-  isClicked = [];
+  // set max amount of server to display without scrollbar
+  MAX_SERVERS = 7;
+
   isLive = true;
+
   nodes: NodeInfo[] = [];
   node: NodeInfo;
   selectedNodeIndex: number = null;
@@ -940,7 +943,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.isLive = false;
 
     const node: NodeInfo = this.nodes[this.selectedNodeIndex];
-    console.log(this.nodes)
+    //console.log(this.nodes)
 
     const to = new Date();
     const from = new Date().setHours(to.getHours() - hours);
