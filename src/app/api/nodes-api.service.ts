@@ -47,9 +47,10 @@ export class NodesApiService {
    * @param nodeName The name of the node to return the utilization report for
    * @param from Unix epoch timestamp in millis from when to fetch the earliest report
    * @param to Unix epoch timestamp in millis from when to fetch the last report
+   * @param chunkSpanMillis The duration in millis to chunk data into a single entry
    */
-  public getNodeUtilization(nodeName: string, from?: number, to?: number): Promise<NodeUtilization[]> {
-    const params = [['from', from], ['to', to]]
+  public getNodeUtilization(nodeName: string, from?: number, to?: number, chunkSpanMillis?: number): Promise<NodeUtilization[]> {
+    const params = [['from', from], ['to', to], ['chunkSpanMillis', chunkSpanMillis]]
       .filter(p => p != null && p[1] != null)
       .map(p => p[0] + '=' + p[1])
       .join('&');
