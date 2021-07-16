@@ -155,6 +155,8 @@ export class GpuInfo {
   name: string;
   computeUtilization = 0;
   memoryUtilization = 0;
+  memoryUsedMegabytes = 0;
+  memoryTotalMegabytes = 0;
 
   constructor(id: string, vendor: string, name: string) {
     this.id = id;
