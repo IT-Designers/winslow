@@ -9,18 +9,25 @@ public class GpuInfo {
     private final @Nonnull String name;
     private final          float  computeUtilization;
     private final          float  memoryUtilization;
+    private final          long   memoryUsedMegabytes;
+    private final          long   memoryTotalMegabytes;
 
     public GpuInfo(
             @Nonnull String id,
             @Nonnull String vendor,
             @Nonnull String name,
             float computeUtilization,
-            float memoryUtilization) {
-        this.id                 = id;
-        this.vendor             = vendor;
-        this.name               = name;
-        this.computeUtilization = computeUtilization;
-        this.memoryUtilization  = memoryUtilization;
+            float memoryUtilization,
+            long memoryUsedMegabytes,
+            long memoryTotalMegabytes
+    ) {
+        this.id                   = id;
+        this.vendor               = vendor;
+        this.name                 = name;
+        this.computeUtilization   = computeUtilization;
+        this.memoryUtilization    = memoryUtilization;
+        this.memoryUsedMegabytes  = memoryUsedMegabytes;
+        this.memoryTotalMegabytes = memoryTotalMegabytes;
     }
 
     @Nonnull
@@ -44,5 +51,13 @@ public class GpuInfo {
 
     public float getMemoryUtilization() {
         return memoryUtilization;
+    }
+
+    public long getMemoryUsedMegabytes() {
+        return memoryUsedMegabytes;
+    }
+
+    public long getMemoryTotalMegabytes() {
+        return memoryTotalMegabytes;
     }
 }

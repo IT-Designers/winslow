@@ -38,7 +38,7 @@ public class UnixGpuInfoParser {
         var processBuilder = new ProcessBuilder(
                 "nvidia-smi",
                 "--format=csv,noheader,nounits",
-                "--query-gpu=index,name,utilization.gpu,utilization.memory"
+                "--query-gpu=index,name,utilization.gpu,utilization.memory,memory.used,memory.total"
                 // some additional parmeters
                 // "temperature.gpu,fan.speed,power.draw,power.limit,clocks.gr,clocks.max.gr,clocks.mem,clocks.max.mem,memory.used,memory.total"
         );
@@ -59,7 +59,9 @@ public class UnixGpuInfoParser {
                             "nvidia",
                             split[1].trim(), // name
                             Float.parseFloat(split[2].trim()),
-                            Float.parseFloat(split[3].trim())
+                            Float.parseFloat(split[3].trim()),
+                            Float.parseFloat(split[4].trim()),
+                            Float.parseFloat(split[5].trim())
                     ));
                 }
             } catch (IndexOutOfBoundsException e) {
