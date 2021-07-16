@@ -37,14 +37,18 @@ public class NodeUtilizationTest {
                             "pixel",
                             "PixelSchubser GTR 42",
                             0.991f,
-                            0.2f
+                            0.2f,
+                            1024,
+                            2048
                     ),
                     new GpuInfo(
                             "pci-1",
                             "fire",
                             "FireInTheHouse 1337",
                             0.21f,
-                            0.92f
+                            0.92f,
+                            1024,
+                            2048
                     )
             ),
             Collections.emptyList()
