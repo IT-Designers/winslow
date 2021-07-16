@@ -178,8 +178,14 @@ export class NodeUtilization {
   memoryInfo: MemInfo;
   netInfo: NetInfo;
   diskInfo: DiskInfo;
-  gpuComputeUtilization: number[];
-  gpuMemoryUtilization: number[];
+  gpuUtilization: GpuUtilization[];
+}
+
+export class GpuUtilization {
+  computeUtilization = 0;
+  memoryUtilization = 0;
+  memoryUsedMegabytes = 0;
+  memoryTotalMegabytes = 0;
 }
 
 export class AllocInfo {
