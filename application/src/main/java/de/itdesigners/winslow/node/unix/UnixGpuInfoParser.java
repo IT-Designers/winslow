@@ -51,7 +51,7 @@ public class UnixGpuInfoParser {
                     process.getInputStream(),
                     StandardCharsets.UTF_8
             ))) {
-                var line  = (String) null;
+                var line = (String) null;
                 while ((line = reader.readLine()) != null) {
                     var split = line.split(NVIDIA_SEPARATOR);
                     info.add(new GpuInfo(
@@ -60,8 +60,8 @@ public class UnixGpuInfoParser {
                             split[1].trim(), // name
                             Float.parseFloat(split[2].trim()),
                             Float.parseFloat(split[3].trim()),
-                            Float.parseFloat(split[4].trim()),
-                            Float.parseFloat(split[5].trim())
+                            Long.parseLong(split[4].trim()),
+                            Long.parseLong(split[5].trim())
                     ));
                 }
             } catch (IndexOutOfBoundsException e) {
