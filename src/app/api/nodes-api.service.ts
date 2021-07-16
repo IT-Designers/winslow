@@ -11,55 +11,56 @@ import {environment} from '../../environments/environment';
 })
 export class NodesApiService {
 
-    constructor(
-        private rxStompService: RxStompService,
-        private client: HttpClient) {
-    }
+  constructor(
+    private rxStompService: RxStompService,
+    private client: HttpClient) {
+  }
 
-    static getUrl(more?: string) {
-        if (more != null) {
-            while (more.startsWith('/')) {
-                more = more.substr(1);
-            }
-        }
-        return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
+  static getUrl(more?: string) {
+    if (more != null) {
+      while (more.startsWith('/')) {
+        more = more.substr(1);
+      }
     }
+    return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
+  }
 
-    public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
-        return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
-            const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
-            events.forEach(event => listener(event));
-        });
-    }
+  public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
+    return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
+      const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
+      events.forEach(event => listener(event));
+    });
+  }
 
-    /**
-     * Retrieves the `NodeInfo` for all active nodes
-     */
-    public getNodes(): Promise<NodeInfo> {
-        return this.client
-            .get<NodeInfo>(NodesApiService.getUrl())
-            .toPromise();
-    }
+  /**
+   * Retrieves the `NodeInfo` for all active nodes
+   */
+  public getNodes(): Promise<NodeInfo> {
+    return this.client
+      .get<NodeInfo>(NodesApiService.getUrl())
+      .toPromise();
+  }
 
-    /**
-     * Retrieves `NodeUtilization`-reports for a given time span
-     *
-     * @param nodeName The name of the node to return the utilization report for
-     * @param from Unix epoch timestamp in millis from when to fetch the earliest report
-     * @param to Unix epoch timestamp in millis from when to fetch the last report
-     */
-    public getNodeUtilization(nodeName: string, from?: number, to?: number): Promise<NodeUtilization[]> {
-        const params = [['from', from], ['to', to]]
-        .filter(p => p != null && p[1] != null)
-        .map(p => p[0] + '=' + p[1])
-        .join('&');
+  /**
+   * Retrieves `NodeUtilization`-reports for a given time span
+   *
+   * @param nodeName The name of the node to return the utilization report for
+   * @param from Unix epoch timestamp in millis from when to fetch the earliest report
+   * @param to Unix epoch timestamp in millis from when to fetch the last report
+   * @param chunkSpanMillis The duration in millis to chunk data into a single entry
+   */
+  public getNodeUtilization(nodeName: string, from?: number, to?: number, chunkSpanMillis?: number): Promise<NodeUtilization[]> {
+    const params = [['from', from], ['to', to], ['chunkSpanMillis', chunkSpanMillis]]
+      .filter(p => p != null && p[1] != null)
+      .map(p => p[0] + '=' + p[1])
+      .join('&');
 
-      return this.client
-        .get<NodeUtilization[]>(NodesApiService.getUrl(
-          nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
-        ))
-        .toPromise();
-    }
+    return this.client
+      .get<NodeUtilization[]>(NodesApiService.getUrl(
+        nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
+      ))
+      .toPromise();
+  }
 }
 
 export class NodeInfo {
@@ -89,7 +90,6 @@ export class NodeInfo {
     buildInfo?: BuildInfo,
     allocInfo?: AllocInfo[]
   ) {
-
     this.name = name;
     this.time = time;
     this.uptime = uptime;
@@ -155,6 +155,8 @@ export class GpuInfo {
   name: string;
   computeUtilization = 0;
   memoryUtilization = 0;
+  memoryUsedMegabytes = 0;
+  memoryTotalMegabytes = 0;
 
   constructor(id: string, vendor: string, name: string) {
     this.id = id;
@@ -176,8 +178,14 @@ export class NodeUtilization {
   memoryInfo: MemInfo;
   netInfo: NetInfo;
   diskInfo: DiskInfo;
-  gpuComputeUtilization: number[];
-  gpuMemoryUtilization: number[];
+  gpuUtilization: GpuUtilization[];
+}
+
+export class GpuUtilization {
+  computeUtilization = 0;
+  memoryUtilization = 0;
+  memoryUsedMegabytes = 0;
+  memoryTotalMegabytes = 0;
 }
 
 export class AllocInfo {
@@ -186,4 +194,3 @@ export class AllocInfo {
   memory: number;
   gpu: number;
 }
-
