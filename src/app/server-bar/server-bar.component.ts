@@ -56,7 +56,7 @@ export class ServerBarComponent implements OnInit {
         },
         data: [
           {
-            value: 27,
+            value: 0,
             detail: {
               offsetCenter: ["0%", "0%"],
             },
@@ -114,7 +114,7 @@ export class ServerBarComponent implements OnInit {
           color: "#007aff",
           barBorderRadius: [3, 0, 0, 3]
         },
-        data: [12],
+        data: [],
       },
       {
         name: "Cache",
@@ -126,7 +126,7 @@ export class ServerBarComponent implements OnInit {
         itemStyle: {
           color: "#5ac8fa",
         },
-        data: [4],
+        data: [],
       },
       {
         name: "Swap",
@@ -139,7 +139,7 @@ export class ServerBarComponent implements OnInit {
           color: "#003876",
           barBorderRadius: [0, 3, 3, 0]
         },
-        data: [1],
+        data: [],
       },
 
     ],
@@ -299,7 +299,7 @@ export class ServerBarComponent implements OnInit {
         },
         data: [
           {
-            value: 71,
+            value: 0,
             detail: {
               offsetCenter: ["0%", "0%"],
             },
