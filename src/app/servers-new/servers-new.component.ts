@@ -51,6 +51,21 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   cpuUsage: number = 0;
   mergeOptionCpu = {};
   chartOptionCpu = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      formatter: (params) => {
+        // return ` ${params[0].seriesName}: ${params[0].value[1] + "%"} `;
+        params = params[0];
+        var date = new Date(params.name);
+        let zero = (date.getMinutes() < 10 ? "0" : "")
+        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
+               date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
+               params.seriesName + ": " + params.value[1] + "%";
+      },
+    },
     calculable: false,
     grid: {
       top: "5%",
@@ -96,6 +111,22 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   memory: any[] = [];
   mergeOptionMemory = {};
   chartOptionMemory = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      formatter: (params) => {
+        var date = new Date(params[0].name);
+        let zero = (date.getMinutes() < 10 ? "0" : "")
+        return `  ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${zero + date.getMinutes()} <br>
+                  Memory Usage: <br />
+                  ${params[0].seriesName}: ${(params[0].value[1] ? params[0].value[1] : 0) + " GiB"}<br />
+                  ${params[1].seriesName}: ${(params[1].value[1] ? params[1].value[1] : 0) + " GiB"}<br />
+                  ${params[2].seriesName}: ${(params[2].value[1] ? params[2].value[1] : 0) + " GiB"}
+                  `;
+      },
+    },
     grid: {
       top: "5%",
       bottom: "25",
@@ -145,6 +176,21 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   network: any[] = [];
   mergeOptionNetwork = {};
   chartOptionNetwork = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      formatter: (params) => {
+        var date = new Date(params[0].name);
+        let zero = (date.getMinutes() < 10 ? "0" : "")
+        return `  ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${zero + date.getMinutes()} <br>
+                  Network IO: <br />
+                  ${params[0].seriesName}: ${params[0].value[1] + " " + this.unitNetwork + "Byte/s"}<br />
+                  ${params[1].seriesName}: ${params[1].value[1] + " " + this.unitNetwork + "Byte/s"}
+                  `;
+      },
+    },
     grid: {
       top: "5%",
       bottom: "25",
@@ -198,6 +244,21 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   disk: any[] = [];
   mergeOptionDisk = {};
   chartOptionDisk = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      formatter: (params) => {
+        var date = new Date(params[0].name);
+        let zero = (date.getMinutes() < 10 ? "0" : "")
+        return `  ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${ zero + date.getMinutes()} <br>
+                  Disk IO: <br />
+                  ${params[0].seriesName}: ${params[0].value[1] + " " + this.unitDisk + "Byte/s"}<br />
+                  ${params[1].seriesName}: ${params[1].value[1] + " " + this.unitDisk + "Byte/s"}
+                  `;
+      },
+    },
     grid: {
       top: "5%",
       bottom: "25",
@@ -248,8 +309,22 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   };
 
   gpus: any[] = [];
+  gpuName = [];
   mergeOptionGpu: any[]  = [];
   chartOptionGpu = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      formatter: (params) => {
+        var date = new Date(params[0].name);
+        let zero = (date.getMinutes() < 10 ? "0" : "")
+        return ` ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${zero + date.getMinutes()} <br>
+                ${params[0].seriesName}: ${params[0].value[1] + "%"}<br>
+                ${params[1].seriesName}: ${params[1].value[1] + "%"} `;
+      },
+    },
     calculable: false,
     grid: {
       top: "10%",
@@ -310,17 +385,12 @@ export class ServersNewComponent implements OnInit, OnDestroy {
               this.sortNodesByName();
             }
 
-            // TODO -> get selected node information
-
-
             if(this.selectedNodeIndex == null) {
               this.selectedNodeIndex = 0;
               this.node = this.nodes[0];
             } else {
               this.node = this.nodes[this.selectedNodeIndex];
             }
-            // console.log(this.node)
-            // console.log(this.node?.allocInfo)
 
             // save last timestamp
             if(!this.lastTimestamp) {
@@ -343,11 +413,11 @@ export class ServersNewComponent implements OnInit, OnDestroy {
               this.scaleDisk();
               this.updateDiskStatus();
 
-
               if (this.node?.gpuInfo?.length > 0) {
                 if (this.gpus.length === 0) {
                   this.initGpuSeries();
                 }
+
                 this.updateGpuSeries();
                 this.updateGpuStatus();
               };
@@ -486,32 +556,26 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   private updateCpuStatus() {
-    this.cpuUsage = +(
-      this.average(this.node.cpuInfo.utilization) * 100
-    ).toFixed(0);
 
-    this.cpus.push({
-      name: this.date.toString(),
-      value: [
-        this.date,
-        (this.average(this.node.cpuInfo.utilization) * 100).toFixed(0),
-      ],
-    });
+    if(this.isLive) {
+      this.cpuUsage = +(
+        this.average(this.node.cpuInfo.utilization) * 100
+      ).toFixed(0);
 
-    if (this.cpus.length > 120) {
-      this.cpus.shift();
+      this.cpus.push({
+        name: this.date.toString(),
+        value: [
+          this.date,
+          (this.average(this.node.cpuInfo.utilization) * 100).toFixed(0),
+        ],
+      });
+
+      if (this.cpus.length > 120) {
+        this.cpus.shift();
+      }
     }
 
     this.mergeOptionCpu = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'shadow'
-        },
-        formatter: (params) => {
-          return ` ${params[0].seriesName}: ${params[0].value[1] + "%"} `;
-        },
-      },
       series: [
         {
           name: "CPU",
@@ -528,64 +592,51 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   private updateMemoryStatus() {
 
-    let heap = this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree).toFixed(2);
-    let cache = this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2);
-    let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2)
+    if(this.isLive) {
 
-    this.memoryTotal = this.bytesToGigabyte(this.node.memInfo.memoryTotal + this.node.memInfo.swapTotal).toFixed(2);
-    this.memoryUsed = (+heap + +cache + +swap).toFixed(2);
+      let heap = this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree).toFixed(2);
+      let cache = this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2);
+      let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2)
 
-    this.memory[0].series.push({
-      name: this.date.toString(),
-      value: [
-        this.date,
-        heap
-      ],
-    });
-    this.memory[1].series.push({
-      name: this.date.toString(),
-      value: [
-        this.date,
-        cache,
-      ],
-    });
-    this.memory[2].series.push({
-      name: this.date.toString(),
-      value: [
-        this.date,
-        swap,
-      ],
-    });
-    this.memory = [this.memory[0], this.memory[1], this.memory[2]];
-    for (const entry of this.memory) {
-      if (entry.series.length > ServersNewComponent.MAX_ENTRIES) {
-        entry.series.splice(
-          0,
-          entry.series.length - ServersNewComponent.MAX_ENTRIES
-        );
+      this.memoryTotal = this.bytesToGigabyte(this.node.memInfo.memoryTotal + this.node.memInfo.swapTotal).toFixed(2);
+      this.memoryUsed = (+heap + +cache + +swap).toFixed(2);
+
+      this.memory[0].series.push({
+        name: this.date.toString(),
+        value: [
+          this.date,
+          heap
+        ],
+      });
+      this.memory[1].series.push({
+        name: this.date.toString(),
+        value: [
+          this.date,
+          cache,
+        ],
+      });
+      this.memory[2].series.push({
+        name: this.date.toString(),
+        value: [
+          this.date,
+          swap,
+        ],
+      });
+      this.memory = [this.memory[0], this.memory[1], this.memory[2]];
+      for (const entry of this.memory) {
+        if (entry.series.length > ServersNewComponent.MAX_ENTRIES) {
+          entry.series.splice(
+            0,
+            entry.series.length - ServersNewComponent.MAX_ENTRIES
+          );
+        }
       }
+      this.memory = [this.memory[0], this.memory[1], this.memory[2]];
     }
-    this.memory = [this.memory[0], this.memory[1], this.memory[2]];
 
-    if (this.memory.length > 120) {
-      this.memory.shift();
-    }
+
 
     this.mergeOptionMemory = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'shadow'
-        },
-        formatter: (params) => {
-          return `
-                    Memory Usage: <br />
-                    ${params[0].seriesName}: ${(params[0].value[1] ? params[0].value[1] : 0) + " GiB"}<br />
-                    ${params[1].seriesName}: ${(params[1].value[1] ? params[1].value[1] : 0) + " GiB"}<br />
-                    ${params[2].seriesName}: ${(params[2].value[1] ? params[2].value[1] : 0) + " GiB"}
-                    `;
-        },
-      },
       yAxis: [
         {
           max: this.bytesToGigabyte(this.node.memInfo.memoryTotal + this.node.memInfo.swapTotal).toFixed(0)
@@ -641,19 +692,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   private updateNetworkStatus() {
     this.mergeOptionNetwork = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'shadow'
-        },
-        formatter: (params) => {
-          return `
-                    Network IO: <br />
-                    ${params[0].seriesName}: ${params[0].value[1] + " " + this.unitNetwork + "Byte/s"}<br />
-                    ${params[1].seriesName}: ${params[1].value[1] + " " + this.unitNetwork + "Byte/s"}
-                    `;
-        },
-      },
       yAxis: [
         {
           type: "value",
@@ -707,19 +745,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.diskFree = this.bytesToGigabyte(this.node.diskInfo.free).toFixed(0);
 
     this.mergeOptionDisk = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'shadow'
-        },
-        formatter: (params) => {
-          return `
-                    Disk IO: <br />
-                    ${params[0].seriesName}: ${params[0].value[1] + " " + this.unitDisk + "Byte/s"}<br />
-                    ${params[1].seriesName}: ${params[1].value[1] + " " + this.unitDisk + "Byte/s"}
-                    `;
-        },
-      },
       yAxis: [
         {
           type: "value",
@@ -773,38 +798,29 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   private updateGpuStatus() {
-
-    if (this.gpus[0].series.length > 120) {
-      this.gpus.forEach(gpu => gpu.series.shift())
+    if(this.isLive) {
+      if (this.gpus[0].series.length > 120) {
+        this.gpus.forEach(gpu => gpu.series.shift())
+      }
     }
 
-    let gpuName = [];
+    if(this.gpuName.length == 0) {
+      this.node.gpuInfo.forEach(gpu => {
+        this.gpuName.push(gpu.name + " (" + gpu.id + ")")
+      })
+    }
 
-    this.node.gpuInfo.forEach(gpu => {
-      gpuName.push(gpu.name + " (" + gpu.id + ")")
-    })
 
-    let counter = 0;
-    this.gpus.forEach(gpu => {
-      this.mergeOptionGpu[counter++] = {
+    for(let counter = 0, i = 0; counter < this.gpus.length; counter +=2, i++) {
+      this.mergeOptionGpu[i] = {
         title: [{
           left: '15%',
           top: '1%',
-          text: gpuName[counter-1],
+          text: this.gpuName[i],
           textStyle: {
             fontSize: 10
           }
       }],
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-              type: 'shadow'
-          },
-          formatter: (params) => {
-            return ` ${params[0].seriesName}: ${params[0].value[1] + "%"}<br>
-                     ${params[1].seriesName}: ${params[1].value[1] + "%"} `;
-          },
-        },
         series: [
           {
             name: "Compute",
@@ -813,7 +829,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
             showSymbol: false,
             color: "#007aff",
             itemStyle: { normal: { areaStyle: { type: "default" } } },
-            data: this.gpus[counter-1]?.series,
+            data: this.gpus[counter]?.series,
           },
           {
             name: "Memory Bus",
@@ -822,11 +838,11 @@ export class ServersNewComponent implements OnInit, OnDestroy {
             showSymbol: false,
             color: "#5ac8fa",
             itemStyle: { normal: { areaStyle: { type: "default" } } },
-            data: this.gpus[counter]?.series,
+            data: this.gpus[counter+1]?.series,
           },
         ],
       };
-    })
+    }
   }
 
   scaleNetwork() {
@@ -921,6 +937,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   setNode(index: number, ) {
     this.selectedNodeIndex = index;
+    this.isLive = true;
 
     // remove series data from old node
     this.gpus = [];
@@ -943,25 +960,23 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.isLive = false;
 
     const node: NodeInfo = this.nodes[this.selectedNodeIndex];
-    //console.log(this.nodes)
-
     const to = new Date();
     const from = new Date().setHours(to.getHours() - hours);
 
+    this.api.getNodeUtilization(node.name, from, to.getTime(), 60000).then(val => {
 
-
-
-    this.api.getNodeUtilization(node.name, from, to.getTime()).then(val => {
-
-
-      let cpu = [];
+      this.cpus = [];
+      this.memory = [];
+      this.network = [];
+      this.rawNetwork = [];
+      this.rawDisk = [];
+      this.disk = [];
+      this.initGpuSeries();
 
       val.map(d => {
         const date = new Date(d.time)
 
-
-
-        cpu.push({
+        this.cpus.push({
           name: date.toString(),
           value: [
             date,
@@ -969,48 +984,70 @@ export class ServersNewComponent implements OnInit, OnDestroy {
           ],
         });
 
-        this.mergeOptionCpu = {
-          tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow'
-            },
-            formatter: (params) => {
-              return ` ${params[0].seriesName}: ${params[0].value[1] + "%"} `;
-            },
-          },
-          series: [
-            {
-              name: "CPU",
-              type: "line",
-              hoverAnimation: false,
-              showSymbol: false,
-              color: "#5ac8fa",
-              itemStyle: { normal: { areaStyle: { type: "default" } } },
-              data: cpu,
-            },
+        let heap = this.bytesToGigabyte(d.memoryInfo.memoryTotal - d.memoryInfo.memoryFree).toFixed(2);
+        let cache = this.bytesToGigabyte(d.memoryInfo.systemCache).toFixed(2);
+        let swap = this.bytesToGigabyte(d.memoryInfo.swapTotal - d.memoryInfo.swapFree).toFixed(2)
+
+        this.initMemorySeries();
+        this.memory[0].series.push({
+          name: date.toString(),
+          value: [
+            date,
+            heap
           ],
-        };
+        });
+        this.memory[1].series.push({
+          name: date.toString(),
+          value: [
+            date,
+            cache,
+          ],
+        });
+        this.memory[2].series.push({
+          name: date.toString(),
+          value: [
+            date,
+            swap,
+          ],
+        });
+        this.memory = [this.memory[0], this.memory[1], this.memory[2]];
+
+        this.initNetworkSeries();
+        this.rawNetwork.push([
+          date,
+          [d.netInfo.transmitting, d.netInfo.receiving],
+        ]);
+
+        this.initDiskSeries();
+        this.rawDisk.push([
+          date,
+          [d.diskInfo.writing, d.diskInfo.reading],
+        ]);
+
+        if(d.gpuUtilization && d.gpuUtilization.length > 0) {
+          let counter = 0;
+          for (const gpu of d.gpuUtilization) {
+            this.gpus[counter++].series.push({
+              name: date.toString(),
+              value: [date, Number(Math.max(0, Math.min(100, gpu.computeUtilization)))]
+            });
+            this.gpus[counter++].series.push({
+              name: date.toString(),
+              value: [date, Number(Math.max(0, Math.min(100, gpu.memoryUtilization)))]
+            });
+          }
+        }
+
+        this.updateCpuStatus();
+        this.updateMemoryStatus();
+        this.scaleNetwork();
+        this.updateNetworkStatus();
+        this.scaleDisk();
+        this.updateDiskStatus();
+        this.updateGpuStatus();
+
       })
-
-      console.log(cpu)
-
-      // for(var i = 0; i < val.length; i++){
-      //   cpu.push(this.average(val[i].cpuUtilization));
-      // }
-
     });
-
-
-
   }
 
-  // sliceIntoChunks(array, n) {
-  //   const res = [];
-  //   for (let i = 0; i < array.length; i += n) {
-  //       const chunk = array.slice(i, i + n);
-  //       res.push(chunk);
-  //   }
-  //   return res;
-  // }
 }
