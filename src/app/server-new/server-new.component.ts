@@ -481,21 +481,21 @@ export class ServerNewComponent implements OnInit {
       for (const v of val) {
         date = new Date(v.time)
 
-        gpu_history[0].series.push({
-          name: date,
-          value: [
-            date,
-            Number(Math.max(0, Math.min(100, v.gpuComputeUtilization[0]))),
-          ]
-        });
+        // gpu_history[0].series.push({
+        //   name: date,
+        //   value: [
+        //     date,
+        //     Number(Math.max(0, Math.min(100, v.gpuComputeUtilization[0]))),
+        //   ]
+        // });
 
-        gpu_history[1].series.push({
-          name: date,
-          value: [
-            date,
-            Number(Math.max(0, Math.min(100, v.gpuMemoryUtilization[0]))),
-          ]
-        })
+        // gpu_history[1].series.push({
+        //   name: date,
+        //   value: [
+        //     date,
+        //     Number(Math.max(0, Math.min(100, v.gpuMemoryUtilization[0]))),
+        //   ]
+        // })
       }
 
 
