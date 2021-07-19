@@ -101,18 +101,26 @@ public class NodeUtilization {
 
     private static List<Float> transposedFloatAverage(Stream<List<Float>> stream) {
         var raw    = stream.collect(Collectors.toUnmodifiableList());
-        var result = raw.isEmpty() ? new ArrayList<Float>() : new ArrayList<>(raw.get(0));
+        var result = new ArrayList<Float>();
+        var counter = new ArrayList<Float>();
 
         // sum transposed
-        for (int i = 1; i < raw.size(); ++i) {
-            for (int n = 0; n < result.size(); ++n) {
-                result.set(n, result.get(n) + raw.get(i).get(n));
+        for (var rawList : raw) {
+            if (rawList != null) {
+                for (int i = 0; i < rawList.size(); ++i) {
+                    if (i >= result.size()) {
+                        result.add(0.f);
+                        counter.add(0.f);
+                    }
+                    result.set(i, result.get(i) + rawList.get(i));
+                    counter.set(i, counter.get(i) + 1);
+                }
             }
         }
 
         // divide each cell by element count
         for (int n = 0; n < result.size(); ++n) {
-            result.set(n, result.get(n) / (float) raw.size());
+            result.set(n, result.get(n) / (float) counter.get(n));
         }
 
         return result;
