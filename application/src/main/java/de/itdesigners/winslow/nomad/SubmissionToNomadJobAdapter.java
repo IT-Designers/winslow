@@ -124,6 +124,7 @@ public class SubmissionToNomadJobAdapter {
             task.getConfig().put("image", docker.getImage());
             task.getConfig().put("args", docker.getArguments());
             task.getConfig().put("privileged", docker.isPrivileged());
+            task.getConfig().put("image_pull_timeout", "1h");
 
             docker.getShmSizeMegabytes().ifPresent(shm -> {
                 task.getConfig().put("shm_size", shm * 1024L * 1024L);
