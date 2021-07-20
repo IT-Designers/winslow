@@ -277,7 +277,7 @@ export class ServerBarComponent implements OnInit {
           roundCap: true,
           clip: false,
           itemStyle: {
-            color: "#FF5050",
+            color: "#69B34C",
           },
         },
         axisLine: {
