@@ -1,4 +1,4 @@
-import { Component, ComponentFactoryResolver, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { GpuInfo, NodeInfo, NodesApiService } from "../api/nodes-api.service";
 import { Subscription } from "rxjs";
 import { ChangeType } from "../api/api.service";
@@ -25,6 +25,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   date: Date;
   lastTimestamp: number;
+  formatter: (value) => string;
 
   unitNetwork = "";
   unitDisk = "";
@@ -52,6 +53,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   mergeOptionCpu = {};
   chartOptionCpu = {
     tooltip: {
+      position: 'top',
+      confine: true,
       trigger: 'axis',
       axisPointer: {
           type: 'shadow'
@@ -81,13 +84,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: function (value) {
-            const date = new Date(value);
-            if (date.getSeconds() === 0) {
-              let zero = (date.getMinutes() < 10 ? ":0" : ":")
-              return date.getHours() + zero + date.getMinutes();
-            }
-          },
+          formatter: value => this.formatter(value)
         }
       },
     ],
@@ -112,6 +109,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   mergeOptionMemory = {};
   chartOptionMemory = {
     tooltip: {
+      position: 'top',
+      confine: true,
       trigger: 'axis',
       axisPointer: {
           type: 'shadow'
@@ -139,13 +138,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         show: true,
         type: "time",
         axisLabel: {
-          formatter: function (value) {
-            const date = new Date(value);
-            if (date.getSeconds() === 0) {
-              let zero = (date.getMinutes() < 10 ? ":0" : ":")
-              return date.getHours() + zero + date.getMinutes();
-            }
-          },
+          formatter: value => this.formatter(value)
         },
         splitLine: {
           show: false,
@@ -177,6 +170,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   mergeOptionNetwork = {};
   chartOptionNetwork = {
     tooltip: {
+      position: 'top',
+      confine: true,
       trigger: 'axis',
       axisPointer: {
           type: 'shadow'
@@ -203,13 +198,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         show: true,
         type: "time",
         axisLabel: {
-          formatter: function (value) {
-            const date = new Date(value);
-            if (date.getSeconds() === 0) {
-              let zero = (date.getMinutes() < 10 ? ":0" : ":")
-              return date.getHours() + zero + date.getMinutes();
-            }
-          },
+          formatter: value => this.formatter(value)
         },
         splitLine: {
           show: false,
@@ -245,6 +234,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   mergeOptionDisk = {};
   chartOptionDisk = {
     tooltip: {
+      position: 'top',
+      confine: true,
       trigger: 'axis',
       axisPointer: {
           type: 'shadow'
@@ -271,13 +262,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         show: true,
         type: "time",
         axisLabel: {
-          formatter: function (value) {
-            const date = new Date(value);
-            if (date.getSeconds() === 0) {
-              let zero = (date.getMinutes() < 10 ? ":0" : ":")
-              return date.getHours() + zero + date.getMinutes();
-            }
-          },
+          formatter: value => this.formatter(value)
         },
         splitLine: {
           show: false,
@@ -313,6 +298,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   mergeOptionGpu: any[]  = [];
   chartOptionGpu = {
     tooltip: {
+      position: 'top',
+      confine: true,
       trigger: 'axis',
       axisPointer: {
           type: 'shadow'
@@ -340,13 +327,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: function (value) {
-            const date = new Date(value);
-            if (date.getSeconds() === 0) {
-              let zero = (date.getMinutes() < 10 ? ":0" : ":")
-              return date.getHours() + zero + date.getMinutes();
-            }
-          },
+          formatter: value => this.formatter(value)
         }
       },
     ],
@@ -367,7 +348,23 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     series: [],
   };
 
+  axisLabelFormatterMinutes(value) {
+    const date = new Date(value);
+    if (date.getSeconds() === 0) {
+      let zero = (date.getMinutes() < 10 ? ":0" : ":")
+      return date.getHours() + zero + date.getMinutes();
+    }
+  }
+
+  axisLabelFormatterDays(value) {
+    const date = new Date(value);
+    if (date.getSeconds() === 0) {
+      return date.getDate() + "." + (date.getMonth() + 1);
+    }
+  }
+
   ngOnInit() {
+    this.formatter = this.axisLabelFormatterMinutes
     this.subscription = this.api.watchNodes((update) => {
       switch (update.type) {
         case ChangeType.CREATE:
@@ -422,6 +419,8 @@ export class ServersNewComponent implements OnInit, OnDestroy {
                 this.updateGpuStatus();
               };
             }
+
+            //console.log(this.node.allocInfo)
 
           }
           break;
@@ -936,6 +935,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   setNode(index: number, ) {
+    this.formatter = this.axisLabelFormatterMinutes;
     this.selectedNodeIndex = index;
     this.isLive = true;
 
@@ -963,7 +963,36 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     const to = new Date();
     const from = new Date().setHours(to.getHours() - hours);
 
-    this.api.getNodeUtilization(node.name, from, to.getTime(), 60000).then(val => {
+    let chunkSpanMillis;
+
+    switch(hours) {
+      case 6: {
+        // 1 minute chunks
+        chunkSpanMillis = 60000;
+        this.formatter = this.axisLabelFormatterMinutes;
+        break;
+      }
+      case 24: {
+        // 10 minutes chunks
+        chunkSpanMillis = 60000 * 10;
+        this.formatter = this.axisLabelFormatterMinutes;
+        break;
+      }
+      case 24 * 7: {
+        // 30 minutes chunks
+        chunkSpanMillis = 60000 * 30;
+        this.formatter = this.axisLabelFormatterDays;
+        break;
+      }
+      case 24 * 31: {
+        // 60 minutes chunks
+        chunkSpanMillis = 60000 * 60;
+        this.formatter = this.axisLabelFormatterDays;
+        break;
+      }
+    }
+
+    this.api.getNodeUtilization(node.name, from, to.getTime(), chunkSpanMillis).then(val => {
 
       this.cpus = [];
       this.memory = [];
