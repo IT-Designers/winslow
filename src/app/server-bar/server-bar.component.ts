@@ -14,6 +14,8 @@ export class ServerBarComponent implements OnInit {
 
   static readonly MAX_ENTRIES = 120;
 
+  runningJobs = "";
+
   mergeOptionCpu = {};
   chartOptionCpu = {
 
@@ -328,7 +330,8 @@ export class ServerBarComponent implements OnInit {
       this.node.cpuInfo,
       this.node.memInfo,
       this.node.gpuInfo,
-      this.node.buildInfo
+      this.node.buildInfo,
+      this.node.allocInfo
     );
 
     this.node = backupNode;
@@ -349,6 +352,7 @@ export class ServerBarComponent implements OnInit {
     this.updateGpuStatus();
     this.updateNetworkStatus();
     this.updateDiskStatus();
+    this.updateRunningJobs();
   }
 
   private updateCpuStatus() {
@@ -484,6 +488,10 @@ export class ServerBarComponent implements OnInit {
         },
       ],
     };
+  }
+
+  private updateRunningJobs() {
+    this.runningJobs = this.node.allocInfo.length.toString();
   }
 
   setColor(val: number) {
