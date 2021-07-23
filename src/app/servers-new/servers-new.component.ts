@@ -790,7 +790,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       });
       this.gpus[counter++].series.push({
         name: this.date.toString(),
-        value: [this.date, Number(Math.max(0, Math.min(100, gpu.memoryUtilization)))]
+        value: [this.date, Number(Math.max(0, Math.min(100, (gpu.memoryUsedMegabytes / gpu.memoryTotalMegabytes) * 100))).toFixed(0)]
       });
     }
   }
