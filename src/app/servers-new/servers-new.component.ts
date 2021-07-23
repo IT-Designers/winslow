@@ -480,7 +480,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         series: [],
       });
       this.gpus.push({
-        name: "Memory Bus",
+        name: "Memory Usage",
         series: [],
       });
     });
@@ -830,7 +830,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
             data: this.gpus[counter]?.series,
           },
           {
-            name: "Memory Bus",
+            name: "Memory Usage",
             type: "line",
             hoverAnimation: false,
             showSymbol: false,
@@ -953,9 +953,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.initNetworkSeries();
     this.initDiskSeries();
     this.initTimeSeries();
-
-    console.log(this.historyButtonValue)
-
   }
 
   onHistoryButtonValueChange(value: string) {
@@ -1064,11 +1061,11 @@ export class ServersNewComponent implements OnInit, OnDestroy {
           for (const gpu of d.gpuUtilization) {
             this.gpus[counter++].series.push({
               name: date.toString(),
-              value: [date, Number(Math.max(0, Math.min(100, gpu.computeUtilization)))]
+              value: [date, Number(Math.max(0, Math.min(100, gpu.computeUtilization))).toFixed(0)]
             });
             this.gpus[counter++].series.push({
               name: date.toString(),
-              value: [date, Number(Math.max(0, Math.min(100, gpu.memoryUtilization)))]
+              value: [date, Number(Math.max(0, Math.min(100, (gpu.memoryUsedMegabytes / gpu.memoryTotalMegabytes) * 100))).toFixed(0)]
             });
           }
         }
