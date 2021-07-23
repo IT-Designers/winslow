@@ -16,10 +16,12 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   MAX_SERVERS = 7;
 
   isLive = true;
+  panelOpenState = false;
 
   nodes: NodeInfo[] = [];
   node: NodeInfo;
   selectedNodeIndex: number = null;
+  historyButtonValue = "live";
   loadError = null;
   subscription: Subscription = null;
 
@@ -419,9 +421,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
                 this.updateGpuStatus();
               };
             }
-
-            //console.log(this.node.allocInfo)
-
           }
           break;
         case ChangeType.DELETE:
@@ -937,11 +936,13 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   setNode(index: number, ) {
     this.formatter = this.axisLabelFormatterMinutes;
     this.selectedNodeIndex = index;
+    this.onHistoryButtonValueChange("live");
     this.isLive = true;
 
     // remove series data from old node
     this.gpus = [];
-
+    this.gpuName = [];
+    this.mergeOptionGpu = [];
     this.cpus = [];
     this.memory = [];
     this.network = [];
@@ -953,6 +954,12 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.initDiskSeries();
     this.initTimeSeries();
 
+    console.log(this.historyButtonValue)
+
+  }
+
+  onHistoryButtonValueChange(value: string) {
+    this.historyButtonValue = value;
   }
 
   getHistory(hours) {
@@ -962,7 +969,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     const node: NodeInfo = this.nodes[this.selectedNodeIndex];
     const to = new Date();
     const from = new Date().setHours(to.getHours() - hours);
-
     let chunkSpanMillis;
 
     switch(hours) {
