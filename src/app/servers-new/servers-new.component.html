@@ -87,7 +87,7 @@
     <div class="selected-server-body">
 
       <div class="history">
-        <mat-button-toggle-group value="live">
+        <mat-button-toggle-group #group="matButtonToggleGroup" [value]="historyButtonValue" (change)="onHistoryButtonValueChange(group.value)">
           <mat-button-toggle value="live" (click)="setNode(this.selectedNodeIndex)">Live</mat-button-toggle>
           <mat-button-toggle value="last6h" (click)="getHistory(6)">last 6 hours</mat-button-toggle>
           <mat-button-toggle value="last24h" (click)="getHistory(24)">last 24 hours</mat-button-toggle>
@@ -140,7 +140,7 @@
         </mat-grid-list>
 
         <mat-grid-list cols="4" rowHeight="200px" gutterSize="0px">
-          <mat-grid-tile *ngFor="let node of nodes[0]?.gpuInfo; index as i; trackBy:trackGpu">
+          <mat-grid-tile *ngFor="let node of nodes[this.selectedNodeIndex]?.gpuInfo; index as i; trackBy:trackGpu">
               <div echarts [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu[i]"></div>
           </mat-grid-tile>
         </mat-grid-list>
@@ -156,6 +156,7 @@
         </div>
       </div>
     </div>
+
 
     <div class="selected-server-footer">
       <mat-grid-list cols="10" rowHeight="90px" gutterSize="0px">
