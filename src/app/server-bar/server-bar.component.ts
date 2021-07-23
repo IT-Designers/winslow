@@ -463,7 +463,6 @@ export class ServerBarComponent implements OnInit {
 
     for (const gpu of this.node.gpuInfo) {
       gpus.push(gpu.computeUtilization);
-      gpus.push(gpu.memoryUtilization);
     }
 
     let gpuValue = +this.average(gpus).toFixed(0);
