@@ -1280,9 +1280,10 @@ public class ProjectsController {
 
     @Deprecated(forRemoval = true)
     @GetMapping("projects/{projectId}/stats")
-    public Optional<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
+    public Stream<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
         LOG.warning("Someone accessed the deprecated /stats api");
         return getProjectIfAllowedToAccess(user, projectId)
+                .stream()
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
 

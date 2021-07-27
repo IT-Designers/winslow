@@ -71,7 +71,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
 
     @Override
     public void poll() {
-        winslow.getOrchestrator().getRunningStageStats(project).ifPresent(this::publishUpdate);
+        winslow.getOrchestrator().getRunningStageStats(project).forEach(this::publishUpdate);
         winslow.getOrchestrator().getPipeline(project).ifPresent(pipeline -> {
             pipeline
                     .getActiveExecutionGroup()

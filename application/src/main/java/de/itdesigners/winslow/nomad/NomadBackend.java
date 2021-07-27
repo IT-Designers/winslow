@@ -34,8 +34,8 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
     public static final  String DEFAULT_GPU_VENDOR               = "nvidia";
     public static final  String IMAGE_DRIVER_NAME                = "docker";
 
-    @Nonnull private final NomadApiClient              client;
-    @Nonnull private final SubmissionToNomadJobAdapter submissionToNomadJobAdapter;
+    private final @Nonnull NomadApiClient              client;
+    private final @Nonnull SubmissionToNomadJobAdapter submissionToNomadJobAdapter;
 
     private       long                     cachedAllocsTime;
     private       List<AllocationListStub> cachedAllocs;
@@ -44,9 +44,13 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
     private       List<Evaluation>         cachedEvals;
     private final Object                   cachedEvalsSync  = new Object();
 
-    public NomadBackend(@Nonnull PlatformInfo platformInfo, @Nonnull NomadApiClient client) throws IOException {
+    public NomadBackend(
+            @Nonnull String nodeName,
+            @Nonnull PlatformInfo platformInfo,
+            @Nonnull NomadApiClient client
+    ) throws IOException {
         this.client                      = client;
-        this.submissionToNomadJobAdapter = new SubmissionToNomadJobAdapter(platformInfo, this);
+        this.submissionToNomadJobAdapter = new SubmissionToNomadJobAdapter(nodeName, platformInfo, this);
         killAnyRunningStage();
 
 

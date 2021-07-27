@@ -27,6 +27,7 @@ public class NomadStageHandle implements StageHandle {
     private static final long   SHUTDOWN_DURATION_MS             = 15_000;
     private static final long   GONE_TIMEOUT                     = 10_000;
 
+    private final @Nonnull String       nodeName;
     private final @Nonnull NomadBackend backend;
     private final @Nonnull StageId      stageId;
 
@@ -41,9 +42,10 @@ public class NomadStageHandle implements StageHandle {
 
     private int partialErrorCounter = 0;
 
-    public NomadStageHandle(@Nonnull NomadBackend backend, @Nonnull StageId stageId) {
-        this.backend = backend;
-        this.stageId = stageId;
+    public NomadStageHandle(@Nonnull String nodeName, @Nonnull NomadBackend backend, @Nonnull StageId stageId) {
+        this.nodeName = nodeName;
+        this.backend  = backend;
+        this.stageId  = stageId;
     }
 
     @Nonnull
@@ -198,7 +200,10 @@ public class NomadStageHandle implements StageHandle {
                 var cpu    = stats.getResourceUsage().getCpuStats();
                 var memory = stats.getResourceUsage().getMemoryStats();
 
+
                 return Optional.of(new Stats(
+                        this.stageId.getFullyQualified(),
+                        this.nodeName,
                         (float) cpu.getTotalTicks(),
                         cpu.getPercent() > 0
                         ? (float) ((cpu.getTotalTicks() / cpu.getPercent()) * 100.0)

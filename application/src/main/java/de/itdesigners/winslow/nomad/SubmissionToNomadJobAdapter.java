@@ -22,12 +22,18 @@ public class SubmissionToNomadJobAdapter {
     private static final          int    NOMAD_MIN_RESERVABLE_CPU  = 100;
     private static final          int    NOMAD_SYSTEM_RESERVED_CPU = 150;
 
+    private final @Nonnull String       nodeName;
     private final @Nonnull PlatformInfo info;
     private final @Nonnull NomadBackend backend;
 
-    public SubmissionToNomadJobAdapter(@Nonnull PlatformInfo info, @Nonnull NomadBackend backend) {
-        this.info    = info;
-        this.backend = backend;
+    public SubmissionToNomadJobAdapter(
+            @Nonnull String nodeName,
+            @Nonnull PlatformInfo info,
+            @Nonnull NomadBackend backend
+    ) {
+        this.nodeName = nodeName;
+        this.info     = info;
+        this.backend  = backend;
     }
 
     public SubmissionResult submit(@Nonnull Submission submission) throws OrchestratorException, IOException, NomadException {
@@ -51,7 +57,7 @@ public class SubmissionToNomadJobAdapter {
         } else {
             try (var client = backend.getNewClient()) {
                 client.getJobsApi().register(job);
-                return new SubmissionResult(stage, new NomadStageHandle(backend, submission.getId()));
+                return new SubmissionResult(stage, new NomadStageHandle(nodeName, backend, submission.getId()));
             }
         }
     }

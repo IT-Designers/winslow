@@ -204,20 +204,14 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    public Optional<Stats> getRunningStageStats(@Nonnull Project project) {
+    public Stream<Stats> getRunningStageStats(@Nonnull Project project) {
         return getPipelineUnsafe(project.getId())
                 .flatMap(Pipeline::getActiveExecutionGroup)
                 .stream()
                 .flatMap(ExecutionGroup::getRunningStages)
                 .map(Stage::getFullyQualifiedId)
                 .map(getRunInfoRepository()::getStatsIfStillRelevant)
-                .reduce(Optional.empty(), (value, stats) -> {
-                    if (value.isEmpty()) {
-                        return stats;
-                    } else {
-                        return stats.map(s -> s.add(value.get()));
-                    }
-                });
+                .flatMap(Optional::stream);
     }
 
     private void handleReleaseEvent(@Nonnull Event event) {

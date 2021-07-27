@@ -86,13 +86,13 @@ public class Main {
             var attributes      = new RunInfoRepository(lockBus, config);
             var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
             var resourceMonitor = new ResourceAllocationMonitor();
-            var node            = getNode(
+            var node = getNode(
                     nodeName,
                     tryRetrieveNomadPlatformInfoNoThrows(nomadClient).orElse(null),
                     resourceMonitor
             );
 
-            var backend         = new NomadBackend(node.getPlatformInfo(), nomadClient);
+            var backend = new NomadBackend(nodeName, node.getPlatformInfo(), nomadClient);
             var updater = NodeInfoUpdater.spawn(nodes, node);
             resourceMonitor.setAvailableResources(toResourceSet(node.loadInfo()));
             resourceMonitor.addChangeListener(updater::updateNoThrows);
