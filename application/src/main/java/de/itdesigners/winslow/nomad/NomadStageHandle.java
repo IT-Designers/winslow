@@ -200,7 +200,9 @@ public class NomadStageHandle implements StageHandle {
 
                 return Optional.of(new Stats(
                         (float) cpu.getTotalTicks(),
-                        allocation.getResources().getCpu(),
+                        cpu.getPercent() > 0
+                        ? (float) ((cpu.getTotalTicks() / cpu.getPercent()) * 100.0)
+                        : (float) allocation.getResources().getCpu(),
                         // RSS is the Resident Set Size and is used to show how much memory is allocated to that
                         // process and is in RAM. It does not include memory that is swapped out. It does include
                         // memory from shared libraries as long as the pages from those libraries are actually in
