@@ -683,6 +683,8 @@ export class DeletionPolicy {
 }
 
 export class StatsInfo {
+  stageId?: string;
+  runningOnNode?: string;
   cpuUsed = 0;
   cpuMaximum = 0;
   memoryAllocated = 0;
