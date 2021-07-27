@@ -141,6 +141,7 @@ public class RunInfoRepository extends BaseRepository {
             try (var fis = new FileInputStream(file.get())) {
                 return Optional.ofNullable(defaultReader(Stats.class).load(fis));
             } catch (FileNotFoundException e) {
+                LOG.log(Level.WARNING, "Failed to find promised property file for " + stageId, e);
                 return Optional.empty();
             } catch (IOException e) {
                 LOG.log(Level.WARNING, "Failed to deserialize stats for " + stageId, e);
@@ -152,13 +153,12 @@ public class RunInfoRepository extends BaseRepository {
     }
 
     public void setStats(@Nonnull String stageId, @Nonnull Stats stats) {
-        getPropertyPathIfStageExists(stageId, PROPERTY_FILE_STATS).ifPresent(path -> {
-            try {
-                AtomicWriteByUsingTempFile.write(path, os -> defaultWriter().store(os, stats));
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, "Failed to write stats for " + stageId, e);
-            }
-        });
+        try {
+            var path = getPropertyPath(stageId, PROPERTY_FILE_STATS);
+            AtomicWriteByUsingTempFile.write(path, os -> defaultWriter().store(os, stats));
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to write stats for " + stageId, e);
+        }
     }
 
     void setLogRedirectionCompletedSuccessfullyHint(@Nonnull String stageId) {
