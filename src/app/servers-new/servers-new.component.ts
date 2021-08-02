@@ -10,10 +10,13 @@ import { ChangeType } from "../api/api.service";
 })
 export class ServersNewComponent implements OnInit, OnDestroy {
 
-  static readonly MAX_ENTRIES = 120;
+  // needed for access static readonly in template
+  public ServersNewComponentClass = ServersNewComponent;
 
   // set max amount of server to display without scrollbar
-  MAX_SERVERS = 7;
+  static readonly MAX_SERVERS = 7;
+
+  static readonly MAX_ENTRIES = 120;
 
   isLive = true;
   panelOpenState = false;
@@ -62,7 +65,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
           type: 'shadow'
       },
       formatter: (params) => {
-        // return ` ${params[0].seriesName}: ${params[0].value[1] + "%"} `;
         params = params[0];
         var date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
@@ -103,7 +105,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         show: true,
       },
     },
-
     series: [],
   };
 
@@ -485,7 +486,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       });
     });
 
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < ServersNewComponent.MAX_ENTRIES; i++) {
       var date = new Date();
       date.setSeconds(date.getSeconds() - i);
 
@@ -499,7 +500,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   private initTimeSeries() {
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < ServersNewComponent.MAX_ENTRIES; i++) {
       var date = new Date();
       date.setSeconds(date.getSeconds() - i);
 
@@ -568,7 +569,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         ],
       });
 
-      if (this.cpus.length > 120) {
+      if (this.cpus.length > ServersNewComponent.MAX_ENTRIES) {
         this.cpus.shift();
       }
     }
@@ -797,7 +798,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   private updateGpuStatus() {
     if(this.isLive) {
-      if (this.gpus[0].series.length > 120) {
+      if (this.gpus[0].series.length > ServersNewComponent.MAX_ENTRIES) {
         this.gpus.forEach(gpu => gpu.series.shift())
       }
     }
@@ -844,7 +845,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   scaleNetwork() {
-    if (this.network.length > 120) {
+    if (this.network.length > ServersNewComponent.MAX_ENTRIES) {
       this.network.shift();
     }
 
@@ -1069,16 +1070,15 @@ export class ServersNewComponent implements OnInit, OnDestroy {
             });
           }
         }
+      });
 
-        this.updateCpuStatus();
+      this.updateCpuStatus();
         this.updateMemoryStatus();
         this.scaleNetwork();
         this.updateNetworkStatus();
         this.scaleDisk();
         this.updateDiskStatus();
         this.updateGpuStatus();
-
-      })
     });
   }
 
