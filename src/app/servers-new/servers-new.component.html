@@ -17,7 +17,7 @@
 
 
   <!-- no scrollbar if there are less than 7 servers -->
-  <div *ngIf="nodes.length<MAX_SERVERS">
+  <div *ngIf="nodes.length<ServersNewComponentClass.MAX_SERVERS">
       <app-server-bar
         *ngFor="let node of nodes; trackBy:trackNodeInfo; let i = index;"
         [class.active]="selectedNodeIndex === i"
@@ -26,7 +26,7 @@
   </div>
 
   <!-- add scrollbar if there are more than 7 servers -->
-  <div *ngIf="nodes.length>=MAX_SERVERS" [style.overflow]="'auto'" [style.height.px]="MAX_SERVERS * 62">
+  <div *ngIf="nodes.length>=ServersNewComponentClass.MAX_SERVERS" [style.overflow]="'auto'" [style.height.px]="ServersNewComponentClass.MAX_SERVERS * 62">
     <app-server-bar
       *ngFor="let node of nodes; trackBy:trackNodeInfo; let i = index;"
       [class.active]="selectedNodeIndex === i"
