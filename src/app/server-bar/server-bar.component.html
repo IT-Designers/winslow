@@ -6,15 +6,12 @@
     </mat-grid-tile>
     <mat-grid-tile colspan='2'>
       <div echarts [options]="chartOptionMemory" class="chart" [merge]="mergeOptionMemory"></div>
-      <!-- <div id="bottom">17.24 GB / 32 GB</div> -->
     </mat-grid-tile>
     <mat-grid-tile colspan='2'>
       <div echarts [options]="chartOptionNetwork" class="chart" [merge]="mergeOptionNetwork"></div>
-      <!-- <div id="bottom">TX: 128 MB/s / RX: 256 MB/s</div> -->
     </mat-grid-tile>
     <mat-grid-tile colspan='2'>
       <div echarts [options]="chartOptionDisk" class="chart" [merge]="mergeOptionDisk"></div>
-      <!-- <div id="bottom">W: 174 MB/s / R: 578 MB/s</div> -->
     </mat-grid-tile>
     <mat-grid-tile colspan='1'>
       <div echarts *ngIf="this.node.gpuInfo.length != 0" [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu"></div>
