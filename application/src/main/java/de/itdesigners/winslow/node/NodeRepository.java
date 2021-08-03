@@ -34,7 +34,7 @@ public class NodeRepository extends BaseRepository {
     public static final  String CSV_SUFFIX           = ".csv";
 
     private static final long ACTIVE_NODE_MAX_AGE_MS = Duration.ofSeconds(15).toMillis();
-    public static final  long MAX_RETENTION_TIME_MS  = Duration.ofDays(7).toMillis();
+    public static final  long MAX_RETENTION_TIME_MS  = Duration.ofDays(31).toMillis();
 
     // ext4 has 12 indirect block pointers to 4kib
     // public static final long CSV_MAGIC_FILE_SIZE_LIMIT = 12 * 4 * 1024;
@@ -321,7 +321,11 @@ public class NodeRepository extends BaseRepository {
             return chunked
                     .stream()
                     .filter(list -> !list.isEmpty())
-                    .map(list -> NodeUtilization.average(list.get(0).time, list.get(0).uptime, list));
+                    .map(list -> {
+                        var first = list.get(0);
+                        var last = list.get(list.size() - 1);
+                        return NodeUtilization.average(first.time, last.uptime, list);
+                    });
         } else {
             return stream;
         }
