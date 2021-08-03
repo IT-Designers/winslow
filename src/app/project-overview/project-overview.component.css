@@ -31,6 +31,14 @@
   margin-left: 1em;
 }
 
+.control-button-row {
+  padding-top: 0em !important;
+}
+
+.control-row {
+  padding: 0em !important;
+}
+
 .divider {
   display: flex;
   flex-grow: 1;
@@ -42,4 +50,9 @@
 
 .control-button-row > button > mat-icon {
   margin: 0 0.1em 0.1em 0;
+}
+
+.chart {
+  height: 200px !important;
+  width: 150% !important;
 }

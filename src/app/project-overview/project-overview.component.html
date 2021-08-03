@@ -1,43 +1,7 @@
 <div class="header-row">
   <mat-card-title>{{projectValue.name}}</mat-card-title>
 </div>
-<div class="graph-container">
-  <div class="graph">
-    <mat-card-header>CPU Utilization</mat-card-header>
-    <div class="ngx-graph-wrapper whitespace-separator">
-      <ngx-charts-area-chart
-        [animations]="false"
-        [scheme]="schemeCpu"
-        [results]="cpu"
-        [legend]="false"
-        [xAxis]="true"
-        [yAxis]="true"
-        [yScaleMin]="0"
-        [yScaleMax]="cpuMax"
-        [showYAxisLabel]="true"
-        [yAxisLabel]="'Mhz'"
-      ></ngx-charts-area-chart>
-    </div>
-  </div>
-  <div class="graph">
-    <mat-card-header>Memory Usage</mat-card-header>
-    <div class="ngx-graph-wrapper whitespace-separator">
-      <ngx-charts-area-chart
-        [animations]="false"
-        [scheme]="schemeMemory"
-        [results]="memory"
-        [legend]="false"
-        [xAxis]="true"
-        [yAxis]="true"
-        [yScaleMin]="0"
-        [yScaleMax]="memoryMax"
-        [showYAxisLabel]="true"
-        [yAxisLabel]="'Gigabyte'"
-      ></ngx-charts-area-chart>
-    </div>
-  </div>
-</div>
-<div class="divider"></div>
+
 <div class="flex-grow-column control-row">
   <div class="control-button-row" style="margin: 1em auto -1em auto">
     <button mat-stroked-button color="primary"
@@ -55,21 +19,30 @@
 
     <app-stop-button [project]="projectValue" [disabled]="!stateRunning"></app-stop-button>
 
-    <button mat-stroked-button color="primary" (click)="emitOpenFiles()">
-      <mat-icon>folder_open</mat-icon>
-      Open Files
-    </button>
-    <button mat-stroked-button color="primary" (click)="emitOpenLogs()">
-      <mat-icon>list_alt</mat-icon>
-      Open Logs
-    </button>
-  </div>
-  <div class="control-button-row" style="margin: 0 auto">
     <button mat-stroked-button color="accent" (click)="openProjectDiskUsageDialog()">
       <mat-icon>insert_chart</mat-icon>
       Show Workspace Disk Usage
     </button>
+</div>
+
+<div class="graph-container">
+  <div class="graph">
+    <mat-card-header>CPU Utilization</mat-card-header>
+    <div class="ngx-graph-wrapper whitespace-separator">
+      <div echarts [options]="chartOptionCpu" class="chart" [merge]="mergeOptionCpu"></div>
+    </div>
   </div>
+  <div class="graph">
+    <mat-card-header>Memory Usage</mat-card-header>
+    <div class="ngx-graph-wrapper whitespace-separator">
+      <div echarts [options]="chartOptionMemory" class="chart" [merge]="mergeOptionMemory"></div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+
+<div class="flex-grow-column control-row">
   <div class="control-button-row" style="margin: 0 auto">
     <button *ngFor="let action of pipelineActions"
             mat-stroked-button
