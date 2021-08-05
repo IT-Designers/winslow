@@ -42,8 +42,6 @@ import {StateIconComponent} from './state-icon/state-icon.component';
 import {ProjectViewComponent,} from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
-import {ServerComponent} from './server/server.component';
-import {ServersComponent} from './servers/servers.component';
 import {ServersOverviewComponent} from './servers-overview/servers-overview.component';
 import {AboutComponent} from './about/about.component';
 import {CreatePipelineDialogComponent} from './pipeline-create-dialog/create-pipeline-dialog.component';
@@ -74,7 +72,7 @@ import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
-import { ServersNewComponent } from './servers-new/servers-new.component';
+import { ServersComponent } from './servers/servers.component';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
@@ -94,8 +92,6 @@ import { ServerDetailsComponent } from './server-details/server-details.componen
         StateIconComponent,
         ProjectViewComponent,
         FileBrowseDialog,
-        ServerComponent,
-        ServersComponent,
         ServersOverviewComponent,
         AboutComponent,
         CreatePipelineDialogComponent,
@@ -121,7 +117,7 @@ import { ServerDetailsComponent } from './server-details/server-details.componen
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
         ResourceLimitationComponent,
-        ServersNewComponent,
+        ServersComponent,
         ServerBarComponent,
         ServerDetailsComponent,
     ],
@@ -155,7 +151,6 @@ import { ServerDetailsComponent } from './server-details/server-details.componen
             {path: 'pipelines', component: PipelinesComponent},
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
-            {path: 'servers_new', component: ServersNewComponent},
             {path: 'about', component: AboutComponent},
 
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
