@@ -27,6 +27,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickPause = new EventEmitter<ExecutionGroupInfo>();
 
+  nodeName: string;
+
   schemeCpu = {domain: ['#DD4444']};
   schemeMemory = {domain: ['#44DD44']};
 
@@ -272,6 +274,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   onStatsUpdate(stats: StatsInfo) {
     this.updateCpu(stats);
     this.updateMemory(stats);
+    this.nodeName = stats.runningOnNode;
   }
 
   private updateCpu(stats: StatsInfo) {
