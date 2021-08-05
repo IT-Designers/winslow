@@ -78,6 +78,7 @@ import { ServersNewComponent } from './servers-new/servers-new.component';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
+import { ServerDetailsComponent } from './server-details/server-details.component';
 
 
 @NgModule({
@@ -122,6 +123,7 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
         ResourceLimitationComponent,
         ServersNewComponent,
         ServerBarComponent,
+        ServerDetailsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

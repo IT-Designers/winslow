@@ -16,43 +16,6 @@ mat-grid-tile {
   margin: 0 auto;
 }
 
-.selected-server-header {
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-  border: 1px solid darkgrey;
-  background-color: aliceblue;
-  margin-top: 20px;
-  height: 30px;
-  text-align: center;
-  vertical-align: middle;
-  line-height: 30px;
-}
-
-.selected-server-body {
-  /* border-radius: 5px; */
-  border: 1px solid darkgrey;
-  background-color: white;
-  z-index: 999;
-  margin-top: -1px;
-  /* height: 300px; */
-  padding-bottom: 10px;
-}
-
-.selected-server-footer {
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid darkgrey;
-  background-color: white;
-  z-index: 999;
-  margin-top: -1px;
-  /* height: 50px; */
-}
-
-.text-inside-grid {
-  position: absolute;
-  left: 10px;
-}
-
 .cpu-status-green {
   background-color: #69B34C;
   padding: 3px;
@@ -75,49 +38,4 @@ mat-grid-tile {
   border-radius: 3px;
   position: absolute;
   left: 80px;
-}
-
-.chart {
-  height: 200px !important;
-  width: 100% !important;
-}
-
-.center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.intMatGrid {
-  min-width: 100%;
-}
-
-.text-inside-grid-first {
-  position: absolute;
-  left: 5px;
-  opacity: 90%;
-}
-
-.text-inside-grid-second {
-  position: absolute;
-  left: 80px;
-  opacity: 80%;
-  font-weight: normal;
-}
-
-.text-inside-grid-other {
-  position: absolute;
-  left: 5px;
-  opacity: 50%;
-  font-weight: normal;
-}
-
-.history {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.mat-button-toggle-group {
-  height: 32px;
-  align-items: center;
 }

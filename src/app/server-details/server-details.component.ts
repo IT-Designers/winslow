@@ -1,17 +1,18 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { GpuInfo, NodeInfo, NodesApiService } from "../api/nodes-api.service";
-import { Subscription } from "rxjs";
-import { ChangeType } from "../api/api.service";
+import { Component, Input, OnInit } from '@angular/core';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { ChangeType } from '../api/api.service';
+import { GpuInfo, NodeInfo, NodesApiService } from '../api/nodes-api.service';
 
 @Component({
-  selector: "app-servers-new",
-  templateUrl: "./servers-new.component.html",
-  styleUrls: ["./servers-new.component.css"],
+  selector: 'app-server-details',
+  templateUrl: './server-details.component.html',
+  styleUrls: ['./server-details.component.css']
 })
-export class ServersNewComponent implements OnInit, OnDestroy {
+export class ServerDetailsComponent implements OnInit {
 
-  // needed for access static readonly in template
-  public ServersNewComponentClass = ServersNewComponent;
+  @Input("nodeName") nodeName: string;
+  @Input("historyEnabled") historyEnabled: boolean;
+  lastNodeName = "";
 
   // set max amount of server to display without scrollbar
   static readonly MAX_SERVERS = 7;
@@ -49,7 +50,6 @@ export class ServersNewComponent implements OnInit, OnDestroy {
     this.initMemorySeries();
     this.initNetworkSeries();
     this.initDiskSeries();
-
     this.initTimeSeries();
   }
 
@@ -369,6 +369,9 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.formatter = this.axisLabelFormatterMinutes
     this.subscription = this.api.watchNodes((update) => {
+
+      console.log(update)
+
       switch (update.type) {
         case ChangeType.CREATE:
         case ChangeType.UPDATE:
@@ -376,10 +379,12 @@ export class ServersNewComponent implements OnInit, OnDestroy {
             const indexUpdate = this.nodes.findIndex(
               (value) => value.name === update.identifier
             );
+
             if (indexUpdate >= 0) {
-              if (this.nodes[indexUpdate]?.update != null) {
-                this.nodes[indexUpdate]?.update(update.value);
-              }
+              this.nodes[indexUpdate] = update.value
+              // if (this.nodes[indexUpdate]?.update != null) {
+              //   this.nodes[indexUpdate]?.update(update.value);
+              // }
             } else {
               this.nodes.push(update.value);
               this.sortNodesByName();
@@ -392,9 +397,21 @@ export class ServersNewComponent implements OnInit, OnDestroy {
               this.node = this.nodes[this.selectedNodeIndex];
             }
 
+
+
+            this.selectedNodeIndex = this.nodes.findIndex(
+              (value) => value.name === this.nodeName
+            );
+            console.log(this.nodes)
+
             // save last timestamp
             if(!this.lastTimestamp) {
-              this.lastTimestamp = this.node.time;
+              this.lastTimestamp = this.node.time; //update.value.time;
+            }
+
+            if(this.lastNodeName != this.node.name) {
+              this.lastNodeName = this.node.name
+              this.setNode(this.selectedNodeIndex)
             }
 
             // check if new timestamp is different
@@ -486,7 +503,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       });
     });
 
-    for (let i = 0; i < ServersNewComponent.MAX_ENTRIES; i++) {
+    for (let i = 0; i < ServerDetailsComponent.MAX_ENTRIES; i++) {
       var date = new Date();
       date.setSeconds(date.getSeconds() - i);
 
@@ -500,7 +517,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   private initTimeSeries() {
-    for (let i = 0; i < ServersNewComponent.MAX_ENTRIES; i++) {
+    for (let i = 0; i < ServerDetailsComponent.MAX_ENTRIES; i++) {
       var date = new Date();
       date.setSeconds(date.getSeconds() - i);
 
@@ -569,7 +586,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
         ],
       });
 
-      if (this.cpus.length > ServersNewComponent.MAX_ENTRIES) {
+      if (this.cpus.length > ServerDetailsComponent.MAX_ENTRIES) {
         this.cpus.shift();
       }
     }
@@ -623,10 +640,10 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       });
       this.memory = [this.memory[0], this.memory[1], this.memory[2]];
       for (const entry of this.memory) {
-        if (entry.series.length > ServersNewComponent.MAX_ENTRIES) {
+        if (entry.series.length > ServerDetailsComponent.MAX_ENTRIES) {
           entry.series.splice(
             0,
-            entry.series.length - ServersNewComponent.MAX_ENTRIES
+            entry.series.length - ServerDetailsComponent.MAX_ENTRIES
           );
         }
       }
@@ -681,10 +698,10 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       date,
       [this.node.netInfo.transmitting, this.node.netInfo.receiving],
     ]);
-    if (this.rawNetwork.length > ServersNewComponent.MAX_ENTRIES) {
+    if (this.rawNetwork.length > ServerDetailsComponent.MAX_ENTRIES) {
       this.rawNetwork.splice(
         0,
-        this.rawNetwork.length - ServersNewComponent.MAX_ENTRIES
+        this.rawNetwork.length - ServerDetailsComponent.MAX_ENTRIES
       );
     }
   }
@@ -734,7 +751,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
       this.date,
       [this.node.diskInfo.writing, this.node.diskInfo.reading],
     ]);
-    if (this.rawDisk.length > ServersNewComponent.MAX_ENTRIES) {
+    if (this.rawDisk.length > ServerDetailsComponent.MAX_ENTRIES) {
       this.rawDisk.shift();
     }
   }
@@ -798,7 +815,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
 
   private updateGpuStatus() {
     if(this.isLive) {
-      if (this.gpus[0].series.length > ServersNewComponent.MAX_ENTRIES) {
+      if (this.gpus[0].series.length > ServerDetailsComponent.MAX_ENTRIES) {
         this.gpus.forEach(gpu => gpu.series.shift())
       }
     }
@@ -845,7 +862,7 @@ export class ServersNewComponent implements OnInit, OnDestroy {
   }
 
   scaleNetwork() {
-    if (this.network.length > ServersNewComponent.MAX_ENTRIES) {
+    if (this.network.length > ServerDetailsComponent.MAX_ENTRIES) {
       this.network.shift();
     }
 
