@@ -52,6 +52,7 @@ pages:
   only:
     refs:
       - master
+  before_script: []
   script:
 #    - ./build-docker-image.sh
     - mv coverage-report public
