@@ -7,6 +7,7 @@ import de.itdesigners.winslow.api.project.EnqueueRequest;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.web.api.ProjectsController;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
@@ -39,7 +40,7 @@ public class PipelineTrigger {
     }
 
     @RequestMapping(value = {"/trigger/{projectId}"}, method = RequestMethod.GET)
-    public void triggerPipeline(
+    public ResponseEntity<Void> triggerPipeline(
             @PathVariable String projectId,
             @RequestParam String secret,
             @RequestParam(required = false) String stage,
@@ -50,7 +51,7 @@ public class PipelineTrigger {
         }
 
         final String fStage = stage;
-        getProjectForTokenSecret(projectId, secret, REQUIRED_CAPABILITY_TRIGGER_PIPELINE).ifPresent(project -> {
+        var result = getProjectForTokenSecret(projectId, secret, REQUIRED_CAPABILITY_TRIGGER_PIPELINE).map(project -> {
             var controller = new ProjectsController(winslow);
             var user       = winslow.getUserRepository().getUserOrCreateAuthenticated(project.getOwner()).orElseThrow();
 
@@ -99,7 +100,14 @@ public class PipelineTrigger {
 
 
             controller.enqueueStageToExecute(user, projectId, request);
+            return project;
         });
+
+        if (result.isPresent()) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
 
     }
 
