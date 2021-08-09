@@ -153,10 +153,10 @@ export class DialogService {
     });
   }
 
-  info(text: string) {
+  info(text: string, title = 'Information') {
     Swal.fire({
       icon: 'info',
-      titleText: 'Information',
+      titleText: title,
       text,
       showConfirmButton: true,
       showCancelButton: false,
