@@ -1,19 +1,20 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
-  DeletionPolicy,
-  EnvVariable,
-  ExecutionGroupInfo,
-  ImageInfo,
-  ParseError,
-  ProjectApiService,
-  ProjectInfo,
-  RangedValue, ResourceLimitation,
-  StageDefinitionInfo,
-  StageInfo,
-  State,
-  StateInfo,
-  WorkspaceConfiguration,
-  WorkspaceMode
+    AuthTokenInfo,
+    DeletionPolicy,
+    EnvVariable,
+    ExecutionGroupInfo,
+    ImageInfo,
+    ParseError,
+    ProjectApiService,
+    ProjectInfo,
+    RangedValue, ResourceLimitation,
+    StageDefinitionInfo,
+    StageInfo,
+    State,
+    StateInfo,
+    WorkspaceConfiguration,
+    WorkspaceMode
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog} from '@angular/material/dialog';
@@ -67,6 +68,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
       this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
       this.api.getResourceLimitation(this.projectValue.id).then(limit => this.resourceLimit = limit);
+      this.api.getAuthTokens(this.projectValue.id).then(tokens => this.authTokens = tokens);
       this.resubscribe(value.id);
     }
 
@@ -150,6 +152,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedTabIndex: number = Tab.Overview;
   workspaceMode: WorkspaceMode = null;
   resourceLimit: ResourceLimitation = null;
+  authTokens: AuthTokenInfo[] = null;
 
 
   private static deepClone(obj: any): any {
@@ -788,6 +791,37 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
           this.resourceLimit = l;
         }),
       `Updating resource limitation`
+    );
+  }
+
+  createAuthToken(name: string) {
+    this.dialog.openLoadingIndicator(
+      this.api.createAuthToken(this.projectValue.id, name)
+        .then(l => {
+          this.authTokens.push(l);
+          // weird
+          setTimeout(
+            () => this.dialog.info(`The secret for the new Auth-Token is: ${l.secret}`),
+            100
+          );
+          // this.dialog.info(`The secret for the new Auth-Token is: <br><pre>${l.secret}</pre>`);
+        }),
+      `Creating a new authentication token`
+    );
+  }
+
+  deleteAuthToken(id: string) {
+    this.dialog.openLoadingIndicator(
+      this.api.deleteAuthToken(this.projectValue.id, id)
+        .then(l => {
+          for (let i = 0; i < this.authTokens.length; ++i) {
+            if (this.authTokens[i].id === id) {
+              this.authTokens.splice(i, 1);
+              break;
+            }
+          }
+        }),
+      `Creating a new authentication token`
     );
   }
 }

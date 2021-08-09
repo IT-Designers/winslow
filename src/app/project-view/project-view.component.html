@@ -254,10 +254,7 @@
         </button>
       </div>
 
-
-      <div class="whitespace-separator">
-        <mat-divider></mat-divider>
-      </div>
+      <div class="whitespace-separator separator-line"></div>
 
       <div class="whitespace-separator-top">
         <div class="whitespace-separator-top stage-control-item">
@@ -315,10 +312,7 @@
         </div>
       </div>
 
-      <div class="whitespace-separator">
-        <mat-divider></mat-divider>
-      </div>
-
+      <div class="whitespace-separator separator-line"></div>
 
       <div class="whitespace-separator-top">
         <app-resource-limitation
@@ -330,9 +324,7 @@
 
       </div>
 
-      <div class="whitespace-separator">
-        <mat-divider></mat-divider>
-      </div>
+      <div class="whitespace-separator separator-line"></div>
 
       <div class="stage-control-item">
         <label>Default workspace configuration mode</label>
@@ -347,6 +339,20 @@
           Update
         </button>
       </div>
+
+      <div class="whitespace-separator separator-line"></div>
+
+      <div class="whitespace-separator-top">
+        <app-auth-tokens
+          class="whitespace-separator-top "
+            title="Authentication Tokens"
+            [tokens]="authTokens"
+            (create)="createAuthToken($event)"
+            (delete)="deleteAuthToken($event.id)"
+        ></app-auth-tokens>
+      </div>
+
+      <div class="whitespace-separator separator-line"></div>
 
       <div class="stage-control-item whitespace-separator-top">
         <button class="whitespace-separator-top" mat-stroked-button color="warn" (click)="delete()">Delete</button>

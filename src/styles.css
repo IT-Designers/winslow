@@ -123,6 +123,10 @@ body {
   margin-top: 1.5em !important;
 }
 
+.separator-line {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
 /* --- Mat-Design Fixes --- */
 .mat-expansion-panel-header-description {
   flex-grow: 0 !important;
@@ -290,4 +294,25 @@ mat-card.vmenu-container-selection {
 
 .mat-expansion-panel-header-title {
   overflow: hidden;
+}
+
+.data-row {
+  display: flex;
+  margin: 0 2em;
+  align-items: center;
+}
+
+.data-row > *:first-child {
+  flex: 1;
+}
+
+.data-row > *:not(:first-child):not(button) {
+  margin: 0 1em;
+  flex: 3;
+}
+
+
+.data-row button:not(:first-child) {
+  margin-right: 1em;
+  margin-left: 1em;
 }

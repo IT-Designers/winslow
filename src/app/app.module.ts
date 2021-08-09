@@ -37,7 +37,7 @@ import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
-import {ProjectViewComponent,} from './project-view/project-view.component';
+import {ProjectViewComponent } from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
 import {ServerComponent} from './server/server.component';
@@ -72,6 +72,7 @@ import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
+import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 
 @NgModule({
     declarations: [
@@ -113,6 +114,7 @@ import { ResourceLimitationComponent } from './resource-limitation/resource-limi
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
         ResourceLimitationComponent,
+        AuthTokensComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
