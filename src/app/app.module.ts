@@ -39,7 +39,7 @@ import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
-import {ProjectViewComponent,} from './project-view/project-view.component';
+import {ProjectViewComponent } from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
 import {AboutComponent} from './about/about.component';

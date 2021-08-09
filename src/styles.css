@@ -123,6 +123,10 @@ body {
   margin-top: 1.5em !important;
 }
 
+.separator-line {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
 /* --- Mat-Design Fixes --- */
 .mat-expansion-panel-header-description {
   flex-grow: 0 !important;
