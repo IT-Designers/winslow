@@ -9,11 +9,14 @@ import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
+import de.itdesigners.winslow.project.AuthTokens;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
+import de.itdesigners.winslow.web.AuthTokenInfoConverter;
 import de.itdesigners.winslow.web.ExecutionGroupInfoConverter;
 import de.itdesigners.winslow.web.PipelineInfoConverter;
 import de.itdesigners.winslow.web.ProjectInfoConverter;
+import de.itdesigners.winslow.web.api.noauth.PipelineTrigger;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -1348,4 +1351,71 @@ public class ProjectsController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("projects/{projectId}/auth-tokens")
+    public Stream<AuthTokenInfo> getAuthTokens(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId
+    ) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .stream()
+                .flatMap(p -> {
+                    var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
+                    return handle.unsafe().stream().flatMap(AuthTokens::getTokens);
+                })
+                .map(AuthTokenInfoConverter::convert);
+    }
+
+    @PostMapping("projects/{projectId}/auth-tokens")
+    public Optional<AuthTokenInfo> createAuthToken(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @RequestParam("name") String name
+    ) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .flatMap(p -> {
+                    var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
+
+                    return handle.exclusive().flatMap(exclusive -> {
+                        try (exclusive) {
+                            var tokens         = exclusive.get().orElseGet(() -> new AuthTokens(null));
+                            var tokenAndSecret = tokens.createToken(name);
+                            tokenAndSecret
+                                    .getValue0()
+                                    .addCapability(PipelineTrigger.REQUIRED_CAPABILITY_TRIGGER_PIPELINE);
+                            exclusive.update(tokens);
+                            return Optional.of(tokenAndSecret);
+                        } catch (IOException | LockException e) {
+                            LOG.log(Level.SEVERE, "Failed to update auth tokens for projectId=" + projectId, e);
+                            return Optional.empty();
+                        }
+                    });
+                })
+                .map(tokenAndSecret -> AuthTokenInfoConverter.convert(tokenAndSecret.getValue0())
+                                                             .withSecret(tokenAndSecret.getValue1()));
+    }
+
+    @DeleteMapping("projects/{projectId}/auth-tokens/{tokenId}")
+    public boolean deleteAuthToken(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("tokenId") String tokenId
+    ) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .flatMap(p -> {
+                    var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
+                    return handle.exclusive().map(exclusive -> {
+                        try (exclusive) {
+                            var tokens = exclusive.get().filter(e -> e.deleteTokenForId(tokenId).isPresent());
+                            if (tokens.isPresent()) {
+                                exclusive.update(tokens.get());
+                            }
+                            return tokens;
+                        } catch (IOException | LockException e) {
+                            LOG.log(Level.SEVERE, "Failed to delete an auth-token for projectId=" + projectId, e);
+                            return Optional.empty();
+                        }
+                    });
+                })
+                .isPresent();
+    }
 }

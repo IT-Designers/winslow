@@ -16,6 +16,7 @@ import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.node.unix.UnixNode;
 import de.itdesigners.winslow.nomad.NomadBackend;
+import de.itdesigners.winslow.project.AuthTokenRepository;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.resource.PathConfiguration;
@@ -76,6 +77,7 @@ public class Main {
             var environment     = new Environment(config, resourceManager);
             var logs            = new LogRepository(lockBus, config);
             var projects        = new ProjectRepository(lockBus, config);
+            var tokens          = new AuthTokenRepository(lockBus, config);
             var settings        = new SettingsRepository(lockBus, config);
             var nodes           = new NodeRepository(lockBus, config);
             var groupRepository = new GroupRepository();
@@ -124,6 +126,7 @@ public class Main {
                     lockBus,
                     resourceManager,
                     projects,
+                    tokens,
                     settings,
                     nodes,
                     groupRepository,

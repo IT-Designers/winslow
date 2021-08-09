@@ -73,6 +73,11 @@ public class Env {
     }
 
     @Nonnull
+    public static String getApiNoAuthPath() {
+        return System.getenv().getOrDefault(API_PATH, "/api/v1/noauth/");
+    }
+
+    @Nonnull
     public static String getWebsocketPath() {
         return System.getenv().getOrDefault(WEBSOCKET_PATH, "/ws/v1/");
     }

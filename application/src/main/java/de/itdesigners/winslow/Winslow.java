@@ -7,6 +7,7 @@ import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 import de.itdesigners.winslow.node.NodeRepository;
+import de.itdesigners.winslow.project.AuthTokenRepository;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.resource.ResourceManager;
@@ -34,6 +35,7 @@ public class Winslow implements Runnable {
     @Nonnull private final UserRepository               userRepository;
     @Nonnull private final PipelineDefinitionRepository pipelineRepository;
     @Nonnull private final ProjectRepository            projectRepository;
+    @Nonnull private final AuthTokenRepository          projectAuthTokenRepository;
     @Nonnull private final NodeRepository               nodeRepository;
     @Nonnull private final SettingsRepository           settingsRepository;
 
@@ -43,15 +45,17 @@ public class Winslow implements Runnable {
             @Nonnull LockBus lockBus,
             @Nonnull ResourceManager resourceManager,
             @Nonnull ProjectRepository projectRepository,
+            @Nonnull AuthTokenRepository projectAuthTokenRepository,
             @Nonnull SettingsRepository settingsRepository,
             @Nonnull NodeRepository nodeRepository,
             @Nonnull GroupRepository groupRepository,
             @Nonnull UserRepository userRepository) throws IOException {
-        this.orchestrator    = orchestrator;
-        this.configuration   = configuration;
-        this.resourceManager = resourceManager;
-        this.groupRepository = groupRepository;
-        this.userRepository  = userRepository;
+        this.orchestrator               = orchestrator;
+        this.configuration              = configuration;
+        this.resourceManager            = resourceManager;
+        this.groupRepository            = groupRepository;
+        this.userRepository             = userRepository;
+        this.projectAuthTokenRepository = projectAuthTokenRepository;
 
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
         this.projectRepository  = projectRepository;
@@ -187,6 +191,12 @@ public class Winslow implements Runnable {
     @Nonnull
     public ProjectRepository getProjectRepository() {
         return projectRepository;
+    }
+
+
+    @Nonnull
+    public AuthTokenRepository getProjectAuthTokenRepository() {
+        return projectAuthTokenRepository;
     }
 
     @Nonnull

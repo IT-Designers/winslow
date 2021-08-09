@@ -2,6 +2,7 @@ package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.web.api.StorageController;
+import de.itdesigners.winslow.web.api.noauth.PipelineTrigger;
 import org.springframework.boot.web.server.ConfigurableWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -57,6 +58,8 @@ public class PathMapping implements WebMvcConfigurer {
 
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.addPathPrefix(Env.getApiPath(), HandlerTypePredicate.forBasePackageClass(StorageController.class));
+        configurer
+                .addPathPrefix(Env.getApiNoAuthPath(), HandlerTypePredicate.forBasePackageClass(PipelineTrigger.class))
+                .addPathPrefix(Env.getApiPath(), HandlerTypePredicate.forBasePackageClass(StorageController.class));
     }
 }

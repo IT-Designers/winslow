@@ -117,14 +117,16 @@ public class ProjectRepository extends BaseRepository {
     @Nonnull
     public Stream<Handle<Project>> getProjects() {
         return listAll(FILE_EXTENSION)
-                .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX))
+                .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX)
+                        && !p.getFileName().toString().endsWith(AuthTokenRepository.FILE_SUFFIX))
                 .map(this::getProject);
     }
 
     @Nonnull
     public Stream<String> getProjectIds() {
         return listAll(FILE_EXTENSION)
-                .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX))
+                .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX)
+                        && !p.getFileName().toString().endsWith(AuthTokenRepository.FILE_SUFFIX))
                 .map(path -> {
                     var fileName = path.getFileName().toString();
                     return fileName.substring(0, fileName.length() - FILE_EXTENSION.length());
@@ -143,8 +145,11 @@ public class ProjectRepository extends BaseRepository {
     @Nonnull
     private Optional<String> getProjectIdFromLockEventSubject(@Nonnull Path path) {
         var pathDirectory = path.getParent();
-        var fileName = path.getFileName().toString();
-        if (getRepositoryDirectory().endsWith(pathDirectory) && fileName.endsWith(FILE_EXTENSION) && !fileName.endsWith(PipelineRepository.FILE_SUFFIX)) {
+        var fileName      = path.getFileName().toString();
+        if (getRepositoryDirectory().endsWith(pathDirectory) && fileName.endsWith(FILE_EXTENSION)
+                && !fileName.endsWith(PipelineRepository.FILE_SUFFIX)
+                && !fileName.endsWith(AuthTokenRepository.FILE_SUFFIX)
+        ) {
             return Optional.of(fileName.substring(0, fileName.length() - FILE_EXTENSION.length()));
         } else {
             return Optional.empty();

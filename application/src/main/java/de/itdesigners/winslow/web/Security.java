@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import static de.itdesigners.winslow.web.webdav.WebDavController.EXPORT_NAME;
 
@@ -52,7 +53,11 @@ public class Security extends WebSecurityConfigurerAdapter {
                     .authenticationEntryPoint(new BasicAuth());*/
             http
                     .authorizeRequests()
-                    .anyRequest().authenticated()
+                    .requestMatchers(new AntPathRequestMatcher(Env.getApiNoAuthPath()+"**")).permitAll()
+                    .and()
+                    .authorizeRequests()
+                    .anyRequest()
+                    .authenticated()
                     .and()
                     .formLogin().and()
                     .httpBasic();
