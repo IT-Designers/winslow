@@ -1,0 +1,19 @@
+<div class="data-row">
+  <label>Authorized Tokens</label>
+
+  <div class="flex-grow">
+    <div *ngFor="let token of tokens; trackBy:trackToken">
+      <button mat-icon-button color="warn"
+              class="align-right-using-margin"
+              (click)="deleteToken(token)">
+          <mat-icon>delete</mat-icon>
+      </button>
+      {{token.name}}
+    </div>
+  </div>
+
+  <button mat-raised-button color="primary"
+        (click)="createToken()">
+    <mat-icon>add</mat-icon>
+  </button>
+</div>
