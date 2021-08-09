@@ -14,9 +14,6 @@ export class ServerDetailsComponent implements OnInit {
   @Input("historyEnabled") historyEnabled: boolean;
   lastNodeName = "";
 
-  // set max amount of server to display without scrollbar
-  static readonly MAX_SERVERS = 7;
-
   static readonly MAX_ENTRIES = 120;
 
   isLive = true;
