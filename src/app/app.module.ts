@@ -32,16 +32,17 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
-import {ProjectViewComponent,} from './project-view/project-view.component';
+import {ProjectViewComponent } from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
+import {ServerComponent} from './server/server.component';
+import {ServersComponent} from './servers/servers.component';
+import {ServersOverviewComponent} from './servers-overview/servers-overview.component';
 import {AboutComponent} from './about/about.component';
 import {CreatePipelineDialogComponent} from './pipeline-create-dialog/create-pipeline-dialog.component';
 import {LoadingInfoComponent} from './connect-failed-info/loading-info.component';
@@ -71,13 +72,7 @@ import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
-import { ServersComponent } from './servers/servers.component';
-import { NgxEchartsModule } from 'ngx-echarts';
-import * as echarts from 'echarts';
-import { ServerBarComponent } from './server-bar/server-bar.component';
-import { ServerDetailsComponent } from './server-details/server-details.component';
-import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
-
+import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 
 @NgModule({
     declarations: [
@@ -92,6 +87,9 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         StateIconComponent,
         ProjectViewComponent,
         FileBrowseDialog,
+        ServerComponent,
+        ServersComponent,
+        ServersOverviewComponent,
         AboutComponent,
         CreatePipelineDialogComponent,
         LoadingInfoComponent,
@@ -116,10 +114,7 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
         ResourceLimitationComponent,
-        ServersComponent,
-        ServerBarComponent,
-        ServerDetailsComponent,
-        ProjectHistoryDetailsComponent,
+        AuthTokensComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -189,12 +184,6 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         MatTabsModule,
         MatCheckboxModule,
 
-        MatToolbarModule,
-        MatSidenavModule,
-        MatListModule,
-        MatButtonModule,
-        MatIconModule,
-
         NgxChartsModule,
         MatCardModule,
         ScrollingModule,
@@ -202,9 +191,6 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         MatChipsModule,
         MatMenuModule,
         MatRadioModule,
-        NgxEchartsModule.forRoot({
-          echarts: { init: echarts.init }
-        }),
 
     ],
   providers: [
