@@ -845,7 +845,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
           this.authTokens.push(l);
           // weird
           setTimeout(
-            () => this.dialog.info(`The secret for the new Auth-Token is: ${l.secret}`),
+            () => this.dialog.info(l.secret, 'The secret value is'),
             100
           );
           // this.dialog.info(`The secret for the new Auth-Token is: <br><pre>${l.secret}</pre>`);
