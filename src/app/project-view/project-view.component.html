@@ -140,7 +140,7 @@
         ></app-project-history>
       </mat-accordion>
 
-      <div class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
+      <div *ngIf="history.length > 0" class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
         <button *ngIf="historyCanLoadMoreEntries"
                 mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(10)">
           <mat-icon>expand_more</mat-icon>
@@ -161,6 +161,16 @@
           Delete Failed
         </button>
       </div>
+
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="History (new)">
+    <ng-template matTabContent>
+      <app-files class="files-tab-content"
+                 [additionalRoot]="filesAdditionalRoot"
+                 [navigationTarget]="this.filesNavigationTarget"
+      ></app-files>
 
     </ng-template>
   </mat-tab>
