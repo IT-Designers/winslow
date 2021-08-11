@@ -77,6 +77,8 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
+import { ProjectHistoryItemComponent } from './project-history-item/project-history-item.component';
+import { ProjectHistoryItemDetailsComponent } from './project-history-item-details/project-history-item-details.component';
 
 
 @NgModule({
@@ -120,6 +122,8 @@ import { ServerDetailsComponent } from './server-details/server-details.componen
         ServersComponent,
         ServerBarComponent,
         ServerDetailsComponent,
+        ProjectHistoryItemComponent,
+        ProjectHistoryItemDetailsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
