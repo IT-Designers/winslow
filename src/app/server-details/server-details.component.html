@@ -18,8 +18,6 @@
     <mat-grid-list cols="4" rowHeight="50px" gutterSize="0px">
       <mat-grid-tile>
         <div class="text-inside-grid">CPU</div>
-        <div class="cpu-status-green"> {{ cpuUsage }}% </div>
-
         <div *ngIf="cpuUsage < 30" class="cpu-status-green">{{ cpuUsage }}%</div>
         <div *ngIf="cpuUsage >= 30 && cpuUsage < 70" class="cpu-status-yellow">{{ cpuUsage }}%</div>
         <div *ngIf="cpuUsage >= 70" class="cpu-status-red">{{ cpuUsage }}%</div>
