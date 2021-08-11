@@ -79,6 +79,7 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryItemComponent } from './project-history-item/project-history-item.component';
 import { ProjectHistoryItemDetailsComponent } from './project-history-item-details/project-history-item-details.component';
+import { ProjectHistoryNewComponent } from './project-history-new/project-history-new.component';
 
 
 @NgModule({
@@ -124,6 +125,7 @@ import { ProjectHistoryItemDetailsComponent } from './project-history-item-detai
         ServerDetailsComponent,
         ProjectHistoryItemComponent,
         ProjectHistoryItemDetailsComponent,
+        ProjectHistoryNewComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
