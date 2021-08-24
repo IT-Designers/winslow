@@ -44,6 +44,7 @@ public class ProjectsEndpointController {
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_EXECUTING   = TOPIC_PREFIX + "/%s/executing";
     public static final @Nonnull String TOPIC_PROJECT_SPECIFIC_ENQUEUED    = TOPIC_PREFIX + "/%s/enqueued";
     public static final          int    MAX_LOG_ENTRIES                    = 1024;
+    public static final          int    ON_SUBSCRIBE_HISTORY_COUNT         = 10;
 
     private final @Nonnull MessageSender      sender;
     private final @Nonnull Winslow            winslow;
@@ -326,7 +327,7 @@ public class ProjectsEndpointController {
                 .map(pipeline -> {
                     var historyInfo = getHistoryInfo(pipeline);
                     this.cache.put(String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId), historyInfo);
-                    var length = Math.max(0, historyInfo.size() - 5);
+                    var length = Math.max(0, historyInfo.size() - ON_SUBSCRIBE_HISTORY_COUNT);
                     return new ChangeEvent<>(
                             ChangeType.CREATE,
                             projectId,
