@@ -211,7 +211,13 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
                                 .filter(runtimes -> runtimes.contains(gpuVendor.orElse(DEFAULT_GPU_VENDOR)))
                                 .isPresent();
 
-                        return !gpuRequired || gpuAvailable;
+                        var result = !gpuRequired || gpuAvailable;
+
+                        if (!result) {
+                            LOG.info("isCapableOfExecuting('" + stage.getName() + "') => false, GPU is required but none available");
+                        }
+
+                        return result;
                     })
                     .anyMatch(entry -> isHealthyDriverDetected(entry.getValue()));
         } catch (IOException | NomadException e) {

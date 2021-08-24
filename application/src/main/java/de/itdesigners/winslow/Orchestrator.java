@@ -399,7 +399,18 @@ public class Orchestrator implements Closeable, AutoCloseable {
                         return allocView.wouldResourcesExceedLimit(resources);
                     }).orElse(Boolean.FALSE);
 
-                    return !wouldExceedLimit && this.monitor.couldReserveConsideringReservations(resources);
+                    boolean couldReserve = this.monitor.couldReserveConsideringReservations(resources);
+                    boolean result       = !wouldExceedLimit && couldReserve;
+
+                    if (!result) {
+                        LOG.info(
+                                "hasResourcesToExecuteNextStage('" + pipeline.getProjectId() + "') => false"
+                                        + ", wouldExceedLimit=" + wouldExceedLimit
+                                        + ", couldReserveConsideringReservations=" + couldReserve
+                        );
+                    }
+
+                    return result;
                 });
     }
 
@@ -412,7 +423,17 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     }
                     boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().getTags());
                     boolean backendCapable = this.backend.isCapableOfExecuting(group.getStageDefinition());
-                    return hasAllTags && backendCapable;
+                    boolean result         = hasAllTags && backendCapable;
+
+                    if (!result) {
+                        LOG.info(
+                                "isCapableOfExecutingNextStage('" + pipeline.getProjectId() + "') => false"
+                                        + ", hasAllTags=" + hasAllTags
+                                        + ", backendCapable=" + backendCapable
+                        );
+                    }
+
+                    return result;
                 });
     }
 
