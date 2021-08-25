@@ -19,6 +19,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   @Output() clickOpenLogs = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
+  @Output() clickGetStage = new EventEmitter<StageInfo>();
 
   constructor(private api: ProjectApiService) { }
 

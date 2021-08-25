@@ -1,4 +1,4 @@
-<div class="history-list-column">
+<div class="history-list-column center-vertically">
   <app-state-icon [state]="state" [configured]="isConfigure"></app-state-icon>
 </div>
 <div class="history-list-column history-item-no">{{itemNo}}</div>
@@ -16,7 +16,7 @@
 <div class="history-list-column history-comment" [matTooltip]="comment">
   {{comment}}
 </div>
-<div class="history-list-column history-control-icons">
+<div class="history-list-column history-control-icons center-vertically">
   <mat-icon *ngIf="paused && showResumeOnlyThisStage"
             matTooltip="Resume only one stage" class="clickable"
             (click)="$event.stopPropagation(); clickResumeOnlyThisStage.emit($event)">

@@ -23,3 +23,41 @@ mat-expansion-panel div {
 .history-more-buttons button:not(:first-child) {
   margin-left: 2em;
 }
+
+.mat-expansion-panel {
+  border-radius: 5px;
+  border: 1px solid darkgrey;
+  background-color: white;
+  z-index: 999;
+}
+
+.mat-expansion-panel-header.mat-expanded {
+  height: 48px;
+}
+
+.history-header {
+  border-radius: 5px;
+    border: 1px solid darkgrey;
+    background-color: white;
+    z-index: 999;
+    padding-left: 24px;
+    padding-right: 24px;
+    height: 48px;
+    line-height: 48px;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.header:hover {
+  background-color: aliceblue !important;
+}
+
+.mat-expansion-panel:not([class*='mat-elevation-z']) {
+  box-shadow: none;
+}
+
+.active {
+  background-color: aliceblue;
+}
