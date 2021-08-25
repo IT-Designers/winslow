@@ -18,3 +18,21 @@
   margin: 0;
   padding: 0.75em 1em;
 }
+
+.history-header {
+  border-radius: 5px;
+  border: 1px solid darkgrey;
+  background-color: white;
+  z-index: 999;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 0 24px;
+  padding-top: 1em;
+  padding-bottom: 0.5em;
+  cursor: pointer;
+}
+
+.history-header:hover {
+  background-color: aliceblue !important;
+}

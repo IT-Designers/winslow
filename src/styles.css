@@ -295,3 +295,9 @@ mat-card.vmenu-container-selection {
 .height {
   height: calc(100vh - 70px) !important;
 }
+
+.center-vertically {
+  display: flex;
+  align-items: center;
+  flex-grow: initial !important;
+}
