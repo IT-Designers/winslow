@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {
   DeletionPolicy,
   EnvVariable,
@@ -151,6 +151,42 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   workspaceMode: WorkspaceMode = null;
   resourceLimit: ResourceLimitation = null;
 
+  @HostListener('scroll', ['$event'])
+  onScroll(event: any) {
+      // load more entries, when user is scrolling to the bottom
+      if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight) {
+        // TODO check if user already loads all entries
+        // if yes -> dont try to load more
+        this.loadMoreHistoryEntries(10);
+      }
+  }
+
+  selectedHistoryEntry: ExecutionGroupInfo = null;
+  selectedHistoryEntryNumber: number;
+  selectedHistoryEntryIndex = 0;
+  setHistoryEntry(entry: ExecutionGroupInfo, index: number) {
+    this.selectedHistoryEntry = entry;
+    this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.id, this.history.length - index)
+    this.selectedHistoryEntryIndex = index;
+
+    if(entry.stages.length == 1) {
+      this.selectedHistoryEntryStage = entry.stages[0];
+    } else if (entry.stages.length < 1) {
+      this.selectedHistoryEntryStage = null;
+    }
+
+    console.log(entry)
+    console.log(this.selectedHistoryEntry)
+    console.log(this.selectedHistoryEntryNumber)
+    console.log(this.selectedHistoryEntryStage)
+  }
+
+  selectedHistoryEntryStage: StageInfo;
+  setHistoryEntryStage(stage: StageInfo) {
+    this.selectedHistoryEntryStage = stage;
+    console.log(stage)
+  }
+
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -177,6 +213,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.updateExecutionSelectionPipelines();
+
   }
 
   ngOnDestroy(): void {
@@ -466,6 +503,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   openLogs(entry?: StageInfo, watchLatestLogs = false) {
     this.stageIdToDisplayLogsFor = entry?.id;
     this.tabs.selectedIndex = Tab.Logs;
+    console.log(entry)
   }
 
   setName(name: string) {

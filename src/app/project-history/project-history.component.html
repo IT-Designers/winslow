@@ -1,5 +1,5 @@
-<mat-expansion-panel expanded="{{expanded}}">
-  <mat-expansion-panel-header>
+<mat-expansion-panel *ngIf="executionGroup.stages.length > 1" expanded="{{expanded}}">
+  <mat-expansion-panel-header class="header">
     <mat-panel-title>
       <app-project-history-header
         [state]="executionGroup.getMostRelevantState()"
@@ -32,6 +32,7 @@
       [executionGroup]="executionGroup"
       [visibleStages]="visibleStages"
 
+      (clickGetStage)="clickGetStage.emit($event)"
       (clickKillStage)="clickKillStage.emit($event)"
       (clickUseAsBlueprint)="clickUseAsBlueprint.emit($event)"
       (clickOpenLogs)="clickOpenLogs.emit($event)"
@@ -61,3 +62,38 @@
     </div>
   </div>
 </mat-expansion-panel>
+
+<div *ngIf="executionGroup.stages.length <= 1" class="history-header header" [class.active]="active">
+  <app-project-history-header
+    [state]="executionGroup.getMostRelevantState()"
+    [isConfigure]="executionGroup.configureOnly"
+    [itemNo]="entryNumber"
+    [time]="executionGroup.getMostRecentStartOrFinishTime()"
+    [stageName]="executionGroup.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
+    [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
+    [showActiveControls]="firstEntry || executionGroup.active"
+    [showPassiveControls]="firstEntry || executionGroup.active"
+    [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
+    [showKillCurrentStage]="executionGroup.active"
+    [enqueued]="executionGroup.enqueueIndex != null"
+    [running]="executionGroup.active || executionGroup.isMostRecentStateRunning()"
+    [paused]="pipelineIsPaused == true"
+    [comment]="executionGroup?.comment"
+    [groupSize]="executionGroup.getGroupSize()"
+
+
+    (clickKillCurrentStage)="clickKillStage.emit(executionGroup.stages[0])"
+    (clickUseAsBlueprint)="clickUseAsBlueprint.emit(executionGroup.stages[0])"
+    (clickOpenLogs)="clickOpenLogs.emit(executionGroup.stages[0])"
+    (clickOpenWorkspace)="clickOpenWorkspace.emit(executionGroup.stages[0])"
+    (clickOpenTensorboard)="clickOpenTensorboard.emit(executionGroup.stages[0])"
+
+    (clickResume)="clickResume.emit(executionGroup)"
+    (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(executionGroup)"
+    (clickDelete)="executionGroup.enqueueIndex != null ? clickDelete.emit(executionGroup) : null"
+    (clickPauseAfterThis)="clickPauseAfterThis.emit(executionGroup)"
+    (clickKillCurrentStage)="clickKillStage.emit(null)"
+    (clickUseAsBlueprint)="clickUseAsBlueprint.emit(null)"
+  ></app-project-history-header>
+
+</div>
