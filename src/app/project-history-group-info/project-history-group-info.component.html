@@ -123,6 +123,7 @@
 
   <div *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i; trackBy:trackStageInfo">
     <app-project-history-header class="history-header"
+      [class.active]="selectedStageIndex === i"
       [state]="stage.state"
       [isConfigure]="executionGroup?.configureOnly"
       [itemNo]="tryParseStageNumber(stage.id, min(visibleStages, executionGroup.stages.length) - i)"
@@ -133,14 +134,13 @@
       [running]="stage.state == State.Running"
       [paused]="stage.state == State.Paused"
       [comment]="getRangeEnvVariableValues(stage)"
+      [sharedWorkspace]="!executionGroup?.workspaceConfiguration?.sharedWithinGroup"
 
-      (click)="clickGetStage.emit(stage)"
+      (click)="emitStageAndSetIndex(stage, i)"
 
       (clickKillCurrentStage)="clickKillStage.emit(stage)"
       (clickUseAsBlueprint)="clickUseAsBlueprint.emit(stage)"
       (clickOpenLogs)="clickOpenLogs.emit(stage)"
-      (clickOpenWorkspace)="clickOpenWorkspace.emit(stage)"
-      (clickOpenTensorboard)="clickOpenTensorboard.emit(stage)"
     ></app-project-history-header>
   </div>
 
