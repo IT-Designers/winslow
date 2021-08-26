@@ -11,6 +11,7 @@ export class ProjectHistoryItemDetailsComponent implements OnInit {
 
   @Input() entry: ExecutionGroupInfo;
   @Input() entryNumber: number;
+  @Input() stageNumber: number;
   @Input() selectedStage: StageInfo;
 
   @Input() firstEntry = true;

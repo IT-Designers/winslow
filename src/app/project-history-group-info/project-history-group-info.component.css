@@ -36,3 +36,7 @@
 .history-header:hover {
   background-color: aliceblue !important;
 }
+
+.active {
+  background-color: aliceblue !important;
+}
