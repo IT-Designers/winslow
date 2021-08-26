@@ -10,6 +10,7 @@ import {State} from '../api/project-api.service';
 export class ProjectHistoryHeaderComponent implements OnInit {
 
   @Input() itemNo: number;
+  @Input() stageNo: number;
   @Input() state: State;
   @Input() isConfigure: boolean;
   @Input() time: number;
@@ -25,6 +26,7 @@ export class ProjectHistoryHeaderComponent implements OnInit {
   @Input() showDeleteEnqueued = true;
   @Input() showUseAsBlueprint = true;
   @Input() showKillCurrentStage = false;
+  @Input() sharedWorkspace = true;
 
   @Output() clickResumeOnlyThisStage = new EventEmitter<MouseEvent>();
   @Output() clickResume = new EventEmitter<MouseEvent>();

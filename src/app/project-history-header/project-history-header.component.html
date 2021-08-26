@@ -1,7 +1,7 @@
 <div class="history-list-column center-vertically">
   <app-state-icon [state]="state" [configured]="isConfigure"></app-state-icon>
 </div>
-<div class="history-list-column history-item-no">{{itemNo}}</div>
+<div class="history-list-column history-item-no">{{itemNo}} <span *ngIf="stageNo">/ {{stageNo}}</span></div>
 <div
   class="history-list-column history-item-date">{{toDate(time)}}</div>
 <div class="history-list-column history-batch">
@@ -33,7 +33,7 @@
     delete_outlined
   </mat-icon>
   <mat-icon
-    *ngIf="!paused && (running || (showActiveControls && !enqueued && clickPauseAfterThis.observers.length > 0))"
+    *ngIf="!paused && (running || (showActiveControls && enqueued && clickPauseAfterThis.observers.length > 0))"
     class="clickable"
     matTooltip="Pause Pipeline (after this)"
     (click)="$event.stopPropagation(); clickPauseAfterThis.emit($event)">
@@ -54,13 +54,13 @@
             (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
     list_alt
   </mat-icon>
-  <mat-icon *ngIf="clickOpenWorkspace.observers.length > 0"
+  <mat-icon *ngIf="clickOpenWorkspace.observers.length > 0 || !sharedWorkspace"
             class="clickable"
             matTooltip="Open Directory"
             (click)="$event.stopPropagation(); clickOpenWorkspace.emit($event)">
     folder_open
   </mat-icon>
-  <img *ngIf="showPassiveControls && clickOpenTensorboard.observers.length > 0"
+  <img *ngIf="showPassiveControls && clickOpenTensorboard.observers.length > 0 || !sharedWorkspace"
        class="clickable mat-icon notranslate material-icons mat-icon-no-color"
        src="../../assets/tensorflow.png"
        alt="(TensorBoard)"

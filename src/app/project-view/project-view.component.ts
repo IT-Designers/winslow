@@ -172,13 +172,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     if(entry.stages.length == 1) {
       this.selectedHistoryEntryStage = entry.stages[0];
     } else if (entry.stages.length < 1) {
-      this.selectedHistoryEntryStage = null;
+      this.selectedHistoryEntryStage = new StageInfo();
     }
 
     console.log(entry)
-    console.log(this.selectedHistoryEntry)
-    console.log(this.selectedHistoryEntryNumber)
-    console.log(this.selectedHistoryEntryStage)
   }
 
   selectedHistoryEntryStage: StageInfo;
@@ -186,6 +183,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedHistoryEntryStage = stage;
     console.log(stage)
   }
+
 
 
   private static deepClone(obj: any): any {
@@ -213,7 +211,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.updateExecutionSelectionPipelines();
-
   }
 
   ngOnDestroy(): void {

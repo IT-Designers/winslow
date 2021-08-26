@@ -201,7 +201,6 @@
               [active]="selectedHistoryEntryIndex === i"
               class="history-list-item"
 
-
               [executionGroup]="entry"
               [firstEntry]="i == 0"
               [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
@@ -225,9 +224,9 @@
         </div>
         <div *ngIf="history?.length > 0">
           <app-project-history-item-details
-          [entry]="selectedHistoryEntry"
-          [entryNumber]="selectedHistoryEntryNumber"
-          [selectedStage]="selectedHistoryEntryStage"
+          [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
+          [entryNumber]="selectedHistoryEntryNumber ? selectedHistoryEntryNumber : tryParseStageNumber(history[0]?.id, history?.length)"
+          [selectedStage]="selectedHistoryEntryStage ? selectedHistoryEntryStage : history[0]?.stages[history[0]?.stages.length-1]"
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
           (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"

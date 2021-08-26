@@ -26,6 +26,12 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  selectedStageIndex: number;
+  emitStageAndSetIndex(stage: StageInfo, index: number) {
+    this.clickGetStage.emit(stage);
+    this.selectedStageIndex = index;
+  }
+
   tryParseStageNumber(stageId: string, alt: number): number {
     return this.api.tryParseStageNumber(stageId, alt);
   }
