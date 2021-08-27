@@ -194,7 +194,7 @@
           <div [style.overflow]="'auto'"
 
           [ngStyle]="history?.length < 7 ? {'height': history.length * 50 } :  {'height': 'calc(100vh - 73.5vh)'}"
-          (scroll)="onScroll($event)">
+          (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null">
 
             <app-project-history
               *ngFor="let entry of history; index as i; trackBy:trackHistory"
