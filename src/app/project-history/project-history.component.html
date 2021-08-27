@@ -1,4 +1,7 @@
-<mat-expansion-panel *ngIf="executionGroup.stages.length > 1" expanded="{{expanded}}" [class.active]="active">
+<mat-expansion-panel
+*ngIf="executionGroup.stages.length > 1"
+[expanded]="expanded"
+[class.active]="active">
   <mat-expansion-panel-header class="header" [class.active]="active">
     <mat-panel-title>
       <app-project-history-header

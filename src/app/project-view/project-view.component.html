@@ -204,7 +204,7 @@
               [executionGroup]="entry"
               [firstEntry]="i == 0"
               [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
-              [expanded]="false"
+              [expanded]="selectedHistoryEntry === entry"
               [pipelineIsPaused]="paused"
 
               (click)="setHistoryEntry(entry, i)"
