@@ -10,7 +10,6 @@ import {State} from '../api/project-api.service';
 export class ProjectHistoryHeaderComponent implements OnInit {
 
   @Input() itemNo: number;
-  @Input() stageNo: number;
   @Input() state: State;
   @Input() isConfigure: boolean;
   @Input() time: number;

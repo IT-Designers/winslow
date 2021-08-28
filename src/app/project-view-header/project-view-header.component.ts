@@ -25,7 +25,6 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   state: State = null;
   stage: string = null;
 
-
   constructor(private files: FilesApiService) { }
 
   @Input()

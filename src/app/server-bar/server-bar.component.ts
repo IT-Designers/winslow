@@ -84,10 +84,6 @@ export class ServerBarComponent implements OnInit {
           type: 'shadow'
       },
     },
-    // legend: {
-    //   data: ["Heap", "Cache", "Swap"],
-    //   itemWidth: 10
-    // },
     grid: {
       top: '25%',
       bottom: '25%'
@@ -149,15 +145,6 @@ export class ServerBarComponent implements OnInit {
 
   mergeOptionNetwork = {};
   chartOptionNetwork = {
-    // legend: {
-    //   data: ["TX", "RX"],
-    //   type: 'scroll',
-    //   orient: 'vertical',
-    //   top: 6,
-    //   x:'right',
-    //   y:'center',
-    //   itemWidth: 10
-    // },
     grid: {
       top: '5%',
       bottom: '5%'
@@ -206,15 +193,6 @@ export class ServerBarComponent implements OnInit {
 
   mergeOptionDisk = {};
   chartOptionDisk = {
-    // legend: {
-    //   data: ["W", "R"],
-    //   type: 'scroll',
-    //   orient: 'vertical',
-    //   top: 6,
-    //   x:'right',
-    //   y:'center',
-    //   itemWidth: 10
-    // },
     grid: {
       top: '5%',
       bottom: '5%'
@@ -224,7 +202,6 @@ export class ServerBarComponent implements OnInit {
       axisPointer: {
           type: 'shadow'
       },
-      // formatter: 'Network<br>Write: {c0} MBit/s <br>Read: {c1} MBit/s'
     },
     xAxis: {
       type: "value",

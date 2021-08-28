@@ -149,13 +149,9 @@ export class ServerDetailsComponent implements OnInit {
       {
         type: "value",
         min: 0,
-        // max: 32,
         axisLabel: {
           formatter: "{value} GiB",
         },
-        // scale : true,
-        // max : 32,
-        //min : 0,
         splitNumber : 4,
         splitLine: {
           show: true,
@@ -204,21 +200,15 @@ export class ServerDetailsComponent implements OnInit {
           show: false,
         },
         splitNumber : 4,
-        // boundaryGap : [ 0.2, 0.2 ]
       },
     ],
     yAxis: [
       {
         type: "value",
-        // min: 0,
-        // max: 32,
         axisLabel: {
           formatter: "{value}GB",
-          // showMaxLabel: true,
-          // interval: 6
         },
         scale : true,
-        // max : 1024,
         min : 0,
         splitNumber : 6,
         splitLine: {
@@ -268,21 +258,15 @@ export class ServerDetailsComponent implements OnInit {
           show: false,
         },
         splitNumber : 4,
-        // boundaryGap : [ 0.2, 0.2 ]
       },
     ],
     yAxis: [
       {
         type: "value",
-        // min: 0,
-        // max: 32,
         axisLabel: {
           formatter: "{value}GB",
-          // showMaxLabel: true,
-          // interval: 6
         },
         scale : true,
-        // max : 1024,
         min : 0,
         splitNumber : 6,
         splitLine: {
@@ -367,8 +351,6 @@ export class ServerDetailsComponent implements OnInit {
     this.formatter = this.axisLabelFormatterMinutes
     this.subscription = this.api.watchNodes((update) => {
 
-      console.log(update)
-
       switch (update.type) {
         case ChangeType.CREATE:
         case ChangeType.UPDATE:
@@ -379,9 +361,6 @@ export class ServerDetailsComponent implements OnInit {
 
             if (indexUpdate >= 0) {
               this.nodes[indexUpdate] = update.value
-              // if (this.nodes[indexUpdate]?.update != null) {
-              //   this.nodes[indexUpdate]?.update(update.value);
-              // }
             } else {
               this.nodes.push(update.value);
               this.sortNodesByName();
@@ -399,7 +378,6 @@ export class ServerDetailsComponent implements OnInit {
             this.selectedNodeIndex = this.nodes.findIndex(
               (value) => value.name === this.nodeName
             );
-            console.log(this.nodes)
 
             // save last timestamp
             if(!this.lastTimestamp) {
@@ -708,12 +686,8 @@ export class ServerDetailsComponent implements OnInit {
       yAxis: [
         {
           type: "value",
-          // min: 0,
-          // max: 32,
           axisLabel: {
             formatter: "{value} " + this.unitNetwork + "Byte/s",
-            // showMaxLabel: true,
-            // interval: 8
           },
           splitLine: {
             show: true,
@@ -761,12 +735,8 @@ export class ServerDetailsComponent implements OnInit {
       yAxis: [
         {
           type: "value",
-          // min: 0,
-          // max: 32,
           axisLabel: {
             formatter: "{value} " + this.unitDisk + "Byte/s",
-            // showMaxLabel: true,
-            // interval: 8
           },
           splitLine: {
             show: true,
@@ -1010,11 +980,7 @@ export class ServerDetailsComponent implements OnInit {
       }
     }
 
-
     this.api.getNodeUtilization(node.name, from, to.getTime(), chunkSpanMillis).then(val => {
-
-      console.log(new Date(from))
-      console.log(new Date(val[0].time))
 
       this.cpus = [];
       this.memory = [];

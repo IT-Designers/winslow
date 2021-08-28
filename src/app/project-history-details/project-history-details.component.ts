@@ -2,12 +2,11 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ExecutionGroupInfo, StageInfo } from '../api/project-api.service';
 
 @Component({
-  selector: 'app-project-history-item-details',
-  templateUrl: './project-history-item-details.component.html',
-  styleUrls: ['./project-history-item-details.component.css']
+  selector: 'app-project-history-details',
+  templateUrl: './project-history-details.component.html',
+  styleUrls: ['./project-history-details.component.css']
 })
-export class ProjectHistoryItemDetailsComponent implements OnInit {
-
+export class ProjectHistoryDetailsComponent implements OnInit {
 
   @Input() entry: ExecutionGroupInfo;
   @Input() entryNumber: number;
