@@ -51,19 +51,19 @@
       <button mat-stroked-button color="primary"
               [disabled]="executionGroup.stages.length <= visibleStages"
               (click)="incrementVisibleStagesBy(10)">
-        <mat-icon>expand_more</mat-icon>
+        <mat-icon>arrow_drop_down</mat-icon>
         Show 10 More
       </button>
       <button mat-stroked-button color="primary"
               [disabled]="executionGroup.stages.length <= visibleStages"
               (click)="incrementVisibleStagesBy(50)">
-        <mat-icon>arrow_downward</mat-icon>
+        <mat-icon>expand_more</mat-icon>
         Show 50 More
       </button>
       <button mat-stroked-button color="primary"
               [disabled]="executionGroup.stages.length <= visibleStages"
               (click)="incrementVisibleStagesBy(executionGroup.stages.length + 500)">
-        <mat-icon style="transform: rotate(90deg)">double_arrow</mat-icon>
+        <mat-icon>arrow_downward</mat-icon>
         Show All
       </button>
     </div>
