@@ -112,60 +112,7 @@
     </div>
   </mat-tab>
 
-  <!-- <mat-tab label="History">
-    <ng-template matTabContent>
-      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-
-      <i *ngIf="history.length == 0">This project has no history yet</i>
-
-      <mat-accordion [multi]="true">
-        <app-project-history
-          *ngFor="let entry of history; index as i; trackBy:trackHistory"
-          class="history-list-item"
-          [executionGroup]="entry"
-          [firstEntry]="i == 0"
-          [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
-          [expanded]="i < 5"
-          [pipelineIsPaused]="paused"
-
-          (clickResume)="updateRequestPause(false)"
-          (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
-          (clickDelete)="cancelEnqueuedStage(entry.id)"
-          (clickPauseAfterThis)="updateRequestPause(true)"
-          (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
-          (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
-          (clickOpenLogs)="openLogs($event)"
-          (clickOpenWorkspace)="openWorkspace(project, $event)"
-          (clickOpenTensorboard)="openTensorboard(project, $event)"
-        ></app-project-history>
-      </mat-accordion>
-
-      <div *ngIf="history.length > 0" class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
-        <button *ngIf="historyCanLoadMoreEntries"
-                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(10)">
-          <mat-icon>expand_more</mat-icon>
-          Show 10 More
-        </button>
-        <button *ngIf="historyCanLoadMoreEntries"
-                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(50)">
-          <mat-icon>arrow_downward</mat-icon>
-          Show 50 More
-        </button>
-        <button *ngIf="historyCanLoadMoreEntries"
-                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(1000000)">
-          <mat-icon style="transform: rotate(90deg)">double_arrow</mat-icon>
-          Show All
-        </button>
-        <button mat-stroked-button color="warn" (click)="pruneHistory()">
-          <mat-icon>cleaning_services</mat-icon>
-          Delete Failed
-        </button>
-      </div>
-
-    </ng-template>
-  </mat-tab> -->
-
-  <mat-tab label="History (new)">
+  <mat-tab label="History">
       <ng-template matTabContent>
 
         <div *ngIf="history.length > 0" class="history-more-buttons horizontal-center-with-margin">
@@ -223,7 +170,7 @@
           </div>
         </div>
         <div *ngIf="history?.length > 0">
-          <app-project-history-item-details
+          <app-project-history-details
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
           [entryNumber]="selectedHistoryEntryNumber ? selectedHistoryEntryNumber : tryParseStageNumber(history[0]?.id, history?.length)"
           [selectedStage]="selectedHistoryEntryStage ? selectedHistoryEntryStage : history[0]?.stages[history[0]?.stages.length-1]"
@@ -234,7 +181,7 @@
           (clickOpenWorkspace)="openWorkspace(project, $event)"
           (clickOpenTensorboard)="openTensorboard(project, $event)"
       >
-        </app-project-history-item-details>
+        </app-project-history-details>
         </div>
         <div *ngIf="history?.length == 0" class="empty-project-history">
           This project has no history yet

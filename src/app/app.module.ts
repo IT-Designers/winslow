@@ -42,7 +42,6 @@ import {StateIconComponent} from './state-icon/state-icon.component';
 import {ProjectViewComponent,} from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
-import {ServersOverviewComponent} from './servers-overview/servers-overview.component';
 import {AboutComponent} from './about/about.component';
 import {CreatePipelineDialogComponent} from './pipeline-create-dialog/create-pipeline-dialog.component';
 import {LoadingInfoComponent} from './connect-failed-info/loading-info.component';
@@ -77,9 +76,7 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
-import { ProjectHistoryItemComponent } from './project-history-item/project-history-item.component';
-import { ProjectHistoryItemDetailsComponent } from './project-history-item-details/project-history-item-details.component';
-import { ProjectHistoryNewComponent } from './project-history-new/project-history-new.component';
+import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 
 
 @NgModule({
@@ -95,7 +92,6 @@ import { ProjectHistoryNewComponent } from './project-history-new/project-histor
         StateIconComponent,
         ProjectViewComponent,
         FileBrowseDialog,
-        ServersOverviewComponent,
         AboutComponent,
         CreatePipelineDialogComponent,
         LoadingInfoComponent,
@@ -123,9 +119,7 @@ import { ProjectHistoryNewComponent } from './project-history-new/project-histor
         ServersComponent,
         ServerBarComponent,
         ServerDetailsComponent,
-        ProjectHistoryItemComponent,
-        ProjectHistoryItemDetailsComponent,
-        ProjectHistoryNewComponent,
+        ProjectHistoryDetailsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
