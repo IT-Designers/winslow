@@ -151,12 +151,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   workspaceMode: WorkspaceMode = null;
   resourceLimit: ResourceLimitation = null;
 
+
+  // load more entries, when user is scrolling to the bottom
+  // on project history list
   @HostListener('scroll', ['$event'])
   onScroll(event: any) {
-      // load more entries, when user is scrolling to the bottom
       if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight) {
-        // TODO check if user already loads all entries
-        // if yes -> dont try to load more
         this.loadMoreHistoryEntries(10);
       }
   }
@@ -180,8 +180,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   setHistoryEntryStage(stage: StageInfo) {
     this.selectedHistoryEntryStage = stage;
   }
-
-
 
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));

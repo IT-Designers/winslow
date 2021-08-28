@@ -13,7 +13,8 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
   @Input() executionGroup: ExecutionGroupInfo;
   @Input() visibleStages = 10;
-
+  @Input() selectedStageIndex: number;
+  @Output() selectedStageIndexChange = new EventEmitter<number>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
   @Output() clickOpenLogs = new EventEmitter<StageInfo>();
@@ -27,8 +28,6 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
   }
 
-  @Input() selectedStageIndex: number;
-  @Output() selectedStageIndexChange = new EventEmitter<number>();
   emitStageAndSetIndex(stage: StageInfo, index: number) {
     this.clickGetStage.emit(stage);
     this.selectedStageIndex = index;

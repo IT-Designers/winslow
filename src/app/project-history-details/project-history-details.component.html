@@ -1,30 +1,5 @@
 <div *ngIf="entry">
   <div class="selected-history-item-header">
-    <!-- <app-project-history-header
-      [state]="entry.getMostRelevantState()"
-      [isConfigure]="entry.configureOnly"
-      [itemNo]="entryNumber"
-      [time]="entry.getMostRecentStartOrFinishTime()"
-      [stageName]="entry.stageDefinition.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
-      [showResumeOnlyThisStage]="firstEntry || entry.active"
-      [showActiveControls]="firstEntry || entry.active"
-      [showPassiveControls]="firstEntry || entry.active"
-      [showDeleteEnqueued]="entry.enqueueIndex != null"
-      [showKillCurrentStage]="entry.active"
-      [enqueued]="entry.enqueueIndex != null"
-      [running]="entry.active || entry.isMostRecentStateRunning()"
-      [paused]="pipelineIsPaused == true"
-      [comment]="entry?.comment"
-      [groupSize]="entry.getGroupSize()"
-
-      (clickResume)="clickResume.emit(entry)"
-      (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(entry)"
-      (clickDelete)="entry.enqueueIndex != null ? clickDelete.emit(entry) : null"
-      (clickPauseAfterThis)="clickPauseAfterThis.emit(entry)"
-      (clickKillCurrentStage)="clickKillStage.emit(null)"
-      (clickUseAsBlueprint)="clickUseAsBlueprint.emit(null)"
-    ></app-project-history-header> -->
-
     <app-project-history-header class="history-header"
       [itemNo]="entryNumber"
       [time]="selectedStage?.startTime"
