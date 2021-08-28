@@ -23,7 +23,7 @@
         [sharedWorkspace]="executionGroup?.workspaceConfiguration?.sharedWithinGroup"
 
 
-        (click)="clickGetStage.emit(executionGroup.stages[executionGroup.stages.length-1])"
+        (click)="setSelectedStageIndexAndEmitStage()"
         (clickResume)="clickResume.emit(executionGroup)"
         (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(executionGroup)"
         (clickDelete)="executionGroup.enqueueIndex != null ? clickDelete.emit(executionGroup) : null"
@@ -37,6 +37,7 @@
     <app-project-history-group-info
       [executionGroup]="executionGroup"
       [visibleStages]="visibleStages"
+      [(selectedStageIndex)]="selectedStageIndex"
 
       (clickGetStage)="clickGetStage.emit($event)"
       (clickKillStage)="clickKillStage.emit($event)"

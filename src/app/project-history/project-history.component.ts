@@ -31,12 +31,19 @@ export class ProjectHistoryComponent implements OnInit {
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
   @Output() clickGetStage = new EventEmitter<StageInfo>();
 
+  selectedStageIndex: number;
+
   constructor(private cdr: ChangeDetectorRef,
     private api: ProjectApiService) {
   }
 
   ngOnInit(): void {
 
+  }
+
+  setSelectedStageIndexAndEmitStage() {
+    this.selectedStageIndex = 0;
+    this.clickGetStage.emit(this.executionGroup.stages[this.executionGroup.stages.length-1])
   }
 
   getRangeEnvVariableValues(stage: StageInfo): string {
