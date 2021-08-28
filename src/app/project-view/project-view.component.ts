@@ -174,14 +174,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
     } else if (entry.stages.length < 1) {
       this.selectedHistoryEntryStage = new StageInfo();
     }
-
-    console.log(entry)
   }
 
   selectedHistoryEntryStage: StageInfo;
   setHistoryEntryStage(stage: StageInfo) {
     this.selectedHistoryEntryStage = stage;
-    console.log(stage)
   }
 
 
@@ -500,7 +497,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   openLogs(entry?: StageInfo, watchLatestLogs = false) {
     this.stageIdToDisplayLogsFor = entry?.id;
     this.tabs.selectedIndex = Tab.Logs;
-    console.log(entry)
   }
 
   setName(name: string) {

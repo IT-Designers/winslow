@@ -120,7 +120,6 @@
     </div>
   </mat-expansion-panel> -->
 
-
   <div *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i; trackBy:trackStageInfo">
     <app-project-history-header class="history-header"
       [class.active]="selectedStageIndex === i"

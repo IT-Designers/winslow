@@ -24,12 +24,15 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   constructor(private api: ProjectApiService) { }
 
   ngOnInit(): void {
+
   }
 
-  selectedStageIndex: number;
+  @Input() selectedStageIndex: number;
+  @Output() selectedStageIndexChange = new EventEmitter<number>();
   emitStageAndSetIndex(stage: StageInfo, index: number) {
     this.clickGetStage.emit(stage);
     this.selectedStageIndex = index;
+    this.selectedStageIndexChange.emit(index)
   }
 
   tryParseStageNumber(stageId: string, alt: number): number {
