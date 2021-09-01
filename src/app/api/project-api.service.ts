@@ -718,8 +718,6 @@ export class StatsInfo {
   cpuMaximum = 0;
   memoryAllocated = 0;
   memoryMaximum = 0;
-  runningOnNode = "";
-  stageId = "";
 }
 
 export enum WorkspaceMode {
