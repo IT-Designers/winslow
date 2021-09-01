@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfo, StageInfo} from '../api/project-api.service';
+import {ExecutionGroupInfo, ProjectApiService, StageInfo, State} from '../api/project-api.service';
 
 @Component({
   selector: 'app-project-history',
@@ -9,6 +9,8 @@ import {ExecutionGroupInfo, StageInfo} from '../api/project-api.service';
 })
 export class ProjectHistoryComponent implements OnInit {
 
+  State = State;
+
   visibleStages = 10;
 
   @Input() firstEntry = true;
@@ -16,6 +18,7 @@ export class ProjectHistoryComponent implements OnInit {
   @Input() executionGroup: ExecutionGroupInfo;
   @Input() expanded = false;
   @Input() pipelineIsPaused: boolean = null;
+  @Input() active: boolean = false;
 
   @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
@@ -26,12 +29,34 @@ export class ProjectHistoryComponent implements OnInit {
   @Output() clickOpenLogs = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
+  @Output() clickGetStage = new EventEmitter<StageInfo>();
 
-  constructor(private cdr: ChangeDetectorRef) {
+  selectedStageIndex: number;
+
+  constructor(private cdr: ChangeDetectorRef,
+    private api: ProjectApiService) {
   }
 
   ngOnInit(): void {
 
+  }
+
+  setSelectedStageIndexAndEmitStage() {
+    this.selectedStageIndex = 0;
+    this.clickGetStage.emit(this.executionGroup.stages[this.executionGroup.stages.length-1])
+  }
+
+  getRangeEnvVariableValues(stage: StageInfo): string {
+    if (this.executionGroup.getGroupSize() > 1) {
+      return [...this.executionGroup
+        .rangedValues
+        .keys()]
+        .sort()
+        .map(e => e + '=' + stage.env.get(e))
+        .join(', ');
+    } else {
+      return null;
+    }
   }
 
   set initiallyVisibleStages(count: number) {

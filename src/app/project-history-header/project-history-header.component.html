@@ -1,4 +1,4 @@
-<div class="history-list-column">
+<div class="history-list-column center-vertically">
   <app-state-icon [state]="state" [configured]="isConfigure"></app-state-icon>
 </div>
 <div class="history-list-column history-item-no">{{itemNo}}</div>
@@ -16,7 +16,7 @@
 <div class="history-list-column history-comment" [matTooltip]="comment">
   {{comment}}
 </div>
-<div class="history-list-column history-control-icons">
+<div class="history-list-column history-control-icons center-vertically">
   <mat-icon *ngIf="paused && showResumeOnlyThisStage"
             matTooltip="Resume only one stage" class="clickable"
             (click)="$event.stopPropagation(); clickResumeOnlyThisStage.emit($event)">
@@ -33,7 +33,7 @@
     delete_outlined
   </mat-icon>
   <mat-icon
-    *ngIf="!paused && (running || (showActiveControls && !enqueued && clickPauseAfterThis.observers.length > 0))"
+    *ngIf="!paused && (running || (showActiveControls && enqueued && clickPauseAfterThis.observers.length > 0))"
     class="clickable"
     matTooltip="Pause Pipeline (after this)"
     (click)="$event.stopPropagation(); clickPauseAfterThis.emit($event)">
@@ -44,25 +44,25 @@
             (click)="$event.stopPropagation(); clickKillCurrentStage.emit($event)">
     pan_tool
   </mat-icon>
-  <mat-icon *ngIf="showUseAsBlueprint && clickUseAsBlueprint.observers.length > 0" class="clickable"
-            matTooltip="Use as blueprint"
-            (click)="$event.stopPropagation(); clickUseAsBlueprint.emit($event)">
-    replay
-  </mat-icon>
   <mat-icon *ngIf="showPassiveControls && clickOpenLogs.observers.length > 0" class="clickable"
             matTooltip="Open Logs"
             (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
     list_alt
   </mat-icon>
-  <mat-icon *ngIf="clickOpenWorkspace.observers.length > 0"
+  <mat-icon *ngIf="clickOpenWorkspace.observers.length > 0 || !sharedWorkspace"
             class="clickable"
             matTooltip="Open Directory"
             (click)="$event.stopPropagation(); clickOpenWorkspace.emit($event)">
     folder_open
   </mat-icon>
-  <img *ngIf="showPassiveControls && clickOpenTensorboard.observers.length > 0"
+  <img *ngIf="showPassiveControls && clickOpenTensorboard.observers.length > 0 || !sharedWorkspace"
        class="clickable mat-icon notranslate material-icons mat-icon-no-color"
        src="../../assets/tensorflow.png"
        alt="(TensorBoard)"
        (click)="$event.stopPropagation(); clickOpenTensorboard.emit($event)">
+  <mat-icon *ngIf="showUseAsBlueprint && clickUseAsBlueprint.observers.length > 0" class="clickable"
+        matTooltip="Use as blueprint"
+        (click)="$event.stopPropagation(); clickUseAsBlueprint.emit($event)">
+    replay
+  </mat-icon>
 </div>

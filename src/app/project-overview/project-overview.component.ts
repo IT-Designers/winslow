@@ -27,6 +27,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickPause = new EventEmitter<ExecutionGroupInfo>();
 
+  nodeName: string;
+
   schemeCpu = {domain: ['#DD4444']};
   schemeMemory = {domain: ['#44DD44']};
 
@@ -44,10 +46,133 @@ export class ProjectOverviewComponent implements OnDestroy {
   memoryMax = 1;
   cpu: any[] = [];
   cpuMax = 100;
+  cpuLimit = 0;
   subscription: Subscription = null;
 
   enqueued: ExecutionGroupInfo[] = [];
   pipelineActions: PipelineInfo[] = [];
+
+  mergeOptionCpu = {};
+  chartOptionCpu = {
+    tooltip: {
+      position: 'top',
+      confine: true,
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      formatter: (params) => {
+        params = params[0];
+        var date = new Date(params.name);
+        let zero = (date.getMinutes() < 10 ? "0" : "")
+        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
+               date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
+               params.seriesName + ": " + params.value[1] + " Mhz";
+      },
+    },
+    calculable: false,
+    grid: {
+      top: "5%",
+      bottom: "20",
+      left: "70",
+      right: "0"
+    },
+    xAxis: [
+      {
+        type: "time",
+        splitLine: {
+          show: false,
+        },
+        show: true,
+        axisLabel: {
+          formatter: (value) => {
+            const date = new Date(value);
+            if (date.getSeconds() === 0) {
+              let zero = (date.getMinutes() < 10 ? ":0" : ":")
+              return date.getHours() + zero + date.getMinutes();
+            }
+          }
+        }
+      },
+    ],
+    yAxis: {
+      type: "value",
+      axisLabel: {
+        formatter: "{value} Mhz",
+      },
+      scale : true,
+      max : 4000,
+      min : 0,
+      name: "Mhz",
+
+      splitNumber : 5,
+      splitLine: {
+        show: true,
+      },
+    },
+    series: [],
+  };
+
+  mergeOptionMemory = {};
+  chartOptionMemory = {
+    tooltip: {
+      position: 'top',
+      confine: true,
+      trigger: 'axis',
+      axisPointer: {
+          type: 'shadow'
+      },
+      formatter: (params) => {
+        params = params[0];
+        var date = new Date(params.name);
+        let zero = (date.getMinutes() < 10 ? "0" : "")
+        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
+               date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
+               params.seriesName + ": " + params.value[1] + " GiB";
+      },
+    },
+    calculable: false,
+    grid: {
+      top: "5%",
+      bottom: "20",
+      left: "50",
+      right: "0"
+    },
+    xAxis: [
+      {
+        type: "time",
+        splitLine: {
+          show: false,
+        },
+        show: true,
+        axisLabel: {
+          formatter: (value) => {
+            const date = new Date(value);
+            if (date.getSeconds() === 0) {
+              let zero = (date.getMinutes() < 10 ? ":0" : ":")
+              return date.getHours() + zero + date.getMinutes();
+            }
+          }
+        }
+      },
+    ],
+    yAxis: {
+      type: "value",
+      axisLabel: {
+        formatter: function (value, index) {
+          return value.toFixed(0) + ' GiB';
+        }
+      },
+      scale : true,
+      max : 8,
+      min : 0,
+      splitNumber : 5,
+      splitLine: {
+        show: true,
+      },
+    },
+    series: [],
+  };
 
   constructor(private api: ProjectApiService,
               private dialog: DialogService,
@@ -58,8 +183,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   private static maxOfSeriesOr(series: any[], minimum: number, upperMax: number) {
     let max = minimum;
     for (const entry of series) {
-      if (entry.value > max) {
-        max = entry.value;
+      if (entry.value[1] > max) {
+        max = entry.value[1];
       }
     }
     return Math.max(max, Math.min(max * 1.4, upperMax));
@@ -118,9 +243,10 @@ export class ProjectOverviewComponent implements OnDestroy {
     const zeroes = [];
 
     for (let i = ProjectOverviewComponent.GRAPH_ENTRIES; i >= 0; --i) {
+      const date = new Date(now.getTime() - (i * ProjectOverviewComponent.UPDATE_INTERVAL));
       zeroes.push({
-        name: new Date(now.getTime() - (i * ProjectOverviewComponent.UPDATE_INTERVAL)),
-        value: 0
+        name: date.toString(),
+        value:[date, 0]
       });
     }
 
@@ -148,12 +274,14 @@ export class ProjectOverviewComponent implements OnDestroy {
   onStatsUpdate(stats: StatsInfo) {
     this.updateCpu(stats);
     this.updateMemory(stats);
+    this.nodeName = stats.runningOnNode;
   }
 
   private updateCpu(stats: StatsInfo) {
+    const date = new Date();
     this.cpu[0].series.push({
-      name: new Date(),
-      value: stats.cpuUsed/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
+      name: date.toString(),
+      value: [date, stats.cpuUsed.toFixed(0)]/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
     this.cpuMax = ProjectOverviewComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
@@ -161,13 +289,39 @@ export class ProjectOverviewComponent implements OnDestroy {
       ProjectOverviewComponent.limitSeriesTo(c, ProjectOverviewComponent.GRAPH_ENTRIES);
       return c;
     });
+
+    if(stats.cpuMaximum != 0) {
+      this.cpuLimit = stats.cpuMaximum;
+    }
+
+    this.mergeOptionCpu = {
+      yAxis: {
+        max : this.cpuMax
+      },
+      series: [
+        {
+          name: "CPU",
+          type: "line",
+          hoverAnimation: false,
+          showSymbol: false,
+          color: "#5ac8fa",
+          itemStyle: { normal: { areaStyle: { type: "default" } } },
+          data: this.cpu[0].series,
+          markLine: {
+            data: [{ yAxis: this.cpuLimit}],
+            symbol: "none",
+          }
+        },
+      ],
+    };
   }
 
 
   private updateMemory(stats: StatsInfo) {
+    const date = new Date();
     this.memory[0].series.push({
-      name: new Date(),
-      value: this.bytesToGigabyte(stats.memoryAllocated)/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
+      name: date.toString(),
+      value: [date, this.bytesToGigabyte(stats.memoryAllocated).toFixed(2)]/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
     this.memoryMax = ProjectOverviewComponent.maxOfSeriesOr(this.memory[0].series, 0.1, stats.memoryMaximum);
@@ -175,6 +329,23 @@ export class ProjectOverviewComponent implements OnDestroy {
       ProjectOverviewComponent.limitSeriesTo(m, ProjectOverviewComponent.GRAPH_ENTRIES);
       return m;
     });
+
+    this.mergeOptionMemory = {
+      yAxis: {
+        max : this.memoryMax
+      },
+      series: [
+        {
+          name: "Memory",
+          type: "line",
+          hoverAnimation: false,
+          showSymbol: false,
+          color: "#5ac8fa",
+          itemStyle: { normal: { areaStyle: { type: "default" } } },
+          data: this.memory[0].series,
+        },
+      ],
+    };
   }
 
   bytesToGigabyte(bytes: number) {

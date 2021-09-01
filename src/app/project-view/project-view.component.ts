@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {
     AuthTokenInfo,
     DeletionPolicy,
@@ -35,7 +35,7 @@ import {environment} from '../../environments/environment';
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
 })
-export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
@@ -155,6 +155,36 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   authTokens: AuthTokenInfo[] = null;
 
 
+  // load more entries, when user is scrolling to the bottom
+  // on project history list
+  @HostListener('scroll', ['$event'])
+  onScroll(event: any) {
+      if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight) {
+        this.loadMoreHistoryEntries(10);
+      }
+  }
+
+  selectedHistoryEntry: ExecutionGroupInfo = null;
+  selectedHistoryEntryNumber: number;
+  selectedHistoryEntryIndex = 0;
+
+  setHistoryEntry(entry: ExecutionGroupInfo, index: number) {
+    this.selectedHistoryEntry = entry;
+    this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.id, this.history.length - index)
+    this.selectedHistoryEntryIndex = index;
+
+    if(entry.stages.length == 1) {
+      this.selectedHistoryEntryStage = entry.stages[0];
+    } else if (entry.stages.length < 1) {
+      this.selectedHistoryEntryStage = new StageInfo();
+    }
+  }
+
+  selectedHistoryEntryStage: StageInfo;
+  setHistoryEntryStage(stage: StageInfo) {
+    this.selectedHistoryEntryStage = stage;
+  }
+
   private static deepClone(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
   }
@@ -176,6 +206,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
         this.updateTabSelection(params.tab);
       }
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (let propName in changes) {
+      let change = changes[propName];
+
+      // reset selectedHistory if another project will be selected
+      if(change?.currentValue?.id != change?.previousValue?.id) {
+        this.selectedHistoryEntry = null;
+        this.selectedHistoryEntryNumber = null;
+        this.selectedHistoryEntryIndex = 0;
+        this.selectedHistoryEntryStage = null;
+      }
+     }
   }
 
   ngAfterViewInit() {

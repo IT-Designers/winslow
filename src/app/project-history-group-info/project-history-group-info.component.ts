@@ -13,16 +13,25 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
   @Input() executionGroup: ExecutionGroupInfo;
   @Input() visibleStages = 10;
-
+  @Input() selectedStageIndex: number;
+  @Output() selectedStageIndexChange = new EventEmitter<number>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
   @Output() clickOpenLogs = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
+  @Output() clickGetStage = new EventEmitter<StageInfo>();
 
   constructor(private api: ProjectApiService) { }
 
   ngOnInit(): void {
+
+  }
+
+  emitStageAndSetIndex(stage: StageInfo, index: number) {
+    this.clickGetStage.emit(stage);
+    this.selectedStageIndex = index;
+    this.selectedStageIndexChange.emit(index)
   }
 
   tryParseStageNumber(stageId: string, alt: number): number {

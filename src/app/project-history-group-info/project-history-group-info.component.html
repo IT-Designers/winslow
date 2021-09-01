@@ -7,116 +7,27 @@
 </ng-template>
 
 <mat-accordion>
-  <mat-expansion-panel #definitionPanel *ngIf="executionGroup?.stageDefinition != null">
-    <mat-expansion-panel-header>
-      <mat-panel-title [style.font-weight]="definitionPanel.expanded ? 'bold' : 'inherit'">
-        Stage Definition
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <div class="history-item-detail">
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Name', value: executionGroup?.stageDefinition.name }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Image Name', value: executionGroup?.stageDefinition.image?.name }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Image Arguments', value: executionGroup?.stageDefinition.image?.args | json }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Required CPUs', value: executionGroup?.stageDefinition.requiredResources?.cpus }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Required RAM (MiB)', value: executionGroup?.stageDefinition.requiredResources?.megabytesOfRam }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Required GPUs', value: executionGroup?.stageDefinition.requiredResources?.gpus }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Required EnvVars', value: executionGroup?.stageDefinition.requiredEnvVariables | json }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Workspace Mode', value: executionGroup?.workspaceConfiguration?.mode }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Workspace Shared Within Group', value: executionGroup?.workspaceConfiguration?.sharedWithinGroup }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Workspace Supplement', value: executionGroup?.workspaceConfiguration?.value }"></ng-template>
-      <ng-container *ngFor="let entry of executionGroup?.rangedValues | keyvalue; trackBy:trackKey">
-        <ng-container *ngIf="entry.value?.DiscreteSteps != null">
-          <ng-template
-            *ngTemplateOutlet="detailItem; context: {
-                key: 'Ranged/DiscreteSteps['+(entry.key)+']',
-                value: '[' + entry.value.DiscreteSteps.min+', ' + entry.value.DiscreteSteps.max +'], ' + entry.value.DiscreteSteps.stepSize
-              }">
-          </ng-template>
-        </ng-container>
-      </ng-container>
+  <div *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i; trackBy:trackStageInfo">
+    <app-project-history-header class="history-header"
+      [class.active]="selectedStageIndex === i"
+      [state]="stage.state"
+      [isConfigure]="executionGroup?.configureOnly"
+      [itemNo]="tryParseStageNumber(stage.id, min(visibleStages, executionGroup.stages.length) - i)"
+      [time]="stage.finishTime != null ? stage.startTime : stage.finishTime"
+      [stageName]="executionGroup?.stageDefinition?.name"
+      [showResumeOnlyThisStage]="false"
+      [enqueued]="false"
+      [running]="stage.state == State.Running"
+      [paused]="stage.state == State.Paused"
+      [comment]="getRangeEnvVariableValues(stage)"
+      [sharedWorkspace]="!executionGroup?.workspaceConfiguration?.sharedWithinGroup"
 
-      <h4>Environment Variables</h4>
-      <i *ngIf="executionGroup?.stageDefinition?.env?.size == 0">none</i>
-      <ng-container *ngFor="let e of executionGroup?.stageDefinition?.env | keyvalue; trackBy:trackKey">
-        <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
-        </ng-template>
-      </ng-container>
+      (click)="emitStageAndSetIndex(stage, i)"
 
-    </div>
-  </mat-expansion-panel>
+      (clickKillCurrentStage)="clickKillStage.emit(stage)"
+      (clickUseAsBlueprint)="clickUseAsBlueprint.emit(stage)"
+      (clickOpenLogs)="clickOpenLogs.emit(stage)"
+    ></app-project-history-header>
+  </div>
 
-  <mat-expansion-panel
-    *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i; trackBy:trackStageInfo">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <app-project-history-header
-          [state]="stage.state"
-          [isConfigure]="executionGroup?.configureOnly"
-          [itemNo]="tryParseStageNumber(stage.id, min(visibleStages, executionGroup.stages.length) - i)"
-          [time]="stage.finishTime != null ? stage.startTime : stage.finishTime"
-          [stageName]="executionGroup?.stageDefinition?.name"
-          [showResumeOnlyThisStage]="false"
-          [enqueued]="false"
-          [running]="stage.state == State.Running"
-          [paused]="stage.state == State.Paused"
-          [comment]="getRangeEnvVariableValues(stage)"
-
-          (clickKillCurrentStage)="clickKillStage.emit(stage)"
-          (clickUseAsBlueprint)="clickUseAsBlueprint.emit(stage)"
-          (clickOpenLogs)="clickOpenLogs.emit(stage)"
-          (clickOpenWorkspace)="clickOpenWorkspace.emit(stage)"
-          (clickOpenTensorboard)="clickOpenTensorboard.emit(stage)"
-        ></app-project-history-header>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <div class="history-item-detail">
-
-      <h4>General Information</h4>
-      <ng-template *ngTemplateOutlet="detailItem; context: { key: 'Unique Id', value: stage.id }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Workspace Directory', value: stage.workspace }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Started execution at', value: stage.startTime != null ? toDate(stage.startTime) : ' not yet started' }"></ng-template>
-      <ng-template
-        *ngTemplateOutlet="detailItem; context: { key: 'Finished execution at', value: stage.finishTime != null ? toDate(stage.finishTime) : ' not yet finished' }"></ng-template>
-
-      <h4>Stage Environment Variables</h4>
-      <i *ngIf="stage?.env.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.env | keyvalue; trackBy:trackKey">
-        <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
-        </ng-template>
-      </ng-container>
-
-      <h4>Pipeline Environment Variables</h4>
-      <i *ngIf="stage?.envPipeline.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.envPipeline | keyvalue; trackBy:trackKey">
-        <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
-        </ng-template>
-      </ng-container>
-
-      <h4>System Environment Variables</h4>
-      <i *ngIf="stage?.envSystem.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.envSystem | keyvalue; trackBy:trackKey">
-        <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
-        </ng-template>
-      </ng-container>
-
-      <h4>Internal Environment Variables</h4>
-      <i *ngIf="stage?.envInternal.size == 0">none</i>
-      <ng-container *ngFor="let e of stage?.envInternal | keyvalue; trackBy:trackKey">
-        <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
-        </ng-template>
-      </ng-container>
-    </div>
-  </mat-expansion-panel>
 </mat-accordion>
