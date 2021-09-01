@@ -12,3 +12,8 @@
   padding-left: 1em;
   margin: auto 0;
 }
+
+.vmenu-selection {
+  max-width: 30vh;
+  overflow: hidden;
+}
