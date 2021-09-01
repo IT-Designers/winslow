@@ -371,6 +371,27 @@ export class ProjectApiService {
       .toPromise();
   }
 
+  getAuthTokens(projectId: string): Promise<AuthTokenInfo[]> {
+    return this
+      .client
+      .get<AuthTokenInfo[]>(ProjectApiService.getUrl(`${projectId}/auth-tokens`))
+      .toPromise();
+  }
+
+  createAuthToken(projectId: string, name: string): Promise<AuthTokenInfo> {
+    return this
+      .client
+      .post<AuthTokenInfo>(ProjectApiService.getUrl(`${projectId}/auth-tokens?name=${name}`), new FormData())
+      .toPromise();
+  }
+
+  deleteAuthToken(projectId: string, id: string): Promise<boolean> {
+    return this
+      .client
+      .delete<boolean>(ProjectApiService.getUrl(`${projectId}/auth-tokens/${id}`))
+      .toPromise();
+  }
+
 
   tryParseGroupNumber(groupId: string, alt: number): number {
     if (groupId != null) {
@@ -397,6 +418,7 @@ export class ProjectApiService {
     }
     return alt;
   }
+
 }
 
 export enum State {
@@ -488,6 +510,13 @@ export class RangeWithStepSize {
     const dist = (max - min);
     return Math.ceil(dist / stp) + 1;
   }
+}
+
+export class AuthTokenInfo {
+    id: string;
+    secret?: string;
+    name: string;
+    capabilities: string[];
 }
 
 export class ExecutionGroupInfo {
@@ -683,6 +712,8 @@ export class DeletionPolicy {
 }
 
 export class StatsInfo {
+  stageId?: string;
+  runningOnNode?: string;
   cpuUsed = 0;
   cpuMaximum = 0;
   memoryAllocated = 0;

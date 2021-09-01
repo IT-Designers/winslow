@@ -39,7 +39,7 @@ import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
 import {StateIconComponent} from './state-icon/state-icon.component';
-import {ProjectViewComponent,} from './project-view/project-view.component';
+import {ProjectViewComponent } from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
 import {AboutComponent} from './about/about.component';
@@ -77,7 +77,7 @@ import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
-
+import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 
 @NgModule({
     declarations: [
@@ -120,6 +120,7 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         ServerBarComponent,
         ServerDetailsComponent,
         ProjectHistoryDetailsComponent,
+        AuthTokensComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

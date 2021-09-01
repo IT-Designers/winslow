@@ -153,6 +153,16 @@ export class DialogService {
     });
   }
 
+  info(text: string, title = 'Information') {
+    Swal.fire({
+      icon: 'info',
+      titleText: title,
+      text,
+      showConfirmButton: true,
+      showCancelButton: false,
+    });
+  }
+
 }
 
 export class InputDefinition {
