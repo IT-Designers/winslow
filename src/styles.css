@@ -304,6 +304,7 @@ mat-card.vmenu-container-selection {
   display: flex;
   align-items: center;
   flex-grow: initial !important;
+}
 
 .data-row {
   display: flex;
