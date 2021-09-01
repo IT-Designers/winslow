@@ -918,7 +918,7 @@ export class ServerDetailsComponent implements OnInit {
     }
   }
 
-  setNode(index: number, ) {
+  setNode(index: number) {
     this.formatter = this.axisLabelFormatterMinutes;
     this.selectedNodeIndex = index;
     this.onHistoryButtonValueChange("live");
@@ -945,7 +945,6 @@ export class ServerDetailsComponent implements OnInit {
   }
 
   getHistory(hours) {
-
     this.isLive = false;
 
     const node: NodeInfo = this.nodes[this.selectedNodeIndex];
@@ -1057,12 +1056,12 @@ export class ServerDetailsComponent implements OnInit {
       });
 
       this.updateCpuStatus();
-        this.updateMemoryStatus();
-        this.scaleNetwork();
-        this.updateNetworkStatus();
-        this.scaleDisk();
-        this.updateDiskStatus();
-        this.updateGpuStatus();
+      this.updateMemoryStatus();
+      this.scaleNetwork();
+      this.updateNetworkStatus();
+      this.scaleDisk();
+      this.updateDiskStatus();
+      this.updateGpuStatus();
     });
   }
 
