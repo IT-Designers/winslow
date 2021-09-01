@@ -116,7 +116,7 @@
       <ng-template matTabContent>
 
         <div *ngIf="history.length > 0" class="history-more-buttons horizontal-center-with-margin">
-          <button *ngIf="historyCanLoadMoreEntries"
+          <!-- <button *ngIf="historyCanLoadMoreEntries"
                   mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(10)">
             <mat-icon>arrow_drop_down</mat-icon>
             Show 10 More
@@ -125,11 +125,11 @@
                   mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(50)">
             <mat-icon>expand_more</mat-icon>
             Show 50 More
-          </button>
+          </button> -->
           <button *ngIf="historyCanLoadMoreEntries"
                   mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(1000000)">
             <mat-icon>arrow_downward</mat-icon>
-            Show All
+            Load All
           </button>
           <button mat-stroked-button color="warn" (click)="pruneHistory()">
             <mat-icon>delete_forever</mat-icon>
@@ -168,6 +168,7 @@
             ></app-project-history>
           </div>
         </div>
+
         <div *ngIf="history?.length > 0">
           <app-project-history-details
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"

@@ -1,15 +1,23 @@
 .selected-history-item-header {
-  margin-top: 1em;
-  border-radius: 5px;
-  border: 1px solid darkgrey;
-  background-color: aliceblue;
+  /* border-radius: 5px;
+  border: 1px solid darkgrey; */
+  background-color: rgb(0 0 0 / 6%);
   z-index: 999;
   font-family: Roboto, "Helvetica Neue", sans-serif;
   font-size: 15px;
-  font-weight: 400;
+  font-weight: bold;
   padding: 0 24px;
   padding-top: 1em;
   padding-bottom: 0.5em;
+}
+
+.selected-history-item {
+  margin-top: 2em !important;
+  border-radius: 5px;
+  border: 1px solid darkgrey;
+  background-color: white;
+  z-index: 999;
+  margin-top: -1px;
 }
 
 .history-item {
@@ -19,14 +27,6 @@
   background-color: white;
   z-index: 999;
   /* margin-top: -1px; */
-}
-
-.selected-history-item-body {
-  border-radius: 5px;
-  border: 1px solid darkgrey;
-  background-color: white;
-  z-index: 999;
-  margin-top: -1px;
 }
 
 .buttons {
