@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {
   DeletionPolicy,
   EnvVariable,
@@ -34,7 +34,7 @@ import {environment} from '../../environments/environment';
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
 })
-export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
 
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
@@ -164,6 +164,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedHistoryEntry: ExecutionGroupInfo = null;
   selectedHistoryEntryNumber: number;
   selectedHistoryEntryIndex = 0;
+
   setHistoryEntry(entry: ExecutionGroupInfo, index: number) {
     this.selectedHistoryEntry = entry;
     this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.id, this.history.length - index)
@@ -202,6 +203,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy, AfterViewInit {
         this.updateTabSelection(params.tab);
       }
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (let propName in changes) {
+      let change = changes[propName];
+
+      // reset selectedHistory if another project will be selected
+      if(change?.currentValue?.id != change?.previousValue?.id) {
+        this.selectedHistoryEntry = null;
+        this.selectedHistoryEntryNumber = null;
+        this.selectedHistoryEntryIndex = 0;
+        this.selectedHistoryEntryStage = null;
+      }
+     }
   }
 
   ngAfterViewInit() {
