@@ -1,26 +1,25 @@
 <div *ngIf="entry">
-  <div class="selected-history-item-header">
-    <app-project-history-header class="history-header"
-      [itemNo]="entryNumber"
-      [time]="selectedStage?.startTime"
-      [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
-      [state]="selectedStage?.state"
-      [isConfigure]="entry?.configureOnly"
-      [showResumeOnlyThisStage]="false"
-      [enqueued]="false"
-      [running]="selectedStage?.state == 'Running'"
-      [paused]="selectedStage?.state == 'Paused'"
+  <div class="selected-history-item">
+    <div class="selected-history-item-header">
+      <app-project-history-header class="history-header"
+        [itemNo]="entryNumber"
+        [time]="selectedStage?.startTime"
+        [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
+        [state]="selectedStage?.state"
+        [isConfigure]="entry?.configureOnly"
+        [showResumeOnlyThisStage]="false"
+        [enqueued]="false"
+        [running]="selectedStage?.state == 'Running'"
+        [paused]="selectedStage?.state == 'Paused'"
 
 
-      (clickKillCurrentStage)="clickKillStage.emit(selectedStage)"
-      (clickUseAsBlueprint)="clickUseAsBlueprint.emit(selectedStage)"
-      (clickOpenLogs)="clickOpenLogs.emit(selectedStage)"
-      (clickOpenWorkspace)="clickOpenWorkspace.emit(selectedStage)"
-      (clickOpenTensorboard)="clickOpenTensorboard.emit(selectedStage)"
-    ></app-project-history-header>
-  </div>
-
-  <div class="selected-history-item-body">
+        (clickKillCurrentStage)="clickKillStage.emit(selectedStage)"
+        (clickUseAsBlueprint)="clickUseAsBlueprint.emit(selectedStage)"
+        (clickOpenLogs)="clickOpenLogs.emit(selectedStage)"
+        (clickOpenWorkspace)="clickOpenWorkspace.emit(selectedStage)"
+        (clickOpenTensorboard)="clickOpenTensorboard.emit(selectedStage)"
+      ></app-project-history-header>
+    </div>
 
     <div class="buttons">
       <mat-button-toggle-group

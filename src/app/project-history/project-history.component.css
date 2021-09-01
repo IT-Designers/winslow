@@ -57,4 +57,14 @@ mat-expansion-panel div {
 
 .active {
   background-color: aliceblue !important;
+  font-weight: bold;
+}
+
+.mat-expansion-panel-header {
+  padding-left: 24px !important;
+  padding-right: 12px !important;
+}
+
+.mat-expansion-panel-header-title {
+  margin-right: 6px !important;
 }

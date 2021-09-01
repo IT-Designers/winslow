@@ -44,11 +44,6 @@
             (click)="$event.stopPropagation(); clickKillCurrentStage.emit($event)">
     pan_tool
   </mat-icon>
-  <mat-icon *ngIf="showUseAsBlueprint && clickUseAsBlueprint.observers.length > 0" class="clickable"
-            matTooltip="Use as blueprint"
-            (click)="$event.stopPropagation(); clickUseAsBlueprint.emit($event)">
-    replay
-  </mat-icon>
   <mat-icon *ngIf="showPassiveControls && clickOpenLogs.observers.length > 0" class="clickable"
             matTooltip="Open Logs"
             (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
@@ -65,4 +60,9 @@
        src="../../assets/tensorflow.png"
        alt="(TensorBoard)"
        (click)="$event.stopPropagation(); clickOpenTensorboard.emit($event)">
+  <mat-icon *ngIf="showUseAsBlueprint && clickUseAsBlueprint.observers.length > 0" class="clickable"
+        matTooltip="Use as blueprint"
+        (click)="$event.stopPropagation(); clickUseAsBlueprint.emit($event)">
+    replay
+  </mat-icon>
 </div>
