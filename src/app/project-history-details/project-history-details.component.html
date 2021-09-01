@@ -40,7 +40,7 @@
       </mat-button-toggle-group>
     </div>
 
-    <div [style.overflow]="'auto'" [ngStyle]="{'height': 'calc(100vh - 55vh)'}">
+    <div [style.overflow]="'auto'" [ngStyle]="{'height': historyDetailsHeight + 'px'}">
 
       <ng-template #detailItem let-key="key" let-value="value">
         <p class="history-item-detail-item mat-highlight-hover">

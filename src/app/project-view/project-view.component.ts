@@ -43,6 +43,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
               private dialog: DialogService,
               private route: ActivatedRoute,
               private router: Router) {
+              this.setHistoryListHeight(window.innerHeight)
   }
 
   @Input()
@@ -162,6 +163,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight) {
         this.loadMoreHistoryEntries(10);
       }
+  }
+
+  historyListHeight: any;
+  @HostListener('window:resize', ['$event'])
+  getScreenSize(event?) {
+    this.setHistoryListHeight(window.innerHeight)
+  }
+
+  setHistoryListHeight(height: number) {
+    this.historyListHeight = 0.295 * (height - 136);
   }
 
   selectedHistoryEntry: ExecutionGroupInfo = null;
