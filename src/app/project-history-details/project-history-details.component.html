@@ -20,25 +20,28 @@
     ></app-project-history-header>
   </div>
 
-  <div class="selected-history-item-body" [style.overflow]="'auto'" [ngStyle]="{'height': 'calc(100vh - 55vh)'}">
-    <div class="buttons">
-      <mat-button-toggle-group
-        #group="matButtonToggleGroup"
-        [value]="buttonValue"
-        (change)="onButtonValueChange(group.value)"
+
+  <div class="buttons">
+    <mat-button-toggle-group
+      #group="matButtonToggleGroup"
+      [value]="buttonValue"
+      (change)="onButtonValueChange(group.value)"
+    >
+      <mat-button-toggle
+        value="stage-definition"
+        (click)="getStageDefinition()"
+        >Stage Definition</mat-button-toggle
       >
-        <mat-button-toggle
-          value="stage-definition"
-          (click)="getStageDefinition()"
-          >Stage Definition</mat-button-toggle
-        >
-        <mat-button-toggle
-          value="stage-information"
-          (click)="getStageInformation()"
-          >Stage Information
-        </mat-button-toggle>
-      </mat-button-toggle-group>
-    </div>
+      <mat-button-toggle
+        value="stage-information"
+        (click)="getStageInformation()"
+        >Stage Information
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="selected-history-item-body" [style.overflow]="'auto'" [ngStyle]="{'height': 'calc(100vh - 55vh)'}">
+
 
     <ng-template #detailItem let-key="key" let-value="value">
       <p class="history-item-detail-item mat-highlight-hover">
@@ -187,7 +190,7 @@
       </div>
     </div>
 
-    <div *ngIf="!this.showStageDefinition" class="stage-definition-information" [style.overflow]="'auto'" [ngStyle]="{'height': 'calc(100vh - 55vh)'}">
+    <div *ngIf="!this.showStageDefinition" class="stage-definition-information">
       <div *ngIf="selectedStage?.id" class="history-item-detail">
 
         <h4>General Information</h4>
