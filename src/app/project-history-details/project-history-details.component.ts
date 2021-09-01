@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { ExecutionGroupInfo, StageInfo } from '../api/project-api.service';
 
 @Component({
@@ -28,17 +28,28 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
 
+  historyDetailsHeight: any;
+  @HostListener('window:resize', ['$event'])
+  getScreenSize(event?) {
+    this.setHistoryDetailsHeight(window.innerHeight)
+  }
+
+
   buttonValue: string;
   showStageDefinition: boolean;
 
   constructor() {
     this.buttonValue = "stage-definition";
     this.showStageDefinition = true;
-
+    this.setHistoryDetailsHeight(window.innerHeight)
   }
 
   ngOnInit(): void {
 
+  }
+
+  setHistoryDetailsHeight(height: number) {
+    this.historyDetailsHeight = 0.45 * (height - 136);
   }
 
   onButtonValueChange(value: string) {

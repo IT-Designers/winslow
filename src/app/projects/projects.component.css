@@ -14,7 +14,6 @@
 }
 
 .vmenu-selection {
-  max-width: 30vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
