@@ -49,7 +49,7 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   }
 
   setHistoryDetailsHeight(height: number) {
-    this.historyDetailsHeight = 0.45 * (height - 136);
+    this.historyDetailsHeight = 0.51 * (height - 136);
   }
 
   onButtonValueChange(value: string) {
