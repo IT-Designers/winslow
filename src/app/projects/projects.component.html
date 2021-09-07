@@ -65,7 +65,7 @@
       </div>
 
       <ng-container *ngIf="selectedProject != null">
-        <app-project-view
+        <app-project-view style="overflow: hidden"
           [project]="selectedProject"
           [state]="stateInfo?.get(selectedProject.id)"
           (deleted)="onDeleted(selectedProject)">
