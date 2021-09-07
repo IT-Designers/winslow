@@ -779,27 +779,43 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     const projectId = this.projectValue.id;
     const groupId = this.history[this.history.length - 1].id;
     this.historyCanLoadMoreEntries = false;
-    this.dialog.openLoadingIndicator(
-      this.api.getProjectPartialHistory(
-        projectId,
-        groupId,
-        count
-      ).then(entries => {
-        if (this.projectValue.id === projectId) {
-          if (entries != null && entries.length > 0) {
-            this.history.push(...entries);
-            this.historyCanLoadMoreEntries = entries.length >= count;
-          } else {
-            this.historyCanLoadMoreEntries = false;
-          }
+    // this.dialog.openLoadingIndicator(
+    //   this.api.getProjectPartialHistory(
+    //     projectId,
+    //     groupId,
+    //     count
+    //   ).then(entries => {
+    //     if (this.projectValue.id === projectId) {
+    //       if (entries != null && entries.length > 0) {
+    //         this.history.push(...entries);
+    //         this.historyCanLoadMoreEntries = entries.length >= count;
+    //       } else {
+    //         this.historyCanLoadMoreEntries = false;
+    //       }
+    //     }
+    //   }, err => {
+    //     console.error(err);
+    //   }),
+    //   `Digging out old history entries`,
+    //   true,
+    //   true
+    // );
+    this.api.getProjectPartialHistory(
+      projectId,
+      groupId,
+      count
+    ).then(entries => {
+      if (this.projectValue.id === projectId) {
+        if (entries != null && entries.length > 0) {
+          this.history.push(...entries);
+          this.historyCanLoadMoreEntries = entries.length >= count;
+        } else {
+          this.historyCanLoadMoreEntries = false;
         }
-      }, err => {
-        console.error(err);
-      }),
-      `Digging out old history entries`,
-      true,
-      true
-    );
+      }
+    }, err => {
+      console.error(err);
+    })
   }
 
   updatePublicAccess(checked: boolean) {
