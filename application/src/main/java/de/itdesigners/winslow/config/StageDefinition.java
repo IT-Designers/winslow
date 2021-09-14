@@ -18,6 +18,7 @@ public class StageDefinition {
     private final @Nonnull  List<LogParser>     logParsers;
     private final           boolean             ignoreFailuresWithinExecutionGroup;
     private final @Nullable List<String>        tags;
+    private final @Nonnull  boolean             decision;
 
     public StageDefinition(
             @Nonnull String name,
@@ -32,7 +33,8 @@ public class StageDefinition {
             @Nullable Boolean privileged,
             @Nullable List<LogParser> logParsers,
             @Nullable Boolean ignoreFailuresWithinExecutionGroup,
-            @Nullable List<String> tags) {
+            @Nullable List<String> tags,
+            @Nullable Boolean decision) {
         this.name                               = name;
         this.desc                               = description;
         this.image                              = image;
@@ -48,6 +50,7 @@ public class StageDefinition {
                 .orElseGet(Collections::emptyList);
         this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
         this.tags                               = tags;
+        this.decision                           = decision != null && decision;
         this.check();
     }
 
@@ -112,6 +115,10 @@ public class StageDefinition {
 
     public boolean getIgnoreFailuresWithinExecutionGroup() {
         return this.ignoreFailuresWithinExecutionGroup;
+    }
+
+    public boolean getDecision() {
+        return decision;
     }
 
     @Override

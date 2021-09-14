@@ -19,6 +19,7 @@ public class StageDefinitionBuilder {
     private @Nullable Optional<Boolean>             discardable;
     private @Nullable Map<String, String>           additionalEnv;
     private @Nullable Optional<List<LogParser>>     logParsers;
+    private @Nullable Optional<Boolean>             decision;
 
     @Nonnull
     @CheckReturnValue
@@ -145,7 +146,8 @@ public class StageDefinitionBuilder {
                 either(
                         Optional.ofNullable(this.template).map(StageDefinition::getTags),
                         Optional.ofNullable(this.base).map(StageDefinition::getTags)
-                )
+                ),
+                either(this.decision, base.map(StageDefinition::getDecision))
         );
     }
 

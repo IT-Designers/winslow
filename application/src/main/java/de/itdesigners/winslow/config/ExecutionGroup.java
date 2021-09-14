@@ -155,7 +155,8 @@ public class ExecutionGroup {
                             stageDefinition.isPrivileged(),
                             stageDefinition.getLogParsers(),
                             stageDefinition.getIgnoreFailuresWithinExecutionGroup(),
-                            stageDefinition.getTags()
+                            stageDefinition.getTags(),
+                            stageDefinition.getDecision()
                     )
             ));
         } else if (this.stages.isEmpty()) {
