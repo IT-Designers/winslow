@@ -120,13 +120,13 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
         return nextStageDefinitionIndex
                 .filter(index -> index < pipelineDefinition.getStages().size())
                 .flatMap(index -> {
-                    while (!pipelineDefinition.getStages().get(index).getDecision()) {
+                    /*while (!pipelineDefinition.getStages().get(index).getDecision()) {
                         if (index + 1 < pipelineDefinition.getStages().size()) {
                             index++;
                         } else {
                             return Optional.empty();
                         }
-                    }
+                    }*/
                     return Optional.of(new Pair<>(mostRecent, pipelineDefinition.getStages().get(index)));
                 });
     }
