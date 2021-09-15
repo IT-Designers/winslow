@@ -24,6 +24,7 @@ public class RunInfoRepository extends BaseRepository {
     private static final String PROPERTY_FILE_PROGRESS                   = "progress";
     private static final String PROPERTY_FILE_LOG_COMPLETED_SUCCESSFULLY = "log-completed-successfully";
     private static final String PROPERTY_FILE_STATS                      = "stats";
+    private static final String PROPERTY_FILE_RESULT                     = "result";
 
     public RunInfoRepository(
             @Nonnull LockBus lockBus,
@@ -98,12 +99,19 @@ public class RunInfoRepository extends BaseRepository {
         }
     }
 
-
     public void setProgressHint(@Nonnull String stageId, int progress) {
         try {
             setProperty(stageId, PROPERTY_FILE_PROGRESS, Collections.singleton(Integer.toString(progress)));
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to save progress hint [" + progress + "] for " + stageId, e);
+        }
+    }
+
+    public void setResult(@Nonnull String stageId, String result) {
+        try {
+            setProperty(stageId, PROPERTY_FILE_RESULT, Collections.singleton(result));
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to save computation result [" + result + "] for " + stageId, e);
         }
     }
 
