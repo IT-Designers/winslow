@@ -3,10 +3,8 @@ package de.itdesigners.winslow.pipeline;
 import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.config.PipelineDefinition;
-import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.config.StageDefinitionBuilder;
-import de.itdesigners.winslow.config.UserInput;
+import de.itdesigners.winslow.config.*;
+import de.itdesigners.winslow.project.Project;
 import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
@@ -63,19 +61,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                         .filter(g -> g
                                 .getStages()
                                 .allMatch(s -> s.getFinishState().equals(Optional.of(State.Succeeded))))
-                        .flatMap(mostRecent -> {
-                            var pipelineDefinition = project.getPipelineDefinition();
-                            var mostRecentStageDefIndex = guessStageIndex(
-                                    pipelineDefinition,
-                                    mostRecent.getStageDefinition().getName()
-                            );
-                            var nextStageDefinitionIndex = mostRecentStageDefIndex
-                                    .map(index -> index + (mostRecent.isConfigureOnly() ? 0 : 1));
-
-                            return nextStageDefinitionIndex
-                                    .filter(index -> index < pipelineDefinition.getStages().size())
-                                    .map(index -> new Pair<>(mostRecent, pipelineDefinition.getStages().get(index)));
-                        })
+                        .flatMap(mostRecent -> getNextStageDefinition(project, mostRecent))
                         .map(pair -> {
                             var prevGroup               = pair.getValue0();
                             var nextStageDefinitionBase = pair.getValue1();
@@ -117,6 +103,32 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                                     builder.build()
                             );
                         }));
+    }
+
+    @Nonnull
+    private static Optional<Pair<ExecutionGroup, StageDefinition>> getNextStageDefinition(
+            @Nonnull Project project,
+            @Nonnull ExecutionGroup mostRecent) {
+        var pipelineDefinition = project.getPipelineDefinition();
+        var mostRecentStageDefIndex = guessStageIndex(
+                pipelineDefinition,
+                mostRecent.getStageDefinition().getName()
+        );
+        var nextStageDefinitionIndex = mostRecentStageDefIndex
+                .map(index -> index + (mostRecent.isConfigureOnly() ? 0 : 1));
+
+        return nextStageDefinitionIndex
+                .filter(index -> index < pipelineDefinition.getStages().size())
+                .flatMap(index -> {
+                    while (!pipelineDefinition.getStages().get(index).getDecision()) {
+                        if (index + 1 < pipelineDefinition.getStages().size()) {
+                            index++;
+                        } else {
+                            return Optional.empty();
+                        }
+                    }
+                    return Optional.of(new Pair<>(mostRecent, pipelineDefinition.getStages().get(index)));
+                });
     }
 
     @Nonnull
