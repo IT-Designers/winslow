@@ -47,6 +47,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     private static final Logger  LOG                   = Logger.getLogger(Orchestrator.class.getSimpleName());
     public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
+    public static final  Pattern RESULT_PATTERN = Pattern.compile("Result:[ ]+(.*)");
 
     private final @Nonnull LockBus            lockBus;
     private final @Nonnull Environment        environment;
@@ -516,11 +517,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
         try {
             env      = settings.getGlobalEnvironmentVariables();
-            executor = startExecutor(
-                    pipeline.getProjectId(),
-                    stageId,
-                    getProgressHintMatcher(stageId.getFullyQualified())
-            );
+            executor = startExecutor(stageId);
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
             return Optional.empty();
@@ -639,6 +636,16 @@ public class Orchestrator implements Closeable, AutoCloseable {
             var matcher = PROGRESS_HINT_PATTERN.matcher(entry.getMessage());
             if (matcher.find()) {
                 this.hints.setProgressHint(stageId, Math.round(Float.parseFloat(matcher.group(1))));
+                LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
+            }
+        };
+    }
+
+    private Consumer<LogEntry> getResultMatcher(@Nonnull String stageId) {
+        return entry -> {
+            var matcher = RESULT_PATTERN.matcher(entry.getMessage());
+            if (matcher.find()) {
+                this.hints.setResult(stageId, matcher.group(1));
                 LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
             }
         };
@@ -975,11 +982,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    private Executor startExecutor(
-            @Nonnull String projectId,
-            @Nonnull StageId stageId,
-            @Nonnull Consumer<LogEntry> consumer) throws LockException, FileNotFoundException {
-        var executor = new Executor(projectId, stageId, this);
+    private Executor startExecutor(@Nonnull StageId stageId) throws LockException, FileNotFoundException {
+        var executor = new Executor(stageId.getProjectId(), stageId, this);
         executor.addShutdownListener(() -> {
             try {
                 var ex = this.executors.remove(stageId.getFullyQualified());
@@ -990,8 +994,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 LOG.log(Level.SEVERE, "Failed to close executor", e);
             }
         });
-        executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(projectId));
-        executor.addLogEntryConsumer(consumer);
+        executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(stageId.getProjectId()));
+        executor.addLogEntryConsumer(getProgressHintMatcher(stageId.getFullyQualified()));
+        executor.addLogEntryConsumer(getResultMatcher(stageId.getFullyQualified()));
         this.executors.put(stageId.getFullyQualified(), executor);
         return executor;
     }
