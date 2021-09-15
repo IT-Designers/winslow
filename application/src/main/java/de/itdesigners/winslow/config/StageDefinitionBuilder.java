@@ -19,7 +19,7 @@ public class StageDefinitionBuilder {
     private @Nullable Optional<Boolean>             discardable;
     private @Nullable Map<String, String>           additionalEnv;
     private @Nullable Optional<List<LogParser>>     logParsers;
-    private @Nullable Optional<Boolean>             decision;
+    private @Nullable Optional<String>              decision;
 
     @Nonnull
     @CheckReturnValue
