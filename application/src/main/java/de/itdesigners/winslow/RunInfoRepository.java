@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -80,6 +81,17 @@ public class RunInfoRepository extends BaseRepository {
         Files.write(getPropertyPath(stageId, property), lines);
     }
 
+    public void appendProperty(
+            @Nonnull String stageId,
+            @Nonnull String property,
+            @Nonnull Iterable<? extends CharSequence> lines) throws IOException {
+        try {
+            Files.write(getPropertyPath(stageId, property), lines, StandardOpenOption.APPEND);
+        } catch (NoSuchFileException e) {
+            Files.write(getPropertyPath(stageId, property), lines);
+        }
+    }
+
     @Nonnull
     public Optional<String> getProperty(@Nonnull String stageId, @Nonnull String property) throws IOException {
         var path = getPropertyPathIfStageExists(stageId, property);
@@ -110,7 +122,7 @@ public class RunInfoRepository extends BaseRepository {
 
     public void setResult(@Nonnull String stageId, String result) {
         try {
-            setProperty(stageId, PROPERTY_FILE_RESULT, Collections.singleton(result));
+            appendProperty(stageId, PROPERTY_FILE_RESULT, Collections.singleton(result));
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to save computation result [" + result + "] for " + stageId, e);
         }
@@ -125,6 +137,19 @@ public class RunInfoRepository extends BaseRepository {
             return Optional.empty();
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to read progress hint for " + stageId, e);
+            return Optional.empty();
+        }
+    }
+
+    @Nonnull
+    public Optional<String> getResult(@Nonnull String stageId) {
+        try {
+            return getProperty(stageId, PROPERTY_FILE_RESULT).map(String::trim);
+        } catch (NoSuchFileException | FileNotFoundException e) {
+            LOG.log(Level.FINER, "There is no result for the stage " + stageId, e);
+            return Optional.empty();
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to read result for " + stageId, e);
             return Optional.empty();
         }
     }
