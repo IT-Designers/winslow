@@ -13,8 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -120,11 +119,11 @@ public class RunInfoRepository extends BaseRepository {
         }
     }
 
-    public void setResult(@Nonnull String stageId, String result) {
+    public void setResult(@Nonnull String stageId, String key, String value) {
         try {
-            appendProperty(stageId, PROPERTY_FILE_RESULT, Collections.singleton(result));
+            appendProperty(stageId, PROPERTY_FILE_RESULT, Collections.singleton(key + "=" + value));
         } catch (IOException e) {
-            LOG.log(Level.WARNING, "Failed to save computation result [" + result + "] for " + stageId, e);
+            LOG.log(Level.WARNING, "Failed to save computation result [" + key + "=" + value + "] for " + stageId, e);
         }
     }
 
@@ -142,9 +141,17 @@ public class RunInfoRepository extends BaseRepository {
     }
 
     @Nonnull
-    public Optional<String> getResult(@Nonnull String stageId) {
+    public Optional<Map<String, String>> getResult(@Nonnull String stageId) {
         try {
-            return getProperty(stageId, PROPERTY_FILE_RESULT).map(String::trim);
+            Optional<String> fileContent = getProperty(stageId, PROPERTY_FILE_RESULT).map(String::trim);
+            return fileContent.map(content -> {
+                Map<String, String> result = new HashMap<>();
+                content.lines().forEach(line -> {
+                    String kv[] = line.split("=");
+                    result.put(kv[0], kv[1]);
+                });
+                return result;
+            });
         } catch (NoSuchFileException | FileNotFoundException e) {
             LOG.log(Level.FINER, "There is no result for the stage " + stageId, e);
             return Optional.empty();
