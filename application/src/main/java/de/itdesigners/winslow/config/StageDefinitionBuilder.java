@@ -20,6 +20,7 @@ public class StageDefinitionBuilder {
     private @Nullable Map<String, String>           additionalEnv;
     private @Nullable Optional<List<LogParser>>     logParsers;
     private @Nullable Optional<String>              decision;
+    private @Nullable Optional<Map<String, String>> result;
 
     @Nonnull
     @CheckReturnValue
@@ -147,7 +148,8 @@ public class StageDefinitionBuilder {
                         Optional.ofNullable(this.template).map(StageDefinition::getTags),
                         Optional.ofNullable(this.base).map(StageDefinition::getTags)
                 ),
-                either(this.decision, base.map(StageDefinition::getDecision))
+                either(this.decision, base.map(StageDefinition::getDecision)),
+                either(this.result, base.map(StageDefinition::getResult))
         );
     }
 
