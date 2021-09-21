@@ -375,6 +375,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         null,
+                        null,
                         null
                 ),
                 null,
@@ -389,6 +390,7 @@ public class ObsoleteWorkspaceFinderTest {
                 workspace,
                 new Date(),
                 finishState,
+                null,
                 null,
                 null,
                 null,
