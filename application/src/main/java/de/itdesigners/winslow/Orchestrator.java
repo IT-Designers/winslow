@@ -49,7 +49,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     private static final Logger  LOG                   = Logger.getLogger(Orchestrator.class.getSimpleName());
     public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
-    public static final  Pattern RESULT_PATTERN = Pattern.compile("Result:[ ]+(.*)");
+    public static final  Pattern RESULT_PATTERN = Pattern.compile("WINSLOW_RESULT:[ ]+(.*)=(.*)");
 
     @Nonnull private final LockBus            lockBus;
     @Nonnull private final Environment        environment;
@@ -647,7 +647,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return entry -> {
             var matcher = RESULT_PATTERN.matcher(entry.getMessage());
             if (matcher.find()) {
-                this.hints.setResult(stageId, matcher.group(1));
+                this.hints.setResult(stageId, matcher.group(1), matcher.group(2));
                 LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
             }
         };
