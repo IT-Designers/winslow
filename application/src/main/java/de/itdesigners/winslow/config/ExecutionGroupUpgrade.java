@@ -78,7 +78,8 @@ public class ExecutionGroupUpgrade extends JsonDeserializer<ExecutionGroup> {
                         env,
                         envPipeline,
                         envSystem,
-                        envInternal
+                        envInternal,
+                        new HashMap<>()
                 ))),
                 0,
                 null

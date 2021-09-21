@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.ConstructorProperties;
 import java.beans.Transient;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,7 @@ public class Stage implements Cloneable {
     @Nullable private Map<String, String> envPipeline;
     @Nullable private Map<String, String> envSystem;
     @Nullable private Map<String, String> envInternal;
+    @Nullable private Map<String, String> result;
 
     public Stage(@Nonnull StageId id, @Nullable String workspace) {
         this.id        = id;
@@ -31,9 +33,11 @@ public class Stage implements Cloneable {
         this.startTime   = null;
         this.finishTime  = null;
         this.finishState = null;
+
+        this.result = new HashMap<>();
     }
 
-    @ConstructorProperties({"id", "startTime", "workspace", "finishTime", "finishState", "env", "envPipeline", "envSystem", "envInternal"})
+    @ConstructorProperties({"id", "startTime", "workspace", "finishTime", "finishState", "env", "envPipeline", "envSystem", "envInternal", "result"})
     public Stage(
             @Nonnull StageId id,
             @Nullable Date startTime,
@@ -43,7 +47,8 @@ public class Stage implements Cloneable {
             @Nullable Map<String, String> env,
             @Nullable Map<String, String> envPipeline,
             @Nullable Map<String, String> envSystem,
-            @Nullable Map<String, String> envInternal) {
+            @Nullable Map<String, String> envInternal,
+            @Nullable Map<String, String> result) {
         this.id          = id;
         this.startTime   = startTime;
         this.workspace   = workspace;
@@ -53,6 +58,7 @@ public class Stage implements Cloneable {
         this.envPipeline = envPipeline;
         this.envSystem   = envSystem;
         this.envInternal = envInternal;
+        this.result      = result;
     }
 
     @Nonnull
@@ -150,5 +156,13 @@ public class Stage implements Cloneable {
             this.envInternal = new HashMap<>();
         }
         return this.envInternal;
+    }
+
+    public void setResult(Map<String, String> result) {
+        this.result = result;
+    }
+
+    public Map<String, String> getResult() {
+        return this.result;
     }
 }
