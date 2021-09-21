@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,6 +73,9 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                         if (orchestrator
                                 .getRunInfoRepository()
                                 .hasLogRedirectionCompletedSuccessfullyHint(stage.getFullyQualifiedId())) {
+                            Optional<Map<String, String>> result = orchestrator.getRunInfoRepository().getResult(stage.getFullyQualifiedId());
+                            result.ifPresent(stage::setResult);
+
                             stage.finishNow(State.Succeeded);
 
                             var remaining = pipeline.getActiveExecutionGroup().map(ExecutionGroup::hasRemainingExecutions).orElse(Boolean.FALSE);
