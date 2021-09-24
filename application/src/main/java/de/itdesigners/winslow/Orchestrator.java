@@ -648,7 +648,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             var matcher = RESULT_PATTERN.matcher(entry.getMessage());
             if (matcher.find()) {
                 this.hints.setResult(stageId, matcher.group(1), matcher.group(2));
-                LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
+                LOG.finest(() -> "Result match: " + matcher.group(1));
             }
         };
     }
