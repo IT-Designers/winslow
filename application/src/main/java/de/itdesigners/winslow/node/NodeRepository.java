@@ -220,6 +220,7 @@ public class NodeRepository extends BaseRepository {
                     } catch (IOException e) {
                         LOG.log(Level.SEVERE, "Failed to create directory for utilization log file: " + p, e);
                     }
+                    LOG.info("New utilization log path: " + p);
                     return p;
                 });
 
@@ -258,7 +259,7 @@ public class NodeRepository extends BaseRepository {
         if (retainedElementCount > 0) {
             logs.forEach(p -> {
                 try {
-                    LOG.fine("Deleting utilization log " + p);
+                    LOG.info("Deleting utilization log " + p);
                     Files.deleteIfExists(p);
                 } catch (IOException e) {
                     LOG.log(Level.WARNING, "Failed to delete log file " + p, e);
