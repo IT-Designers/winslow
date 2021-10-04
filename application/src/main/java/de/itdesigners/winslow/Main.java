@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
+import de.itdesigners.winslow.api.Build;
 import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.auth.GroupRepository;
 import de.itdesigners.winslow.auth.UserRepository;
@@ -61,7 +62,7 @@ public class Main {
         System.out.println("        work-directory = " + workDirectory);
         System.out.println("          storage-type = " + storageType);
         System.out.println("             log-level = INFO");
-        System.out.println("                  mode = STANDALONE");
+        System.out.println("               version = " + Build.DATE + "@" + Build.COMMIT_HASH_SHORT);
         System.out.println();
         System.out.println();
 
