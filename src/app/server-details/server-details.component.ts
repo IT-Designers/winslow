@@ -373,6 +373,10 @@ export class ServerDetailsComponent implements OnInit {
               this.node = this.nodes[this.selectedNodeIndex];
             }
 
+            if (this.node == null) {
+              console.log('kapusch, selectedNodeIndex=' + this.selectedNodeIndex + ', nodes.length=' + this.nodes.length);
+              return;
+            }
 
 
             this.selectedNodeIndex = this.nodes.findIndex(
