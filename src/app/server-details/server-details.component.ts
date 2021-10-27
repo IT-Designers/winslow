@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {ChangeType} from '../api/api.service';
 import {GpuInfo, NodeInfo, NodesApiService} from '../api/nodes-api.service';
@@ -8,7 +8,7 @@ import {GpuInfo, NodeInfo, NodesApiService} from '../api/nodes-api.service';
   templateUrl: './server-details.component.html',
   styleUrls: ['./server-details.component.css']
 })
-export class ServerDetailsComponent implements OnInit {
+export class ServerDetailsComponent implements OnInit, OnDestroy {
 
   constructor(private api: NodesApiService) {
     this.initMemorySeries();
@@ -19,8 +19,8 @@ export class ServerDetailsComponent implements OnInit {
 
   static readonly MAX_ENTRIES = 120;
 
-  @Input('nodeName') nodeName: string;
-  @Input('historyEnabled') historyEnabled: boolean;
+  @Input() nodeName: string;
+  @Input() historyEnabled: boolean;
   lastNodeName = '';
 
   isLive = true;
@@ -383,7 +383,7 @@ export class ServerDetailsComponent implements OnInit {
               this.lastTimestamp = this.node.time; // update.value.time;
             }
 
-            if (this.lastNodeName != this.node.name) {
+            if (this.lastNodeName !== this.node.name) {
               this.lastNodeName = this.node.name;
               this.setNode(this.selectedNodeIndex);
             }
@@ -391,7 +391,7 @@ export class ServerDetailsComponent implements OnInit {
             // check if new timestamp is different
             // and if charts are in live modus
             // if yes, update diagrams
-            if (this.lastTimestamp != this.node.time && this.isLive) {
+            if (this.lastTimestamp !== this.node.time && this.isLive) {
               this.lastTimestamp = this.node.time;
 
               this.date = new Date();
@@ -412,7 +412,7 @@ export class ServerDetailsComponent implements OnInit {
                 this.updateGpuSeries();
                 this.updateGpuStatus();
               }
-              
+
             }
           }
           break;
@@ -482,7 +482,7 @@ export class ServerDetailsComponent implements OnInit {
       const date = new Date();
       date.setSeconds(date.getSeconds() - i);
 
-      this.gpus.forEach(function(gpu) {
+      this.gpus.forEach((gpu) => {
         gpu.series.unshift({
           name: date.toString(),
           value: [date, ]
@@ -533,7 +533,7 @@ export class ServerDetailsComponent implements OnInit {
         value: [date, ]
       });
 
-      this.gpus.forEach(function(gpu) {
+      this.gpus.forEach((gpu) => {
         gpu[0].series.unshift({
           name: date.toString(),
           value: [date, ]
@@ -786,7 +786,7 @@ export class ServerDetailsComponent implements OnInit {
       }
     }
 
-    if (this.gpuName.length == 0) {
+    if (this.gpuName.length === 0) {
       this.node.gpuInfo.forEach(gpu => {
         this.gpuName.push(gpu.name + ' (' + gpu.id + ')');
       });
