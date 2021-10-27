@@ -366,22 +366,17 @@ export class ServerDetailsComponent implements OnInit {
               this.sortNodesByName();
             }
 
-            if(this.selectedNodeIndex == null) {
+
+            this.selectedNodeIndex = this.nodes.findIndex(
+              (value) => value.name === this.nodeName
+            );
+
+            if (this.selectedNodeIndex == null || this.selectedNodeIndex === -1) {
               this.selectedNodeIndex = 0;
               this.node = this.nodes[0];
             } else {
               this.node = this.nodes[this.selectedNodeIndex];
             }
-
-            if (this.node == null) {
-              console.log('kapusch, selectedNodeIndex=' + this.selectedNodeIndex + ', nodes.length=' + this.nodes.length);
-              return;
-            }
-
-
-            this.selectedNodeIndex = this.nodes.findIndex(
-              (value) => value.name === this.nodeName
-            );
 
             // save last timestamp
             if(!this.lastTimestamp) {
