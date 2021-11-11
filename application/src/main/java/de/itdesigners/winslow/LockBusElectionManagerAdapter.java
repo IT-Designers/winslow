@@ -92,7 +92,11 @@ public class LockBusElectionManagerAdapter {
                     }
                     return hasResourced;
                 })
-                .flatMap(Pipeline::getActiveOrNextExecutionGroup)
+                .flatMap(pipeline -> pipeline
+                        .getActiveOrNextExecutionGroup()
+                        .filter(executionGroup -> executionGroup.getNextStageDefinition().isPresent())
+                        .findFirst()
+                )
                 .ifPresent(activeGroup -> {
                     var requiredResources = orchestrator.getRequiredResources(activeGroup.getStageDefinition());
                     var participation     = orchestrator.judgeParticipationScore(requiredResources);
@@ -113,17 +117,16 @@ public class LockBusElectionManagerAdapter {
         election.getMostFittingParticipant().ifPresentOrElse(participant -> {
             if (nodeName.equals(participant)) {
                 var thread = new Thread(() -> {
-                    var projectOpt    = orchestrator.getProjectUnsafe(election.getProjectId());
-                    var definitionOpt = projectOpt.map(Project::getPipelineDefinition);
-                    var exclusiveOpt  = projectOpt.flatMap(orchestrator::getPipelineExclusive);
+                    var project    = orchestrator.getProjectUnsafe(election.getProjectId());
+                    var definition = project.map(Project::getPipelineDefinition);
+                    var exclusive  = project.flatMap(orchestrator::getPipelineExclusive);
 
-                    exclusiveOpt.ifPresentOrElse(
+                    exclusive.ifPresentOrElse(
                             container -> {
                                 try (var lock = container.getLock()) {
-                                    var pipeline = container.get().get();
-                                    var project = projectOpt.get();
-                                    var definition = definitionOpt.get();
-                                    if (orchestrator.startPipeline(lock, project, definition, pipeline)) {
+                                    var pipeline  = container.get().get();
+                                    var projectId = pipeline.getProjectId();
+                                    if (orchestrator.startPipeline(lock, projectId, definition.get(), pipeline)) {
                                         LOG.info("Updating pipeline...");
                                         container.update(pipeline);
                                     } else {
