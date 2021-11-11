@@ -48,7 +48,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     private static final Logger  LOG                   = Logger.getLogger(Orchestrator.class.getSimpleName());
     public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
-    public static final  Pattern RESULT_PATTERN = Pattern.compile("WINSLOW_RESULT:[ ]+(.*)=(.*)");
+    public static final  Pattern RESULT_PATTERN        = Pattern.compile("WINSLOW_RESULT:[ ]+(.*)=(.*)");
 
     private final @Nonnull LockBus            lockBus;
     private final @Nonnull Environment        environment;
@@ -373,6 +373,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public Optional<Boolean> hasResourcesToExecuteNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
+                .filter(executionGroup -> executionGroup.getNextStageDefinition().isPresent())
+                .findFirst()
                 .map(group -> {
                     if (group.isConfigureOnly()) {
                         return true;
@@ -418,6 +420,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
+                .filter(executionGroup -> executionGroup.getNextStageDefinition().isPresent())
+                .findFirst()
                 .map(group -> {
                     if (group.isConfigureOnly()) {
                         return true;
@@ -480,16 +484,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline,
             @Nonnull Project project) {
-        if (pipeline.getActiveExecutionGroup().isEmpty()) {
-            try {
-                pipeline.retrieveNextActiveExecution();
-            } catch (ThereIsStillAnActiveExecutionGroupException e) {
-                LOG.log(Level.SEVERE, "Failed to retrieve execution group", e);
-            }
+        if (pipeline.canRetrieveNextActiveExecution()) {
+            pipeline.retrieveNextActiveExecution();
         }
 
-        var executionGroup      = pipeline.getActiveExecutionGroup();
-        var nextStageDefinition = executionGroup.flatMap(ExecutionGroup::getNextStageDefinition);
+        var executionGroup      = pipeline.getActiveExecutionGroups();
+        var nextStageDefinition = executionGroup.flatMap(g -> g.getNextStageDefinition().stream()).findFirst();
 
         if (nextStageDefinition.isEmpty()) {
             LOG.warning("Got commanded to start next stage but there is none!");
