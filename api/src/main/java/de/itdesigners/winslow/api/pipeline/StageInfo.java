@@ -16,6 +16,7 @@ public class StageInfo {
     public final @Nonnull  Map<String, String> envPipeline;
     public final @Nonnull  Map<String, String> envSystem;
     public final @Nonnull  Map<String, String> envInternal;
+    public final @Nonnull  Map<String, String> result;
 
     public StageInfo(
             @Nonnull String id,
@@ -26,7 +27,8 @@ public class StageInfo {
             @Nonnull Map<String, String> env,
             @Nonnull Map<String, String> envPipeline,
             @Nonnull Map<String, String> envSystem,
-            @Nonnull Map<String, String> envInternal) {
+            @Nonnull Map<String, String> envInternal,
+            @Nonnull Map<String, String> result) {
         this.id          = id;
         this.startTime   = startTime;
         this.finishTime  = finishTime;
@@ -36,5 +38,6 @@ public class StageInfo {
         this.envPipeline = envPipeline;
         this.envSystem   = envSystem;
         this.envInternal = envInternal;
+        this.result      = result;
     }
 }
