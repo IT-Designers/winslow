@@ -92,7 +92,11 @@ public class LockBusElectionManagerAdapter {
                     }
                     return hasResourced;
                 })
-                .flatMap(Pipeline::getActiveOrNextExecutionGroup)
+                .flatMap(pipeline -> pipeline
+                        .getActiveOrNextExecutionGroup()
+                        .filter(executionGroup -> executionGroup.getNextStageDefinition().isPresent())
+                        .findFirst()
+                )
                 .ifPresent(activeGroup -> {
                     var requiredResources = orchestrator.getRequiredResources(activeGroup.getStageDefinition());
                     var participation     = orchestrator.judgeParticipationScore(requiredResources);
@@ -120,7 +124,7 @@ public class LockBusElectionManagerAdapter {
                     exclusive.ifPresentOrElse(
                             container -> {
                                 try (var lock = container.getLock()) {
-                                    var pipeline = container.get().get();
+                                    var pipeline  = container.get().get();
                                     var projectId = pipeline.getProjectId();
                                     if (orchestrator.startPipeline(lock, projectId, definition.get(), pipeline)) {
                                         LOG.info("Updating pipeline...");
