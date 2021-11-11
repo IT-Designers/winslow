@@ -163,6 +163,9 @@ public class Stage implements Cloneable {
     }
 
     public Map<String, String> getResult() {
+        if (this.result == null) {
+            this.result = new HashMap<>();
+        }
         return this.result;
     }
 }

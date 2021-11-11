@@ -19,7 +19,8 @@ public class StageInfoConverter {
                 new TreeMap<>(stage.getEnv()),
                 new TreeMap<>(stage.getEnvPipeline()),
                 new TreeMap<>(stage.getEnvSystem()),
-                new TreeMap<>(stage.getEnvInternal())
+                new TreeMap<>(stage.getEnvInternal()),
+                new TreeMap<>(stage.getResult())
         );
     }
 }
