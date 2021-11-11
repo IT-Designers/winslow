@@ -309,19 +309,21 @@ public class ProjectsController {
 
     private static Optional<State> getPipelineState(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getActiveExecutionGroup()
+                .getActiveExecutionGroups()
                 .map(ExecutionGroup::getRunningStages)
                 .flatMap(s -> {
-                    if (s.count() > 0) {
-                        return Optional.of(State.Running);
+                    if (s.findAny().isPresent()) {
+                        return Stream.of(State.Running);
                     } else {
-                        return Optional.empty();
+                        return Stream.empty();
                     }
                 })
+                .findFirst()
                 .or(() -> {
                     if (!pipeline.isPauseRequested() && pipeline
-                            .getActiveExecutionGroup()
-                            .map(g -> !g.isConfigureOnly() && g.getStages().count() == 0)
+                            .getActiveExecutionGroups()
+                            .map(g -> !g.isConfigureOnly() && g.getStages().findAny().isEmpty())
+                            .findFirst()
                             .orElse(Boolean.FALSE)) {
                         return Optional.of(State.Preparing);
                     } else {
@@ -331,8 +333,8 @@ public class ProjectsController {
                 .or(() -> {
                     var mostRecent = pipeline
                             .getActiveOrPreviousExecutionGroup()
-                            .map(ExecutionGroup::getStages)
-                            .flatMap(s -> s.reduce((first, second) -> second))
+                            .flatMap(ExecutionGroup::getStages)
+                            .reduce((first, second) -> second)
                             .filter(s -> s.getFinishTime().isPresent())
                             .map(Stage::getState);
 
@@ -418,7 +420,7 @@ public class ProjectsController {
                         .map(Pipeline.PauseReason::toString)
                         .orElse(null),
                 mostRecentStage,
-                pipeline.getActiveExecutionGroup()
+                pipeline.getActiveExecutionGroups()
                         .flatMap(group -> {
                             if (group.getExpectedGroupSize() > 1) {
                                 var expected = group.getExpectedGroupSize();
@@ -426,16 +428,16 @@ public class ProjectsController {
                                         .getStages()
                                         .filter(s -> s.getFinishState().isPresent())
                                         .count() * 100;
-                                return Optional.of(completed / expected);
+                                return Stream.of(completed / expected);
                             } else {
                                 return group
                                         .getStages()
                                         .map(Stage::getFullyQualifiedId)
                                         .map(winslow.getRunInfoRepository()::getProgressHint)
-                                        .flatMap(Optional::stream)
-                                        .findFirst();
+                                        .flatMap(Optional::stream);
                             }
                         })
+                        .findFirst()
                         .orElse(null),
                 pipeline.hasEnqueuedStages()
         );

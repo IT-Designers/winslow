@@ -119,12 +119,8 @@ public class CommonUpdateConstraints {
                 .orElse(Boolean.FALSE);
     }
 
-    public static Boolean isActiveExecutionGroupStillRelevant(@Nullable Pipeline pipelineReadOnly) {
-        return Optional
-                .ofNullable(pipelineReadOnly)
-                .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(CommonUpdateConstraints::hasRemainingOrRunningStageExecutions)
-                .orElse(Boolean.FALSE);
+    public static Boolean isActiveExecutionGroupStillRelevant(@Nonnull ExecutionGroup executionGroup) {
+        return CommonUpdateConstraints.hasRemainingOrRunningStageExecutions(executionGroup);
     }
 
     public static void ensureHasStageDefinitionToDeploy(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {

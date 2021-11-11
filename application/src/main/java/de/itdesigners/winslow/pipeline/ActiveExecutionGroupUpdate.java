@@ -1,12 +1,14 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.config.ExecutionGroup;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static de.itdesigners.winslow.pipeline.CommonUpdateConstraints.*;
 
@@ -57,8 +59,12 @@ public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdat
         if (pipeline != null) {
             try {
                 ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
-                if (pipeline.getActiveExecutionGroup().isPresent() && !isActiveExecutionGroupStillRelevant(pipeline)) {
-                    pipeline.archiveActiveExecution();
+
+                for (ExecutionGroup group : pipeline
+                        .getActiveExecutionGroups()
+                        .filter(executionGroup -> !isActiveExecutionGroupStillRelevant(executionGroup))
+                        .collect(Collectors.toList())) {
+                    pipeline.archiveActiveExecution(group);
                 }
 
                 if (pipeline.canRetrieveNextActiveExecution()) {
