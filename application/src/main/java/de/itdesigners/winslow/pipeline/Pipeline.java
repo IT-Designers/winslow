@@ -2,7 +2,6 @@ package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.RangedValue;
-import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;
@@ -19,7 +18,7 @@ public class Pipeline implements Cloneable {
     private final @Nonnull String               projectId;
     private final @Nonnull List<ExecutionGroup> executionHistory;
     private final @Nonnull List<ExecutionGroup> executionQueue;
-    private @Nullable      ExecutionGroup       activeExecution;
+    private final @Nonnull List<ExecutionGroup> activeExecutions;
 
     private           boolean                              pauseRequested     = false;
     private @Nullable PauseReason                          pauseReason        = null;
@@ -35,6 +34,7 @@ public class Pipeline implements Cloneable {
 
         this.executionHistory = new ArrayList<>();
         this.executionQueue   = new ArrayList<>();
+        this.activeExecutions = new ArrayList<>();
     }
 
     @ConstructorProperties({
@@ -60,10 +60,47 @@ public class Pipeline implements Cloneable {
             @Nullable DeletionPolicy deletionPolicy,
             @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode,
             int executionCounter) {
+        this(
+                projectId,
+                Optional.ofNullable(executionHistory).orElseGet(ArrayList::new),
+                Optional.ofNullable(enqueuedExecutions).orElseGet(ArrayList::new),
+                new ArrayList<>(Optional.ofNullable(activeExecutionGroup).map(List::of).orElseGet(Collections::emptyList)),
+                pauseRequested,
+                pauseReason,
+                resumeNotification,
+                deletionPolicy,
+                workspaceConfigurationMode,
+                executionCounter
+        );
+    }
+
+    @ConstructorProperties({
+            "projectId",
+            "executionHistory",
+            "enqueuedExecutions",
+            "activeExecutionGroups",
+            "pauseRequested",
+            "pauseReason",
+            "resumeNotification",
+            "deletionPolicy",
+            "workspaceConfigurationMode",
+            "executionCounter"
+    })
+    public Pipeline(
+            @Nonnull String projectId,
+            @Nullable List<ExecutionGroup> executionHistory,
+            @Nullable List<ExecutionGroup> enqueuedExecutions,
+            @Nullable List<ExecutionGroup> activeExecutionGroups,
+            boolean pauseRequested,
+            @Nullable PauseReason pauseReason,
+            @Nullable ResumeNotification resumeNotification,
+            @Nullable DeletionPolicy deletionPolicy,
+            @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode,
+            int executionCounter) {
         this.projectId                  = projectId;
         this.executionHistory           = Optional.ofNullable(executionHistory).orElseGet(ArrayList::new);
         this.executionQueue             = Optional.ofNullable(enqueuedExecutions).orElseGet(ArrayList::new);
-        this.activeExecution            = activeExecutionGroup;
+        this.activeExecutions           = Optional.ofNullable(activeExecutionGroups).orElseGet(ArrayList::new);
         this.pauseRequested             = pauseRequested;
         this.pauseReason                = pauseReason;
         this.resumeNotification         = resumeNotification;
@@ -77,29 +114,23 @@ public class Pipeline implements Cloneable {
         return projectId;
     }
 
-    public void archiveActiveExecution() throws NullPointerException, ExecutionGroupStillHasRunningStagesException {
-        Objects.requireNonNull(this.activeExecution);
-
-        if (this.activeExecution.getRunningStages().count() > 0) {
-            throw new ExecutionGroupStillHasRunningStagesException(this, this.activeExecution);
+    public void archiveActiveExecution(@Nonnull ExecutionGroup executionGroup) throws ExecutionGroupStillHasRunningStagesException, IllegalStateException {
+        if (executionGroup.getRunningStages().findAny().isPresent()) {
+            throw new ExecutionGroupStillHasRunningStagesException(this, executionGroup);
+        } else if (this.activeExecutions.remove(executionGroup)) {
+            this.executionHistory.add(executionGroup);
         } else {
-            this.executionHistory.add(this.activeExecution);
-            this.activeExecution = null;
+            throw new IllegalStateException("Execution group not found in active executions");
         }
     }
 
     /**
      * @return Whether a new {@link ExecutionGroup} was marked as actively executing (false if there is none)
-     * @throws ThereIsStillAnActiveExecutionGroupException If there is still an {@link ExecutionGroup} being executed
      */
     @Transient
-    public boolean retrieveNextActiveExecution() throws ThereIsStillAnActiveExecutionGroupException {
-        if (this.activeExecution != null) {
-            throw new ThereIsStillAnActiveExecutionGroupException(this, this.activeExecution);
-        }
-
+    public boolean retrieveNextActiveExecution() {
         if (!this.executionQueue.isEmpty()) {
-            this.activeExecution = this.executionQueue.remove(0);
+            this.activeExecutions.add(this.executionQueue.remove(0));
             return true;
         } else {
             return false;
@@ -107,23 +138,8 @@ public class Pipeline implements Cloneable {
     }
 
     @Transient
-    public boolean activeExecutionGroupCouldSpawnFurtherStages() {
-        return this.activeExecution != null && this.activeExecution.hasRemainingExecutions();
-    }
-
-    @Transient
-    public boolean activeExecutionGroupHasNoFailedStages() {
-        return getActiveExecutionGroup()
-                .filter(group -> !group.isConfigureOnly())
-                .stream()
-                .flatMap(ExecutionGroup::getStages)
-                .map(Stage::getState)
-                .noneMatch(state -> state == State.Failed);
-    }
-
-
     public boolean canRetrieveNextActiveExecution() {
-        return this.activeExecution == null && !this.executionQueue.isEmpty();
+        return this.activeExecutions.isEmpty() && !this.executionQueue.isEmpty();
     }
 
     /**
@@ -155,39 +171,40 @@ public class Pipeline implements Cloneable {
     }
 
     @Nonnull
-    public Optional<ExecutionGroup> getActiveExecutionGroup() {
-        return Optional.ofNullable(this.activeExecution);
+    public Stream<ExecutionGroup> getActiveExecutionGroups() {
+        return this.activeExecutions.stream();
     }
 
     @Nonnull
     @Transient
-    public Optional<ExecutionGroup> getActiveOrNextExecutionGroup() {
-        if (this.activeExecution != null) {
-            return Optional.of(this.activeExecution);
+    public Stream<ExecutionGroup> getActiveOrNextExecutionGroups() {
+        if (!activeExecutions.isEmpty()) {
+            return activeExecutions.stream();
         } else if (!this.executionQueue.isEmpty()) {
-            return Optional.of(this.executionQueue.get(0));
+            return this.executionQueue.stream();
         } else {
-            return Optional.empty();
+            return Stream.empty();
         }
     }
 
     @Nonnull
     @Transient
-    public Optional<ExecutionGroup> getActiveOrPreviousExecutionGroup() {
-        if (this.activeExecution != null) {
-            return Optional.of(this.activeExecution);
+    public Stream<ExecutionGroup> getActiveOrPreviousExecutionGroups() {
+        if (!activeExecutions.isEmpty()) {
+            return activeExecutions.stream();
         } else if (!this.executionHistory.isEmpty()) {
-            return Optional.of(this.executionHistory.get(this.executionHistory.size() - 1));
+            var list = new ArrayList<>(this.executionHistory);
+            Collections.reverse(list);
+            return list.stream();
         } else {
-            return Optional.empty();
+            return Stream.empty();
         }
     }
-
 
     @Nonnull
     @Transient
     public Stream<ExecutionGroup> getActiveAndPastExecutionGroups() {
-        return Stream.concat(this.executionHistory.stream(), getActiveExecutionGroup().stream());
+        return Stream.concat(this.executionHistory.stream(), getActiveExecutionGroups());
     }
 
     @Nonnull
@@ -237,7 +254,7 @@ public class Pipeline implements Cloneable {
 
     @Transient
     public boolean hasEnqueuedStages() {
-        return (this.activeExecution != null && this.activeExecution.hasRemainingExecutions()) || !this.executionQueue.isEmpty();
+        return this.activeExecutions.stream().anyMatch(ExecutionGroup::hasRemainingExecutions) || !this.executionQueue.isEmpty();
     }
 
     public int getExecutionCounter() {

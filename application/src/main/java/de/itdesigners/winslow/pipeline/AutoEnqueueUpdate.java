@@ -57,11 +57,12 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 .getProject(pipeline.getProjectId())
                 .unsafe()
                 .flatMap(project -> pipeline
-                        .getActiveOrPreviousExecutionGroup()
+                        .getActiveOrPreviousExecutionGroups()
                         .filter(g -> g
                                 .getStages()
                                 .allMatch(s -> s.getFinishState().equals(Optional.of(State.Succeeded))))
-                        .flatMap(mostRecent -> getNextStageDefinition(project, mostRecent))
+                        .flatMap(mostRecent -> getNextStageDefinition(project, mostRecent).stream())
+                        .findFirst()
                         .map(pair -> {
                             var prevGroup               = pair.getValue0();
                             var nextStageDefinitionBase = pair.getValue1();

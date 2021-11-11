@@ -1,12 +1,14 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.config.ExecutionGroup;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static de.itdesigners.winslow.pipeline.CommonUpdateConstraints.*;
 
@@ -57,15 +59,19 @@ public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdat
         if (pipeline != null) {
             try {
                 ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
-                if (pipeline.getActiveExecutionGroup().isPresent() && !isActiveExecutionGroupStillRelevant(pipeline)) {
-                    pipeline.archiveActiveExecution();
+
+                for (ExecutionGroup group : pipeline
+                        .getActiveExecutionGroups()
+                        .filter(executionGroup -> !isActiveExecutionGroupStillRelevant(executionGroup))
+                        .toList()) {
+                    pipeline.archiveActiveExecution(group);
                 }
 
                 if (pipeline.canRetrieveNextActiveExecution()) {
                     pipeline.retrieveNextActiveExecution();
                 }
                 return pipeline;
-            } catch (PreconditionNotMetException | ExecutionGroupStillHasRunningStagesException | ThereIsStillAnActiveExecutionGroupException e) {
+            } catch (PreconditionNotMetException | ExecutionGroupStillHasRunningStagesException e) {
                 LOG.log(Level.SEVERE, "At least one precondition is no longer met, cannot perform update", e);
             }
         }

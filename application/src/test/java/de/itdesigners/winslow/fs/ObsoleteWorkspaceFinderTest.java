@@ -476,6 +476,8 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         null,
+                        null,
+                        null,
                         null
                 ),
                 Map.of("a", new RangedList(new String[]{"b", "c"})),
@@ -493,6 +495,7 @@ public class ObsoleteWorkspaceFinderTest {
                     workspace,
                     new Date(),
                     finishState,
+                    null,
                     null,
                     null,
                     null,

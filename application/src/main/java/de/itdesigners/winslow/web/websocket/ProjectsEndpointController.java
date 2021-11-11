@@ -92,12 +92,11 @@ public class ProjectsEndpointController {
                     .filter(project -> winslow
                             .getOrchestrator()
                             .getPipeline(project)
-                            .flatMap(pipeline -> pipeline
-                                    .getActiveExecutionGroup()
-                                    .map(g -> g.getStages()
-                                               .anyMatch(stage -> stage.getState() == State.Running))
+                            .stream()
+                            .anyMatch(pipeline -> pipeline
+                                    .getActiveExecutionGroups()
+                                    .anyMatch(g -> g.getStages().anyMatch(stage -> stage.getState() == State.Running))
                             )
-                            .orElse(Boolean.FALSE)
                     )
                     .forEach(project -> createOrStopProjectPublisher(project.getId(), project, true));
 
@@ -109,7 +108,7 @@ public class ProjectsEndpointController {
                         .peek(e -> e.getValue().poll())
                         .filter(e -> e.getValue().hasCompleted())
                         .map(Map.Entry::getKey)
-                        .collect(Collectors.toList());
+                        .toList();
 
                 completed
                         .stream()
@@ -251,10 +250,9 @@ public class ProjectsEndpointController {
     @Nonnull
     private List<ExecutionGroupInfo> getExecutionInfo(@Nonnull Pipeline pipeline) {
         return pipeline
-                .getActiveExecutionGroup()
+                .getActiveExecutionGroups()
                 .map(g -> ExecutionGroupInfoConverter.convert(g, true, false))
-                .map(Collections::singletonList)
-                .orElseGet(Collections::emptyList);
+                .toList();
     }
 
     @Nonnull

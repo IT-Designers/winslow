@@ -51,8 +51,8 @@ public class CommonUpdateConstraints {
     public static void ensureHasNoRunningStages(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         var empty = Optional
                 .ofNullable(pipelineReadOnly)
-                .flatMap(Pipeline::getActiveExecutionGroup)
                 .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
                 .flatMap(ExecutionGroup::getRunningStages)
                 .findAny()
                 .isEmpty();
@@ -64,9 +64,9 @@ public class CommonUpdateConstraints {
     public static void ensureNoActiveExecutionGroupOrActiveGroupIsExhaustedOrHasFailed(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         var depleted = Optional
                 .ofNullable(pipelineReadOnly)
-                .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(g -> !hasRemainingOrRunningStageExecutions(g))
-                .orElse(Boolean.TRUE);
+                .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
+                .noneMatch(CommonUpdateConstraints::hasRemainingOrRunningStageExecutions);
         if (!depleted) {
             throw new PreconditionNotMetException("ExecutionGroup is not exhausted");
         }
@@ -75,14 +75,12 @@ public class CommonUpdateConstraints {
     public static void ensureArchivableOrRetrievableExecutionGroup(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         if (pipelineReadOnly != null) {
             var stillRelevant = pipelineReadOnly
-                    .getActiveExecutionGroup()
-                    .map(CommonUpdateConstraints::hasRemainingOrRunningStageExecutions);
+                    .getActiveExecutionGroups()
+                    .anyMatch(CommonUpdateConstraints::hasRemainingOrRunningStageExecutions);
 
-            if (stillRelevant.orElse(Boolean.FALSE)) {
+            if (stillRelevant) {
                 throw new PreconditionNotMetException("Pipeline still has an relevant active ExecutionGroup");
-            }
-
-            if (stillRelevant.isEmpty() && !pipelineReadOnly.hasEnqueuedStages()) {
+            } else if (!pipelineReadOnly.hasEnqueuedStages()) {
                 throw new PreconditionNotMetException(
                         "Pipeline neither can archive active nor retrieve next ExecutionGroup");
             }
@@ -99,7 +97,7 @@ public class CommonUpdateConstraints {
     }
 
     public static boolean hasRemainingOrRunningStageExecutions(@Nonnull ExecutionGroup group) {
-        return group.getRunningStages().count() > 0 || (group.hasRemainingExecutions()
+        return group.getRunningStages().findAny().isPresent() || (group.hasRemainingExecutions()
                 && group.getStages().noneMatch(s -> s.getState() == State.Failed));
     }
 
@@ -112,25 +110,24 @@ public class CommonUpdateConstraints {
     public static Boolean hasActiveExecutionGroupRemainingExecutions(@Nullable Pipeline pipelineReadOnly) {
         return Optional
                 .ofNullable(pipelineReadOnly)
-                .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(g -> g.hasRemainingExecutions()
-                        && (g.getStageDefinition().getIgnoreFailuresWithinExecutionGroup()
-                            || g.getStages().noneMatch(s -> s.getState() == State.Failed)))
-                .orElse(Boolean.FALSE);
+                .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
+                .anyMatch(g -> g.hasRemainingExecutions() && (
+                        g.getStageDefinition().getIgnoreFailuresWithinExecutionGroup()
+                                || g.getStages().noneMatch(s -> s.getState() == State.Failed)
+                ));
     }
 
-    public static Boolean isActiveExecutionGroupStillRelevant(@Nullable Pipeline pipelineReadOnly) {
-        return Optional
-                .ofNullable(pipelineReadOnly)
-                .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(CommonUpdateConstraints::hasRemainingOrRunningStageExecutions)
-                .orElse(Boolean.FALSE);
+    public static Boolean isActiveExecutionGroupStillRelevant(@Nonnull ExecutionGroup executionGroup) {
+        return CommonUpdateConstraints.hasRemainingOrRunningStageExecutions(executionGroup);
     }
 
     public static void ensureHasStageDefinitionToDeploy(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         Optional.ofNullable(pipelineReadOnly)
-                .flatMap(Pipeline::getActiveExecutionGroup)
-                .flatMap(ExecutionGroup::getNextStageDefinition)
+                .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
+                .flatMap(g -> g.getNextStageDefinition().stream())
+                .findAny()
                 .orElseThrow(() -> new PreconditionNotMetException("No stage definition to deploy a stage from"));
     }
 
