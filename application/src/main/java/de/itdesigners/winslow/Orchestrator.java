@@ -207,8 +207,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull
     public Stream<Stats> getRunningStageStats(@Nonnull Project project) {
         return getPipelineUnsafe(project.getId())
-                .flatMap(Pipeline::getActiveExecutionGroup)
                 .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
                 .flatMap(ExecutionGroup::getRunningStages)
                 .map(Stage::getFullyQualifiedId)
                 .map(getRunInfoRepository()::getStatsIfStillRelevant)
@@ -278,20 +278,26 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     if (executor.isRunning()) {
                         executor.logErr("Timeout reached: going to stop running executor");
                         this.enqueuePipelineUpdate(executor.getPipeline(), pipeline -> {
-                            var group = pipeline.getActiveExecutionGroup();
-                            if (group.isPresent()) {
-                                try {
-                                    group.get().updateStage(
-                                            event.getSubject(),
-                                            stage -> {
-                                                stage.finishNow(State.Failed);
-                                                return Optional.of(stage);
-                                            }
+                            pipeline
+                                    .getActiveExecutionGroups()
+                                    .forEach(group -> {
+                                                 try {
+                                                     group.updateStage(
+                                                             event.getSubject(),
+                                                             stage -> {
+                                                                 stage.finishNow(State.Failed);
+                                                                 return Optional.of(stage);
+                                                             }
+                                                     );
+                                                 } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                                     LOG.log(
+                                                             Level.FINE,
+                                                             "Failed to force abort onto stage " + event.getSubject(),
+                                                             e
+                                                     );
+                                                 }
+                                             }
                                     );
-                                } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                    LOG.log(Level.FINE, "Failed to force abort onto stage " + event.getSubject(), e);
-                                }
-                            }
                         });
                         LockBus.ensureSleepMs(5_000);
                         executor.fail();
@@ -486,8 +492,11 @@ public class Orchestrator implements Closeable, AutoCloseable {
             pipeline.retrieveNextActiveExecution();
         }
 
-        var executionGroup      = pipeline.getActiveExecutionGroups();
-        var nextStageDefinition = executionGroup.flatMap(g -> g.getNextStageDefinition().stream()).findFirst();
+        var executionGroup = pipeline
+                .getActiveExecutionGroups()
+                .filter(g -> g.getNextStageDefinition().isPresent())
+                .findFirst();
+        var nextStageDefinition = executionGroup.flatMap(ExecutionGroup::getNextStageDefinition);
 
         if (nextStageDefinition.isEmpty()) {
             LOG.warning("Got commanded to start next stage but there is none!");
@@ -556,15 +565,22 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                 lock.waitForRelease();
                                 // do not update deferred, update as soon as possible!
                                 updatePipeline(projectId, pipelineToUpdate -> {
-                                    try {
-                                        pipelineToUpdate
-                                                .getActiveExecutionGroup()
-                                                .orElseThrow()
-                                                .updateStage(result.getStage());
-                                    } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                        LOG.log(Level.SEVERE, "Failed to update stage with assemble result", e);
-                                        throw new RuntimeException(e); // bubble up
-                                    }
+                                    pipelineToUpdate
+                                            .getActiveExecutionGroups()
+                                            .filter(g -> {
+                                                try {
+                                                    return g.updateStage(result.getStage());
+                                                } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                                    LOG.log(
+                                                            Level.SEVERE,
+                                                            "Failed to update stage with assemble result",
+                                                            e
+                                                    );
+                                                    throw new RuntimeException(e); // bubble up
+                                                }
+                                            })
+                                            .findFirst()
+                                            .orElseThrow();
                                 });
                             }))
                             .assemble(new Context(
@@ -597,19 +613,31 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
                 enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
                     pipelineToUpdate.requestPause(Pipeline.PauseReason.StageFailure);
-                    pipelineToUpdate.getActiveExecutionGroup().ifPresentOrElse(
-                            group -> {
-                                try {
-                                    group.updateStage(stageId.getFullyQualified(), stage -> {
-                                        stage.finishNow(State.Failed);
-                                        return Optional.of(stage);
-                                    });
-                                } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                    LOG.log(Level.SEVERE, "Failed to set failed flag for stage " + stageId, e);
-                                }
-                            },
-                            () -> LOG.log(Level.SEVERE, "Failed to retrieve the active ExecutionGroup for " + projectId)
-                    );
+                    long executedUpdates = pipelineToUpdate
+                            .getActiveExecutionGroups()
+                            .filter(
+                                    group -> {
+                                        try {
+                                            return group.updateStage(
+                                                    stageId.getFullyQualified(),
+                                                    stage -> {
+                                                        stage.finishNow(State.Failed);
+                                                        return Optional.of(stage);
+                                                    }
+                                            );
+                                        } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                            LOG.log(
+                                                    Level.SEVERE,
+                                                    "Failed to set failed flag for stage " + stageId,
+                                                    e
+                                            );
+                                            return false;
+                                        }
+                                    })
+                            .count();
+                    if (executedUpdates != 1) {
+                        LOG.log(Level.SEVERE, "Failed to retrieve the active ExecutionGroup for " + projectId);
+                    }
                 });
                 cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
             }
@@ -661,7 +689,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         try (var container = exclusivePipelineContainer(project); var heart = new LockHeart(container.getLock())) {
             var pipeline = container.get().orElseThrow(() -> new PipelineNotFoundException(project));
 
-            if (pipeline.getActiveExecutionGroup().stream().flatMap(ExecutionGroup::getRunningStages).count() > 0) {
+            if (pipeline.getActiveExecutionGroups().flatMap(ExecutionGroup::getRunningStages).findAny().isPresent()) {
                 throw new OrchestratorException(
                         "Pipeline is still running. Deleting a running Pipeline is not (yet) supported");
             }

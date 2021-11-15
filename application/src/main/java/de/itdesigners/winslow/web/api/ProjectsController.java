@@ -104,12 +104,12 @@ public class ProjectsController {
                 .stream()
                 .flatMap(project -> {
                     var pipeline = winslow.getOrchestrator().getPipeline(project);
-                    var active   = pipeline.flatMap(Pipeline::getActiveExecutionGroup);
+                    var active   = pipeline.stream().flatMap(Pipeline::getActiveExecutionGroups);
                     var history  = pipeline.stream().flatMap(Pipeline::getExecutionHistory);
 
                     return Stream.concat(
                             history.map(g -> ExecutionGroupInfoConverter.convert(g, false)),
-                            active.map(g -> ExecutionGroupInfoConverter.convert(g, true)).stream()
+                            active.map(g -> ExecutionGroupInfoConverter.convert(g, true))
                     );
                 });
     }
@@ -382,31 +382,35 @@ public class ProjectsController {
     @Nonnull
     public static StateInfo getStateInfo(@Nonnull Winslow winslow, @Nonnull Pipeline pipeline) {
         var state = getPipelineState(pipeline).orElse(null);
-        var mostRecentStage = pipeline
-                .getActiveExecutionGroup()
-                .flatMap(group -> {
-                    if (group.getExpectedGroupSize() > 1) {
-                        var running = group.getRunningStages().count();
-                        var completed = group
-                                .getStages()
-                                .filter(s -> s.getFinishState().isPresent())
-                                .count();
-                        var expected = group.getExpectedGroupSize();
-                        if (completed == expected) {
-                            return Optional.empty();
-                        } else {
-                            return Optional.of(String.format(
-                                    "%d running, %d finished, %d expected",
-                                    running,
-                                    completed,
-                                    expected
-                            ));
-                        }
-                    } else {
-                        return Optional.of(group.getStageDefinition().getName());
-                    }
-                })
-                .orElse(null);
+        var expectedGroupSize = pipeline
+                .getActiveExecutionGroups()
+                .mapToLong(ExecutionGroup::getExpectedGroupSize)
+                .sum();
+        var runningGroupSize = pipeline.getActiveExecutionGroups().flatMap(ExecutionGroup::getRunningStages).count();
+        var completedGroupSize = pipeline
+                .getActiveExecutionGroups()
+                .flatMap(ExecutionGroup::getCompletedStages)
+                .count();
+        var mostRecentStage = (String) null;
+
+        if (expectedGroupSize != completedGroupSize) {
+            if (expectedGroupSize == 1) {
+                mostRecentStage = pipeline
+                        .getActiveExecutionGroups()
+                        .filter(g -> g.getRunningStages().findAny().isPresent())
+                        .findFirst()
+                        .map(ExecutionGroup::getStageDefinition)
+                        .map(StageDefinition::getName)
+                        .orElse(null);
+            } else if (expectedGroupSize > 1) {
+                mostRecentStage = String.format(
+                        "%d running, %d finished, %d expected",
+                        runningGroupSize,
+                        completedGroupSize,
+                        expectedGroupSize
+                );
+            }
+        }
 
         if (State.Preparing == state) {
             mostRecentStage = "Searching a fitting execution node...";
@@ -1187,8 +1191,8 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(p)
                 )
-                .flatMap(Pipeline::getActiveExecutionGroup)
                 .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
                 .flatMap(g -> g
                         .getRunningStages()
                         .filter(s -> stageId == null || s.getFullyQualifiedId().equals(stageId))
@@ -1221,8 +1225,7 @@ public class ProjectsController {
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(
                         project,
                         pipeline -> pipeline
-                                .getActiveExecutionGroup()
-                                .map(g -> {
+                                .getActiveExecutionGroups().anyMatch(g -> {
                                     g.markAsCompleted();
                                     g.getRunningStages().forEach(stage -> {
                                         try {
@@ -1236,7 +1239,7 @@ public class ProjectsController {
                                         }
                                     });
                                     return Boolean.TRUE;
-                                }).orElse(Boolean.FALSE)
+                                })
                 ))
                 .orElse(Boolean.FALSE);
     }
@@ -1247,9 +1250,9 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") @Nonnull String stageId) {
         return getPipelineIfAllowedToAccess(user, projectId)
-                .flatMap(Pipeline::getActiveExecutionGroup)
-                .map(ExecutionGroup::getRunningStages)
                 .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
+                .map(ExecutionGroup::getRunningStages)
                 .flatMap(r -> r.filter(s -> s.getFullyQualifiedId().equals(stageId)))
                 .allMatch(stage -> {
                     try {
