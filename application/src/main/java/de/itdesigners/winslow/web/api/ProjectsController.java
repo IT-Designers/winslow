@@ -388,32 +388,35 @@ public class ProjectsController {
     @Nonnull
     public static StateInfo getStateInfo(@Nonnull Winslow winslow, @Nonnull Pipeline pipeline) {
         var state = getPipelineState(pipeline).orElse(null);
-        var mostRecentStage = pipeline
+        var expectedGroupSize = pipeline
                 .getActiveExecutionGroups()
-                .flatMap(group -> {
-                    if (group.getExpectedGroupSize() > 1) {
-                        var running = group.getRunningStages().count();
-                        var completed = group
-                                .getStages()
-                                .filter(s -> s.getFinishState().isPresent())
-                                .count();
-                        var expected = group.getExpectedGroupSize();
-                        if (completed == expected) {
-                            return Stream.empty();
-                        } else {
-                            return Stream.of(String.format(
-                                    "%d running, %d finished, %d expected",
-                                    running,
-                                    completed,
-                                    expected
-                            ));
-                        }
-                    } else {
-                        return Stream.of(group.getStageDefinition().getName());
-                    }
-                })
-                .findFirst()
-                .orElse(null);
+                .mapToLong(ExecutionGroup::getExpectedGroupSize)
+                .sum();
+        var runningStages = pipeline.getActiveExecutionGroups().flatMap(ExecutionGroup::getRunningStages).count();
+        var completedStages = pipeline
+                .getActiveExecutionGroups()
+                .flatMap(ExecutionGroup::getCompletedStages)
+                .count();
+        var mostRecentStage = (String) null;
+
+        if (expectedGroupSize != completedStages) {
+            if (expectedGroupSize == 1) {
+                mostRecentStage = pipeline
+                        .getActiveExecutionGroups()
+                        .filter(g -> g.getRunningStages().findAny().isPresent())
+                        .findFirst()
+                        .map(ExecutionGroup::getStageDefinition)
+                        .map(StageDefinition::getName)
+                        .orElse(null);
+            } else if (expectedGroupSize > 1) {
+                mostRecentStage = String.format(
+                        "%d running, %d finished, %d expected",
+                        runningStages,
+                        completedStages,
+                        expectedGroupSize
+                );
+            }
+        }
 
         if (State.Preparing == state) {
             mostRecentStage = "Searching a fitting execution node...";

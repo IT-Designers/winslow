@@ -621,18 +621,23 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
                 enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
                     pipelineToUpdate.requestPause(Pipeline.PauseReason.StageFailure);
-                    pipelineToUpdate.getActiveExecutionGroups().forEach(
-                            group -> {
+                    var noUpdateApplied = pipelineToUpdate
+                            .getActiveExecutionGroups()
+                            .noneMatch(group -> {
                                 try {
-                                    group.updateStage(stageId.getFullyQualified(), stage -> {
+                                    return group.updateStage(stageId.getFullyQualified(), stage -> {
                                         stage.finishNow(State.Failed);
                                         return Optional.of(stage);
                                     });
                                 } catch (StageIsArchivedAndNotAllowedToChangeException e) {
                                     LOG.log(Level.SEVERE, "Failed to set failed flag for stage " + stageId, e);
                                 }
-                            }
-                    );
+                                return false;
+                            });
+
+                    if (noUpdateApplied) {
+                        LOG.log(Level.SEVERE, "Failed to retrieve the active ExecutionGroup for " + projectId);
+                    }
                 });
             }
         });

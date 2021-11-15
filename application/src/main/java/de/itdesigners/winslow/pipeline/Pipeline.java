@@ -31,7 +31,6 @@ public class Pipeline implements Cloneable {
     public Pipeline(@Nonnull String projectId) {
         this.projectId        = projectId;
         this.executionCounter = 0;
-
         this.executionHistory = new ArrayList<>();
         this.executionQueue   = new ArrayList<>();
         this.activeExecutions = new ArrayList<>();
