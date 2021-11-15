@@ -71,7 +71,7 @@ public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdat
                     pipeline.retrieveNextActiveExecution();
                 }
                 return pipeline;
-            } catch (PreconditionNotMetException | ExecutionGroupStillHasRunningStagesException | ThereIsStillAnActiveExecutionGroupException e) {
+            } catch (PreconditionNotMetException | ExecutionGroupStillHasRunningStagesException e) {
                 LOG.log(Level.SEVERE, "At least one precondition is no longer met, cannot perform update", e);
             }
         }
