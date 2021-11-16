@@ -189,7 +189,7 @@ public abstract class BaseRepository {
         return (l, value) -> {
             // TODO remove
             if (value instanceof Pipeline) {
-                var stages = ((Pipeline) value).getActiveExecutionGroup().stream()
+                var stages = ((Pipeline) value).getActiveExecutionGroups()
                                   .flatMap(ExecutionGroup::getStages)
                                   .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
                                   .collect(Collectors.toList());
@@ -218,7 +218,7 @@ public abstract class BaseRepository {
                 var loaded = reader.load(inputStream);
                 // TODO remove
                 if (loaded instanceof Pipeline) {
-                    var stages = ((Pipeline) loaded).getActiveExecutionGroup().stream()
+                    var stages = ((Pipeline) loaded).getActiveExecutionGroups()
                                                    .flatMap(ExecutionGroup::getStages)
                                                    .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
                                                    .collect(Collectors.toList());

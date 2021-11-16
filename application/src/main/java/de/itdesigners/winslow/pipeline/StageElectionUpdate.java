@@ -57,7 +57,7 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
         ensureNoElectionIsRunning(orchestrator, projectId);
         ensureHasStageDefinitionToDeploy(pipelineReadOnly);
 
-        ensureActiveExecutionGroupHasRemainingStageExecutions(pipelineReadOnly);
+        ensureAnyActiveExecutionGroupHasRemainingStageExecutions(pipelineReadOnly);
 
         ensureNotPaused(pipelineReadOnly);
         ensureNoStageInPreparationPhase(pipelineReadOnly);
@@ -66,8 +66,10 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
     private static void ensureNoStageInPreparationPhase(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         var hasPreparingStage = Optional
                 .ofNullable(pipelineReadOnly)
-                .flatMap(Pipeline::getActiveExecutionGroup)
+                .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
                 .map(g -> g.getStages().anyMatch(s -> s.getState() == State.Preparing))
+                .findFirst()
                 .orElse(Boolean.FALSE);
         if (hasPreparingStage) {
             throw new PreconditionNotMetException("ExecutionGroup has stage in Preparing state");
