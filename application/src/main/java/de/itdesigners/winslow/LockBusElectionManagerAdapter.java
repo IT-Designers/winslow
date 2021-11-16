@@ -82,7 +82,7 @@ public class LockBusElectionManagerAdapter {
     private void handleElectionStarted(@Nonnull Election election) {
         orchestrator
                 .getPipelineUnsafe(election.getProjectId())
-                .filter(CommonUpdateConstraints::hasActiveExecutionGroupRemainingExecutions)
+                .filter(CommonUpdateConstraints::hasAnyActiveExecutionGroupRemainingExecutions)
                 .filter(pipeline -> !pipeline.isPauseRequested())
                 .filter(p -> orchestrator.isCapableOfExecutingNextStage(p).orElse(Boolean.FALSE))
                 .filter(p -> {
