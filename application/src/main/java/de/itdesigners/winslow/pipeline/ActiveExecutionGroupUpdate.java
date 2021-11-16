@@ -20,7 +20,6 @@ public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdat
 
     }
 
-
     @Nonnull
     public static Optional<PipelineUpdater.NoAccessUpdater> check(
             @Nonnull Orchestrator orchestrator,
@@ -41,9 +40,9 @@ public class ActiveExecutionGroupUpdate implements PipelineUpdater.NoAccessUpdat
             @Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         ensureIsNotLockedByAnotherInstance(orchestrator, projectId);
         ensureNoElectionIsRunning(orchestrator, projectId);
-        ensureHasNoRunningStages(pipelineReadOnly);
-        ensureNoActiveExecutionGroupOrActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
-        ensureArchivableOrRetrievableExecutionGroup(pipelineReadOnly);
+        ensureHasGroupWithNoRunningStages(pipelineReadOnly);
+        ensureNoActiveExecutionGroupOrAnyActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
+        ensureHasArchivableOrRetrievableExecutionGroup(pipelineReadOnly);
     }
 
 

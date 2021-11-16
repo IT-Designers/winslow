@@ -150,8 +150,8 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             @Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         ensureIsNotLockedByAnotherInstance(orchestrator, projectId);
         ensureNoElectionIsRunning(orchestrator, projectId);
-        ensureHasNoRunningStages(pipelineReadOnly);
-        ensureNoActiveExecutionGroupOrActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
+        ensureHasGroupWithNoRunningStages(pipelineReadOnly);
+        ensureNoActiveExecutionGroupOrAnyActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
         ensureQueueIsEmpty(pipelineReadOnly);
         ensureIsNotPaused(pipelineReadOnly);
     }
