@@ -74,8 +74,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
         winslow.getOrchestrator().getRunningStageStats(project).forEach(this::publishUpdate);
         winslow.getOrchestrator().getPipeline(project).ifPresent(pipeline -> {
             pipeline
-                    .getActiveExecutionGroup()
-                    .stream()
+                    .getActiveExecutionGroups()
                     .flatMap(ExecutionGroup::getStages)
                     .sequential()
                     .map(stage -> this
@@ -154,7 +153,6 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                 .getPipeline(projectId)
                 .flatMap(pipeline -> pipeline
                         .getActiveOrPreviousExecutionGroup()
-                        .stream()
                         .flatMap(ExecutionGroup::getStages)
                         .sequential()
                         .reduce((first, second) -> second)
