@@ -37,8 +37,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
         var stages = Stream
                 .ofNullable(pipelineReadOnly)
                 .flatMap(pipeline -> pipeline
-                        .getActiveExecutionGroup()
-                        .stream()
+                        .getActiveExecutionGroups()
                         .flatMap(ExecutionGroup::getRunningStages)
                         .map(Stage::getFullyQualifiedId))
                 .filter(stageId -> !orchestrator.getLogRepository().isLocked(projectId, stageId))
@@ -64,8 +63,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
         if (pipeline != null) {
             var projectId = pipeline.getProjectId();
             var changes = pipeline
-                    .getActiveExecutionGroup()
-                    .stream()
+                    .getActiveExecutionGroups()
                     .flatMap(ExecutionGroup::getRunningStages)
                     .filter(stage -> stagesToCheck.contains(stage.getFullyQualifiedId()))
                     .filter(stage -> !orchestrator.getLogRepository().isLocked(projectId, stage.getFullyQualifiedId()))
@@ -78,7 +76,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
 
                             stage.finishNow(State.Succeeded);
 
-                            var remaining = pipeline.getActiveExecutionGroup().map(ExecutionGroup::hasRemainingExecutions).orElse(Boolean.FALSE);
+                            var remaining = pipeline.getActiveExecutionGroups().anyMatch(ExecutionGroup::hasRemainingExecutions);
                             var singleExec = pipeline.getResumeNotification().map(n -> Pipeline.ResumeNotification.RunSingleThenPause == n).orElse(Boolean.FALSE);
 
                             if (!remaining && singleExec) {
@@ -94,7 +92,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                     .count();
 
             if (changes > 0) {
-                pipeline.getActiveExecutionGroup().ifPresent(active -> {
+                pipeline.getActiveExecutionGroups().forEach(active -> {
                     var hasFailed = active.getStages().anyMatch(s -> s.getState() == State.Failed);
                     var hasRemaining = active.hasRemainingExecutions();
                     var ignoreFailures = active.getStageDefinition().getIgnoreFailuresWithinExecutionGroup();
