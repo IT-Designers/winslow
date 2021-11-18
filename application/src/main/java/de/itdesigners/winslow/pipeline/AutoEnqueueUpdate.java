@@ -9,8 +9,7 @@ import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,7 +56,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 .getProject(pipeline.getProjectId())
                 .unsafe()
                 .flatMap(project -> pipeline
-                        .getActiveOrPreviousExecutionGroup()
+                        .getPreviousExecutionGroup()
                         .filter(g -> g
                                 .getStages()
                                 .allMatch(s -> s.getFinishState().equals(Optional.of(State.Succeeded))))
@@ -132,6 +131,17 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
     }
 
     @Nonnull
+    private static ArrayList<Object> getResultsOfStages(
+            @Nonnull Pipeline pipeline,
+            @Nonnull List<String> stageNames) {
+        var relevantStages = pipeline.getExecutionHistory()
+                                      .filter(g -> stageNames.contains(g.getStageDefinition().getName()));
+        var results = new ArrayList<>();
+        relevantStages.forEach(g -> g.getStages().forEach(s -> results.add (s.getResult())));
+        return results;
+    }
+
+    @Nonnull
     private static Optional<Integer> guessStageIndex(
             @Nonnull PipelineDefinition definition,
             @Nonnull String stageName) {
@@ -149,8 +159,8 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             @Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         ensureIsNotLockedByAnotherInstance(orchestrator, projectId);
         ensureNoElectionIsRunning(orchestrator, projectId);
-        ensureHasNoRunningStages(pipelineReadOnly);
-        ensureNoActiveExecutionGroupOrActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
+        ensureHasGroupWithNoRunningStages(pipelineReadOnly);
+        ensureNoActiveExecutionGroupOrAnyActiveGroupIsExhaustedOrHasFailed(pipelineReadOnly);
         ensureQueueIsEmpty(pipelineReadOnly);
         ensureIsNotPaused(pipelineReadOnly);
     }
