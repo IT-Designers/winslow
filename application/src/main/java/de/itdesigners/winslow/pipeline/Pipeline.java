@@ -40,43 +40,6 @@ public class Pipeline implements Cloneable {
             "projectId",
             "executionHistory",
             "enqueuedExecutions",
-            "activeExecutionGroup",
-            "pauseRequested",
-            "pauseReason",
-            "resumeNotification",
-            "deletionPolicy",
-            "workspaceConfigurationMode",
-            "executionCounter"
-    })
-    public Pipeline(
-            @Nonnull String projectId,
-            @Nullable List<ExecutionGroup> executionHistory,
-            @Nullable List<ExecutionGroup> enqueuedExecutions,
-            @Nullable ExecutionGroup activeExecutionGroup,
-            boolean pauseRequested,
-            @Nullable PauseReason pauseReason,
-            @Nullable ResumeNotification resumeNotification,
-            @Nullable DeletionPolicy deletionPolicy,
-            @Nullable WorkspaceConfiguration.WorkspaceMode workspaceConfigurationMode,
-            int executionCounter) {
-        this(
-                projectId,
-                Optional.ofNullable(executionHistory).orElseGet(ArrayList::new),
-                Optional.ofNullable(enqueuedExecutions).orElseGet(ArrayList::new),
-                new ArrayList<>(Optional.ofNullable(activeExecutionGroup).map(List::of).orElseGet(Collections::emptyList)),
-                pauseRequested,
-                pauseReason,
-                resumeNotification,
-                deletionPolicy,
-                workspaceConfigurationMode,
-                executionCounter
-        );
-    }
-
-    @ConstructorProperties({
-            "projectId",
-            "executionHistory",
-            "enqueuedExecutions",
             "activeExecutionGroups",
             "pauseRequested",
             "pauseReason",
@@ -191,7 +154,15 @@ public class Pipeline implements Cloneable {
     public Stream<ExecutionGroup> getActiveOrPreviousExecutionGroups() {
         if (!activeExecutions.isEmpty()) {
             return activeExecutions.stream();
-        } else if (!this.executionHistory.isEmpty()) {
+        } else {
+            return getPreviousExecutionGroups();
+        }
+    }
+
+    @Nonnull
+    @Transient
+    public Stream<ExecutionGroup> getPreviousExecutionGroups() {
+        if (!this.executionHistory.isEmpty()) {
             var list = new ArrayList<>(this.executionHistory);
             Collections.reverse(list);
             return list.stream();

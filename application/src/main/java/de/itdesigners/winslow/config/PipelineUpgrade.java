@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
@@ -15,9 +16,7 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,6 +36,17 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
         } else {
             if (node instanceof ObjectNode) {
                 ((ObjectNode) node).remove("strategy");
+                JsonNode activeExecutionGroup = ((ObjectNode) node).remove("activeExecutionGroup");
+                if (activeExecutionGroup != null) {
+                    ((ObjectNode) node).putArray("activeExecutionGroups").add(activeExecutionGroup);
+                }
+                JsonNode activeExecutionGroups = node.get("activeExecutionGroups");
+                for (int i = 0; i < activeExecutionGroups.size(); i++) {
+                    if (activeExecutionGroups.get(i) == null || activeExecutionGroups.get(i).isNull()) {
+                        ((ArrayNode) activeExecutionGroups).remove(i);
+                        i--;
+                    }
+                }
             }
             // return ctxt.readValue(node.traverse(), Pipeline.class);
             return DeserializerUtils.deserializeWithDefaultDeserializer(node, ctxt, Pipeline.class);
@@ -132,7 +142,7 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                 projectId,
                 completedStages,
                 executionQueue,
-                runningStage,
+                new ArrayList<>(Optional.ofNullable(runningStage).map(List::of).orElseGet(Collections::emptyList)),
                 pauseRequested,
                 pauseReason,
                 resumeNotification,

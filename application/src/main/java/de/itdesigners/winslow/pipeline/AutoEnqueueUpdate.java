@@ -9,10 +9,13 @@ import org.javatuples.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static de.itdesigners.winslow.pipeline.CommonUpdateConstraints.*;
 
@@ -130,6 +133,16 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                     }*/
                     return Optional.of(new Pair<>(mostRecent, pipelineDefinition.getStages().get(index)));
                 });
+    }
+
+    @Nonnull
+    private static Stream<Map<String, String>> getResultsOfStages(
+            @Nonnull Pipeline pipeline,
+            @Nonnull List<String> stageNames) {
+        return pipeline
+                .getExecutionHistory()
+                .filter(g -> stageNames.contains(g.getStageDefinition().getName()))
+                .flatMap(g -> g.getStages().map(Stage::getResult));
     }
 
     @Nonnull
