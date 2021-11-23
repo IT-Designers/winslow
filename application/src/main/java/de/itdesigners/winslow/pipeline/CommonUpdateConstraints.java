@@ -53,7 +53,7 @@ public class CommonUpdateConstraints {
                 .ofNullable(pipelineReadOnly)
                 .stream()
                 .flatMap(Pipeline::getActiveExecutionGroups)
-                .filter(g -> g.getRunningStages().findAny().isEmpty())
+                .filter(g -> g.getRunningStages().findAny().isPresent())
                 .findAny()
                 .isEmpty();
         if (!empty) {
