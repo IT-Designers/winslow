@@ -32,6 +32,7 @@ public class ExecutionGroup {
     private           int    groupCounter;
     private @Nullable String comment;
 
+    private @Nullable ExecutionGroupId parentId;
     /**
      * Configure-only constructor
      *
@@ -39,7 +40,7 @@ public class ExecutionGroup {
      * @param stageDefinition {@link StageDefinition} being configured
      */
     public ExecutionGroup(@Nonnull ExecutionGroupId id, @Nonnull StageDefinition stageDefinition, @Nullable String comment) {
-        this(id, true, stageDefinition, new TreeMap<>(), new WorkspaceConfiguration(), new ArrayList<>(), 0, comment);
+        this(id, true, stageDefinition, new TreeMap<>(), new WorkspaceConfiguration(), new ArrayList<>(), 0, comment, null);
     }
 
     /**
@@ -53,10 +54,10 @@ public class ExecutionGroup {
             @Nonnull ExecutionGroupId id,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
-            @Nullable String comment) {
-        this(id, false, stageDefinition, Collections.emptyMap(), workspaceConfiguration, new ArrayList<>(), 0, comment);
+            @Nullable String comment,
+            @Nullable ExecutionGroupId parentId) {
+        this(id, false, stageDefinition, Collections.emptyMap(), workspaceConfiguration, new ArrayList<>(), 0, comment, parentId);
     }
-
 
     /**
      * Group-execution constructor
@@ -71,14 +72,14 @@ public class ExecutionGroup {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Map<String, RangedValue> rangedValues,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
-        this(id, false, stageDefinition, rangedValues, workspaceConfiguration, new ArrayList<>(), 0, null);
+        this(id, false, stageDefinition, rangedValues, workspaceConfiguration, new ArrayList<>(), 0, null, null);
     }
 
 
     /**
      * Deserialization constructor
      */
-    @ConstructorProperties({"id", "configureOnly", "stageDefinition", "rangedValues", "workspaceConfiguration", "stages", "groupCounter", "comment"})
+    @ConstructorProperties({"id", "configureOnly", "stageDefinition", "rangedValues", "workspaceConfiguration", "stages", "groupCounter", "comment", "parentId"})
     public ExecutionGroup(
             @Nonnull ExecutionGroupId id,
             boolean configureOnly,
@@ -87,7 +88,8 @@ public class ExecutionGroup {
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
             @Nullable List<Stage> stages,
             int groupCounter,
-            @Nullable String comment) {
+            @Nullable String comment,
+            @Nullable ExecutionGroupId parentId) {
         this.id                     = id;
         this.configureOnly          = configureOnly;
         this.stageDefinition        = stageDefinition;
@@ -96,6 +98,7 @@ public class ExecutionGroup {
         this.stages                 = stages != null ? new ArrayList<>(stages) : new ArrayList<>();
         this.groupCounter           = groupCounter;
         this.comment                = comment;
+        this.parentId               = parentId;
     }
 
 
@@ -210,6 +213,13 @@ public class ExecutionGroup {
     @Nonnull
     public Optional<String> getComment() {
         return Optional.ofNullable(comment);
+    }
+
+    /**
+     * @return A parentId for this execution group
+     */
+    public Optional<ExecutionGroupId> getParentId() {
+        return Optional.ofNullable(parentId);
     }
 
     /**

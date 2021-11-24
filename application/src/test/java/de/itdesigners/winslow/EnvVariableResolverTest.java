@@ -284,6 +284,7 @@ public class EnvVariableResolverTest {
                 new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, null),
                 new ArrayList<>(),
                 0,
+                null,
                 null
         );
     }

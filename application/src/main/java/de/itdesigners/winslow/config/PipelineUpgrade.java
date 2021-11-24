@@ -117,7 +117,8 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                             es.getComment()
                                               .map(String::trim)
                                               .filter(s -> !s.isEmpty())
-                                              .orElse(null)
+                                              .orElse(null),
+                                            null
                                     );
                                 case Configure:
                                     return new ExecutionGroup(
