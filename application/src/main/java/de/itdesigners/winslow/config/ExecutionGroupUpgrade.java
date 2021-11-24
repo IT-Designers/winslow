@@ -81,6 +81,7 @@ public class ExecutionGroupUpgrade extends JsonDeserializer<ExecutionGroup> {
                         new HashMap<>()
                 ))),
                 0,
+                null,
                 null
         );
     }

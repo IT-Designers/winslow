@@ -382,6 +382,7 @@ public class ObsoleteWorkspaceFinderTest {
                 new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null),
                 new ArrayList<>(),
                 0,
+                null,
                 null
         );
         group.addStage(new Stage(

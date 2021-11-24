@@ -6,6 +6,7 @@ import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.project.Project;
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,12 +22,15 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
 
     private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
     private final @Nonnull StageDefinition        stageDefinition;
+    private final @Nonnull ExecutionGroup         parent;
 
     private AutoEnqueueUpdate(
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
-            @Nonnull StageDefinition stageDefinition) {
+            @Nonnull StageDefinition stageDefinition,
+            @Nonnull ExecutionGroup parent) {
         this.workspaceConfiguration = workspaceConfiguration;
         this.stageDefinition        = stageDefinition;
+        this.parent                 = parent;
     }
 
 
@@ -40,7 +44,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             return Optional
                     .ofNullable(pipelineReadOnly)
                     .flatMap(p -> generateNextStageDefinition(orchestrator, p))
-                    .map(def -> new AutoEnqueueUpdate(def.getValue0(), def.getValue1()));
+                    .map(def -> new AutoEnqueueUpdate(def.getValue0(), def.getValue1(), def.getValue2()));
         } catch (PreconditionNotMetException e) {
             LOG.log(Level.FINE, "Missing precondition for pipeline update: " + e.getMessage(), e);
             return Optional.empty();
@@ -48,7 +52,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
     }
 
     @Nonnull
-    private static Optional<Pair<WorkspaceConfiguration, StageDefinition>> generateNextStageDefinition(
+    private static Optional<Triplet<WorkspaceConfiguration, StageDefinition, ExecutionGroup>> generateNextStageDefinition(
             @Nonnull Orchestrator orchestrator,
             @Nonnull Pipeline pipeline) {
         return orchestrator
@@ -60,10 +64,10 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                         .filter(g -> g
                                 .getStages()
                                 .allMatch(s -> s.getFinishState().equals(Optional.of(State.Succeeded))))
-                        .flatMap(mostRecent -> getNextStageDefinition(project, mostRecent))
-                        .map(pair -> {
-                            var prevGroup               = pair.getValue0();
-                            var nextStageDefinitionBase = pair.getValue1();
+                        .flatMap(mostRecent -> getNextStageDefinition(project, mostRecent).map(p -> p.addAt2(mostRecent)))
+                        .map(triplet -> {
+                            var prevGroup               = triplet.getValue0();
+                            var nextStageDefinitionBase = triplet.getValue1();
                             var env                     = new TreeMap<>(nextStageDefinitionBase.getEnvironment());
                             var builder = new StageDefinitionBuilder()
                                     .withTemplateBase(nextStageDefinitionBase)
@@ -97,9 +101,10 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                                     });
 
 
-                            return new Pair<>(
+                            return new Triplet<>(
                                     prevGroup.getWorkspaceConfiguration(),
-                                    builder.build()
+                                    builder.build(),
+                                    triplet.getValue2()
                             );
                         }));
     }
@@ -135,9 +140,9 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             @Nonnull Pipeline pipeline,
             @Nonnull List<String> stageNames) {
         var relevantStages = pipeline.getExecutionHistory()
-                                      .filter(g -> stageNames.contains(g.getStageDefinition().getName()));
+                                     .filter(g -> stageNames.contains(g.getStageDefinition().getName()));
         var results = new ArrayList<>();
-        relevantStages.forEach(g -> g.getStages().forEach(s -> results.add (s.getResult())));
+        relevantStages.forEach(g -> g.getStages().forEach(s -> results.add(s.getResult())));
         return results;
     }
 
@@ -196,7 +201,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 if (requiresConfirmation && !hasConfirmation) {
                     pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 } else {
-                    pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration, "automatic");
+                    pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration, "automatic", parent.getId());
                 }
 
                 return pipeline;
