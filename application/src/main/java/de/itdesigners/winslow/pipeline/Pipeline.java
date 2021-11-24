@@ -248,9 +248,10 @@ public class Pipeline implements Cloneable {
     public ExecutionGroupId enqueueSingleExecution(
             @Nonnull StageDefinition definition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
-            @Nullable String comment) {
+            @Nullable String comment,
+            @Nullable ExecutionGroupId parentId) {
         var id = incrementAndGetNextExecutionGroupId(definition.getName());
-        this.executionQueue.add(new ExecutionGroup(id, definition, workspaceConfiguration, comment));
+        this.executionQueue.add(new ExecutionGroup(id, definition, workspaceConfiguration, comment, parentId));
         return id;
     }
 

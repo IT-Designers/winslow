@@ -917,6 +917,7 @@ public class ProjectsController {
                                                 null,
                                                 null
                                         ),
+                                        null,
                                         null
                                 );
                             }
@@ -1031,7 +1032,7 @@ public class ProjectsController {
         if (action == Action.Configure) {
             pipeline.enqueueConfiguration(resultDefinition, comment);
         } else if (rangedEnv == null || rangedEnv.isEmpty()) {
-            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration, comment);
+            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration, comment, null);
         } else {
             pipeline.enqueueRangedExecution(resultDefinition, workspaceConfiguration, rangedEnv);
         }

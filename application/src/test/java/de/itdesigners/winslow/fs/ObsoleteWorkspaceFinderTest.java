@@ -434,6 +434,7 @@ public class ObsoleteWorkspaceFinderTest {
                     : new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, null),
                 new ArrayList<>(),
                 0,
+                null,
                 null
         );
         group.addStage(new Stage(
@@ -484,6 +485,7 @@ public class ObsoleteWorkspaceFinderTest {
                 new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, true),
                 new ArrayList<>(),
                 0,
+                null,
                 null
         );
 
