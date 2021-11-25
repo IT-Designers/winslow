@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static de.itdesigners.winslow.pipeline.CommonUpdateConstraints.*;
 
@@ -64,7 +65,10 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                         .filter(g -> g
                                 .getStages()
                                 .allMatch(s -> s.getFinishState().equals(Optional.of(State.Succeeded))))
-                        .flatMap(mostRecent -> getNextStageDefinition(project, mostRecent).map(p -> p.addAt2(mostRecent)))
+                        .flatMap(mostRecent -> getNextStageDefinition(
+                                project,
+                                mostRecent
+                        ).map(p -> p.addAt2(mostRecent)))
                         .map(triplet -> {
                             var prevGroup               = triplet.getValue0();
                             var nextStageDefinitionBase = triplet.getValue1();
@@ -122,17 +126,27 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 .map(index -> index + (mostRecent.isConfigureOnly() ? 0 : 1));
 
         return nextStageDefinitionIndex
+                .map(index -> {
+                    var skip = mostRecent
+                            .getStages()
+                            .map(Stage::getResult)
+                            .anyMatch(m -> Optional
+                                    .ofNullable(m.get("SKIP_NEXT"))
+                                    .map(Boolean::parseBoolean)
+                                    .orElse(false)
+                            );
+                    if (skip) {
+                        return index + 1;
+                    } else {
+                        return index;
+                    }
+                })
                 .filter(index -> index < pipelineDefinition.getStages().size())
-                .flatMap(index -> {
-                    /*while (!pipelineDefinition.getStages().get(index).getDecision()) {
-                        if (index + 1 < pipelineDefinition.getStages().size()) {
-                            index++;
-                        } else {
-                            return Optional.empty();
-                        }
-                    }*/
-                    return Optional.of(new Pair<>(mostRecent, pipelineDefinition.getStages().get(index)));
-                });
+                .map(index -> new Pair<>(
+                            mostRecent,
+                            pipelineDefinition.getStages().get(index)
+                    )
+                );
     }
 
     @Nonnull
@@ -202,7 +216,12 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 if (requiresConfirmation && !hasConfirmation) {
                     pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 } else {
-                    pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration, "automatic", parent.getId());
+                    pipeline.enqueueSingleExecution(
+                            stageDefinition,
+                            workspaceConfiguration,
+                            "automatic",
+                            parent.getId()
+                    );
                 }
 
                 return pipeline;
