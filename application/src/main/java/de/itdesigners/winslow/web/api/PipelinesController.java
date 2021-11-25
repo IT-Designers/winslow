@@ -181,7 +181,6 @@ public class PipelinesController {
                                             null,
                                             null,
                                             null,
-                                            null,
                                             null
                                     ), new StageDefinition(
                                             "Auto Nvidia Stage",
@@ -200,7 +199,6 @@ public class PipelinesController {
                                             null,
                                             null,
                                             null,
-                                            null,
                                             null
                                     ), new StageDefinition(
                                             "Auto Stage 3",
@@ -212,7 +210,6 @@ public class PipelinesController {
                                             null,
                                             null,
                                             false,
-                                            null,
                                             null,
                                             null,
                                             null,
