@@ -130,17 +130,27 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 .map(index -> index + (mostRecent.isConfigureOnly() ? 0 : 1));
 
         return nextStageDefinitionIndex
+                .map(index -> {
+                    var skip = mostRecent
+                            .getStages()
+                            .map(Stage::getResult)
+                            .anyMatch(m -> Optional
+                                    .ofNullable(m.get("SKIP_NEXT"))
+                                    .map(Boolean::parseBoolean)
+                                    .orElse(false)
+                            );
+                    if (skip) {
+                        return index + 1;
+                    } else {
+                        return index;
+                    }
+                })
                 .filter(index -> index < pipelineDefinition.getStages().size())
-                .flatMap(index -> {
-                    /*while (!pipelineDefinition.getStages().get(index).getDecision()) {
-                        if (index + 1 < pipelineDefinition.getStages().size()) {
-                            index++;
-                        } else {
-                            return Optional.empty();
-                        }
-                    }*/
-                    return Optional.of(new Pair<>(mostRecent, pipelineDefinition.getStages().get(index)));
-                });
+                .map(index -> new Pair<>(
+                            mostRecent,
+                            pipelineDefinition.getStages().get(index)
+                    )
+                );
     }
 
     @Nonnull
@@ -209,7 +219,12 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 if (requiresConfirmation && !hasConfirmation) {
                     pipeline.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 } else {
-                    pipeline.enqueueSingleExecution(stageDefinition, workspaceConfiguration, "automatic", parent.getId());
+                    pipeline.enqueueSingleExecution(
+                            stageDefinition,
+                            workspaceConfiguration,
+                            "automatic",
+                            parent.getId()
+                    );
                 }
 
                 return pipeline;
