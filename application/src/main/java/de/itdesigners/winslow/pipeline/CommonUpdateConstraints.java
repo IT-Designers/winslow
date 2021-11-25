@@ -147,6 +147,18 @@ public class CommonUpdateConstraints {
         }
     }
 
+    public static void ensureActiveGroupIsEmpty(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
+        var empty = Optional
+                .ofNullable(pipelineReadOnly)
+                .stream()
+                .flatMap(Pipeline::getActiveExecutionGroups)
+                .findAny()
+                .isEmpty();
+        if (!empty) {
+            throw new PreconditionNotMetException("There is at least one entry in the active group for this pipeline");
+        }
+    }
+
     public static void ensureIsNotPaused(@Nullable Pipeline pipelineReadOnly) throws PreconditionNotMetException {
         var paused = Optional
                 .ofNullable(pipelineReadOnly)
