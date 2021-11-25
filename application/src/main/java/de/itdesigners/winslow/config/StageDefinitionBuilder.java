@@ -148,7 +148,6 @@ public class StageDefinitionBuilder {
                         Optional.ofNullable(this.template).map(StageDefinition::getTags),
                         Optional.ofNullable(this.base).map(StageDefinition::getTags)
                 ),
-                either(this.decision, base.map(StageDefinition::getDecision)),
                 either(this.result, base.map(StageDefinition::getResult))
         );
     }

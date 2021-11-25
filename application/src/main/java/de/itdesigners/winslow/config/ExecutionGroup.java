@@ -159,7 +159,6 @@ public class ExecutionGroup {
                             stageDefinition.getLogParsers(),
                             stageDefinition.getIgnoreFailuresWithinExecutionGroup(),
                             stageDefinition.getTags(),
-                            stageDefinition.getDecision(),
                             stageDefinition.getResult()
                     )
             ));
