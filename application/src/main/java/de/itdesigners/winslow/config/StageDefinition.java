@@ -19,6 +19,7 @@ public class StageDefinition {
     private final           boolean             ignoreFailuresWithinExecutionGroup;
     private final @Nullable List<String>        tags;
     private final @Nullable Map<String, String> result;
+    private final @Nonnull  StageType           type;
 
     public StageDefinition(
             @Nonnull String name,
@@ -34,7 +35,8 @@ public class StageDefinition {
             @Nullable List<LogParser> logParsers,
             @Nullable Boolean ignoreFailuresWithinExecutionGroup,
             @Nullable List<String> tags,
-            @Nullable Map<String, String> result) {
+            @Nullable Map<String, String> result,
+            @Nullable StageType type) {
         this.name                               = name;
         this.desc                               = description;
         this.image                              = image;
@@ -51,6 +53,7 @@ public class StageDefinition {
         this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
         this.tags                               = tags;
         this.result                             = result;
+        this.type                               = type != null ? type : StageType.Execution;
         this.check();
     }
 
@@ -120,6 +123,11 @@ public class StageDefinition {
     @Nonnull
     public Map<String, String> getResult() {
         return result != null ? result : Collections.emptyMap();
+    }
+
+    @Nonnull
+    public StageType getType() {
+        return type;
     }
 
     @Override
