@@ -29,6 +29,8 @@ build:
   image: maven:3.8.5-openjdk-17
   tags:
     - docker
+  variables:
+    NODE_OPTIONS: "--openssl-legacy-provider"
   script:
     - sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
     - sed -i "s/external__COMMIT_HASH_LONG/$CI_COMMIT_SHA/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
