@@ -280,6 +280,10 @@ public class ExecutionGroup {
         return configureOnly;
     }
 
+    public boolean isGateway() {
+        return getStageDefinition().getType().isGateway();
+    }
+
     @Nonnull
     public StageDefinition getStageDefinition() {
         return stageDefinition;
