@@ -8,6 +8,8 @@ build:
   image: node
   tags:
     - docker
+  variables:
+    NODE_OPTIONS: "--openssl-legacy-provider"
   script:
 #    - npm install -g -ng
     - npm install
