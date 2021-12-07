@@ -387,7 +387,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .filter(executionGroup -> executionGroup.getNextStageDefinition().isPresent())
                 .findFirst()
                 .map(group -> {
-                    if (group.isConfigureOnly()) {
+                    if (group.isConfigureOnly() || group.isGateway()) {
                         return true;
                     }
 
@@ -434,7 +434,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .filter(executionGroup -> executionGroup.getNextStageDefinition().isPresent())
                 .findFirst()
                 .map(group -> {
-                    if (group.isConfigureOnly()) {
+                    if (group.isConfigureOnly() || group.isGateway()) {
                         return true;
                     }
                     boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().getTags());
