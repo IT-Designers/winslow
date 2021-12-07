@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {ProjectApiService, ProjectInfo, State, StateInfo} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
@@ -13,6 +13,7 @@ import {
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {UserApiService} from '../api/user-api.service';
 import {FilesApiService} from '../api/files-api.service';
+import {GroupActionsComponent} from '../group-actions/group-actions.component';
 
 @Component({
   selector: 'app-projects',
@@ -201,6 +202,13 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         data: {
           projects: this.projects,
         } as ProjectDiskUsageDialogData
+      });
+  }
+
+  openGroupActions() {
+    this.createDialog
+      .open(GroupActionsComponent, {
+        data: {}
       });
   }
 }
