@@ -296,9 +296,13 @@ public class ObsoleteWorkspaceFinder {
                          .forEach(obsolete::add);
                 }
 
-                hasSuccessfulExecution |= group.getCompletedStages().anyMatch(s -> s
-                        .getFinishState()
-                        .orElse(State.Running) == State.Succeeded) && !group.isConfigureOnly();
+                hasSuccessfulExecution |= group.getCompletedStages().anyMatch(
+                        s -> s
+                            .getFinishState()
+                            .orElse(State.Running) == State.Succeeded
+                )
+                        && !group.isConfigureOnly()
+                        && !group.isGateway();
             }
         }
     }
@@ -370,7 +374,7 @@ public class ObsoleteWorkspaceFinder {
                                         details.distance = Math.min(details.distance, distance);
                                         details.notDiscardable |= !group.getStageDefinition().isDiscardable();
                                         details.hasSucceededAtLeastOnce |= s.getState() == State.Succeeded;
-                                        details.hasExecutedAtLeastOnce |= !group.isConfigureOnly();
+                                        details.hasExecutedAtLeastOnce |= !group.isConfigureOnly() && !group.isGateway();
                                         details.hasSucceededWithoutDiscardableAtLeastOnce |= !group
                                                 .getStageDefinition()
                                                 .isDiscardable() && s.getState() == State.Succeeded;
