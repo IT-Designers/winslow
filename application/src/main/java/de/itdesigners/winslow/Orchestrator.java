@@ -12,6 +12,7 @@ import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.Lock;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
+import de.itdesigners.winslow.gateway.GatewayBackend;
 import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.pipeline.*;
 import de.itdesigners.winslow.project.LogReader;
@@ -563,30 +564,37 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new WorkspaceMount(environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
                             .add(new LogParserRegisterer(getResourceManager()))
-                            .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
-                                result.getStage().startNow();
-                                executor.setStageHandle(result.getHandle());
-                                lock.waitForRelease();
-                                // do not update deferred, update as soon as possible!
-                                updatePipeline(projectId, pipelineToUpdate -> {
-                                    pipelineToUpdate
-                                            .getActiveExecutionGroups()
-                                            .filter(g -> {
-                                                try {
-                                                    return g.updateStage(result.getStage());
-                                                } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                                    LOG.log(
-                                                            Level.SEVERE,
-                                                            "Failed to update stage with assemble result",
-                                                            e
-                                                    );
-                                                    throw new RuntimeException(e); // bubble up
-                                                }
-                                            })
-                                            .findFirst()
-                                            .orElseThrow();
-                                });
-                            }))
+                            .add(new BuildAndSubmit(
+                                    // TODO make it great again!
+                                    stageDefinition.getType().isGateway()
+                                        ? new GatewayBackend(this.pipelines)
+                                        : this.backend,
+                                    this.nodeName,
+                                    result -> {
+                                        result.getStage().startNow();
+                                        executor.setStageHandle(result.getHandle());
+                                        lock.waitForRelease();
+                                        // do not update deferred, update as soon as possible!
+                                        updatePipeline(projectId, pipelineToUpdate -> {
+                                            pipelineToUpdate
+                                                    .getActiveExecutionGroups()
+                                                    .filter(g -> {
+                                                        try {
+                                                            return g.updateStage(result.getStage());
+                                                        } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                                            LOG.log(
+                                                                    Level.SEVERE,
+                                                                    "Failed to update stage with assemble result",
+                                                                    e
+                                                            );
+                                                            throw new RuntimeException(e); // bubble up
+                                                        }
+                                                    })
+                                                    .findFirst()
+                                                    .orElseThrow();
+                                        });
+                                    }
+                            ))
                             .assemble(new Context(
                                     project,
                                     pipeline,
