@@ -64,7 +64,7 @@ public class SubmissionToNomadJobAdapter {
 
     @Nonnull
     @CheckReturnValue
-    private Stage createStage(@Nonnull Submission submission) {
+    public static Stage createStage(@Nonnull Submission submission) {
         var stage = new Stage(
                 submission.getId(),
                 submission.getWorkspaceDirectory().orElse(null)
