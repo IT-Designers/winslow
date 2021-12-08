@@ -12,6 +12,7 @@ import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.Lock;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
+import de.itdesigners.winslow.gateway.GatewayBackend;
 import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.pipeline.*;
 import de.itdesigners.winslow.project.LogReader;
@@ -571,6 +572,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new WorkspaceMount(environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
                             .add(new LogParserRegisterer(getResourceManager()))
+                            .add(new GatewayInfoAppender())
                             .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
                                 result.getStage().startNow();
                                 executor.setStageHandle(result.getHandle());
