@@ -49,13 +49,13 @@
 
       <div class="sticky-button-group" style="position: sticky; margin-left: calc(100% - 9em); top: calc(100% - 3.5em); bottom: 1em">
         <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
-          <mat-icon>insert_chart_outlined</mat-icon>
+          <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
         </button>
         <button mat-mini-fab color="warn" (click)="openGroupActions()">
-          <mat-icon>play_arrow</mat-icon>
+          <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
         </button>
         <button mat-mini-fab color="primary" (click)="createNewProject()">
-          <mat-icon>add</mat-icon>
+          <mat-icon matTooltip="Create new Project">add</mat-icon>
         </button>
       </div>
     </mat-card>

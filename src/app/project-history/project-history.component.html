@@ -79,7 +79,7 @@
     [isConfigure]="executionGroup?.configureOnly"
     [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
     [showActiveControls]="firstEntry || executionGroup.active"
-    [showPassiveControls]="firstEntry || executionGroup.active"
+    [showPassiveControls]="firstEntry || executionGroup.active || executionGroup.stages.length == 1"
     [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
     [showKillCurrentStage]="executionGroup.active"
     [enqueued]="executionGroup.enqueueIndex != null"
