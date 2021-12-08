@@ -58,7 +58,8 @@
   <img *ngIf="showPassiveControls && clickOpenTensorboard.observers.length > 0 || !sharedWorkspace"
        class="clickable mat-icon notranslate material-icons mat-icon-no-color"
        src="../../assets/tensorflow.png"
-       alt="(TensorBoard)"
+       matTooltip="Tensor-Board"
+       alt="Tensor-Board"
        (click)="$event.stopPropagation(); clickOpenTensorboard.emit($event)">
   <mat-icon *ngIf="showUseAsBlueprint && clickUseAsBlueprint.observers.length > 0" class="clickable"
         matTooltip="Use as blueprint"
