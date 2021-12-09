@@ -26,8 +26,16 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
                 .orElseThrow(() -> new RuntimeException("Missing GatewayExtension"));
 
         return switch (info.stageDefinition().getType()) {
-            case AndGateway -> new GatewayStageHandle(new AndGateway(pipelines, info.stageDefinition()));
-            case XOrGateway -> new GatewayStageHandle(new XOrGateway(pipelines, info.stageDefinition()));
+            case AndGateway -> new GatewayStageHandle(new AndGateway(
+                    pipelines,
+                    info.stageDefinition(),
+                    submission.getId()
+            ));
+            case XOrGateway -> new GatewayStageHandle(new XOrGateway(
+                    pipelines,
+                    info.stageDefinition(),
+                    submission.getId()
+            ));
             case Execution -> throw new IOException("Invalid StageType " + info.stageDefinition().getType());
         };
     }
