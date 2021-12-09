@@ -62,17 +62,17 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
     public SubmissionResult submit(@Nonnull Submission submission) throws IOException {
         return new SubmissionResult(
                 SubmissionToNomadJobAdapter.createStage(submission),
-                spawnStageHandle(submission.getStageDefinition())
+                spawnStageHandle(submission.getStageDefinition(), submission.getId())
         );
     }
 
     @Nonnull
-    private StageHandle spawnStageHandle(@Nonnull StageDefinition stageDefinition) throws IOException {
+    private StageHandle spawnStageHandle(@Nonnull StageDefinition stageDefinition, @Nonnull StageId stageId) throws IOException {
         switch (stageDefinition.getType()) {
             case AndGateway:
-                return new GatewayStageHandle(new AndGateway(pipelines, stageDefinition));
+                return new GatewayStageHandle(new AndGateway(pipelines, stageDefinition, stageId));
             case XOrGateway:
-                return new GatewayStageHandle(new XOrGateway(pipelines, stageDefinition));
+                return new GatewayStageHandle(new XOrGateway(pipelines, stageDefinition, stageId));
 
             case Execution:
                 break;
