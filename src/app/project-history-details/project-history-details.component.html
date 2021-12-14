@@ -5,7 +5,7 @@
         [itemNo]="entryNumber"
         [time]="selectedStage?.startTime"
         [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
-        [state]="selectedStage?.state"
+        [state]="entry.getMostRelevantState(projectState)"
         [isConfigure]="entry?.configureOnly"
         [showResumeOnlyThisStage]="false"
         [enqueued]="false"
