@@ -20,6 +20,7 @@ public class StageDefinition {
     private final @Nullable List<String>        tags;
     private final @Nullable Map<String, String> result;
     private final @Nonnull  StageType           type;
+    private final @Nullable String              nextStage;
 
     public StageDefinition(
             @Nonnull String name,
@@ -36,7 +37,8 @@ public class StageDefinition {
             @Nullable Boolean ignoreFailuresWithinExecutionGroup,
             @Nullable List<String> tags,
             @Nullable Map<String, String> result,
-            @Nullable StageType type) {
+            @Nullable StageType type,
+            @Nullable String nextStage) {
         this.name                               = name;
         this.desc                               = description;
         this.image                              = image;
@@ -54,6 +56,7 @@ public class StageDefinition {
         this.tags                               = tags;
         this.result                             = result;
         this.type                               = type != null ? type : StageType.Execution;
+        this.nextStage                          = nextStage;
         this.check();
     }
 
@@ -128,6 +131,11 @@ public class StageDefinition {
     @Nonnull
     public StageType getType() {
         return type;
+    }
+
+    @Nonnull
+    public Optional<String> getNextStage() {
+        return Optional.ofNullable(this.nextStage);
     }
 
     @Override
