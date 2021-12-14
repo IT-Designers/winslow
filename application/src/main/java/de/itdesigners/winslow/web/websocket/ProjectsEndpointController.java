@@ -244,7 +244,7 @@ public class ProjectsEndpointController {
     private List<ExecutionGroupInfo> getEnqueuedInfo(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getEnqueuedExecutions()
-                .map(g -> ExecutionGroupInfoConverter.convert(g, false))
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false, true))
                 .collect(Collectors.toList());
     }
 
@@ -252,7 +252,7 @@ public class ProjectsEndpointController {
     private List<ExecutionGroupInfo> getExecutionInfo(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveExecutionGroup()
-                .map(g -> ExecutionGroupInfoConverter.convert(g, true))
+                .map(g -> ExecutionGroupInfoConverter.convert(g, true, false))
                 .map(Collections::singletonList)
                 .orElseGet(Collections::emptyList);
     }
@@ -261,7 +261,7 @@ public class ProjectsEndpointController {
     private List<ExecutionGroupInfo> getHistoryInfo(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getExecutionHistory()
-                .map(g -> ExecutionGroupInfoConverter.convert(g, false))
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false, false))
                 .collect(Collectors.toList());
     }
 

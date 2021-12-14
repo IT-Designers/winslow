@@ -108,8 +108,8 @@ public class ProjectsController {
                     var history  = pipeline.stream().flatMap(Pipeline::getExecutionHistory);
 
                     return Stream.concat(
-                            history.map(g -> ExecutionGroupInfoConverter.convert(g, false)),
-                            active.map(g -> ExecutionGroupInfoConverter.convert(g, true)).stream()
+                            history.map(g -> ExecutionGroupInfoConverter.convert(g, false, false)),
+                            active.map(g -> ExecutionGroupInfoConverter.convert(g, true, false)).stream()
                     );
                 });
     }
@@ -133,7 +133,7 @@ public class ProjectsController {
                     return history
                             .stream()
                             .limit(count)
-                            .map(g -> ExecutionGroupInfoConverter.convert(g, false));
+                            .map(g -> ExecutionGroupInfoConverter.convert(g, false, false));
 
                 });
     }
@@ -159,7 +159,7 @@ public class ProjectsController {
                     return history
                             .stream()
                             .limit(count)
-                            .map(g -> ExecutionGroupInfoConverter.convert(g, false));
+                            .map(g -> ExecutionGroupInfoConverter.convert(g, false, false));
 
                 });
     }
@@ -187,7 +187,7 @@ public class ProjectsController {
                         .stream()
                         .flatMap(Pipeline::getEnqueuedExecutions)
                 )
-                .map(g -> ExecutionGroupInfoConverter.convert(g, false));
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false, true));
     }
 
     @DeleteMapping("/projects/{projectId}/enqueued/{groupId}")
