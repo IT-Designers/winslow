@@ -27,6 +27,10 @@
   color: orange;
 }
 
+.state-icon-skipped {
+  color: #6ca5ff;
+}
+
 .state-icon-configured {
   color: rgba(0, 0, 139, 0.85); /* darkblue ..% */
   font-size: 0.8em;
