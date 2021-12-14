@@ -576,7 +576,7 @@ export class ExecutionGroupInfo {
     }
   }
 
-  public getMostRelevantState(): State {
+  public getMostRelevantState(projectState: State = null): State {
     for (const state of [State.Running, State.Preparing, State.Failed]) {
       if (this.hasStagesState(state)) {
         return state;
@@ -585,7 +585,8 @@ export class ExecutionGroupInfo {
     if (this.enqueued) {
       return State.Enqueued;
     } else if (this.active) {
-      return this.getMostRecentStage()?.state ?? State.Preparing;
+      const alternative = projectState === State.Paused ? State.Paused : State.Preparing;
+      return this.getMostRecentStage()?.state ?? alternative;
     } else {
       return this.getMostRecentStage()?.state ?? State.Skipped;
     }
