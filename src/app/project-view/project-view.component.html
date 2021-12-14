@@ -152,6 +152,7 @@
               [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
               [expanded]="selectedHistoryEntry === entry"
               [pipelineIsPaused]="paused"
+              [projectState]="stateValue"
 
               (click)="setHistoryEntry(entry, i)"
               (clickGetStage)="setHistoryEntryStage($event)"
@@ -174,6 +175,7 @@
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
           [entryNumber]="selectedHistoryEntryNumber ? selectedHistoryEntryNumber : tryParseStageNumber(history[0]?.id, history?.length)"
           [selectedStage]="selectedHistoryEntryStage ? selectedHistoryEntryStage : history[0]?.stages[history[0]?.stages.length-1]"
+          [projectState]="stateValue"
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
           (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"

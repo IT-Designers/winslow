@@ -19,6 +19,7 @@ export class ProjectHistoryComponent implements OnInit {
   @Input() expanded = false;
   @Input() pipelineIsPaused: boolean = null;
   @Input() active: boolean = false;
+  @Input() projectState: State;
 
   @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
