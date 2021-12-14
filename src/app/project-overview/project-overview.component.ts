@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {Action, ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
@@ -177,7 +177,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   constructor(private api: ProjectApiService,
               private dialog: DialogService,
               private createDialog: MatDialog,
-              private  pipelines: PipelineApiService) {
+              private  pipelines: PipelineApiService,
+              private cdr: ChangeDetectorRef) {
   }
 
   private static maxOfSeriesOr(series: any[], minimum: number, upperMax: number) {
@@ -234,6 +235,8 @@ export class ProjectOverviewComponent implements OnDestroy {
     this.stateFinished = State.Failed === state || State.Succeeded === state;
     this.stateRunning = State.Running === state;
     this.statePaused = State.Paused === state || State.Enqueued === state;
+    this.cdr.detectChanges();
+    console.log(state);
   }
 
   private initSeries() {
