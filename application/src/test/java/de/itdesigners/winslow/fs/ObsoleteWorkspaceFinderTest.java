@@ -426,6 +426,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         null,
+                        null,
                         null
                 ),
                 null,
@@ -474,6 +475,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         discardable,
+                        null,
                         null,
                         null,
                         null,

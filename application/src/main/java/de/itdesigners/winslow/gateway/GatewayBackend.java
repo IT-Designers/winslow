@@ -5,6 +5,7 @@ import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.Submission;
+import de.itdesigners.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
@@ -13,9 +14,11 @@ import java.io.IOException;
 public class GatewayBackend implements Backend, Closeable, AutoCloseable {
 
     private final @Nonnull PipelineRepository pipelines;
+    private final @Nonnull ProjectRepository  projects;
 
-    public GatewayBackend(@Nonnull PipelineRepository pipelines) {
+    public GatewayBackend(@Nonnull PipelineRepository pipelines, @Nonnull ProjectRepository projects) {
         this.pipelines = pipelines;
+        this.projects  = projects;
     }
 
     @Nonnull
@@ -28,6 +31,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
         return switch (info.stageDefinition().getType()) {
             case AndGateway -> new GatewayStageHandle(new AndGateway(
                     pipelines,
+                    projects,
                     info.stageDefinition(),
                     submission.getId()
             ));
