@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import { ExecutionGroupInfo, StageInfo } from '../api/project-api.service';
+import {ExecutionGroupInfo, StageInfo, State} from '../api/project-api.service';
 
 @Component({
   selector: 'app-project-history-details',
@@ -12,7 +12,7 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   @Input() entryNumber: number;
   @Input() stageNumber: number;
   @Input() selectedStage: StageInfo;
-
+  @Input() projectState: State;
   @Input() firstEntry = true;
   @Input() executionGroup: ExecutionGroupInfo;
   @Input() expanded = false;

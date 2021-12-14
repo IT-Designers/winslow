@@ -5,7 +5,7 @@
   <mat-expansion-panel-header class="header" [class.active]="active">
     <mat-panel-title>
       <app-project-history-header
-        [state]="executionGroup.getMostRelevantState()"
+        [state]="executionGroup.getMostRelevantState(projectState)"
         [isConfigure]="executionGroup.configureOnly"
         [itemNo]="entryNumber"
         [time]="executionGroup.getMostRecentStartOrFinishTime()"
@@ -75,7 +75,7 @@
     [itemNo]="entryNumber"
     [time]="executionGroup?.getMostRecentStartOrFinishTime()"
     [stageName]="executionGroup?.stageDefinition.name + (executionGroup?.enqueueIndex != null ? ' ('+executionGroup?.enqueueIndex+')' : '')"
-    [state]="executionGroup?.getMostRelevantState()"
+    [state]="executionGroup?.getMostRelevantState(projectState)"
     [isConfigure]="executionGroup?.configureOnly"
     [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
     [showActiveControls]="firstEntry || executionGroup.active"
