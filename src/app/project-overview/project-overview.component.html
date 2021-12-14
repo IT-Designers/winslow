@@ -23,6 +23,7 @@
       <mat-icon>insert_chart</mat-icon>
       Show Workspace Disk Usage
     </button>
+  </div>
 </div>
 
 <div class="graph-container">
@@ -58,7 +59,7 @@
 <div class="flex-grow-column whitespace-separator-top" style="margin: 1em 4em 3em 4em">
   <ng-container *ngFor="let entry of enqueued; index as i">
     <app-project-history-header
-      [state]="entry.getMostRelevantState()"
+      [state]="entry.getMostRelevantState(stateValue)"
       [isConfigure]="entry.configureOnly"
       [itemNo]="enqueued.length - i"
       [time]="entry.getMostRecentStartOrFinishTime()"
