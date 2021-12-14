@@ -160,7 +160,8 @@ public class ExecutionGroup {
                             stageDefinition.getIgnoreFailuresWithinExecutionGroup(),
                             stageDefinition.getTags(),
                             stageDefinition.getResult(),
-                            stageDefinition.getType()
+                            stageDefinition.getType(),
+                            stageDefinition.getNextStage().orElse(null)
                     )
             ));
         } else if (this.stages.isEmpty()) {

@@ -572,7 +572,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new BuildAndSubmit(
                                     // TODO make it great again!
                                     stageDefinition.getType().isGateway()
-                                        ? new GatewayBackend(this.pipelines)
+                                        ? new GatewayBackend(this.pipelines, this.projects)
                                         : this.backend,
                                     this.nodeName,
                                     result -> {

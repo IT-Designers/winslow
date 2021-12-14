@@ -9,6 +9,7 @@ import de.itdesigners.winslow.nomad.SubmissionToNomadJobAdapter;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
+import de.itdesigners.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
@@ -19,9 +20,11 @@ import java.util.stream.Stream;
 public class GatewayBackend implements Backend, Closeable, AutoCloseable {
 
     private final @Nonnull PipelineRepository pipelines;
+    private final @Nonnull ProjectRepository  projects;
 
-    public GatewayBackend(@Nonnull PipelineRepository pipelines) {
+    public GatewayBackend(@Nonnull PipelineRepository pipelines, @Nonnull ProjectRepository projects) {
         this.pipelines = pipelines;
+        this.projects  = projects;
     }
 
     @Nonnull
@@ -70,7 +73,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
     private StageHandle spawnStageHandle(@Nonnull StageDefinition stageDefinition, @Nonnull StageId stageId) throws IOException {
         switch (stageDefinition.getType()) {
             case AndGateway:
-                return new GatewayStageHandle(new AndGateway(pipelines, stageDefinition, stageId));
+                return new GatewayStageHandle(new AndGateway(pipelines, projects, stageDefinition, stageId));
             case XOrGateway:
                 return new GatewayStageHandle(new XOrGateway(pipelines, stageDefinition, stageId));
 
