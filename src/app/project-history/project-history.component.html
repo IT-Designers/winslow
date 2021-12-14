@@ -75,7 +75,7 @@
     [itemNo]="entryNumber"
     [time]="executionGroup?.getMostRecentStartOrFinishTime()"
     [stageName]="executionGroup?.stageDefinition.name + (executionGroup?.enqueueIndex != null ? ' ('+executionGroup?.enqueueIndex+')' : '')"
-    [state]="executionGroup?.stages[0]?.state"
+    [state]="executionGroup?.getMostRelevantState()"
     [isConfigure]="executionGroup?.configureOnly"
     [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
     [showActiveControls]="firstEntry || executionGroup.active"

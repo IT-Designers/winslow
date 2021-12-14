@@ -292,7 +292,7 @@ export class ProjectApiService {
     return this
       .client
       .put<boolean>(ProjectApiService.getUrl(
-        `${projectId}/kill${stageId != null ? '/' + stageId : ''}`),
+          `${projectId}/kill${stageId != null ? '/' + stageId : ''}`),
         {}
       )
       .toPromise();
@@ -429,7 +429,8 @@ export enum State {
   Preparing = 'Preparing',
   // local only
   Warning = 'Warning',
-  Enqueued = 'Enqueued'
+  Enqueued = 'Enqueued',
+  Skipped = 'Skipped'
 }
 
 export enum Action {
@@ -513,10 +514,10 @@ export class RangeWithStepSize {
 }
 
 export class AuthTokenInfo {
-    id: string;
-    secret?: string;
-    name: string;
-    capabilities: string[];
+  id: string;
+  secret?: string;
+  name: string;
+  capabilities: string[];
 }
 
 export class ExecutionGroupInfo {
@@ -527,6 +528,7 @@ export class ExecutionGroupInfo {
   workspaceConfiguration: WorkspaceConfiguration;
   stages: StageInfo[];
   active: boolean;
+  enqueued: boolean;
   comment?: string;
   // local only
   enqueueIndex?: number;
@@ -580,7 +582,13 @@ export class ExecutionGroupInfo {
         return state;
       }
     }
-    return this.getMostRecentStage()?.state;
+    if (this.enqueued) {
+      return State.Enqueued;
+    } else if (this.active) {
+      return this.getMostRecentStage()?.state ?? State.Preparing;
+    } else {
+      return this.getMostRecentStage()?.state ?? State.Skipped;
+    }
   }
 
   public isMostRecentStateRunning() {

@@ -184,7 +184,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.id, this.history.length - index)
     this.selectedHistoryEntryIndex = index;
 
-    if(entry.stages.length == 1) {
+    if (entry.stages.length == 1) {
       this.selectedHistoryEntryStage = entry.stages[0];
     } else if (entry.stages.length < 1) {
       this.selectedHistoryEntryStage = new StageInfo();
@@ -224,13 +224,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       let change = changes[propName];
 
       // reset selectedHistory if another project will be selected
-      if(change?.currentValue?.id != change?.previousValue?.id) {
+      if (change?.currentValue?.id != change?.previousValue?.id) {
         this.selectedHistoryEntry = null;
         this.selectedHistoryEntryNumber = null;
         this.selectedHistoryEntryIndex = 0;
         this.selectedHistoryEntryStage = null;
       }
-     }
+    }
   }
 
   ngAfterViewInit() {
