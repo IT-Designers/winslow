@@ -15,7 +15,10 @@ public class Graph {
     private final @Nonnull Map<ExecutionGroupId, ExecutionGroup> cachedExecutionGroup;
     private final @Nonnull Map<String, StageDefinition>          cachedStageDefinition;
 
-    public Graph(@Nonnull Pipeline pipelineReadOnly, @Nonnull PipelineDefinition pipelineDefinition, @Nonnull Node rootNode) {
+    public Graph(
+            @Nonnull Pipeline pipelineReadOnly,
+            @Nonnull PipelineDefinition pipelineDefinition,
+            @Nonnull Node rootNode) {
         this.nodes                 = new ArrayList<>();
         this.cachedExecutionGroup  = new HashMap<>();
         this.cachedStageDefinition = new HashMap<>();
@@ -30,8 +33,10 @@ public class Graph {
         pipelineDefinition.getStages().forEach(s -> cachedStageDefinition.put(s.getName(), s));
 
         addNode(rootNode);
+        findAllDirectlyConnectedNodes();
         developNodeBackwards(rootNode);
         developNodeForwardsForAllNodes(pipelineDefinition);
+        findAllDirectlyConnectedNodes();
     }
 
     private void developNodeForwardsForAllNodes(@Nonnull PipelineDefinition pipelineDefinition) {
@@ -57,21 +62,32 @@ public class Graph {
         nodes.add(node);
     }
 
-    public void developNodeBackwards(@Nonnull Node node) {
-        // find all StageDefinitions which have us/node.getStageDefinition().getName() as .getNext()
-        //    --> these are prev-nodes
-        //
-        // for (var def : this.cachedStageDefinition.values()) {
-        //     if (Objects.equals(def.getName(), node.getStageDefinition().getNextStage().orElse(null))) {
-        //         // linking
-        //     }
-        // }
-        //
-        // next: for each EG
-        //           find its node (it should exist)
-        //                  where node.getStageDefinition().getName == EG.getStageDefinition().getName()
-        //           add EG to the node
+    public void findAllDirectlyConnectedNodes() {
+        for (var i = 0; i < nodes.size(); i++) {
+            // as the node is linking connected nodes, new nodes are added to the nodes-list
+            // which means nodes.size() gets bigger, thus this for-loop will iterate over them...?
+            findDirectlyConnectedNodes(nodes.get(i));
+        }
+    }
 
+    public void findDirectlyConnectedNodes(@Nonnull Node node) {
+        for (var def : this.cachedStageDefinition.values()) {
+            if (Objects.equals(def.getName(), node.getStageDefinition().getNextStage().orElse(null))) {
+                getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(prevNode -> {
+                    node.addPreviousNode(prevNode);
+                    prevNode.addNextNode(node);
+                });
+            }
+            if (Objects.equals(def.getNextStage().orElse(null), node.getStageDefinition().getName())) {
+                getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(nextNode -> {
+                    node.addNextNode(nextNode);
+                    nextNode.addPreviousNode(node);
+                });
+            }
+        }
+    }
+
+    public void developNodeBackwards(@Nonnull Node node) {
         node
                 .getExecutionGroups()
                 .stream()
@@ -95,20 +111,23 @@ public class Graph {
         return node
                 .getStageDefinition()
                 .getNextStage()
-                .flatMap(name -> getNodeForStageDefinitionName(name)
-                        .or(() -> getCachedStageDefinitionForName(name)
-                                .map(stageDefinition -> {
-                                    var newNode = new Node( stageDefinition, null);
-                                    addNode(newNode);
-                                    return newNode;
-                                })
-                        )
-                )
+                .flatMap(this::getOrCreateNodeForStageDefinitionName)
                 .map(nextNode -> {
                     node.addNextNode(nextNode);
                     nextNode.addPreviousNode(node);
                     return nextNode;
                 });
+    }
+
+    private Optional<Node> getOrCreateNodeForStageDefinitionName(String name) {
+        return getNodeForStageDefinitionName(name)
+                .or(() -> getCachedStageDefinitionForName(name)
+                        .map(stageDefinition -> {
+                            var newNode = new Node(stageDefinition, null);
+                            addNode(newNode);
+                            return newNode;
+                        })
+                );
     }
 
     @Nonnull
