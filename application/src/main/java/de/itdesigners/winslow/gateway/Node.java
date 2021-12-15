@@ -6,6 +6,7 @@ import de.itdesigners.winslow.config.StageDefinition;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -71,14 +72,18 @@ public class Node {
      * @param node to add to the previous nodes this node
      */
     public void addPreviousNode(@Nonnull Node node) {
-        previousNodes.add(node);
+        if (!previousNodes.contains(node)) {
+            previousNodes.add(node);
+        }
     }
 
     /**
      * @param node to add to the next nodes this node
      */
     public void addNextNode(@Nonnull Node node) {
-        nextNodes.add(node);
+        if (!nextNodes.contains(node)) {
+            nextNodes.add(node);
+        }
     }
 
     /**
@@ -86,5 +91,20 @@ public class Node {
      */
     public void addExecutionGroup(@Nonnull ExecutionGroup executionGroup) {
         executionGroups.add(executionGroup);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Node node = (Node) o;
+        return stageDefinition.equals(node.stageDefinition);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(stageDefinition);
     }
 }
