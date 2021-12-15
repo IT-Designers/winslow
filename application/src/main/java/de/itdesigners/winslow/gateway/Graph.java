@@ -73,15 +73,15 @@ public class Graph {
     public void findDirectlyConnectedNodes(@Nonnull Node node) {
         for (var def : this.cachedStageDefinition.values()) {
             if (Objects.equals(def.getName(), node.getStageDefinition().getNextStage().orElse(null))) {
-                getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(prevNode -> {
-                    node.addPreviousNode(prevNode);
-                    prevNode.addNextNode(node);
-                });
-            }
-            if (Objects.equals(def.getNextStage().orElse(null), node.getStageDefinition().getName())) {
                 getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(nextNode -> {
                     node.addNextNode(nextNode);
                     nextNode.addPreviousNode(node);
+                });
+            }
+            if (Objects.equals(def.getNextStage().orElse(null), node.getStageDefinition().getName())) {
+                getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(prevNode -> {
+                    node.addPreviousNode(prevNode);
+                    prevNode.addNextNode(node);
                 });
             }
         }
@@ -136,11 +136,6 @@ public class Graph {
                 .stream()
                 .filter(s -> Objects.equals(name, s.getStageDefinition().getName()))
                 .findFirst();
-    }
-
-    @Nonnull
-    private Node getNode(int nodeIndex) throws IndexOutOfBoundsException {
-        return nodes.get(nodeIndex);
     }
 
     @Nonnull
