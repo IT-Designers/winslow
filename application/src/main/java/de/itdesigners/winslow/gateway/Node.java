@@ -28,10 +28,10 @@ public class Node {
             @Nullable ExecutionGroup executionGroup,
             @Nullable Node previousNodeIndex,
             @Nullable Node nextNodeIndex) {
-        this.stageDefinition      = stageDefinition;
-        this.executionGroups  = Optional.ofNullable(executionGroup).stream().collect(Collectors.toList());
-        this.previousNodes = Optional.ofNullable(previousNodeIndex).stream().collect(Collectors.toList());
-        this.nextNodes     = Optional.ofNullable(nextNodeIndex).stream().collect(Collectors.toList());
+        this.stageDefinition = stageDefinition;
+        this.executionGroups = Optional.ofNullable(executionGroup).stream().collect(Collectors.toList());
+        this.previousNodes   = Optional.ofNullable(previousNodeIndex).stream().collect(Collectors.toList());
+        this.nextNodes       = Optional.ofNullable(nextNodeIndex).stream().collect(Collectors.toList());
     }
 
     @Nonnull
@@ -106,5 +106,10 @@ public class Node {
     @Override
     public int hashCode() {
         return Objects.hash(stageDefinition);
+    }
+
+    @Nonnull
+    public String toString() {
+        return "Node@{name='" + getStageDefinition().getName() + "'}#" + hashCode();
     }
 }
