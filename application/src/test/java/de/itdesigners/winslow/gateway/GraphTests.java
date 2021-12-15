@@ -9,8 +9,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class GraphTests {
 
@@ -66,19 +68,23 @@ public class GraphTests {
                 )
         );
 
-        assertEquals(
-                graph.getNodes().get(0).getNextNodes(),
-                List.of(graph.getNodes().get(2))
-        );
-        assertEquals(
-                graph.getNodes().get(1).getNextNodes(),
-                List.of(graph.getNodes().get(2))
-        );
+        var node1 = graph.getNodeForStageDefinitionName("stage-1").orElseThrow();
+        var node2 = graph.getNodeForStageDefinitionName("stage-2").orElseThrow();
+        var node3 = graph.getNodeForStageDefinitionName("stage-3").orElseThrow();
 
         assertEquals(
-                graph.getNodes().get(2).getPreviousNodes(),
-                List.of(graph.getNodes().get(0), graph.getNodes().get(1))
+                node1.getNextNodes(),
+                List.of(node3)
         );
+        assertEquals(
+                node2.getNextNodes(),
+                List.of(node3)
+        );
+
+        assertTrue(node3.getPreviousNodes().contains(node1));
+        assertTrue(node3.getPreviousNodes().contains(node2));
+        assertEquals(2, node3.getPreviousNodes().size());
+        assertEquals(3, graph.getNodes().size());
     }
 
     @Nonnull
