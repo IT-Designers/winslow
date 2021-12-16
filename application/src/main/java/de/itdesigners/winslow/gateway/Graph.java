@@ -26,9 +26,6 @@ public class Graph {
         pipelineReadOnly.getActiveAndPastExecutionGroups().forEach(executionGroup -> {
             cachedExecutionGroup.put(executionGroup.getId(), executionGroup);
         });
-        pipelineReadOnly.getActiveExecutionGroups().forEach(executionGroup -> {
-            cachedExecutionGroup.put(executionGroup.getId(), executionGroup);
-        });
 
         pipelineDefinition.getStages().forEach(s -> cachedStageDefinition.put(s.getName(), s));
 
@@ -72,13 +69,13 @@ public class Graph {
 
     public void findDirectlyConnectedNodes(@Nonnull Node node) {
         for (var def : this.cachedStageDefinition.values()) {
-            if (Objects.equals(def.getName(), node.getStageDefinition().getNextStage().orElse(null))) {
+            if (node.getStageDefinition().getNextStages().contains(def.getName())) {
                 getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(nextNode -> {
                     node.addNextNode(nextNode);
                     nextNode.addPreviousNode(node);
                 });
             }
-            if (Objects.equals(def.getNextStage().orElse(null), node.getStageDefinition().getName())) {
+            if (def.getNextStages().contains(node.getStageDefinition().getName())) {
                 getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(prevNode -> {
                     node.addPreviousNode(prevNode);
                     prevNode.addNextNode(node);
@@ -93,29 +90,26 @@ public class Graph {
                 .stream()
                 .flatMap(group -> group.getParentId().stream())
                 .flatMap(parentId -> getCachedExecutionGroupForId(parentId).stream())
-                .forEach(nextExecutionGroup -> {
-                    var prevNode = new Node(
-                            nextExecutionGroup.getStageDefinition(),
-                            nextExecutionGroup,
-                            null,
-                            node
-                    );
-                    addNode(prevNode);
+                .flatMap(exg -> getOrCreateNodeForStageDefinitionName(exg.getStageDefinition().getName())
+                        .stream()
+                        .peek(n -> n.addExecutionGroup(exg))
+                )
+                .forEach(prevNode -> {
                     node.addPreviousNode(prevNode);
+                    prevNode.addNextNode(node);
                     developNodeBackwards(prevNode);
                 });
     }
 
-    @Nonnull
-    public Optional<Node> developNodeForwards(@Nonnull Node node) {
-        return node
+    public void developNodeForwards(@Nonnull Node node) {
+        node
                 .getStageDefinition()
-                .getNextStage()
-                .flatMap(this::getOrCreateNodeForStageDefinitionName)
-                .map(nextNode -> {
+                .getNextStages()
+                .stream()
+                .flatMap(s -> getOrCreateNodeForStageDefinitionName(s).stream())
+                .forEach(nextNode -> {
                     node.addNextNode(nextNode);
                     nextNode.addPreviousNode(node);
-                    return nextNode;
                 });
     }
 
