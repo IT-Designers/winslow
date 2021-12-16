@@ -19,8 +19,8 @@ public class StageDefinition {
     private final           boolean             ignoreFailuresWithinExecutionGroup;
     private final @Nullable List<String>        tags;
     private final @Nullable Map<String, String> result;
-    private final @Nonnull  StageType           type;
-    private final @Nullable String              nextStage;
+    private final @Nonnull  StageType    type;
+    private final @Nullable List<String> nextStages;
 
     public StageDefinition(
             @Nonnull String name,
@@ -38,7 +38,7 @@ public class StageDefinition {
             @Nullable List<String> tags,
             @Nullable Map<String, String> result,
             @Nullable StageType type,
-            @Nullable String nextStage) {
+            @Nullable List<String> nextStages) {
         this.name                               = name;
         this.desc                               = description;
         this.image                              = image;
@@ -55,8 +55,8 @@ public class StageDefinition {
         this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
         this.tags                               = tags;
         this.result                             = result;
-        this.type                               = type != null ? type : StageType.Execution;
-        this.nextStage                          = nextStage;
+        this.type       = type != null ? type : StageType.Execution;
+        this.nextStages = nextStages;
         this.check();
     }
 
@@ -134,14 +134,14 @@ public class StageDefinition {
     }
 
     @Nonnull
-    public Optional<String> getNextStage() {
-        return Optional.ofNullable(this.nextStage);
+    public List<String> getNextStages() {
+        return nextStages != null ? nextStages : Collections.emptyList();
     }
 
     @Override
     public String toString() {
         return getClass()
-                .getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + "}#" + this
+                .getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + ",type='"+this.type+"'}#" + this
                 .hashCode();
     }
 
@@ -187,6 +187,9 @@ public class StageDefinition {
         ) && Objects.equals(
                 tags,
                 stageDefinition.tags
+        ) && Objects.equals(
+                nextStages,
+                stageDefinition.nextStages
         );
     }
 
@@ -202,7 +205,8 @@ public class StageDefinition {
                 highlight,
                 discardable,
                 ignoreFailuresWithinExecutionGroup,
-                tags
+                tags,
+                nextStages
         );
     }
 

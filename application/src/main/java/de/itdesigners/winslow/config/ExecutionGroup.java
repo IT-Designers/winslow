@@ -161,7 +161,7 @@ public class ExecutionGroup {
                             stageDefinition.getTags(),
                             stageDefinition.getResult(),
                             stageDefinition.getType(),
-                            stageDefinition.getNextStage().orElse(null)
+                            stageDefinition.getNextStages()
                     )
             ));
         } else if (this.stages.isEmpty()) {
