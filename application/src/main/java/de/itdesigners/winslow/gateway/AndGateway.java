@@ -1,12 +1,14 @@
 package de.itdesigners.winslow.gateway;
 
 import de.itdesigners.winslow.PipelineRepository;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -72,6 +74,38 @@ public class AndGateway extends Gateway {
         var rootNode = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
         var graph    = new Graph(pipelineReadOnly, projectReadOnly.getPipelineDefinition(), rootNode);
 
+        var numberOfPrevStageDefinitions = rootNode.getPreviousNodes().size();
+        var numberOfInvocationsOfMyself  = rootNode.getExecutionGroups().size();
+
+        if (numberOfInvocationsOfMyself == numberOfPrevStageDefinitions) {
+            // enqueue
+            // Handle<Pipeline> -> pipeline.Enqueue(next)
+            pipelineHandle.exclusive().ifPresent(lockedPipelineHandle -> {
+                try (lockedPipelineHandle) {
+                    var pipeline = lockedPipelineHandle.get().orElseThrow(() -> new IOException("Failed to load"));
+
+                    for (var nextStageDefinitionNames : thisExecutionGroup.get().getStageDefinition().getNextStages()) {
+                        pipeline.enqueueSingleExecution(
+                                projectReadOnly
+                                        .getPipelineDefinition()
+                                        .getStages()
+                                        .stream()
+                                        .filter(stageDefinition1 -> stageDefinition1
+                                                .getName()
+                                                .equals(nextStageDefinitionNames))
+                                        .findFirst()
+                                        .orElseThrow(() -> new IOException("Failed to load")),
+                                new WorkspaceConfiguration(),
+                                "automatic from " + getClass().getSimpleName(),
+                                thisExecutionGroup.get().getId()
+                        );
+                    }
+
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            });
+        }
 
 
         /*
