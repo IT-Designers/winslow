@@ -281,6 +281,7 @@ public class ExecutionGroup {
         return configureOnly;
     }
 
+    @Transient
     public boolean isGateway() {
         return getStageDefinition().getType().isGateway();
     }
