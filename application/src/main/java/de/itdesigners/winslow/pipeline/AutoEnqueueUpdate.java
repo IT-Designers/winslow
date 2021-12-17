@@ -44,7 +44,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             ensureAllPreconditionsAreMet(orchestrator, projectId, pipelineReadOnly);
             return Optional
                     .ofNullable(pipelineReadOnly)
-                    .flatMap(p -> generateNextStageDefinition(orchestrator, p))
+                    .flatMap(p -> generateNextStageDefinition(orchestrator, p).findFirst()) //todo: check if this is correct
                     .map(def -> new AutoEnqueueUpdate(def.getValue0(), def.getValue1(), def.getValue2()));
         } catch (PreconditionNotMetException e) {
             LOG.log(Level.FINE, "Missing precondition for pipeline update: " + e.getMessage(), e);
@@ -53,18 +53,20 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
     }
 
     @Nonnull
-    private static Optional<Triplet<WorkspaceConfiguration, StageDefinition, ExecutionGroup>> generateNextStageDefinition(
+    private static Stream<Triplet<WorkspaceConfiguration, StageDefinition, ExecutionGroup>> generateNextStageDefinition(
             @Nonnull Orchestrator orchestrator,
             @Nonnull Pipeline pipeline) {
         return orchestrator
                 .getProjects()
                 .getProject(pipeline.getProjectId())
                 .unsafe()
+                .stream()
                 .flatMap(project -> pipeline
                         .getPreviousExecutionGroup()
                         .filter(g -> g
                                 .getStages()
                                 .allMatch(s -> s.getFinishState().equals(Optional.of(State.Succeeded))))
+                        .stream()
                         .flatMap(mostRecent -> getNextStageDefinition(
                                 project,
                                 mostRecent
@@ -114,39 +116,26 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
     }
 
     @Nonnull
-    private static Optional<Pair<ExecutionGroup, StageDefinition>> getNextStageDefinition(
+    private static Stream<Pair<ExecutionGroup, StageDefinition>> getNextStageDefinition(
             @Nonnull Project project,
             @Nonnull ExecutionGroup mostRecent) {
         var pipelineDefinition = project.getPipelineDefinition();
-        var mostRecentStageDefIndex = guessStageIndex(
-                pipelineDefinition,
-                mostRecent.getStageDefinition().getName()
-        );
-        var nextStageDefinitionIndex = mostRecentStageDefIndex
-                .map(index -> index + (mostRecent.isConfigureOnly() ? 0 : 1));
 
-        return nextStageDefinitionIndex
-                .map(index -> {
-                    var skip = mostRecent
-                            .getStages()
-                            .map(Stage::getResult)
-                            .anyMatch(m -> Optional
-                                    .ofNullable(m.get("SKIP_NEXT"))
-                                    .map(Boolean::parseBoolean)
-                                    .orElse(false)
-                            );
-                    if (skip) {
-                        return index + 1;
-                    } else {
-                        return index;
-                    }
-                })
-                .filter(index -> index < pipelineDefinition.getStages().size())
-                .map(index -> new Pair<>(
-                            mostRecent,
-                            pipelineDefinition.getStages().get(index)
-                    )
-                );
+        return mostRecent
+                .getStageDefinition()
+                .getNextStages()
+                .stream()
+                .flatMap(name ->
+                                 pipelineDefinition
+                                         .getStages()
+                                         .stream()
+                                         .filter(s -> s
+                                                 .getName()
+                                                 .equals(name))
+                                         .findFirst()
+                                         .stream()
+                )
+                .map(stageDefinition -> new Pair<>(mostRecent, stageDefinition));
     }
 
     @Nonnull
