@@ -28,8 +28,8 @@ public class GraphTests {
                 emptyPipeline(),
                 pipelineDefinition,
                 new Node(
-                    pipelineDefinition.getStages().get(0),
-                    null
+                        pipelineDefinition.getStages().get(0),
+                        null
                 )
         );
 
@@ -61,8 +61,8 @@ public class GraphTests {
                 emptyPipeline(),
                 pipelineDefinition,
                 new Node(
-                    pipelineDefinition.getStages().get(0),
-                    null
+                        pipelineDefinition.getStages().get(0),
+                        null
                 )
         );
 
@@ -97,8 +97,95 @@ public class GraphTests {
                 )
         );
 
+        var nodeA = graph.getNodeForStageDefinitionName("def-a").orElseThrow();
+        var nodeB = graph.getNodeForStageDefinitionName("def-b").orElseThrow();
+        var nodeC = graph.getNodeForStageDefinitionName("def-c").orElseThrow();
+        var nodeD = graph.getNodeForStageDefinitionName("def-d").orElseThrow();
+        var nodeE = graph.getNodeForStageDefinitionName("def-e").orElseThrow();
+        var nodeF = graph.getNodeForStageDefinitionName("def-f").orElseThrow();
+        var nodeG = graph.getNodeForStageDefinitionName("def-g").orElseThrow();
+        var node1 = graph.getNodeForStageDefinitionName("gtw-1").orElseThrow();
+        var node2 = graph.getNodeForStageDefinitionName("gtw-2").orElseThrow();
+        var node3 = graph.getNodeForStageDefinitionName("gtw-3").orElseThrow();
 
-        throw new RuntimeException("todo");
+        assertEquals(
+                nodeA.getNextNodes(),
+                List.of(node1)
+        );
+
+        assertEquals(
+                node1.getNextNodes(),
+                List.of(nodeB, nodeC)
+        );
+
+        assertEquals(
+                nodeB.getNextNodes(),
+                List.of(node3)
+        );
+
+        assertEquals(
+                node1.getNextNodes(),
+                List.of(nodeB,nodeC)
+        );
+
+        assertEquals(
+                node2.getNextNodes(),
+                List.of(nodeD, nodeE)
+        );
+
+        assertEquals(
+                nodeD.getNextNodes(),
+                List.of(nodeF)
+        );
+
+        assertEquals(
+                nodeE.getNextNodes(),
+                List.of(node3)
+        );
+
+        assertEquals(
+                nodeF.getNextNodes(),
+                List.of(node3)
+        );
+
+        assertEquals(
+                node3.getNextNodes(),
+                List.of(nodeG)
+        );
+
+        assertEquals(
+                nodeG.getNextNodes(),
+                List.of()
+        );
+
+        assertTrue(nodeG.getPreviousNodes().contains(node3));
+        assertEquals(1, nodeG.getPreviousNodes().size());
+
+        assertTrue(node3.getPreviousNodes().contains(nodeB));
+        assertTrue(node3.getPreviousNodes().contains(nodeE));
+        assertTrue(node3.getPreviousNodes().contains(nodeF));
+        assertEquals(3, node3.getPreviousNodes().size());
+
+        assertTrue(nodeF.getPreviousNodes().contains(nodeD));
+        assertEquals(1, nodeF.getPreviousNodes().size());
+
+        assertTrue(nodeE.getPreviousNodes().contains(node2));
+        assertEquals(1, nodeE.getPreviousNodes().size());
+
+        assertTrue(nodeD.getPreviousNodes().contains(node2));
+        assertEquals(1, nodeD.getPreviousNodes().size());
+
+        assertTrue(node2.getPreviousNodes().contains(nodeC));
+        assertEquals(1, node2.getPreviousNodes().size());
+
+        assertTrue(nodeC.getPreviousNodes().contains(node1));
+        assertEquals(1, nodeC.getPreviousNodes().size());
+
+        assertTrue(node1.getPreviousNodes().contains(nodeA));
+        assertEquals(1, node1.getPreviousNodes().size());
+
+        assertTrue(nodeA.getPreviousNodes().isEmpty());
+        assertEquals(0, nodeA.getPreviousNodes().size());
     }
 
     @Test
@@ -117,7 +204,7 @@ public class GraphTests {
 
         var exgA = emptyExecutionGroup(defA, null);
         var exg1 = emptyExecutionGroup(gtw1, exgA.getId());
-        var exgC    = emptyExecutionGroup(defC, exg1.getId());
+        var exgC = emptyExecutionGroup(defC, exg1.getId());
 
         var graph = new Graph(
                 simplePipeline(
@@ -136,7 +223,6 @@ public class GraphTests {
         assertEquals(2, nodeGtw1.getNextNodes().size());
 
 
-
         // gtw1.prev = A?
         assertEquals(1, nodeGtw1.getPreviousNodes().size());
         var nodeDefA = nodeGtw1.getPreviousNodes().get(0);
@@ -149,9 +235,13 @@ public class GraphTests {
         assertEquals(List.of(exgA), nodeDefA.getExecutionGroups());
 
 
-
         // gtw1.next = C
-        var nodeDefC = nodeGtw1.getNextNodes().stream().filter(n -> n.getStageDefinition().equals(defC)).findFirst().orElseThrow();
+        var nodeDefC = nodeGtw1
+                .getNextNodes()
+                .stream()
+                .filter(n -> n.getStageDefinition().equals(defC))
+                .findFirst()
+                .orElseThrow();
 
         // C.prev = gtw1
         assertEquals(List.of(nodeGtw1), nodeDefC.getPreviousNodes());
@@ -161,9 +251,13 @@ public class GraphTests {
         assertEquals(List.of(exgC), nodeDefC.getExecutionGroups());
 
 
-
         // gtw1.next = B
-        var nodeDefB = nodeGtw1.getNextNodes().stream().filter(n -> n.getStageDefinition().equals(defB)).findFirst().orElseThrow();
+        var nodeDefB = nodeGtw1
+                .getNextNodes()
+                .stream()
+                .filter(n -> n.getStageDefinition().equals(defB))
+                .findFirst()
+                .orElseThrow();
 
         // B.prev = gtw1
         assertEquals(List.of(nodeGtw1), nodeDefB.getPreviousNodes());
@@ -195,40 +289,43 @@ public class GraphTests {
                 newStupidStageDefinition("def-a", List.of("gtw-1")),
                 newStupidStageDefinition("gtw-1", List.of("def-b", "def-c")),
 
-                    // path gtw-1 upper / path def-b
-                    newStupidStageDefinition("def-c", List.of("gtw-2")),
+                // path gtw-1 upper / path def-c
+                newStupidStageDefinition("def-c", List.of("gtw-2")),
 
-                    // path gtw-2 upper
-                    newStupidStageDefinition("gtw-2", List.of("def-e")),
-                        newStupidStageDefinition("def-e", List.of("gtw-3")),
+                // path gtw-2 upper
+                newStupidStageDefinition("gtw-2", List.of("def-d", "def-e")),
+                newStupidStageDefinition("def-e", List.of("gtw-3")),
 
-                    // path gtw-2 lower
-                    newStupidStageDefinition("gtw-2", List.of("def-d")),
-                        newStupidStageDefinition("def-d", List.of("def-f")),
-                        newStupidStageDefinition("def-f", List.of("gtw-3")),
+                // path gtw-2 lower
+                newStupidStageDefinition("def-d", List.of("def-f")),
+                newStupidStageDefinition("def-f", List.of("gtw-3")),
 
-                    // path gtw-1 lower
-                    newStupidStageDefinition("gtw-1", List.of("def-b")),
-                    newStupidStageDefinition("def-b", List.of("gtw-3")),
+                // path gtw-1 lower
+                newStupidStageDefinition("def-b", List.of("gtw-3")),
 
 
                 newStupidStageDefinition("gtw-3", List.of("def-g")),
                 newStupidStageDefinition("def-g", List.of())
-            ));
+        ));
     }
 
     @Nonnull
     public static PipelineDefinition getDirectPipelineDefinition(@Nonnull String... stageNames) {
         var stages = new ArrayList<StageDefinition>(stageNames.length);
         for (int i = 0; i < stageNames.length; ++i) {
-            stages.add(newStupidStageDefinition(stageNames[i], i + 1 < stageNames.length ? List.of(stageNames[i + 1]) : null));
+            stages.add(newStupidStageDefinition(
+                    stageNames[i],
+                    i + 1 < stageNames.length ? List.of(stageNames[i + 1]) : null
+            ));
         }
 
         return newStupidPipelineDefinition("the-name", stages);
     }
 
     @Nonnull
-    public static PipelineDefinition newStupidPipelineDefinition(@Nonnull String name, @Nonnull List<StageDefinition> stages) {
+    public static PipelineDefinition newStupidPipelineDefinition(
+            @Nonnull String name,
+            @Nonnull List<StageDefinition> stages) {
         return new PipelineDefinition(name, null, null, stages, null, null, null);
     }
 
@@ -254,7 +351,9 @@ public class GraphTests {
     }
 
     @Nonnull
-    public static ExecutionGroup emptyExecutionGroup(@Nonnull StageDefinition stageDefinition, @Nullable ExecutionGroupId parentId) {
+    public static ExecutionGroup emptyExecutionGroup(
+            @Nonnull StageDefinition stageDefinition,
+            @Nullable ExecutionGroupId parentId) {
         return new ExecutionGroup(
                 new ExecutionGroupId("<project-id>", 0, UUID.randomUUID().toString()),
                 stageDefinition,
@@ -275,6 +374,17 @@ public class GraphTests {
             @Nullable List<ExecutionGroup> active,
             @Nullable List<ExecutionGroup> queue
     ) {
-        return new Pipeline("<great-project-id-totally-valid-UUID-and-unsuspicious>", history, queue, active, false, null, null, null, null, 1337);
+        return new Pipeline(
+                "<great-project-id-totally-valid-UUID-and-unsuspicious>",
+                history,
+                queue,
+                active,
+                false,
+                null,
+                null,
+                null,
+                null,
+                1337
+        );
     }
 }
