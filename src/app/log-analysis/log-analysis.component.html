@@ -1,1 +1,7 @@
 <p>log analysis is working</p>
+
+<code *ngIf="logs != null" class="console">
+  <ng-container *ngFor="let log of logs; trackBy: lineId">
+    <span>{{log.message}}</span>
+  </ng-container>
+</code>

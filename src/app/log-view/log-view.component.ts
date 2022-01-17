@@ -133,6 +133,9 @@ export class LogViewComponent implements OnInit, OnDestroy {
       } else {
         this.logs = [];
       }
+      console.log("LOGS:")
+      console.log(logs);
+      console.log(projectId, stageId);
     }, stageId);
   }
 
