@@ -211,6 +211,15 @@
     </ng-template>
   </mat-tab>
 
+  <mat-tab label="Analysis">
+    <ng-template matTabContent>
+      <app-log-analysis class="flex-grow flex-grow-column max-height"
+                    [project]="projectValue"
+                    [selectedStage]="stageIdToDisplayLogsFor"
+      ></app-log-analysis>
+    </ng-template>
+  </mat-tab>
+
   <mat-tab label="Pipeline">
     <ng-template matTabContent>
       <div class="flex-grow flex-grow-column max-height">

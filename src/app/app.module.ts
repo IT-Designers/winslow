@@ -78,6 +78,7 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
+import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
 
 @NgModule({
     declarations: [
@@ -121,6 +122,7 @@ import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
         ServerDetailsComponent,
         ProjectHistoryDetailsComponent,
         AuthTokensComponent,
+        LogAnalysisComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
