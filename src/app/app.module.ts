@@ -32,6 +32,8 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
@@ -40,9 +42,6 @@ import {StateIconComponent} from './state-icon/state-icon.component';
 import {ProjectViewComponent } from './project-view/project-view.component';
 import {FileBrowseDialog} from './file-browse-dialog/file-browse-dialog.component';
 import {NgxChartsModule} from '@swimlane/ngx-charts';
-import {ServerComponent} from './server/server.component';
-import {ServersComponent} from './servers/servers.component';
-import {ServersOverviewComponent} from './servers-overview/servers-overview.component';
 import {AboutComponent} from './about/about.component';
 import {CreatePipelineDialogComponent} from './pipeline-create-dialog/create-pipeline-dialog.component';
 import {LoadingInfoComponent} from './connect-failed-info/loading-info.component';
@@ -72,14 +71,14 @@ import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
+import { ServersComponent } from './servers/servers.component';
+import { NgxEchartsModule } from 'ngx-echarts';
+import * as echarts from 'echarts';
+import { ServerBarComponent } from './server-bar/server-bar.component';
+import { ServerDetailsComponent } from './server-details/server-details.component';
+import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
-import { ProjectsGroupBuilderComponent } from './projects-group-builder/projects-group-builder.component';
-import { ProjectsViewComponent } from './projects-view/projects-view.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
-import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
-import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
-import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 
 @NgModule({
     declarations: [
@@ -94,9 +93,6 @@ import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dial
         StateIconComponent,
         ProjectViewComponent,
         FileBrowseDialog,
-        ServerComponent,
-        ServersComponent,
-        ServersOverviewComponent,
         AboutComponent,
         CreatePipelineDialogComponent,
         LoadingInfoComponent,
@@ -121,14 +117,12 @@ import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dial
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
         ResourceLimitationComponent,
+        ServersComponent,
+        ServerBarComponent,
+        ServerDetailsComponent,
+        ProjectHistoryDetailsComponent,
         AuthTokensComponent,
-        ProjectsGroupBuilderComponent,
-        ProjectsViewComponent,
         LogAnalysisComponent,
-        LogAnalysisChartDialogComponent,
-        LogAnalysisChartComponent,
-        RegularExpressionVisualiserComponent,
-        LogAnalysisSettingsDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -198,6 +192,12 @@ import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dial
         MatTabsModule,
         MatCheckboxModule,
 
+        MatToolbarModule,
+        MatSidenavModule,
+        MatListModule,
+        MatButtonModule,
+        MatIconModule,
+
         NgxChartsModule,
         MatCardModule,
         ScrollingModule,
@@ -205,6 +205,9 @@ import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dial
         MatChipsModule,
         MatMenuModule,
         MatRadioModule,
+        NgxEchartsModule.forRoot({
+          echarts: { init: echarts.init }
+        }),
 
     ],
   providers: [
