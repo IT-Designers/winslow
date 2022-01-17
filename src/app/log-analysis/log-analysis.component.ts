@@ -114,6 +114,36 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.subscribeLogs(this.selectedProject.id, this.selectedStageId)
+  }
+
+  ngOnDestroy() {
+    if (this.logSubscription) {
+      this.logSubscription.unsubscribe();
+      this.logSubscription = null;
+    }
+  }
+
+  private subscribeLogs(projectId: string, stageId = ProjectApiService.LOGS_LATEST) {
+    if (stageId == null) {
+      stageId = ProjectApiService.LOGS_LATEST;
+    }
+    //this.longLoading.raise(LogViewComponent.LONG_LOADING_FLAG);
+    this.logSubscription = this.api.watchLogs(projectId, (logs) => {
+      //this.longLoading.clear(LogViewComponent.LONG_LOADING_FLAG);
+      if (logs?.length > 0) {
+        this.logs.push(...logs);
+      } else {
+        this.logs = [];
+      }
+      console.log("LOGS:")
+      console.log(logs);
+      console.log(projectId, stageId);
+    }, stageId);
+  }
+
+  lineId(index, log): string {
+    return log.stageId + log.line;
   }
 
   isLongLoading(): boolean {
