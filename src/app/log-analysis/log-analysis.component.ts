@@ -1,6 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {LogEntry, ProjectApiService, ProjectInfo} from "../api/project-api.service";
 import {Observable, Subscription} from "rxjs";
+import {LogChart} from "./log-chart";
 
 @Component({
   selector: 'app-log-analysis',
@@ -9,15 +10,13 @@ import {Observable, Subscription} from "rxjs";
 })
 export class LogAnalysisComponent implements OnInit, OnDestroy {
 
-
-  dummyLogObservable: Observable<LogEntry>;
-
   logSubscription: Subscription = null;
 
   logs?: LogEntry[] = [];
 
   selectedProject: ProjectInfo = null;
   selectedStageId: string = null;
+  charts: LogChart[] = [];
 
   @Input()
   set project(value: ProjectInfo) {
@@ -55,9 +54,6 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
       } else {
         this.logs = [];
       }
-      console.log("LOGS:")
-      console.log(logs);
-      console.log(projectId, stageId);
     }, stageId);
   }
 
@@ -65,4 +61,29 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
     return log.stageId + log.line;
   }
 
+  addNewChart() {
+    let chart : LogChart = {
+      name: "Unnamed chart",
+      regExp: /DummyLogEntry:.*entry="(?<entry>\d+)".*value1="(?<value1>\d+)"/,
+      xAxisGroup: "entry",
+      yAxisGroup: "value1"
+    };
+    this.charts.push(chart)
+  }
+
+  getMatchStrings(chart: LogChart, logs: LogEntry[]) {
+    let results = [];
+    let index = 0;
+    for (let log of logs) {
+      let match = log.message.match(chart.regExp);
+      if (match) {
+        let xValue = match.groups[chart.xAxisGroup];
+        let yValue = match.groups[chart.yAxisGroup];
+        results.push(`x: ${xValue}, y: ${yValue}`);
+        index++;
+      }
+      if (index >= 10) break;
+    }
+    return results;
+  }
 }

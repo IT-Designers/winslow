@@ -163,8 +163,9 @@
               (clickPauseAfterThis)="updateRequestPause(true)"
               (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
               (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
-              (clickOpenLogs)="openLogs($event)"
               (clickOpenWorkspace)="openWorkspace(project, $event)"
+              (clickOpenLogs)="openLogs($event)"
+              (clickOpenAnalysis)="openAnalysis($event)"
               (clickOpenTensorboard)="openTensorboard(project, $event)"
             ></app-project-history>
           </div>
@@ -179,8 +180,9 @@
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
           (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"
-          (clickOpenLogs)="openLogs($event)"
           (clickOpenWorkspace)="openWorkspace(project, $event)"
+          (clickOpenLogs)="openLogs($event)"
+          (clickOpenAnalysis)="openAnalysis($event)"
           (clickOpenTensorboard)="openTensorboard(project, $event)"
       >
         </app-project-history-details>
