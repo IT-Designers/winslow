@@ -1,7 +1,18 @@
-<p>log analysis is working</p>
-
+<mat-grid-list cols="3" rowHeight="200px" gutterSize="0px">
+  <mat-grid-tile *ngFor="let chart of charts; let i = index">
+    <ng-container *ngFor="let match of getMatchStrings(chart, logs)">
+      {{match}}<br>
+    </ng-container>
+    <mat-label>{{chart.name}}</mat-label>
+  </mat-grid-tile>
+  <mat-grid-tile>
+    <button mat-raised-button color="accent" (click)="addNewChart()">Add Chart</button>
+  </mat-grid-tile>
+</mat-grid-list>
+<!--
 <code *ngIf="logs != null" class="console">
   <ng-container *ngFor="let log of logs; trackBy: lineId">
-    <span>{{log.message}}</span>
+    <span>{{log.message}}</span><br>
   </ng-container>
 </code>
+-->
