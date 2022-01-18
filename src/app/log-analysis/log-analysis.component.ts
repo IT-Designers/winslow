@@ -136,9 +136,6 @@ export class LogAnalysisComponent implements OnInit {
       } else {
         this.logs = [];
       }
-      console.log("LOGS:")
-      console.log(logs);
-      console.log(projectId, stageId);
     }, stageId);
   }
 
