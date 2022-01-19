@@ -10,19 +10,19 @@
   <mat-form-field appearance="fill" class="reg-exp-field">
     <mat-label>Regular Expression</mat-label>
     <code>
-      <input matInput [(ngModel)]="data.chart.regExp">
+      <input matInput [(ngModel)]="data.chart.regExpSource">
     </code>
   </mat-form-field>
 </mat-dialog-content>
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="x-axis-field">
-    <mat-label>x-Axis</mat-label>
+    <mat-label>x-Axis Capturing Group</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.xAxisGroup">
     </code>
   </mat-form-field>
   <mat-form-field appearance="fill" class="y-axis-field">
-    <mat-label>y-Axis</mat-label>
+    <mat-label>y-Axis Capturing Group</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.yAxisGroup">
     </code>
