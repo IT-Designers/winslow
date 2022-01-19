@@ -1,9 +1,3 @@
-:host {
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-}
-
 .project-selection-sidebar-item {
   height: 6em !important; /* TODO */
 }
@@ -23,10 +17,6 @@
   padding-bottom: 0px !important;
 }
 
-.sticky-button-group button {
-  margin-left: 0.2em;
-}
-
 .section {
   font-weight: bold;
   margin: 0.2em;
@@ -41,10 +31,24 @@
 
 .group mat-expansion-panel-header {
   padding-left: 0;
+  height: 5.4em;
 }
 
 .group mat-icon {
   max-height: 1.5em;
   max-width: 1.5em;
   margin: auto 1em;
+}
+
+.mat-expansion-panel-header.mat-expanded {
+  background-color: #eeeeee;
+}
+
+.mat-expansion-panel.mat-expanded {
+  background-color: #eeeeee;
+}
+
+.mat-divider {
+  border-top-color: #dadada;
+  border-top-width: 1px;
 }

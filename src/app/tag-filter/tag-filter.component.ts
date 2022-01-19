@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectInfo} from '../api/project-api.service';
+import {ProjectGroup, ProjectInfo} from '../api/project-api.service';
 
 @Component({
   selector: 'app-tag-filter',
@@ -10,8 +10,11 @@ export class TagFilterComponent implements OnInit {
 
   availableTagsValue: string[];
   projectsValue: ProjectInfo[];
+  filteredProjects: ProjectInfo[];
+  projectsGroupsValue: ProjectGroup[];
 
   @Output('filtered') filtered = new EventEmitter<ProjectInfo[]>();
+  @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
 
   includeTags: string[] = [];
   includeEmpty = false;
@@ -77,7 +80,12 @@ export class TagFilterComponent implements OnInit {
       this.filtered.emit(null);
       return;
     }
-    this.filtered.emit(this.projectsValue.filter(project => {
+    this.filteredProjects = this.getFilteredProjects();
+    this.filtered.emit(this.filteredProjects);
+  }
+
+  getFilteredProjects() {
+    return this.projectsValue.filter(project => {
       if (project.tags.length === 0) {
         if (this.includeEmpty) {
           return true;
@@ -97,7 +105,12 @@ export class TagFilterComponent implements OnInit {
         }
       }
       return true;
-    }));
+    });
+  }
+
+  emitGroups(){
+    this.projectsGroups.emit(this.projectsGroupsValue);
+    console.log(this.projectsGroups);
   }
 
 }

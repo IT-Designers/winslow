@@ -21,4 +21,14 @@
       Exclude with no Tags
     </mat-slide-toggle>
   </div>
+
+</div>
+<div style="padding-top: 1.5em">
+</div>
+<div class="flex-grow-row tag-filter">
+  <app-projects-group-builder
+    [projects]="this.filteredProjects"
+    [availableTags]="this.availableTagsValue"
+    (projectsGroups)="projectsGroupsValue = $event; emitGroups()">
+  </app-projects-group-builder>
 </div>

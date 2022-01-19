@@ -11,10 +11,11 @@
               </mat-panel-title>
             </mat-expansion-panel-header>
             <app-tag-filter
-                #filter
-                [availableTags]="api.cachedTags"
-                [projects]="projects"
-                (filtered)="projectsFiltered = $event"
+              #filter
+              [availableTags]="api.cachedTags"
+              [projects]="projects"
+              (filtered)="projectsFiltered = $event"
+              (projectsGroups)="this.projectsGroups = $event"
             ></app-tag-filter>
           </mat-expansion-panel>
         </mat-accordion>
@@ -22,32 +23,19 @@
       <div style="padding-top: 1.5em">
       </div>
 
-      <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
-        <i>There are no projects yet</i>
-      </div>
-      <div *ngIf="projects != null && projects.length > 0 && projectsFiltered.length == 0" class="none-defined-yet">
-        <i>No project matches the filter</i>
-      </div>
-      <mat-list>
-        <mat-list-item *ngFor="let project of projectsFiltered" class="project-selection-sidebar-item"
-                       (click)="selectProject(project)"
-                       [class.selected]="project.id == selectedProject?.id">
-          <app-project-view-header
-            [project]="project"
-            [iconState]="stateInfo?.get(project.id)?.getState()"
-            [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
-            [progress]="stateInfo?.get(project.id)?.stageProgress"
-            [running]="stateInfo?.get(project.id)?.isRunning()"
-            [mostRecentStage]="stateInfo?.get(project.id)?.description"
-            (tagActionPrimary)="filter.toggleIncludedTag($event)"
-            (tagActionSecondary)="filter.addExcludedTag($event)"
-          ></app-project-view-header>
-        </mat-list-item>
-      </mat-list>
+      <app-projects-view
+        [projects]="projects"
+        [projectsFiltered]="projectsFiltered"
+        [projectsGroups]="projectsGroups"
+        [selectedProject]="selectedProject"
+        [stateInfo]="stateInfo"
+        [filter]="filter">
+      </app-projects-view>
 
       <div style="padding-top: 2.5em"></div>
 
-      <div class="sticky-button-group" style="position: sticky; margin-left: calc(100% - 9em); top: calc(100% - 3.5em); bottom: 1em">
+      <div class="sticky-button-group"
+           style="position: sticky; margin-left: calc(100% - 9em); top: calc(100% - 3.5em); bottom: 1em">
         <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
           <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
         </button>
