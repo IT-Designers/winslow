@@ -1,0 +1,16 @@
+.chart {
+  height: 300px;
+}
+
+.graph-grid-tile {
+  display: flex;
+}
+
+.graph-card {
+  margin: 4px;
+  flex-grow: 1;
+}
+
+.graph-card-content {
+ margin: 0;
+}

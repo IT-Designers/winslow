@@ -132,10 +132,6 @@ body {
   flex-grow: 0 !important;
 }
 
-.cdk-global-overlay-wrapper .cdk-overlay-pane {
-  width: 100% !important;
-}
-
 .mat-list-base .mat-list-item {
   font-size: 14px !important;
 }

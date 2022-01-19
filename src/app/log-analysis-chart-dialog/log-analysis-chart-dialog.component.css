@@ -1,0 +1,31 @@
+.dialog-content {
+  padding: 0;
+  margin: 0;
+}
+
+.dialog-actions {
+  padding: 0;
+  margin: 0;
+}
+
+.title-field {
+  width: 720px;
+}
+
+.reg-exp-field {
+  width: 720px;
+}
+
+.x-axis-field {
+  width: 355px;
+  margin-right: 10px;
+}
+
+.y-axis-field {
+  width: 355px;
+}
+
+.divider {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
