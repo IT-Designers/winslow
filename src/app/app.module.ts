@@ -73,6 +73,8 @@ import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-re
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
+import { ProjectsGroupBuilderComponent } from './projects-group-builder/projects-group-builder.component';
+import { ProjectsViewComponent } from './projects-view/projects-view.component';
 
 @NgModule({
     declarations: [
@@ -115,6 +117,8 @@ import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
         CheckableNumberInputComponent,
         ResourceLimitationComponent,
         AuthTokensComponent,
+        ProjectsGroupBuilderComponent,
+        ProjectsViewComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

@@ -452,6 +452,11 @@ export class ProjectInfo {
   userInput: string[];
 }
 
+export class ProjectGroup {
+  name: string;
+  projects: ProjectInfo[];
+}
+
 export class RangedValue {
   DiscreteSteps?: RangeWithStepSize;
   List?: RangedList;
