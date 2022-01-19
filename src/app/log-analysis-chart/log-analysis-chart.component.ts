@@ -44,6 +44,7 @@ export class LogAnalysisChartComponent implements OnInit {
       series: [
         {
           type: 'line',
+          showSymbol: false,
           data: this.getLogValuePairs(chart, logs)
         }
       ]
@@ -55,15 +56,13 @@ export class LogAnalysisChartComponent implements OnInit {
   getLogValuePairs(chart: LogChart, logs: LogEntry[]) {
     let results = [];
     for (let log of logs) {
-      console.log(log.message)
       if (log.source != LogSource.STANDARD_IO) continue;
 
-      let match = log.message.match(chart.regExp);
+      let match = log.message.match(chart.regExpSource);
       if (!match) continue;
 
       let x = parseFloat(match.groups[chart.xAxisGroup]);
       let y = parseFloat(match.groups[chart.yAxisGroup]);
-      console.log(x, y)
       if (isNaN(x) || isNaN(y)) continue;
 
       results.push([x, y]);
@@ -71,7 +70,6 @@ export class LogAnalysisChartComponent implements OnInit {
     results.sort((pair1, pair2) => {
       return pair1[0] - pair2[0]
     })
-    console.log(results);
     return results;
   }
 

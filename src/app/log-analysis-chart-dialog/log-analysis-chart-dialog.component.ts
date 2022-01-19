@@ -4,7 +4,7 @@ import {LogEntry} from "../api/project-api.service";
 
 export interface LogChart {
   name: string;
-  regExp: RegExp;
+  regExpSource: string;
   xAxisGroup: string;
   yAxisGroup: string;
 }
