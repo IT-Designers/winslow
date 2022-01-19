@@ -1,80 +1,78 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartDataSeries, ChartDisplaySettings} from "../log-analysis/log-chart-definition";
-import {Observable, Subscription} from "rxjs";
+import {Component, Input, OnInit} from '@angular/core';
+import {LogChart} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LogEntry, LogSource} from "../api/project-api.service";
 
 @Component({
   selector: 'app-log-analysis-chart',
   templateUrl: './log-analysis-chart.component.html',
   styleUrls: ['./log-analysis-chart.component.css']
 })
-export class LogAnalysisChartComponent implements OnInit, OnDestroy {
+export class LogAnalysisChartComponent implements OnInit {
 
-  options: any;
-  merge = {
-    series: []
-  }
+  @Input() chart: LogChart;
 
-  private dataSubscription: Subscription = null;
-
-  @Input() set settings(settings: ChartDisplaySettings) {
-    this.options = {
-      title: {
-        text: settings.name,
-      },
-      grid: {
-        top: '50',
-        bottom: '35',
-        left: '40',
-        right: '10',
-      },
-      xAxis: {
-        name: settings.xAxisName,
-        type: settings.xAxisType,
-        min: this.sanitiseNumberInput(settings.xAxisMinValue, 'dataMin'),
-        max: this.sanitiseNumberInput(settings.xAxisMaxValue, 'dataMax'),
-        nameLocation: 'center',
-        nameGap: '25',
-      },
-      yAxis: {
-        name: settings.yAxisName,
-        type: settings.yAxisType,
-        min: this.sanitiseNumberInput(settings.yAxisMinValue, 'dataMin'),
-        max: this.sanitiseNumberInput(settings.yAxisMaxValue, 'dataMax'),
-        nameLocation: 'center',
-        nameGap: '25',
-      },
-      animation: false,
-      series: [],
-    }
-  };
-
-  @Input() set dataSource(dataSource: Observable<ChartDataSeries[]>) {
-    this.dataSubscription = dataSource.subscribe({
-      next: chartData => this.merge.series = chartData.map(data => {
-        return {
-          type: 'line',
-          showSymbol: false,
-          data: data,
-        }
-      })
-    })
-  }
+  @Input() logs: LogEntry[];
 
   constructor() {
-  }
-
-  ngOnDestroy(): void {
-    this.dataSubscription?.unsubscribe();
   }
 
   ngOnInit(): void {
   }
 
-  sanitiseNumberInput(input: string, alt: string): string {
-    if (Number.isNaN(parseFloat(input))) {
-      return alt;
-    } else {
-      return input;
-    }
+  getChartOptions(chart: LogChart, logs: LogEntry[]) {
+    // noinspection UnnecessaryLocalVariableJS
+    let chartOption = {
+      title: {
+        text: chart.name
+      },
+      grid: {
+        top: '50',
+        bottom: '20',
+        left: '40',
+        right: '10',
+      },
+      xAxis: {
+        type: 'value',
+        min: 0,
+        max: 'dataMax',
+      },
+      yAxis: {
+        type: 'value',
+        min: 0,
+        max: 'dataMax',
+      },
+      series: [
+        {
+          type: 'line',
+          data: this.getLogValuePairs(chart, logs)
+        }
+      ]
+    };
+
+    return chartOption
   }
+
+  getLogValuePairs(chart: LogChart, logs: LogEntry[]) {
+    let results = [];
+    for (let log of logs) {
+      console.log(log.message)
+      if (log.source != LogSource.STANDARD_IO) continue;
+
+      let match = log.message.match(chart.regExp);
+      if (!match) continue;
+
+      let x = parseFloat(match.groups[chart.xAxisGroup]);
+      let y = parseFloat(match.groups[chart.yAxisGroup]);
+      console.log(x, y)
+      if (isNaN(x) || isNaN(y)) continue;
+
+      results.push([x, y]);
+    }
+    results.sort((pair1, pair2) => {
+      return pair1[0] - pair2[0]
+    })
+    console.log(results);
+    return results;
+  }
+
 }

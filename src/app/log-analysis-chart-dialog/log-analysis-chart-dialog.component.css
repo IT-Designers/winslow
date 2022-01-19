@@ -8,15 +8,24 @@
   margin: 0;
 }
 
-.wide-field {
+.title-field {
   width: 720px;
 }
 
-.left-field {
+.reg-exp-field {
+  width: 720px;
+}
+
+.x-axis-field {
   width: 355px;
   margin-right: 10px;
 }
 
-.right-field {
+.y-axis-field {
   width: 355px;
+}
+
+.divider {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }

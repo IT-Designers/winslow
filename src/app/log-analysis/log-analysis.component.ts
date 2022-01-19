@@ -1,7 +1,11 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {LogEntry, ProjectApiService, ProjectInfo} from "../api/project-api.service";
-import {Observable, Subscription} from "rxjs";
-import {LogChart} from "./log-chart";
+import {Subscription} from "rxjs";
+import {MatDialog} from '@angular/material/dialog';
+import {
+  LogAnalysisChartDialogComponent,
+  LogChart
+} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 
 @Component({
   selector: 'app-log-analysis',
@@ -28,7 +32,9 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
     this.selectedStageId = id;
   }
 
-  constructor(private api: ProjectApiService) {
+  constructor(
+    private dialog: MatDialog,
+    private api: ProjectApiService) {
   }
 
   ngOnInit(): void {
@@ -62,28 +68,30 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
   }
 
   addNewChart() {
-    let chart : LogChart = {
+    let chart: LogChart = {
       name: "Unnamed chart",
-      regExp: /DummyLogEntry:.*entry="(?<entry>\d+)".*value1="(?<value1>\d+)"/,
+      regExp: /DummyLogEntry:.*entry="(?<entry>\d+)".*value1="(?<v1>\d+)".*value2="(?<v2>\d+)".*value3="(?<v3>\d+)"/,
       xAxisGroup: "entry",
-      yAxisGroup: "value1"
+      yAxisGroup: "v1",
     };
-    this.charts.push(chart)
+    let index = this.charts.push(chart) - 1;
+    this.openEditChartDialog(index);
   }
 
-  getMatchStrings(chart: LogChart, logs: LogEntry[]) {
-    let results = [];
-    let index = 0;
-    for (let log of logs) {
-      let match = log.message.match(chart.regExp);
-      if (match) {
-        let xValue = match.groups[chart.xAxisGroup];
-        let yValue = match.groups[chart.yAxisGroup];
-        results.push(`x: ${xValue}, y: ${yValue}`);
-        index++;
+  openEditChartDialog(chartIndex: number) {
+    let dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
+      data: {
+        chart: this.charts[chartIndex],
+        logs: this.logs
       }
-      if (index >= 10) break;
-    }
-    return results;
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(result)
+    })
+  }
+
+  removeChart(chartIndex: number) {
+    this.charts.splice(chartIndex, 1);
   }
 }

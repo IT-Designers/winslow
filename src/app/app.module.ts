@@ -79,6 +79,8 @@ import { ServerDetailsComponent } from './server-details/server-details.componen
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
+import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
+import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
 
 @NgModule({
     declarations: [
@@ -123,6 +125,8 @@ import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
         ProjectHistoryDetailsComponent,
         AuthTokensComponent,
         LogAnalysisComponent,
+        LogAnalysisChartDialogComponent,
+        LogAnalysisChartComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
