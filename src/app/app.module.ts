@@ -78,6 +78,8 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
+import { ProjectsGroupBuilderComponent } from './projects-group-builder/projects-group-builder.component';
+import { ProjectsViewComponent } from './projects-view/projects-view.component';
 
 @NgModule({
     declarations: [
@@ -121,6 +123,8 @@ import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
         ServerDetailsComponent,
         ProjectHistoryDetailsComponent,
         AuthTokensComponent,
+        ProjectsGroupBuilderComponent,
+        ProjectsViewComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
