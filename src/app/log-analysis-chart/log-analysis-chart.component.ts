@@ -19,11 +19,10 @@ export class LogAnalysisChartComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  getChartOptions(chart: LogChart, logs: LogEntry[]) {
-    // noinspection UnnecessaryLocalVariableJS
-    let chartOption = {
+  getDefaultChart() {
+    return {
       title: {
-        text: chart.name
+        text: "",
       },
       grid: {
         top: '50',
@@ -33,27 +32,53 @@ export class LogAnalysisChartComponent implements OnInit {
       },
       xAxis: {
         type: 'value',
-        min: 0,
+        min: 'dataMin',
         max: 'dataMax',
       },
       yAxis: {
         type: 'value',
-        min: 0,
+        min: 'dataMin',
         max: 'dataMax',
       },
       series: [
         {
           type: 'line',
           showSymbol: false,
-          data: this.getLogValuePairs(chart, logs)
+          data: [],
         }
       ]
-    };
-
-    return chartOption
+    }
   }
 
-  getLogValuePairs(chart: LogChart, logs: LogEntry[]) {
+  sanitizeAxisLimit(input: string, type: 'min' | 'max'): string {
+    if (Number.isNaN(parseFloat(input))) {
+      return type == 'max' ? "dataMax" : "dataMin";
+    } else {
+      return input;
+    }
+  }
+
+  getChartOptions(chart: LogChart, logs: LogEntry[]) {
+    let options = this.getDefaultChart();
+
+    options.title.text = chart.name;
+
+    options.xAxis.max = this.sanitizeAxisLimit(chart.xAxisMaxValue, 'max');
+    options.xAxis.min = this.sanitizeAxisLimit(chart.xAxisMinValue, 'min');
+    options.yAxis.max = this.sanitizeAxisLimit(chart.yAxisMaxValue, 'max');
+    options.yAxis.min = this.sanitizeAxisLimit(chart.yAxisMinValue, 'min');
+
+    if (chart.useTimeAsXAxis) {
+      options.xAxis.type = 'time';
+      options.series[0].data = this.getDataOverTime(chart, logs);
+    } else {
+      options.series[0].data = this.getDataPairs(chart, logs);
+    }
+
+    return options;
+  }
+
+  getDataPairs(chart: LogChart, logs: LogEntry[]) {
     let results = [];
     for (let log of logs) {
       if (log.source != LogSource.STANDARD_IO) continue;
@@ -73,4 +98,23 @@ export class LogAnalysisChartComponent implements OnInit {
     return results;
   }
 
+  getDataOverTime(chart: LogChart, logs: LogEntry[]) {
+    let results = [];
+    for (let log of logs) {
+      if (log.source != LogSource.STANDARD_IO) continue;
+
+      let match = log.message.match(chart.regExpSource);
+      if (!match) continue;
+
+      let x = log.time;
+      let y = parseFloat(match.groups[chart.yAxisGroup]);
+      if (isNaN(x) || isNaN(y)) continue;
+
+      results.push([x, y]);
+    }
+    results.sort((pair1, pair2) => {
+      return pair1[0] - pair2[0]
+    })
+    return results;
+  }
 }

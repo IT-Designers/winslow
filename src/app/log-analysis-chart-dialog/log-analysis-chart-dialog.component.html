@@ -28,9 +28,37 @@
     </code>
   </mat-form-field>
 </mat-dialog-content>
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="x-axis-field">
+    <mat-label>Custom x-Axis Minimum</mat-label>
+    <code>
+      <input matInput [(ngModel)]="data.chart.xAxisMinValue">
+    </code>
+  </mat-form-field>
+  <mat-form-field appearance="fill" class="y-axis-field">
+    <mat-label>Custom y-Axis Minimum</mat-label>
+    <code>
+      <input matInput [(ngModel)]="data.chart.yAxisMinValue">
+    </code>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="x-axis-field">
+    <mat-label>Custom x-Axis Maximum</mat-label>
+    <code>
+      <input matInput [(ngModel)]="data.chart.xAxisMaxValue">
+    </code>
+  </mat-form-field>
+  <mat-form-field appearance="fill" class="y-axis-field">
+    <mat-label>Custom y-Axis Maximum</mat-label>
+    <code>
+      <input matInput [(ngModel)]="data.chart.yAxisMaxValue">
+    </code>
+  </mat-form-field>
+</mat-dialog-content>
 <mat-dialog-content class="dialog-content"></mat-dialog-content>
 
-<mat-checkbox>Display time on x-Axis instead</mat-checkbox>
+<mat-checkbox [(ngModel)]="data.chart.useTimeAsXAxis">Use x-Axis for time instead</mat-checkbox>
 
 <p></p><mat-divider></mat-divider><p></p>
 
