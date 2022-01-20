@@ -90,7 +90,9 @@ public class Node {
      * @param executionGroup to add to the execution groups of this node
      */
     public void addExecutionGroup(@Nonnull ExecutionGroup executionGroup) {
-        executionGroups.add(executionGroup);
+        if (!executionGroups.contains(executionGroup)) {
+            executionGroups.add(executionGroup);
+        }
     }
 
     @Override
