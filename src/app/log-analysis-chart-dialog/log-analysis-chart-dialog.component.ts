@@ -4,11 +4,11 @@ import {LogEntry} from "../api/project-api.service";
 
 export class LogChart {
   name: string = "Unnamed chart";
-  regExpSource: string = 'DummyLogEntry:.*entry="(?<entry>\\d+)".*value1="(?<v1>\\d+)".*value2="(?<v2>\\d+)".*value3="(?<v3>\\d+)"';
-  xAxisGroup: string = "entry";
+  regExpSource: string = 'ExampleLogEntry:.*thing1=(?<group1>\\d+).*thing2=(?<group2>\\d+)';
+  xAxisGroup: string = "group1";
   xAxisMinValue: string = "";
   xAxisMaxValue: string = "";
-  yAxisGroup: string = "v1";
+  yAxisGroup: string = "group2";
   yAxisMinValue: string = "0";
   yAxisMaxValue: string = "10";
   useTimeAsXAxis: boolean = false;
