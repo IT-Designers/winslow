@@ -200,7 +200,7 @@ public class GraphTests {
     }
 
     @Test
-    public void testComplexGraphWithSomeExecutionGroupsIgnorePreviousRuns() {
+    public void testComplexGraphWithSomeExecutionGroupsAndGateways() {
         var pipelineDefinition = getComplexPipelineDefinition();
 
         var defA = getStageDefinition(pipelineDefinition, "def-a");
@@ -251,6 +251,78 @@ public class GraphTests {
         assertContainsAll(List.of(exg3E, exg3F, exg3B), graph.getNodeForStageDefinitionName("gtw-3").orElseThrow().getExecutionGroups());
 
         assertEquals(List.of(exgG), graph.getNodeForStageDefinitionName("def-g").orElseThrow().getExecutionGroups());
+    }
+
+    @Test
+    public void testComplexGraphWithSomeExecutionGroupsIgnorePreviousRuns() {
+        var pipelineDefinition = getComplexPipelineDefinition();
+
+        var defA = getStageDefinition(pipelineDefinition, "def-a");
+        var defB = getStageDefinition(pipelineDefinition, "def-b");
+        var defC = getStageDefinition(pipelineDefinition, "def-c");
+        var defD = getStageDefinition(pipelineDefinition, "def-d");
+        var defE = getStageDefinition(pipelineDefinition, "def-e");
+        var defF = getStageDefinition(pipelineDefinition, "def-f");
+        var defG = getStageDefinition(pipelineDefinition, "def-g");
+        var gtw1 = getStageDefinition(pipelineDefinition, "gtw-1");
+        var gtw2 = getStageDefinition(pipelineDefinition, "gtw-2");
+        var gtw3 = getStageDefinition(pipelineDefinition, "gtw-3");
+
+
+        var history = new ArrayList<ExecutionGroup>();
+
+        for (int i = 0; i < 10; ++i) {
+            var exgA  = emptyExecutionGroup(defA, null);
+            var exg1  = emptyExecutionGroup(gtw1, exgA.getId());
+            var exgB  = emptyExecutionGroup(defB, exg1.getId());
+            var exgC  = emptyExecutionGroup(defC, exg1.getId());
+            var exg2  = emptyExecutionGroup(gtw2, exgC.getId());
+            var exgD  = emptyExecutionGroup(defD, exg2.getId());
+            var exgE  = emptyExecutionGroup(defE, exg2.getId());
+            var exgF  = emptyExecutionGroup(defF, exgD.getId());
+            var exg3E = emptyExecutionGroup(gtw3, exgE.getId());
+            var exg3F = emptyExecutionGroup(gtw3, exgF.getId());
+            var exg3B = emptyExecutionGroup(gtw3, exgB.getId());
+            var exgG  = emptyExecutionGroup(defG, exg3F.getId());
+            history.addAll(List.of(exgA, exg1, exgB, exgC, exg2, exgD, exgE, exgF, exg3E, exg3F, exg3B, exgG));
+        }
+
+        var exgA = emptyExecutionGroup(defA, null);
+        var exg1 = emptyExecutionGroup(gtw1, exgA.getId());
+        // var exgB = emptyExecutionGroup(defB, exg1.getId()); // pretend it did not run
+        var exgC = emptyExecutionGroup(defC, exg1.getId());
+        var exg2 = emptyExecutionGroup(gtw2, exgC.getId());
+        var exgD = emptyExecutionGroup(defD, exg2.getId());
+        var exgE = emptyExecutionGroup(defE, exg2.getId());
+        var exgF = emptyExecutionGroup(defF, exgD.getId());
+        var exg3E = emptyExecutionGroup(gtw3, exgE.getId());
+        var exg3F = emptyExecutionGroup(gtw3, exgF.getId());
+        // var exg3B = emptyExecutionGroup(gtw3, exgB.getId());  // pretend it did not run
+        // var exgG = emptyExecutionGroup(defG, exg3F.getId());  // pretend it did not run
+        history.addAll(List.of(exgA, exg1, exgC, exg2, exgD, exgE, exgF, exg3E, exg3F));
+
+        var graph = new Graph(
+                simplePipeline(
+                        history,
+                        List.of(),
+                        List.of()
+                ),
+                pipelineDefinition,
+                new Node(gtw3, exg3F)
+        );
+
+
+        testComplexGraphByDefinitions(graph);
+
+        assertEquals(List.of(exgA), graph.getNodeForStageDefinitionName("def-a").orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exg1), graph.getNodeForStageDefinitionName("gtw-1").orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgC), graph.getNodeForStageDefinitionName("def-c").orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exg2), graph.getNodeForStageDefinitionName("gtw-2").orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgD), graph.getNodeForStageDefinitionName("def-d").orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgE), graph.getNodeForStageDefinitionName("def-e").orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgF), graph.getNodeForStageDefinitionName("def-f").orElseThrow().getExecutionGroups());
+
+        assertContainsAll(List.of(exg3E, exg3F), graph.getNodeForStageDefinitionName("gtw-3").orElseThrow().getExecutionGroups());
     }
 
     @Test
