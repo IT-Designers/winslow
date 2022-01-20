@@ -8,6 +8,7 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Graph {
 
@@ -31,7 +32,7 @@ public class Graph {
 
         addNode(rootNode);
         findAllDirectlyConnectedNodes();
-        developNodeBackwards(rootNode);
+        developNodeBackwardsByEG(rootNode);
         developNodeForwardsForAllNodes(pipelineDefinition);
         findAllDirectlyConnectedNodes();
     }
@@ -84,7 +85,7 @@ public class Graph {
         }
     }
 
-    public void developNodeBackwards(@Nonnull Node node) {
+    public void developNodeBackwardsByEG(@Nonnull Node node) {
         node
                 .getExecutionGroups()
                 .stream()
@@ -94,11 +95,41 @@ public class Graph {
                         .stream()
                         .peek(n -> n.addExecutionGroup(exg))
                 )
-                .forEach(prevNode -> {
+                .peek(prevNode -> {
                     node.addPreviousNode(prevNode);
                     prevNode.addNextNode(node);
-                    developNodeBackwards(prevNode);
+                })
+                .collect(Collectors.toList())
+                .forEach(prevNode -> {
+                    developNodeBackwardsByEG(prevNode);
+                    developNodeForwardsByEG(prevNode);
                 });
+    }
+
+    public void developNodeForwardsByEG(@Nonnull Node node) {
+        node
+                .getExecutionGroups()
+                .stream()
+                .flatMap(group -> {
+                    var groupId = group.getId();
+                    var children = new ArrayList<ExecutionGroup>();
+                    for (var eg : cachedExecutionGroup.values()) {
+                        if (eg.getParentId().map(pid -> pid.equals(groupId)).orElse(false)) {
+                            children.add(eg);
+                        }
+                    }
+                    return children.stream();
+                })
+                .flatMap(exg -> getOrCreateNodeForStageDefinitionName(exg.getStageDefinition().getName())
+                        .stream()
+                        .peek(n -> n.addExecutionGroup(exg))
+                )
+                .peek(nextNode -> {
+                    node.addNextNode(nextNode);
+                    nextNode.addPreviousNode(node);
+                })
+                .collect(Collectors.toList())
+                .forEach(this::developNodeForwardsByEG);
     }
 
     public void developNodeForwards(@Nonnull Node node) {
