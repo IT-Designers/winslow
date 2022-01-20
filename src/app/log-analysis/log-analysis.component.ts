@@ -68,12 +68,7 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
   }
 
   addNewChart() {
-    let chart: LogChart = {
-      name: "Unnamed chart",
-      regExpSource: 'DummyLogEntry:.*entry="(?<entry>\\d+)".*value1="(?<v1>\\d+)".*value2="(?<v2>\\d+)".*value3="(?<v3>\\d+)"',
-      xAxisGroup: "entry",
-      yAxisGroup: "v1",
-    }
+    let chart: LogChart = new LogChart();
     let index = this.charts.push(chart) - 1;
     this.openEditChartDialog(index);
   }

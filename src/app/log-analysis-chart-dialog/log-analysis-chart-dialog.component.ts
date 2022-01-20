@@ -2,11 +2,16 @@ import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {LogEntry} from "../api/project-api.service";
 
-export interface LogChart {
-  name: string;
-  regExpSource: string;
-  xAxisGroup: string;
-  yAxisGroup: string;
+export class LogChart {
+  name: string = "Unnamed chart";
+  regExpSource: string = 'DummyLogEntry:.*entry="(?<entry>\\d+)".*value1="(?<v1>\\d+)".*value2="(?<v2>\\d+)".*value3="(?<v3>\\d+)"';
+  xAxisGroup: string = "entry";
+  xAxisMinValue: string = "";
+  xAxisMaxValue: string = "";
+  yAxisGroup: string = "v1";
+  yAxisMinValue: string = "0";
+  yAxisMaxValue: string = "10";
+  useTimeAsXAxis: boolean = false;
 }
 
 @Component({
