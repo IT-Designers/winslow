@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {LogChart} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LogChart, LogChartAxisType} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LogEntry, LogSource} from "../api/project-api.service";
 
 @Component({
@@ -68,17 +68,22 @@ export class LogAnalysisChartComponent implements OnInit {
     options.yAxis.max = this.sanitizeAxisLimit(chart.yAxisMaxValue, 'max');
     options.yAxis.min = this.sanitizeAxisLimit(chart.yAxisMinValue, 'min');
 
-    if (chart.useTimeAsXAxis) {
-      options.xAxis.type = 'time';
-      options.series[0].data = this.getDataOverTime(chart, logs);
-    } else {
-      options.series[0].data = this.getDataPairs(chart, logs);
+    switch (chart.xAxisType) {
+      case LogChartAxisType.GROUP:
+        options.series[0].data = this.getGroupData(chart, logs);
+        break;
+      case LogChartAxisType.TIME:
+        options.xAxis.type = 'time';
+        options.series[0].data = this.getTimeData(chart, logs);
+        break;
+      case LogChartAxisType.STEPS:
+        options.series[0].data = this.getStepData(chart, logs);
+        break;
     }
-
     return options;
   }
 
-  getDataPairs(chart: LogChart, logs: LogEntry[]) {
+  getGroupData(chart: LogChart, logs: LogEntry[]) {
     let results = [];
     for (let log of logs) {
       if (log.source != LogSource.STANDARD_IO) continue;
@@ -98,7 +103,7 @@ export class LogAnalysisChartComponent implements OnInit {
     return results;
   }
 
-  getDataOverTime(chart: LogChart, logs: LogEntry[]) {
+  getTimeData(chart: LogChart, logs: LogEntry[]) {
     let results = [];
     for (let log of logs) {
       if (log.source != LogSource.STANDARD_IO) continue;
@@ -115,6 +120,25 @@ export class LogAnalysisChartComponent implements OnInit {
     results.sort((pair1, pair2) => {
       return pair1[0] - pair2[0]
     })
+    return results;
+  }
+
+  getStepData(chart: LogChart, logs: LogEntry[]) {
+    let results = [];
+    let iteration = 0;
+    for (let log of logs) {
+      if (log.source != LogSource.STANDARD_IO) continue;
+
+      let match = log.message.match(chart.regExpSource);
+      if (!match) continue;
+
+      let x = iteration;
+      let y = parseFloat(match.groups[chart.yAxisGroup]);
+      if (isNaN(x) || isNaN(y)) continue;
+
+      results.push([x, y]);
+      iteration++;
+    }
     return results;
   }
 }

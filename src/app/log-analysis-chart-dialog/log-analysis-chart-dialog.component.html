@@ -6,6 +6,7 @@
     <input matInput [(ngModel)]="data.chart.name">
   </mat-form-field>
 </mat-dialog-content>
+
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="reg-exp-field">
     <mat-label>Regular Expression</mat-label>
@@ -14,6 +15,7 @@
     </code>
   </mat-form-field>
 </mat-dialog-content>
+
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="x-axis-field">
     <mat-label>x-Axis Capturing Group</mat-label>
@@ -28,6 +30,7 @@
     </code>
   </mat-form-field>
 </mat-dialog-content>
+
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="x-axis-field">
     <mat-label>Custom x-Axis Minimum</mat-label>
@@ -42,6 +45,7 @@
     </code>
   </mat-form-field>
 </mat-dialog-content>
+
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="x-axis-field">
     <mat-label>Custom x-Axis Maximum</mat-label>
@@ -56,11 +60,18 @@
     </code>
   </mat-form-field>
 </mat-dialog-content>
-<mat-dialog-content class="dialog-content"></mat-dialog-content>
 
-<mat-checkbox [(ngModel)]="data.chart.useTimeAsXAxis">Use x-Axis for time instead</mat-checkbox>
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="x-axis-field">
+    <mat-label>x-Axis Type</mat-label>
+    <mat-select [(ngModel)]="data.chart.xAxisType">
+      <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
 
-<p></p><mat-divider></mat-divider><p></p>
+<p></p>
+<mat-divider></mat-divider><p></p>
 
 <mat-dialog-content class="dialog-content">
   <app-log-analysis-chart
