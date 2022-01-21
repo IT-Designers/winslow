@@ -15,6 +15,8 @@ import {
 export class LogAnalysisChartDialogComponent {
   AxisTypes = Object.values(ChartAxisType);
 
+  AxisTypes = Object.values(LogChartAxisType);
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: ChartDialogData
   ) {
