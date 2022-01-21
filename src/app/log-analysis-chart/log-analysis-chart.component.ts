@@ -1,5 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {LogChart, LogChartAxisType} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {
+  LogChart,
+  LogChartAxisType,
+  LogChartGraph
+} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LogEntry, LogSource} from "../api/project-api.service";
 
 @Component({
@@ -26,7 +30,7 @@ export class LogAnalysisChartComponent implements OnInit {
       },
       grid: {
         top: '50',
-        bottom: '20',
+        bottom: '35',
         left: '40',
         right: '10',
       },
@@ -34,19 +38,19 @@ export class LogAnalysisChartComponent implements OnInit {
         type: 'value',
         min: 'dataMin',
         max: 'dataMax',
+        name: 'x-Axis',
+        nameLocation: 'center',
+        nameGap: '25',
       },
       yAxis: {
         type: 'value',
         min: 'dataMin',
         max: 'dataMax',
+        name: 'y-Axis',
+        nameLocation: 'center',
+        nameGap: '25',
       },
-      series: [
-        {
-          type: 'line',
-          showSymbol: false,
-          data: [],
-        }
-      ]
+      series: []
     }
   }
 
@@ -63,6 +67,9 @@ export class LogAnalysisChartComponent implements OnInit {
 
     options.title.text = chart.name;
 
+    options.xAxis.name = chart.xAxisLabel;
+    options.yAxis.name = chart.yAxisLabel;
+
     options.xAxis.max = this.sanitizeAxisLimit(chart.xAxisMaxValue, 'max');
     options.xAxis.min = this.sanitizeAxisLimit(chart.xAxisMinValue, 'min');
     options.yAxis.max = this.sanitizeAxisLimit(chart.yAxisMaxValue, 'max');
@@ -70,21 +77,35 @@ export class LogAnalysisChartComponent implements OnInit {
 
     switch (chart.xAxisType) {
       case LogChartAxisType.GROUP:
-        options.series[0].data = this.getGroupData(chart, logs);
+        options.series = this.getSeriesList(chart, this.getDataByGroup, logs);
         break;
       case LogChartAxisType.TIME:
         options.xAxis.type = 'time';
-        options.series[0].data = this.getTimeData(chart, logs);
+        options.series = this.getSeriesList(chart, this.getDataByTime, logs);
         break;
       case LogChartAxisType.STEPS:
-        options.series[0].data = this.getStepData(chart, logs);
+        options.series = this.getSeriesList(chart, this.getDataByStep, logs);
         break;
     }
+
     return options;
   }
 
-  getGroupData(chart: LogChart, logs: LogEntry[]) {
-    let results = [];
+  getSeriesList(chart: LogChart, getDataFunction: (chart: LogChart, graph: LogChartGraph, logs: LogEntry[]) => [number, number][], logs: LogEntry[]) {
+    let seriesList = [];
+    for (let i = 0; i < chart.graphs.length; i++) {
+      seriesList.push({
+        type: 'line',
+        showSymbol: false,
+        data: getDataFunction(chart, chart.graphs[i], logs),
+      })
+    }
+    return seriesList;
+  }
+
+  getDataByGroup(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+    let points = []
+
     for (let log of logs) {
       if (log.source != LogSource.STANDARD_IO) continue;
 
@@ -92,53 +113,51 @@ export class LogAnalysisChartComponent implements OnInit {
       if (!match) continue;
 
       let x = parseFloat(match.groups[chart.xAxisGroup]);
-      let y = parseFloat(match.groups[chart.yAxisGroup]);
-      if (isNaN(x) || isNaN(y)) continue;
+      if (isNaN(x)) continue;
 
-      results.push([x, y]);
+      let y = parseFloat(match.groups[graph.yAxisGroup]);
+      if (isNaN(y)) continue;
+
+      points.push([x, y]);
     }
-    results.sort((pair1, pair2) => {
-      return pair1[0] - pair2[0]
-    })
-    return results;
+    points.sort((point1, point2) => point1[0] - point2[0])
+    return points;
   }
 
-  getTimeData(chart: LogChart, logs: LogEntry[]) {
-    let results = [];
+  getDataByTime(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+    let points = []
+
     for (let log of logs) {
       if (log.source != LogSource.STANDARD_IO) continue;
 
       let match = log.message.match(chart.regExpSource);
       if (!match) continue;
 
-      let x = log.time;
-      let y = parseFloat(match.groups[chart.yAxisGroup]);
-      if (isNaN(x) || isNaN(y)) continue;
+      let y = parseFloat(match.groups[graph.yAxisGroup]);
+      if (isNaN(y)) continue;
 
-      results.push([x, y]);
+      points.push([log.time, y]);
     }
-    results.sort((pair1, pair2) => {
-      return pair1[0] - pair2[0]
-    })
-    return results;
+    points.sort((point1, point2) => point1[0] - point2[0])
+    return points;
   }
 
-  getStepData(chart: LogChart, logs: LogEntry[]) {
-    let results = [];
-    let iteration = 0;
+  getDataByStep(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+    let points = []
+
+    let step = 0;
     for (let log of logs) {
       if (log.source != LogSource.STANDARD_IO) continue;
 
       let match = log.message.match(chart.regExpSource);
       if (!match) continue;
 
-      let x = iteration;
-      let y = parseFloat(match.groups[chart.yAxisGroup]);
-      if (isNaN(x) || isNaN(y)) continue;
+      let y = parseFloat(match.groups[graph.yAxisGroup]);
+      if (isNaN(y)) continue;
 
-      results.push([x, y]);
-      iteration++;
+      points.push([step, y]);
+      step++;
     }
-    return results;
+    return points;
   }
 }

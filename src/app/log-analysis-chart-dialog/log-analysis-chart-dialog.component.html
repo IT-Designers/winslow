@@ -1,14 +1,18 @@
 <h1 mat-dialog-title>Chart settings</h1>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="title-field">
+  <p>General</p>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="wide-field">
     <mat-label>Title</mat-label>
     <input matInput [(ngModel)]="data.chart.name">
   </mat-form-field>
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="reg-exp-field">
+  <mat-form-field appearance="fill" class="wide-field">
     <mat-label>Regular Expression</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.regExpSource">
@@ -17,28 +21,43 @@
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="x-axis-field">
-    <mat-label>x-Axis Capturing Group</mat-label>
+  <p>Layout</p>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="left-field">
+    <mat-label>Type</mat-label>
+    <mat-select [(ngModel)]="data.chart.xAxisType">
+      <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="fill" class="right-field">
+    <mat-label>Capturing Group</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.xAxisGroup">
-    </code>
-  </mat-form-field>
-  <mat-form-field appearance="fill" class="y-axis-field">
-    <mat-label>y-Axis Capturing Group</mat-label>
-    <code>
-      <input matInput [(ngModel)]="data.chart.yAxisGroup">
     </code>
   </mat-form-field>
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="x-axis-field">
+  <mat-form-field appearance="fill" class="left-field">
+    <mat-label>x-Axis Label</mat-label>
+    <input matInput [(ngModel)]="data.chart.xAxisLabel">
+  </mat-form-field>
+  <mat-form-field appearance="fill" class="right-field">
+    <mat-label>y-Axis Label</mat-label>
+    <input matInput [(ngModel)]="data.chart.yAxisLabel">
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="left-field">
     <mat-label>Custom x-Axis Minimum</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.xAxisMinValue">
     </code>
   </mat-form-field>
-  <mat-form-field appearance="fill" class="y-axis-field">
+  <mat-form-field appearance="fill" class="right-field">
     <mat-label>Custom y-Axis Minimum</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.yAxisMinValue">
@@ -47,13 +66,13 @@
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="x-axis-field">
+  <mat-form-field appearance="fill" class="left-field">
     <mat-label>Custom x-Axis Maximum</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.xAxisMaxValue">
     </code>
   </mat-form-field>
-  <mat-form-field appearance="fill" class="y-axis-field">
+  <mat-form-field appearance="fill" class="right-field">
     <mat-label>Custom y-Axis Maximum</mat-label>
     <code>
       <input matInput [(ngModel)]="data.chart.yAxisMaxValue">
@@ -62,16 +81,31 @@
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="x-axis-field">
-    <mat-label>x-Axis Type</mat-label>
-    <mat-select [(ngModel)]="data.chart.xAxisType">
-      <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType}}</mat-option>
-    </mat-select>
-  </mat-form-field>
+  <p>Graphs</p>
 </mat-dialog-content>
 
-<p></p>
-<mat-divider></mat-divider><p></p>
+<mat-dialog-content class="dialog-content">
+  <mat-card-content *ngFor="let graph of data.chart.graphs; let i = index">
+    <mat-form-field appearance="fill" class="graph-field">
+      <mat-label>Label</mat-label>
+      <input matInput [(ngModel)]="graph.label">
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="graph-field">
+      <mat-label>Capturing Group</mat-label>
+      <code>
+        <input matInput [(ngModel)]="graph.yAxisGroup">
+      </code>
+    </mat-form-field>
+    <button (click)="data.chart.graphs.splice(i, 1)" mat-raised-button class="graph-button">Remove</button>
+  </mat-card-content>
+  <mat-card-content>
+    <button (click)="addNewGraph()" mat-raised-button>Add graph</button>
+  </mat-card-content>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <p>Preview</p>
+</mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
   <app-log-analysis-chart

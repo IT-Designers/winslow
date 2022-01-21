@@ -10,14 +10,26 @@ export enum LogChartAxisType {
 
 export class LogChart {
   name: string = "Unnamed chart";
-  regExpSource: string = 'ExampleLogEntry:.*thing1=(?<group1>\\d+).*thing2=(?<group2>\\d+)';
-  xAxisType: LogChartAxisType = LogChartAxisType.GROUP;
-  xAxisGroup: string = "group1";
+  regExpSource: string = 'ExampleLogEntry:.*x_value=(?<x>\\d+).*y_value=(?<y>\\d+)';
+
+  xAxisLabel: string = "x-Axis";
+  yAxisLabel: string = "y-Axis";
   xAxisMinValue: string = "";
   xAxisMaxValue: string = "";
-  yAxisGroup: string = "group2";
   yAxisMinValue: string = "0";
   yAxisMaxValue: string = "10";
+
+  xAxisType: LogChartAxisType = LogChartAxisType.GROUP;
+  xAxisGroup: string = "x";
+
+  graphs: LogChartGraph[] = [
+    new LogChartGraph()
+  ];
+}
+
+export class LogChartGraph {
+  label: string = "Unnamed graph";
+  yAxisGroup: string = "y";
 }
 
 @Component({
@@ -34,4 +46,7 @@ export class LogAnalysisChartDialogComponent {
   ) {
   }
 
+  addNewGraph() {
+    this.data.chart.graphs.push(new LogChartGraph());
+  }
 }

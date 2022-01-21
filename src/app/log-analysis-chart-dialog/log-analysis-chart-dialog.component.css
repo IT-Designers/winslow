@@ -8,24 +8,25 @@
   margin: 0;
 }
 
-.title-field {
+.wide-field {
   width: 720px;
 }
 
-.reg-exp-field {
-  width: 720px;
-}
-
-.x-axis-field {
+.left-field {
   width: 355px;
   margin-right: 10px;
 }
 
-.y-axis-field {
+.right-field {
   width: 355px;
 }
 
-.divider {
-  margin-top: 10px;
-  margin-bottom: 10px;
+.graph-field {
+  width: 300px;
+  margin-right: 10px;
+}
+
+.graph-button {
+  top: -5px;
+  left: 5px;
 }
