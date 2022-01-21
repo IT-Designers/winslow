@@ -78,22 +78,22 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     }
   }
 
-  getStepData(chart: LogChart, logs: LogEntry[]) {
-    let results = [];
-    let iteration = 0;
+  getDataByStep(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+    let points = []
+
+    let step = 0;
     for (let log of logs) {
       if (log.source != LogSource.STANDARD_IO) continue;
 
       let match = log.message.match(chart.regExpSource);
       if (!match) continue;
 
-      let x = iteration;
-      let y = parseFloat(match.groups[chart.yAxisGroup]);
-      if (isNaN(x) || isNaN(y)) continue;
+      let y = parseFloat(match.groups[graph.yAxisGroup]);
+      if (isNaN(y)) continue;
 
-      results.push([x, y]);
-      iteration++;
+      points.push([step, y]);
+      step++;
     }
-    return results;
+    return points;
   }
 }
