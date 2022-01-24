@@ -1,6 +1,6 @@
 import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
-import {LogEntry} from "../api/project-api.service";
+import {LogEntry, LogSource} from "../api/project-api.service";
 
 export enum LogChartAxisType {
   GROUP = "Capturing Group",
@@ -48,5 +48,18 @@ export class LogAnalysisChartDialogComponent {
 
   addNewGraph() {
     this.data.chart.graphs.push(new LogChartGraph());
+  }
+
+  getPreviewText() {
+    let lines = [];
+    for (let log of this.data.logs) {
+      if (log.source == LogSource.STANDARD_IO) {
+        lines.push(log.message);
+      }
+      if (lines.length >= 10) {
+        break;
+      }
+    }
+    return lines;
   }
 }

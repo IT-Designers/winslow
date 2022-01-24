@@ -108,6 +108,13 @@
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
+  <app-regular-expression-visualiser
+    [pattern]="data.chart.regExpSource"
+    [textSource]="getPreviewText()"
+  ></app-regular-expression-visualiser>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
   <app-log-analysis-chart
     [chart]="data.chart"
     [logs]="data.logs"

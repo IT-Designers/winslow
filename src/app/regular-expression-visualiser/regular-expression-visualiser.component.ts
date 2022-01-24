@@ -11,34 +11,9 @@ class Segment {
   text: string;
   classType: SegmentType;
 
-  constructor(type: SegmentType, text: string) {
+  constructor(source: string, start: number, end: number, type: SegmentType) {
     this.classType = type;
-    this.text = text;
-  }
-}
-
-class RegExpMatchIndices {
-  readonly start: number;
-  readonly end: number;
-  readonly groups: { start: number, end: number }[];
-
-  private constructor(indices: [number, number][]) {
-    this.start = indices[0][0]
-    this.end = indices[0][1]
-    this.groups = indices.slice(1).map(groupIndices => ({
-      start: groupIndices[0],
-      end: groupIndices[1]
-    }))
-  }
-
-  static fromRegExpMatchArray(match: RegExpMatchArray) {
-    try {
-      const indices = match["indices"];
-      return new RegExpMatchIndices(indices);
-    } catch (error) {
-      console.error(`Missing indices for match ${match.input}. Is the 'd'-flag set?`);
-      throw error;
-    }
+    this.text = source.slice(start, end);
   }
 }
 
@@ -49,7 +24,7 @@ class RegExpMatchIndices {
 })
 export class RegularExpressionVisualiserComponent implements OnInit {
 
-  @Input() text: string;
+  @Input() textSource: string[];
 
   // Ensures 'd'-flag is set
   @Input() set pattern(pattern: string) {
@@ -64,53 +39,46 @@ export class RegularExpressionVisualiserComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  getSegments(text: string): Segment[] {
-    const regExpMatchArray = text.match(this.regExp);
+  getSegments(line: string): Segment[] {
+    let match = line.match(this.regExp);
 
-    if (!regExpMatchArray) {
-      return [
-        new Segment(SegmentType.NORMAL, text)
-      ];
+    if (!match) {
+      return [{text: line, classType: SegmentType.NORMAL}];
     }
-
     try {
-      const textStart = 0;
-      const textEnd = text.length;
       // Requires this.regExp to have 'd'-flag set.
-      const match = RegExpMatchIndices.fromRegExpMatchArray(regExpMatchArray);
+      // @ts-ignore
+      let {indices}: { indices: [number, number][] } = match;
 
-      let segments = [];
-      segments.push(new Segment(SegmentType.NORMAL, text.substring(textStart, match.start)));
-      segments.push(...RegularExpressionVisualiserComponent.segmentsOfMatch(match, text));
-      segments.push(new Segment(SegmentType.NORMAL, text.substring(match.end, textEnd)))
+      // The first element in indices contains the start and end of the match.
+      // The following elements contain the start and end of each group within that match.
+      let lineStart = 0;
+      let lineEnd = line.length - 1;
+      let matchStart = indices[0][0];
+      let matchEnd = indices[0][1];
+
+      let segments: Segment[] = [];
+      segments.push(new Segment(line, lineStart, matchStart, SegmentType.NORMAL));
+
+      if (indices.length == 1) {
+        segments.push(new Segment(line, matchStart, matchEnd, SegmentType.MATCH));
+      } else {
+        segments.push(new Segment(line, matchStart, indices[1][0], SegmentType.MATCH));
+        let groupIndex;
+        for (groupIndex = 1; groupIndex < indices.length - 1; groupIndex++) {
+          segments.push(new Segment(line, indices[groupIndex][0], indices[groupIndex][1], SegmentType.GROUP));
+          segments.push(new Segment(line, indices[groupIndex][1], indices[groupIndex + 1][0], SegmentType.MATCH));
+        }
+        segments.push(new Segment(line, indices[groupIndex][0], indices[groupIndex][1], SegmentType.GROUP));
+        segments.push(new Segment(line, indices[groupIndex][1], matchEnd, SegmentType.MATCH));
+      }
+
+      segments.push(new Segment(line, matchEnd, lineEnd, SegmentType.NORMAL));
       return segments;
 
     } catch (error) {
-      return [
-        new Segment(SegmentType.UNCERTAIN, text)
-      ];
+      // If a match exists but the indices are missing, the entire line gets marked as a potential match.
+      return [{text: line, classType: SegmentType.UNCERTAIN}];
     }
-  }
-
-
-  private static segmentsOfMatch(match: RegExpMatchIndices, text: string): Segment[] {
-    const matchHasGroups = match.groups.length > 0;
-
-    if (!matchHasGroups) {
-      return [new Segment(SegmentType.MATCH, text.substring(match.start, match.end))];
-    }
-
-    let segments = [];
-    const lastIndex = match.groups.length - 1;
-
-    segments.push(new Segment(SegmentType.MATCH, text.substring(match.start, (match.groups)[0].start)));
-    for (let i = 0; i < lastIndex; i++) {
-      segments.push(new Segment(SegmentType.GROUP, text.substring(match.groups[i].start, match.groups[i].end)));
-      segments.push(new Segment(SegmentType.MATCH, text.substring(match.groups[i].end, match.groups[i + 1].start)));
-    }
-    segments.push(new Segment(SegmentType.GROUP, text.substring(match.groups[lastIndex].start, match.groups[lastIndex].end)));
-    segments.push(new Segment(SegmentType.MATCH, text.substring(match.groups[lastIndex].end, match.end)));
-
-    return segments;
   }
 }

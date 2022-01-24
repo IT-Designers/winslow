@@ -11,17 +11,17 @@
 }
 
 .segment-normal {
-
+  background-color: white;
 }
 
 .segment-match {
-  background-color: #007aff7f;
+  background-color: #5ac8fa;
 }
 
 .segment-group {
-  background-color: #00ffff7f;
+  background-color: #007aff;
 }
 
 .segment-uncertain {
-  background-color: #fab7337f;
+  background-color: #FAB733;
 }

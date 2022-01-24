@@ -1,4 +1,7 @@
-<code>
-    <span *ngFor="let segment of getSegments(text)" class="segment" [ngClass]="segment.classType"
+<div *ngFor="let line of textSource" class="line-content">
+  <code>
+    <span *ngFor="let segment of getSegments(line)" class="segment" [ngClass]="segment.classType"
     >{{segment.text}}</span>
-</code>
+  </code>
+</div>
+

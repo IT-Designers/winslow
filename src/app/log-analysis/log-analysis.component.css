@@ -2,15 +2,19 @@
   height: 300px;
 }
 
-.graph-grid-tile {
+.chart-grid-tile {
   display: flex;
 }
 
-.graph-card {
+.chart-card {
   margin: 4px;
   flex-grow: 1;
 }
 
-.graph-card-content {
+.chart-card-content {
  margin: 0;
+}
+
+.chart-grid-list {
+  overflow-y: auto;
 }
