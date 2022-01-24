@@ -1,0 +1,27 @@
+.line-container {
+
+}
+
+.line-content {
+
+}
+
+.segment {
+
+}
+
+.segment-normal {
+  background-color: white;
+}
+
+.segment-match {
+  background-color: #5ac8fa;
+}
+
+.segment-group {
+  background-color: #007aff;
+}
+
+.segment-uncertain {
+  background-color: #FAB733;
+}

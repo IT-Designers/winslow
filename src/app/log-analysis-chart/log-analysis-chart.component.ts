@@ -108,18 +108,21 @@ export class LogAnalysisChartComponent implements OnInit {
     let points = []
 
     for (let log of logs) {
-      if (log.source != LogSource.STANDARD_IO) continue;
+      try {
+        if (log.source != LogSource.STANDARD_IO) continue;
 
-      let match = log.message.match(chart.regExpSource);
-      if (!match) continue;
+        let match = log.message.match(chart.regExpSource);
+        if (!match) continue;
 
-      let x = parseFloat(match.groups[chart.xAxisGroup]);
-      if (isNaN(x)) continue;
+        let x = parseFloat(match.groups[chart.xAxisGroup]);
+        if (isNaN(x)) continue;
 
-      let y = parseFloat(match.groups[graph.yAxisGroup]);
-      if (isNaN(y)) continue;
+        let y = parseFloat(match.groups[graph.yAxisGroup]);
+        if (isNaN(y)) continue;
 
-      points.push([x, y]);
+        points.push([x, y]);
+      } catch (ignored) {
+      }
     }
     points.sort((point1, point2) => point1[0] - point2[0])
     return points;
@@ -129,15 +132,18 @@ export class LogAnalysisChartComponent implements OnInit {
     let points = []
 
     for (let log of logs) {
-      if (log.source != LogSource.STANDARD_IO) continue;
+      try {
+        if (log.source != LogSource.STANDARD_IO) continue;
 
-      let match = log.message.match(chart.regExpSource);
-      if (!match) continue;
+        let match = log.message.match(chart.regExpSource);
+        if (!match) continue;
 
-      let y = parseFloat(match.groups[graph.yAxisGroup]);
-      if (isNaN(y)) continue;
+        let y = parseFloat(match.groups[graph.yAxisGroup]);
+        if (isNaN(y)) continue;
 
-      points.push([log.time, y]);
+        points.push([log.time, y]);
+      } catch (ignored) {
+      }
     }
     points.sort((point1, point2) => point1[0] - point2[0])
     return points;
@@ -148,16 +154,19 @@ export class LogAnalysisChartComponent implements OnInit {
 
     let step = 0;
     for (let log of logs) {
-      if (log.source != LogSource.STANDARD_IO) continue;
+      try {
+        if (log.source != LogSource.STANDARD_IO) continue;
 
-      let match = log.message.match(chart.regExpSource);
-      if (!match) continue;
+        let match = log.message.match(chart.regExpSource);
+        if (!match) continue;
 
-      let y = parseFloat(match.groups[graph.yAxisGroup]);
-      if (isNaN(y)) continue;
+        let y = parseFloat(match.groups[graph.yAxisGroup]);
+        if (isNaN(y)) continue;
 
-      points.push([step, y]);
-      step++;
+        points.push([step, y]);
+        step++;
+      } catch (ignored) {
+      }
     }
     return points;
   }

@@ -81,7 +81,7 @@ import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
 import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
-import { RegularExpressionEditorComponent } from './regular-expression-editor/regular-expression-editor.component';
+import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
 
 @NgModule({
     declarations: [
@@ -128,7 +128,7 @@ import { RegularExpressionEditorComponent } from './regular-expression-editor/re
         LogAnalysisComponent,
         LogAnalysisChartDialogComponent,
         LogAnalysisChartComponent,
-        RegularExpressionEditorComponent,
+        RegularExpressionVisualiserComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

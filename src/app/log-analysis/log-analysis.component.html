@@ -1,7 +1,7 @@
-<mat-grid-list cols="3" gutterSize="1em" rowHeight="400px">
-  <mat-grid-tile *ngFor="let chart of charts; let i = index" class="graph-grid-tile">
-    <mat-card class="graph-card">
-      <mat-card-content class="graph-card-content">
+<mat-grid-list cols="3" gutterSize="1em" rowHeight="400px" class="chart-grid-list">
+  <mat-grid-tile *ngFor="let chart of charts; let i = index" class="chart-grid-tile">
+    <mat-card class="chart-card">
+      <mat-card-content class="chart-card-content">
         <app-log-analysis-chart
           [chart]="chart"
           [logs]="logs"
