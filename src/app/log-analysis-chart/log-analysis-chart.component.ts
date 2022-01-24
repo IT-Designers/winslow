@@ -25,6 +25,7 @@ export class LogAnalysisChartComponent implements OnInit {
 
   getDefaultChart() {
     return {
+      animation: false,
       title: {
         text: "",
       },
