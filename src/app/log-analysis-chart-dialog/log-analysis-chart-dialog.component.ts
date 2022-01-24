@@ -27,4 +27,17 @@ export class LogAnalysisChartDialogComponent {
     const stages = this.data.stages;
     return stages.map(stage => LogChartDefinition.getDataSeries(chart, stage.csvFiles));
   }
+
+  getPreviewText() {
+    let lines = [];
+    for (let log of this.data.logs) {
+      if (log.source == LogSource.STANDARD_IO) {
+        lines.push(log.message);
+      }
+      if (lines.length >= 10) {
+        break;
+      }
+    }
+    return lines;
+  }
 }

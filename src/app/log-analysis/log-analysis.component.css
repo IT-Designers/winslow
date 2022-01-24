@@ -59,3 +59,7 @@
 .scrollable {
   overflow-y: auto;
 }
+
+.chart-grid-list {
+  overflow-y: auto;
+}

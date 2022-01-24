@@ -83,16 +83,19 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
     let step = 0;
     for (let log of logs) {
-      if (log.source != LogSource.STANDARD_IO) continue;
+      try {
+        if (log.source != LogSource.STANDARD_IO) continue;
 
-      let match = log.message.match(chart.regExpSource);
-      if (!match) continue;
+        let match = log.message.match(chart.regExpSource);
+        if (!match) continue;
 
-      let y = parseFloat(match.groups[graph.yAxisGroup]);
-      if (isNaN(y)) continue;
+        let y = parseFloat(match.groups[graph.yAxisGroup]);
+        if (isNaN(y)) continue;
 
-      points.push([step, y]);
-      step++;
+        points.push([step, y]);
+        step++;
+      } catch (ignored) {
+      }
     }
     return points;
   }
