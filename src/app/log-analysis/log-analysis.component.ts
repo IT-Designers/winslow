@@ -61,6 +61,7 @@ export class LogAnalysisComponent implements OnInit {
   latestStage: StageInfo = null;
   selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
+  longLoading = new LongLoadingDetector();
 
   stageToDisplay: StageCsvInfo = {
     id: null,
@@ -128,9 +129,9 @@ export class LogAnalysisComponent implements OnInit {
     if (stageId == null) {
       stageId = ProjectApiService.LOGS_LATEST;
     }
-    //this.longLoading.raise(LogViewComponent.LONG_LOADING_FLAG);
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_FLAG);
     this.logSubscription = this.api.watchLogs(projectId, (logs) => {
-      //this.longLoading.clear(LogViewComponent.LONG_LOADING_FLAG);
+      this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_FLAG);
       if (logs?.length > 0) {
         this.logs.push(...logs);
       } else {
@@ -390,5 +391,13 @@ export class LogAnalysisComponent implements OnInit {
   private findProjectPipeline(pipelines: PipelineInfo[]) {
     const project = this.selectedProject;
     this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines)
+  }
+
+  isLongLoading() {
+    return this.longLoading.isLongLoading();
+  }
+
+  showLatestLogs() {
+
   }
 }
