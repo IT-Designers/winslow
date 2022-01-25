@@ -42,8 +42,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
               private createDialog: MatDialog,
               private notification: NotificationService,
               private dialog: DialogService,
-              private route: ActivatedRoute,
-              private router: Router) {
+              public route: ActivatedRoute,
+              public router: Router) {
   }
 
   ngOnInit() {

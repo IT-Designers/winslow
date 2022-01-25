@@ -34,7 +34,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   }
 
   updateGroups() {
-    if (this.projectsValue == null || this.groupsActivated === false) {
+    if (this.projectsValue == null || this.groupsActivated === false || !this.availableTagsValue) {
       this.projectsGroups.emit(null);
       return;
     }
@@ -67,7 +67,6 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     }
     projectGroups = this.sortGroups(projectGroups);
     this.projectsGroups.emit(projectGroups);
-    console.log(projectGroups);
   }
 
   private isProjectForGroupExisting(projectGroups: ProjectGroup[], project: ProjectInfo) {
