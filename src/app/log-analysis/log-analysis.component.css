@@ -8,6 +8,11 @@
   margin-bottom: 1px;
 }
 
+.stage-form-field {
+  margin: -12px 1em -2em;
+  width: 50%;
+}
+
 .chart {
   height: 300px;
 }
@@ -22,7 +27,7 @@
 }
 
 .chart-card-content {
- margin: 0;
+  margin: 0;
 }
 
 .chart-grid-list {

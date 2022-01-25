@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {LogEntry, ProjectApiService, ProjectInfo} from "../api/project-api.service";
+import {ExecutionGroupInfo, LogEntry, ProjectApiService, ProjectInfo} from "../api/project-api.service";
 import {Subscription} from "rxjs";
 import {MatDialog} from '@angular/material/dialog';
 import {
@@ -16,18 +16,19 @@ import {LongLoadingDetector} from "../long-loading-detector";
 export class LogAnalysisComponent implements OnInit, OnDestroy {
   private static readonly LONG_LOADING_FLAG = 'logs';
 
+  longLoading = new LongLoadingDetector();
   logSubscription: Subscription = null;
-
-  logs?: LogEntry[] = [];
-
   selectedProject: ProjectInfo = null;
   selectedStageId: string = null;
+
+  projectHistory: ExecutionGroupInfo[] = [];
+
+  logs?: LogEntry[] = [];
   charts: LogChart[] = [];
-  longLoading = new LongLoadingDetector();
 
   @Input()
-  set project(value: ProjectInfo) {
-    this.selectedProject = value;
+  set project(project: ProjectInfo) {
+    this.selectedProject = project;
   }
 
   @Input()
@@ -41,7 +42,13 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subscribeLogs(this.selectedProject.id, this.selectedStageId)
+    this.api.getProjectHistory(this.selectedProject.id).then(result => {
+      this.projectHistory = result;
+    });
+    this.resubscribe(this.selectedStageId);
+    if (this.selectedStageId == null) {
+      this.selectedStageId = this.getLatestStageId();
+    }
   }
 
   ngOnDestroy() {
@@ -49,6 +56,14 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
       this.logSubscription.unsubscribe();
       this.logSubscription = null;
     }
+  }
+
+  resubscribe(stageId: string) {
+    this.logs = [];
+    if (this.logSubscription != null) {
+      this.logSubscription.unsubscribe();
+    }
+    this.subscribeLogs(this.selectedProject.id, stageId);
   }
 
   private subscribeLogs(projectId: string, stageId = ProjectApiService.LOGS_LATEST) {
@@ -97,7 +112,12 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
     return this.longLoading.isLongLoading();
   }
 
-  showLatestLogs() {
+  selectLatestStage() {
+    this.selectedStageId = this.getLatestStageId();
+    this.resubscribe(this.selectedStageId);
+  }
 
+  filteredProjectHistory() {
+    return this.projectHistory.filter(entry => !entry.configureOnly)
   }
 }
