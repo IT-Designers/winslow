@@ -16,12 +16,10 @@ export class ProjectsViewComponent implements OnInit {
   @Input() selectedProject: ProjectInfo;
   @Input() stateInfo: Map<string, StateInfo>;
   @Input() filter: TagFilterComponent;
-  // @Input() router: Router;
-  // @Input() route: ActivatedRoute;
+  @Input() router: Router;
+  @Input() route: ActivatedRoute;
 
-  constructor(public route: ActivatedRoute, // important?
-              public router: Router) {
-  }
+  constructor() {}
 
   ngOnInit(): void {
   }

@@ -110,7 +110,6 @@ export class TagFilterComponent implements OnInit {
 
   emitGroups(){
     this.projectsGroups.emit(this.projectsGroupsValue);
-    console.log(this.projectsGroups);
   }
 
 }

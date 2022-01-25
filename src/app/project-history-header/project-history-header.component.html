@@ -27,7 +27,6 @@
             (click)="$event.stopPropagation(); clickResume.emit($event)">
     play_circle_outlined
   </mat-icon>
-  <div>state:{{state}}--sDe:{{showDeleteEnqueued}}--enq:{{enqueued}}--clickL:{{clickDelete.observers.length}}</div>
   <mat-icon *ngIf="enqueued && showDeleteEnqueued && clickDelete.observers.length > 0" class="clickable"
             matTooltip="Delete"
             (click)="$event.stopPropagation(); clickDelete.emit($event)">
