@@ -6,6 +6,7 @@ import {
   LogAnalysisChartDialogComponent,
   LogChart
 } from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LongLoadingDetector} from "../long-loading-detector";
 
 @Component({
   selector: 'app-log-analysis',
@@ -13,6 +14,7 @@ import {
   styleUrls: ['./log-analysis.component.css']
 })
 export class LogAnalysisComponent implements OnInit, OnDestroy {
+  private static readonly LONG_LOADING_FLAG = 'logs';
 
   logSubscription: Subscription = null;
 
@@ -21,6 +23,7 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
   selectedProject: ProjectInfo = null;
   selectedStageId: string = null;
   charts: LogChart[] = [];
+  longLoading = new LongLoadingDetector();
 
   @Input()
   set project(value: ProjectInfo) {
@@ -52,9 +55,9 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
     if (stageId == null) {
       stageId = ProjectApiService.LOGS_LATEST;
     }
-    //this.longLoading.raise(LogViewComponent.LONG_LOADING_FLAG);
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_FLAG);
     this.logSubscription = this.api.watchLogs(projectId, (logs) => {
-      //this.longLoading.clear(LogViewComponent.LONG_LOADING_FLAG);
+      this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_FLAG);
       if (logs?.length > 0) {
         this.logs.push(...logs);
       } else {
@@ -88,5 +91,13 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
 
   removeChart(chartIndex: number) {
     this.charts.splice(chartIndex, 1);
+  }
+
+  isLongLoading() {
+    return this.longLoading.isLongLoading();
+  }
+
+  showLatestLogs() {
+
   }
 }
