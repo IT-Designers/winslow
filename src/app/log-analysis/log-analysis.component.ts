@@ -61,7 +61,6 @@ export class LogAnalysisComponent implements OnInit {
   latestStage: StageInfo = null;
   selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
-  longLoading = new LongLoadingDetector();
 
   stageToDisplay: StageCsvInfo = {
     id: null,
@@ -115,7 +114,13 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.subscribeLogs(this.selectedProject.id, this.selectedStageId)
+    this.api.getProjectHistory(this.selectedProject.id).then(result => {
+      this.projectHistory = result;
+    });
+    this.resubscribe(this.selectedStageId);
+    if (this.selectedStageId == null) {
+      this.selectedStageId = this.getLatestStageId();
+    }
   }
 
   ngOnDestroy() {
@@ -123,6 +128,14 @@ export class LogAnalysisComponent implements OnInit {
       this.logSubscription.unsubscribe();
       this.logSubscription = null;
     }
+  }
+
+  resubscribe(stageId: string) {
+    this.logs = [];
+    if (this.logSubscription != null) {
+      this.logSubscription.unsubscribe();
+    }
+    this.subscribeLogs(this.selectedProject.id, stageId);
   }
 
   private subscribeLogs(projectId: string, stageId = ProjectApiService.LOGS_LATEST) {
@@ -397,7 +410,12 @@ export class LogAnalysisComponent implements OnInit {
     return this.longLoading.isLongLoading();
   }
 
-  showLatestLogs() {
+  selectLatestStage() {
+    this.selectedStageId = this.getLatestStageId();
+    this.resubscribe(this.selectedStageId);
+  }
 
+  filteredProjectHistory() {
+    return this.projectHistory.filter(entry => !entry.configureOnly)
   }
 }
