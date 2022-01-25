@@ -21,6 +21,13 @@
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
+  <app-regular-expression-visualiser
+    [pattern]="data.chart.regExpSource"
+    [textSource]="getPreviewText()"
+  ></app-regular-expression-visualiser>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
   <p>Layout</p>
 </mat-dialog-content>
 
@@ -105,13 +112,6 @@
 
 <mat-dialog-content class="dialog-content">
   <p>Preview</p>
-</mat-dialog-content>
-
-<mat-dialog-content class="dialog-content">
-  <app-regular-expression-visualiser
-    [pattern]="data.chart.regExpSource"
-    [textSource]="getPreviewText()"
-  ></app-regular-expression-visualiser>
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
