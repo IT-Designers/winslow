@@ -114,13 +114,12 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.getProjectHistory(this.selectedProject.id).then(result => {
+    this.projectApi.getProjectHistory(this.selectedProject.id).then(result => {
       this.projectHistory = result;
+      this.latestStageId = this.getLatestStageId(result);
     });
-    this.resubscribe(this.selectedStageId);
-    if (this.selectedStageId == null) {
-      this.selectedStageId = this.getLatestStageId();
-    }
+    this.selectStage(this.selectedStageId);
+    this.downloadCharts();
   }
 
   ngOnDestroy() {
@@ -130,11 +129,15 @@ export class LogAnalysisComponent implements OnInit {
     }
   }
 
-  resubscribe(stageId: string) {
-    this.logs = [];
+  selectStage(stageId: string) {
     if (this.logSubscription != null) {
       this.logSubscription.unsubscribe();
     }
+    if (stageId == null) {
+      stageId = this.latestStageId;
+    }
+    this.logs = [];
+    this.selectedStageId = stageId;
     this.subscribeLogs(this.selectedProject.id, stageId);
   }
 
@@ -143,7 +146,7 @@ export class LogAnalysisComponent implements OnInit {
       stageId = ProjectApiService.LOGS_LATEST;
     }
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_FLAG);
-    this.logSubscription = this.api.watchLogs(projectId, (logs) => {
+    this.logSubscription = this.projectApi.watchLogs(projectId, (logs) => {
       this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_FLAG);
       if (logs?.length > 0) {
         this.logs.push(...logs);
@@ -406,16 +409,44 @@ export class LogAnalysisComponent implements OnInit {
     this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines)
   }
 
-  isLongLoading() {
+  isLongLoading(): boolean {
     return this.longLoading.isLongLoading();
   }
 
-  selectLatestStage() {
-    this.selectedStageId = this.getLatestStageId();
-    this.resubscribe(this.selectedStageId);
+  getLatestStageId(history: ExecutionGroupInfo[]): string {
+    return this.filterHistory(history).slice(-1)[0].id;
   }
 
-  filteredProjectHistory() {
-    return this.projectHistory.filter(entry => !entry.configureOnly)
+  filterHistory(history: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
+    return history.filter(entry => !entry.configureOnly)
+  }
+
+  private uploadChart(filename: string, chart: Chart) {
+    let file = new File(
+      [JSON.stringify(chart, null, "\t")],
+      `${filename}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`,
+      {type: "application/json"},);
+    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
+      console.log(result);
+    });
+  }
+
+  private downloadCharts() {
+    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/default.charts`;
+    this.filesApi.getFile(filepath).toPromise().then(result => {
+      for (let [key, value] of Object.entries(result)) {
+        console.log(key, value);
+        this.downloadChart(value);
+      }
+    })
+  }
+
+  private downloadChart(filename: string) {
+    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/${filename}`;
+    this.filesApi.getFile(filepath).toPromise().then(result => {
+      let chart = new Chart();
+      Object.assign(chart, result);
+      this.charts.push(chart);
+    })
   }
 }

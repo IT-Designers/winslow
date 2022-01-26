@@ -78,7 +78,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     }
   }
 
-  getDataByStep(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+  getDataByStep(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
     let points = []
 
     let step = 0;
