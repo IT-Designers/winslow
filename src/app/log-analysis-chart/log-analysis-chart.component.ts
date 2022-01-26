@@ -1,8 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {
-  LogChart,
-  LogChartAxisType,
-  LogChartGraph
+  Chart,
+  ChartAxisType,
+  ChartGraph
 } from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LogEntry, LogSource} from "../api/project-api.service";
 
@@ -13,7 +13,7 @@ import {LogEntry, LogSource} from "../api/project-api.service";
 })
 export class LogAnalysisChartComponent implements OnInit {
 
-  @Input() chart: LogChart;
+  @Input() chart: Chart;
 
   @Input() logs: LogEntry[];
 
@@ -63,7 +63,7 @@ export class LogAnalysisChartComponent implements OnInit {
     }
   }
 
-  getChartOptions(chart: LogChart, logs: LogEntry[]) {
+  getChartOptions(chart: Chart, logs: LogEntry[]) {
     let options = this.getDefaultChart();
 
     options.title.text = chart.name;
@@ -77,14 +77,14 @@ export class LogAnalysisChartComponent implements OnInit {
     options.yAxis.min = this.sanitizeAxisLimit(chart.yAxisMinValue, 'min');
 
     switch (chart.xAxisType) {
-      case LogChartAxisType.GROUP:
+      case ChartAxisType.GROUP:
         options.series = this.getSeriesList(chart, this.getDataByGroup, logs);
         break;
-      case LogChartAxisType.TIME:
+      case ChartAxisType.TIME:
         options.xAxis.type = 'time';
         options.series = this.getSeriesList(chart, this.getDataByTime, logs);
         break;
-      case LogChartAxisType.STEPS:
+      case ChartAxisType.STEPS:
         options.series = this.getSeriesList(chart, this.getDataByStep, logs);
         break;
     }
@@ -92,7 +92,7 @@ export class LogAnalysisChartComponent implements OnInit {
     return options;
   }
 
-  getSeriesList(chart: LogChart, getDataFunction: (chart: LogChart, graph: LogChartGraph, logs: LogEntry[]) => [number, number][], logs: LogEntry[]) {
+  getSeriesList(chart: Chart, getDataFunction: (chart: Chart, graph: ChartGraph, logs: LogEntry[]) => [number, number][], logs: LogEntry[]) {
     let seriesList = [];
     for (let i = 0; i < chart.graphs.length; i++) {
       seriesList.push({
@@ -104,7 +104,7 @@ export class LogAnalysisChartComponent implements OnInit {
     return seriesList;
   }
 
-  getDataByGroup(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+  getDataByGroup(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
     let points = []
 
     for (let log of logs) {
@@ -128,7 +128,7 @@ export class LogAnalysisChartComponent implements OnInit {
     return points;
   }
 
-  getDataByTime(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+  getDataByTime(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
     let points = []
 
     for (let log of logs) {
@@ -149,7 +149,7 @@ export class LogAnalysisChartComponent implements OnInit {
     return points;
   }
 
-  getDataByStep(chart: LogChart, graph: LogChartGraph, logs: LogEntry[]): [number, number][] {
+  getDataByStep(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
     let points = []
 
     let step = 0;

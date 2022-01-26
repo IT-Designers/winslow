@@ -2,12 +2,12 @@
 
 <div class="top-bar">
   <button mat-raised-button color="accent"
-          [disabled]="false"
-          (click)="selectLatestStage()">Show most recent Stage
+          [disabled]="selectedStageId == latestStageId"
+          (click)="selectStage(latestStageId)">Show most recent Stage
   </button>
   <mat-form-field appearance="legacy" class="stage-form-field">
-    <mat-select [(ngModel)]="selectedStageId" (selectionChange)="resubscribe(selectedStageId)">
-      <mat-option *ngFor="let entry of filteredProjectHistory()" [value]="entry.id">
+    <mat-select [(ngModel)]="selectedStageId" (selectionChange)="selectStage(selectedStageId)">
+      <mat-option *ngFor="let entry of filterHistory(projectHistory)" [value]="entry.id">
         {{entry.getMostRecentStartOrFinishTime() | date:'dd/MM/yyyy, HH:mm:ss'}} ·
         {{entry.stageDefinition.name}}
       </mat-option>
