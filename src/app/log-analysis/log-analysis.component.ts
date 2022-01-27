@@ -119,7 +119,6 @@ export class LogAnalysisComponent implements OnInit {
       this.latestStageId = this.getLatestStageId(result);
     });
     this.selectStage(this.selectedStageId);
-    this.downloadCharts();
   }
 
   ngOnDestroy() {
@@ -127,6 +126,72 @@ export class LogAnalysisComponent implements OnInit {
       this.logSubscription.unsubscribe();
       this.logSubscription = null;
     }
+  }
+
+  addChart(chart: LogChart = new LogChart()) {
+    this.charts.push(chart);
+  }
+
+  removeChart(chartIndex: number) {
+    this.charts.splice(chartIndex, 1);
+  }
+
+  openEditChartDialog(chartIndex: number) {
+    let dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
+      data: {
+        chart: this.charts[chartIndex],
+        logs: this.logs
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(result)
+    })
+  }
+
+  uploadCharts() {
+    let filenames = [];
+    this.charts.forEach((chart, index) => {
+      let filename = `chart_${index}`;
+      this.uploadChart(filename, chart);
+      filenames.push(filename);
+    })
+    let file = new File(
+      [JSON.stringify(filenames, null, "\t")],
+      `default.charts`,
+      {type: "application/json"},);
+    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
+      console.log(result);
+    });
+  }
+
+  downloadCharts() {
+    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/default.charts`;
+    this.filesApi.getFile(filepath).toPromise().then(result => {
+      for (let filename of result as string[]) {
+        console.log("Downloading chart: " + filename);
+        this.downloadChart(filename);
+      }
+    })
+  }
+
+  private uploadChart(filename: string, chart: LogChart) {
+    let file = new File(
+      [JSON.stringify(chart, null, "\t")],
+      `${filename}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`,
+      {type: "application/json"},);
+    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
+      console.log(result);
+    });
+  }
+
+  private downloadChart(filename: string) {
+    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/${filename}.${LogAnalysisComponent.CHART_FILE_EXTENSION}`;
+    this.filesApi.getFile(filepath).toPromise().then(result => {
+      console.log("Received chart:")
+      console.log(result);
+      this.addChart(result as LogChart);
+    })
   }
 
   selectStage(stageId: string) {
@@ -419,34 +484,5 @@ export class LogAnalysisComponent implements OnInit {
 
   filterHistory(history: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
     return history.filter(entry => !entry.configureOnly)
-  }
-
-  private uploadChart(filename: string, chart: Chart) {
-    let file = new File(
-      [JSON.stringify(chart, null, "\t")],
-      `${filename}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`,
-      {type: "application/json"},);
-    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
-      console.log(result);
-    });
-  }
-
-  private downloadCharts() {
-    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/default.charts`;
-    this.filesApi.getFile(filepath).toPromise().then(result => {
-      for (let [key, value] of Object.entries(result)) {
-        console.log(key, value);
-        this.downloadChart(value);
-      }
-    })
-  }
-
-  private downloadChart(filename: string) {
-    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/${filename}`;
-    this.filesApi.getFile(filepath).toPromise().then(result => {
-      let chart = new Chart();
-      Object.assign(chart, result);
-      this.charts.push(chart);
-    })
   }
 }
