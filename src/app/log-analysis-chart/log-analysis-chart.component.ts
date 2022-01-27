@@ -1,10 +1,28 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {
-  Chart,
-  ChartAxisType,
-  ChartGraph
-} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
-import {LogEntry, LogSource} from "../api/project-api.service";
+
+export enum ChartAxisType {
+  VALUE = "value",
+  LOG = "log",
+  TIME = "time",
+}
+
+export class ChartSettings {
+  name: string = "Unnamed chart";
+
+  xAxisName: string = "x-Axis";
+  xAxisMinValue: string = "";
+  xAxisMaxValue: string = "";
+  xAxisType: ChartAxisType = ChartAxisType.VALUE;
+
+  yAxisName: string = "y-Axis";
+  yAxisMinValue: string = "0";
+  yAxisMaxValue: string = "10";
+  yAxisType: ChartAxisType = ChartAxisType.VALUE;
+}
+
+export type ChartData = ChartDataPoint[];
+
+export type ChartDataPoint = [number, number];
 
 @Component({
   selector: 'app-log-analysis-chart',
@@ -13,21 +31,19 @@ import {LogEntry, LogSource} from "../api/project-api.service";
 })
 export class LogAnalysisChartComponent implements OnInit {
 
-  @Input() chart: Chart;
+  @Input() settings: ChartSettings;
 
-  @Input() logs: LogEntry[];
+  @Input() data: ChartData;
+
+  eChartOptions;
 
   constructor() {
   }
 
   ngOnInit(): void {
-  }
-
-  getDefaultChart() {
-    return {
-      animation: false,
+    this.eChartOptions = {
       title: {
-        text: "",
+        text: this.settings.name,
       },
       grid: {
         top: '50',
@@ -36,138 +52,35 @@ export class LogAnalysisChartComponent implements OnInit {
         right: '10',
       },
       xAxis: {
-        type: 'value',
-        min: 'dataMin',
-        max: 'dataMax',
-        name: 'x-Axis',
+        name: this.settings.xAxisName,
+        type: this.settings.xAxisType,
+        min: this.sanitiseNumberInput(this.settings.xAxisMinValue, 'dataMin'),
+        max: this.sanitiseNumberInput(this.settings.xAxisMaxValue, 'dataMax'),
         nameLocation: 'center',
         nameGap: '25',
       },
       yAxis: {
-        type: 'value',
-        min: 'dataMin',
-        max: 'dataMax',
-        name: 'y-Axis',
+        name: this.settings.yAxisName,
+        type: this.settings.yAxisType,
+        min: this.sanitiseNumberInput(this.settings.yAxisMinValue, 'dataMin'),
+        max: this.sanitiseNumberInput(this.settings.yAxisMaxValue, 'dataMax'),
         nameLocation: 'center',
         nameGap: '25',
       },
-      series: []
+      animation: false,
+      series: [{
+        type: 'line',
+        showSymbol: false,
+        data: this.data,
+      }],
     }
   }
 
-  sanitizeAxisLimit(input: string, type: 'min' | 'max'): string {
+  sanitiseNumberInput(input: string, alt: string): string {
     if (Number.isNaN(parseFloat(input))) {
-      return type == 'max' ? "dataMax" : "dataMin";
+      return alt;
     } else {
       return input;
     }
-  }
-
-  getChartOptions(chart: Chart, logs: LogEntry[]) {
-    let options = this.getDefaultChart();
-
-    options.title.text = chart.name;
-
-    options.xAxis.name = chart.xAxisLabel;
-    options.yAxis.name = chart.yAxisLabel;
-
-    options.xAxis.max = this.sanitizeAxisLimit(chart.xAxisMaxValue, 'max');
-    options.xAxis.min = this.sanitizeAxisLimit(chart.xAxisMinValue, 'min');
-    options.yAxis.max = this.sanitizeAxisLimit(chart.yAxisMaxValue, 'max');
-    options.yAxis.min = this.sanitizeAxisLimit(chart.yAxisMinValue, 'min');
-
-    switch (chart.xAxisType) {
-      case ChartAxisType.GROUP:
-        options.series = this.getSeriesList(chart, this.getDataByGroup, logs);
-        break;
-      case ChartAxisType.TIME:
-        options.xAxis.type = 'time';
-        options.series = this.getSeriesList(chart, this.getDataByTime, logs);
-        break;
-      case ChartAxisType.STEPS:
-        options.series = this.getSeriesList(chart, this.getDataByStep, logs);
-        break;
-    }
-
-    return options;
-  }
-
-  getSeriesList(chart: Chart, getDataFunction: (chart: Chart, graph: ChartGraph, logs: LogEntry[]) => [number, number][], logs: LogEntry[]) {
-    let seriesList = [];
-    for (let i = 0; i < chart.graphs.length; i++) {
-      seriesList.push({
-        type: 'line',
-        showSymbol: false,
-        data: getDataFunction(chart, chart.graphs[i], logs),
-      })
-    }
-    return seriesList;
-  }
-
-  getDataByGroup(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
-    let points = []
-
-    for (let log of logs) {
-      try {
-        if (log.source != LogSource.STANDARD_IO) continue;
-
-        let match = log.message.match(chart.regExpSource);
-        if (!match) continue;
-
-        let x = parseFloat(match.groups[chart.xAxisGroup]);
-        if (isNaN(x)) continue;
-
-        let y = parseFloat(match.groups[graph.yAxisGroup]);
-        if (isNaN(y)) continue;
-
-        points.push([x, y]);
-      } catch (ignored) {
-      }
-    }
-    points.sort((point1, point2) => point1[0] - point2[0])
-    return points;
-  }
-
-  getDataByTime(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
-    let points = []
-
-    for (let log of logs) {
-      try {
-        if (log.source != LogSource.STANDARD_IO) continue;
-
-        let match = log.message.match(chart.regExpSource);
-        if (!match) continue;
-
-        let y = parseFloat(match.groups[graph.yAxisGroup]);
-        if (isNaN(y)) continue;
-
-        points.push([log.time, y]);
-      } catch (ignored) {
-      }
-    }
-    points.sort((point1, point2) => point1[0] - point2[0])
-    return points;
-  }
-
-  getDataByStep(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
-    let points = []
-
-    let step = 0;
-    for (let log of logs) {
-      try {
-        if (log.source != LogSource.STANDARD_IO) continue;
-
-        let match = log.message.match(chart.regExpSource);
-        if (!match) continue;
-
-        let y = parseFloat(match.groups[graph.yAxisGroup]);
-        if (isNaN(y)) continue;
-
-        points.push([step, y]);
-        step++;
-      } catch (ignored) {
-      }
-    }
-    return points;
   }
 }

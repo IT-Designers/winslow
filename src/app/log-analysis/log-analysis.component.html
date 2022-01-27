@@ -24,8 +24,8 @@
     <mat-card class="chart-card">
       <mat-card-content class="chart-card-content">
         <app-log-analysis-chart
-          [chart]="chart"
-          [logs]="logs"
+          [settings]="chart.settings"
+          [data]="[[1,2],[2,4],[3,2]]"
         ></app-log-analysis-chart>
       </mat-card-content>
       <mat-card-actions>
@@ -35,6 +35,8 @@
     </mat-card>
   </mat-grid-tile>
   <mat-grid-tile>
-    <button mat-raised-button color="accent" (click)="addNewChart()">Add Chart</button>
+    <button mat-raised-button color="accent" (click)="addChart()">Add Chart</button>
+    <button mat-raised-button color="accent" (click)="downloadCharts()">Download Charts</button>
+    <button mat-raised-button color="accent" (click)="uploadCharts()">Upload Charts</button>
   </mat-grid-tile>
 </mat-grid-list>

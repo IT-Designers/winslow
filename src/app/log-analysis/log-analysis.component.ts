@@ -2,12 +2,18 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ExecutionGroupInfo, LogEntry, ProjectApiService, ProjectInfo} from "../api/project-api.service";
 import {Subscription} from "rxjs";
 import {MatDialog} from '@angular/material/dialog';
-import {
-  LogAnalysisChartDialogComponent,
-  Chart
-} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LogAnalysisChartDialogComponent,} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FilesApiService} from "../api/files-api.service";
+import {ChartSettings} from "../log-analysis-chart/log-analysis-chart.component";
+
+export class LogChart {
+  settings = new ChartSettings();
+  file = "logfile.csv";
+  formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
+  xVariable = "";
+  yVariable = "$1";
+}
 
 @Component({
   selector: 'app-log-analysis',
@@ -17,8 +23,7 @@ import {FilesApiService} from "../api/files-api.service";
 export class LogAnalysisComponent implements OnInit, OnDestroy {
   private static readonly LONG_LOADING_FLAG = 'logs';
   private static readonly CHART_FILE_EXTENSION = 'chart';
-  private static readonly CHART_FILE_PATH = '/resources/.config';
-
+  private static readonly CHART_FILE_PATH = '/resources/.config/charts';
 
   longLoading = new LongLoadingDetector();
   logSubscription: Subscription = null;
@@ -28,7 +33,7 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
 
   projectHistory: ExecutionGroupInfo[] = [];
   logs: LogEntry[] = [];
-  charts: Chart[] = [];
+  charts: LogChart[] = [];
 
   @Input()
   set project(project: ProjectInfo) {
@@ -53,7 +58,6 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
       this.latestStageId = this.getLatestStageId(result);
     });
     this.selectStage(this.selectedStageId);
-    this.downloadCharts();
   }
 
   ngOnDestroy() {
@@ -61,6 +65,72 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
       this.logSubscription.unsubscribe();
       this.logSubscription = null;
     }
+  }
+
+  addChart(chart: LogChart = new LogChart()) {
+    this.charts.push(chart);
+  }
+
+  removeChart(chartIndex: number) {
+    this.charts.splice(chartIndex, 1);
+  }
+
+  openEditChartDialog(chartIndex: number) {
+    let dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
+      data: {
+        chart: this.charts[chartIndex],
+        logs: this.logs
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(result)
+    })
+  }
+
+  uploadCharts() {
+    let filenames = [];
+    this.charts.forEach((chart, index) => {
+      let filename = `chart_${index}`;
+      this.uploadChart(filename, chart);
+      filenames.push(filename);
+    })
+    let file = new File(
+      [JSON.stringify(filenames, null, "\t")],
+      `default.charts`,
+      {type: "application/json"},);
+    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
+      console.log(result);
+    });
+  }
+
+  downloadCharts() {
+    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/default.charts`;
+    this.filesApi.getFile(filepath).toPromise().then(result => {
+      for (let filename of result as string[]) {
+        console.log("Downloading chart: " + filename);
+        this.downloadChart(filename);
+      }
+    })
+  }
+
+  private uploadChart(filename: string, chart: LogChart) {
+    let file = new File(
+      [JSON.stringify(chart, null, "\t")],
+      `${filename}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`,
+      {type: "application/json"},);
+    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
+      console.log(result);
+    });
+  }
+
+  private downloadChart(filename: string) {
+    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/${filename}.${LogAnalysisComponent.CHART_FILE_EXTENSION}`;
+    this.filesApi.getFile(filepath).toPromise().then(result => {
+      console.log("Received chart:")
+      console.log(result);
+      this.addChart(result as LogChart);
+    })
   }
 
   selectStage(stageId: string) {
@@ -90,29 +160,6 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
     }, stageId);
   }
 
-  addNewChart() {
-    let chart: Chart = new Chart();
-    let index = this.charts.push(chart) - 1;
-    this.openEditChartDialog(index);
-  }
-
-  openEditChartDialog(chartIndex: number) {
-    let dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
-      data: {
-        chart: this.charts[chartIndex],
-        logs: this.logs
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log(result)
-    })
-  }
-
-  removeChart(chartIndex: number) {
-    this.charts.splice(chartIndex, 1);
-  }
-
   isLongLoading(): boolean {
     return this.longLoading.isLongLoading();
   }
@@ -123,34 +170,5 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
 
   filterHistory(history: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
     return history.filter(entry => !entry.configureOnly)
-  }
-
-  private uploadChart(filename: string, chart: Chart) {
-    let file = new File(
-      [JSON.stringify(chart, null, "\t")],
-      `${filename}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`,
-      {type: "application/json"},);
-    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
-      console.log(result);
-    });
-  }
-
-  private downloadCharts() {
-    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/default.charts`;
-    this.filesApi.getFile(filepath).toPromise().then(result => {
-      for (let [key, value] of Object.entries(result)) {
-        console.log(key, value);
-        this.downloadChart(value);
-      }
-    })
-  }
-
-  private downloadChart(filename: string) {
-    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/${filename}`;
-    this.filesApi.getFile(filepath).toPromise().then(result => {
-      let chart = new Chart();
-      Object.assign(chart, result);
-      this.charts.push(chart);
-    })
   }
 }
