@@ -1,12 +1,12 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {ExecutionGroupInfo, ProjectApiService, ProjectInfo} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
-import {LogAnalysisChartDialogComponent,} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
-import {FilesApiService} from "../api/files-api.service";
-import {ChartSettings} from "../log-analysis-chart/log-analysis-chart.component";
+import {FileInfo, FilesApiService} from "../api/files-api.service";
+import {ChartData, ChartSettings} from "../log-analysis-chart/log-analysis-chart.component";
 
-export class LogChart {
+class LogChart {
   settings = new ChartSettings();
   file = "logfile.csv";
   formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
@@ -14,23 +14,33 @@ export class LogChart {
   yVariable = "$1";
 }
 
+interface CsvFile {
+  name: string;
+  content: [number][];
+}
+
 @Component({
   selector: 'app-log-analysis',
   templateUrl: './log-analysis.component.html',
   styleUrls: ['./log-analysis.component.css']
 })
-export class LogAnalysisComponent implements OnInit, OnDestroy {
-  private static readonly LONG_LOADING_FLAG = 'charts';
+export class LogAnalysisComponent implements OnInit {
+  private static readonly LONG_LOADING_HISTORY_FLAG = 'history';
+  private static readonly LONG_LOADING_CHARTS_FLAG = 'charts';
+  private static readonly LONG_LOADING_CSV_FLAG = 'csv';
+
   private static readonly CHART_FILE_EXTENSION = 'chart';
-  private static readonly CHART_FILE_PATH = '/resources/.config/charts';
+  private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
+  private static readonly PATH_TO_WORKSPACES = '/workspaces';
 
   longLoading = new LongLoadingDetector();
   selectedProject: ProjectInfo = null;
   selectedStageId: string = null;
-  latestStageId: string;
+  latestStageId: string = null;
 
   projectHistory: ExecutionGroupInfo[] = [];
   charts: LogChart[] = [];
+  csvFiles: CsvFile[] = [];
 
   @Input()
   set project(project: ProjectInfo) {
@@ -50,15 +60,37 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
+
     this.projectApi.getProjectHistory(this.selectedProject.id).then(result => {
       this.projectHistory = result;
       this.latestStageId = this.getLatestStageId(result);
+      this.selectStage(this.selectedStageId);
+      this.loadCharts();
+
+      this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
     });
-    this.selectStage(this.selectedStageId);
-    this.downloadCharts();
   }
 
-  ngOnDestroy() {
+  isLongLoading(): boolean {
+    return this.longLoading.isLongLoading();
+  }
+
+  selectStage(stageId: string) {
+    if (stageId == null) {
+      stageId = this.latestStageId;
+    }
+    this.selectedStageId = stageId;
+    console.log(`Selected stage ${stageId}`);
+    this.loadCsv();
+  }
+
+  getLatestStageId(history: ExecutionGroupInfo[]): string {
+    return this.filterHistory(history).slice(-1)[0].id;
+  }
+
+  filterHistory(history: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
+    return history.filter(entry => !entry.configureOnly)
   }
 
   addChart(chart: LogChart = new LogChart()) {
@@ -67,6 +99,23 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
 
   removeChart(chartIndex: number) {
     this.charts.splice(chartIndex, 1);
+  }
+
+  getChartGraphData(chart: LogChart): ChartData {
+    let csvFile = this.csvFiles.find(csvFile => csvFile.name == chart.file);
+    if (!csvFile) return [];
+
+    let formatterVariables = chart.formatter.split(";")
+    let xIndex = formatterVariables.findIndex(variable => variable == chart.xVariable);
+    let yIndex = formatterVariables.findIndex(variable => variable == chart.yVariable);
+
+    let chartData = [];
+
+    csvFile.content.forEach((line, lineIndex) => {
+      chartData.push([line[xIndex] ?? lineIndex, line[yIndex] ?? lineIndex])
+    })
+
+    return chartData;
   }
 
   openEditChartDialog(chartIndex: number) {
@@ -82,26 +131,78 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
     })
   }
 
-  private downloadCharts() {
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_FLAG);
-    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/default.charts`;
+  private loadCharts() {
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
 
-    this.filesApi.getFile(filepath).toPromise().then(filenames => {
-      let promises: Promise<Object>[] = [];
-      for (let filename of filenames as string[]) {
-        promises.push(this.downloadChart(filename));
-      }
-      Promise.all(promises).then(_ => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_FLAG))
-    })
+    LogAnalysisComponent.getChartFilenames('default', this.filesApi)
+      .then(filenames => LogAnalysisComponent.getChartFiles(filenames, this.filesApi))
+      .then(charts => {
+        this.charts = [...charts, ...this.charts];
+        this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG)
+      })
   }
 
-  private downloadChart(filename: string): Promise<Object> {
-    let filepath = `${LogAnalysisComponent.CHART_FILE_PATH}/${filename}.${LogAnalysisComponent.CHART_FILE_EXTENSION}`;
-    let promise = this.filesApi.getFile(filepath).toPromise()
-    promise.then(result => {
-      this.addChart(result as LogChart);
+  private static getChartFilenames(filename: string, filesApi: FilesApiService): Promise<string[]> {
+    let filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${filename}.charts`;
+    return filesApi.getFile(filepath).toPromise().then(result => {
+      return JSON.parse(result)
+    }) as Promise<string[]>;
+  }
+
+  private static getChartFiles(filenames, filesApi: FilesApiService): Promise<LogChart[]> {
+    let promises: Promise<LogChart>[] = [];
+    for (let filename of filenames as string[]) {
+      let filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${filename}.${LogAnalysisComponent.CHART_FILE_EXTENSION}`;
+      promises.push(filesApi.getFile(filepath).toPromise().then(text => JSON.parse(text) as LogChart));
+    }
+    return Promise.all(promises);
+  }
+
+  private loadCsv() {
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CSV_FLAG);
+
+    LogAnalysisComponent.getCsvFilenames(this.projectDirName(), this.stageDirName(), this.filesApi)
+      .then(files => LogAnalysisComponent.getCsvFiles(files, this.filesApi))
+      .then(csvFiles => {
+        this.csvFiles = csvFiles;
+        this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CSV_FLAG)
+      })
+  }
+
+  private static getCsvFilenames(projectDirName, stageDirName, filesApi: FilesApiService) {
+    let filepath = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${projectDirName}/${stageDirName}`;
+    return filesApi.listFiles(filepath)
+  }
+
+  private static getCsvFiles(files: FileInfo[], filesApi: FilesApiService): Promise<CsvFile[]> {
+    let promises: Promise<CsvFile>[] = [];
+    for (let {name, path} of files) {
+      promises.push(filesApi.getFile(path).toPromise().then(text => LogAnalysisComponent.parseCSV(name, text)));
+    }
+    return Promise.all(promises);
+  }
+
+  private static parseCSV(name: string, sourceText: string): CsvFile {
+    let lines = sourceText.split('\n');
+    let content = [];
+    lines.forEach(line => {
+      if (line.trim().length != 0) // ignore empty lines
+        content.push(line.split(';'));{
+      }
     })
-    return promise;
+
+    return {
+      name: name,
+      content: content,
+    }
+  }
+
+  private projectDirName() {
+    return this.selectedProject.id;
+  }
+
+  private stageDirName() {
+    return this.selectedStageId.slice(this.selectedProject.id.length + 1);
   }
 
   uploadCharts() {
@@ -115,7 +216,7 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
       [JSON.stringify(filenames, null, "\t")],
       `default.charts`,
       {type: "application/json"},);
-    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
+    this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise().then(result => {
       console.log(result);
     });
   }
@@ -125,27 +226,8 @@ export class LogAnalysisComponent implements OnInit, OnDestroy {
       [JSON.stringify(chart, null, "\t")],
       `${filename}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`,
       {type: "application/json"},);
-    this.filesApi.uploadFile(LogAnalysisComponent.CHART_FILE_PATH, file).toPromise().then(result => {
+    this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise().then(result => {
       console.log(result);
     });
-  }
-
-  selectStage(stageId: string) {
-    if (stageId == null) {
-      stageId = this.latestStageId;
-    }
-    this.selectedStageId = stageId;
-  }
-
-  isLongLoading(): boolean {
-    return this.longLoading.isLongLoading();
-  }
-
-  getLatestStageId(history: ExecutionGroupInfo[]): string {
-    return this.filterHistory(history).slice(-1)[0].id;
-  }
-
-  filterHistory(history: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
-    return history.filter(entry => !entry.configureOnly)
   }
 }
