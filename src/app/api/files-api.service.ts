@@ -63,7 +63,7 @@ export class FilesApiService {
     }
 
     return this.client.get(
-      FilesApiService.getUrl(pathToFile + params)
+      FilesApiService.getUrl(pathToFile + params), {responseType: "text"}
     );
   }
 

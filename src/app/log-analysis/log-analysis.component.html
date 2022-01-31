@@ -25,7 +25,7 @@
       <mat-card-content class="chart-card-content">
         <app-log-analysis-chart
           [settings]="chart.settings"
-          [data]="[[1,2],[2,4],[3,2]]"
+          [data]="getChartGraphData(chart)"
         ></app-log-analysis-chart>
       </mat-card-content>
       <mat-card-actions>
