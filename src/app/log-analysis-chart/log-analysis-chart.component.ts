@@ -35,13 +35,14 @@ export class LogAnalysisChartComponent implements OnInit {
 
   @Input() data: ChartData;
 
-  eChartOptions;
-
   constructor() {
   }
 
   ngOnInit(): void {
-    this.eChartOptions = {
+  }
+
+  eChartOptions() {
+    return {
       title: {
         text: this.settings.name,
       },
