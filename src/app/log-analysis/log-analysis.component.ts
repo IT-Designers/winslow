@@ -6,7 +6,7 @@ import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {ChartData, ChartSettings} from "../log-analysis-chart/log-analysis-chart.component";
 
-class LogChart {
+export class LogChart {
   settings = new ChartSettings();
   file = "logfile.csv";
   formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
