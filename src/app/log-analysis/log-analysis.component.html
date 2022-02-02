@@ -2,8 +2,9 @@
 
 <div class="top-bar">
   <button mat-raised-button color="accent"
-          [disabled]="selectedStageId == latestStageId"
-          (click)="selectStage(latestStageId)">Show most recent Stage
+          [disabled]="isLatestStage()"
+          (click)="selectStage(latestStageId)"
+  >Show most recent Stage
   </button>
   <mat-form-field appearance="legacy" class="stage-form-field">
     <mat-select [(ngModel)]="selectedStageId" (selectionChange)="selectStage(selectedStageId)">
