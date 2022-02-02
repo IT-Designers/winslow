@@ -5,6 +5,7 @@ import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {ChartData, ChartSettings} from "../log-analysis-chart/log-analysis-chart.component";
+import {LogAnalysisManageChartsDialogComponent} from "../log-analysis-manage-charts-dialog/log-analysis-manage-charts-dialog.component";
 
 export class LogChart {
   settings = new ChartSettings();
@@ -127,6 +128,18 @@ export class LogAnalysisComponent implements OnInit {
       data: {
         chart: this.charts[chartIndex],
         //logs: this.logs
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(result)
+    })
+  }
+
+  openManageChartsDialog() {
+    const dialogRef = this.dialog.open(LogAnalysisManageChartsDialogComponent, {
+      data: {
+        //todo
       }
     });
 
