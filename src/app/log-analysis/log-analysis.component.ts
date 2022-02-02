@@ -195,6 +195,18 @@ export class LogAnalysisComponent implements OnInit {
     })
   }
 
+  openManageChartsDialog() {
+    const dialogRef = this.dialog.open(LogAnalysisManageChartsDialogComponent, {
+      data: {
+        //todo
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(result)
+    })
+  }
+
   private loadCharts() {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
 
