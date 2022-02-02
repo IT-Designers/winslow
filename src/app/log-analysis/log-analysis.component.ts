@@ -67,6 +67,7 @@ export class LogAnalysisComponent implements OnInit {
   selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
   csvFiles: CsvFile[] = [];
+  historyEntriesToCompare: ExecutionGroupInfo[] = [];
 
   stageToDisplay: StageCsvInfo = {
     id: null,
@@ -120,16 +121,6 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
-
-    this.projectApi.getProjectHistory(this.selectedProject.id).then(projectHistory => {
-      this.projectHistory = projectHistory;
-      this.latestStageId = this.getLatestStageId(projectHistory);
-      this.selectStage(this.selectedStageId);
-      this.loadCharts();
-
-      this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
-    });
   }
 
   isLongLoading(): boolean {
@@ -151,6 +142,10 @@ export class LogAnalysisComponent implements OnInit {
 
   getLatestStageId(history: ExecutionGroupInfo[]): string {
     return this.filterHistory(history).slice(-1)[0].id;
+  }
+
+  isComparing() {
+    return this.historyEntriesToCompare.length > 0;
   }
 
   filterHistory(history: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
@@ -207,13 +202,19 @@ export class LogAnalysisComponent implements OnInit {
     })
   }
 
+  historyEntryLabel(entry: ExecutionGroupInfo): string {
+    const date = new Date(entry.getMostRecentStartOrFinishTime()).toLocaleString();
+    return `${date} · ${entry.stageDefinition.name}`
+  }
+
   private loadCharts() {
+    this.charts = [];
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
 
     LogAnalysisComponent.getChartFilenames('default', this.filesApi)
       .then(filenames => LogAnalysisComponent.getChartFiles(filenames, this.filesApi))
       .then(charts => {
-        this.charts = [...charts, ...this.charts];
+        this.charts = charts;
         this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG)
       })
   }
