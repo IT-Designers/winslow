@@ -9,20 +9,28 @@
   <mat-form-field appearance="legacy" class="stage-form-field">
     <mat-select [(ngModel)]="selectedStageId" (selectionChange)="selectStage(selectedStageId)">
       <mat-option *ngFor="let entry of filterHistory(projectHistory)" [value]="entry.id">
-        {{entry.getMostRecentStartOrFinishTime() | date:'dd/MM/yyyy, HH:mm:ss'}} ·
-        {{entry.stageDefinition.name}}
+        {{historyEntryLabel(entry)}}
       </mat-option>
     </mat-select>
   </mat-form-field>
   <button mat-raised-button
           (click)="selectStage(latestStageId)"
-  >Compare with another Stage</button>
+  >Compare with another Stage
+  </button>
   <button mat-raised-button
           (click)="openManageChartsDialog()"
-  >Manage Charts</button>
+  >Manage Charts
+  </button>
 </div>
 
-<div class="top-bar-divider">
+<mat-chip-list *ngIf="isComparing()" aria-label="Comparing with">
+  <mat-chip *ngFor="let entry of historyEntriesToCompare">
+    {{historyEntryLabel(entry)}}
+    <mat-icon matChipRemove>cancel</mat-icon>
+  </mat-chip>
+</mat-chip-list>
+
+<div *ngIf="!isComparing()" class="top-bar-divider">
   <mat-divider></mat-divider>
 </div>
 
