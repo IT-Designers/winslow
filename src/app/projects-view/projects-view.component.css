@@ -37,7 +37,9 @@
 .group mat-icon {
   max-height: 1.5em;
   max-width: 1.5em;
-  margin: auto 1em;
+  margin-top: 0.2em;
+  margin-left: 1em;
+  margin-right: 0.5em;
 }
 
 .mat-expansion-panel-header.mat-expanded {
@@ -51,4 +53,12 @@
 .mat-divider {
   border-top-color: #dadada;
   border-top-width: 1px;
+}
+
+.icon {
+  max-height: 2em;
+  max-width: 2em;
+  margin-top: 0.1em;
+  margin-left: 1em;
+  margin-right: 0.5em;
 }

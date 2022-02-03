@@ -29,14 +29,16 @@
   margin: auto 0;
 }
 
-.title img {
-  max-height: 1.5em;
-  max-width: 1.5em;
-  margin: auto 1em;
+.icon {
+  max-height: 2em;
+  max-width: 2em;
+  margin-top: 0.1em;
+  margin-left: 1em;
+  margin-right: 0.5em;
 }
 
 .description-tags {
-  max-height: 2.2em; /* TODO */
+  max-height: 2.5em;
   overflow: hidden;
   white-space: nowrap;
 }
