@@ -43,10 +43,12 @@ public class ProjectsController {
 
     private static final Logger LOG = Logger.getLogger(ProjectsController.class.getSimpleName());
 
-    private final Winslow winslow;
+    private final Winslow           winslow;
+    private final UserAccessControl uac;
 
     public ProjectsController(Winslow winslow) {
         this.winslow = winslow;
+        this.uac          = new UserAccessControl(winslow);
     }
 
     public Optional<ProjectInfo> getProject(@Nonnull User user, @Nonnull String projectId) {
@@ -100,7 +102,7 @@ public class ProjectsController {
 
     @GetMapping("/projects/{projectId}/history")
     public Stream<ExecutionGroupInfo> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> {
                     var pipeline = winslow.getOrchestrator().getPipeline(project);
@@ -119,7 +121,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("count") int count) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).stream())
                 .flatMap(pipeline -> {
@@ -144,7 +146,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("startGroupId") String startGroupId,
             @PathVariable("count") int count) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).stream())
                 .flatMap(pipeline -> {
@@ -168,7 +170,7 @@ public class ProjectsController {
     public Stream<ExecutionGroupInfo> pruneProjectHistory(
             User user,
             @PathVariable("projectId") String projectId) throws IOException {
-        var project = getProjectIfAllowedToAccess(user, projectId);
+        var project = this.uac.getProjectIfAllowedToAccess(user, projectId);
         if (project.isPresent()) {
             winslow.getOrchestrator().prunePipeline(project.get());
             return getProjectHistory(user, projectId);
@@ -179,7 +181,7 @@ public class ProjectsController {
 
     @GetMapping("/projects/{projectId}/enqueued")
     public Stream<ExecutionGroupInfo> getEnqueued(User user, @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -196,7 +198,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("groupId") String groupId
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .updatePipeline(project, pipeline -> pipeline.removeExecutionGroup(groupId).isPresent())
@@ -293,14 +295,14 @@ public class ProjectsController {
     public Optional<PipelineInfo> getProjectPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .map(Project::getPipelineDefinition)
                 .map(definition -> PipelineInfoConverter.from(projectId, definition));
     }
 
     @GetMapping("/projects/{projectId}/state")
     public Optional<State> getProjectState(User user, @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -446,7 +448,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @RequestBody UpdatePauseRequest body) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     if (body.paused) {
                         pipeline.requestPause();
@@ -467,7 +469,7 @@ public class ProjectsController {
     @GetMapping("projects/{projectId}/paused")
     public boolean setProjectNextStage(User user, @PathVariable("projectId") String projectId) {
         LOG.log(Level.WARNING, "Someone accessed the deprecated /paused api");
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -481,7 +483,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId,
             @RequestBody LogLinesRequest body) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> winslow
                         .getOrchestrator()
@@ -547,7 +549,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") String stageId) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> {
                     try {
                         return Optional.of(winslow
@@ -571,7 +573,7 @@ public class ProjectsController {
 
     @GetMapping("projects/{projectId}/pipeline-definition-raw")
     public Optional<String> getProjectRawDefinition(User user, @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> {
                     try (var baos = new ByteArrayOutputStream()) {
                         ProjectRepository.defaultWriter().store(baos, project.getPipelineDefinition());
@@ -626,12 +628,12 @@ public class ProjectsController {
     @GetMapping("projects/{projectId}/pause-reason")
     public Optional<Pipeline.PauseReason> getPauseReason(User user, @PathVariable("projectId") String projectId) {
         LOG.warning("Someone accessed the deprecated /paused-reason api");
-        return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getPauseReason);
+        return this.uac.getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getPauseReason);
     }
 
     @GetMapping("projects/{projectId}/deletion-policy")
     public Optional<DeletionPolicy> getDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
-        return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getDeletionPolicy);
+        return this.uac.getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getDeletionPolicy);
     }
 
     @GetMapping("projects/{projectId}/deletion-policy/default")
@@ -674,7 +676,7 @@ public class ProjectsController {
     public Optional<WorkspaceConfiguration.WorkspaceMode> getWorkspaceConfigurationMode(
             User user,
             @PathVariable("projectId") String projectId) {
-        return getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getWorkspaceConfigurationMode);
+        return this.uac.getPipelineIfAllowedToAccess(user, projectId).flatMap(Pipeline::getWorkspaceConfigurationMode);
     }
 
     @PutMapping("projects/{projectId}/workspace-configuration-mode")
@@ -700,7 +702,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageIndex") int stageIndex) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getOrchestrator()
                         .getPipeline(project)
@@ -749,7 +751,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageIndex") int stageIndex) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(project -> Stream.concat(
                         project
@@ -813,7 +815,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @RequestBody EnqueueRequest body
     ) {
-        getProjectIfAllowedToAccess(user, projectId)
+        this.uac.getProjectIfAllowedToAccess(user, projectId)
 
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
@@ -847,7 +849,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @RequestBody EnqueueOnOtherRequest body
     ) {
-        var stageDefinitionBase = getProjectIfAllowedToAccess(user, projectId)
+        var stageDefinitionBase = this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
@@ -882,7 +884,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @RequestBody String actionId) {
-        getProjectIfAllowedToAccess(user, projectId)
+        this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
                         .getPipelineRepository()
                         .getPipeline(actionId)
@@ -1180,7 +1182,7 @@ public class ProjectsController {
             @PathVariable(value = "stageId", required = false) @Nullable String stageId,
             @RequestBody Boolean pause
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(p -> winslow
                         .getOrchestrator()
                         .getPipeline(p)
@@ -1195,7 +1197,7 @@ public class ProjectsController {
                     try {
                         if (pause != null && pause) {
                             winslow.getOrchestrator().updatePipeline(
-                                    getProjectIfAllowedToAccess(user, projectId).get(),
+                                    this.uac.getProjectIfAllowedToAccess(user, projectId).get(),
                                     pipeline -> {
                                         pipeline.requestPause();
                                         return null;
@@ -1215,7 +1217,7 @@ public class ProjectsController {
     public boolean killSingleStageOrAllStagesOfActiveExecutionGroup(
             User user,
             @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(
                         project,
                         pipeline -> pipeline
@@ -1244,7 +1246,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("stageId") @Nonnull String stageId) {
-        return getPipelineIfAllowedToAccess(user, projectId)
+        return this.uac.getPipelineIfAllowedToAccess(user, projectId)
                 .flatMap(Pipeline::getActiveExecutionGroup)
                 .map(ExecutionGroup::getRunningStages)
                 .stream()
@@ -1260,32 +1262,12 @@ public class ProjectsController {
                 });
     }
 
-    @Nonnull
-    private Optional<Pipeline> getPipelineIfAllowedToAccess(
-            @Nonnull User user,
-            @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId)
-                .flatMap(project -> winslow
-                        .getOrchestrator()
-                        .getPipeline(project)
-                );
-    }
-
-    private Optional<Project> getProjectIfAllowedToAccess(
-            @Nonnull User user,
-            @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeAccessedBy(user));
-    }
 
     @Deprecated(forRemoval = true)
     @GetMapping("projects/{projectId}/stats")
     public Stream<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
         LOG.warning("Someone accessed the deprecated /stats api");
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(winslow.getOrchestrator()::getRunningStageStats);
     }
@@ -1322,7 +1304,7 @@ public class ProjectsController {
     public Optional<ResourceLimitation> getResourceLimitation(
             @Nonnull User user,
             @PathVariable("projectId") String projectId) {
-        return getProjectIfAllowedToAccess(user, projectId).flatMap(Project::getResourceLimitation);
+        return this.uac.getProjectIfAllowedToAccess(user, projectId).flatMap(Project::getResourceLimitation);
     }
 
     @PutMapping("projects/{projectId}/resource-limitation")
@@ -1356,7 +1338,7 @@ public class ProjectsController {
             @Nonnull User user,
             @PathVariable("projectId") String projectId
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .stream()
                 .flatMap(p -> {
                     var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
@@ -1371,7 +1353,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @RequestParam("name") String name
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(p -> {
                     var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
 
@@ -1400,7 +1382,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("tokenId") String tokenId
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return this.uac.getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(p -> {
                     var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
                     return handle.exclusive().map(exclusive -> {

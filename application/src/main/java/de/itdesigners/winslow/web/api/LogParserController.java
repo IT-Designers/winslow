@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.LogParser;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
@@ -18,18 +19,21 @@ import java.util.stream.Stream;
 
 @RestController
 public class LogParserController {
-    private final        Winslow winslow;
-    private static final Logger  LOG = Logger.getLogger(LogParserController.class.getSimpleName());
+    private final        Winslow           winslow;
+    private static final Logger            LOG = Logger.getLogger(LogParserController.class.getSimpleName());
+    private final        UserAccessControl uac;
 
     public LogParserController(Winslow winslow) {
         this.winslow = winslow;
+        this.uac     = new UserAccessControl(winslow);
     }
 
     @GetMapping("/pipelines/{pipeline}/{stage}/logparsers")
     public Stream<LogParser> getStagesForPipeline(
+            User user,
             @PathVariable(name = "pipeline") String pipeline,
             @PathVariable(name = "stage") String stage) {
-        return winslow
+        return  winslow
                 .getPipelineRepository()
                 .getPipeline(pipeline)
                 .unsafe()
@@ -43,6 +47,7 @@ public class LogParserController {
 
     @PutMapping("/pipelines/{pipeline}/{stage}/logparsers")
     public void putStagesForPipeline(
+            User user,
             @PathVariable(name = "pipeline") String pipeline,
             @PathVariable(name = "stage") String stage,
             @RequestBody List<LogParser> logParsers) {
