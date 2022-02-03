@@ -55,7 +55,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
       }
       if (projectsForTag[0] !== undefined) {
         if (projectsForTag[1] === undefined) {
-          if (!projectGroups.includes(this.buildGroup(projectsForTag[0].name, projectsForTag))) {
+          if (!this.isProjectForGroupExisting(projectGroups, projectsForTag[0])){
             projectGroups.push(this.buildGroup(projectsForTag[0].name, projectsForTag));
           }
         } else {
