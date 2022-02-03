@@ -27,6 +27,7 @@
             <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
                            (click)="selectProject(project)"
                            [class.selected]="project.id == selectedProject?.id">
+              <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
               <app-project-view-header
                 [project]="project"
                 [iconState]="stateInfo?.get(project.id)?.getState()"
@@ -45,6 +46,7 @@
         <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
                        (click)="selectProject(project)"
                        [class.selected]="project.id == selectedProject?.id">
+          <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
           <app-project-view-header
             [project]="project"
             [iconState]="stateInfo?.get(project.id)?.getState()"
@@ -66,6 +68,7 @@
     <mat-list-item *ngFor="let project of projectsFiltered" class="project-selection-sidebar-item"
                    (click)="selectProject(project)"
                    [class.selected]="project.id == selectedProject?.id">
+      <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
       <app-project-view-header
         [project]="project"
         [iconState]="stateInfo?.get(project.id)?.getState()"
