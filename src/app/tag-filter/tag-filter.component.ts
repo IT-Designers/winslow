@@ -15,11 +15,13 @@ export class TagFilterComponent implements OnInit {
 
   @Output('filtered') filtered = new EventEmitter<ProjectInfo[]>();
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
+  @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
 
   includeTags: string[] = [];
   includeEmpty = false;
   excludeTags: string[] = [];
   excludeEmpty = false;
+  groupsOnTopIsChecked = false;
 
   constructor() {
   }

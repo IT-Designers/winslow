@@ -36,6 +36,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   projectSubscription: Subscription = null;
   projectStateSubscription: Subscription = null;
   effects: Effects = null;
+  groupsOnTop: boolean;
 
   constructor(readonly api: ProjectApiService,
               readonly users: UserApiService,

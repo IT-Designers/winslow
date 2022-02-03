@@ -18,6 +18,7 @@ export class ProjectsViewComponent implements OnInit {
   @Input() filter: TagFilterComponent;
   @Input() router: Router;
   @Input() route: ActivatedRoute;
+  @Input() groupsOnTop: boolean;
 
   constructor() {}
 
