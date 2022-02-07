@@ -1,7 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
-import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {
+  ChartDialogData,
+  LogAnalysisChartDialogComponent
+} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {
@@ -193,18 +196,6 @@ export class LogAnalysisComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       console.log(result);
       this.uploadCharts();
-    })
-  }
-
-  openManageChartsDialog() {
-    const dialogRef = this.dialog.open(LogAnalysisManageChartsDialogComponent, {
-      data: {
-        //todo
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log(result)
     })
   }
 
