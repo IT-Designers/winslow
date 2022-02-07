@@ -82,7 +82,6 @@ import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
 import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
 import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
-import { LogAnalysisManageChartsDialogComponent } from './log-analysis-manage-charts-dialog/log-analysis-manage-charts-dialog.component';
 
 @NgModule({
     declarations: [
@@ -130,7 +129,6 @@ import { LogAnalysisManageChartsDialogComponent } from './log-analysis-manage-ch
         LogAnalysisChartDialogComponent,
         LogAnalysisChartComponent,
         RegularExpressionVisualiserComponent,
-        LogAnalysisManageChartsDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
