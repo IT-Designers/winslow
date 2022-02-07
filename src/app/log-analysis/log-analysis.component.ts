@@ -1,49 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ExecutionGroupInfo, ProjectApiService, ProjectInfo} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
-import {
-  ChartDialogData,
-  LogAnalysisChartDialogComponent
-} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartData, ChartSettings} from "../log-analysis-chart/log-analysis-chart.component";
-
-export class LogChart {
-  settings = new ChartSettings();
-  file = "logfile.csv";
-  formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
-  xVariable = "";
-  yVariable = "$1";
-  displayAmount: null | number = null;
-
-  static dataFromFiles(chart: LogChart, csvFiles: CsvFile[]): ChartData {
-    const csvFile = csvFiles.find(csvFile => csvFile.name == chart.file);
-    if (!csvFile) return [];
-
-    const formatterVariables = chart.formatter.split(";");
-    const xIndex = formatterVariables.findIndex(variable => variable == chart.xVariable);
-    const yIndex = formatterVariables.findIndex(variable => variable == chart.yVariable);
-
-    const chartData = [];
-
-    let index = 0;
-    if (chart.displayAmount > 0) {
-      index = csvFile.content.length - chart.displayAmount;
-    }
-    for (index; index < csvFile.content.length; index++) {
-      const line = csvFile.content[index];
-      chartData.push([line[xIndex] ?? index, line[yIndex] ?? index])
-    }
-
-    return chartData;
-  }
-}
-
-export interface CsvFile {
-  name: string;
-  content: [number][];
-}
+import {ChartDialogData, CsvFile, LogChart} from "./log-chart";
 
 @Component({
   selector: 'app-log-analysis',
