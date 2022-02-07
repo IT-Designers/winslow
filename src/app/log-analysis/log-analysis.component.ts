@@ -1,10 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
-import {
-  ChartDialogData,
-  LogAnalysisChartDialogComponent
-} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {
