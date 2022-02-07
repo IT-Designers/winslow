@@ -167,20 +167,22 @@ export class LogAnalysisComponent implements OnInit {
 
   filterHistory(): ExecutionGroupInfo[] {
     const history: ExecutionGroupInfo[] = this.projectHistory;
-    return history.filter(entry => !entry.configureOnly)
+    return history.filter(entry => !entry.configureOnly);
   }
 
   addChart(chart: LogChart = new LogChart()) {
     this.charts.push(chart);
+    this.openEditChartDialog(chart);
   }
 
   removeChart(chartIndex: number) {
     this.charts.splice(chartIndex, 1);
+    this.uploadCharts();
   }
 
-  openEditChartDialog(chartIndex: number) {
+  openEditChartDialog(chart: LogChart) {
     const dialogData: ChartDialogData = {
-      chart: this.charts[chartIndex],
+      chart: chart,
       csvFiles: this.csvFiles,
     }
 
@@ -189,7 +191,8 @@ export class LogAnalysisComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log(result)
+      console.log(result);
+      this.uploadCharts();
     })
   }
 
