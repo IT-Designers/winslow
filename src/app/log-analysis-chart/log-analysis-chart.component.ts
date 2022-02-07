@@ -1,28 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-
-export enum ChartAxisType {
-  VALUE = "value",
-  LOG = "log",
-  TIME = "time",
-}
-
-export class ChartSettings {
-  name: string = "Unnamed chart";
-
-  xAxisName: string = "x-Axis";
-  xAxisMinValue: string = "";
-  xAxisMaxValue: string = "";
-  xAxisType: ChartAxisType = ChartAxisType.VALUE;
-
-  yAxisName: string = "y-Axis";
-  yAxisMinValue: string = "0";
-  yAxisMaxValue: string = "10";
-  yAxisType: ChartAxisType = ChartAxisType.VALUE;
-}
-
-export type ChartData = ChartDataPoint[];
-
-export type ChartDataPoint = [number, number];
+import {ChartData, ChartSettings} from "../log-analysis/log-chart";
 
 @Component({
   selector: 'app-log-analysis-chart',
