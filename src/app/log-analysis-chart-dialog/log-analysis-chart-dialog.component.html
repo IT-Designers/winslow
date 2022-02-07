@@ -12,7 +12,32 @@
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="wide-field">
+    <mat-label>CSV Source</mat-label>
+    <code>
+      <input matInput [(ngModel)]="data.chart.file">
+    </code>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="wide-field">
+    <mat-label>CSV Format</mat-label>
+    <code>
+      <input matInput [(ngModel)]="data.chart.formatter">
+    </code>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
   <p>Layout</p>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="wide-field">
+    <mat-label>Limit Entries</mat-label>
+      <input matInput [(ngModel)]="data.chart.displayAmount">
+  </mat-form-field>
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
@@ -23,6 +48,17 @@
   <mat-form-field appearance="fill" class="right-field">
     <mat-label>y-Axis Label</mat-label>
     <input matInput [(ngModel)]="data.chart.settings.yAxisName">
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="left-field">
+    <mat-label>x-Axis Variable</mat-label>
+    <input matInput [(ngModel)]="data.chart.xVariable">
+  </mat-form-field>
+  <mat-form-field appearance="fill" class="right-field">
+    <mat-label>y-Axis Variable</mat-label>
+    <input matInput [(ngModel)]="data.chart.yVariable">
   </mat-form-field>
 </mat-dialog-content>
 
@@ -78,7 +114,7 @@
 <mat-dialog-content class="dialog-content">
   <app-log-analysis-chart
     [settings]="data.chart.settings"
-    [data]="[]"
+    [data]="getChartData()"
   ></app-log-analysis-chart>
 </mat-dialog-content>
 
