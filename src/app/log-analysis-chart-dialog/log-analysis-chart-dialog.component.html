@@ -73,6 +73,17 @@
 
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="left-field">
+    <mat-label>x-Axis Variable</mat-label>
+    <input matInput [(ngModel)]="data.chart.xVariable">
+  </mat-form-field>
+  <mat-form-field appearance="fill" class="right-field">
+    <mat-label>y-Axis Variable</mat-label>
+    <input matInput [(ngModel)]="data.chart.yVariable">
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="left-field">
     <mat-label>x-Axis Type</mat-label>
     <mat-select [(ngModel)]="data.chartDefinition.displaySettings.xAxisType">
       <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType | titlecase}}</mat-option>
