@@ -46,12 +46,12 @@ export class LogAnalysisChartComponent implements OnInit {
         nameGap: '25',
       },
       animation: false,
-      series: [{
+      series: this.data.map(series => ({
         type: 'line',
         showSymbol: false,
-        data: this.data,
-      }],
-    }
+        data: series,
+      })),
+    };
   }
 
   sanitiseNumberInput(input: string, alt: string): string {

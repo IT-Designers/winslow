@@ -11,7 +11,7 @@ export class LogChart {
   yVariable = "$1";
   displayAmount: null | number = null;
 
-  static dataFromFiles(chart: LogChart, csvFiles: CsvFile[]): ChartData {
+  static getDataSeries(chart: LogChart, csvFiles: CsvFile[]): ChartDataSeries {
     const csvFile = csvFiles.find(csvFile => csvFile.name == chart.file);
     if (!csvFile) return [];
 
@@ -54,7 +54,9 @@ export enum ChartAxisType {
   TIME = "time",
 }
 
-export type ChartData = ChartDataPoint[];
+export type ChartData = ChartDataSeries[];
+
+export type ChartDataSeries = ChartDataPoint[];
 
 export type ChartDataPoint = [number, number];
 
