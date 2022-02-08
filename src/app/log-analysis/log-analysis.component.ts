@@ -6,6 +6,12 @@ import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {ChartDialogData, CsvFile, LogChart} from "./log-chart";
 
+type Stage = {
+  id: string;
+  executionGroup: ExecutionGroupInfo;
+  csvFiles: CsvFile[]
+}
+
 @Component({
   selector: 'app-log-analysis',
   templateUrl: './log-analysis.component.html',
@@ -21,18 +27,21 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
   private static readonly PATH_TO_WORKSPACES = '/workspaces';
 
-  selectedProject: ProjectInfo = null;
-  selectedStageId: string = null;
-
   longLoading = new LongLoadingDetector();
 
-  selectedExecutionGroup: ExecutionGroupInfo = null;
+  selectedProject: ProjectInfo = null;
   latestExecutionGroup: ExecutionGroupInfo = null;
-
   projectHistory: ExecutionGroupInfo[] = [];
+  filteredHistory: ExecutionGroupInfo[] = [];
   charts: LogChart[] = [];
-  csvFiles: CsvFile[] = [];
-  historyEntriesToCompare: ExecutionGroupInfo[] = [];
+
+  stageToDisplay: Stage = {
+    id: null,
+    executionGroup: null,
+    csvFiles: [],
+  }
+
+  stagesToCompare: Stage[] = [];
 
   @Input()
   set project(project: ProjectInfo) {
@@ -42,9 +51,10 @@ export class LogAnalysisComponent implements OnInit {
 
     this.projectApi.getProjectHistory(this.selectedProject.id).then(projectHistory => {
       this.projectHistory = projectHistory;
+      this.filteredHistory = projectHistory.filter(entry => !entry.configureOnly);
       this.latestExecutionGroup = this.getLatestExecutionGroup();
 
-      this.autoSelectExecutionGroup();
+      this.autoSelectStage();
       console.log({projectHistory, project})
 
       this.loadCharts();
@@ -54,9 +64,9 @@ export class LogAnalysisComponent implements OnInit {
 
   @Input()
   set selectedStage(id: string) {
-    this.selectedStageId = id;
+    this.stageToDisplay.id = id;
 
-    this.autoSelectExecutionGroup();
+    this.autoSelectStage();
   }
 
   constructor(
@@ -73,47 +83,44 @@ export class LogAnalysisComponent implements OnInit {
     return this.longLoading.isLongLoading();
   }
 
-  isLatestStage(): boolean {
-    return this.selectedExecutionGroup == this.latestExecutionGroup;
+  isLatestStage(stage: Stage): boolean {
+    return stage.executionGroup == this.latestExecutionGroup;
   }
 
-  autoSelectExecutionGroup() {
-    if (this.selectedStageId && this.projectHistory) {
-      const executionGroup = this.projectHistory.find(entry => entry.id == this.selectedStageId)
-      this.selectExecutionGroup(executionGroup)
+  autoSelectStage() {
+    if (this.stageToDisplay.id && this.projectHistory) {
+      const executionGroup = this.projectHistory.find(entry => entry.id == this.stageToDisplay.id)
+      this.updateStage(this.stageToDisplay, executionGroup)
     } else if (this.projectHistory) {
-      this.selectExecutionGroup(this.getLatestExecutionGroup())
+      this.updateStage(this.stageToDisplay, this.getLatestExecutionGroup())
     }
   }
 
-  selectExecutionGroup(executionGroup: ExecutionGroupInfo) {
+  updateStage(stage: Stage, executionGroup: ExecutionGroupInfo) {
     if (executionGroup == null) {
-      this.selectedExecutionGroup = this.latestExecutionGroup;
+      stage.executionGroup = this.latestExecutionGroup;
     }
-    this.selectedExecutionGroup = executionGroup;
+    stage.executionGroup = executionGroup;
     console.log(`Selected execution group ${executionGroup.id}`);
-    this.loadCsv();
+    this.loadCsv(stage);
   }
 
   getLatestExecutionGroup(): ExecutionGroupInfo {
-    return this.filterHistory().slice(-1)[0];
+    return this.filteredHistory.slice(-1)[0];
   }
 
-  isComparing() {
-    return this.historyEntriesToCompare.length > 0;
+  addStageToCompare() {
+    let stage: Stage = {
+      csvFiles: [],
+      executionGroup: undefined,
+      id: ""
+    }
+    this.updateStage(stage, this.latestExecutionGroup);
+    this.stagesToCompare.push(stage);
   }
 
-  startComparing() {
-
-  }
-
-  stopComparing() {
-
-  }
-
-  filterHistory(): ExecutionGroupInfo[] {
-    const history: ExecutionGroupInfo[] = this.projectHistory;
-    return history.filter(entry => !entry.configureOnly);
+  removeStageToCompare(stageIndex: number) {
+    this.stagesToCompare.splice(stageIndex, 1);
   }
 
   addChart(chart: LogChart = new LogChart()) {
@@ -129,7 +136,7 @@ export class LogAnalysisComponent implements OnInit {
   openEditChartDialog(chart: LogChart) {
     const dialogData: ChartDialogData = {
       chart: chart,
-      csvFiles: this.csvFiles,
+      csvFiles: this.stageToDisplay.csvFiles,
     }
 
     const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
@@ -180,18 +187,19 @@ export class LogAnalysisComponent implements OnInit {
     return chart;
   }
 
-  private loadCsv() {
+  private loadCsv(stage: Stage) {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CSV_FLAG);
-    this.csvFiles = [];
+    const workspaceDir = LogAnalysisComponent.workspaceDir(stage);
+    stage.csvFiles = [];
 
-    LogAnalysisComponent.getCsvFilenames(this.workspaceDir(), this.filesApi)
+    LogAnalysisComponent.getCsvFilenames(workspaceDir, this.filesApi)
       .then(files => LogAnalysisComponent.getCsvFiles(files, this.filesApi))
-      .then(csvFiles => this.csvFiles = csvFiles)
+      .then(csvFiles => stage.csvFiles = csvFiles)
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CSV_FLAG))
   }
 
-  private static getCsvFilenames(workspace: string, filesApi: FilesApiService) {
-    const filepath = `${this.PATH_TO_WORKSPACES}/${workspace}`
+  private static getCsvFilenames(workspaceDir: string, filesApi: FilesApiService) {
+    const filepath = `${this.PATH_TO_WORKSPACES}/${workspaceDir}`
     return filesApi.listFiles(filepath)
   }
 
@@ -242,11 +250,11 @@ export class LogAnalysisComponent implements OnInit {
     });
   }
 
-  private workspaceDir() {
-    return this.selectedExecutionGroup.stages[0].workspace;
+  private static workspaceDir(stage: Stage) {
+    return stage.executionGroup.stages[0].workspace;
   }
 
   getChartData(chart: LogChart) {
-    return LogChart.dataFromFiles(chart, this.csvFiles);
+    return LogChart.dataFromFiles(chart, this.stageToDisplay.csvFiles);
   }
 }
