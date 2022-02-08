@@ -19,6 +19,7 @@ export class ProjectsViewComponent implements OnInit {
   @Input() router: Router;
   @Input() route: ActivatedRoute;
   @Input() groupsOnTop: boolean;
+  documentGet = document;
 
   constructor() {}
 
