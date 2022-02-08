@@ -4,7 +4,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartDialogData, CsvFile, LogChart} from "./log-chart";
+import {ChartData, ChartDialogData, CsvFile, LogChart} from "./log-chart";
 
 type Stage = {
   id: string;
@@ -55,7 +55,6 @@ export class LogAnalysisComponent implements OnInit {
       this.latestExecutionGroup = this.getLatestExecutionGroup();
 
       this.autoSelectStage();
-      console.log({projectHistory, project})
 
       this.loadCharts();
       this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
@@ -254,7 +253,10 @@ export class LogAnalysisComponent implements OnInit {
     return stage.executionGroup.stages[0].workspace;
   }
 
-  getChartData(chart: LogChart) {
-    return LogChart.dataFromFiles(chart, this.stageToDisplay.csvFiles);
+  getChartData(chart: LogChart) : ChartData {
+    let chartData = [];
+    chartData.push(LogChart.getDataSeries(chart, this.stageToDisplay.csvFiles));
+    console.log("Getting chart data")
+    return chartData;
   }
 }

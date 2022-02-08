@@ -1,6 +1,6 @@
 import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
-import {ChartAxisType, ChartDialogData, LogChart} from "../log-analysis/log-chart";
+import {ChartAxisType, ChartDialogData} from "../log-analysis/log-chart";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
@@ -17,6 +17,6 @@ export class LogAnalysisChartDialogComponent {
   }
 
   getChartData() {
-    return LogChart.dataFromFiles(this.data.chart, this.data.csvFiles);
+    return []; //todo
   }
 }
