@@ -11,9 +11,9 @@
   <!-- Group-View with Groups on Top -->
   <div *ngIf="groupsOnTop">
     <mat-list class="group">
-      <div *ngFor="let projectGroup of projectsGroups, last as isLast, first as isFirst">
-        <div *ngIf="projectGroup.projects.length > 1">
-          <h4 *ngIf="isFirst">Groups</h4>
+    <h4>Groups</h4>
+      <div *ngFor="let projectGroup of projectsGroups, last as isLast">
+        <div *ngIf="projectGroup.projects.length > 1" id="groups">
           <mat-expansion-panel class="group-on-top">
             <mat-expansion-panel-header>
               <mat-panel-title>
@@ -48,10 +48,13 @@
             </div>
           </mat-expansion-panel>
         </div>
+        <div *ngIf="isLast && !documentGet.getElementById('groups').isConnected" class="none-defined-yet">
+          <i>There are no projects without a group</i>
+        </div>
       </div>
-      <div *ngFor="let projectGroup of projectsGroups, last as isLast, first as isFirst">
-        <div *ngIf="projectGroup.projects.length <= 1">
-          <h4 *ngIf="isFirst">Projects</h4>
+      <h4>Projects</h4>
+      <div *ngFor="let projectGroup of projectsGroups, let i = index, last as isLast">
+        <div *ngIf="projectGroup.projects.length <= 1" id="projects">
           <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
                          (click)="selectProject(project)"
                          [class.selected]="project.id == selectedProject?.id">
@@ -67,8 +70,11 @@
               (tagActionSecondary)="filter.addExcludedTag($event)"
             ></app-project-view-header>
           </mat-list-item>
+          <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
         </div>
-        <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
+        <div *ngIf="isLast && !documentGet.getElementById('projects').isConnected" class="none-defined-yet">
+          <i>There are no projects without a group</i>
+        </div>
       </div>
     </mat-list>
   </div>

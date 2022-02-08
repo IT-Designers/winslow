@@ -24,13 +24,11 @@
 
 </div>
 <div style="padding-top: 1.5em"></div>
-<div class="flex-grow-row tag-filter">
+<div>
   <app-projects-group-builder
     [projects]="this.filteredProjects"
     [availableTags]="this.availableTagsValue"
-    (projectsGroups)="projectsGroupsValue = $event; emitGroups()">
+    (projectsGroups)="projectsGroupsValue = $event; emitGroups()"
+    (groupsOnTop)="groupsOnTopIsChecked = $event; emitGroups()">
   </app-projects-group-builder>
-  <mat-slide-toggle [(ngModel)]="groupsOnTopIsChecked" (change)="groupsOnTop.emit(groupsOnTopIsChecked)"
-                    [disabled]="!projectsGroupsValue">Show groups on Top
-  </mat-slide-toggle>
 </div>

@@ -110,8 +110,9 @@ export class TagFilterComponent implements OnInit {
     });
   }
 
-  emitGroups(){
+  emitGroups() {
     this.projectsGroups.emit(this.projectsGroupsValue);
+    this.groupsOnTop.emit(this.groupsOnTopIsChecked);
   }
 
 }
