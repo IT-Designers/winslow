@@ -2,50 +2,48 @@
 
 <div>
   <div class="top-bar">
+
     <button mat-raised-button color="accent"
-            [disabled]="isLatestStage()"
-            (click)="selectExecutionGroup(latestExecutionGroup)"
-    >Show most recent Stage
+            [disabled]="isLatestStage(stageToDisplay)"
+            (click)="updateStage(stageToDisplay, latestExecutionGroup)"
+    >
+      Show most recent Stage
     </button>
-    <mat-form-field appearance="legacy" class="stage-form-field">
-      <mat-select [(ngModel)]="selectedExecutionGroup" (selectionChange)="selectExecutionGroup(selectedExecutionGroup)">
-        <mat-option *ngFor="let entry of filterHistory()" [value]="entry">
+    <mat-form-field appearance="legacy" class="stage-selection">
+      <mat-select
+        [(ngModel)]="stageToDisplay.executionGroup"
+        (selectionChange)="updateStage(stageToDisplay, stageToDisplay.executionGroup)"
+      >
+        <mat-option *ngFor="let entry of filteredHistory" [value]="entry">
           {{historyEntryLabel(entry)}}
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <button mat-raised-button
-            (click)="selectExecutionGroup(latestExecutionGroup)"
-    >Compare with another Stage
-    </button>
+    <button mat-raised-button (click)="addStageToCompare()">Compare with another Stage</button>
+
+    <ng-container *ngFor="let stage of stagesToCompare; let i = index">
+      <button mat-raised-button color="accent"
+              [disabled]="isLatestStage(stage)"
+              (click)="updateStage(stage, latestExecutionGroup)"
+      >
+        Show most recent Stage
+      </button>
+      <mat-form-field appearance="legacy" class="stage-selection">
+        <mat-select
+          [(ngModel)]="stage.executionGroup"
+          (selectionChange)="updateStage(stage, stage.executionGroup)"
+        >
+          <mat-option *ngFor="let entry of filteredHistory" [value]="entry">
+            {{historyEntryLabel(entry)}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-raised-button (click)="removeStageToCompare(i)">Remove</button>
+    </ng-container>
+
   </div>
 
   <div class="top-bar-divider">
-    <mat-divider></mat-divider>
-  </div>
-</div>
-
-<div>
-  <div class="top-bar" *ngIf="isComparing()">
-    <button mat-raised-button color="accent"
-            [disabled]="isLatestStage()"
-            (click)="selectExecutionGroup(historyEntriesToCompare[0])"
-    >Show most recent Stage
-    </button>
-    <mat-form-field appearance="legacy" class="stage-form-field">
-      <mat-select [(ngModel)]="selectedExecutionGroup" (selectionChange)="selectExecutionGroup(selectedExecutionGroup)">
-        <mat-option *ngFor="let entry of filterHistory()" [value]="entry">
-          {{historyEntryLabel(entry)}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <button mat-raised-button
-            (click)="selectExecutionGroup(latestExecutionGroup)"
-    >Compare with another Stage
-    </button>
-  </div>
-
-  <div class="top-bar-divider" *ngIf="isComparing()">
     <mat-divider></mat-divider>
   </div>
 </div>
