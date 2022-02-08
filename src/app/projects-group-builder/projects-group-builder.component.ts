@@ -13,6 +13,8 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   projectsValue: ProjectInfo[];
 
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
+  @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
+  groupsOnTopIsChecked: boolean;
 
   constructor() {
   }
@@ -55,7 +57,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
       }
       if (projectsForTag[0] !== undefined) {
         if (projectsForTag[1] === undefined) {
-          if (!this.isProjectForGroupExisting(projectGroups, projectsForTag[0])){
+          if (!this.isProjectForGroupExisting(projectGroups, projectsForTag[0])) {
             projectGroups.push(this.buildGroup(projectsForTag[0].name, projectsForTag));
           }
         } else {
@@ -80,6 +82,20 @@ export class ProjectsGroupBuilderComponent implements OnInit {
 
   private sortGroups(groups: ProjectGroup[]) {
     groups.sort((a, b) => a.name.localeCompare(b.name));
+    if (this.groupsOnTopIsChecked) {
+      const newGroups: ProjectGroup[] = [];
+      for (const group of groups) {
+        if (group.projects.length > 1) {
+          newGroups.push(group);
+        }
+      }
+      for (const group of groups) {
+        if (group.projects.length <= 1) {
+          newGroups.push(group);
+        }
+      }
+      groups = newGroups;
+    }
     return groups;
   }
 
