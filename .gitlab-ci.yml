@@ -1,4 +1,5 @@
 stages:
+  - test
   - build
   - deploy
   - downstream
@@ -6,8 +7,21 @@ stages:
 before_script:
   - git submodule sync --recursive
   - git submodule update --init --recursive
+
+test:
+  stage: test
+  image: maven:3.6.3-jdk-11
+  tags:
+    - docker
+  script:
+    - mvn clean test
+  coverage: '/([\d]+\.[\d]+) % covered/'
+
 build:
   stage: build
+  only:
+    refs:
+      - master
   image: maven:3.6.3-jdk-11
   tags:
     - docker
