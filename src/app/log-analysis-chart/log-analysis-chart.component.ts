@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ChartData, ChartSettings} from "../log-analysis/log-chart";
+import {ChartData, ChartSettings} from "../log-analysis/log-chart-definition";
 
 @Component({
   selector: 'app-log-analysis-chart',

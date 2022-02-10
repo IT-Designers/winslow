@@ -53,12 +53,12 @@
     <mat-card class="chart-card">
       <mat-card-content class="chart-card-content">
         <app-log-analysis-chart
-          [settings]="chart.settings"
-          [data]="getChartData(chart)"
+          [settings]="chart.definition.settings"
+          [data]="chart.data"
         ></app-log-analysis-chart>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-button (click)="openEditChartDialog(chart)">Edit</button>
+        <button mat-button (click)="openEditChartDialog(chart.definition)">Edit</button>
         <button mat-button (click)="removeChart(i)">Remove</button>
       </mat-card-actions>
     </mat-card>
