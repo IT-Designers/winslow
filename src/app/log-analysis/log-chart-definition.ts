@@ -3,7 +3,7 @@ export interface CsvFile {
   content: [number][];
 }
 
-export class LogChart {
+export class LogChartDefinition {
   settings = new ChartSettings();
   file = "logfile.csv";
   formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
@@ -11,7 +11,7 @@ export class LogChart {
   yVariable = "$1";
   displayAmount: null | number = null;
 
-  static getDataSeries(chart: LogChart, csvFiles: CsvFile[]): ChartDataSeries {
+  static getDataSeries(chart: LogChartDefinition, csvFiles: CsvFile[]): ChartDataSeries {
     const csvFile = csvFiles.find(csvFile => csvFile.name == chart.file);
     if (!csvFile) return [];
 
@@ -63,6 +63,6 @@ export type ChartDataSeries = ChartDataPoint[];
 export type ChartDataPoint = [number, number];
 
 export interface ChartDialogData {
-  chart: LogChart;
+  chart: LogChartDefinition;
   csvFiles: CsvFile[];
 }

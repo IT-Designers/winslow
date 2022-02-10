@@ -4,12 +4,28 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartData, ChartDialogData, CsvFile, LogChart} from "./log-chart";
+import {ChartData, ChartDialogData, CsvFile, LogChartDefinition} from "./log-chart-definition";
 
 type Stage = {
   id: string;
   executionGroup: ExecutionGroupInfo;
   csvFiles: CsvFile[]
+}
+
+class LogChartInstance {
+  definition: LogChartDefinition;
+  data: ChartData;
+
+  constructor() {
+    this.definition = new LogChartDefinition();
+  }
+
+  updateData(stages: Stage[]) {
+    this.data = [];
+    stages.forEach(stage => {
+      this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles))
+    })
+  }
 }
 
 @Component({
@@ -33,7 +49,7 @@ export class LogAnalysisComponent implements OnInit {
   latestExecutionGroup: ExecutionGroupInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
   filteredHistory: ExecutionGroupInfo[] = [];
-  charts: LogChart[] = [];
+  charts: LogChartInstance[] = [];
 
   stageToDisplay: Stage = {
     id: null,
@@ -122,9 +138,9 @@ export class LogAnalysisComponent implements OnInit {
     this.stagesToCompare.splice(stageIndex, 1);
   }
 
-  addChart(chart: LogChart = new LogChart()) {
+  addChart(chart: LogChartInstance = new LogChartInstance) {
     this.charts.push(chart);
-    this.openEditChartDialog(chart);
+    this.openEditChartDialog(chart.definition);
   }
 
   removeChart(chartIndex: number) {
@@ -132,7 +148,7 @@ export class LogAnalysisComponent implements OnInit {
     this.uploadCharts();
   }
 
-  openEditChartDialog(chart: LogChart) {
+  openEditChartDialog(chart: LogChartDefinition) {
     const dialogData: ChartDialogData = {
       chart: chart,
       csvFiles: this.stageToDisplay.csvFiles,
@@ -160,8 +176,20 @@ export class LogAnalysisComponent implements OnInit {
 
     LogAnalysisComponent.getChartFilenames(this.selectedProject.id, this.filesApi)
       .then(filenames => LogAnalysisComponent.getChartFiles(filenames, this.filesApi))
-      .then(charts => this.charts = charts)
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG))
+      .then(chartDefinitions => LogAnalysisComponent.getChartInstances(chartDefinitions))
+      .then(chartInstances => this.charts = chartInstances)
+      .finally(() => {
+        this.updateAllChartData();
+        this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
+      })
+  }
+
+  private static getChartInstances(chartDefinitions: LogChartDefinition[]) {
+    return chartDefinitions.map(chartDefinition => {
+      let chartInstance = new LogChartInstance()
+      chartInstance.definition = chartDefinition;
+      return chartInstance;
+    });
   }
 
   private static getChartFilenames(filename: string, filesApi: FilesApiService): Promise<string[]> {
@@ -171,8 +199,8 @@ export class LogAnalysisComponent implements OnInit {
     }) as Promise<string[]>;
   }
 
-  private static getChartFiles(filenames, filesApi: FilesApiService): Promise<LogChart[]> {
-    const promises: Promise<LogChart>[] = [];
+  private static getChartFiles(filenames, filesApi: FilesApiService): Promise<LogChartDefinition[]> {
+    const promises: Promise<LogChartDefinition>[] = [];
     for (const filename of filenames as string[]) {
       const filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${filename}`;
       promises.push(filesApi.getFile(filepath).toPromise().then(text => LogAnalysisComponent.parseChart(text)));
@@ -181,7 +209,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private static parseChart(text: string) {
-    const chart = new LogChart();
+    const chart = new LogChartDefinition();
     Object.assign(chart, JSON.parse(text));
     return chart;
   }
@@ -194,7 +222,10 @@ export class LogAnalysisComponent implements OnInit {
     LogAnalysisComponent.getCsvFilenames(workspaceDir, this.filesApi)
       .then(files => LogAnalysisComponent.getCsvFiles(files, this.filesApi))
       .then(csvFiles => stage.csvFiles = csvFiles)
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CSV_FLAG))
+      .finally(() => {
+        this.updateAllChartData();
+        this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CSV_FLAG);
+      })
   }
 
   private static getCsvFilenames(workspaceDir: string, filesApi: FilesApiService) {
@@ -229,7 +260,7 @@ export class LogAnalysisComponent implements OnInit {
     const filenames = [];
     this.charts.forEach((chart, index) => {
       const filename = `${this.selectedProject.pipelineDefinition.id}.${index}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`;
-      this.uploadChart(filename, chart);
+      this.uploadChart(filename, chart.definition);
       filenames.push(filename);
     })
     const file = new File(
@@ -241,7 +272,7 @@ export class LogAnalysisComponent implements OnInit {
     });
   }
 
-  private uploadChart(filename: string, chart: LogChart) {
+  private uploadChart(filename: string, chart: LogChartDefinition) {
     const file = new File(
       [JSON.stringify(chart, null, "\t")], filename, {type: "application/json"},);
     this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise().then(result => {
@@ -253,12 +284,10 @@ export class LogAnalysisComponent implements OnInit {
     return stage.executionGroup.stages[0].workspace;
   }
 
-  getChartData(chart: LogChart) : ChartData {
-    let chartData = [];
-    chartData.push(LogChart.getDataSeries(chart, this.stageToDisplay.csvFiles));
-    this.stagesToCompare.forEach(stageToCompare => {
-      chartData.push(LogChart.getDataSeries(chart, stageToCompare.csvFiles))
+  updateAllChartData() {
+    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    this.charts.forEach(chart => {
+      chart.updateData(stages)
     })
-    return chartData;
   }
 }
