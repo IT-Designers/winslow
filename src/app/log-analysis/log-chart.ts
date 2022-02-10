@@ -21,12 +21,14 @@ export class LogChart {
 
     const chartData = [];
 
-    let index = 0;
+    let limit = csvFile.content.length;
+    let offset = 0;
     if (chart.displayAmount > 0) {
-      index = csvFile.content.length - chart.displayAmount;
+      offset = csvFile.content.length - chart.displayAmount;
+      limit = chart.displayAmount;
     }
-    for (index; index < csvFile.content.length; index++) {
-      const line = csvFile.content[index];
+    for (let index = 0; index < limit; index++) {
+      const line = csvFile.content[index + offset];
       chartData.push([line[xIndex] ?? index, line[yIndex] ?? index])
     }
 

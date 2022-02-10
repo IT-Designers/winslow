@@ -97,7 +97,7 @@ export class LogAnalysisComponent implements OnInit {
 
   updateStage(stage: Stage, executionGroup: ExecutionGroupInfo) {
     if (executionGroup == null) {
-      stage.executionGroup = this.latestExecutionGroup;
+      executionGroup = this.latestExecutionGroup;
     }
     stage.executionGroup = executionGroup;
     console.log(`Selected execution group ${executionGroup.id}`);
@@ -256,7 +256,9 @@ export class LogAnalysisComponent implements OnInit {
   getChartData(chart: LogChart) : ChartData {
     let chartData = [];
     chartData.push(LogChart.getDataSeries(chart, this.stageToDisplay.csvFiles));
-    console.log("Getting chart data")
+    this.stagesToCompare.forEach(stageToCompare => {
+      chartData.push(LogChart.getDataSeries(chart, stageToCompare.csvFiles))
+    })
     return chartData;
   }
 }
