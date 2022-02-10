@@ -154,7 +154,7 @@ export class LogAnalysisComponent implements OnInit {
 
   updateStage(stage: Stage, executionGroup: ExecutionGroupInfo) {
     if (executionGroup == null) {
-      stage.executionGroup = this.latestExecutionGroup;
+      executionGroup = this.latestExecutionGroup;
     }
     stage.executionGroup = executionGroup;
     console.log(`Selected execution group ${executionGroup.id}`);
