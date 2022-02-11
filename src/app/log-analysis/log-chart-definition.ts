@@ -1,6 +1,6 @@
 export interface CsvFile {
   name: string;
-  content: number[][];
+  content: string[][];
 }
 
 export class LogChartDefinition {

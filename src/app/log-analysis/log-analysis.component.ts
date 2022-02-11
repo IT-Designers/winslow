@@ -12,7 +12,7 @@ interface Stage {
   csvFiles: CsvFile[]
 }
 
-class LogChartInstance {
+class LogChart {
   definition: LogChartDefinition;
   data: ChartData;
 
@@ -39,7 +39,6 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly LONG_LOADING_CSV_FLAG = 'csv';
 
   private static readonly CHART_FILE_EXTENSION = 'chart';
-  private static readonly REGISTRY_FILE_EXTENSION = 'charts';
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
   private static readonly PATH_TO_WORKSPACES = '/workspaces';
 
@@ -49,7 +48,7 @@ export class LogAnalysisComponent implements OnInit {
   latestExecutionGroup: ExecutionGroupInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
   filteredHistory: ExecutionGroupInfo[] = [];
-  charts: LogChartInstance[] = [];
+  charts: LogChart[] = [];
 
   stageToDisplay: Stage = {
     id: null,
@@ -98,17 +97,10 @@ export class LogAnalysisComponent implements OnInit {
     return this.longLoading.isLongLoading();
   }
 
-  isLatestStage(stage: Stage): boolean {
-    return stage.executionGroup == this.latestExecutionGroup;
-  }
-
-  autoSelectStage() {
-    if (this.stageToDisplay.id && this.projectHistory) {
-      const executionGroup = this.projectHistory.find(entry => entry.id == this.stageToDisplay.id)
-      this.updateStage(this.stageToDisplay, executionGroup)
-    } else if (this.projectHistory) {
-      this.updateStage(this.stageToDisplay, this.getLatestExecutionGroup())
-    }
+  historyEntryLabel(executionGroup: ExecutionGroupInfo): string {
+    const date = new Date(executionGroup.getMostRecentStartOrFinishTime()).toLocaleString();
+    const name = executionGroup.stageDefinition.name;
+    return `${date} · ${name}`
   }
 
   updateStage(stage: Stage, executionGroup: ExecutionGroupInfo) {
@@ -117,7 +109,11 @@ export class LogAnalysisComponent implements OnInit {
     }
     stage.executionGroup = executionGroup;
     console.log(`Selected execution group ${executionGroup.id}`);
-    this.loadCsv(stage);
+    this.loadCsvFiles(stage);
+  }
+
+  isLatestStage(stage: Stage): boolean {
+    return stage.executionGroup == this.latestExecutionGroup;
   }
 
   getLatestExecutionGroup(): ExecutionGroupInfo {
@@ -138,14 +134,21 @@ export class LogAnalysisComponent implements OnInit {
     this.stagesToCompare.splice(stageIndex, 1);
   }
 
-  addChart(chart: LogChartInstance = new LogChartInstance) {
+  addChart(chart: LogChart = new LogChart) {
     this.charts.push(chart);
     this.openEditChartDialog(chart.definition);
   }
 
   removeChart(chartIndex: number) {
     this.charts.splice(chartIndex, 1);
-    this.uploadCharts();
+    this.saveCharts();
+  }
+
+  updateAllChartData() {
+    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    this.charts.forEach(chart => {
+      chart.updateData(stages)
+    })
   }
 
   openEditChartDialog(chart: LogChartDefinition) {
@@ -160,134 +163,102 @@ export class LogAnalysisComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       console.log(result);
-      this.uploadCharts();
+      this.saveCharts();
     })
   }
 
-  historyEntryLabel(executionGroup: ExecutionGroupInfo): string {
-    const date = new Date(executionGroup.getMostRecentStartOrFinishTime()).toLocaleString();
-    const name = executionGroup.stageDefinition.name;
-    return `${date} · ${name}`
+  private autoSelectStage() {
+    if (this.stageToDisplay.id && this.projectHistory) {
+      const executionGroup = this.projectHistory.find(entry => entry.id == this.stageToDisplay.id)
+      this.updateStage(this.stageToDisplay, executionGroup)
+    } else if (this.projectHistory) {
+      this.updateStage(this.stageToDisplay, this.getLatestExecutionGroup())
+    }
   }
 
   private loadCharts() {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
-    this.charts = [];
 
-    LogAnalysisComponent.getChartFilenames(this.selectedProject.id, this.filesApi)
-      .then(filenames => LogAnalysisComponent.getChartFiles(filenames, this.filesApi))
-      .then(chartDefinitions => LogAnalysisComponent.getChartInstances(chartDefinitions))
-      .then(chartInstances => this.charts = chartInstances)
-      .finally(() => {
+    const filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.selectedProject.id}`;
+
+    this.filesApi.listFiles(filepath)
+      .then(files => {
+        return Promise.all(files.map(this.loadChart));
+      })
+      .then(charts => {
+        this.charts = charts;
         this.updateAllChartData();
+      })
+      .catch(error => {
+        alert("Failed to load charts");
+        console.error(error);
+      })
+      .finally(() => {
         this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
       })
   }
 
-  private static getChartInstances(chartDefinitions: LogChartDefinition[]) {
-    return chartDefinitions.map(chartDefinition => {
-      let chartInstance = new LogChartInstance()
-      chartInstance.definition = chartDefinition;
-      return chartInstance;
+  private loadChart = (file: FileInfo) => {
+    return this.filesApi.getFile(file.path).toPromise().then(text => {
+      const chart = new LogChart();
+      Object.assign(chart.definition, JSON.parse(text));
+      return chart;
     });
-  }
+  };
 
-  private static getChartFilenames(filename: string, filesApi: FilesApiService): Promise<string[]> {
-    const filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${filename}.${LogAnalysisComponent.REGISTRY_FILE_EXTENSION}`;
-    return filesApi.getFile(filepath).toPromise().then(result => {
-      return JSON.parse(result)
-    }) as Promise<string[]>;
-  }
-
-  private static getChartFiles(filenames, filesApi: FilesApiService): Promise<LogChartDefinition[]> {
-    const promises: Promise<LogChartDefinition>[] = [];
-    for (const filename of filenames as string[]) {
-      const filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${filename}`;
-      promises.push(filesApi.getFile(filepath).toPromise().then(text => LogAnalysisComponent.parseChart(text)));
-    }
-    return Promise.all(promises);
-  }
-
-  private static parseChart(text: string) {
-    const chart = new LogChartDefinition();
-    Object.assign(chart, JSON.parse(text));
-    return chart;
-  }
-
-  private loadCsv(stage: Stage) {
+  private loadCsvFiles(stage: Stage) {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CSV_FLAG);
-    const workspaceDir = LogAnalysisComponent.workspaceDir(stage);
-    stage.csvFiles = [];
 
-    LogAnalysisComponent.getCsvFilenames(workspaceDir, this.filesApi)
-      .then(files => LogAnalysisComponent.getCsvFiles(files, this.filesApi))
-      .then(csvFiles => stage.csvFiles = csvFiles)
-      .finally(() => {
+    const filepath = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${stage.executionGroup.stages[0].workspace}`
+
+    this.filesApi.listFiles(filepath)
+      .then(files => {
+        return Promise.all(files.map(this.loadCsvFile));
+      })
+      .then(csvFiles => {
+        stage.csvFiles = csvFiles;
         this.updateAllChartData();
+      })
+      .catch(error => {
+        alert("Failed to load csv for stage " + stage.id);
+        console.error(error);
+      })
+      .finally(() => {
         this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CSV_FLAG);
       })
   }
 
-  private static getCsvFilenames(workspaceDir: string, filesApi: FilesApiService) {
-    const filepath = `${this.PATH_TO_WORKSPACES}/${workspaceDir}`
-    return filesApi.listFiles(filepath)
-  }
+  private loadCsvFile = (file: FileInfo) => {
+    return this.filesApi.getFile(file.path).toPromise().then(text => {
+      const lines = text.split('\n');
+      const csvFile: CsvFile = {
+        name: file.name,
+        content: [],
+      };
 
-  private static getCsvFiles(files: FileInfo[], filesApi: FilesApiService): Promise<CsvFile[]> {
-    const promises: Promise<CsvFile>[] = [];
-    for (const {name, path} of files) {
-      promises.push(filesApi.getFile(path).toPromise().then(text => LogAnalysisComponent.parseCSV(name, text)));
-    }
-    return Promise.all(promises);
-  }
+      lines.forEach(line => {
+        if (line.trim().length != 0) { // ignore empty lines
+          csvFile.content.push(line.split(';'));
+        }
+      })
 
-  private static parseCSV(name: string, sourceText: string): CsvFile {
-    const lines = sourceText.split('\n');
-    const content = [];
-    lines.forEach(line => {
-      if (line.trim().length != 0) { // ignore empty lines
-        content.push(line.split(';'));
-      }
-    })
+      return csvFile;
+    });
+  };
 
-    return {
-      name: name,
-      content: content,
-    }
-  }
-
-  uploadCharts() {
+  saveCharts() {
     const filenames = [];
     this.charts.forEach((chart, index) => {
       const filename = `${this.selectedProject.pipelineDefinition.id}.${index}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`;
       this.uploadChart(filename, chart.definition);
       filenames.push(filename);
     })
-    const file = new File(
-      [JSON.stringify(filenames, null, "\t")],
-      `${this.selectedProject.pipelineDefinition.id}.${LogAnalysisComponent.REGISTRY_FILE_EXTENSION}`,
-      {type: "application/json"},);
-    this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise().then(result => {
-      console.log(result);
-    });
   }
 
   private uploadChart(filename: string, chart: LogChartDefinition) {
     const file = new File(
       [JSON.stringify(chart, null, "\t")], filename, {type: "application/json"},);
-    this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise().then(result => {
-      console.log(result);
-    });
-  }
-
-  private static workspaceDir(stage: Stage) {
-    return stage.executionGroup.stages[0].workspace;
-  }
-
-  updateAllChartData() {
-    const stages = [this.stageToDisplay, ...this.stagesToCompare];
-    this.charts.forEach(chart => {
-      chart.updateData(stages)
-    })
+    this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise()
+      .then(() => console.log(`Uploaded chart ${filename}`))
   }
 }
