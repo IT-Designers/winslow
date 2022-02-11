@@ -42,7 +42,7 @@ export interface CsvFile {
   content: [number][];
 }
 
-type Stage = {
+interface Stage {
   id: string;
   executionGroup: ExecutionGroupInfo;
   csvFiles: CsvFile[]
