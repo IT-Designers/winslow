@@ -262,45 +262,47 @@ public class WorkspaceCreator implements AssemblerStep {
                 failure = walk.flatMap(path -> {
                     try {
                         context.ensureAssemblyHasNotBeenAborted();
-                        var file = path.toFile();
-                        var dst  = workspaceTarget.resolve(dirBefore.relativize(path));
-                        if (file.isDirectory()) {
-                            Files.createDirectories(dst);
-                        } else {
+                        if (!dirBefore.relativize(path).toString().startsWith(".")) {
+                            var file = path.toFile();
+                            var dst  = workspaceTarget.resolve(dirBefore.relativize(path));
+                            if (file.isDirectory()) {
+                                Files.createDirectories(dst);
+                            } else {
 
-                            context.log(Level.INFO, "..." + dst.getFileName());
-                            copyFileWhile(path, dst, new Supplier<Boolean>() {
-                                final float totalBytes = (float) path.toFile().length();
-                                long lastGetCall = System.currentTimeMillis() - 1_500;
-                                long lastFileLen = 0;
+                                context.log(Level.INFO, "..." + dst.getFileName());
+                                copyFileWhile(path, dst, new Supplier<Boolean>() {
+                                    final float totalBytes = (float) path.toFile().length();
+                                    long lastGetCall = System.currentTimeMillis() - 1_500;
+                                    long lastFileLen = 0;
 
-                                @Override
-                                public Boolean get() {
-                                    if (System.currentTimeMillis() - lastGetCall > 2_000) {
-                                        var timeDiff = System.currentTimeMillis() - lastGetCall;
-                                        lastGetCall = System.currentTimeMillis();
+                                    @Override
+                                    public Boolean get() {
+                                        if (System.currentTimeMillis() - lastGetCall > 2_000) {
+                                            var timeDiff = System.currentTimeMillis() - lastGetCall;
+                                            lastGetCall = System.currentTimeMillis();
 
-                                        if (dst.toFile().exists()) {
-                                            var fileLen  = dst.toFile().length();
-                                            var lenDiff  = fileLen - lastFileLen;
-                                            var lenPerc  = (int) (((float) fileLen / totalBytes) * 100.0f);
-                                            var bytesSec = (int) (((float) lenDiff / (float) timeDiff) * 1000.0f);
-                                            lastFileLen = fileLen;
+                                            if (dst.toFile().exists()) {
+                                                var fileLen  = dst.toFile().length();
+                                                var lenDiff  = fileLen - lastFileLen;
+                                                var lenPerc  = (int) (((float) fileLen / totalBytes) * 100.0f);
+                                                var bytesSec = (int) (((float) lenDiff / (float) timeDiff) * 1000.0f);
+                                                lastFileLen = fileLen;
 
-                                            context.log(
-                                                    Level.INFO,
-                                                    "..." + dst.getFileName() + String.format(
-                                                            ", %3d %%, %d bytes/s, %d bytes in total",
-                                                            lenPerc,
-                                                            bytesSec,
-                                                            fileLen
-                                                    )
-                                            );
+                                                context.log(
+                                                        Level.INFO,
+                                                        "..." + dst.getFileName() + String.format(
+                                                                ", %3d %%, %d bytes/s, %d bytes in total",
+                                                                lenPerc,
+                                                                bytesSec,
+                                                                fileLen
+                                                        )
+                                                );
+                                            }
                                         }
+                                        return !context.hasAssemblyBeenAborted();
                                     }
-                                    return !context.hasAssemblyBeenAborted();
-                                }
-                            });
+                                });
+                            }
                         }
                         return Stream.empty();
                     } catch (AssemblyException e) {
