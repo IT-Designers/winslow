@@ -1,6 +1,6 @@
 export interface CsvFile {
   name: string;
-  content: [number][];
+  content: number[][];
 }
 
 export class LogChartDefinition {
@@ -50,6 +50,7 @@ export class ChartSettings {
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 
+// noinspection JSUnusedGlobalSymbols
 export enum ChartAxisType {
   VALUE = "value",
   LOG = "log",

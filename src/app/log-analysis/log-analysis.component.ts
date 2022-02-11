@@ -6,7 +6,7 @@ import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {ChartData, ChartDialogData, CsvFile, LogChartDefinition} from "./log-chart-definition";
 
-type Stage = {
+interface Stage {
   id: string;
   executionGroup: ExecutionGroupInfo;
   csvFiles: CsvFile[]
