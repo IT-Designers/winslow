@@ -60,12 +60,12 @@
         ></app-log-analysis-chart>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-button (click)="openEditChartDialog(chart.definition)">Edit</button>
+        <button mat-button (click)="openEditChartDialog(chart)">Edit</button>
         <button mat-button (click)="removeChart(i)">Remove</button>
       </mat-card-actions>
     </mat-card>
   </mat-grid-tile>
   <mat-grid-tile>
-    <button mat-raised-button color="accent" (click)="addChart()">Add Chart</button>
+    <button mat-raised-button color="accent" (click)="createChart()">Add Chart</button>
   </mat-grid-tile>
 </mat-grid-list>

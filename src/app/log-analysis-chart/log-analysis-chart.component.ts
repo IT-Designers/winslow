@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ChartData, ChartSettings} from "../log-analysis/log-chart-definition";
+import {ChartDataSeries, ChartSettings} from "../log-analysis/log-chart-definition";
 
 @Component({
   selector: 'app-log-analysis-chart',
@@ -8,9 +8,9 @@ import {ChartData, ChartSettings} from "../log-analysis/log-chart-definition";
 })
 export class LogAnalysisChartComponent implements OnInit {
 
-  @Input() settings: ChartSettings;
+  @Input() settings: ChartSettings = new ChartSettings();
 
-  @Input() data: ChartData;
+  @Input() data: ChartDataSeries[] = [];
 
   constructor() {
   }
@@ -19,6 +19,16 @@ export class LogAnalysisChartComponent implements OnInit {
   }
 
   eChartOptions() {
+    if (this.data == null || this.settings == null) {
+      return null;
+    }
+
+    const chartSeries = this.data.map(dataSeries => ({
+      type: 'line',
+      showSymbol: false,
+      data: dataSeries,
+    }))
+
     return {
       title: {
         text: this.settings.name,
@@ -46,11 +56,7 @@ export class LogAnalysisChartComponent implements OnInit {
         nameGap: '25',
       },
       animation: false,
-      series: this.data.map(series => ({
-        type: 'line',
-        showSymbol: false,
-        data: series,
-      })),
+      series: chartSeries,
     };
   }
 
