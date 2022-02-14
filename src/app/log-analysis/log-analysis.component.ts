@@ -161,8 +161,7 @@ export class LogAnalysisComponent implements OnInit {
       data: dialogData,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      console.log(result);
+    dialogRef.afterClosed().subscribe(_ => {
       this.saveCharts();
     })
   }
@@ -199,6 +198,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private loadChart = (file: FileInfo) => {
+    console.log(`Loading chart ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
       const chart = new LogChart();
       Object.assign(chart.definition, JSON.parse(text));
@@ -229,6 +229,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private loadCsvFile = (file: FileInfo) => {
+    console.log(`Loading file ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
       const lines = text.split('\n');
       const csvFile: CsvFile = {
@@ -250,12 +251,12 @@ export class LogAnalysisComponent implements OnInit {
     const filenames = [];
     this.charts.forEach((chart, index) => {
       const filename = `${this.selectedProject.pipelineDefinition.id}.${index}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`;
-      this.uploadChart(filename, chart.definition);
+      this.saveChart(filename, chart.definition);
       filenames.push(filename);
     })
   }
 
-  private uploadChart(filename: string, chart: LogChartDefinition) {
+  private saveChart(filename: string, chart: LogChartDefinition) {
     const file = new File(
       [JSON.stringify(chart, null, "\t")], filename, {type: "application/json"},);
     this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise()

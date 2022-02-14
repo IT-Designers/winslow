@@ -24,7 +24,7 @@ class Segment {
 })
 export class RegularExpressionVisualiserComponent implements OnInit {
 
-  @Input() textSource: string[];
+  @Input() text: string;
 
   // Ensures 'd'-flag is set
   @Input() set pattern(pattern: string) {

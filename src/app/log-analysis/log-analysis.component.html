@@ -9,6 +9,7 @@
     >
       Show most recent Stage
     </button>
+
     <mat-form-field appearance="legacy" class="stage-selection">
       <mat-select
         [(ngModel)]="stageToDisplay.executionGroup"
@@ -19,6 +20,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+
     <button mat-raised-button (click)="addStageToCompare()">Compare with another Stage</button>
 
     <ng-container *ngFor="let stage of stagesToCompare; let i = index">
