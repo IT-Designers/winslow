@@ -129,6 +129,25 @@ export class LogAnalysisComponent implements OnInit {
     )
   }
 
+  private filterHistory(projectHistory: ExecutionGroupInfo[]) {
+    let filteredHistory = [];
+    projectHistory.forEach(entry => {
+
+      if (entry.configureOnly) {
+        return;
+      }
+
+      const state = entry.getMostRelevantState();
+      if (state == State.Failed || state == State.Skipped) {
+        return;
+      }
+
+      filteredHistory.push(entry);
+    })
+
+    return filteredHistory;
+  }
+
   @Input()
   set selectedStage(id: string) {
     if (id == null) {
