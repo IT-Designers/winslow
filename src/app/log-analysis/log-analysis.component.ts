@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ExecutionGroupInfo, ProjectApiService, ProjectInfo} from "../api/project-api.service";
+import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, State} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
@@ -60,7 +60,7 @@ export class LogAnalysisComponent implements OnInit {
 
     this.projectApi.getProjectHistory(this.selectedProject.id).then(projectHistory => {
       this.projectHistory = projectHistory;
-      this.filteredHistory = projectHistory.filter(entry => !entry.configureOnly);
+      this.filteredHistory = this.filterHistory(projectHistory);
       this.latestExecutionGroup = this.getLatestExecutionGroup();
 
       this.autoSelectStage();
@@ -68,6 +68,25 @@ export class LogAnalysisComponent implements OnInit {
       this.loadCharts();
       this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
     });
+  }
+
+  private filterHistory(projectHistory: ExecutionGroupInfo[]) {
+    let filteredHistory = [];
+    projectHistory.forEach(entry => {
+
+      if (entry.configureOnly) {
+        return;
+      }
+
+      const state = entry.getMostRelevantState();
+      if (state == State.Failed || state == State.Skipped) {
+        return;
+      }
+
+      filteredHistory.push(entry);
+    })
+
+    return filteredHistory;
   }
 
   @Input()
