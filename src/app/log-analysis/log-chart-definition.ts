@@ -30,26 +30,31 @@ export class LogChartDefinition {
 
   static getDataSeries(chart: LogChartDefinition, csvFiles: CsvFile[]): ChartDataSeries {
     const csvFile = csvFiles.find(csvFile => csvFile.name == chart.file);
-    if (!csvFile) return [];
-
-    const formatterVariables = chart.formatter.split(";");
-    const xIndex = formatterVariables.findIndex(variable => variable == chart.xVariable);
-    const yIndex = formatterVariables.findIndex(variable => variable == chart.yVariable);
-
-    const chartData = [];
-
-    let limit = csvFile.content.length;
-    let offset = 0;
-    if (chart.displayAmount > 0) {
-      offset = csvFile.content.length - chart.displayAmount;
-      limit = chart.displayAmount;
-    }
-    for (let index = 0; index < limit; index++) {
-      const line = csvFile.content[index + offset];
-      chartData.push([line[xIndex] ?? index, line[yIndex] ?? index])
+    if (!csvFile) {
+      return [];
     }
 
-    return chartData;
+    const rows = LogChartDefinition.getLatestRows(csvFile, chart.displayAmount);
+    const variableNames = chart.formatter.split(";");
+    const xIndex = variableNames.findIndex(variableName => variableName == chart.xVariable);
+    const yIndex = variableNames.findIndex(variableName => variableName == chart.yVariable);
+
+    return rows.map((rowContent, rowIndex): ChartDataPoint => {
+      const step = rowIndex - rows.length + 1;
+      const x = xIndex == -1 ? step : Number(rowContent[xIndex]);
+      const y = yIndex == -1 ? step : Number(rowContent[yIndex]);
+      return [x, y];
+    });
+  }
+
+  private static getLatestRows(csvFile: CsvFile, displayAmount: number) {
+    let sectionEnd = csvFile.content.length;
+    let sectionStart = 0;
+    if (displayAmount > 0) {
+      sectionStart = sectionEnd - displayAmount;
+    }
+
+    return csvFile.content.slice(sectionStart, sectionEnd);
   }
 }
 
