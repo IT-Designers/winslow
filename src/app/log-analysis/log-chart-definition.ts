@@ -1,15 +1,32 @@
+import {ExecutionGroupInfo} from "../api/project-api.service";
+
+export interface StageCsvInfo {
+  id: string;
+  executionGroup: ExecutionGroupInfo;
+  csvFiles: CsvFile[]
+}
+
 export interface CsvFile {
   name: string;
   content: string[][];
 }
 
 export class LogChartDefinition {
-  settings = new ChartSettings();
-  file = "logfile.csv";
-  formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
-  xVariable = "";
-  yVariable = "$1";
-  displayAmount: null | number = null;
+  settings: ChartSettings;
+  file: string;
+  formatter: string;
+  xVariable: string;
+  yVariable: string;
+  displayAmount: null | number;
+
+  constructor() {
+    this.settings = new ChartSettings();
+    this.file = "logfile.csv";
+    this.formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
+    this.xVariable = "";
+    this.yVariable = "$1";
+    this.displayAmount = null;
+  }
 
   static getDataSeries(chart: LogChartDefinition, csvFiles: CsvFile[]): ChartDataSeries {
     const csvFile = csvFiles.find(csvFile => csvFile.name == chart.file);
@@ -50,20 +67,18 @@ export class ChartSettings {
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 
-// noinspection JSUnusedGlobalSymbols
+// used by echarts
 export enum ChartAxisType {
   VALUE = "value",
   LOG = "log",
   TIME = "time",
 }
 
-export type ChartData = ChartDataSeries[];
-
 export type ChartDataSeries = ChartDataPoint[];
 
 export type ChartDataPoint = [number, number];
 
 export interface ChartDialogData {
-  chart: LogChartDefinition;
-  csvFiles: CsvFile[];
+  chartDefinition: LogChartDefinition;
+  stages: StageCsvInfo[];
 }
