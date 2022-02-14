@@ -50,13 +50,13 @@ interface Stage {
 
 class LogChart {
   definition: LogChartDefinition;
-  data: ChartData;
+  data: ChartDataSeries[];
 
   constructor() {
     this.definition = new LogChartDefinition();
   }
 
-  updateData(stages: Stage[]) {
+  updateDisplay(stages: StageCsvInfo[]) {
     this.data = [];
     stages.forEach(stage => {
       this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles))
@@ -89,13 +89,13 @@ export class LogAnalysisComponent implements OnInit {
   selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
 
-  stageToDisplay: Stage = {
+  stageToDisplay: StageCsvInfo = {
     id: null,
     executionGroup: null,
     csvFiles: [],
   }
 
-  stagesToCompare: Stage[] = [];
+  stagesToCompare: StageCsvInfo[] = [];
 
   stageToDisplay: StageCsvInfo = {
     id: null,
@@ -161,7 +161,7 @@ export class LogAnalysisComponent implements OnInit {
     return `${date} · ${name}`
   }
 
-  updateStage(stage: Stage, executionGroup: ExecutionGroupInfo) {
+  updateStage(stage: StageCsvInfo, executionGroup: ExecutionGroupInfo) {
     if (executionGroup == null) {
       executionGroup = this.latestExecutionGroup;
     }
@@ -170,7 +170,7 @@ export class LogAnalysisComponent implements OnInit {
     this.loadCsvFiles(stage);
   }
 
-  isLatestStage(stage: Stage): boolean {
+  isLatestStage(stage: StageCsvInfo): boolean {
     return stage.executionGroup == this.latestExecutionGroup;
   }
 
@@ -179,7 +179,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   addStageToCompare() {
-    let stage: Stage = {
+    let stage: StageCsvInfo = {
       csvFiles: [],
       executionGroup: undefined,
       id: ""
@@ -192,9 +192,10 @@ export class LogAnalysisComponent implements OnInit {
     this.stagesToCompare.splice(stageIndex, 1);
   }
 
-  addChart(chart: LogChart = new LogChart) {
+  createChart() {
+    const chart = new LogChart();
     this.charts.push(chart);
-    this.openEditChartDialog(chart.definition);
+    this.openEditChartDialog(chart);
   }
 
   removeChart(chartIndex: number) {
@@ -203,16 +204,16 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   updateAllChartData() {
-    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    const stages = this.stagesToDrawGraphsFor();
     this.charts.forEach(chart => {
-      chart.updateData(stages)
+      chart.updateDisplay(stages)
     })
   }
 
-  openEditChartDialog(chart: LogChartDefinition) {
+  openEditChartDialog(chart: LogChart) {
     const dialogData: ChartDialogData = {
-      chart: chart,
-      csvFiles: this.stageToDisplay.csvFiles,
+      chartDefinition: chart.definition,
+      stages: this.stagesToDrawGraphsFor(),
     }
 
     const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
@@ -220,8 +221,13 @@ export class LogAnalysisComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(_ => {
+      chart.updateDisplay(this.stagesToDrawGraphsFor());
       this.saveCharts();
     })
+  }
+
+  private stagesToDrawGraphsFor() {
+    return [this.stageToDisplay, ...this.stagesToCompare];
   }
 
   private autoSelectStage() {
@@ -264,7 +270,7 @@ export class LogAnalysisComponent implements OnInit {
     });
   };
 
-  private loadCsvFiles(stage: Stage) {
+  private loadCsvFiles(stage: StageCsvInfo) {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CSV_FLAG);
 
     const filepath = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${stage.executionGroup.stages[0].workspace}`
@@ -308,7 +314,7 @@ export class LogAnalysisComponent implements OnInit {
   saveCharts() {
     const filenames = [];
     this.charts.forEach((chart, index) => {
-      const filename = `${this.selectedProject.pipelineDefinition.id}.${index}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`;
+      const filename = `${this.selectedProject.pipelineDefinition.id}/${index}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`;
       this.saveChart(filename, chart.definition);
       filenames.push(filename);
     })
