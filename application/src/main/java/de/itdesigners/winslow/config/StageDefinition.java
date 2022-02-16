@@ -19,8 +19,8 @@ public class StageDefinition {
     private final           boolean             ignoreFailuresWithinExecutionGroup;
     private final @Nullable List<String>        tags;
     private final @Nullable Map<String, String> result;
-    private final @Nonnull  StageType    type;
-    private final @Nullable List<String> nextStages;
+    private final @Nonnull  StageType           type;
+    private final @Nullable List<String>        nextStages;
 
     public StageDefinition(
             @Nonnull String name,
@@ -55,8 +55,8 @@ public class StageDefinition {
         this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
         this.tags                               = tags;
         this.result                             = result;
-        this.type       = type != null ? type : StageType.Execution;
-        this.nextStages = nextStages;
+        this.type                               = type != null ? type : StageType.Execution;
+        this.nextStages                         = nextStages;
         this.check();
     }
 
@@ -141,7 +141,7 @@ public class StageDefinition {
     @Override
     public String toString() {
         return getClass()
-                .getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + ",type='"+this.type+"'}#" + this
+                .getSimpleName() + "@{name='" + this.name + "',desc='" + this.desc + "',image=" + this.image + ",userInput=" + this.userInput + ",type='" + this.type + "'}#" + this
                 .hashCode();
     }
 
