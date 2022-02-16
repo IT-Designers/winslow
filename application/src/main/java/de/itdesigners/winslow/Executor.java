@@ -166,7 +166,7 @@ public class Executor implements Closeable, AutoCloseable {
             @Override
             public boolean hasNext() {
                 retrieveLogs();
-                return (Executor.this.logBuffer!= null && !Executor.this.logBuffer.isEmpty())
+                return (Executor.this.logBuffer != null && !Executor.this.logBuffer.isEmpty())
                         || (logs != null ? logs.hasNext() : Executor.this.keepRunning());
             }
 
@@ -186,9 +186,8 @@ public class Executor implements Closeable, AutoCloseable {
     }
 
     private void run() {
-        var stageHandle = this.stageHandle;
         try (lockHeart) {
-            try (logOutput; stageHandle; this) {
+            try (logOutput; this) {
                 var iter    = getLogIterator();
                 var backoff = new Backoff(250, 950, 2f);
 
@@ -212,9 +211,10 @@ public class Executor implements Closeable, AutoCloseable {
                                 ).filter(Objects::nonNull),
                                 Stream
                                         .of((Supplier<LogEntry>) () -> {
-                                            var failed  = stageHandle != null && stageHandle.hasFailed();
-                                            var gone    = stageHandle != null && stageHandle.isGone();
-                                            var message = failed ? "Failed" : (gone ? "Gone" : "Done");
+                                            var stageHandle = this.stageHandle;
+                                            var failed      = stageHandle != null && stageHandle.hasFailed();
+                                            var gone        = stageHandle != null && stageHandle.isGone();
+                                            var message     = failed ? "Failed" : (gone ? "Gone" : "Done");
                                             return createLogEntry(failed || gone, message);
                                         })
                                         .map(Supplier::get)
@@ -238,6 +238,13 @@ public class Executor implements Closeable, AutoCloseable {
             }
         } finally {
             this.notifyShutdownCompletedListeners();
+            try {
+                if (this.stageHandle != null) {
+                    this.stageHandle.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -266,7 +273,7 @@ public class Executor implements Closeable, AutoCloseable {
     }
 
     private synchronized boolean keepRunning() {
-        return this.keepRunning || (this.logBuffer!= null && !this.logBuffer.isEmpty());
+        return this.keepRunning || (this.logBuffer != null && !this.logBuffer.isEmpty());
     }
 
     public synchronized void stop() throws IOException {
