@@ -162,9 +162,8 @@ public class Executor {
             @Override
             public boolean hasNext() {
                 retrieveLogs();
-                return !Executor.this.logBuffer.isEmpty() || (logs != null
-                                                              ? logs.hasNext()
-                                                              : Executor.this.keepRunning());
+                return !Executor.this.logBuffer.isEmpty()
+                        || (logs != null ? logs.hasNext() : Executor.this.keepRunning());
             }
 
             @Override
@@ -180,9 +179,8 @@ public class Executor {
     }
 
     private void run() {
-        var stageHandle = this.stageHandle;
         try (lockHeart) {
-            try (logOutput; stageHandle) {
+            try (logOutput) {
                 var iter    = getLogIterator();
                 var backoff = new Backoff(250, 950, 2f);
 
@@ -206,6 +204,7 @@ public class Executor {
                                 ).filter(Objects::nonNull),
                                 Stream
                                         .of((Supplier<LogEntry>) () -> {
+                                            var stageHandle = this.stageHandle;
                                             var failed  = stageHandle != null && stageHandle.hasFailed();
                                             var gone    = stageHandle != null && stageHandle.isGone();
                                             var message = failed ? "Failed" : (gone ? "Gone" : "Done");
@@ -231,6 +230,13 @@ public class Executor {
             }
         } finally {
             this.notifyShutdownCompletedListeners();
+            try {
+                if (this.stageHandle != null) {
+                    this.stageHandle.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
