@@ -311,7 +311,6 @@ public class GraphTests {
                 new Node(gtw3, exg3F)
         );
 
-
         testComplexGraphByDefinitions(graph);
 
         assertEquals(List.of(exgA), graph.getNodeForStageDefinitionName("def-a").orElseThrow().getExecutionGroups());
