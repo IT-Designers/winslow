@@ -31,14 +31,31 @@ public class GatewayStageHandle implements StageHandle {
     public void poll() throws IOException {
     }
 
+    /**
+     * Extends the {@link State#Running} if there are logs that need to be collected first
+     * @return The extended {@link State} of the {@link Gateway}
+     */
+    @Nonnull
+    private State getGatewayState() {
+        if (!this.gateway.logs.isEmpty()) {
+            if (this.gateway.state == State.Preparing) {
+                return State.Preparing;
+            } else {
+                return State.Running;
+            }
+        } else {
+            return this.gateway.state;
+        }
+    }
+
     @Override
     public boolean isRunning() {
-        return this.gateway.state == State.Running;
+        return getGatewayState() == State.Running;
     }
 
     @Override
     public boolean hasStarted() {
-        return true;
+        return getGatewayState() != State.Preparing;
     }
 
     @Override
@@ -48,12 +65,12 @@ public class GatewayStageHandle implements StageHandle {
 
     @Override
     public boolean hasFailed() {
-        return this.gateway.state == State.Failed;
+        return getGatewayState() == State.Failed;
     }
 
     @Override
     public boolean hasSucceeded() {
-        return this.gateway.state == State.Succeeded;
+        return getGatewayState() == State.Succeeded;
     }
 
     @Override
@@ -64,7 +81,7 @@ public class GatewayStageHandle implements StageHandle {
     @Nonnull
     @Override
     public Optional<State> getState() {
-        return Optional.of(this.gateway.state);
+        return Optional.of(getGatewayState());
     }
 
     @Nonnull
@@ -74,7 +91,7 @@ public class GatewayStageHandle implements StageHandle {
 
             @Override
             public boolean hasNext() {
-                return GatewayStageHandle.this.gateway.logs.isEmpty();
+                return !GatewayStageHandle.this.gateway.logs.isEmpty() || !hasFinished();
             }
 
             @Override
