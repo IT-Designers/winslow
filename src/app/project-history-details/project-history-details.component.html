@@ -238,6 +238,13 @@
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
+
+          <h4>Result Variables</h4>
+          <i *ngIf="selectedStage?.result.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage?.result | keyvalue; trackBy:trackKey">
+            <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
+            </ng-template>
+          </ng-container>
         </div>
         <div *ngIf="!selectedStage?.id" class="history-item-detail">
           No Stage Information available
