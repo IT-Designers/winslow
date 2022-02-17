@@ -91,7 +91,7 @@ public class GatewayStageHandle implements StageHandle {
 
             @Override
             public boolean hasNext() {
-                return !GatewayStageHandle.this.gateway.logs.isEmpty() || !hasFinished();
+                return !GatewayStageHandle.this.gateway.logs.isEmpty() || !hasStarted() || isRunning();
             }
 
             @Override
