@@ -43,30 +43,6 @@ public class AndGateway extends Gateway {
         var pipelineHandle   = this.pipelines.getPipeline(this.stageId.getProjectId());
         var pipelineReadOnly = pipelineHandle.unsafe().orElseThrow();
 
-        // pipelineReadOnly.getActiveAndPastExecutionGroups().filter(eg -> eg.getId().equals(stageId)) ...
-
-        // here Samuel, have fun
-        /*
-        
-        class Node {
-            List<Node> prev;
-            List<Node> next;
-            List<EG> egs;
-                                        // String stageName;
-            StageDefinition definition; // definition.getName() und definition.getNext()
-        }
-
-        class Graph {
-            List<Node> nodes
-
-            // optional for performance
-            Map<EGId, EG> cacheExecutionGroupForExGrId;         // und / oder
-            Map<EGId, Node> cacheNodeForExecutionGroupId;       // und / oder
-            Map<String, Node> cacheNodeForStageDefinitionName;  // und / oder
-        }
-
-        */
-
         var thisExecutionGroup = pipelineReadOnly.getActiveExecutionGroups().filter(eg -> eg
                 .getId()
                 .equals(this.stageId.getExecutionGroupId())).findFirst();
@@ -77,13 +53,28 @@ public class AndGateway extends Gateway {
         var numberOfPrevStageDefinitions = rootNode.getPreviousNodes().size();
         var numberOfInvocationsOfMyself  = rootNode.getExecutionGroups().size();
 
+
+        this.log(Level.INFO, "numberOfInvocationsOfMyself: " + numberOfInvocationsOfMyself);
+        this.log(Level.INFO, "numberOfPrevStageDefinitions: " + numberOfPrevStageDefinitions);
+
         if (numberOfInvocationsOfMyself == numberOfPrevStageDefinitions) {
+            this.log(Level.INFO, "In if!");
+            try {
+                // TODO: Legacy code
+                this.log(Level.SEVERE, "Legacy code starting");
+                Thread.sleep(5_000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             // enqueue
             // Handle<Pipeline> -> pipeline.Enqueue(next)
             pipelineHandle.exclusive().ifPresent(lockedPipelineHandle -> {
+
+                this.log(Level.INFO, "exclusive pl access");
                 try (lockedPipelineHandle) {
                     var pipeline = lockedPipelineHandle.get().orElseThrow(() -> new IOException("Failed to load"));
 
+                    this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().getNextStages());
                     for (var nextStageDefinitionNames : thisExecutionGroup.get().getStageDefinition().getNextStages()) {
                         pipeline.enqueueSingleExecution(
                                 projectReadOnly
@@ -100,7 +91,7 @@ public class AndGateway extends Gateway {
                                 thisExecutionGroup.get().getId()
                         );
                     }
-
+                    lockedPipelineHandle.update(pipeline);
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
