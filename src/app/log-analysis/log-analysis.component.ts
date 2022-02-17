@@ -56,7 +56,7 @@ class LogChart {
     this.definition = new LogChartDefinition();
   }
 
-  updateDisplay(stages: StageCsvInfo[]) {
+  refreshDisplay(stages: StageCsvInfo[]) {
     this.data = [];
     stages.forEach(stage => {
       this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles))
@@ -209,6 +209,7 @@ export class LogAnalysisComponent implements OnInit {
 
   removeStageToCompare(stageIndex: number) {
     this.stagesToCompare.splice(stageIndex, 1);
+    this.refreshAllCharts();
   }
 
   createChart() {
@@ -222,10 +223,10 @@ export class LogAnalysisComponent implements OnInit {
     this.saveCharts();
   }
 
-  updateAllChartData() {
+  refreshAllCharts() {
     const stages = this.stagesToDrawGraphsFor();
     this.charts.forEach(chart => {
-      chart.updateDisplay(stages)
+      chart.refreshDisplay(stages)
     })
   }
 
@@ -240,7 +241,7 @@ export class LogAnalysisComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(_ => {
-      chart.updateDisplay(this.stagesToDrawGraphsFor());
+      chart.refreshDisplay(this.stagesToDrawGraphsFor());
       this.saveCharts();
     })
   }
@@ -269,7 +270,7 @@ export class LogAnalysisComponent implements OnInit {
       })
       .then(charts => {
         this.charts = charts;
-        this.updateAllChartData();
+        this.refreshAllCharts();
       })
       .catch(error => {
         alert("Failed to load charts");
@@ -300,7 +301,7 @@ export class LogAnalysisComponent implements OnInit {
       })
       .then(csvFiles => {
         stage.csvFiles = csvFiles;
-        this.updateAllChartData();
+        this.refreshAllCharts();
       })
       .catch(error => {
         alert("Failed to load csv for stage " + stage.id);
