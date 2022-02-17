@@ -642,6 +642,7 @@ export class StageInfo {
   envPipeline: Map<string, string>;
   envSystem: Map<string, string>;
   envInternal: Map<string, string>;
+  result: Map<string, string>;
 
   constructor(origin: StageInfo = null) {
     if (origin != null) {
@@ -650,6 +651,7 @@ export class StageInfo {
       this.envPipeline = ProjectApiService.toMap(origin.envPipeline);
       this.envSystem = ProjectApiService.toMap(origin.envSystem);
       this.envInternal = ProjectApiService.toMap(origin.envInternal);
+      this.result = ProjectApiService.toMap(origin.result);
     }
   }
 }
