@@ -12,7 +12,7 @@ export interface CsvFile {
 }
 
 export class LogChartDefinition {
-  settings: ChartSettings;
+  displaySettings: ChartDisplaySettings;
   file: string;
   formatter: string;
   xVariable: string;
@@ -20,7 +20,7 @@ export class LogChartDefinition {
   displayAmount: null | number;
 
   constructor() {
-    this.settings = new ChartSettings();
+    this.displaySettings = new ChartDisplaySettings();
     this.file = "logfile.csv";
     this.formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
     this.xVariable = "";
@@ -58,7 +58,7 @@ export class LogChartDefinition {
   }
 }
 
-export class ChartSettings {
+export class ChartDisplaySettings {
   name: string = "Unnamed chart";
 
   xAxisName: string = "x-Axis";
