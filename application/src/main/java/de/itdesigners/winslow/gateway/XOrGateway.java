@@ -1,24 +1,30 @@
 package de.itdesigners.winslow.gateway;
 
 import de.itdesigners.winslow.PipelineRepository;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
+import de.itdesigners.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.logging.Level;
 
 public class XOrGateway extends Gateway {
 
     private final @Nonnull PipelineRepository pipelines;
+    private final @Nonnull ProjectRepository  projects;
     private final @Nonnull StageDefinition    stageDefinition;
-    private final @Nonnull StageId            stageId;
+    private                StageId            stageId;
 
     public XOrGateway(
             @Nonnull PipelineRepository pipelines,
+            @Nonnull ProjectRepository projects,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull StageId stageId) {
         this.pipelines       = pipelines;
+        this.projects        = projects;
         this.stageDefinition = stageDefinition;
         this.stageId         = stageId;
     }
@@ -26,6 +32,78 @@ public class XOrGateway extends Gateway {
     @Override
     public void execute() {
         this.log(Level.INFO, "XOrGateway!");
-        // here Samuel, have fun
+
+        var projectHandle   = this.projects.getProject(this.stageId.getProjectId());
+        var projectReadOnly = projectHandle.unsafe().orElseThrow();
+        // var exclusiveWriteable = projectHandle.exclusive();
+
+
+        var pipelineHandle   = this.pipelines.getPipeline(this.stageId.getProjectId());
+        var pipelineReadOnly = pipelineHandle.unsafe().orElseThrow();
+
+        var thisExecutionGroup = pipelineReadOnly.getActiveExecutionGroups().filter(eg -> eg
+                .getId()
+                .equals(this.stageId.getExecutionGroupId())).findFirst();
+
+        var rootNode = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
+        var graph    = new Graph(pipelineReadOnly, projectReadOnly.getPipelineDefinition(), rootNode);
+
+        var numberOfInvocationsOfMyself  = rootNode.getExecutionGroups().size();
+        this.log(Level.INFO, "numberOfInvocationsOfMyself: " + numberOfInvocationsOfMyself);
+
+        if (numberOfInvocationsOfMyself == 1) {
+            var myInvoker = rootNode.getPreviousNodes().stream().filter(p -> !p.getExecutionGroups().isEmpty())
+                    .findFirst()
+                    .map(p -> p.getExecutionGroups().get(0))
+                    .orElseThrow();
+
+            var result = myInvoker.getStages().findFirst().orElseThrow().getResult();
+            var selectorValue = result.get("selector");
+
+            this.log(Level.INFO, "selectorValue: " + selectorValue);
+            var selectorInt = Integer.parseInt(selectorValue);
+
+
+            this.log(Level.INFO, "In if!");
+            try {
+                // TODO: Legacy code
+                this.log(Level.SEVERE, "Legacy code starting");
+                Thread.sleep(5_000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // enqueue
+            // Handle<Pipeline> -> pipeline.Enqueue(next)
+            pipelineHandle.exclusive().ifPresent(lockedPipelineHandle -> {
+
+                this.log(Level.INFO, "exclusive pl access");
+                try (lockedPipelineHandle) {
+                    var pipeline = lockedPipelineHandle.get().orElseThrow(() -> new IOException("Failed to load"));
+
+                    // TODO select via condition?
+                    this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().getNextStages());
+                    var nextStageDefinitionName = thisExecutionGroup.get().getStageDefinition().getNextStages().get(selectorInt);
+
+                    pipeline.enqueueSingleExecution(
+                            projectReadOnly
+                                    .getPipelineDefinition()
+                                    .getStages()
+                                    .stream()
+                                    .filter(stageDefinition1 -> stageDefinition1
+                                            .getName()
+                                            .equals(nextStageDefinitionName))
+                                    .findFirst()
+                                    .orElseThrow(() -> new IOException("Failed to load")),
+                            new WorkspaceConfiguration(),
+                            "automatic from " + getClass().getSimpleName(),
+                            thisExecutionGroup.get().getId()
+                    );
+
+                    lockedPipelineHandle.update(pipeline);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            });
+        }
     }
 }
