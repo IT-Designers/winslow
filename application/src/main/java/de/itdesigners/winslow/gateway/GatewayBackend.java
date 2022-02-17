@@ -37,6 +37,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
             ));
             case XOrGateway -> new GatewayStageHandle(new XOrGateway(
                     pipelines,
+                    projects,
                     info.stageDefinition(),
                     submission.getId()
             ));
