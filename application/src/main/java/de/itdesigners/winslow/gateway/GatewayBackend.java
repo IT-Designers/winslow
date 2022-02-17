@@ -75,7 +75,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
             case AndGateway:
                 return new GatewayStageHandle(new AndGateway(pipelines, projects, stageDefinition, stageId));
             case XOrGateway:
-                return new GatewayStageHandle(new XOrGateway(pipelines, stageDefinition, stageId));
+                return new GatewayStageHandle(new XOrGateway(pipelines, projects, stageDefinition, stageId));
 
             case Execution:
                 break;
