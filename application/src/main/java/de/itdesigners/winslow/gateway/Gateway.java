@@ -21,6 +21,10 @@ public abstract class Gateway implements Runnable {
         this.state = State.Running;
         try {
             execute();
+            // TODO only for debugging
+            while (!logs.isEmpty()) {
+                Thread.sleep(1_000L);
+            }
             this.state = State.Succeeded;
         } catch (Throwable t) {
             this.state = State.Failed;
