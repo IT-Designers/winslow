@@ -83,7 +83,7 @@
       </ng-container>
     </mat-card>
 
-    <button *ngIf="!drawer.opened" style="position: absolute; left: 1.5em; bottom: 1.5em; z-index: 99" mat-mini-fab color="primary" (click)="drawer.toggle()">
+    <button *ngIf="!drawer.opened" style="position: fixed; left: 1.5em; bottom: 1.5em; z-index: 99" mat-mini-fab color="primary" (click)="drawer.toggle()">
       <mat-icon matTooltip="Show projects">keyboard_arrow_right</mat-icon>
     </button>
 

@@ -9,9 +9,12 @@ import {ChartDataSeries, ChartDialogData, CsvFile, LogChartDefinition, StageCsvI
 class LogChart {
   definition: LogChartDefinition;
   data: ChartDataSeries[];
+  filename: string;
 
-  constructor() {
+  constructor(id?: string) {
     this.definition = new LogChartDefinition();
+    this.filename = id ?? `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
+    console.log(this.filename);
   }
 
   refreshDisplay(stages: StageCsvInfo[]) {
@@ -32,7 +35,6 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly LONG_LOADING_CHARTS_FLAG = 'charts';
   private static readonly LONG_LOADING_CSV_FLAG = 'csv';
 
-  private static readonly CHART_FILE_EXTENSION = 'chart';
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
   private static readonly PATH_TO_WORKSPACES = '/workspaces';
 
@@ -155,8 +157,12 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   removeChart(chartIndex: number) {
+    let chart = this.charts[chartIndex];
+    if (!chart) {
+      throw "Chart index is out of range!";
+    }
+    this.deleteChart(chart);
     this.charts.splice(chartIndex, 1);
-    this.saveCharts();
   }
 
   refreshAllCharts() {
@@ -198,7 +204,7 @@ export class LogAnalysisComponent implements OnInit {
   private loadCharts() {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
 
-    const filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.selectedProject.id}`;
+    const filepath = this.pathToChartsDir();
 
     this.filesApi.listFiles(filepath)
       .then(files => {
@@ -220,7 +226,7 @@ export class LogAnalysisComponent implements OnInit {
   private loadChart = (file: FileInfo) => {
     console.log(`Loading chart ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
-      const chart = new LogChart();
+      const chart = new LogChart(file.name);
       Object.assign(chart.definition, JSON.parse(text));
       return chart;
     });
@@ -268,18 +274,28 @@ export class LogAnalysisComponent implements OnInit {
   };
 
   saveCharts() {
-    const filenames = [];
-    this.charts.forEach((chart, index) => {
-      const filename = `${this.selectedProject.pipelineDefinition.id}/${index}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`;
+    this.charts.forEach(chart => {
+      const filename = chart.filename;
       this.saveChart(filename, chart.definition);
-      filenames.push(filename);
     })
   }
 
   private saveChart(filename: string, chart: LogChartDefinition) {
     const file = new File(
       [JSON.stringify(chart, null, "\t")], filename, {type: "application/json"},);
-    this.filesApi.uploadFile(LogAnalysisComponent.PATH_TO_CHARTS, file).toPromise()
+    this.filesApi.uploadFile(this.pathToChartsDir(), file).toPromise()
       .then(() => console.log(`Uploaded chart ${filename}`))
+  }
+
+  private pathToChartsDir() {
+    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.selectedProject.id}`;
+  }
+
+  private deleteChart(chart: LogChart) {
+    let filepath = this.pathToChartsDir();
+    this.filesApi.delete(`${filepath}/${chart.filename}`).catch(error => {
+      alert("Failed to delete chart");
+      console.error(error);
+    });
   }
 }
