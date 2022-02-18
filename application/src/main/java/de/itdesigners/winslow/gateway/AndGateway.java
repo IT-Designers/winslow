@@ -97,27 +97,5 @@ public class AndGateway extends Gateway {
                 }
             });
         }
-
-
-        /*
-        laden der Pipeline pipelines.getPipeline(stageId.getProjectId())
-            pl = 3 listen der executiongroups mit parentid
-
-        wir müssen unsere EG in der Pipeline finden (ueg), hint: müsste in "active EGs sein"
-            where ueg.id == stageId.getExecutionGroupId()
-            ueg => EG für dieses Gateway
-
-        baue graph mit executiongroups bei die stageId der jeweiligen EG als parentId bei uns hinterlegt ist (verkettet)
-            where recursive (pl.EG.stageId == ueg.parentId)     ?
-            hint: Map<ExecutionGroupId, EG> for more performance (cache, optional)
-
-        lade PipelineDefinition via ProjectRepository.getProject(stageId.getProject()).getPipelineDefinition()
-            projectRepo -> Project -> PipelineDefinition
-            graph anhand von StageDefinitions "vervollständigen" (stageDefinition.next) / leere Listen von EGs
-
-        Fehlende Eingänge suchen
-            zbsp Node.prevNodes mit leeren EG listen
-
-         */
     }
 }
