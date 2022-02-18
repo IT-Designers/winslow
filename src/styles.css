@@ -161,6 +161,18 @@ body {
   margin-left: auto !important;
 }
 
+.vmenu-host {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.vmenu-selection-container {
+  display: flex;
+  max-width: 30vw;
+}
+
 .vmenu-selection-container .mat-card {
   flex-grow: 1;
   background-color: whitesmoke;
@@ -176,16 +188,33 @@ body {
   transition: 0.15s;
 }
 
-
-.selected {
+.vmenu-selection .selected {
   background-color: #6495ED20;
   border-left: 1px solid cornflowerblue;
 }
+
+mat-drawer.vmenu-selection-container > *:first-child{
+  display: flex;
+}
+
+
+
+
 
 
 .container > * {
   max-height: 100% !important;
 }
+
+
+
+
+
+
+
+
+
+
 
 
 /* --- Mat-Design Fixes --- */
@@ -198,6 +227,29 @@ body {
   /* same color as the Mat-Design uses */
   background-color: rgba(0, 0, 0, 0.04);
 }
+/* --- Mat-Design Fixes --- */
+
+.vmenu-container {
+  display: flex;
+  flex-grow: 1;
+  overflow: auto;
+  padding: 0;
+}
+/* --- Mat-Design Fixes --- */
+mat-card.vmenu-container-selection {
+  display: flex !important;
+}
+/* --- Mat-Design Fixes --- */
+
+.vmenu-container-selection {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  overflow: auto;
+}
+
+
+
 
 .action-row {
   display: flex;
@@ -235,7 +287,6 @@ body {
   margin-top: auto;
   margin-bottom: auto;
 }
-
 .action-row .controls > *:last-child {
   margin-left: 1em;
 }

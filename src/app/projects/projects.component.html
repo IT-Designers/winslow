@@ -1,69 +1,90 @@
-<mat-drawer-container *ngIf="projects != null" class="drawer-container">
-  <mat-drawer #drawer mode="side" [opened]="true" class="drawer">
-    <div class="drawer-content">
-      <mat-accordion class="drawer-element">
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title class="mat-icon-container-auto-align-label">
-              <mat-icon>filter_list</mat-icon>
-              <label>Filter</label>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <app-tag-filter
-            #filter
-            [availableTags]="api.cachedTags"
-            [projects]="projects"
-            (filtered)="projectsFiltered = $event"
-            (projectsGroups)="this.projectsGroups = $event"
-          ></app-tag-filter>
-        </mat-expansion-panel>
-      </mat-accordion>
+<mat-drawer-container *ngIf="projects != null" class="vmenu-host height">
+  <mat-drawer #drawer class="vmenu-selection-container"
+              mode="side"
+              [opened]="true"
+  >
+    <mat-card class="vmenu-selection">
+      <div style="position: sticky; top: 1em; z-index: 1">
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title class="mat-icon-container-auto-align-label">
+                <mat-icon>filter_list</mat-icon>
+                <label>Filter</label>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <app-tag-filter
+                #filter
+                [availableTags]="api.cachedTags"
+                [projects]="projects"
+                (filtered)="projectsFiltered = $event"
+            ></app-tag-filter>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+      <div style="padding-top: 1.5em">
+      </div>
 
-      <app-projects-view class="drawer-element"
-                         [projects]="projects"
-                         [projectsFiltered]="projectsFiltered"
-                         [projectsGroups]="projectsGroups"
-                         [selectedProject]="selectedProject"
-                         [stateInfo]="stateInfo"
-                         [filter]="filter"
-                         [router]="router"
-                         [route]="route">
-      </app-projects-view>
+      <div *ngIf="projects != null && projects.length == 0" class="none-defined-yet">
+        <i>There are no projects yet</i>
+      </div>
+      <div *ngIf="projects != null && projects.length > 0 && projectsFiltered.length == 0" class="none-defined-yet">
+        <i>No project matches the filter</i>
+      </div>
+      <mat-list>
+        <mat-list-item *ngFor="let project of projectsFiltered" class="project-selection-sidebar-item"
+                       (click)="selectProject(project)"
+                       [class.selected]="project.id == selectedProject?.id">
+          <app-project-view-header
+            [project]="project"
+            [iconState]="stateInfo?.get(project.id)?.getState()"
+            [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
+            [progress]="stateInfo?.get(project.id)?.stageProgress"
+            [running]="stateInfo?.get(project.id)?.isRunning()"
+            [mostRecentStage]="stateInfo?.get(project.id)?.description"
+            (tagActionPrimary)="filter.toggleIncludedTag($event)"
+            (tagActionSecondary)="filter.addExcludedTag($event)"
+          ></app-project-view-header>
+        </mat-list-item>
+      </mat-list>
 
-    </div>
+      <div style="padding-top: 2.5em"></div>
 
-    <div class="button-group">
-      <button mat-mini-fab color="primary" (click)="createNewProject()">
-        <mat-icon matTooltip="Create new Project">add</mat-icon>
-      </button>
-      <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
-        <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
-      </button>
-      <button mat-mini-fab color="warn" (click)="openGroupActions()">
-        <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
-      </button>
+      <div class="sticky-button-group">
+        <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
+          <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
+        </button>
+        <button mat-mini-fab color="accent" (click)="createNewProject()">
+          <mat-icon matTooltip="Create new Project">add</mat-icon>
+        </button>
+        <button mat-mini-fab color="warn" (click)="openGroupActions()">
+          <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
+        </button>
 
-      <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()">
-        <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
-      </button>
-    </div>
+        <button style="float: right;" mat-mini-fab color="primary" (click)="drawer.toggle()">
+          <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
+        </button>
+      </div>
+    </mat-card>
   </mat-drawer>
 
-  <div *ngIf="projects != null" class="project-container">
-    <div *ngIf="selectedProject == null" class="none-defined-yet">
-      <i>No project selected</i>
-    </div>
+  <div *ngIf="projects != null" class="vmenu-container">
+    <mat-card class="vmenu-container-selection">
+      <div *ngIf="selectedProject == null" class="none-defined-yet">
+        <i>No project selected</i>
+      </div>
 
-    <ng-container *ngIf="selectedProject != null">
-      <app-project-view
-        [project]="selectedProject"
-        [state]="stateInfo?.get(selectedProject.id)"
-        (deleted)="onDeleted(selectedProject)">
-      </app-project-view>
-    </ng-container>
+      <ng-container *ngIf="selectedProject != null">
+        <app-project-view style="overflow: hidden"
+          [project]="selectedProject"
+          [state]="stateInfo?.get(selectedProject.id)"
+          (deleted)="onDeleted(selectedProject)">
+        </app-project-view>
+      </ng-container>
+    </mat-card>
 
-    <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab color="white" (click)="drawer.toggle()">
-      <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
+    <button *ngIf="!drawer.opened" style="position: absolute; left: 1.5em; bottom: 1.5em; z-index: 99" mat-mini-fab color="primary" (click)="drawer.toggle()">
+      <mat-icon matTooltip="Show projects">keyboard_arrow_right</mat-icon>
     </button>
 
   </div>
