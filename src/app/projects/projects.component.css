@@ -22,6 +22,10 @@ mat-drawer.vmenu-selection-container::ng-deep > *:first-child{
   display: flex;
 }
 
+mat-drawer-container::ng-deep mat-drawer-content {
+  display: flex;
+}
+
 .mat-card {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
