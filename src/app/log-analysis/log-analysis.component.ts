@@ -51,9 +51,12 @@ interface Stage {
 class LogChart {
   definition: LogChartDefinition;
   data: ChartDataSeries[];
+  filename: string;
 
-  constructor() {
+  constructor(id?: string) {
     this.definition = new LogChartDefinition();
+    this.filename = id ?? `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
+    console.log(this.filename);
   }
 
   refreshDisplay(stages: StageCsvInfo[]) {
@@ -219,8 +222,12 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   removeChart(chartIndex: number) {
+    let chart = this.charts[chartIndex];
+    if (!chart) {
+      throw "Chart index is out of range!";
+    }
+    this.deleteChart(chart);
     this.charts.splice(chartIndex, 1);
-    this.saveCharts();
   }
 
   refreshAllCharts() {
@@ -262,7 +269,7 @@ export class LogAnalysisComponent implements OnInit {
   private loadCharts() {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
 
-    const filepath = `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.selectedProject.id}`;
+    const filepath = this.pathToChartsDir();
 
     this.filesApi.listFiles(filepath)
       .then(files => {
@@ -284,7 +291,7 @@ export class LogAnalysisComponent implements OnInit {
   private loadChart = (file: FileInfo) => {
     console.log(`Loading chart ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
-      const chart = new LogChart();
+      const chart = new LogChart(file.name);
       Object.assign(chart.definition, JSON.parse(text));
       return chart;
     });
@@ -332,11 +339,9 @@ export class LogAnalysisComponent implements OnInit {
   };
 
   saveCharts() {
-    const filenames = [];
-    this.charts.forEach((chart, index) => {
-      const filename = `${this.selectedProject.pipelineDefinition.id}/${index}.${(LogAnalysisComponent.CHART_FILE_EXTENSION)}`;
+    this.charts.forEach(chart => {
+      const filename = chart.filename;
       this.saveChart(filename, chart.definition);
-      filenames.push(filename);
     })
   }
 
