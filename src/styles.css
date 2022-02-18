@@ -193,10 +193,6 @@ body {
   border-left: 1px solid cornflowerblue;
 }
 
-mat-drawer.vmenu-selection-container > *:first-child{
-  display: flex;
-}
-
 
 
 

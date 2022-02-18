@@ -18,9 +18,13 @@
   overflow-x: hidden;
 }
 
+mat-drawer.vmenu-selection-container::ng-deep > *:first-child{
+  display: flex;
+}
+
 .mat-card {
-  padding-top: 0px !important;
-  padding-bottom: 0px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .sticky-button-group {

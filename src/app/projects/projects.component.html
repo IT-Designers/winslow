@@ -51,17 +51,17 @@
       <div style="padding-top: 2.5em"></div>
 
       <div class="sticky-button-group">
+        <button mat-mini-fab color="primary" (click)="createNewProject()">
+          <mat-icon matTooltip="Create new Project">add</mat-icon>
+        </button>
         <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
           <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
-        </button>
-        <button mat-mini-fab color="accent" (click)="createNewProject()">
-          <mat-icon matTooltip="Create new Project">add</mat-icon>
         </button>
         <button mat-mini-fab color="warn" (click)="openGroupActions()">
           <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
         </button>
 
-        <button style="float: right;" mat-mini-fab color="primary" (click)="drawer.toggle()">
+        <button style="float: right;" mat-mini-fab color="white" (click)="drawer.toggle()">
           <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
         </button>
       </div>
@@ -83,7 +83,7 @@
       </ng-container>
     </mat-card>
 
-    <button *ngIf="!drawer.opened" style="position: fixed; left: 1.5em; bottom: 1.5em; z-index: 99" mat-mini-fab color="primary" (click)="drawer.toggle()">
+    <button *ngIf="!drawer.opened" style="position: fixed; left: 1.5em; bottom: 1.5em; z-index: 99" mat-mini-fab color="white" (click)="drawer.toggle()">
       <mat-icon matTooltip="Show projects">keyboard_arrow_right</mat-icon>
     </button>
 
