@@ -1,12 +1,11 @@
 <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
-<div>
+<div class="scrollable">
   <div class="top-bar">
 
-    <button mat-raised-button color="accent"
+    <button class="latest-stage-button" mat-raised-button color="accent"
             [disabled]="isLatestStage(stageToDisplay)"
-            (click)="updateStage(stageToDisplay, latestExecutionGroup)"
-    >
+            (click)="updateStage(stageToDisplay, latestExecutionGroup)">
       Show most recent Stage
     </button>
 
@@ -21,10 +20,20 @@
       </mat-select>
     </mat-form-field>
 
-    <button mat-raised-button (click)="addStageToCompare()">Compare with another Stage</button>
+    <button class="compare-stage-button" mat-raised-button
+            (click)="addStageToCompare()">
+      Compare with another Stage
+    </button>
+
+    <button class="chart-options-button" mat-raised-button
+            (click)="addStageToCompare()">
+      Manage charts
+    </button>
 
     <ng-container *ngFor="let stage of stagesToCompare; let i = index">
-      <button mat-raised-button color="accent"
+      <button class="latest-stage-button"
+              mat-raised-button
+              color="accent"
               [disabled]="isLatestStage(stage)"
               (click)="updateStage(stage, latestExecutionGroup)"
       >
@@ -40,7 +49,9 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button mat-raised-button (click)="removeStageToCompare(i)">Remove</button>
+      <button class="remove-compared-stage-button" mat-raised-button
+              (click)="removeStageToCompare(i)">
+        Remove</button>
     </ng-container>
 
   </div>
@@ -48,7 +59,6 @@
   <div class="top-bar-divider">
     <mat-divider></mat-divider>
   </div>
-</div>
 
 <mat-grid-list cols="3" gutterSize="1px" rowHeight="24em" class="chart-grid-list">
   <mat-grid-tile *ngFor="let chart of charts; let i = index" class="chart-grid-tile">
@@ -69,3 +79,4 @@
     <button mat-raised-button color="accent" (click)="createChart()">Add Chart</button>
   </mat-grid-tile>
 </mat-grid-list>
+</div>
