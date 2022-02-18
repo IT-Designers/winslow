@@ -23,6 +23,12 @@
   padding-bottom: 0px !important;
 }
 
+.sticky-button-group {
+  position: sticky;
+  margin: 1em;
+  top: calc(100% - 3.5em);
+}
+
 .sticky-button-group button {
-  margin-left: 0.2em;
+  margin: 0.25em;
 }
