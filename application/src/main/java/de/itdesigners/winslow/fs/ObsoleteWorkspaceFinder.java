@@ -352,19 +352,30 @@ public class ObsoleteWorkspaceFinder {
 
                         group
                                 .getStages()
-                                .forEach(s -> s.getWorkspace().ifPresent(w -> {
-                                    var details = workspaceDistance.computeIfAbsent(
-                                            w,
-                                            ww -> new WorkspaceDetail(w, distance)
-                                    );
-                                    details.distance = Math.min(details.distance, distance);
-                                    details.notDiscardable |= !group.getStageDefinition().isDiscardable();
-                                    details.hasSucceededAtLeastOnce |= s.getState() == State.Succeeded;
-                                    details.hasExecutedAtLeastOnce |= !group.isConfigureOnly();
-                                    details.hasSucceededWithoutDiscardableAtLeastOnce |= !group
-                                            .getStageDefinition()
-                                            .isDiscardable() && s.getState() == State.Succeeded;
-                                }));
+                                .forEach(s -> {
+                                    var workspace = s.getWorkspace();
+
+                                    if (group.getWorkspaceConfiguration().isNestedWithinGroup() && group.hasRangedValues()) {
+                                        workspace = s.getWorkspace()
+                                                .map(Path::of)
+                                                .flatMap(p -> Optional.ofNullable(p.getParent()))
+                                                .map(Path::toString);
+                                    }
+
+                                    workspace.ifPresent(w -> {
+                                        var details = workspaceDistance.computeIfAbsent(
+                                                w,
+                                                ww -> new WorkspaceDetail(w, distance)
+                                        );
+                                        details.distance = Math.min(details.distance, distance);
+                                        details.notDiscardable |= !group.getStageDefinition().isDiscardable();
+                                        details.hasSucceededAtLeastOnce |= s.getState() == State.Succeeded;
+                                        details.hasExecutedAtLeastOnce |= !group.isConfigureOnly();
+                                        details.hasSucceededWithoutDiscardableAtLeastOnce |= !group
+                                                .getStageDefinition()
+                                                .isDiscardable() && s.getState() == State.Succeeded;
+                                    });
+                                });
                         ;
 
                         if (group

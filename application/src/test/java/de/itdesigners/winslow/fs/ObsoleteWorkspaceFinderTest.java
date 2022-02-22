@@ -328,7 +328,7 @@ public class ObsoleteWorkspaceFinderTest {
     public void testProperlyConsidersDiscardableAndDoesNotDeleteParentDirectoryIfNested() {
         var history = List.of(
                 constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
-                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w-broken/s1", "w-broken-2/s2"), State.Succeeded),
+                constructFinishedStage(false, true, "w-broken/s1", State.Succeeded),
                 // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w2" must not be substituted to its parent
                 constructFinishedStage(false, true, "w2", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
                 // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w3/test" must not be substituted to its parent
@@ -338,8 +338,29 @@ public class ObsoleteWorkspaceFinderTest {
         );
 
         assertEquals(
-                List.of("w1", "w-broken/s1", "w-broken-2/s2", "w2", "w3/test", "w5"),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, null))
+                List.of("w1", "w-broken/s1", "w2", "w3/test"),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+                        .withExecutionHistory(history)
+                        .collectObsoleteWorkspaces()
+        );
+    }
+
+    @Test
+    public void testNotDeleteParentDirectoryIfNested() {
+        var history = List.of(
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
+                constructFinishedStage(false, false, "w-broken/s1", State.Succeeded),
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w2" must not be substituted to its parent
+                constructFinishedStage(false, false, "w2", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w3/test" must not be substituted to its parent
+                constructFinishedStage(false, false, "w3/test", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(false, false, "w4", State.Succeeded),
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w5/s1", "w5/s2"), State.Failed)
+        );
+
+        assertEquals(
+                List.of("w1"),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 4))
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );
