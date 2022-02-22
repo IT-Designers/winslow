@@ -18,7 +18,7 @@
   overflow-x: hidden;
 }
 
-mat-drawer.vmenu-selection-container::ng-deep > *:first-child{
+mat-drawer.vmenu-selection-container::ng-deep > *:first-child {
   display: flex;
 }
 
@@ -39,4 +39,15 @@ mat-drawer-container::ng-deep mat-drawer-content {
 
 .sticky-button-group button {
   margin: 0.25em;
+}
+
+.show-projects-button {
+  position: fixed;
+  left: 1.5em;
+  bottom: 1.5em;
+  z-index: 99
+}
+
+.hide-projects-button {
+  float: right;
 }

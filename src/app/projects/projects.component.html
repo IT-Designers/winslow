@@ -61,7 +61,7 @@
           <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
         </button>
 
-        <button style="float: right;" mat-mini-fab color="white" (click)="drawer.toggle()">
+        <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()">
           <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
         </button>
       </div>
@@ -83,8 +83,8 @@
       </ng-container>
     </mat-card>
 
-    <button *ngIf="!drawer.opened" style="position: fixed; left: 1.5em; bottom: 1.5em; z-index: 99" mat-mini-fab color="white" (click)="drawer.toggle()">
-      <mat-icon matTooltip="Show projects">keyboard_arrow_right</mat-icon>
+    <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab color="white" (click)="drawer.toggle()">
+      <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
     </button>
 
   </div>
