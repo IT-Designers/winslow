@@ -744,13 +744,19 @@ export class WorkspaceConfiguration {
   mode: WorkspaceMode;
   value: string;
   sharedWithinGroup: boolean;
+  nestedWithinGroup: boolean;
 
-  constructor(mode: WorkspaceMode = WorkspaceMode.INCREMENTAL, value: string = null, sharedWithinGroup: boolean = true) {
+  constructor(
+    mode: WorkspaceMode = WorkspaceMode.INCREMENTAL,
+    value: string = null,
+    sharedWithinGroup: boolean = false,
+    nestedWithinGroup: boolean = true
+  ) {
     this.mode = mode;
     this.value = value;
     this.sharedWithinGroup = sharedWithinGroup != null && sharedWithinGroup;
+    this.nestedWithinGroup = nestedWithinGroup != null && nestedWithinGroup;
   }
-
 }
 
 export class ResourceLimitation {

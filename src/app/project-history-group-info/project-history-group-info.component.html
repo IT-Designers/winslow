@@ -21,6 +21,7 @@
       [paused]="stage.state == State.Paused"
       [comment]="getRangeEnvVariableValues(stage)"
       [sharedWorkspace]="!executionGroup?.workspaceConfiguration?.sharedWithinGroup"
+      [nestedWorkspace]="!executionGroup?.workspaceConfiguration?.nestedWithinGroup"
 
       (click)="emitStageAndSetIndex(stage, i)"
 

@@ -26,6 +26,7 @@ export class ProjectHistoryHeaderComponent implements OnInit {
   @Input() showUseAsBlueprint = true;
   @Input() showKillCurrentStage = false;
   @Input() sharedWorkspace = true;
+  @Input() nestedWorkspace = false;
 
   @Output() clickResumeOnlyThisStage = new EventEmitter<MouseEvent>();
   @Output() clickResume = new EventEmitter<MouseEvent>();

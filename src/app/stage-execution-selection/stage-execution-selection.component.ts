@@ -107,7 +107,12 @@ export class StageExecutionSelectionComponent implements OnInit {
       if (mode === WorkspaceMode.CONTINUATION && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
         value = this.executionHistoryValue[0].id;
       }
-      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value, this.workspaceConfiguration?.sharedWithinGroup);
+      this.workspaceConfiguration = new WorkspaceConfiguration(
+        mode,
+        value,
+        this.workspaceConfiguration?.sharedWithinGroup,
+        this.workspaceConfiguration?.nestedWithinGroup
+      );
     } else {
       this.workspaceConfiguration = new WorkspaceConfiguration();
     }
@@ -210,9 +215,20 @@ export class StageExecutionSelectionComponent implements OnInit {
     return Number(value);
   }
 
-  setWorkspaceMode(update: boolean, mode: WorkspaceMode, value: string = null, sharedWithinGroup: boolean = null) {
+  setWorkspaceMode(
+    update: boolean,
+    mode: WorkspaceMode,
+    value: string = null,
+    sharedWithinGroup: boolean = null,
+    nestedWithinGroup: boolean = null
+  ) {
     if (update) {
-      this.workspaceConfiguration = new WorkspaceConfiguration(mode, value, sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup);
+      this.workspaceConfiguration = new WorkspaceConfiguration(
+        mode,
+        value,
+        sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup,
+        nestedWithinGroup ?? this.workspaceConfiguration.nestedWithinGroup
+      );
     }
   }
 

@@ -284,19 +284,47 @@
   </div>
 
   <div class="whitespace-separator-top">
-    <mat-card-subtitle>Workspace Mode</mat-card-subtitle>
+    <mat-card-subtitle>Workspace Mode for Ranged Variable Runs</mat-card-subtitle>
   </div>
 
   <div class="action-row">
     <mat-label class="title">
-      <input type="checkbox"
+      <input name="ws-config-shared-nested" type="radio"
+             [checked]="workspaceConfiguration?.nestedWithinGroup != false"
+             (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, true)">
+      Nested
+    </mat-label>
+    <div>
+      All stages of this group have their own workspace directory within a common group workspace
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+      <input name="ws-config-shared-nested" type="radio"
+             [checked]="workspaceConfiguration?.nestedWithinGroup != true && workspaceConfiguration?.sharedWithinGroup != true"
+             (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, false)">
+      Separate
+    </mat-label>
+    <div>
+      All stages have their own workspace directory directly within the project directory
+    </div>
+  </div>
+
+  <div class="action-row">
+    <mat-label class="title">
+      <input name="ws-config-shared-nested" type="radio"
              [checked]="workspaceConfiguration?.sharedWithinGroup != false"
-             (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, $event.target.checked)">
+             (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, true, false)">
       Shared
     </mat-label>
     <div>
       All stages within this group share the same workspace
     </div>
+  </div>
+
+  <div class="whitespace-separator-top">
+    <mat-card-subtitle>Workspace Files</mat-card-subtitle>
   </div>
 
   <div class="action-row">

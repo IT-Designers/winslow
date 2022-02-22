@@ -21,6 +21,7 @@
         [comment]="executionGroup?.comment"
         [groupSize]="executionGroup.getGroupSize()"
         [sharedWorkspace]="executionGroup?.workspaceConfiguration?.sharedWithinGroup"
+        [nestedWorkspace]="executionGroup?.workspaceConfiguration?.nestedWithinGroup"
 
 
         (click)="setSelectedStageIndexAndEmitStage()"
