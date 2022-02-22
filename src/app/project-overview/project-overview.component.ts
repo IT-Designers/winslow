@@ -236,7 +236,6 @@ export class ProjectOverviewComponent implements OnDestroy {
     this.stateRunning = State.Running === state;
     this.statePaused = State.Paused === state || State.Enqueued === state;
     this.cdr.detectChanges();
-    console.log(state);
   }
 
   private initSeries() {

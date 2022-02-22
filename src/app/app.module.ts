@@ -78,6 +78,8 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
+import { ProjectsGroupBuilderComponent } from './projects-group-builder/projects-group-builder.component';
+import { ProjectsViewComponent } from './projects-view/projects-view.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
 import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
@@ -126,6 +128,8 @@ import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dial
         ServerDetailsComponent,
         ProjectHistoryDetailsComponent,
         AuthTokensComponent,
+        ProjectsGroupBuilderComponent,
+        ProjectsViewComponent,
         LogAnalysisComponent,
         LogAnalysisChartDialogComponent,
         LogAnalysisChartComponent,

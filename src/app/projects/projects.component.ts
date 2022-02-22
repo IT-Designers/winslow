@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
-import {ProjectApiService, ProjectInfo, State, StateInfo} from '../api/project-api.service';
+import {ProjectApiService, ProjectGroup, ProjectInfo, State, StateInfo} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
@@ -26,6 +26,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   projects: ProjectInfo[] = [];
   projectsFiltered: ProjectInfo[] = null;
+  projectsGroups: ProjectGroup[] = [];
   stateInfo: Map<string, StateInfo> = null;
   interval;
   selectedProject: ProjectInfo = null;
@@ -41,8 +42,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
               private createDialog: MatDialog,
               private notification: NotificationService,
               private dialog: DialogService,
-              private route: ActivatedRoute,
-              private router: Router) {
+              public route: ActivatedRoute,
+              public router: Router) {
   }
 
   ngOnInit() {
