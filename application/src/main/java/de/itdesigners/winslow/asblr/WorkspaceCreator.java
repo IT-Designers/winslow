@@ -9,6 +9,7 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -67,7 +68,8 @@ public class WorkspaceCreator implements AssemblerStep {
 
         var pathOfWorkspace = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(
                 context.getStageId(),
-                workspaceConfiguration.isSharedWithinGroup()
+                workspaceConfiguration.isSharedWithinGroup(),
+                workspaceConfiguration.isNestedWithinGroup() ? getNestedWorkspaceName(context) : null
         ));
         var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
         var pathOfPipelineOutput = getPipelineOutputPathOf(context.getPipeline());
@@ -138,6 +140,14 @@ public class WorkspaceCreator implements AssemblerStep {
         }
     }
 
+    @Nonnull
+    private String getNestedWorkspaceName(@Nonnull Context context) {
+        return EnvironmentVariableAppender.getRangedEnvironmentVariables(
+                context.getSubmission().getStageDefinition(),
+                context.getExecutionGroup().getRangedValues().orElseGet(Collections::emptyMap)
+        );
+    }
+
     private void upgradePipelineDirectory(
             @Nonnull Context context,
             @Nonnull Path latest,
@@ -188,15 +198,17 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Nonnull
     public static Path getInitWorkspacePath(@Nonnull String projectId) {
-        return getWorkspacePathOf(new StageId(projectId, 0, null, null), true);
+        return getWorkspacePathOf(new StageId(projectId, 0, null, null), true, null);
     }
 
 
     @Nonnull
-    public static Path getWorkspacePathOf(@Nonnull StageId stageId, boolean sharedWithinGroup) {
+    public static Path getWorkspacePathOf(@Nonnull StageId stageId, boolean sharedWithinGroup, @Nullable String nestedWorkspaceName) {
         var base = getProjectWorkspacesDirectory(stageId.getProjectId());
         if (sharedWithinGroup) {
             return base.resolve(stageId.getExecutionGroupId().getProjectRelative());
+        } else if (nestedWorkspaceName != null) {
+            return base.resolve(stageId.getExecutionGroupId().getProjectRelative()).resolve(nestedWorkspaceName);
         } else {
             return base.resolve(stageId.getProjectRelative());
         }

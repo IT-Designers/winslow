@@ -1,6 +1,8 @@
 package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Env;
+import de.itdesigners.winslow.api.pipeline.RangedValue;
+import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,6 +61,10 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_WORKSPACE_SHARED_WITHIN_GROUP",
                         String.valueOf(submission.getWorkspaceConfiguration().isSharedWithinGroup())
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_WORKSPACE_NESTED_WITHIN_GROUP",
+                        String.valueOf(submission.getWorkspaceConfiguration().isNestedWithinGroup())
                 );
         submission.getId().getStageNumberWithinGroup().ifPresent(number -> {
             submission.withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NUMBER_WITHIN_GROUP", String.valueOf(number));
@@ -93,15 +99,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                    )
                    .withInternalEnvVariable(
                            Env.SELF_PREFIX + "_RANGED_ENV_VARIABLES",
-                           ranged
-                                   .keySet()
-                                   .stream()
-                                   .map(key -> key + ":" + context
-                                           .getSubmission()
-                                           .getStageDefinition()
-                                           .getEnvironment()
-                                           .get(key))
-                                   .collect(Collectors.joining(";"))
+                           getRangedEnvironmentVariables(context.getSubmission().getStageDefinition(), ranged)
                    );
         });
 
@@ -114,5 +112,14 @@ public class EnvironmentVariableAppender implements AssemblerStep {
     @Override
     public void revert(@Nonnull Context context) {
         // nothing to revert
+    }
+
+    @Nonnull
+    public static String getRangedEnvironmentVariables(@Nonnull StageDefinition stageDefinition, @Nonnull Map<String, RangedValue> ranged) {
+        return ranged
+                .keySet()
+                .stream()
+                .map(key -> key + ":" + stageDefinition.getEnvironment().get(key))
+                .collect(Collectors.joining(";"));
     }
 }

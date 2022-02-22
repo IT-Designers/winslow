@@ -326,6 +326,24 @@ public class ObsoleteWorkspaceFinderTest {
         );
     }
 
+    @Test
+    public void testProperlyConsidersDiscardableAndDoesNotDeleteParentDirectoryIfNested() {
+        var history = List.of(
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w-broken/s1", "w-broken-2/s2"), State.Succeeded),
+                constructFinishedStage(false, true, "w2", State.Succeeded),
+                constructFinishedStage(false, true, "w3", State.Succeeded),
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w4/s1", "w4/s2"), State.Failed)
+        );
+
+        assertEquals(
+                List.of("w1", "w-broken/s1", "w-broken-2/s2", "w2", "w4"),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, null))
+                        .withExecutionHistory(history)
+                        .collectObsoleteWorkspaces()
+        );
+    }
+
 
     @Nonnull
     private static ExecutionGroup constructFinishedStage(
@@ -377,7 +395,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null
                 ),
                 null,
-                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null),
+                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, null),
                 new ArrayList<>(),
                 0,
                 null
@@ -393,6 +411,57 @@ public class ObsoleteWorkspaceFinderTest {
                 null,
                 null
         ));
+        return group;
+    }
+
+    @Nonnull
+    private static ExecutionGroup constructFinishedStageWithNestedWorkspaces(
+            boolean configureOnly,
+            @Nullable Boolean discardable,
+            @Nonnull Iterable<String> workspaces,
+            @Nonnull State finishState) {
+        var group = new ExecutionGroup(
+                new ExecutionGroupId(
+                        "randomish-project",
+                        0,
+                        "randomish-human-readable"
+                ),
+                configureOnly,
+                new StageDefinition(
+                        "some-definition",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        discardable,
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                null,
+                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, true),
+                new ArrayList<>(),
+                0,
+                null
+        );
+
+        var stageNumberWithinGroup = 0;
+        for (var workspace : workspaces) {
+            group.addStage(new Stage(
+                    group.getId().generateStageId(stageNumberWithinGroup++),
+                    new Date(0),
+                    workspace,
+                    new Date(),
+                    finishState,
+                    null,
+                    null,
+                    null,
+                    null
+            ));
+        }
         return group;
     }
 }

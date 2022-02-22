@@ -9,6 +9,7 @@ import org.springframework.lang.NonNull;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -206,8 +207,35 @@ public class ObsoleteWorkspaceFinder {
                 .ofNullable(groups)
                 .stream()
                 .flatMap(Collection::stream)
-                .flatMap(ExecutionGroup::getStages)
-                .flatMap(s -> s.getWorkspace().stream())
+                .flatMap(eg -> {
+                    if (eg.getWorkspaceConfiguration().isNestedWithinGroup()) {
+                        var paths = eg
+                                .getStages()
+                                .flatMap(s -> s.getWorkspace().stream())
+                                .map(Path::of)
+                                .collect(Collectors.toList());
+
+                        var commonParentDirectory = paths.stream().findFirst().flatMap(path -> {
+                            var groupDirectory = path.getParent();
+                            if (paths.stream().allMatch(p -> p.startsWith(groupDirectory))) {
+                                // assuming the same directory
+                                return Optional.of(List.of(groupDirectory.toString()));
+                            } else {
+                                return Optional.empty();
+                            }
+                        });
+
+                        return commonParentDirectory
+                                .orElseGet(() -> paths
+                                        .stream()
+                                        .map(Path::toString)
+                                        .collect(Collectors.toList())
+                                )
+                                .stream();
+                    } else {
+                        return eg.getStages().flatMap(s -> s.getWorkspace().stream());
+                    }
+                })
                 .distinct();
     }
 
