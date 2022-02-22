@@ -17,7 +17,7 @@ export class LogChartDefinition {
   formatter: string;
   xVariable: string;
   yVariable: string;
-  displayAmount: null | number;
+  entryLimit: null | number;
 
   constructor() {
     this.displaySettings = new ChartDisplaySettings();
@@ -25,16 +25,22 @@ export class LogChartDefinition {
     this.formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
     this.xVariable = "";
     this.yVariable = "$1";
-    this.displayAmount = null;
+    this.entryLimit = null;
   }
 
-  static getDataSeries(chart: LogChartDefinition, csvFiles: CsvFile[]): ChartDataSeries {
+  static getDataSeries(chart: LogChartDefinition, csvFiles: CsvFile[], displaySettings: AnalysisDisplaySettings = null): ChartDataSeries {
+    let entryLimit = chart.entryLimit;
+
+    if (displaySettings?.enableEntryLimit) {
+      entryLimit = displaySettings.entryLimit;
+    }
+
     const csvFile = csvFiles.find(csvFile => csvFile.name == chart.file);
     if (!csvFile) {
       return [];
     }
 
-    const rows = LogChartDefinition.getLatestRows(csvFile, chart.displayAmount);
+    const rows = LogChartDefinition.getLatestRows(csvFile, entryLimit);
     const variableNames = chart.formatter.split(";");
     const xIndex = variableNames.findIndex(variableName => variableName == chart.xVariable);
     const yIndex = variableNames.findIndex(variableName => variableName == chart.yVariable);
@@ -86,4 +92,9 @@ export type ChartDataPoint = [number, number];
 export interface ChartDialogData {
   chartDefinition: LogChartDefinition;
   stages: StageCsvInfo[];
+}
+
+export interface AnalysisDisplaySettings {
+  enableEntryLimit: boolean;
+  entryLimit: number;
 }

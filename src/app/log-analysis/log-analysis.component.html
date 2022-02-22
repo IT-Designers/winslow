@@ -25,9 +25,8 @@
       Compare with another Stage
     </button>
 
-    <button class="chart-options-button" mat-raised-button
-            (click)="addStageToCompare()">
-      Manage charts
+    <button class="display-settings-button" mat-raised-button (click)="openDisplaySettingsDialog()">
+      <mat-icon matTooltip="Display Settings">settings</mat-icon>
     </button>
 
     <ng-container *ngFor="let stage of stagesToCompare; let i = index">

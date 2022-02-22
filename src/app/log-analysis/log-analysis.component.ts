@@ -4,7 +4,15 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartDataSeries, ChartDialogData, CsvFile, LogChartDefinition, StageCsvInfo} from "./log-chart-definition";
+import {
+  AnalysisDisplaySettings,
+  ChartDataSeries,
+  ChartDialogData,
+  CsvFile,
+  LogChartDefinition,
+  StageCsvInfo
+} from "./log-chart-definition";
+import {LogAnalysisSettingsDialogComponent} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 
 class LogChart {
   definition: LogChartDefinition;
@@ -17,10 +25,10 @@ class LogChart {
     console.log(this.filename);
   }
 
-  refreshDisplay(stages: StageCsvInfo[]) {
+  refreshDisplay(stages: StageCsvInfo[], displaySettings: AnalysisDisplaySettings) {
     this.data = [];
     stages.forEach(stage => {
-      this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles))
+      this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles, displaySettings))
     })
   }
 }
@@ -53,6 +61,11 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   stagesToCompare: StageCsvInfo[] = [];
+
+  displaySettings: AnalysisDisplaySettings = {
+    enableEntryLimit: false,
+    entryLimit: 50
+  }
 
   @Input()
   set project(project: ProjectInfo) {
@@ -168,7 +181,7 @@ export class LogAnalysisComponent implements OnInit {
   refreshAllCharts() {
     const stages = this.stagesToDrawGraphsFor();
     this.charts.forEach(chart => {
-      chart.refreshDisplay(stages)
+      chart.refreshDisplay(stages, this.displaySettings)
     })
   }
 
@@ -183,7 +196,7 @@ export class LogAnalysisComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(_ => {
-      chart.refreshDisplay(this.stagesToDrawGraphsFor());
+      chart.refreshDisplay(this.stagesToDrawGraphsFor(), this.displaySettings);
       this.saveCharts();
     })
   }
@@ -193,6 +206,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private autoSelectStage() {
+    this.stagesToCompare = [];
     if (this.stageToDisplay.id && this.projectHistory) {
       const executionGroup = this.projectHistory.find(entry => entry.id == this.stageToDisplay.id)
       this.updateStage(this.stageToDisplay, executionGroup)
@@ -297,5 +311,17 @@ export class LogAnalysisComponent implements OnInit {
       alert("Failed to delete chart");
       console.error(error);
     });
+  }
+
+  openDisplaySettingsDialog() {
+    const dialogData = this.displaySettings;
+
+    const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(_ => {
+      this.refreshAllCharts();
+    })
   }
 }
