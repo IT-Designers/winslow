@@ -281,6 +281,11 @@ public class ExecutionGroup {
         return Optional.ofNullable(rangedValues).map(Collections::unmodifiableMap);
     }
 
+    @Transient
+    public boolean hasRangedValues() {
+        return this.rangedValues != null && !this.rangedValues.isEmpty();
+    }
+
     public boolean removeStage(@Nonnull String stageId) {
         try {
             return updateStage(stageId, s -> Optional.empty());

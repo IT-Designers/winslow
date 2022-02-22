@@ -208,7 +208,7 @@ public class ObsoleteWorkspaceFinder {
                 .stream()
                 .flatMap(Collection::stream)
                 .flatMap(eg -> {
-                    if (eg.getWorkspaceConfiguration().isNestedWithinGroup()) {
+                    if (eg.getWorkspaceConfiguration().isNestedWithinGroup() && eg.hasRangedValues()) {
                         var paths = eg
                                 .getStages()
                                 .flatMap(s -> s.getWorkspace().stream())
@@ -217,7 +217,7 @@ public class ObsoleteWorkspaceFinder {
 
                         var commonParentDirectory = paths.stream().findFirst().flatMap(path -> {
                             var groupDirectory = path.getParent();
-                            if (paths.stream().allMatch(p -> p.startsWith(groupDirectory))) {
+                            if (groupDirectory != null && paths.stream().allMatch(p -> p.startsWith(groupDirectory))) {
                                 // assuming the same directory
                                 return Optional.of(List.of(groupDirectory.toString()));
                             } else {

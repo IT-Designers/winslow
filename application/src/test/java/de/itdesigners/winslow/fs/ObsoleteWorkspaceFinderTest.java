@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.fs;
 
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.RangedList;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
@@ -11,10 +12,7 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -331,13 +329,16 @@ public class ObsoleteWorkspaceFinderTest {
         var history = List.of(
                 constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
                 constructFinishedStageWithNestedWorkspaces(false, true, List.of("w-broken/s1", "w-broken-2/s2"), State.Succeeded),
-                constructFinishedStage(false, true, "w2", State.Succeeded),
-                constructFinishedStage(false, true, "w3", State.Succeeded),
-                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w4/s1", "w4/s2"), State.Failed)
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w2" must not be substituted to its parent
+                constructFinishedStage(false, true, "w2", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w3/test" must not be substituted to its parent
+                constructFinishedStage(false, true, "w3/test", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(false, true, "w4", State.Succeeded),
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w5/s1", "w5/s2"), State.Failed)
         );
 
         assertEquals(
-                List.of("w1", "w-broken/s1", "w-broken-2/s2", "w2", "w4"),
+                List.of("w1", "w-broken/s1", "w-broken-2/s2", "w2", "w3/test", "w5"),
                 new ObsoleteWorkspaceFinder(new DeletionPolicy(false, null))
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
@@ -373,6 +374,16 @@ public class ObsoleteWorkspaceFinderTest {
             @Nullable Boolean discardable,
             @Nonnull String workspace,
             @Nonnull State finishState) {
+        return constructFinishedStage(configureOnly, discardable, workspace, finishState, null);
+    }
+
+    @Nonnull
+    private static ExecutionGroup constructFinishedStage(
+            boolean configureOnly,
+            @Nullable Boolean discardable,
+            @Nonnull String workspace,
+            @Nonnull State finishState,
+            @Nullable WorkspaceConfiguration workspaceConfiguration) {
         var group = new ExecutionGroup(
                 new ExecutionGroupId(
                         "randomish-project",
@@ -395,7 +406,9 @@ public class ObsoleteWorkspaceFinderTest {
                         null
                 ),
                 null,
-                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, null),
+                workspaceConfiguration != null
+                    ? workspaceConfiguration
+                    : new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, null),
                 new ArrayList<>(),
                 0,
                 null
@@ -441,7 +454,7 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null
                 ),
-                null,
+                Map.of("a", new RangedList(new String[]{"b", "c"})),
                 new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, true),
                 new ArrayList<>(),
                 0,
