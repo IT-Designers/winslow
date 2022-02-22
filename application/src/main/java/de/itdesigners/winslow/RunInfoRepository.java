@@ -56,7 +56,8 @@ public class RunInfoRepository extends BaseRepository {
         Orchestrator.forcePurge(
                 workDirectoryConfiguration.getPath(),
                 workDirectoryConfiguration.getPath(),
-                getRepositoryFile(stageId)
+                getRepositoryFile(stageId),
+                1
         );
     }
 

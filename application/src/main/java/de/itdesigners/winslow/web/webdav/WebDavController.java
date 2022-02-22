@@ -231,7 +231,8 @@ public class WebDavController {
             Orchestrator.forcePurge(
                     directory.getRoot(),
                     directory.getFullPath(),
-                    directory.getFullPath()
+                    directory.getFullPath(),
+                    0
             );
         }
     }

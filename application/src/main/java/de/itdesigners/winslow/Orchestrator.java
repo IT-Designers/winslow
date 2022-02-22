@@ -660,11 +660,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             }
 
             var workspace = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
-            workspace.ifPresent(w -> environment
-                    .getResourceManager()
-                    .getWorkspacesDirectory()
-                    .ifPresent(wd -> forcePurgeNoThrows(wd, w))
-            );
+            workspace.ifPresent(w -> forcePurgeWorkspaceNoThrows(project.getId(), w));
             return workspace.isPresent() && container.deleteOmitExceptions();
 
         } catch (LockException e) {
@@ -672,11 +668,11 @@ public class Orchestrator implements Closeable, AutoCloseable {
         }
     }
 
-    public void forcePurgeNoThrows(@Nonnull Path mustBeWithin, @Nonnull Path directory) {
+    public void forcePurgeWorkspaceNoThrows(@Nonnull String projectId, @Nonnull Path workspace) {
         try {
-            forcePurge(environment.getWorkDirectoryConfiguration().getPath(), mustBeWithin, directory);
+            forcePurgeWorkspace(projectId, workspace);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to get rid of directory " + directory, e);
+            LOG.log(Level.SEVERE, "Failed to get rid of workspace=" + workspace + " for project=" + projectId, e);
         }
     }
 
@@ -685,14 +681,41 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .getResourceManager()
                 .getWorkspace(getWorkspacePathForPipeline(projectId))
                 .orElseThrow(() -> new IOException("Failed to determine scope for ProjectId " + projectId));
-        Orchestrator.forcePurge(environment.getWorkDirectoryConfiguration().getPath(), scope, workspace);
+        Orchestrator.forcePurge(
+                environment.getWorkDirectoryConfiguration().getPath(),
+                scope,
+                workspace.isAbsolute()
+                ? workspace
+                : this.environment
+                        .getResourceManager()
+                        .getWorkspace(workspace)
+                        .orElseThrow(() -> new IOException("Failed to resolve workspace-path=" + workspace)),
+                1
+        );
+    }
+
+    public void forcePurgeNoThrows(
+            @Nonnull Path mustBeWithin,
+            @Nonnull Path directory,
+            int requiredPathOffsetToWithin) {
+        try {
+            forcePurge(
+                    environment.getWorkDirectoryConfiguration().getPath(),
+                    mustBeWithin,
+                    directory,
+                    requiredPathOffsetToWithin
+            );
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to get rid of directory " + directory, e);
+        }
     }
 
     public static void forcePurge(
             @Nonnull Path workDirectory,
             @Nonnull Path mustBeWithin,
-            @Nonnull Path path) throws IOException {
-        ensurePathToPurgeIsValid(workDirectory, mustBeWithin, path);
+            @Nonnull Path path,
+            int requiredPathOffsetToWithin) throws IOException {
+        ensurePathToPurgeIsValid(workDirectory, mustBeWithin, path, requiredPathOffsetToWithin);
         if (Files.exists(path)) {
             Files.walkFileTree(path, new SimpleFileVisitor<>() {
                 @Override
@@ -713,7 +736,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public static void ensurePathToPurgeIsValid(
             @Nonnull Path workDirectory,
             @Nonnull Path scope,
-            @Nonnull Path path) throws IOException {
+            @Nonnull Path path,
+            int requiredPathOffsetToScope) throws IOException {
         if (!path.normalize().equals(path)) {
             throw new IOException("Path not normalized properly: " + path);
         }
@@ -732,13 +756,29 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
         if (workDirectory.getNameCount() + 1 >= path.getNameCount()) {
             //
-            // this matches the a path like this:
+            // this matches a path like this:
             //
             // /some/path/on/the/fs/winslow/workspaces/my-pipeline
             // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA               forbidden
             //                                        AAAAAAAAAAAA   fine
             //
-            throw new IOException("Path[" + path + "] too close to the working directory[" + workDirectory + "]");
+            throw new IOException("Path[" + path + "] is too close to the working directory[" + workDirectory + "]");
+        }
+
+        if (path.getNameCount() < scope.getNameCount() + requiredPathOffsetToScope) {
+            //
+            // this matches a path like this:
+            //
+            // offset: 1
+            //
+            // scope: /abc/def/ghi            (name count 3)
+            // path:  /abc/def/ghi            (name count 3)   - fails
+            // path:  /abc/def/ghi/jkl        (name count 4)   - succeeds
+            // path:  /abc/def/ghi/jkl/mno    (name count 5)   - succeeds
+            //        AAAAAAAAAAAA            forbidden
+            //                    AAA         must be present
+            var offset = path.getNameCount() - scope.getNameCount();
+            throw new IOException("Path[" + path + "] is too close[offset=" + offset + ",required>=" + requiredPathOffsetToScope + "] to the scope directory[" + scope + "]");
         }
     }
 
