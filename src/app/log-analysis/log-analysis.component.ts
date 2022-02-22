@@ -59,10 +59,10 @@ class LogChart {
     console.log(this.filename);
   }
 
-  refreshDisplay(stages: StageCsvInfo[]) {
+  refreshDisplay(stages: StageCsvInfo[], displaySettings: AnalysisDisplaySettings) {
     this.data = [];
     stages.forEach(stage => {
-      this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles))
+      this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles, displaySettings))
     })
   }
 }
@@ -233,7 +233,7 @@ export class LogAnalysisComponent implements OnInit {
   refreshAllCharts() {
     const stages = this.stagesToDrawGraphsFor();
     this.charts.forEach(chart => {
-      chart.refreshDisplay(stages)
+      chart.refreshDisplay(stages, this.displaySettings)
     })
   }
 
@@ -248,7 +248,7 @@ export class LogAnalysisComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(_ => {
-      chart.refreshDisplay(this.stagesToDrawGraphsFor());
+      chart.refreshDisplay(this.stagesToDrawGraphsFor(), this.displaySettings);
       this.saveCharts();
     })
   }
@@ -258,6 +258,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private autoSelectStage() {
+    this.stagesToCompare = [];
     if (this.stageToDisplay.id && this.projectHistory) {
       const executionGroup = this.projectHistory.find(entry => entry.id == this.stageToDisplay.id)
       this.updateStage(this.stageToDisplay, executionGroup)

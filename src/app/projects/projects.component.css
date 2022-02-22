@@ -81,3 +81,14 @@
   max-width: 1.5em;
   margin: auto 1em;
 }
+
+.show-projects-button {
+  position: fixed;
+  left: 1.5em;
+  bottom: 1.5em;
+  z-index: 99
+}
+
+.hide-projects-button {
+  float: right;
+}
