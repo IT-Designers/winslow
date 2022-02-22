@@ -139,6 +139,15 @@
             *ngTemplateOutlet="
               detailItem;
               context: {
+                key: 'Workspace Nested Within Group',
+                value: entry?.workspaceConfiguration?.nestedWithinGroup
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
                 key: 'Workspace Supplement',
                 value: entry?.workspaceConfiguration?.value
               }
