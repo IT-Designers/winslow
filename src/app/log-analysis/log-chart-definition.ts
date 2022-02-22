@@ -1,8 +1,8 @@
-import {ExecutionGroupInfo} from "../api/project-api.service";
+import {StageInfo} from "../api/project-api.service";
 
 export interface StageCsvInfo {
   id: string;
-  executionGroup: ExecutionGroupInfo;
+  stage: StageInfo;
   csvFiles: CsvFile[]
 }
 

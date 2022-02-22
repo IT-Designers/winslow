@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, State} from "../api/project-api.service";
+import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
@@ -49,14 +49,14 @@ export class LogAnalysisComponent implements OnInit {
   longLoading = new LongLoadingDetector();
 
   selectedProject: ProjectInfo = null;
-  latestExecutionGroup: ExecutionGroupInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
-  filteredHistory: ExecutionGroupInfo[] = [];
+  latestStage: StageInfo = null;
+  selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
 
   stageToDisplay: StageCsvInfo = {
     id: null,
-    executionGroup: null,
+    stage: null,
     csvFiles: [],
   }
 
@@ -70,13 +70,12 @@ export class LogAnalysisComponent implements OnInit {
   @Input()
   set project(project: ProjectInfo) {
     this.selectedProject = project;
-
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
 
     this.projectApi.getProjectHistory(this.selectedProject.id).then(projectHistory => {
       this.projectHistory = projectHistory;
-      this.filteredHistory = this.filterHistory(projectHistory);
-      this.latestExecutionGroup = this.getLatestExecutionGroup();
+      this.selectableStages = this.getSelectableStages(projectHistory);
+      this.latestStage = this.getLatestStage();
 
       this.autoSelectStage();
 
@@ -85,23 +84,28 @@ export class LogAnalysisComponent implements OnInit {
     });
   }
 
-  private filterHistory(projectHistory: ExecutionGroupInfo[]) {
-    let filteredHistory = [];
-    projectHistory.forEach(entry => {
+  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
+    let stages: StageInfo[] = []
 
-      if (entry.configureOnly) {
+    projectHistory.forEach(executionGroup => {
+
+      if (executionGroup.configureOnly) {
         return;
       }
 
-      const state = entry.getMostRelevantState();
+      const state = executionGroup.getMostRelevantState();
       if (state == State.Failed || state == State.Skipped) {
         return;
       }
 
-      filteredHistory.push(entry);
+      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
+        stages.push(executionGroup.stages[0]);
+      } else {
+        stages.push(...executionGroup.stages);
+      }
     })
 
-    return filteredHistory;
+    return stages;
   }
 
   @Input()
@@ -125,37 +129,40 @@ export class LogAnalysisComponent implements OnInit {
     return this.longLoading.isLongLoading();
   }
 
-  historyEntryLabel(executionGroup: ExecutionGroupInfo): string {
-    const date = new Date(executionGroup.getMostRecentStartOrFinishTime()).toLocaleString();
-    const name = executionGroup.stageDefinition.name;
-    return `${date} · ${name}`
+  stageLabel(stage: StageInfo): string {
+    const dateValue = stage.finishTime ?? stage.startTime;
+    const dateString = new Date(dateValue).toLocaleString();
+
+    const name = stage.id.slice(this.selectedProject.id.length + 1);
+
+    return `${dateString} · ${name}`
   }
 
-  updateStage(stage: StageCsvInfo, executionGroup: ExecutionGroupInfo) {
-    if (executionGroup == null) {
-      executionGroup = this.latestExecutionGroup;
+  updateStageCsvInfo(stageCsvInfo: StageCsvInfo, stage: StageInfo) {
+    if (stage == null) {
+      stage = this.latestStage;
     }
-    stage.executionGroup = executionGroup;
-    console.log(`Selected execution group ${executionGroup.id}`);
-    this.loadCsvFiles(stage);
+    stageCsvInfo.stage = stage;
+    console.log(`Selected stage ${stage.id}`);
+    this.loadCsvFiles(stageCsvInfo);
   }
 
-  isLatestStage(stage: StageCsvInfo): boolean {
-    return stage.executionGroup == this.latestExecutionGroup;
+  isLatestStage(stageCsvInfo: StageCsvInfo): boolean {
+    return stageCsvInfo.stage == this.latestStage;
   }
 
-  getLatestExecutionGroup(): ExecutionGroupInfo {
-    return this.filteredHistory.slice(-1)[0];
+  getLatestStage(): StageInfo {
+    return this.selectableStages.slice(-1)[0];
   }
 
   addStageToCompare() {
-    let stage: StageCsvInfo = {
+    let stageCsvInfo: StageCsvInfo = {
       csvFiles: [],
-      executionGroup: undefined,
+      stage: undefined,
       id: ""
     }
-    this.updateStage(stage, this.latestExecutionGroup);
-    this.stagesToCompare.push(stage);
+    this.updateStageCsvInfo(stageCsvInfo, this.latestStage);
+    this.stagesToCompare.push(stageCsvInfo);
   }
 
   removeStageToCompare(stageIndex: number) {
@@ -208,10 +215,10 @@ export class LogAnalysisComponent implements OnInit {
   private autoSelectStage() {
     this.stagesToCompare = [];
     if (this.stageToDisplay.id && this.projectHistory) {
-      const executionGroup = this.projectHistory.find(entry => entry.id == this.stageToDisplay.id)
-      this.updateStage(this.stageToDisplay, executionGroup)
+      const stage = this.selectableStages.find(entry => entry.id == this.stageToDisplay.id)
+      this.updateStageCsvInfo(this.stageToDisplay, stage)
     } else if (this.projectHistory) {
-      this.updateStage(this.stageToDisplay, this.getLatestExecutionGroup())
+      this.updateStageCsvInfo(this.stageToDisplay, this.getLatestStage())
     }
   }
 
@@ -246,21 +253,21 @@ export class LogAnalysisComponent implements OnInit {
     });
   };
 
-  private loadCsvFiles(stage: StageCsvInfo) {
+  private loadCsvFiles(stageCsvInfo: StageCsvInfo) {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CSV_FLAG);
 
-    const filepath = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${stage.executionGroup.stages[0].workspace}`
+    const filepath = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}`
 
     this.filesApi.listFiles(filepath)
       .then(files => {
         return Promise.all(files.map(this.loadCsvFile));
       })
       .then(csvFiles => {
-        stage.csvFiles = csvFiles;
+        stageCsvInfo.csvFiles = csvFiles;
         this.refreshAllCharts();
       })
       .catch(error => {
-        alert("Failed to load csv for stage " + stage.id);
+        alert("Failed to load csv for stage " + stageCsvInfo.id);
         console.error(error);
       })
       .finally(() => {
