@@ -75,6 +75,11 @@ import { ResourceLimitationComponent } from './resource-limitation/resource-limi
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 import { ProjectsGroupBuilderComponent } from './projects-group-builder/projects-group-builder.component';
 import { ProjectsViewComponent } from './projects-view/projects-view.component';
+import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
+import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
+import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
+import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
+import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 
 @NgModule({
     declarations: [
@@ -119,6 +124,11 @@ import { ProjectsViewComponent } from './projects-view/projects-view.component';
         AuthTokensComponent,
         ProjectsGroupBuilderComponent,
         ProjectsViewComponent,
+        LogAnalysisComponent,
+        LogAnalysisChartDialogComponent,
+        LogAnalysisChartComponent,
+        RegularExpressionVisualiserComponent,
+        LogAnalysisSettingsDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

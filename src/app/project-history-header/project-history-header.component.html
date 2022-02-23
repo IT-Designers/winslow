@@ -44,16 +44,21 @@
             (click)="$event.stopPropagation(); clickKillCurrentStage.emit($event)">
     pan_tool
   </mat-icon>
-  <mat-icon *ngIf="showPassiveControls && clickOpenLogs.observers.length > 0" class="clickable"
-            matTooltip="Open Logs"
-            (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
-    list_alt
-  </mat-icon>
   <mat-icon *ngIf="clickOpenWorkspace.observers.length > 0 || !sharedWorkspace"
             class="clickable"
             matTooltip="Open Directory"
             (click)="$event.stopPropagation(); clickOpenWorkspace.emit($event)">
     folder_open
+  </mat-icon>
+  <mat-icon *ngIf="showPassiveControls && clickOpenLogs.observers.length > 0" class="clickable"
+            matTooltip="Open Logs"
+            (click)="$event.stopPropagation(); clickOpenLogs.emit($event)">
+    list_alt
+  </mat-icon>
+  <mat-icon *ngIf="showPassiveControls && clickOpenAnalysis.observers.length > 0" class="clickable"
+            matTooltip="Open Analysis"
+            (click)="$event.stopPropagation(); clickOpenAnalysis.emit($event)">
+    trending_up
   </mat-icon>
   <img *ngIf="showPassiveControls && clickOpenTensorboard.observers.length > 0 || !sharedWorkspace"
        class="clickable mat-icon notranslate material-icons mat-icon-no-color"

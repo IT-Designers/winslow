@@ -526,6 +526,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     this.tabs.selectedIndex = Tab.Logs;
   }
 
+  openAnalysis(entry?: StageInfo, watchLatestLogs = false) {
+    this.stageIdToDisplayLogsFor = entry?.id;
+    this.tabs.selectedIndex = Tab.Analysis;
+  }
+
   setName(name: string) {
     this.dialog.openLoadingIndicator(
       this.api
@@ -904,6 +909,7 @@ export enum Tab {
   History,
   Files,
   Logs,
+  Analysis,
   PipelineDefinition,
   Settings
 }

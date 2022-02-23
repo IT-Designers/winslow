@@ -1,5 +1,8 @@
-<div *ngIf="projects != null" class="vmenu-host height">
-  <div class="vmenu-selection-container">
+<mat-drawer-container *ngIf="projects != null" class="vmenu-host height">
+  <mat-drawer #drawer class="vmenu-selection-container"
+              mode="side"
+              [opened]="true"
+  >
     <mat-card class="vmenu-selection">
       <div style="position: sticky; top: 1em; z-index: 1">
         <mat-accordion>
@@ -36,20 +39,23 @@
 
       <div style="padding-top: 2.5em"></div>
 
-      <div class="sticky-button-group"
-           style="position: sticky; margin-left: calc(100% - 9em); top: calc(100% - 3.5em); bottom: 1em">
+      <div class="sticky-button-group">
+        <button mat-mini-fab color="primary" (click)="createNewProject()">
+          <mat-icon matTooltip="Create new Project">add</mat-icon>
+        </button>
         <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
           <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
         </button>
         <button mat-mini-fab color="warn" (click)="openGroupActions()">
           <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
         </button>
-        <button mat-mini-fab color="primary" (click)="createNewProject()">
-          <mat-icon matTooltip="Create new Project">add</mat-icon>
+
+        <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()">
+          <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
         </button>
       </div>
     </mat-card>
-  </div>
+  </mat-drawer>
 
   <div *ngIf="projects != null" class="vmenu-container">
     <mat-card class="vmenu-container-selection">
@@ -65,5 +71,10 @@
         </app-project-view>
       </ng-container>
     </mat-card>
+
+    <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab color="white" (click)="drawer.toggle()">
+      <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
+    </button>
+
   </div>
-</div>
+</mat-drawer-container>
