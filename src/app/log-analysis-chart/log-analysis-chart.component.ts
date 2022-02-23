@@ -1,37 +1,24 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ChartDataSeries, ChartDisplaySettings} from "../log-analysis/log-chart-definition";
+import {Observable, Subscription} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis-chart',
   templateUrl: './log-analysis-chart.component.html',
   styleUrls: ['./log-analysis-chart.component.css']
 })
-export class LogAnalysisChartComponent implements OnInit {
+export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
-  @Input() settings: ChartDisplaySettings = new ChartDisplaySettings();
+  private options;
 
-  @Input() data: ChartDataSeries[] = [];
+  private chartSeries;
 
-  constructor() {
-  }
+  private dataSubscription: Subscription = null;
 
-  ngOnInit(): void {
-  }
-
-  eChartOptions() {
-    if (this.data == null || this.settings == null) {
-      return null;
-    }
-
-    const chartSeries = this.data.map(dataSeries => ({
-      type: 'line',
-      showSymbol: false,
-      data: dataSeries,
-    }))
-
-    return {
+  @Input() set settings(settings: ChartDisplaySettings) {
+    this.options = {
       title: {
-        text: this.settings.name,
+        text: settings.name,
       },
       grid: {
         top: '50',
@@ -40,24 +27,54 @@ export class LogAnalysisChartComponent implements OnInit {
         right: '10',
       },
       xAxis: {
-        name: this.settings.xAxisName,
-        type: this.settings.xAxisType,
-        min: this.sanitiseNumberInput(this.settings.xAxisMinValue, 'dataMin'),
-        max: this.sanitiseNumberInput(this.settings.xAxisMaxValue, 'dataMax'),
+        name: settings.xAxisName,
+        type: settings.xAxisType,
+        min: this.sanitiseNumberInput(settings.xAxisMinValue, 'dataMin'),
+        max: this.sanitiseNumberInput(settings.xAxisMaxValue, 'dataMax'),
         nameLocation: 'center',
         nameGap: '25',
       },
       yAxis: {
-        name: this.settings.yAxisName,
-        type: this.settings.yAxisType,
-        min: this.sanitiseNumberInput(this.settings.yAxisMinValue, 'dataMin'),
-        max: this.sanitiseNumberInput(this.settings.yAxisMaxValue, 'dataMax'),
+        name: settings.yAxisName,
+        type: settings.yAxisType,
+        min: this.sanitiseNumberInput(settings.yAxisMinValue, 'dataMin'),
+        max: this.sanitiseNumberInput(settings.yAxisMaxValue, 'dataMax'),
         nameLocation: 'center',
         nameGap: '25',
       },
       animation: false,
-      series: chartSeries,
-    };
+      series: this.chartSeries,
+    }
+  };
+
+  @Input() set dataSource(dataSource: Observable<ChartDataSeries[]>) {
+    this.dataSubscription = dataSource.subscribe({
+      next: (value) => {
+        console.log(value)
+        this.chartSeries = value.map(data => {
+          return {
+            type: 'line',
+            showSymbol: false,
+            data: data,
+          }
+        })
+      }
+    })
+  }
+
+  constructor() {
+  }
+
+  ngOnDestroy(): void {
+    this.dataSubscription?.unsubscribe();
+  }
+
+  ngOnInit(): void {
+  }
+
+  eChartOptions() {
+    this.options.series = this.chartSeries;
+    return this.options;
   }
 
   sanitiseNumberInput(input: string, alt: string): string {

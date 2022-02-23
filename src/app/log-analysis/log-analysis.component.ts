@@ -14,23 +14,26 @@ import {
 } from "./log-chart-definition";
 import {LogAnalysisSettingsDialogComponent} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
+import {BehaviorSubject} from "rxjs";
 
 class LogChart {
   definition: LogChartDefinition;
-  data: ChartDataSeries[];
+  dataSubject: BehaviorSubject<ChartDataSeries[]>;
   filename: string;
 
   constructor(id?: string) {
     this.definition = new LogChartDefinition();
-    this.filename = id ?? `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
-    console.log(this.filename);
+    this.filename = id ?? LogChart.generateUniqueId();
+    this.dataSubject = new BehaviorSubject<ChartDataSeries[]>([]);
   }
 
   refreshDisplay(stages: StageCsvInfo[], displaySettings: AnalysisDisplaySettings) {
-    this.data = [];
-    stages.forEach(stage => {
-      this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles, displaySettings))
-    })
+    let data = stages.map(stage => LogChartDefinition.getDataSeries(this.definition, stage.csvFiles, displaySettings));
+    this.dataSubject.next(data);
+  }
+
+  private static generateUniqueId() {
+    return `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
   }
 }
 
