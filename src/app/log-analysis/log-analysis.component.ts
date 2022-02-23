@@ -13,6 +13,7 @@ import {
   StageCsvInfo
 } from "./log-chart-definition";
 import {LogAnalysisSettingsDialogComponent} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
+import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
 
 class LogChart {
   definition: LogChartDefinition;
@@ -42,12 +43,15 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly LONG_LOADING_HISTORY_FLAG = 'history';
   private static readonly LONG_LOADING_CHARTS_FLAG = 'charts';
   private static readonly LONG_LOADING_CSV_FLAG = 'csv';
+  private static readonly LONG_LOADING_PIPELINES_FLAG = 'pipelines';
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
   private static readonly PATH_TO_WORKSPACES = '/workspaces';
 
   longLoading = new LongLoadingDetector();
   hasSelectableStages = true;
+
+  probablyPipelineId = null;
 
   selectedProject: ProjectInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
@@ -71,11 +75,16 @@ export class LogAnalysisComponent implements OnInit {
   @Input()
   set project(project: ProjectInfo) {
     this.selectedProject = project;
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
 
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
     this.projectApi.getProjectHistory(this.selectedProject.id)
-      .then((projectHistory) => this.loadStagesFromHistory(projectHistory))
+      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
+
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
+    this.pipelineApi.getPipelineDefinitions()
+      .then(pipelines => this.findProjectPipeline(pipelines))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
   }
 
   @Input()
@@ -92,6 +101,7 @@ export class LogAnalysisComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private projectApi: ProjectApiService,
+    private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
   ) {
   }
@@ -321,7 +331,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private pathToChartsDir() {
-    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.selectedProject.id}`;
+    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.selectedProject.id}`;
   }
 
   private deleteChart(chart: LogChart) {
@@ -342,5 +352,10 @@ export class LogAnalysisComponent implements OnInit {
     dialogRef.afterClosed().subscribe(_ => {
       this.refreshAllCharts();
     })
+  }
+
+  private findProjectPipeline(pipelines: PipelineInfo[]) {
+    const project = this.selectedProject;
+    this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines)
   }
 }
