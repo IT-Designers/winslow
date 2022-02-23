@@ -13,23 +13,27 @@ import {
   StageCsvInfo
 } from "./log-chart-definition";
 import {LogAnalysisSettingsDialogComponent} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
+import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
+import {BehaviorSubject} from "rxjs";
 
 class LogChart {
   definition: LogChartDefinition;
-  data: ChartDataSeries[];
+  dataSubject: BehaviorSubject<ChartDataSeries[]>;
   filename: string;
 
   constructor(id?: string) {
     this.definition = new LogChartDefinition();
-    this.filename = id ?? `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
-    console.log(this.filename);
+    this.filename = id ?? LogChart.generateUniqueId();
+    this.dataSubject = new BehaviorSubject<ChartDataSeries[]>([]);
   }
 
   refreshDisplay(stages: StageCsvInfo[], displaySettings: AnalysisDisplaySettings) {
-    this.data = [];
-    stages.forEach(stage => {
-      this.data.push(LogChartDefinition.getDataSeries(this.definition, stage.csvFiles, displaySettings))
-    })
+    let data = stages.map(stage => LogChartDefinition.getDataSeries(this.definition, stage.csvFiles, displaySettings));
+    this.dataSubject.next(data);
+  }
+
+  private static generateUniqueId() {
+    return `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
   }
 }
 
@@ -42,11 +46,15 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly LONG_LOADING_HISTORY_FLAG = 'history';
   private static readonly LONG_LOADING_CHARTS_FLAG = 'charts';
   private static readonly LONG_LOADING_CSV_FLAG = 'csv';
+  private static readonly LONG_LOADING_PIPELINES_FLAG = 'pipelines';
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
   private static readonly PATH_TO_WORKSPACES = '/workspaces';
 
   longLoading = new LongLoadingDetector();
+  hasSelectableStages = true;
+
+  probablyPipelineId = null;
 
   selectedProject: ProjectInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
@@ -70,46 +78,28 @@ export class LogAnalysisComponent implements OnInit {
   @Input()
   set project(project: ProjectInfo) {
     this.selectedProject = project;
+
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
+    const projectPromise = this.projectApi.getProjectHistory(this.selectedProject.id)
+      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
 
-    this.projectApi.getProjectHistory(this.selectedProject.id).then(projectHistory => {
-      this.projectHistory = projectHistory;
-      this.selectableStages = this.getSelectableStages(projectHistory);
-      this.latestStage = this.getLatestStage();
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
+    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
+      .then(pipelines => this.findProjectPipeline(pipelines))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
 
-      this.autoSelectStage();
-
-      this.loadCharts();
-      this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
-    });
-  }
-
-  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
-    let stages: StageInfo[] = []
-
-    projectHistory.forEach(executionGroup => {
-
-      if (executionGroup.configureOnly) {
-        return;
-      }
-
-      const state = executionGroup.getMostRelevantState();
-      if (state == State.Failed || state == State.Skipped) {
-        return;
-      }
-
-      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
-        stages.push(executionGroup.stages[0]);
-      } else {
-        stages.push(...executionGroup.stages);
-      }
-    })
-
-    return stages;
+    Promise.all([projectPromise, pipelinePromise]).then(
+      () => this.loadCharts()
+    )
   }
 
   @Input()
   set selectedStage(id: string) {
+    if (id == null) {
+      return;
+    }
+
     this.stageToDisplay.id = id;
 
     this.autoSelectStage();
@@ -118,6 +108,7 @@ export class LogAnalysisComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private projectApi: ProjectApiService,
+    private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
   ) {
   }
@@ -195,6 +186,7 @@ export class LogAnalysisComponent implements OnInit {
   openEditChartDialog(chart: LogChart) {
     const dialogData: ChartDialogData = {
       chartDefinition: chart.definition,
+      dataSource: chart.dataSubject,
       stages: this.stagesToDrawGraphsFor(),
     }
 
@@ -206,6 +198,42 @@ export class LogAnalysisComponent implements OnInit {
       chart.refreshDisplay(this.stagesToDrawGraphsFor(), this.displaySettings);
       this.saveCharts();
     })
+  }
+
+  private loadStagesFromHistory(projectHistory) {
+    this.projectHistory = projectHistory;
+    this.selectableStages = this.getSelectableStages(projectHistory);
+    this.latestStage = this.getLatestStage();
+
+    this.hasSelectableStages = this.selectableStages.length > 0;
+
+    if (this.hasSelectableStages) {
+      this.autoSelectStage();
+    }
+  }
+
+  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
+    let stages: StageInfo[] = []
+
+    projectHistory.forEach(executionGroup => {
+
+      if (executionGroup.configureOnly) {
+        return;
+      }
+
+      const state = executionGroup.getMostRelevantState();
+      if (state == State.Failed || state == State.Skipped) {
+        return;
+      }
+
+      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
+        stages.push(executionGroup.stages[0]);
+      } else {
+        stages.push(...executionGroup.stages);
+      }
+    })
+
+    return stages;
   }
 
   private stagesToDrawGraphsFor() {
@@ -309,7 +337,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private pathToChartsDir() {
-    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.selectedProject.id}`;
+    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.selectedProject.id}`;
   }
 
   private deleteChart(chart: LogChart) {
@@ -330,5 +358,10 @@ export class LogAnalysisComponent implements OnInit {
     dialogRef.afterClosed().subscribe(_ => {
       this.refreshAllCharts();
     })
+  }
+
+  private findProjectPipeline(pipelines: PipelineInfo[]) {
+    const project = this.selectedProject;
+    this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines)
   }
 }
