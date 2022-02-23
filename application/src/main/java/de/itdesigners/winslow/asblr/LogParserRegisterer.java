@@ -123,6 +123,9 @@ public class LogParserRegisterer implements AssemblerStep {
                         destinationResolver.apply(entry, matcher).ifPresentOrElse(
                                 destination -> {
                                     try {
+                                        if (destination.getParent() != null) {
+                                            Files.createDirectories(destination.getParent());
+                                        }
                                         Files.write(
                                                 destination,
                                                 List.of(formatter.format(entry, matcher)),
