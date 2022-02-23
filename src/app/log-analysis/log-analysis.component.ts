@@ -269,8 +269,6 @@ export class LogAnalysisComponent implements OnInit {
 
     if (this.hasSelectableStages) {
       this.autoSelectStage();
-
-      this.loadCharts();
     }
   }
 
