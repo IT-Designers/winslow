@@ -48,13 +48,23 @@ export class FilesApiService {
     const form = new FormData();
     form.append('file', file);
 
-    return this
-      .client
-      .put(
-        FilesApiService.getUrl(pathToDirectory + file.name + params),
-        form,
-        {reportProgress: true, observe: 'events'}
-      );
+    return this.client.put(
+      FilesApiService.getUrl(pathToDirectory + file.name + params),
+      form,
+      {reportProgress: true, observe: 'events'}
+    );
+  }
+
+  getFile(pathToFile: string, compress = false) {
+    let params = '?';
+
+    if (compress) {
+      params += 'compressToArchive=true';
+    }
+
+    return this.client.get(
+      FilesApiService.getUrl(pathToFile + params), {responseType: "text"}
+    );
   }
 
   filesUrl(pathToFile: string): string {

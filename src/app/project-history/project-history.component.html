@@ -43,8 +43,9 @@
       (clickGetStage)="clickGetStage.emit($event)"
       (clickKillStage)="clickKillStage.emit($event)"
       (clickUseAsBlueprint)="clickUseAsBlueprint.emit($event)"
-      (clickOpenLogs)="clickOpenLogs.emit($event)"
       (clickOpenWorkspace)="clickOpenWorkspace.emit($event)"
+      (clickOpenLogs)="clickOpenLogs.emit($event)"
+      (clickOpenAnalysis)="clickOpenAnalysis.emit($event)"
       (clickOpenTensorboard)="clickOpenTensorboard.emit($event)"
     ></app-project-history-group-info>
     <div *ngIf="executionGroup.stages.length > visibleStages"
@@ -88,8 +89,9 @@
     [paused]="executionGroup?.stages[0]?.state == State.Paused"
     [comment]="executionGroup?.comment"
 
-    (clickOpenLogs)="clickOpenLogs.emit(executionGroup.stages[0])"
     (clickOpenWorkspace)="clickOpenWorkspace.emit(executionGroup.stages[0])"
+    (clickOpenLogs)="clickOpenLogs.emit(executionGroup.stages[0])"
+    (clickOpenAnalysis)="clickOpenAnalysis.emit(executionGroup.stages[0])"
     (clickOpenTensorboard)="clickOpenTensorboard.emit(executionGroup.stages[0])"
 
     (clickResume)="clickResume.emit(executionGroup)"

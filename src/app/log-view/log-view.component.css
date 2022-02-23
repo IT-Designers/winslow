@@ -5,17 +5,19 @@
 }
 
 .console-controls {
-  display: flex;
+  display: grid;
   padding: 1em 0;
-  flex-shrink: 0;
+  grid-gap: 1em;
+  grid-template-columns: auto auto auto auto 1fr auto auto;
 }
 
-.console-controls > *:not(:last-child) {
-  margin-right: 2em;
+.reg-exp-field {
+  margin: -12px 0 -2em;
+  flex-grow: 1;
 }
 
-.console-controls > *:last-child {
-  margin-left: auto;
+.console-controls button {
+  width: min-content;
 }
 
 .console-container {

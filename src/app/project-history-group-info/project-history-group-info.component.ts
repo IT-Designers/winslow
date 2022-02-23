@@ -17,8 +17,9 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   @Output() selectedStageIndexChange = new EventEmitter<number>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
-  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
+  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
+  @Output() clickOpenAnalysis = new EventEmitter<StageInfo>();
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
   @Output() clickGetStage = new EventEmitter<StageInfo>();
 

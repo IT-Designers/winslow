@@ -34,8 +34,9 @@ export class ProjectHistoryHeaderComponent implements OnInit {
   @Output() clickPauseAfterThis = new EventEmitter<MouseEvent>();
   @Output() clickKillCurrentStage = new EventEmitter<MouseEvent>();
   @Output() clickUseAsBlueprint = new EventEmitter<MouseEvent>();
-  @Output() clickOpenLogs = new EventEmitter<MouseEvent>();
   @Output() clickOpenWorkspace = new EventEmitter<MouseEvent>();
+  @Output() clickOpenLogs = new EventEmitter<MouseEvent>();
+  @Output() clickOpenAnalysis = new EventEmitter<MouseEvent>();
   @Output() clickOpenTensorboard = new EventEmitter<MouseEvent>();
 
   constructor() { }

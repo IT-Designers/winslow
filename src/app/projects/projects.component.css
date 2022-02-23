@@ -18,13 +18,38 @@
   overflow-x: hidden;
 }
 
+mat-drawer.vmenu-selection-container::ng-deep > *:first-child {
+  display: flex;
+}
+
+mat-drawer-container::ng-deep mat-drawer-content {
+  display: flex;
+}
+
 .mat-card {
-  padding-top: 0px !important;
-  padding-bottom: 0px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.sticky-button-group {
+  position: sticky;
+  margin: 1em;
+  top: calc(100% - 3.5em);
 }
 
 .sticky-button-group button {
-  margin-left: 0.2em;
+  margin: 0.25em;
+}
+
+.show-projects-button {
+  position: fixed;
+  left: 1.5em;
+  bottom: 1.5em;
+  z-index: 99
+}
+
+.hide-projects-button {
+  float: right;
 }
 
 .section {

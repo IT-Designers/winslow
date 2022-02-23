@@ -31,6 +31,8 @@ export class LogViewComponent implements OnInit, OnDestroy {
   projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
 
+  regularExpressionPattern = "";
+
   constructor(private api: ProjectApiService) {
   }
 
@@ -198,5 +200,9 @@ export class LogViewComponent implements OnInit, OnDestroy {
     } else {
       return '';
     }
+  }
+
+  isPatternMatching() {
+    return this.regularExpressionPattern.trim().length > 0;
   }
 }
