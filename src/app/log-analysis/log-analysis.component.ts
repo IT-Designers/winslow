@@ -77,14 +77,18 @@ export class LogAnalysisComponent implements OnInit {
     this.selectedProject = project;
 
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
-    this.projectApi.getProjectHistory(this.selectedProject.id)
+    const projectPromise = this.projectApi.getProjectHistory(this.selectedProject.id)
       .then(projectHistory => this.loadStagesFromHistory(projectHistory))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
 
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
-    this.pipelineApi.getPipelineDefinitions()
+    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
       .then(pipelines => this.findProjectPipeline(pipelines))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
+
+    Promise.all([projectPromise, pipelinePromise]).then(
+      () => this.loadCharts()
+    )
   }
 
   @Input()
@@ -201,8 +205,6 @@ export class LogAnalysisComponent implements OnInit {
 
     if (this.hasSelectableStages) {
       this.autoSelectStage();
-
-      this.loadCharts();
     }
   }
 
