@@ -47,6 +47,7 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly PATH_TO_WORKSPACES = '/workspaces';
 
   longLoading = new LongLoadingDetector();
+  hasSelectableStages = true;
 
   selectedProject: ProjectInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
@@ -72,44 +73,17 @@ export class LogAnalysisComponent implements OnInit {
     this.selectedProject = project;
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
 
-    this.projectApi.getProjectHistory(this.selectedProject.id).then(projectHistory => {
-      this.projectHistory = projectHistory;
-      this.selectableStages = this.getSelectableStages(projectHistory);
-      this.latestStage = this.getLatestStage();
-
-      this.autoSelectStage();
-
-      this.loadCharts();
-      this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
-    });
-  }
-
-  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
-    let stages: StageInfo[] = []
-
-    projectHistory.forEach(executionGroup => {
-
-      if (executionGroup.configureOnly) {
-        return;
-      }
-
-      const state = executionGroup.getMostRelevantState();
-      if (state == State.Failed || state == State.Skipped) {
-        return;
-      }
-
-      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
-        stages.push(executionGroup.stages[0]);
-      } else {
-        stages.push(...executionGroup.stages);
-      }
-    })
-
-    return stages;
+    this.projectApi.getProjectHistory(this.selectedProject.id)
+      .then((projectHistory) => this.loadStagesFromHistory(projectHistory))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
   }
 
   @Input()
   set selectedStage(id: string) {
+    if (id == null) {
+      return;
+    }
+
     this.stageToDisplay.id = id;
 
     this.autoSelectStage();
@@ -206,6 +180,44 @@ export class LogAnalysisComponent implements OnInit {
       chart.refreshDisplay(this.stagesToDrawGraphsFor(), this.displaySettings);
       this.saveCharts();
     })
+  }
+
+  private loadStagesFromHistory(projectHistory) {
+    this.projectHistory = projectHistory;
+    this.selectableStages = this.getSelectableStages(projectHistory);
+    this.latestStage = this.getLatestStage();
+
+    this.hasSelectableStages = this.selectableStages.length > 0;
+
+    if (this.hasSelectableStages) {
+      this.autoSelectStage();
+
+      this.loadCharts();
+    }
+  }
+
+  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
+    let stages: StageInfo[] = []
+
+    projectHistory.forEach(executionGroup => {
+
+      if (executionGroup.configureOnly) {
+        return;
+      }
+
+      const state = executionGroup.getMostRelevantState();
+      if (state == State.Failed || state == State.Skipped) {
+        return;
+      }
+
+      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
+        stages.push(executionGroup.stages[0]);
+      } else {
+        stages.push(...executionGroup.stages);
+      }
+    })
+
+    return stages;
   }
 
   private stagesToDrawGraphsFor() {

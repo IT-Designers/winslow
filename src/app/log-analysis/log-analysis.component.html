@@ -1,6 +1,6 @@
 <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
-<div class="scrollable">
+<div *ngIf="hasSelectableStages" class="scrollable">
   <div class="top-bar">
 
     <button class="latest-stage-button" mat-raised-button color="accent"
@@ -79,4 +79,8 @@
       <mat-icon matTooltip="Add Chart">add</mat-icon>
     </button>
   </div>
+</div>
+
+<div *ngIf="!hasSelectableStages" class="none-defined-yet">
+  <i>No stages to display yet</i>
 </div>
