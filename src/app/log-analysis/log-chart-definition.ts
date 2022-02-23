@@ -1,4 +1,5 @@
 import {StageInfo} from "../api/project-api.service";
+import {BehaviorSubject} from "rxjs";
 
 export interface StageCsvInfo {
   id: string;
@@ -91,6 +92,7 @@ export type ChartDataPoint = [number, number];
 
 export interface ChartDialogData {
   chartDefinition: LogChartDefinition;
+  dataSource: BehaviorSubject<ChartDataSeries[]>
   stages: StageCsvInfo[];
 }
 

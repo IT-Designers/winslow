@@ -114,7 +114,7 @@
 <mat-dialog-content class="dialog-content">
   <app-log-analysis-chart
     [settings]="data.chartDefinition.displaySettings"
-    [data]="getChartData()"
+    [dataSource]="data.dataSource"
   ></app-log-analysis-chart>
 </mat-dialog-content>
 

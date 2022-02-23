@@ -77,12 +77,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
       this.probablyProjectPipelineId = null;
       if (this.project && this.project.pipelineDefinition) {
-        for (const pipeline of this.pipelines) {
-          if (pipeline.name === this.project.pipelineDefinition.name) {
-            this.probablyProjectPipelineId = pipeline.id;
-            break;
-          }
-        }
+        this.probablyProjectPipelineId = this.api.findProjectPipeline(this.project, this.pipelines)
       }
     });
     this.updateExecutionSelectionPipelines();
