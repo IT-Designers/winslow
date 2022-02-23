@@ -1,0 +1,82 @@
+<app-loading-info [loading]="isLongLoading()"></app-loading-info>
+
+<div class="scrollable">
+  <div class="top-bar">
+
+    <button class="latest-stage-button" mat-raised-button color="accent"
+            [disabled]="isLatestStage(stageToDisplay)"
+            (click)="updateStageCsvInfo(stageToDisplay, latestStage)">
+      Show most recent Stage
+    </button>
+
+    <mat-form-field appearance="legacy" class="stage-selection">
+      <mat-select
+        [(ngModel)]="stageToDisplay.stage"
+        (selectionChange)="updateStageCsvInfo(stageToDisplay, stageToDisplay.stage)"
+      >
+        <mat-option *ngFor="let stage of selectableStages" [value]="stage">
+          {{stageLabel(stage)}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button class="compare-stage-button" mat-raised-button
+            (click)="addStageToCompare()">
+      Compare with another Stage
+    </button>
+
+    <button class="display-settings-button" mat-raised-button (click)="openDisplaySettingsDialog()">
+      <mat-icon matTooltip="Display Settings">settings</mat-icon>
+    </button>
+
+    <ng-container *ngFor="let stageCsvInfo of stagesToCompare; let i = index">
+      <button class="latest-stage-button"
+              mat-raised-button
+              color="accent"
+              [disabled]="isLatestStage(stageCsvInfo)"
+              (click)="updateStageCsvInfo(stageCsvInfo, latestStage)"
+      >
+        Show most recent Stage
+      </button>
+      <mat-form-field appearance="legacy" class="stage-selection">
+        <mat-select
+          [(ngModel)]="stageCsvInfo.stage"
+          (selectionChange)="updateStageCsvInfo(stageCsvInfo, stageCsvInfo.stage)"
+        >
+          <mat-option *ngFor="let stage of selectableStages" [value]="stage">
+            {{stageLabel(stage)}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button class="remove-compared-stage-button" mat-raised-button
+              (click)="removeStageToCompare(i)">
+        Remove
+      </button>
+    </ng-container>
+
+  </div>
+
+  <div class="top-bar-divider">
+    <mat-divider></mat-divider>
+  </div>
+
+  <div class="chart-grid">
+    <ng-container *ngFor="let chart of charts; let i = index">
+      <mat-card class="chart-card">
+        <mat-card-content class="chart-card-content">
+          <app-log-analysis-chart
+            [settings]="chart.definition.displaySettings"
+            [data]="chart.data"
+          ></app-log-analysis-chart>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button (click)="openEditChartDialog(chart)">Edit</button>
+          <button mat-button (click)="removeChart(i)">Remove</button>
+        </mat-card-actions>
+      </mat-card>
+    </ng-container>
+    <button class="create-chart-tile" mat-fab color="primary" (click)="createChart()">
+      <mat-icon matTooltip="Add Chart">add</mat-icon>
+    </button>
+  </div>
+</div>

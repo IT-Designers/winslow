@@ -132,10 +132,6 @@ body {
   flex-grow: 0 !important;
 }
 
-.cdk-global-overlay-wrapper .cdk-overlay-pane {
-  width: 100% !important;
-}
-
 .mat-list-base .mat-list-item {
   font-size: 14px !important;
 }
@@ -175,11 +171,10 @@ body {
 .vmenu-selection-container {
   display: flex;
   max-width: 30vw;
-  flex-grow: 0;
-  flex-shrink: 0;
 }
 
 .vmenu-selection-container .mat-card {
+  flex-grow: 1;
   background-color: whitesmoke;
   padding: 0.5em;
   border-right: 1px solid lightgray;

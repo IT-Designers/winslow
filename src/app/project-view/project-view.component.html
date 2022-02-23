@@ -1,5 +1,5 @@
-<mat-tab-group #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)"
-               class="fill-height">
+<mat-tab-group mat-align-tabs="center" #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)"
+               class="fill-height" >
 
   <mat-tab label="Overview">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
@@ -163,8 +163,9 @@
               (clickPauseAfterThis)="updateRequestPause(true)"
               (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
               (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
-              (clickOpenLogs)="openLogs($event)"
               (clickOpenWorkspace)="openWorkspace(project, $event)"
+              (clickOpenLogs)="openLogs($event)"
+              (clickOpenAnalysis)="openAnalysis($event)"
               (clickOpenTensorboard)="openTensorboard(project, $event)"
             ></app-project-history>
           </div>
@@ -179,8 +180,9 @@
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
           (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"
-          (clickOpenLogs)="openLogs($event)"
           (clickOpenWorkspace)="openWorkspace(project, $event)"
+          (clickOpenLogs)="openLogs($event)"
+          (clickOpenAnalysis)="openAnalysis($event)"
           (clickOpenTensorboard)="openTensorboard(project, $event)"
       >
         </app-project-history-details>
@@ -208,6 +210,15 @@
                     [project]="projectValue"
                     [selectedStage]="stageIdToDisplayLogsFor"
       ></app-log-view>
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Analysis">
+    <ng-template matTabContent>
+      <app-log-analysis class="flex-grow flex-grow-column max-height"
+                    [project]="projectValue"
+                    [selectedStage]="stageIdToDisplayLogsFor"
+      ></app-log-analysis>
     </ng-template>
   </mat-tab>
 

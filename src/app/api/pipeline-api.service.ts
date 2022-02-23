@@ -48,6 +48,14 @@ export class PipelineApiService {
       .toPromise()
       .then(info => new PipelineInfo(info));
   }
+
+  getLogParsers(pipeline: string, stage: string) {
+    return this
+      .client
+      .get<LogParser[]>(PipelineApiService.getUrl(`${pipeline}/${stage}/logparsers`))
+      .toPromise()
+      .then(info => info.map(i => new LogParser(i)));
+  }
 }
 
 
@@ -88,4 +96,18 @@ export class ResourceInfo {
   cpus: number;
   megabytesOfRam: number;
   gpus?: number;
+}
+
+export class LogParser {
+  destination: string;
+  formatter: string;
+  matcher: string;
+  type: string;
+
+  constructor(info) {
+    this.destination = info.destination;
+    this.formatter = info.formatter;
+    this.matcher = info.matcher;
+    this.type = info.type;
+  }
 }

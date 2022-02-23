@@ -27,8 +27,9 @@ export class ProjectHistoryComponent implements OnInit {
   @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
-  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
+  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
+  @Output() clickOpenAnalysis = new EventEmitter<StageInfo>();
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
   @Output() clickGetStage = new EventEmitter<StageInfo>();
 

@@ -1,0 +1,22 @@
+.dialog-content {
+  padding: 0;
+  margin: 0;
+}
+
+.dialog-actions {
+  padding: 0;
+  margin: 0;
+}
+
+.wide-field {
+  width: 720px;
+}
+
+.left-field {
+  width: 355px;
+  margin-right: 10px;
+}
+
+.right-field {
+  width: 355px;
+}
