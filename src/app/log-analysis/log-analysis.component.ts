@@ -260,6 +260,44 @@ export class LogAnalysisComponent implements OnInit {
     })
   }
 
+  private loadStagesFromHistory(projectHistory) {
+    this.projectHistory = projectHistory;
+    this.selectableStages = this.getSelectableStages(projectHistory);
+    this.latestStage = this.getLatestStage();
+
+    this.hasSelectableStages = this.selectableStages.length > 0;
+
+    if (this.hasSelectableStages) {
+      this.autoSelectStage();
+
+      this.loadCharts();
+    }
+  }
+
+  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
+    let stages: StageInfo[] = []
+
+    projectHistory.forEach(executionGroup => {
+
+      if (executionGroup.configureOnly) {
+        return;
+      }
+
+      const state = executionGroup.getMostRelevantState();
+      if (state == State.Failed || state == State.Skipped) {
+        return;
+      }
+
+      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
+        stages.push(executionGroup.stages[0]);
+      } else {
+        stages.push(...executionGroup.stages);
+      }
+    })
+
+    return stages;
+  }
+
   private stagesToDrawGraphsFor() {
     return [this.stageToDisplay, ...this.stagesToCompare];
   }
