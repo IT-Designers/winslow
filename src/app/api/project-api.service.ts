@@ -419,6 +419,14 @@ export class ProjectApiService {
     return alt;
   }
 
+  findProjectPipeline(project: ProjectInfo, pipelines: PipelineInfo[]) {
+    for (const pipeline of pipelines) {
+      if (pipeline.name === project.pipelineDefinition.name) {
+        return  pipeline.id;
+      }
+    }
+    return null;
+  }
 }
 
 export enum State {
