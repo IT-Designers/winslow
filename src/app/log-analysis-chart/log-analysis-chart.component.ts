@@ -9,9 +9,10 @@ import {Observable, Subscription} from "rxjs";
 })
 export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
-  private options;
-
-  private chartSeries;
+  options: any;
+  merge = {
+    series: []
+  }
 
   private dataSubscription: Subscription = null;
 
@@ -43,13 +44,19 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
         nameGap: '25',
       },
       animation: false,
-      series: this.chartSeries,
+      series: [],
     }
   };
 
   @Input() set dataSource(dataSource: Observable<ChartDataSeries[]>) {
     this.dataSubscription = dataSource.subscribe({
-      next: chartData => this.insertDataSeries(chartData)
+      next: chartData => this.merge.series = chartData.map(data => {
+        return {
+          type: 'line',
+          showSymbol: false,
+          data: data,
+        }
+      })
     })
   }
 
@@ -63,26 +70,11 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
   }
 
-  eChartOptions() {
-    this.options.series = this.chartSeries;
-    return this.options;
-  }
-
   sanitiseNumberInput(input: string, alt: string): string {
     if (Number.isNaN(parseFloat(input))) {
       return alt;
     } else {
       return input;
     }
-  }
-
-  private insertDataSeries(chartData: ChartDataSeries[]) {
-    this.chartSeries = chartData.map(data => {
-      return {
-        type: 'line',
-        showSymbol: false,
-        data: data,
-      }
-    })
   }
 }
