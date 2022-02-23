@@ -49,16 +49,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
   @Input() set dataSource(dataSource: Observable<ChartDataSeries[]>) {
     this.dataSubscription = dataSource.subscribe({
-      next: (value) => {
-        console.log(value)
-        this.chartSeries = value.map(data => {
-          return {
-            type: 'line',
-            showSymbol: false,
-            data: data,
-          }
-        })
-      }
+      next: chartData => this.insertDataSeries(chartData)
     })
   }
 
@@ -83,5 +74,15 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     } else {
       return input;
     }
+  }
+
+  private insertDataSeries(chartData: ChartDataSeries[]) {
+    this.chartSeries = chartData.map(data => {
+      return {
+        type: 'line',
+        showSymbol: false,
+        data: data,
+      }
+    })
   }
 }
