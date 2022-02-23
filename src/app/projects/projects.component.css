@@ -2,10 +2,29 @@
   display: flex;
   flex-grow: 1;
   flex-direction: column;
+  overflow-y: hidden;
+  height: 100%;
 }
 
-.project-selection-sidebar-item {
-  height: 6em !important; /* TODO */
+.drawer-container {
+  height: 100%;
+}
+
+.drawer {
+  width: 30vw;
+  background-color: whitesmoke;
+  overflow-y: auto;
+}
+
+.drawer-content {
+  padding: 0.5em;
+  overflow-y: hidden;
+  margin-bottom: 4em;
+}
+
+.drawer-element {
+  display: block;
+  margin: 0.5em;
 }
 
 .mat-icon-container-auto-align-label label {
@@ -13,31 +32,14 @@
   margin: auto 0;
 }
 
-.vmenu-selection {
-  overflow-y: auto;
-  overflow-x: hidden;
+.button-group {
+  position: absolute;
+  left: 1.25em;
+  bottom: 1.25em;
+  right: 1.25em;
 }
 
-mat-drawer.vmenu-selection-container::ng-deep > *:first-child {
-  display: flex;
-}
-
-mat-drawer-container::ng-deep mat-drawer-content {
-  display: flex;
-}
-
-.mat-card {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-
-.sticky-button-group {
-  position: sticky;
-  margin: 1em;
-  top: calc(100% - 3.5em);
-}
-
-.sticky-button-group button {
+.button-group button {
   margin: 0.25em;
 }
 
@@ -50,6 +52,12 @@ mat-drawer-container::ng-deep mat-drawer-content {
 
 .hide-projects-button {
   float: right;
+}
+
+.project-container {
+  background: white;
+  padding: 0 1em;
+  height: 100%;
 }
 
 .section {
