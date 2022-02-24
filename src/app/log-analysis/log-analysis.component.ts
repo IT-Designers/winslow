@@ -361,7 +361,7 @@ export class LogAnalysisComponent implements OnInit {
         const directory = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}`;
 
         this.loadCsvFile(newCsvFile, directory, filename).then(() => {
-          this.refreshChartsWithSource(filename);
+          this.refreshAllChartsWithFileSource(filename);
         })
       }
 
@@ -379,11 +379,13 @@ export class LogAnalysisComponent implements OnInit {
       .then(text => {
         csvFile.content = this.parseCsv(text);
         csvFile.status = CsvFileStatus.OK;
+        console.log(`Finished loading file ${filename} from ${filepath}`)
         return csvFile;
       })
       .catch(error => {
-        console.warn(error);
         csvFile.status = CsvFileStatus.FAILED;
+        console.log(`Failed to load file ${filename} from ${filepath}`)
+        console.warn(error);
         return csvFile;
       });
   };
