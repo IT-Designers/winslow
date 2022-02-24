@@ -1,5 +1,6 @@
 import {StageInfo} from "../api/project-api.service";
 import {BehaviorSubject} from "rxjs";
+import {FilesApiService} from "../api/files-api.service";
 
 export interface StageCsvInfo {
   id: string;
@@ -8,16 +9,60 @@ export interface StageCsvInfo {
 }
 
 export enum CsvFileStatus {
+  NOT_LOADED,
   LOADING,
   OK,
   FILE_IS_EMPTY_OR_MISSING,
   FAILED,
 }
 
-export interface CsvFileInfo {
-  name: string;
+export class CsvFileInfo {
+  filename: string;
+  directory: string;
   status: CsvFileStatus;
   content: CsvFileContent;
+
+  constructor(directory: string, filename: string) {
+    this.filename = filename;
+    this.directory = directory;
+    this.status = CsvFileStatus.NOT_LOADED;
+  }
+
+  loadFrom(filesApi: FilesApiService) {
+    this.status = CsvFileStatus.LOADING;
+
+    console.log(`Loading file ${this.filename} from ${this.directory}`);
+
+    const filepath = `${this.directory}/${this.filename}`;
+
+    return filesApi.getFile(filepath).toPromise()
+      .then(text => {
+        this.content = this.parse(text);
+        this.status = CsvFileStatus.OK;
+        console.log(`Finished loading file ${this.filename} from ${this.directory}`)
+
+        if (text.trim().length == 0) {
+          this.status = CsvFileStatus.FILE_IS_EMPTY_OR_MISSING;
+          console.warn(`File ${this.filename} from ${this.directory} is empty or might be missing.`);
+        }
+      })
+      .catch(error => {
+        this.status = CsvFileStatus.FAILED;
+        console.log(`Failed to load file ${this.filename} from ${this.directory}`)
+        console.warn(error);
+      });
+  }
+
+  private parse(text: string) {
+    const lines = text.split('\n');
+    const content = [];
+    lines.forEach(line => {
+      if (line.trim().length != 0) { // ignore empty lines
+        content.push(line.split(';'));
+      }
+    })
+    return content;
+  }
 }
 
 export type CsvFileContent = string[][]
