@@ -12,20 +12,20 @@ public class CsvLineAggregator {
     private final @Nonnull List<Operation> operations = new ArrayList<>();
 
     public CsvLineAggregator(@Nonnull List<Operator> operators) {
-        this(',', operators, new Config());
+        this(",", operators, new Config());
     }
 
     public CsvLineAggregator(
             @Nonnull List<Operator> operators,
             @Nonnull Config config) {
-        this(',', operators, config);
+        this(",", operators, config);
     }
 
     public CsvLineAggregator(
-            char separator,
+            @Nonnull String separator,
             @Nonnull List<Operator> operators,
             @Nonnull Config config) {
-        this.separator = String.valueOf(separator);
+        this.separator = separator;
         this.operators = operators;
         this.config    = config;
     }
