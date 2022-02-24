@@ -11,6 +11,8 @@ public class CsvLineAggregator {
 
     private final @Nonnull List<Operation> operations = new ArrayList<>();
 
+    private long rowCounter = 0;
+
     public CsvLineAggregator(@Nonnull List<Operator> operators) {
         this(",", operators, new Config());
     }
@@ -36,6 +38,7 @@ public class CsvLineAggregator {
         var split        = line.split(this.separator);
         var shouldBeNext = false;
 
+        this.rowCounter += 1;
 
         for (int i = 0; i < this.operators.size() && i < split.length; ++i) {
             if (this.operations.size() > i) {
@@ -43,9 +46,10 @@ public class CsvLineAggregator {
             }
         }
 
-        if (shouldBeNext) {
+        if (shouldBeNext || rowCounter >= this.config.aggregationSpanRows) {
             result = this.result();
             this.operations.clear();
+            this.rowCounter = 0;
         }
 
         for (int i = 0; i < this.operators.size() && i < split.length; ++i) {
@@ -74,12 +78,19 @@ public class CsvLineAggregator {
 
     public static class Config {
         Long   aggregationSpanMillis = null;
+        Long   aggregationSpanRows   = null;
         String decimalFormatter      = "%.2f";
         Locale formatterLocale       = Locale.ENGLISH;
 
         @Nonnull
         public Config setAggregationSpanMillis(long aggregationSpanMillis) {
             this.aggregationSpanMillis = aggregationSpanMillis;
+            return this;
+        }
+
+        @Nonnull
+        public Config setAggregationSpanRows(long aggregationSpanRows) {
+            this.aggregationSpanRows = aggregationSpanRows;
             return this;
         }
 
