@@ -5,14 +5,14 @@
 
     <button class="latest-stage-button" mat-raised-button color="accent"
             [disabled]="isLatestStage(stageToDisplay)"
-            (click)="updateStageCsvInfo(stageToDisplay, latestStage)">
+            (click)="loadStageCsvInfo(stageToDisplay, latestStage)">
       Show most recent Stage
     </button>
 
     <mat-form-field appearance="legacy" class="stage-selection">
       <mat-select
         [(ngModel)]="stageToDisplay.stage"
-        (selectionChange)="updateStageCsvInfo(stageToDisplay, stageToDisplay.stage)"
+        (selectionChange)="loadStageCsvInfo(stageToDisplay, stageToDisplay.stage)"
       >
         <mat-option *ngFor="let stage of selectableStages" [value]="stage">
           {{stageLabel(stage)}}
@@ -34,14 +34,14 @@
               mat-raised-button
               color="accent"
               [disabled]="isLatestStage(stageCsvInfo)"
-              (click)="updateStageCsvInfo(stageCsvInfo, latestStage)"
+              (click)="loadStageCsvInfo(stageCsvInfo, latestStage)"
       >
         Show most recent Stage
       </button>
       <mat-form-field appearance="legacy" class="stage-selection">
         <mat-select
           [(ngModel)]="stageCsvInfo.stage"
-          (selectionChange)="updateStageCsvInfo(stageCsvInfo, stageCsvInfo.stage)"
+          (selectionChange)="loadStageCsvInfo(stageCsvInfo, stageCsvInfo.stage)"
         >
           <mat-option *ngFor="let stage of selectableStages" [value]="stage">
             {{stageLabel(stage)}}

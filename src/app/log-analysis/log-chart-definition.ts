@@ -4,13 +4,22 @@ import {BehaviorSubject} from "rxjs";
 export interface StageCsvInfo {
   id: string;
   stage: StageInfo;
-  csvFiles: CsvFile[]
+  csvFiles: CsvFileInfo[]
 }
 
-export interface CsvFile {
-  name: string;
-  content: string[][];
+export enum CsvFileStatus {
+  LOADING,
+  OK,
+  FAILED,
 }
+
+export interface CsvFileInfo {
+  name: string;
+  status: CsvFileStatus;
+  content: CsvFileContent;
+}
+
+export type CsvFileContent = string[][]
 
 export class LogChartDefinition {
   displaySettings: ChartDisplaySettings;
@@ -29,19 +38,14 @@ export class LogChartDefinition {
     this.entryLimit = null;
   }
 
-  static getDataSeries(chart: LogChartDefinition, csvFiles: CsvFile[], displaySettings: AnalysisDisplaySettings = null): ChartDataSeries {
+  static getDataSeries(chart: LogChartDefinition, csvContent: CsvFileContent, displaySettings: AnalysisDisplaySettings = null): ChartDataSet {
     let entryLimit = chart.entryLimit;
 
     if (displaySettings?.enableEntryLimit) {
       entryLimit = displaySettings.entryLimit;
     }
 
-    const csvFile = csvFiles.find(csvFile => csvFile.name == chart.file);
-    if (!csvFile) {
-      return [];
-    }
-
-    const rows = LogChartDefinition.getLatestRows(csvFile, entryLimit);
+    const rows = LogChartDefinition.getLatestRows(csvContent, entryLimit);
     const variableNames = chart.formatter.split(";");
     const xIndex = variableNames.findIndex(variableName => variableName == chart.xVariable);
     const yIndex = variableNames.findIndex(variableName => variableName == chart.yVariable);
@@ -54,14 +58,14 @@ export class LogChartDefinition {
     });
   }
 
-  private static getLatestRows(csvFile: CsvFile, displayAmount: number) {
-    let sectionEnd = csvFile.content.length;
+  private static getLatestRows(csvContent: CsvFileContent, displayAmount: number) {
+    let sectionEnd = csvContent.length;
     let sectionStart = 0;
     if (displayAmount > 0) {
       sectionStart = sectionEnd - displayAmount;
     }
 
-    return csvFile.content.slice(sectionStart, sectionEnd);
+    return csvContent.slice(sectionStart, sectionEnd);
   }
 }
 
@@ -86,13 +90,13 @@ export enum ChartAxisType {
   TIME = "time",
 }
 
-export type ChartDataSeries = ChartDataPoint[];
+export type ChartDataSet = ChartDataPoint[];
 
 export type ChartDataPoint = [number, number];
 
 export interface ChartDialogData {
   chartDefinition: LogChartDefinition;
-  dataSource: BehaviorSubject<ChartDataSeries[]>
+  dataSource: BehaviorSubject<ChartDataSet[]>
   stages: StageCsvInfo[];
 }
 
