@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartDataSeries, ChartDisplaySettings} from "../log-analysis/log-chart-definition";
+import {ChartDataSet, ChartDisplaySettings} from "../log-analysis/log-chart-definition";
 import {Observable, Subscription} from "rxjs";
 
 @Component({
@@ -10,9 +10,7 @@ import {Observable, Subscription} from "rxjs";
 export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
   options: any;
-  merge = {
-    series: []
-  }
+  merge = null;
 
   private dataSubscription: Subscription = null;
 
@@ -30,16 +28,16 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
       xAxis: {
         name: settings.xAxisName,
         type: settings.xAxisType,
-        min: this.sanitiseNumberInput(settings.xAxisMinValue, 'dataMin'),
-        max: this.sanitiseNumberInput(settings.xAxisMaxValue, 'dataMax'),
+        min: LogAnalysisChartComponent.sanitiseNumberInput(settings.xAxisMinValue, 'dataMin'),
+        max: LogAnalysisChartComponent.sanitiseNumberInput(settings.xAxisMaxValue, 'dataMax'),
         nameLocation: 'center',
         nameGap: '25',
       },
       yAxis: {
         name: settings.yAxisName,
         type: settings.yAxisType,
-        min: this.sanitiseNumberInput(settings.yAxisMinValue, 'dataMin'),
-        max: this.sanitiseNumberInput(settings.yAxisMaxValue, 'dataMax'),
+        min: LogAnalysisChartComponent.sanitiseNumberInput(settings.yAxisMinValue, 'dataMin'),
+        max: LogAnalysisChartComponent.sanitiseNumberInput(settings.yAxisMaxValue, 'dataMax'),
         nameLocation: 'center',
         nameGap: '25',
       },
@@ -48,15 +46,9 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     }
   };
 
-  @Input() set dataSource(dataSource: Observable<ChartDataSeries[]>) {
+  @Input() set dataSource(dataSource: Observable<ChartDataSet[]>) {
     this.dataSubscription = dataSource.subscribe({
-      next: chartData => this.merge.series = chartData.map(data => {
-        return {
-          type: 'line',
-          showSymbol: false,
-          data: data,
-        }
-      })
+      next: chartData => this.mergeChartData(chartData)
     })
   }
 
@@ -70,11 +62,23 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
   }
 
-  sanitiseNumberInput(input: string, alt: string): string {
+  private static sanitiseNumberInput(input: string, alt: string): string {
     if (Number.isNaN(parseFloat(input))) {
       return alt;
     } else {
       return input;
+    }
+  }
+
+  private mergeChartData(chartData: ChartDataSet[]) {
+    const series = chartData.map(data => ({
+      type: 'line',
+      showSymbol: false,
+      data: data,
+    }))
+
+    this.merge = {
+      series: series
     }
   }
 }
