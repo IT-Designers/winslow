@@ -110,12 +110,17 @@ public class CsvLineAggregator {
             switch (this) {
                 case TimeMs:
                     return new Operation() {
-                        final long initial = Long.parseLong(value);
+                        final String initial = value;
 
                         @Override
                         public boolean shouldBeNext(@Nonnull String value) {
-                            var current = Long.parseLong(value);
-                            return current >= this.initial + config.aggregationSpanMillis;
+                            try {
+                                var initial = Long.parseLong(this.initial);
+                                var current = Long.parseLong(value);
+                                return config.aggregationSpanMillis != null && current >= initial + config.aggregationSpanMillis;
+                            } catch (NumberFormatException ignored) {
+                                return true;
+                            }
                         }
 
                         @Override
@@ -125,7 +130,7 @@ public class CsvLineAggregator {
                         @Nonnull
                         @Override
                         public String result() {
-                            return String.valueOf(this.initial);
+                            return this.initial;
                         }
                     };
                 case Distinct:
@@ -186,7 +191,14 @@ public class CsvLineAggregator {
                     };
                 case Min:
                     return new Operation() {
-                        double current = Double.parseDouble(value);
+                        double current = 0.0;
+
+                        {
+                            try {
+                                this.current = Double.parseDouble(value);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
 
                         @Override
                         public boolean shouldBeNext(@Nonnull String value) {
@@ -195,8 +207,12 @@ public class CsvLineAggregator {
 
                         @Override
                         public void push(@Nonnull String value) {
-                            var v = Double.parseDouble(value);
-                            this.current = Math.min(this.current, v);
+                            try {
+                                var v = Double.parseDouble(value);
+                                this.current = Math.min(this.current, v);
+                            } catch (NumberFormatException ignored) {
+                                this.current = 0;
+                            }
                         }
 
                         @Nonnull
@@ -207,7 +223,14 @@ public class CsvLineAggregator {
                     };
                 case Max:
                     return new Operation() {
-                        double current = Double.parseDouble(value);
+                        Double current = null;
+
+                        {
+                            try {
+                                this.current = Double.parseDouble(value);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
 
                         @Override
                         public boolean shouldBeNext(@Nonnull String value) {
@@ -216,30 +239,12 @@ public class CsvLineAggregator {
 
                         @Override
                         public void push(@Nonnull String value) {
-                            var v = Double.parseDouble(value);
-                            this.current = Math.max(this.current, v);
-                        }
-
-                        @Nonnull
-                        @Override
-                        public String result() {
-                            return String.format(config.formatterLocale, config.decimalFormatter, current);
-                        }
-                    };
-                case Avg:
-                    return new Operation() {
-                        double current = Double.parseDouble(value);
-                        double counter = 1;
-
-                        @Override
-                        public boolean shouldBeNext(@Nonnull String value) {
-                            return false;
-                        }
-
-                        @Override
-                        public void push(@Nonnull String value) {
-                            this.current += Double.parseDouble(value);
-                            this.counter += 1;
+                            try {
+                                var v = Double.parseDouble(value);
+                                this.current = Math.max(this.current, v);
+                            } catch (NumberFormatException | NullPointerException ignored) {
+                                this.current = null;
+                            }
                         }
 
                         @Nonnull
@@ -248,7 +253,46 @@ public class CsvLineAggregator {
                             return String.format(
                                     config.formatterLocale,
                                     config.decimalFormatter,
-                                    this.current / this.counter
+                                    current != null ? current : 0
+                            );
+                        }
+                    };
+                case Avg:
+                    return new Operation() {
+                        Double current = null;
+                        double counter = 1;
+
+                        {
+                            try {
+                                this.current = Double.parseDouble(value);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+
+                        @Override
+                        public boolean shouldBeNext(@Nonnull String value) {
+                            return false;
+                        }
+
+                        @Override
+                        public void push(@Nonnull String value) {
+                            try {
+                                this.current += Double.parseDouble(value);
+                                this.counter += 1;
+                            } catch (NumberFormatException | NullPointerException ignored) {
+                                this.current = null;
+                            }
+                        }
+
+                        @Nonnull
+                        @Override
+                        public String result() {
+                            return String.format(
+                                    config.formatterLocale,
+                                    config.decimalFormatter,
+                                    this.current != null
+                                    ? this.current / this.counter
+                                    : 0
                             );
                         }
                     };
