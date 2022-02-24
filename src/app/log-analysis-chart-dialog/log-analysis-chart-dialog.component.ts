@@ -16,5 +16,6 @@ export class LogAnalysisChartDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: ChartDialogData
   ) {
+
   }
 }
