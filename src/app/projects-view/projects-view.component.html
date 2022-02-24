@@ -7,7 +7,7 @@
 </div>
 
 <!-- Section for Group-View -->
-<div *ngIf="projectsGroups != null">
+<div *ngIf="projectsGroups != null && projectsGroups != []">
   <!-- Group-View with Groups on Top -->
   <div *ngIf="groupsOnTop">
     <mat-list class="group">
@@ -48,7 +48,7 @@
             </div>
           </mat-expansion-panel>
         </div>
-        <div *ngIf="isLast && !documentGet.getElementById('groups').isConnected" class="none-defined-yet">
+        <div *ngIf="isLast && documentGet.getElementById('groups') == null" class="none-defined-yet">
           <i>There are no projects without a group</i>
         </div>
       </div>
@@ -72,7 +72,7 @@
           </mat-list-item>
           <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
         </div>
-        <div *ngIf="isLast && !documentGet.getElementById('projects').isConnected" class="none-defined-yet">
+        <div *ngIf="isLast && documentGet.getElementById('projects') == null" class="none-defined-yet">
           <i>There are no projects without a group</i>
         </div>
       </div>
