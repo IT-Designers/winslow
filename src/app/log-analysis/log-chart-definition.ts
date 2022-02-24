@@ -10,6 +10,7 @@ export interface StageCsvInfo {
 export enum CsvFileStatus {
   LOADING,
   OK,
+  FILE_IS_EMPTY_OR_MISSING,
   FAILED,
 }
 
