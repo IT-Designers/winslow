@@ -314,16 +314,26 @@ export class LogAnalysisComponent implements OnInit {
 
     return this.filesApi.getFile(filepath).toPromise()
       .then(text => {
+
         csvFile.content = this.parseCsv(text);
         csvFile.status = CsvFileStatus.OK;
         console.log(`Finished loading file ${filename} from ${filepath}`)
+
+        if (text.trim().length == 0) {
+          csvFile.status = CsvFileStatus.FILE_IS_EMPTY_OR_MISSING;
+          console.warn(`File ${filename} from ${filepath} is empty or might be missing.`);
+        }
+
         return csvFile;
+
       })
       .catch(error => {
+
         csvFile.status = CsvFileStatus.FAILED;
         console.log(`Failed to load file ${filename} from ${filepath}`)
         console.warn(error);
         return csvFile;
+
       });
   };
 
