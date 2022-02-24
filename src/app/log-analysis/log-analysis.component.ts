@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State} from "../api/project-api.service";
+import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
@@ -116,6 +116,10 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   stageLabel(stage: StageInfo): string {
+    if (stage == null) {
+      return "Stage is null!";
+    }
+
     const dateValue = stage.finishTime ?? stage.startTime;
     const dateString = new Date(dateValue).toLocaleString();
 
@@ -217,8 +221,7 @@ export class LogAnalysisComponent implements OnInit {
         return;
       }
 
-      const state = executionGroup.getMostRelevantState();
-      if (state == State.Failed || state == State.Skipped) {
+      if (executionGroup.stages.length == 0) {
         return;
       }
 
@@ -277,75 +280,30 @@ export class LogAnalysisComponent implements OnInit {
     });
   };
 
-  private refreshChart(chart: LogChart, stageCsvInfos: StageCsvInfo[], displaySettings: AnalysisDisplaySettings) {
+  refreshChart(chart: LogChart, stageCsvInfos: StageCsvInfo[], displaySettings: AnalysisDisplaySettings) {
     const data = stageCsvInfos.map(stageCsvInfo => {
       const filename = chart.definition.file;
-      const csvFile = stageCsvInfo.csvFiles.find(csvFile => csvFile.name == filename);
-
-      if (csvFile?.status == CsvFileStatus.OK) {
-        return LogChartDefinition.getDataSeries(chart.definition, csvFile.content, displaySettings)
-      }
+      const csvFile = stageCsvInfo.csvFiles.find(csvFile => csvFile.filename == filename);
 
       if (csvFile == null) {
-        const newCsvFile = {
-          content: [],
-          name: filename,
-          status: CsvFileStatus.LOADING,
-        }
+        const directory = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}`;
+        const newCsvFile = new CsvFileInfo(directory, filename);
 
         stageCsvInfo.csvFiles.push(newCsvFile);
 
-        const directory = `${LogAnalysisComponent.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}`;
-
-        this.loadCsvFile(newCsvFile, directory, filename).then(() => {
+        newCsvFile.loadFrom(this.filesApi).then(() => {
           this.refreshAllChartsWithFileSource(filename);
         })
+      }
+
+      if (csvFile?.status == CsvFileStatus.OK) {
+        return LogChartDefinition.getDataSeries(chart.definition, csvFile.content, displaySettings)
       }
 
       return [];
     });
 
     chart.dataSubject.next(data);
-  }
-
-  private loadCsvFile = (csvFile: CsvFileInfo, directory: string, filename: string) => {
-    const filepath = `${directory}/${filename}`;
-    console.log(`Loading file ${filename} from ${filepath}`);
-
-    return this.filesApi.getFile(filepath).toPromise()
-      .then(text => {
-
-        csvFile.content = this.parseCsv(text);
-        csvFile.status = CsvFileStatus.OK;
-        console.log(`Finished loading file ${filename} from ${filepath}`)
-
-        if (text.trim().length == 0) {
-          csvFile.status = CsvFileStatus.FILE_IS_EMPTY_OR_MISSING;
-          console.warn(`File ${filename} from ${filepath} is empty or might be missing.`);
-        }
-
-        return csvFile;
-
-      })
-      .catch(error => {
-
-        csvFile.status = CsvFileStatus.FAILED;
-        console.log(`Failed to load file ${filename} from ${filepath}`)
-        console.warn(error);
-        return csvFile;
-
-      });
-  };
-
-  private parseCsv(text: string) {
-    const lines = text.split('\n');
-    const content = [];
-    lines.forEach(line => {
-      if (line.trim().length != 0) { // ignore empty lines
-        content.push(line.split(';'));
-      }
-    })
-    return content;
   }
 
   saveCharts() {
