@@ -14,7 +14,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
 
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
-  groupsOnTopIsChecked: boolean;
+  groupsOnTopIsChecked = false;
 
   constructor() {
   }
@@ -36,7 +36,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   }
 
   updateGroups() {
-    if (this.projectsValue == null || this.groupsActivated === false || !this.availableTagsValue) {
+    if (this.projectsValue.length == null || this.groupsActivated === false || !this.availableTagsValue) {
       this.projectsGroups.emit(null);
       return;
     }
@@ -68,7 +68,11 @@ export class ProjectsGroupBuilderComponent implements OnInit {
       }
     }
     projectGroups = this.sortGroups(projectGroups);
-    this.projectsGroups.emit(projectGroups);
+    if (projectGroups.length <= 0) {
+      this.projectsGroups.emit(null);
+    } else {
+      this.projectsGroups.emit(projectGroups);
+    }
   }
 
   private isProjectForGroupExisting(projectGroups: ProjectGroup[], project: ProjectInfo) {

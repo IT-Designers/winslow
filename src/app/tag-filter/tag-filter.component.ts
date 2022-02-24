@@ -21,7 +21,7 @@ export class TagFilterComponent implements OnInit {
   includeEmpty = false;
   excludeTags: string[] = [];
   excludeEmpty = false;
-  groupsOnTopIsChecked = false;
+  groupsOnTopIsChecked: boolean;
 
   constructor() {
   }
