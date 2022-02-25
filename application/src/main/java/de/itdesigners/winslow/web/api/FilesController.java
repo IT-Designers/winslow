@@ -34,12 +34,12 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -357,21 +357,32 @@ public class FilesController {
 
 
                     if (file.isFile()) {
-                        return responseEntity
-                                .contentLength(file.length())
-                                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                                .body((StreamingResponseBody) outputStream -> {
-                                    if (compress) {
-                                        try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(
-                                                outputStream)) {
-                                            try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
-                                                appendArchiveEntry(taos, file, file.getName());
+                        var handler = request.getParameter("handler");
+                        switch (handler == null ? "default" : handler) {
+                            case "line-aggregator/csv":
+                                return getStreamingLineAggregatorCsv(
+                                        request,
+                                        file,
+                                        responseEntity
+                                );
+                            case "default":
+                            default:
+                                return responseEntity
+                                        .contentLength(file.length())
+                                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                                        .body((StreamingResponseBody) outputStream -> {
+                                            if (compress) {
+                                                try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(
+                                                        outputStream)) {
+                                                    try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
+                                                        appendArchiveEntry(taos, file, file.getName());
+                                                    }
+                                                }
+                                            } else {
+                                                Files.copy(file.toPath(), outputStream);
                                             }
-                                        }
-                                    } else {
-                                        Files.copy(file.toPath(), outputStream);
-                                    }
-                                });
+                                        });
+                        }
                     } else {
                         return responseEntity
                                 .header("X-Content-Length-Hint", String.valueOf(aggregateSize(file)))
@@ -386,6 +397,81 @@ public class FilesController {
                     }
                 })
                 .orElse(null);
+    }
+
+    @Nonnull
+    private ResponseEntity<StreamingResponseBody> getStreamingLineAggregatorCsv(
+            @Nonnull HttpServletRequest request,
+            @Nonnull File file,
+            @Nonnull ResponseEntity.BodyBuilder responseEntity) {
+        var separator = request.getParameter("separator");
+        var operators = Arrays.stream(request.getParameter("operators").split(",")).map(operator -> {
+            for (CsvLineAggregator.Operator op : CsvLineAggregator.Operator.values()) {
+                if (op.toString().equalsIgnoreCase(operator)) {
+                    return op;
+                }
+            }
+            return CsvLineAggregator.Operator.Last;
+        }).collect(Collectors.toList());
+
+        var config = new CsvLineAggregator.Config();
+
+        var aggregationSpanMillisParam = request.getParameter("aggregation-span-millis");
+        if (aggregationSpanMillisParam != null) {
+            config.setAggregationSpanMillis(Long.parseLong(aggregationSpanMillisParam));
+        }
+
+        var aggregationSpanRows = request.getParameter("aggregation-span-rows");
+        if (aggregationSpanRows != null) {
+            config.setAggregationSpanRows(Long.parseLong(aggregationSpanRows));
+        }
+
+        var maxLinesString = request.getParameter("max-lines");
+        var maxLines = maxLinesString == null ? null : Long.parseLong(maxLinesString);
+
+        return responseEntity
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(outputStream -> {
+                    if (maxLines != null) {
+                        try (var lines = Files.lines(file.toPath())) {
+                            var lineCount = lines.count();
+                            var aggregateRows = lineCount / maxLines;
+
+                            if (lineCount % maxLines > 0) {
+                                aggregateRows += 1;
+                            }
+
+                            if (aggregateRows > 0) {
+                                config.setAggregationSpanRows(aggregateRows);
+                            }
+                        }
+                    }
+
+                    var aggregator = new CsvLineAggregator(separator != null ? separator : ",", operators, config);
+                    try (var lines = Files.lines(file.toPath())) {
+                        lines
+                                .flatMap(l -> aggregator.aggregate(l).stream())
+                                .forEachOrdered(line -> {
+                                    var newLine = System.lineSeparator().getBytes(StandardCharsets.UTF_8);
+                                    var bytes = line.getBytes(StandardCharsets.UTF_8);
+                                    try {
+                                        outputStream.write(bytes);
+                                        outputStream.write(newLine);
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                });
+
+                        aggregator.result().ifPresent(line -> {
+                            var bytes = line.getBytes(StandardCharsets.UTF_8);
+                            try {
+                                outputStream.write(bytes);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                    }
+                });
     }
 
     private void aggregateTarGzEntries(Path root, File current, TarArchiveOutputStream taos) throws IOException {
