@@ -34,7 +34,6 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -47,7 +46,10 @@ import java.util.zip.ZipInputStream;
 @RestController
 public class FilesController {
 
-    public static final String ATTR_LAST_MODIFIED = "last-modified";
+    public static final String ATTR_LAST_MODIFIED                   = "last-modified";
+    public static final String PARAM_DOWNLOAD_HANDLER               = "handler";
+    public static final String DOWNLOAD_HANDLER_CSV_LINE_AGGREGATOR = "line-aggregator/csv";
+    public static final String DOWNLOAD_HANDLER_DEFAULT             = "default";
 
     private final ResourceManager   resourceManager;
     private final FileAccessChecker checker;
@@ -357,15 +359,12 @@ public class FilesController {
 
 
                     if (file.isFile()) {
-                        var handler = request.getParameter("handler");
-                        switch (handler == null ? "default" : handler) {
-                            case "line-aggregator/csv":
-                                return getStreamingLineAggregatorCsv(
-                                        request,
-                                        file,
-                                        responseEntity
-                                );
-                            case "default":
+                        var handler = request.getParameter(PARAM_DOWNLOAD_HANDLER);
+                        switch (handler == null ? DOWNLOAD_HANDLER_DEFAULT : handler) {
+                            case DOWNLOAD_HANDLER_CSV_LINE_AGGREGATOR:
+                                return new StreamingCsvLineAggregatorAdapter(request, file)
+                                        .buildResponseEntity(responseEntity);
+                            case DOWNLOAD_HANDLER_DEFAULT:
                             default:
                                 return responseEntity
                                         .contentLength(file.length())
@@ -397,81 +396,6 @@ public class FilesController {
                     }
                 })
                 .orElse(null);
-    }
-
-    @Nonnull
-    private ResponseEntity<StreamingResponseBody> getStreamingLineAggregatorCsv(
-            @Nonnull HttpServletRequest request,
-            @Nonnull File file,
-            @Nonnull ResponseEntity.BodyBuilder responseEntity) {
-        var separator = request.getParameter("separator");
-        var operators = Arrays.stream(request.getParameter("operators").split(",")).map(operator -> {
-            for (CsvLineAggregator.Operator op : CsvLineAggregator.Operator.values()) {
-                if (op.toString().equalsIgnoreCase(operator)) {
-                    return op;
-                }
-            }
-            return CsvLineAggregator.Operator.Last;
-        }).collect(Collectors.toList());
-
-        var config = new CsvLineAggregator.Config();
-
-        var aggregationSpanMillisParam = request.getParameter("aggregation-span-millis");
-        if (aggregationSpanMillisParam != null) {
-            config.setAggregationSpanMillis(Long.parseLong(aggregationSpanMillisParam));
-        }
-
-        var aggregationSpanRows = request.getParameter("aggregation-span-rows");
-        if (aggregationSpanRows != null) {
-            config.setAggregationSpanRows(Long.parseLong(aggregationSpanRows));
-        }
-
-        var maxLinesString = request.getParameter("max-lines");
-        var maxLines = maxLinesString == null ? null : Long.parseLong(maxLinesString);
-
-        return responseEntity
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(outputStream -> {
-                    if (maxLines != null) {
-                        try (var lines = Files.lines(file.toPath())) {
-                            var lineCount = lines.count();
-                            var aggregateRows = lineCount / maxLines;
-
-                            if (lineCount % maxLines > 0) {
-                                aggregateRows += 1;
-                            }
-
-                            if (aggregateRows > 0) {
-                                config.setAggregationSpanRows(aggregateRows);
-                            }
-                        }
-                    }
-
-                    var aggregator = new CsvLineAggregator(separator != null ? separator : ",", operators, config);
-                    try (var lines = Files.lines(file.toPath())) {
-                        lines
-                                .flatMap(l -> aggregator.aggregate(l).stream())
-                                .forEachOrdered(line -> {
-                                    var newLine = System.lineSeparator().getBytes(StandardCharsets.UTF_8);
-                                    var bytes = line.getBytes(StandardCharsets.UTF_8);
-                                    try {
-                                        outputStream.write(bytes);
-                                        outputStream.write(newLine);
-                                    } catch (IOException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                });
-
-                        aggregator.result().ifPresent(line -> {
-                            var bytes = line.getBytes(StandardCharsets.UTF_8);
-                            try {
-                                outputStream.write(bytes);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-                    }
-                });
     }
 
     private void aggregateTarGzEntries(Path root, File current, TarArchiveOutputStream taos) throws IOException {
