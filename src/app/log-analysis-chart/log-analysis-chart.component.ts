@@ -58,10 +58,10 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   constructor() {
   }
 
-  ngOnDestroy(): void {
+  ngOnInit(): void {
   }
 
-  ngOnInit(): void {
+  ngOnDestroy(): void {
   }
 
   private static sanitiseNumberInput(input: string, alt: string): string {
