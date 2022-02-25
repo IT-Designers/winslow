@@ -214,9 +214,8 @@ export type ChartDataPoint = [number, number];
 
 export interface ChartDialogData {
   chart: LogChart;
+  csvFileController: CsvFileController;
   definition: LogChartDefinition;
-  stages: StageCsvInfo[];
-  filesApi: FilesApiService;
 }
 
 export interface AnalysisDisplaySettings {
