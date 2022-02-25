@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 public class LogParserRegisterer implements AssemblerStep {
 
     public static final    String          PARSER_TYPE_REGEX_MATCHER_CSV = "regex-matcher/csv";
+    public static final    String          LOG_PARSER_OUTPUT_DIRECTORY   = ".log_parser_output";
     private final @Nonnull ResourceManager resourceManager;
 
     public LogParserRegisterer(@Nonnull ResourceManager resourceManager) {
@@ -45,7 +46,11 @@ public class LogParserRegisterer implements AssemblerStep {
                             .getStageDefinition()
                             .getLogParsers()
                             .stream()
-                            .flatMap(parser -> instantiateConsumer(context, workDir, parser))
+                            .flatMap(parser -> instantiateConsumer(
+                                    context,
+                                    workDir.resolve(LOG_PARSER_OUTPUT_DIRECTORY),
+                                    parser
+                            ))
                             .collect(Collectors.toList());
                     parsers.forEach(context::addLogListener);
                     context.store(new LogParsers(parsers));
@@ -74,7 +79,7 @@ public class LogParserRegisterer implements AssemblerStep {
         final Parameters parameters;
 
         if (parser.getType().startsWith(PARSER_TYPE_REGEX_MATCHER_CSV + ":")) {
-            parameters  = parseParameters(parser.getType().substring(PARSER_TYPE_REGEX_MATCHER_CSV.length() + 1));
+            parameters = parseParameters(parser.getType().substring(PARSER_TYPE_REGEX_MATCHER_CSV.length() + 1));
         } else {
             parameters = new Parameters();
         }
@@ -107,7 +112,7 @@ public class LogParserRegisterer implements AssemblerStep {
                     destinationResolver = (_e, _m) -> destination;
                 }
 
-                var lines = Math.max(1, parameters.lines);
+                var lines      = Math.max(1, parameters.lines);
                 var lineBuffer = new ArrayDeque<String>(lines);
 
                 return Stream.of(entry -> {
