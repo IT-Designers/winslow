@@ -31,28 +31,27 @@ export class CsvFileController {
 
   private readonly filesApi: FilesApiService;
 
-  stages: StageCsvInfo[];
+  stages$: BehaviorSubject<StageCsvInfo[]>;
 
   constructor(api) {
     this.filesApi = api;
+    this.stages$ = new BehaviorSubject<StageCsvInfo[]>(null);
   }
 
   getFileSubject(stageId: string, filename: string) {
-    const stageCsvInfo = this.stages.find(stage => stage.id == stageId);
 
-    if (stageCsvInfo == null) {
-      return null;
-    }
+    return this.stages$.pipe(
+      map(stages => stages.find(stage => stage.id == stageId)),
+      switchMap(stage => {
+        let file$ = stage.csvFile$s.find(file => file.getValue().filename == filename)
+        if (file$ == null) {
+          file$ = this.createFileSubject(stage, filename);
+          stage.csvFile$s.push(file$);
+        }
+        return file$;
+      })
+    );
 
-    let file$ = stageCsvInfo.csvFile$s.find(file => file.getValue().filename == filename)
-
-    if (file$ == null) {
-      file$ = this.createFileSubject(stageCsvInfo, filename);
-
-      stageCsvInfo.csvFile$s.push(file$);
-    }
-
-    return file$;
   }
 
   private createFileSubject(stageCsvInfo: StageCsvInfo, filename: string) {
@@ -105,6 +104,11 @@ export class CsvFileController {
 }
 
 export class LogChart {
+  static overrides: ChartOverrides = {
+    enableEntryLimit: false,
+    entryLimit: 50
+  };
+
   definition$: BehaviorSubject<LogChartDefinition>;
   data$: Observable<ChartDataSet[]>;
   filename: string;
@@ -119,12 +123,19 @@ export class LogChart {
   }
 
   private getDataObservable(controller: CsvFileController, definition: LogChartDefinition): Observable<ChartDataSet[]> {
-    const files$ = combineLatest(controller.stages.map(stage => {
-      return controller.getFileSubject(stage.id, definition.file);
-    }))
 
-    return files$.pipe(map(csvFiles => csvFiles.map(
-      csvFile => LogChartDefinition.getDataSet(definition, csvFile.content, null)))
+    const files$ = controller.stages$.pipe(
+      switchMap(stages => {
+        let stageIds = stages.map(stage => stage.id);
+        let file$s = stageIds.map(stageId => controller.getFileSubject(stageId, definition.file))
+        return combineLatest(file$s);
+      }),
+    )
+
+    return files$.pipe(
+      map(files => files.map(
+        file => LogChartDefinition.getDataSet(definition, file.content, LogChart.overrides)
+      ))
     );
   }
 
@@ -156,11 +167,11 @@ export class LogChartDefinition {
     this.entryLimit = null;
   }
 
-  static getDataSet(chart: LogChartDefinition, csvContent: CsvFileContent, displaySettings: AnalysisDisplaySettings = null): ChartDataSet {
+  static getDataSet(chart: LogChartDefinition, csvContent: CsvFileContent, overrides: ChartOverrides): ChartDataSet {
     let entryLimit = chart.entryLimit;
 
-    if (displaySettings?.enableEntryLimit) {
-      entryLimit = displaySettings.entryLimit;
+    if (overrides?.enableEntryLimit) {
+      entryLimit = overrides.entryLimit;
     }
 
     const rows = LogChartDefinition.getLatestRows(csvContent, entryLimit);
@@ -218,7 +229,7 @@ export interface ChartDialogData {
   definition: LogChartDefinition;
 }
 
-export interface AnalysisDisplaySettings {
+export interface ChartOverrides {
   enableEntryLimit: boolean;
   entryLimit: number;
 }
