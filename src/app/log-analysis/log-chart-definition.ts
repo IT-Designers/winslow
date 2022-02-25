@@ -43,7 +43,7 @@ export class CsvFileController {
     return this.stages$.pipe(
       map(stages => stages.find(stage => stage.id == stageId)),
       switchMap(stage => {
-        let file$ = stage.csvFile$s.find(file => file.getValue().filename == filename)
+        let file$ = stage.csvFile$s.find(file$ => file$.getValue().filename == filename)
         if (file$ == null) {
           file$ = this.createFileSubject(stage, filename);
           stage.csvFile$s.push(file$);

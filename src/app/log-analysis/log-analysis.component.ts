@@ -113,13 +113,15 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private refreshStages() {
-    this.csvFileController.stages$.next(this.stagesToDrawGraphsFor());
+    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    this.csvFileController.stages$.next(stages);
   }
 
   updateStage(stageCsvInfo: StageCsvInfo, stage: StageInfo) {
     if (stage == null) {
       stage = this.latestStage;
     }
+    stageCsvInfo.id = stage.id;
     stageCsvInfo.stage = stage;
     stageCsvInfo.csvFile$s = [];
 
@@ -213,10 +215,6 @@ export class LogAnalysisComponent implements OnInit {
     })
 
     return stages;
-  }
-
-  private stagesToDrawGraphsFor() {
-    return [this.stageToDisplay, ...this.stagesToCompare];
   }
 
   private autoSelectStage() {
