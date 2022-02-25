@@ -1,6 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ChartDataSet, ChartDisplaySettings} from "../log-analysis/log-chart-definition";
-import {Observable, Subscription} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis-chart',
@@ -11,8 +10,6 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
   options: any;
   merge = null;
-
-  private dataSubscription: Subscription = null;
 
   @Input() set settings(settings: ChartDisplaySettings) {
     this.options = {
@@ -46,17 +43,22 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     }
   };
 
-  @Input() set dataSource(dataSource: Observable<ChartDataSet[]>) {
-    this.dataSubscription = dataSource.subscribe({
-      next: chartData => this.mergeChartData(chartData)
-    })
+  @Input() set data(chartData: ChartDataSet[]) {
+    const series = chartData.map(data => ({
+      type: 'line',
+      showSymbol: false,
+      data: data,
+    }))
+
+    this.merge = {
+      series: series
+    }
   }
 
   constructor() {
   }
 
   ngOnDestroy(): void {
-    this.dataSubscription?.unsubscribe();
   }
 
   ngOnInit(): void {
@@ -67,18 +69,6 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
       return alt;
     } else {
       return input;
-    }
-  }
-
-  private mergeChartData(chartData: ChartDataSet[]) {
-    const series = chartData.map(data => ({
-      type: 'line',
-      showSymbol: false,
-      data: data,
-    }))
-
-    this.merge = {
-      series: series
     }
   }
 }

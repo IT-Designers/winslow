@@ -1,59 +1,98 @@
 import {StageInfo} from "../api/project-api.service";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {FilesApiService} from "../api/files-api.service";
+import {map, switchMap} from "rxjs/operators";
 
 export interface StageCsvInfo {
   id: string;
   stage: StageInfo;
-  csvFiles: CsvFileInfo[]
+  csvFile$s: BehaviorSubject<CsvFileInfo>[];
 }
 
 export enum CsvFileStatus {
-  NOT_LOADED,
   LOADING,
   OK,
   FILE_IS_EMPTY_OR_MISSING,
   FAILED,
 }
 
-export class CsvFileInfo {
+export interface CsvFileInfo {
+
   filename: string;
   directory: string;
   status: CsvFileStatus;
   content: CsvFileContent;
+}
 
-  constructor(directory: string, filename: string) {
-    this.filename = filename;
-    this.directory = directory;
-    this.status = CsvFileStatus.NOT_LOADED;
+export type CsvFileContent = string[][]
+
+export class CsvFileController {
+  static readonly PATH_TO_WORKSPACES = '/workspaces';
+
+  private readonly filesApi: FilesApiService;
+
+  stages: StageCsvInfo[];
+
+  constructor(api) {
+    this.filesApi = api;
   }
 
-  loadFrom(filesApi: FilesApiService) {
-    this.status = CsvFileStatus.LOADING;
+  getFileSubject(stageId: string, filename: string) {
+    const stageCsvInfo = this.stages.find(stage => stage.id == stageId);
 
-    console.log(`Loading file ${this.filename} from ${this.directory}`);
+    if (stageCsvInfo == null) {
+      return null;
+    }
 
-    const filepath = `${this.directory}/${this.filename}`;
+    let file$ = stageCsvInfo.csvFile$s.find(file => file.getValue().filename == filename)
 
-    return filesApi.getFile(filepath).toPromise()
+    if (file$ == null) {
+      file$ = this.createFileSubject(stageCsvInfo, filename);
+
+      stageCsvInfo.csvFile$s.push(file$);
+    }
+
+    return file$;
+  }
+
+  private createFileSubject(stageCsvInfo: StageCsvInfo, filename: string) {
+    const directory = `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}`;
+    const filepath = `${directory}/${filename}`;
+
+    const csvFile: CsvFileInfo = {
+      content: [],
+      status: CsvFileStatus.LOADING,
+      directory: directory,
+      filename: filename,
+    }
+
+    let file$ = new BehaviorSubject(csvFile);
+
+    console.log(`Loading file ${filename} from ${directory}`);
+
+    this.filesApi.getFile(filepath).toPromise()
       .then(text => {
-        this.content = this.parse(text);
-        this.status = CsvFileStatus.OK;
-        console.log(`Finished loading file ${this.filename} from ${this.directory}`)
+        csvFile.content = this.parseCsv(text);
+        csvFile.status = CsvFileStatus.OK;
+        console.log(`Finished loading file ${filename} from ${directory}`)
 
         if (text.trim().length == 0) {
-          this.status = CsvFileStatus.FILE_IS_EMPTY_OR_MISSING;
-          console.warn(`File ${this.filename} from ${this.directory} is empty or might be missing.`);
+          csvFile.status = CsvFileStatus.FILE_IS_EMPTY_OR_MISSING;
+          console.warn(`File ${filename} from ${directory} is empty or might be missing.`);
         }
+
+        file$.next(csvFile);
       })
       .catch(error => {
-        this.status = CsvFileStatus.FAILED;
-        console.log(`Failed to load file ${this.filename} from ${this.directory}`)
+        csvFile.status = CsvFileStatus.FAILED;
+        console.log(`Failed to load file ${filename} from ${directory}`)
         console.warn(error);
       });
+
+    return file$;
   }
 
-  private parse(text: string) {
+  private parseCsv(text: string) {
     const lines = text.split('\n');
     const content = [];
     lines.forEach(line => {
@@ -65,7 +104,40 @@ export class CsvFileInfo {
   }
 }
 
-export type CsvFileContent = string[][]
+export class LogChart {
+  definition$: BehaviorSubject<LogChartDefinition>;
+  data$: Observable<ChartDataSet[]>;
+  filename: string;
+
+  constructor(csvFileController: CsvFileController, id?: string) {
+    this.filename = id ?? LogChart.generateUniqueId();
+    this.definition$ = new BehaviorSubject(new LogChartDefinition());
+
+    this.data$ = this.definition$.pipe(
+      switchMap(definition => this.getDataObservable(csvFileController, definition))
+    )
+  }
+
+  private getDataObservable(controller: CsvFileController, definition: LogChartDefinition): Observable<ChartDataSet[]> {
+    const files$ = combineLatest(controller.stages.map(stage => {
+      return controller.getFileSubject(stage.id, definition.file);
+    }))
+
+    return files$.pipe(map(csvFiles => csvFiles.map(
+      csvFile => LogChartDefinition.getDataSet(definition, csvFile.content, null)))
+    );
+  }
+
+  private static generateUniqueId() {
+    return `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
+  }
+
+  getDisplaySettingsObservable() {
+    return this.definition$.pipe(
+      map(definition => definition.displaySettings)
+    )
+  }
+}
 
 export class LogChartDefinition {
   displaySettings: ChartDisplaySettings;
@@ -84,7 +156,7 @@ export class LogChartDefinition {
     this.entryLimit = null;
   }
 
-  static getDataSeries(chart: LogChartDefinition, csvContent: CsvFileContent, displaySettings: AnalysisDisplaySettings = null): ChartDataSet {
+  static getDataSet(chart: LogChartDefinition, csvContent: CsvFileContent, displaySettings: AnalysisDisplaySettings = null): ChartDataSet {
     let entryLimit = chart.entryLimit;
 
     if (displaySettings?.enableEntryLimit) {
@@ -141,9 +213,10 @@ export type ChartDataSet = ChartDataPoint[];
 export type ChartDataPoint = [number, number];
 
 export interface ChartDialogData {
-  chartDefinition: LogChartDefinition;
-  dataSource: BehaviorSubject<ChartDataSet[]>
+  chart: LogChart;
+  definition: LogChartDefinition;
   stages: StageCsvInfo[];
+  filesApi: FilesApiService;
 }
 
 export interface AnalysisDisplaySettings {
