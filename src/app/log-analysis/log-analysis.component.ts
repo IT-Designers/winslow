@@ -5,7 +5,6 @@ import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {
-  AnalysisDisplaySettings,
   ChartDialogData, CsvFileController,
   LogChart,
   LogChartDefinition,
@@ -45,11 +44,6 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   stagesToCompare: StageCsvInfo[] = [];
-
-  displaySettings: AnalysisDisplaySettings = {
-    enableEntryLimit: false,
-    entryLimit: 50
-  }
 
   @Input()
   set project(project: ProjectInfo) {
@@ -110,6 +104,18 @@ export class LogAnalysisComponent implements OnInit {
     return `${dateString} · ${name}`
   }
 
+  isLatestStage(stageCsvInfo: StageCsvInfo): boolean {
+    return stageCsvInfo.stage == this.latestStage;
+  }
+
+  getLatestStage(): StageInfo {
+    return this.selectableStages.slice(-1)[0];
+  }
+
+  private refreshStages() {
+    this.csvFileController.stages$.next(this.stagesToDrawGraphsFor());
+  }
+
   updateStage(stageCsvInfo: StageCsvInfo, stage: StageInfo) {
     if (stage == null) {
       stage = this.latestStage;
@@ -119,15 +125,7 @@ export class LogAnalysisComponent implements OnInit {
 
     console.log(`Selected stage ${stage.id}`);
 
-    this.csvFileController.stages = this.stagesToDrawGraphsFor();
-  }
-
-  isLatestStage(stageCsvInfo: StageCsvInfo): boolean {
-    return stageCsvInfo.stage == this.latestStage;
-  }
-
-  getLatestStage(): StageInfo {
-    return this.selectableStages.slice(-1)[0];
+    this.refreshStages()
   }
 
   addStageToCompare() {
@@ -138,10 +136,14 @@ export class LogAnalysisComponent implements OnInit {
     }
     this.updateStage(stageCsvInfo, this.latestStage);
     this.stagesToCompare.push(stageCsvInfo);
+
+    this.refreshStages()
   }
 
   removeStageToCompare(stageIndex: number) {
     this.stagesToCompare.splice(stageIndex, 1);
+
+    this.refreshStages()
   }
 
   createChart() {
@@ -286,7 +288,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   openDisplaySettingsDialog() {
-    const dialogData = this.displaySettings;
+    const dialogData = LogChart.overrides;
 
     const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
       data: dialogData,

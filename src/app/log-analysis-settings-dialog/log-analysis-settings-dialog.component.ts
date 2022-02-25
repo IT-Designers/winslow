@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {AnalysisDisplaySettings} from "../log-analysis/log-chart-definition";
+import {ChartOverrides} from "../log-analysis/log-chart-definition";
 
 @Component({
   selector: 'app-log-analysis-settings-dialog',
@@ -10,7 +10,7 @@ import {AnalysisDisplaySettings} from "../log-analysis/log-chart-definition";
 export class LogAnalysisSettingsDialogComponent implements OnInit {
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: AnalysisDisplaySettings
+    @Inject(MAT_DIALOG_DATA) public data: ChartOverrides
   ) {
   }
 
