@@ -162,9 +162,8 @@ export class LogAnalysisComponent implements OnInit {
   openEditChartDialog(chart: LogChart) {
     const dialogData: ChartDialogData = {
       definition: chart.definition$.getValue(),
-      filesApi: this.filesApi,
       chart: chart,
-      stages: this.stagesToDrawGraphsFor()
+      csvFileController: this.csvFileController,
     }
 
     const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
