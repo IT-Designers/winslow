@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
@@ -10,7 +10,8 @@ import {
   templateUrl: './log-analysis-chart-dialog.component.html',
   styleUrls: ['./log-analysis-chart-dialog.component.css']
 })
-export class LogAnalysisChartDialogComponent {
+export class LogAnalysisChartDialogComponent implements OnInit, OnDestroy {
+
   AxisTypes = Object.values(ChartAxisType);
 
   AxisTypes = Object.values(ChartAxisType);
@@ -19,6 +20,7 @@ export class LogAnalysisChartDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: ChartDialogData
   ) {
 
+  ngOnInit(): void {
   }
 
   getChartData(): ChartDataSeries[] {
