@@ -38,28 +38,35 @@ public class CsvLineAggregator {
         var split        = line.split(this.separator);
         var shouldBeNext = false;
 
-        this.rowCounter += 1;
 
-        for (int i = 0; i < this.operators.size() && i < split.length; ++i) {
-            if (this.operations.size() > i) {
-                shouldBeNext |= this.operations.get(i).shouldBeNext(split[i]);
+        {
+            var splitIndex = 0;
+            for (var operation : this.operations) {
+                var value = split.length > splitIndex ? split[splitIndex] : "";
+                shouldBeNext |= operation.shouldBeNext(value);
+                splitIndex += operation.columnWidth();
             }
         }
 
-        if (shouldBeNext || rowCounter >= this.config.aggregationSpanRows) {
+        if (shouldBeNext || (this.config.aggregationSpanRows != null && rowCounter % this.config.aggregationSpanRows == 0)) {
             result = this.result();
             this.operations.clear();
-            this.rowCounter = 0;
         }
 
-        for (int i = 0; i < this.operators.size() && i < split.length; ++i) {
-            if (this.operations.size() <= i) {
-                this.operations.add(this.operators.get(i).toOperation(split[i], this.config));
-            } else {
-                this.operations.get(i).push(split[i]);
+        {
+            var splitIndex = 0;
+            for (int i = 0; i < this.operators.size(); ++i) {
+                var value = split.length > splitIndex ? split[splitIndex] : "";
+                if (this.operations.size() <= i) {
+                    this.operations.add(this.operators.get(i).toOperation(value, this.config, this.rowCounter));
+                } else {
+                    this.operations.get(i).push(value);
+                }
+                splitIndex += this.operations.get(i).columnWidth();
             }
         }
 
+        this.rowCounter += 1;
         return result;
     }
 
@@ -114,10 +121,12 @@ public class CsvLineAggregator {
         Empty,
         Min,
         Max,
-        Avg;
+        Avg,
+        RowNo0,
+        RowNo;
 
         @Nonnull
-        public Operation toOperation(@Nonnull String value, @Nonnull Config config) {
+        public Operation toOperation(@Nonnull String value, @Nonnull Config config, long row) {
             switch (this) {
                 case TimeMs:
                     return new Operation() {
@@ -307,6 +316,52 @@ public class CsvLineAggregator {
                             );
                         }
                     };
+                case RowNo0:
+                    return new Operation() {
+                        @Override
+                        public int columnWidth() {
+                            return 0;
+                        }
+
+                        @Override
+                        public boolean shouldBeNext(@Nonnull String value) {
+                            return false;
+                        }
+
+                        @Override
+                        public void push(@Nonnull String value) {
+
+                        }
+
+                        @Nonnull
+                        @Override
+                        public String result() {
+                            return String.valueOf(row);
+                        }
+                    };
+                case RowNo:
+                    return new Operation() {
+                        @Override
+                        public int columnWidth() {
+                            return 0;
+                        }
+
+                        @Override
+                        public boolean shouldBeNext(@Nonnull String value) {
+                            return false;
+                        }
+
+                        @Override
+                        public void push(@Nonnull String value) {
+
+                        }
+
+                        @Nonnull
+                        @Override
+                        public String result() {
+                            return String.valueOf(row + 1);
+                        }
+                    };
             }
             throw new RuntimeException("Switch is invalid for " + this);
         }
@@ -314,6 +369,10 @@ public class CsvLineAggregator {
     }
 
     private interface Operation {
+        default int columnWidth() {
+            return 1;
+        }
+
         boolean shouldBeNext(@Nonnull String value);
 
         void push(@Nonnull String value);

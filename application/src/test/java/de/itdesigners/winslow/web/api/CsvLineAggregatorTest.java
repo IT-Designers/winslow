@@ -141,5 +141,43 @@ public class CsvLineAggregatorTest {
                 aggregator.result()
         );
     }
+    @Test
+    public void testRowNo0RowNo() {
+        var aggregator = new CsvLineAggregator(
+                List.of(
+                        CsvLineAggregator.Operator.Distinct,
+                        CsvLineAggregator.Operator.RowNo0,
+                        CsvLineAggregator.Operator.RowNo
+                ),
+                new CsvLineAggregator.Config()
+        );
+
+        assertEquals(
+                Optional.empty(),
+                aggregator.aggregate("abc")
+        );
+
+        assertEquals(
+                Optional.of("abc,0,1"),
+                aggregator.aggregate("def")
+        );
+        assertEquals(
+                Optional.empty(),
+                aggregator.aggregate("def")
+        );
+        assertEquals(
+                Optional.empty(),
+                aggregator.aggregate("def")
+        );
+        assertEquals(
+                Optional.of("def,1,2"),
+                aggregator.aggregate("ghi")
+        );
+
+        assertEquals(
+                Optional.of("ghi,4,5"),
+                aggregator.result()
+        );
+    }
 
 }
