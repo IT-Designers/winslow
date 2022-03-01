@@ -26,7 +26,7 @@ export class CsvFileController {
 
   constructor(api) {
     this.filesApi = api;
-    this.stages$ = new BehaviorSubject<StageCsvInfo[]>(null);
+    this.stages$ = new BehaviorSubject<StageCsvInfo[]>([]);
   }
 
   getFileContentsObservable(filename: string) {
@@ -34,7 +34,7 @@ export class CsvFileController {
     return this.stages$.pipe(
       switchMap(stages => {
         const content$s = stages.map(stage => {
-          const csvFile = this.getCsvFile(stage, filename);
+          const csvFile = this.getCsvFileInfo(stage, filename);
           return csvFile.content$;
         })
         return combineLatest(content$s);
@@ -43,7 +43,7 @@ export class CsvFileController {
 
   }
 
-  private getCsvFile(stage: StageCsvInfo, filename: string) {
+  private getCsvFileInfo(stage: StageCsvInfo, filename: string) {
     let csvFile = stage.csvFiles.find(csvFile => csvFile.filename == filename)
     if (csvFile == null) {
       csvFile = this.loadCsvFile(stage, filename);
