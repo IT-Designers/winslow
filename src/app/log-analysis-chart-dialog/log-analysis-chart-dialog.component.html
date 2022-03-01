@@ -119,5 +119,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions class="dialog-actions">
+  <button mat-button [mat-dialog-close]="null">Cancel</button>
   <button mat-button [mat-dialog-close]="chart.definition$.getValue()">Save</button>
 </mat-dialog-actions>
