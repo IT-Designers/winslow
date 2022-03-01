@@ -5,14 +5,14 @@
 
     <button class="latest-stage-button" mat-raised-button color="accent"
             [disabled]="isLatestStage(stageToDisplay)"
-            (click)="updateStageCsvInfo(stageToDisplay, latestStage)">
+            (click)="updateStage(stageToDisplay, latestStage)">
       Show most recent Stage
     </button>
 
     <mat-form-field appearance="legacy" class="stage-selection">
       <mat-select
         [(ngModel)]="stageToDisplay.stage"
-        (selectionChange)="updateStageCsvInfo(stageToDisplay, stageToDisplay.stage)"
+        (selectionChange)="updateStage(stageToDisplay, stageToDisplay.stage)"
       >
         <mat-option *ngFor="let stage of selectableStages" [value]="stage">
           {{stageLabel(stage)}}
@@ -34,14 +34,14 @@
               mat-raised-button
               color="accent"
               [disabled]="isLatestStage(stageCsvInfo)"
-              (click)="updateStageCsvInfo(stageCsvInfo, latestStage)"
+              (click)="updateStage(stageCsvInfo, latestStage)"
       >
         Show most recent Stage
       </button>
       <mat-form-field appearance="legacy" class="stage-selection">
         <mat-select
           [(ngModel)]="stageCsvInfo.stage"
-          (selectionChange)="updateStageCsvInfo(stageCsvInfo, stageCsvInfo.stage)"
+          (selectionChange)="updateStage(stageCsvInfo, stageCsvInfo.stage)"
         >
           <mat-option *ngFor="let stage of selectableStages" [value]="stage">
             {{stageLabel(stage)}}
@@ -65,8 +65,8 @@
       <mat-card class="chart-card">
         <mat-card-content class="chart-card-content">
           <app-log-analysis-chart
-            [settings]="chart.definition.displaySettings"
-            [dataSource]="chart.dataSubject"
+            [settings]="chart.getDisplaySettingsObservable() | async"
+            [data]="chart.data$ | async"
           ></app-log-analysis-chart>
         </mat-card-content>
         <mat-card-actions>
