@@ -55,7 +55,7 @@ export class CsvFileController {
   }
 
   private createFileSubject(stageCsvInfo: StageCsvInfo, filename: string) {
-    const directory = `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}`;
+    const directory = CsvFileController.getFileDirectory(stageCsvInfo);
     const filepath = `${directory}/${filename}`;
 
     const csvFile: CsvFileInfo = {
@@ -89,6 +89,10 @@ export class CsvFileController {
       });
 
     return file$;
+  }
+
+  private static getFileDirectory(stageCsvInfo: StageCsvInfo) {
+    return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`;
   }
 
   private parseCsv(text: string) {
