@@ -195,8 +195,8 @@ export class ChartDisplaySettings {
   xAxisType: ChartAxisType = ChartAxisType.VALUE;
 
   yAxisName: string = "y-Axis";
-  yAxisMinValue: string = "0";
-  yAxisMaxValue: string = "10";
+  yAxisMinValue: string = "";
+  yAxisMaxValue: string = "";
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 
