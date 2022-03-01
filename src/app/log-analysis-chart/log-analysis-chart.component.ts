@@ -8,11 +8,10 @@ import {ChartDataSet, ChartDisplaySettings} from "../log-analysis/log-chart-defi
 })
 export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
-  options: any;
-  merge = null;
+  options: {}
 
   @Input() set settings(settings: ChartDisplaySettings) {
-    this.options = {
+    const newOptions = {
       title: {
         text: settings.name,
       },
@@ -39,8 +38,8 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
         nameGap: '25',
       },
       animation: false,
-      series: [],
     }
+    this.updateOptions(newOptions);
   };
 
   @Input() set data(chartData: ChartDataSet[]) {
@@ -49,10 +48,10 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
       showSymbol: false,
       data: data,
     }))
-
-    this.merge = {
-      series: series
+    const newOptions = {
+      series: series,
     }
+    this.updateOptions(newOptions);
   }
 
   constructor() {
@@ -70,5 +69,9 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     } else {
       return input;
     }
+  }
+
+  private updateOptions(newOptions) {
+    this.options = {...this.options, ...newOptions}
   }
 }
