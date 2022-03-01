@@ -40,7 +40,7 @@ export class LogAnalysisComponent implements OnInit {
   stageToDisplay: StageCsvInfo = {
     id: null,
     stage: null,
-    csvFile$s: [],
+    csvFiles: [],
   }
 
   stagesToCompare: StageCsvInfo[] = [];
@@ -123,7 +123,7 @@ export class LogAnalysisComponent implements OnInit {
     }
     stageCsvInfo.id = stage.id;
     stageCsvInfo.stage = stage;
-    stageCsvInfo.csvFile$s = [];
+    stageCsvInfo.csvFiles = [];
 
     console.log(`Selected stage ${stage.id}`);
 
@@ -132,7 +132,7 @@ export class LogAnalysisComponent implements OnInit {
 
   addStageToCompare() {
     let stageCsvInfo: StageCsvInfo = {
-      csvFile$s: [],
+      csvFiles: [],
       stage: undefined,
       id: ""
     }

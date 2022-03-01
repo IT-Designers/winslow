@@ -6,22 +6,13 @@ import {map, switchMap} from "rxjs/operators";
 export interface StageCsvInfo {
   id: string;
   stage: StageInfo;
-  csvFile$s: BehaviorSubject<CsvFileInfo>[];
-}
-
-export enum CsvFileStatus {
-  LOADING,
-  OK,
-  FILE_IS_EMPTY_OR_MISSING,
-  FAILED,
+  csvFiles: CsvFileInfo[];
 }
 
 export interface CsvFileInfo {
-
   filename: string;
   directory: string;
-  status: CsvFileStatus;
-  content: CsvFileContent;
+  content$: BehaviorSubject<CsvFileContent>;
 }
 
 export type CsvFileContent = string[][]
@@ -38,57 +29,58 @@ export class CsvFileController {
     this.stages$ = new BehaviorSubject<StageCsvInfo[]>(null);
   }
 
-  getFileSubject(stageId: string, filename: string) {
+  getFileContentsObservable(filename: string) {
 
     return this.stages$.pipe(
-      map(stages => stages.find(stage => stage.id == stageId)),
-      switchMap(stage => {
-        let file$ = stage.csvFile$s.find(file$ => file$.getValue().filename == filename)
-        if (file$ == null) {
-          file$ = this.createFileSubject(stage, filename);
-          stage.csvFile$s.push(file$);
-        }
-        return file$;
-      })
-    );
+      switchMap(stages => {
+        const content$s = stages.map(stage => {
+          const csvFile = this.getCsvFile(stage, filename);
+          return csvFile.content$;
+        })
+        return combineLatest(content$s);
+      }),
+    )
 
   }
 
-  private createFileSubject(stageCsvInfo: StageCsvInfo, filename: string) {
+  private getCsvFile(stage: StageCsvInfo, filename: string) {
+    let csvFile = stage.csvFiles.find(csvFile => csvFile.filename == filename)
+    if (csvFile == null) {
+      csvFile = this.loadCsvFile(stage, filename);
+      stage.csvFiles.push(csvFile);
+    }
+    return csvFile;
+  }
+
+  private loadCsvFile(stageCsvInfo: StageCsvInfo, filename: string) {
     const directory = CsvFileController.getFileDirectory(stageCsvInfo);
     const filepath = `${directory}/${filename}`;
 
     const csvFile: CsvFileInfo = {
-      content: [],
-      status: CsvFileStatus.LOADING,
+      content$: new BehaviorSubject<CsvFileContent>([]),
       directory: directory,
       filename: filename,
     }
-
-    let file$ = new BehaviorSubject(csvFile);
 
     console.log(`Loading file ${filename} from ${directory}`);
 
     this.filesApi.getFile(filepath).toPromise()
       .then(text => {
-        csvFile.content = this.parseCsv(text);
-        csvFile.status = CsvFileStatus.OK;
+        const content = this.parseCsv(text);
         console.log(`Finished loading file ${filename} from ${directory}`)
+        csvFile.content$.next(content);
 
         if (text.trim().length == 0) {
-          csvFile.status = CsvFileStatus.FILE_IS_EMPTY_OR_MISSING;
           console.warn(`File ${filename} from ${directory} is empty or might be missing.`);
         }
 
-        file$.next(csvFile);
       })
       .catch(error => {
-        csvFile.status = CsvFileStatus.FAILED;
         console.log(`Failed to load file ${filename} from ${directory}`)
         console.warn(error);
       });
 
-    return file$;
+    return csvFile;
   }
 
   private static getFileDirectory(stageCsvInfo: StageCsvInfo) {
@@ -127,20 +119,12 @@ export class LogChart {
   }
 
   private getDataObservable(controller: CsvFileController, definition: LogChartDefinition): Observable<ChartDataSet[]> {
-
-    const files$ = controller.stages$.pipe(
-      switchMap(stages => {
-        let stageIds = stages.map(stage => stage.id);
-        let file$s = stageIds.map(stageId => controller.getFileSubject(stageId, definition.file))
-        return combineLatest(file$s);
-      }),
+    const contentsObservable = controller.getFileContentsObservable(definition.file);
+    return contentsObservable.pipe(
+      map(csvFileContents => csvFileContents.map(csvFileContent => {
+        return LogChartDefinition.getDataSet(definition, csvFileContent, LogChart.overrides)
+      }))
     )
-
-    return files$.pipe(
-      map(files => files.map(
-        file => LogChartDefinition.getDataSet(definition, file.content, LogChart.overrides)
-      ))
-    );
   }
 
   private static generateUniqueId() {
