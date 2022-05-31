@@ -112,11 +112,14 @@ public class LogParserRegisterer implements AssemblerStep {
                     destinationResolver = (_e, _m) -> destination;
                 }
 
-                var lines      = Math.max(1, parameters.lines);
-                var lineBuffer = new ArrayDeque<String>(lines);
+                var lineAmount = Math.max(1, parameters.lines);
+                var lineBuffer = new ArrayDeque<String>(lineAmount);
+
+                // todo
+                writeToLogFile(parser.getFormatter(), parserDestination, context);
 
                 return Stream.of(entry -> {
-                    while (lineBuffer.size() >= lines) {
+                    while (lineBuffer.size() >= lineAmount) {
                         lineBuffer.removeFirst();
                     }
                     lineBuffer.add(entry.getMessage());
@@ -127,20 +130,8 @@ public class LogParserRegisterer implements AssemblerStep {
                     if (matcher.find()) {
                         destinationResolver.apply(entry, matcher).ifPresentOrElse(
                                 destination -> {
-                                    try {
-                                        if (destination.getParent() != null) {
-                                            Files.createDirectories(destination.getParent());
-                                        }
-                                        Files.write(
-                                                destination,
-                                                List.of(formatter.format(entry, matcher)),
-                                                StandardCharsets.UTF_8,
-                                                StandardOpenOption.APPEND,
-                                                StandardOpenOption.CREATE
-                                        );
-                                    } catch (IOException e) {
-                                        context.log(Level.SEVERE, "Failed to write to destination", e);
-                                    }
+                                    var text = formatter.format(entry, matcher);
+                                    writeToLogFile(text, destination, context);
                                 },
                                 () -> context.log(
                                         Level.WARNING,
@@ -156,6 +147,23 @@ public class LogParserRegisterer implements AssemblerStep {
         } else {
             context.log(Level.WARNING, "Invalid destination path, at least one parser is ignored");
             return Stream.empty();
+        }
+    }
+
+    private void writeToLogFile(String text, Path destination, Context context) {
+        try {
+            if (destination.getParent() != null) {
+                Files.createDirectories(destination.getParent());
+            }
+            Files.write(
+                    destination,
+                    List.of(text),
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.APPEND,
+                    StandardOpenOption.CREATE
+            );
+        } catch (IOException e) {
+            context.log(Level.SEVERE, "Failed to write entry to destination", e);
         }
     }
 
