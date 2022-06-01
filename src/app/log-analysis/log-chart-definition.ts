@@ -87,15 +87,29 @@ export class CsvFileController {
     return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`;
   }
 
-  private parseCsv(text: string) {
-    const lines = text.split('\n');
+  private parseCsv(text: string): CsvFileContent {
+    const lines = text.split('\n'); //todo use regexp
     const content = [];
     lines.forEach(line => {
       if (line.trim().length != 0) { // ignore empty lines
-        content.push(line.split(';'));
+        content.push(CsvFileController.parseCsvLine(line));
       }
     })
     return content;
+  }
+
+  private static parseCsvLine(text: string) {
+    const regexp = /(?<=^|[,;\t])(?:([^,;\t"])|"((?:[^"]|"")*)")(?=$|[,;\t])/g
+    // (?<=^|[,;\t]) - field is at the start or behind a delimiter (',', ';' or '\t')
+    // (?:([^,;\t"])|"((?:[^"]|"")*)") - field is either wrapped in '"' with escape '""' or contains no quotes/delimiters.
+    // (?=$|[,;\t]) - field is at the end or in front of a delimiter (',', ';' or '\t')
+    let lineContent = [];
+    let match: RegExpExecArray;
+    while ((match = regexp.exec(text)) != null) {
+      const fieldContent = match[1] ?? match[2] ?? "" // if both capture groups are undefined, the field must be empty
+      lineContent.push(fieldContent)
+    }
+    return lineContent
   }
 }
 
