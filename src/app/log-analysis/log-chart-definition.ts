@@ -2,6 +2,7 @@ import {StageInfo} from "../api/project-api.service";
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {FilesApiService} from "../api/files-api.service";
 import {map, switchMap} from "rxjs/operators";
+import {CsvFileContent, parseCsv} from "./csv-parser";
 
 export interface StageCsvInfo {
   id: string;
@@ -14,8 +15,6 @@ export interface CsvFileInfo {
   directory: string;
   content$: BehaviorSubject<CsvFileContent>;
 }
-
-export type CsvFileContent = string[][]
 
 export class CsvFileController {
   static readonly PATH_TO_WORKSPACES = '/workspaces';
@@ -66,7 +65,7 @@ export class CsvFileController {
 
     this.filesApi.getFile(filepath).toPromise()
       .then(text => {
-        const content = this.parseCsv(text);
+        const content = parseCsv(text);
         console.log(`Finished loading file ${filename} from ${directory}`)
         csvFile.content$.next(content);
 
@@ -85,31 +84,6 @@ export class CsvFileController {
 
   private static getFileDirectory(stageCsvInfo: StageCsvInfo) {
     return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`;
-  }
-
-  private parseCsv(text: string): CsvFileContent {
-    const lines = text.split('\n'); //todo use regexp
-    const content = [];
-    lines.forEach(line => {
-      if (line.trim().length != 0) { // ignore empty lines
-        content.push(CsvFileController.parseCsvLine(line));
-      }
-    })
-    return content;
-  }
-
-  private static parseCsvLine(text: string) {
-    const regexp = /(?<=^|[,;\t])(?:([^,;\t"])|"((?:[^"]|"")*)")(?=$|[,;\t])/g
-    // (?<=^|[,;\t]) - field is at the start or behind a delimiter (',', ';' or '\t')
-    // (?:([^,;\t"])|"((?:[^"]|"")*)") - field is either wrapped in '"' with escape '""' or contains no quotes/delimiters.
-    // (?=$|[,;\t]) - field is at the end or in front of a delimiter (',', ';' or '\t')
-    let lineContent = [];
-    let match: RegExpExecArray;
-    while ((match = regexp.exec(text)) != null) {
-      const fieldContent = match[1] ?? match[2] ?? "" // if both capture groups are undefined, the field must be empty
-      lineContent.push(fieldContent)
-    }
-    return lineContent
   }
 }
 
