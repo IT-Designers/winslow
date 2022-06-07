@@ -20,11 +20,15 @@
   </mat-form-field>
 </mat-dialog-content>
 
+<mat-slide-toggle [(ngModel)]="definition.formatterFromHeaderRow" (ngModelChange)="refresh()">
+  Get Format from header row
+</mat-slide-toggle>
+
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="wide-field">
     <mat-label>CSV Format</mat-label>
     <code>
-      <input matInput [(ngModel)]="definition.formatter" (ngModelChange)="refresh()">
+      <input matInput [disabled]="definition.formatterFromHeaderRow" [(ngModel)]="definition.formatter" (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
 </mat-dialog-content>
