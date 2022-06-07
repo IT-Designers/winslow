@@ -3,10 +3,11 @@ import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
   ChartDialogData,
-  CsvFileController,
+  ChartDisplaySettings,
   LogChart,
   LogChartDefinition
 } from "../log-analysis/log-chart-definition";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
@@ -18,7 +19,7 @@ export class LogAnalysisChartDialogComponent implements OnInit, OnDestroy {
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
-  variableSuggestions: string[];
+  variableSuggestions$: Observable<string[]>;
 
   AxisTypes = Object.values(ChartAxisType);
 
