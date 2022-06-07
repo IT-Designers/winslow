@@ -130,7 +130,7 @@ export class LogChartDefinition {
   displaySettings: ChartDisplaySettings
   file: string
   formatterFromHeaderRow: boolean
-  formatter: string
+  customFormatter: string
   xVariable: string
   yVariable: string
   entryLimit: null | number
@@ -139,7 +139,7 @@ export class LogChartDefinition {
     this.displaySettings = new ChartDisplaySettings()
     this.file = "logfile.csv"
     this.formatterFromHeaderRow = true
-    this.formatter = "$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID"
+    this.customFormatter = "$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID"
     this.xVariable = ""
     this.yVariable = "$1"
     this.entryLimit = null
@@ -153,7 +153,7 @@ export class LogChartDefinition {
 
     const rowLimit = overrides?.enableEntryLimit ? overrides.entryLimit : chart.entryLimit;
     const rows = LogChartDefinition.getLatestRows(csvContent, rowLimit);
-    const variableNames = chart.formatterFromHeaderRow ? csvContent[0] : chart.formatter.split(";");
+    const variableNames = chart.formatterFromHeaderRow ? csvContent[0] : chart.customFormatter.split(";");
     const xIndex = variableNames.findIndex(variableName => variableName == chart.xVariable);
     const yIndex = variableNames.findIndex(variableName => variableName == chart.yVariable);
 
