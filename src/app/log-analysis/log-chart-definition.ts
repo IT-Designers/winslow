@@ -127,31 +127,33 @@ export class LogChart {
 }
 
 export class LogChartDefinition {
-  displaySettings: ChartDisplaySettings;
-  file: string;
-  formatter: string;
-  xVariable: string;
-  yVariable: string;
-  entryLimit: null | number;
+  displaySettings: ChartDisplaySettings
+  file: string
+  formatterFromHeaderRow: boolean
+  formatter: string
+  xVariable: string
+  yVariable: string
+  entryLimit: null | number
 
   constructor() {
-    this.displaySettings = new ChartDisplaySettings();
-    this.file = "logfile.csv";
-    this.formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
-    this.xVariable = "";
-    this.yVariable = "$1";
-    this.entryLimit = null;
+    this.displaySettings = new ChartDisplaySettings()
+    this.file = "logfile.csv"
+    this.formatterFromHeaderRow = true
+    this.formatter = "$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID"
+    this.xVariable = ""
+    this.yVariable = "$1"
+    this.entryLimit = null
   }
 
   static getDataSet(chart: LogChartDefinition, csvContent: CsvFileContent, overrides: ChartOverrides): ChartDataSet {
-    let entryLimit = chart.entryLimit;
-
-    if (overrides?.enableEntryLimit) {
-      entryLimit = overrides.entryLimit;
+    if (csvContent.length == 0) {
+      console.warn(`File ${chart.file} for chart ${chart.displaySettings.name} appears to be empty.`)
+      return []
     }
 
-    const rows = LogChartDefinition.getLatestRows(csvContent, entryLimit);
-    const variableNames = chart.formatter.split(";");
+    const rowLimit = overrides?.enableEntryLimit ? overrides.entryLimit : chart.entryLimit;
+    const rows = LogChartDefinition.getLatestRows(csvContent, rowLimit);
+    const variableNames = chart.formatterFromHeaderRow ? csvContent[0] : chart.formatter.split(";");
     const xIndex = variableNames.findIndex(variableName => variableName == chart.xVariable);
     const yIndex = variableNames.findIndex(variableName => variableName == chart.yVariable);
 
