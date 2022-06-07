@@ -28,7 +28,8 @@
   <mat-form-field appearance="fill" class="wide-field">
     <mat-label>CSV Format</mat-label>
     <code>
-      <input matInput [disabled]="definition.formatterFromHeaderRow" [(ngModel)]="definition.customFormatter" (ngModelChange)="refresh()">
+      <input matInput [disabled]="definition.formatterFromHeaderRow" [(ngModel)]="definition.customFormatter"
+             (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
 </mat-dialog-content>
@@ -58,11 +59,18 @@
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="left-field">
     <mat-label>x-Axis Variable</mat-label>
-    <input matInput [(ngModel)]="definition.xVariable" (ngModelChange)="refresh()">
+    <input matInput [(ngModel)]="definition.xVariable" (ngModelChange)="refresh()" [matAutocomplete]="xAxisVariables">
+    <mat-autocomplete #xAxisVariables="matAutocomplete">
+      <mat-option *ngFor="let variable of variableSuggestions" [value]="variable">{{variable}}</mat-option>
+    </mat-autocomplete>
   </mat-form-field>
   <mat-form-field appearance="fill" class="right-field">
     <mat-label>y-Axis Variable</mat-label>
-    <input matInput [(ngModel)]="definition.yVariable" (ngModelChange)="refresh()">
+    <input matInput [(ngModel)]="definition.yVariable" (ngModelChange)="refresh()" [matAutocomplete]="yAxisVariables">
+    <mat-autocomplete #yAxisVariables="matAutocomplete">
+      <mat-option *ngFor="let variable of variableSuggestions" [value]="variable">{{variable}}</mat-option>
+    </mat-autocomplete>
+
   </mat-form-field>
 </mat-dialog-content>
 
