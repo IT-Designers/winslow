@@ -28,7 +28,7 @@
   <mat-form-field appearance="fill" class="wide-field">
     <mat-label>CSV Format</mat-label>
     <code>
-      <input matInput [disabled]="definition.formatterFromHeaderRow" [(ngModel)]="definition.formatter" (ngModelChange)="refresh()">
+      <input matInput [disabled]="definition.formatterFromHeaderRow" [(ngModel)]="definition.customFormatter" (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
 </mat-dialog-content>
