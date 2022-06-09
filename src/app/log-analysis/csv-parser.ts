@@ -19,7 +19,7 @@ export function parseCsv(text: string, formatOptions = DEFAULT_OPTIONS): CsvFile
   let parsed: CsvFileContent = []
 
   let nextRow: string[] = []
-  let expectFieldContent = false
+  let startOfNewField = false
   let index = 0;
 
   while (index < textLength) {
@@ -28,8 +28,8 @@ export function parseCsv(text: string, formatOptions = DEFAULT_OPTIONS): CsvFile
 
       // end of file
       case TokenType.NONE_FOUND:
-        if (expectFieldContent) nextRow.push(text.substring(index, textLength))
-        expectFieldContent = true
+        if (startOfNewField) nextRow.push(text.substring(index, textLength))
+        startOfNewField = true
         parsed.push(nextRow)
         nextRow = []
         index = textLength
@@ -37,8 +37,8 @@ export function parseCsv(text: string, formatOptions = DEFAULT_OPTIONS): CsvFile
 
       // end of line
       case TokenType.ROW_DELIMITER:
-        if (expectFieldContent) nextRow.push(text.substring(index, nextToken.index))
-        expectFieldContent = true
+        if (startOfNewField) nextRow.push(text.substring(index, nextToken.index))
+        startOfNewField = true
         parsed.push(nextRow)
         nextRow = []
         index = nextToken.index + nextToken.literal.length
@@ -46,18 +46,18 @@ export function parseCsv(text: string, formatOptions = DEFAULT_OPTIONS): CsvFile
 
       // end of field
       case TokenType.COL_DELIMITER:
-        if (expectFieldContent) nextRow.push(text.substring(index, nextToken.index))
-        expectFieldContent = true
+        if (startOfNewField) nextRow.push(text.substring(index, nextToken.index))
+        startOfNewField = true
         index = nextToken.index + nextToken.literal.length
         break;
 
       // start of quote
       case TokenType.QUOTATION_MARK:
         const quoteStartIndex = nextToken.index + nextToken.literal.length
-        const quoteEndIndex = text.indexOf(nextToken.literal, quoteStartIndex + nextToken.literal.length)
-        nextRow.push(text.substring(quoteStartIndex, quoteEndIndex))
-        expectFieldContent = false
-        index = quoteEndIndex + nextToken.literal.length
+        const quotedFieldInfo = parseQuotedField(text, quoteStartIndex, nextToken.literal)
+        nextRow.push(quotedFieldInfo.content)
+        startOfNewField = false
+        index = quotedFieldInfo.endIndex
         break;
     }
   }
@@ -66,6 +66,35 @@ export function parseCsv(text: string, formatOptions = DEFAULT_OPTIONS): CsvFile
   console.log(parsed)
 
   return parsed
+}
+
+function parseQuotedField(text: string, startIndex: number, quotationMark: string) {
+  const escapeSequence = `${quotationMark}${quotationMark}`
+  let quoteContent = ""
+  let index = startIndex
+
+  while (true) {
+    const nextQuotationMark = text.indexOf(quotationMark, startIndex)
+    const nextEscapeSequence = text.indexOf(escapeSequence, startIndex)
+    if (nextQuotationMark == -1) {
+      console.warn("Unresolved quote in csv file.")
+      quoteContent += text.substring(index)
+      index = text.length
+      break;
+    } else if (nextEscapeSequence == -1 || nextQuotationMark < nextEscapeSequence) {
+      quoteContent += text.substring(index, nextQuotationMark)
+      index = nextQuotationMark + quotationMark.length
+      break;
+    } else {
+      quoteContent += text.substring(index, nextEscapeSequence) + quotationMark
+      index = nextEscapeSequence + escapeSequence.length
+    }
+  }
+
+  return {
+    endIndex: index,
+    content: quoteContent
+  }
 }
 
 enum TokenType {
@@ -81,21 +110,21 @@ interface SearchResult {
   type: TokenType
 }
 
-function findToken(source: string, start: number, options: CsvParserOptions): SearchResult {
+function findToken(text: string, start: number, options: CsvParserOptions): SearchResult {
   try {
     return ([
       ...options.rowDelimiters.map(token => ({
-        index: source.indexOf(token, start),
+        index: text.indexOf(token, start),
         literal: token,
         type: TokenType.ROW_DELIMITER
       })),
       ...options.colDelimiters.map(token => ({
-        index: source.indexOf(token, start),
+        index: text.indexOf(token, start),
         literal: token,
         type: TokenType.COL_DELIMITER
       })),
       ...options.quotationMarks.map(token => ({
-        index: source.indexOf(token, start),
+        index: text.indexOf(token, start),
         literal: token,
         type: TokenType.QUOTATION_MARK
       })),
