@@ -62,9 +62,6 @@ export function parseCsv(text: string, formatOptions = DEFAULT_OPTIONS): CsvFile
     }
   }
 
-  console.log(text)
-  console.log(parsed)
-
   return parsed
 }
 
