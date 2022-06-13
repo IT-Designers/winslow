@@ -47,14 +47,14 @@ export class LogAnalysisComponent implements OnInit {
 
   @Input()
   set project(project: ProjectInfo) {
-    this.selectedProject = project;
+    this.selectedProject = project
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG)
     const projectPromise = this.projectApi.getProjectHistory(this.selectedProject.id)
       .then(projectHistory => this.loadStagesFromHistory(projectHistory))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
     const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
       .then(pipelines => this.findProjectPipeline(pipelines))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))

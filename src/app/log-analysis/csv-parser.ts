@@ -19,7 +19,7 @@ export function parseCsv(text: string, formatOptions = DEFAULT_OPTIONS): CsvFile
   let parsed: CsvFileContent = []
 
   let nextRow: string[] = []
-  let startOfNewField = false
+  let startOfNewField = true
   let index = 0;
 
   while (index < textLength) {
