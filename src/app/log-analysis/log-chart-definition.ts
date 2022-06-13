@@ -1,7 +1,7 @@
 import {StageInfo} from "../api/project-api.service";
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {FilesApiService} from "../api/files-api.service";
-import {map, switchMap} from "rxjs/operators";
+import {map, switchMap, tap} from "rxjs/operators";
 import {CsvFileContent, parseCsv} from "./csv-parser";
 
 export interface StageCsvInfo {
@@ -28,7 +28,7 @@ export class CsvFileController {
     this.stages$ = new BehaviorSubject<StageCsvInfo[]>([]);
   }
 
-  getFileContentsObservable(filename: string) {
+  getCsvContents$(filename: string): Observable<CsvFileContent[]> {
     return this.stages$.pipe(
       switchMap(stages => {
         const content$s = stages.map(stage => {
@@ -107,12 +107,12 @@ export class LogChart {
     )
 
     this.csvFileContents$ = this.definition$.pipe(
-      switchMap(definition => csvFileController.getFileContentsObservable(definition.file))
+      switchMap(definition => csvFileController.getCsvContents$(definition.file))
     )
 
     this.formatterVariables$ = this.definition$.pipe(
       switchMap(definition => this.csvFileContents$.pipe(
-        map(csvFileContents => this.getFormatterVariables(definition, csvFileContents[0] ?? []))
+        map(csvFileContents => LogChart.getFormatterVariables(definition, csvFileContents[0] ?? [])),
       ))
     )
 
@@ -123,10 +123,10 @@ export class LogChart {
     )
   }
 
-  private getFormatterVariables(definition: LogChartDefinition, csvContent: string[][]) {
+  private static getFormatterVariables(definition: LogChartDefinition, csvContent: string[][]) {
     if (definition.formatterFromHeaderRow) {
       if (csvContent.length == 0) {
-        console.warn(`File ${this.filename} for chart ${definition.displaySettings.name} appears to be empty.`)
+        console.warn(`File ${definition.file} for chart ${definition.displaySettings.name} appears to be empty.`)
         return []
       }
       return csvContent[0];
@@ -166,9 +166,9 @@ export class LogChartDefinition {
     const yIndex = formatterVariables.findIndex(variableName => variableName == this.yVariable);
 
     return rows.map((rowContent, rowIndex): ChartDataPoint => {
-      const step = rowIndex - rows.length + 1;
-      const x = xIndex == -1 ? step : Number(rowContent[xIndex]);
-      const y = yIndex == -1 ? step : Number(rowContent[yIndex]);
+      const relativeRowIndex = rowIndex - rows.length + 1;
+      const x = xIndex == -1 ? relativeRowIndex : Number(rowContent[xIndex]);
+      const y = yIndex == -1 ? relativeRowIndex : Number(rowContent[yIndex]);
       return [x, y];
     });
   }

@@ -98,7 +98,7 @@ export class LogAnalysisComponent implements OnInit {
       .then(projectHistory => this.loadStagesFromHistory(projectHistory))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
     const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
       .then(pipelines => this.findProjectPipeline(pipelines))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
