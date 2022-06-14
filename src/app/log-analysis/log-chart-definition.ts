@@ -153,7 +153,7 @@ export class LogChartDefinition {
     this.displaySettings = new ChartDisplaySettings()
     this.file = "logfile.csv"
     this.formatterFromHeaderRow = true
-    this.customFormatter = "$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID"
+    this.customFormatter = "$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID"
     this.xVariable = ""
     this.yVariable = "$1"
     this.entryLimit = null
