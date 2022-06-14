@@ -29,6 +29,7 @@ export class LogAnalysisChartDialogComponent implements OnInit, OnDestroy {
 
     this.variableSuggestions$ = this.chart.formatterVariables$
 
+
     this.refresh()
   }
 
