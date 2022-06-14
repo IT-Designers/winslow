@@ -1,7 +1,7 @@
 import {StageInfo} from "../api/project-api.service";
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {FilesApiService} from "../api/files-api.service";
-import {map, switchMap, tap} from "rxjs/operators";
+import {map, switchMap} from "rxjs/operators";
 import {CsvFileContent, parseCsv} from "./csv-parser";
 
 export interface StageCsvInfo {
@@ -126,7 +126,6 @@ export class LogChart {
   private static getFormatterVariables(definition: LogChartDefinition, csvContent: string[][]) {
     if (definition.formatterFromHeaderRow) {
       if (csvContent.length == 0) {
-        console.warn(`File ${definition.file} for chart ${definition.displaySettings.name} appears to be empty.`)
         return []
       }
       return csvContent[0];
@@ -136,7 +135,8 @@ export class LogChart {
   }
 
   private static generateUniqueId() {
-    return `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
+    const id = `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}`
+    return `${id}.json`;
   }
 }
 
@@ -188,13 +188,13 @@ export class ChartDisplaySettings {
   name: string = "Unnamed chart";
 
   xAxisName: string = "x-Axis";
-  xAxisMinValue: string = "";
-  xAxisMaxValue: string = "";
+  xAxisMinValue: number = null;
+  xAxisMaxValue: number = null;
   xAxisType: ChartAxisType = ChartAxisType.VALUE;
 
   yAxisName: string = "y-Axis";
-  yAxisMinValue: string = "";
-  yAxisMaxValue: string = "";
+  yAxisMinValue: number = null
+  yAxisMaxValue: number = null;
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 

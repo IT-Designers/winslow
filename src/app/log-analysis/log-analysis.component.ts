@@ -268,7 +268,7 @@ export class LogAnalysisComponent implements OnInit {
 
   private saveChart(filename: string, chart: LogChartDefinition) {
     const file = new File(
-      [JSON.stringify(chart, null, "\t")], filename, {type: "application/json"},);
+      [JSON.stringify(chart, null, 2)], filename, {type: "application/json"},);
     this.filesApi.uploadFile(this.pathToChartsDir(), file).toPromise()
       .then(() => console.log(`Uploaded chart ${filename}`))
   }
