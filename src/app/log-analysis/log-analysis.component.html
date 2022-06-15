@@ -65,8 +65,7 @@
       <mat-card class="chart-card">
         <mat-card-content class="chart-card-content">
           <app-log-analysis-chart
-            [settings]="chart.displaySettings$ | async"
-            [data]="chart.chartData$ | async"
+            [chart]="chart"
           ></app-log-analysis-chart>
         </mat-card-content>
         <mat-card-actions>
