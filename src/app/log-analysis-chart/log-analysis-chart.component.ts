@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {ChartDataSet, ChartDisplaySettings} from "../log-analysis/log-chart-definition";
+import {ChartDataSet, ChartDisplaySettings, LogChart} from "../log-analysis/log-chart-definition";
 
 @Component({
   selector: 'app-log-analysis-chart',
@@ -10,7 +10,16 @@ export class LogAnalysisChartComponent {
 
   options: {}
 
-  @Input() set settings(settings: ChartDisplaySettings) {
+  @Input() set chart(chart: LogChart) {
+    chart.snapshot$.subscribe({
+      next: snapshot => {
+        this.settings(snapshot.definition.displaySettings)
+        this.data(snapshot.chartData)
+      }
+    })
+  }
+
+  settings(settings: ChartDisplaySettings) {
     const newOptions = {
       title: {
         text: settings.name,
@@ -42,7 +51,7 @@ export class LogAnalysisChartComponent {
     this.updateOptions(newOptions);
   };
 
-  @Input() set data(chartData: ChartDataSet[]) {
+  data(chartData: ChartDataSet[]) {
     const series = chartData.map(data => ({
       type: 'line',
       showSymbol: false,
@@ -51,7 +60,6 @@ export class LogAnalysisChartComponent {
     const newOptions = {
       series: series,
     }
-    console.log(series)
     this.updateOptions(newOptions);
   }
 

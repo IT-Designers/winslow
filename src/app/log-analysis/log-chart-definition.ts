@@ -54,7 +54,7 @@ export class CsvFileController {
     const filepath = `${directory}/${filename}`;
 
     const csvFile: CsvFileInfo = {
-      content$: new Subject<CsvFileContent>(),
+      content$: new BehaviorSubject<CsvFileContent>([]),
       directory: directory,
       filename: filename,
     }
@@ -85,53 +85,64 @@ export class CsvFileController {
   }
 }
 
+export class LogChartSnapshot {
+
+  constructor(definition: LogChartDefinition, csvFileContents: CsvFileContent[]) {
+    this.definition = definition
+    this.csvFileContents = csvFileContents
+    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFileContents)
+    this.chartData = LogChartSnapshot.getChartData(definition, csvFileContents, this.formatterVariables)
+  }
+
+  readonly definition: LogChartDefinition
+  readonly csvFileContents: CsvFileContent[]
+  readonly chartData: ChartDataSet[]
+  readonly formatterVariables: string[]
+
+  private static getFormatterVariables(definition: LogChartDefinition, csvFileContents: CsvFileContent[]): string[] {
+    if (!definition.formatterFromHeaderRow) return definition.customFormatter.split(";");
+
+    const variables = [];
+
+    csvFileContents.forEach(csvFile => {
+      if (csvFile.length <= 0) return;
+      csvFile[0].forEach(field => {
+        if (variables.includes(field)) return
+        variables.push(field)
+      })
+    })
+
+    return variables
+  }
+
+  private static getChartData(definition: LogChartDefinition, csvFileContents: CsvFileContent[], formatterVariables: string[]) {
+    return csvFileContents.map(
+      csvFileContent => definition.getDataSet(csvFileContent, formatterVariables)
+    )
+  }
+}
+
 export class LogChart {
   static overrides: ChartOverrides = {
     enableEntryLimit: false,
     entryLimit: 50
   };
 
+  readonly snapshot$: Observable<LogChartSnapshot>
   readonly filename: string;
   readonly definition$: BehaviorSubject<LogChartDefinition>;
-  readonly displaySettings$: Observable<ChartDisplaySettings>;
-  readonly csvFileContents$: Observable<CsvFileContent[]>
-  readonly chartData$: Observable<ChartDataSet[]>;
-  readonly formatterVariables$: Observable<string[]>;
 
-  constructor(csvFileController: CsvFileController, id?: string) {
+  constructor(csvFileController: CsvFileController, id?: string, definition?: LogChartDefinition) {
     this.filename = id ?? LogChart.generateUniqueId();
-    this.definition$ = new BehaviorSubject(new LogChartDefinition());
+    this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
 
-    this.displaySettings$ = this.definition$.pipe(
-      map(definition => definition.displaySettings)
+    let csvFileContents$ = this.definition$.pipe(
+      switchMap(definition => csvFileController.getCsvContents$(definition.file).pipe()),
     )
 
-    this.csvFileContents$ = this.definition$.pipe(
-      switchMap(definition => csvFileController.getCsvContents$(definition.file))
+    this.snapshot$ = combineLatest([this.definition$, csvFileContents$]).pipe(
+      map(([definition, csvFileContents]) => new LogChartSnapshot(definition, csvFileContents))
     )
-
-    this.formatterVariables$ = this.definition$.pipe(
-      switchMap(definition => this.csvFileContents$.pipe(
-        map(csvFileContents => LogChart.getFormatterVariables(definition, csvFileContents[0] ?? [])),
-      ))
-    )
-
-    this.chartData$ = combineLatest([this.definition$, this.csvFileContents$, this.formatterVariables$]).pipe(
-      map(([definition, csvFileContents, formatterVariables]) => csvFileContents.map(
-        csvFileContent => definition.getDataSet(csvFileContent, formatterVariables, LogChart.overrides))
-      )
-    )
-  }
-
-  private static getFormatterVariables(definition: LogChartDefinition, csvContent: CsvFileContent) {
-    if (definition.formatterFromHeaderRow) {
-      if (csvContent.length == 0) {
-        return []
-      }
-      return csvContent[0];
-    } else {
-      return definition.customFormatter.split(";");
-    }
   }
 
   private static generateUniqueId() {
@@ -159,7 +170,8 @@ export class LogChartDefinition {
     this.entryLimit = null
   }
 
-  getDataSet(csvContent: CsvFileContent, formatterVariables: string[], overrides: ChartOverrides): ChartDataSet {
+  getDataSet(csvContent: CsvFileContent, formatterVariables: string[]): ChartDataSet {
+    const overrides = LogChart.overrides
     const rowLimit = overrides?.enableEntryLimit ? overrides.entryLimit : this.entryLimit;
     const rows = LogChartDefinition.getLatestRows(csvContent, rowLimit);
     const xIndex = formatterVariables.findIndex(variableName => variableName == this.xVariable);

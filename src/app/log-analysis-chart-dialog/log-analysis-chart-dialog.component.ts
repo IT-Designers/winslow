@@ -8,6 +8,7 @@ import {
   LogChartDefinition
 } from "../log-analysis/log-chart-definition";
 import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
@@ -19,6 +20,7 @@ export class LogAnalysisChartDialogComponent implements OnInit, OnDestroy {
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
+
   variableSuggestions$: Observable<string[]>;
 
   AxisTypes = Object.values(ChartAxisType);
