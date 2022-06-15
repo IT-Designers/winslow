@@ -4,12 +4,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {
-  ChartDialogData, CsvFileController,
-  LogChart,
-  LogChartDefinition,
-  StageCsvInfo
-} from "./log-chart-definition";
+import {ChartDialogData, CsvFileController, LogChart, LogChartDefinition, StageCsvInfo} from "./log-chart-definition";
 import {
   LogAnalysisSettingsDialogComponent
 } from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
@@ -271,11 +266,9 @@ export class LogAnalysisComponent implements OnInit {
   private loadChart = (file: FileInfo) => {
     console.log(`Loading chart ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
-      const chart = new LogChart(this.csvFileController, file.name);
       const definition = new LogChartDefinition();
       Object.assign(definition, JSON.parse(text));
-      chart.definition$.next(definition);
-      return chart;
+      return new LogChart(this.csvFileController, file.name, definition);
     });
   }
 

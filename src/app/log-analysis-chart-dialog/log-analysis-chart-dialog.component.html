@@ -61,7 +61,7 @@
     <mat-label>x-Axis Variable</mat-label>
     <input matInput [(ngModel)]="definition.xVariable" (ngModelChange)="refresh()" [matAutocomplete]="xAxisVariables">
     <mat-autocomplete #xAxisVariables="matAutocomplete">
-      <mat-option *ngFor="let variable of chart.formatterVariables$ | async"
+      <mat-option *ngFor="let variable of variableSuggestions$ | async"
                   [value]="variable">{{variable}}</mat-option>
     </mat-autocomplete>
   </mat-form-field>
@@ -69,7 +69,7 @@
     <mat-label>y-Axis Variable</mat-label>
     <input matInput [(ngModel)]="definition.yVariable" (ngModelChange)="refresh()" [matAutocomplete]="yAxisVariables">
     <mat-autocomplete #yAxisVariables="matAutocomplete">
-      <mat-option *ngFor="let variable of chart.formatterVariables$ | async"
+      <mat-option *ngFor="let variable of variableSuggestions$ | async"
                   [value]="variable">{{variable}}</mat-option>
     </mat-autocomplete>
   </mat-form-field>
@@ -126,8 +126,7 @@
 
 <mat-dialog-content class="dialog-content">
   <app-log-analysis-chart
-    [data]="chart.chartData$ | async"
-    [settings]="chart.displaySettings$ | async"
+    [chart]="chart"
   ></app-log-analysis-chart>
 </mat-dialog-content>
 
