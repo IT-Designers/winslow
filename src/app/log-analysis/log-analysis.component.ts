@@ -10,7 +10,9 @@ import {
   LogChartDefinition,
   StageCsvInfo
 } from "./log-chart-definition";
-import {LogAnalysisSettingsDialogComponent} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
+import {
+  LogAnalysisSettingsDialogComponent
+} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
 
 export interface CsvFile {
@@ -57,7 +59,7 @@ export class LogAnalysisComponent implements OnInit {
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
 
-  private readonly csvFileController : CsvFileController;
+  private readonly csvFileController: CsvFileController;
 
   longLoading = new LongLoadingDetector();
   hasSelectableStages = true;
@@ -231,6 +233,13 @@ export class LogAnalysisComponent implements OnInit {
     this.charts.splice(chartIndex, 1);
   }
 
+  saveCharts() {
+    this.charts.forEach(chart => {
+      const filename = chart.filename;
+      this.saveChart(filename, chart.definition$.getValue());
+    })
+  }
+
   openEditChartDialog(chart: LogChart) {
     const dialogData: ChartDialogData = {
       definition: chart.definition$.getValue(),
@@ -247,6 +256,17 @@ export class LogAnalysisComponent implements OnInit {
         chart.definition$.next(definition);
         this.saveCharts();
       }
+    })
+  }
+
+  openDisplaySettingsDialog() {
+    const dialogData = LogChart.overrides;
+
+    const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(_ => {
     })
   }
 
@@ -325,13 +345,6 @@ export class LogAnalysisComponent implements OnInit {
       chart.definition$.next(definition);
       return chart;
     });
-  };
-
-  saveCharts() {
-    this.charts.forEach(chart => {
-      const filename = chart.filename;
-      this.saveChart(filename, chart.definition$.getValue());
-    })
   }
 
   private saveChart(filename: string, chart: LogChartDefinition) {
@@ -583,17 +596,6 @@ export class LogAnalysisComponent implements OnInit {
       alert("Failed to delete chart");
       console.error(error);
     });
-  }
-
-  openDisplaySettingsDialog() {
-    const dialogData = LogChart.overrides;
-
-    const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
-      data: dialogData,
-    });
-
-    dialogRef.afterClosed().subscribe(_ => {
-    })
   }
 
   private findProjectPipeline(pipelines: PipelineInfo[]) {

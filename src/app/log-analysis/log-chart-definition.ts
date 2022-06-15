@@ -1,5 +1,5 @@
 import {StageInfo} from "../api/project-api.service";
-import {BehaviorSubject, combineLatest, Observable} from "rxjs";
+import {BehaviorSubject, combineLatest, Observable, Subject} from "rxjs";
 import {FilesApiService} from "../api/files-api.service";
 import {map, switchMap} from "rxjs/operators";
 import {CsvFileContent, parseCsv} from "./csv-parser";
@@ -13,7 +13,7 @@ export interface StageCsvInfo {
 export interface CsvFileInfo {
   filename: string;
   directory: string;
-  content$: BehaviorSubject<CsvFileContent>;
+  content$: Subject<CsvFileContent>;
 }
 
 export class CsvFileController {
@@ -32,15 +32,15 @@ export class CsvFileController {
     return this.stages$.pipe(
       switchMap(stages => {
         const content$s = stages.map(stage => {
-          const csvFile = this.getCsvFileInfo(stage, filename);
-          return csvFile.content$;
+          const csvFileInfo = this.selectCsvFile(stage, filename);
+          return csvFileInfo.content$;
         })
         return combineLatest(content$s);
       }),
     )
   }
 
-  private getCsvFileInfo(stage: StageCsvInfo, filename: string) {
+  private selectCsvFile(stage: StageCsvInfo, filename: string): CsvFileInfo {
     let csvFile = stage.csvFiles.find(csvFile => csvFile.filename == filename)
     if (csvFile == null) {
       csvFile = this.loadCsvFile(stage, filename);
@@ -49,12 +49,12 @@ export class CsvFileController {
     return csvFile;
   }
 
-  private loadCsvFile(stageCsvInfo: StageCsvInfo, filename: string) {
+  private loadCsvFile(stageCsvInfo: StageCsvInfo, filename: string): CsvFileInfo {
     const directory = CsvFileController.getFileDirectory(stageCsvInfo);
     const filepath = `${directory}/${filename}`;
 
     const csvFile: CsvFileInfo = {
-      content$: new BehaviorSubject<CsvFileContent>([]),
+      content$: new Subject<CsvFileContent>(),
       directory: directory,
       filename: filename,
     }
@@ -123,7 +123,7 @@ export class LogChart {
     )
   }
 
-  private static getFormatterVariables(definition: LogChartDefinition, csvContent: string[][]) {
+  private static getFormatterVariables(definition: LogChartDefinition, csvContent: CsvFileContent) {
     if (definition.formatterFromHeaderRow) {
       if (csvContent.length == 0) {
         return []
