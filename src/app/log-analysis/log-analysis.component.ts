@@ -4,11 +4,12 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartDialogData, CsvFileController, LogChart, LogChartDefinition, StageCsvInfo} from "./log-chart-definition";
+import {ChartDialogData, LogChart, LogChartDefinition} from "./log-chart-definition";
 import {
   LogAnalysisSettingsDialogComponent
 } from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
+import {CsvFileController, StageCsvInfo} from "./csv-file-controller";
 
 @Component({
   selector: 'app-log-analysis',
