@@ -5,10 +5,9 @@ import {
   ChartDialogData,
   ChartDisplaySettings,
   LogChart,
-  LogChartDefinition, LogChartSnapshot
+  LogChartDefinition,
+  LogChartSnapshot
 } from "../log-analysis/log-chart-definition";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
 import {CsvFileInfo} from "../log-analysis/csv-file-controller";
 
 @Component({
@@ -21,9 +20,7 @@ export class LogAnalysisChartDialogComponent {
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
-
-  snapshot$: Observable<LogChartSnapshot>
-  variableSuggestions$: Observable<string[]>;
+  snapshot: LogChartSnapshot;
 
   AxisTypes = Object.values(ChartAxisType);
 
