@@ -1,26 +1,28 @@
-import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
   ChartDialogData,
   ChartDisplaySettings,
   LogChart,
-  LogChartDefinition
+  LogChartDefinition, LogChartSnapshot
 } from "../log-analysis/log-chart-definition";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import {CsvFileInfo} from "../log-analysis/csv-file-controller";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
   templateUrl: './log-analysis-chart-dialog.component.html',
   styleUrls: ['./log-analysis-chart-dialog.component.css']
 })
-export class LogAnalysisChartDialogComponent implements OnInit, OnDestroy {
+export class LogAnalysisChartDialogComponent {
 
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
 
+  snapshot$: Observable<LogChartSnapshot>
   variableSuggestions$: Observable<string[]>;
 
   AxisTypes = Object.values(ChartAxisType);
