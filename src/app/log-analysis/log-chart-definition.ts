@@ -1,32 +1,31 @@
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {map, switchMap} from "rxjs/operators";
 import {CsvFileContent} from "./csv-parser";
-import {CsvFileController} from "./csv-file-controller";
+import {CsvFileController, CsvFileInfo} from "./csv-file-controller";
 
 export class LogChartSnapshot {
 
-  constructor(definition: LogChartDefinition, csvFileContents: CsvFileContent[]) {
+  constructor(definition: LogChartDefinition, csvFiles: CsvFileInfo[]) {
     this.definition = definition
-    this.csvFileContents = csvFileContents
-    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFileContents)
-    this.chartData = LogChartSnapshot.getChartData(definition, csvFileContents, this.formatterVariables)
+    this.csvFiles = csvFiles
+    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles)
+    const csvFilesContents = this.csvFiles.map(csvFile => csvFile.content)
+    this.chartData = LogChartSnapshot.getChartData(definition, csvFilesContents, this.formatterVariables)
   }
 
   readonly definition: LogChartDefinition
-  readonly csvFileContents: CsvFileContent[]
+  readonly csvFiles: CsvFileInfo[]
   readonly chartData: ChartDataSet[]
   readonly formatterVariables: string[]
 
-  private static getFormatterVariables(definition: LogChartDefinition, csvFileContents: CsvFileContent[]): string[] {
+  private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFileInfo[]): string[] {
     if (!definition.formatterFromHeaderRow) return definition.customFormatter.split(";");
 
     const variables = [];
 
-    csvFileContents.forEach(csvFile => {
-      if (csvFile.length <= 0) return;
-      csvFile[0].forEach(field => {
-        if (variables.includes(field)) return
-        variables.push(field)
+    csvFiles.map(csvFile => csvFile.content).forEach(csvContent => {
+      if (csvContent.length > 0) csvContent[0].forEach(field => {
+        if (!variables.includes(field)) variables.push(field)
       })
     })
 
@@ -54,12 +53,12 @@ export class LogChart {
     this.filename = id ?? LogChart.generateUniqueId();
     this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
 
-    let csvFileContents$ = this.definition$.pipe(
-      switchMap(definition => csvFileController.getCsvContents$(definition.file).pipe()),
+    const csvFileInfo$ = this.definition$.pipe(
+      switchMap(definition => csvFileController.getCsvFiles$(definition.file).pipe()),
     )
 
-    this.snapshot$ = combineLatest([this.definition$, csvFileContents$]).pipe(
-      map(([definition, csvFileContents]) => new LogChartSnapshot(definition, csvFileContents))
+    this.snapshot$ = combineLatest([this.definition$, csvFileInfo$]).pipe(
+      map(([definition, csvFileInfos]) => new LogChartSnapshot(definition, csvFileInfos))
     )
   }
 
