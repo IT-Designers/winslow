@@ -5,10 +5,9 @@ import {
   ChartDialogData,
   ChartDisplaySettings,
   LogChart,
-  LogChartDefinition, LogChartSnapshot
+  LogChartDefinition,
+  LogChartSnapshot
 } from "../log-analysis/log-chart-definition";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
 import {CsvFileInfo} from "../log-analysis/csv-file-controller";
 
 @Component({
@@ -21,27 +20,21 @@ export class LogAnalysisChartDialogComponent {
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
-
-  snapshot$: Observable<LogChartSnapshot>
-  variableSuggestions$: Observable<string[]>;
+  snapshot: LogChartSnapshot;
 
   constructor(@Inject(MAT_DIALOG_DATA) private data: ChartDialogData) {
     this.chart = new LogChart(data.csvFileController, data.chart.filename, data.definition);
+    this.chart.snapshot$.subscribe(snapshot => this.snapshot = snapshot)
 
     this.definition = Object.assign(new LogChartDefinition(), data.definition);
     this.definition.displaySettings = Object.assign(new ChartDisplaySettings(), data.definition.displaySettings);
-
-    this.snapshot$ = this.chart.snapshot$
-    this.variableSuggestions$ = this.chart.snapshot$.pipe(
-      map(snapshot => snapshot.formatterVariables)
-    )
 
     this.refresh()
   }
 
   refresh() {
-    this.definition.displaySettings = Object.assign({}, this.definition.displaySettings);
-    this.chart.definition$.next(this.definition);
+    this.definition.displaySettings = Object.assign({}, this.definition.displaySettings)
+    this.chart.definition$.next(this.definition)
   }
 
   findEmptyCsvFiles(snapshot: LogChartSnapshot): CsvFileInfo[] {
@@ -49,6 +42,8 @@ export class LogAnalysisChartDialogComponent {
     return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0)
   }
 
-
-
+  invalidVariable(variable: string) {
+    if (variable == "") return false
+    return !this.snapshot.formatterVariables.includes(variable)
+  }
 }

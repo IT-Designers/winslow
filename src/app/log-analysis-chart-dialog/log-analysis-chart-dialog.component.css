@@ -1,6 +1,8 @@
 .dialog-content {
+  display: block;
   padding: 0;
   margin: 0;
+  width: 720px;
 }
 
 .dialog-actions {
