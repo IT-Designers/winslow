@@ -1,34 +1,37 @@
-import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
   ChartDialogData,
   ChartDisplaySettings,
   LogChart,
-  LogChartDefinition
+  LogChartDefinition, LogChartSnapshot
 } from "../log-analysis/log-chart-definition";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import {CsvFileInfo} from "../log-analysis/csv-file-controller";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
   templateUrl: './log-analysis-chart-dialog.component.html',
   styleUrls: ['./log-analysis-chart-dialog.component.css']
 })
-export class LogAnalysisChartDialogComponent implements OnInit, OnDestroy {
+export class LogAnalysisChartDialogComponent {
 
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
 
+  snapshot$: Observable<LogChartSnapshot>
   variableSuggestions$: Observable<string[]>;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: ChartDialogData) {
+  constructor(@Inject(MAT_DIALOG_DATA) private data: ChartDialogData) {
     this.chart = new LogChart(data.csvFileController, data.chart.filename, data.definition);
 
     this.definition = Object.assign(new LogChartDefinition(), data.definition);
     this.definition.displaySettings = Object.assign(new ChartDisplaySettings(), data.definition.displaySettings);
 
+    this.snapshot$ = this.chart.snapshot$
     this.variableSuggestions$ = this.chart.snapshot$.pipe(
       map(snapshot => snapshot.formatterVariables)
     )
@@ -41,9 +44,11 @@ export class LogAnalysisChartDialogComponent implements OnInit, OnDestroy {
     this.chart.definition$.next(this.definition);
   }
 
-  ngOnInit(): void {
+  findEmptyCsvFiles(snapshot: LogChartSnapshot): CsvFileInfo[] {
+    if (snapshot == null) return []
+    return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0)
   }
 
-  ngOnDestroy(): void {
-  }
+
+
 }
