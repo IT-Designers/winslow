@@ -134,20 +134,26 @@
   <div class="warning-message" *ngFor="let csvFile of findEmptyCsvFiles(snapshot)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
-      No data for file <em>"{{csvFile.filename}}"</em> for stage <em>"{{csvFile.stageId}}"</em>.
+      No data for file <code>{{csvFile.filename}}</code> for stage <code>{{csvFile.stageId}}</code>.
       The file may be empty or missing.
     </p>
   </div>
-  <div class="warning-message" *ngIf="invalidVariable(snapshot.definition.xVariable)">
+  <div class="warning-message" *ngIf="!isValidEntryLimit(snapshot.definition.entryLimit)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
-      Variable for x-Axis <em>"{{snapshot.definition.xVariable}}"</em> is not part of the formatter.
+      The entry limit should be greater than 1.
     </p>
   </div>
-  <div class="warning-message" *ngIf="invalidVariable(snapshot.definition.yVariable)">
+  <div class="warning-message" *ngIf="isInvalidVariable(snapshot.definition.xVariable)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
-      Variable for y-Axis <em>"{{snapshot.definition.yVariable}}"</em> is not part of the formatter.
+      Variable for x-Axis <code>{{snapshot.definition.xVariable}}</code> is not part of the formatter.
+    </p>
+  </div>
+  <div class="warning-message" *ngIf="isInvalidVariable(snapshot.definition.yVariable)">
+    <mat-icon color="warn">warning</mat-icon>
+    <p>
+      Variable for y-Axis <code>{{snapshot.definition.yVariable}}</code> is not part of the formatter.
     </p>
   </div>
 </mat-dialog-content>
