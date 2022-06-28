@@ -49,4 +49,9 @@ export class LogAnalysisChartDialogComponent {
     }
     return lines;
   }
+
+  isValidEntryLimit(entryLimit: number | null) {
+    if (entryLimit == null) return true
+    return entryLimit > 1
+  }
 }
