@@ -42,8 +42,13 @@ export class LogAnalysisChartDialogComponent {
     return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0)
   }
 
-  invalidVariable(variable: string) {
+  isInvalidVariable(variable: string) {
     if (variable == "") return false
     return !this.snapshot.formatterVariables.includes(variable)
+  }
+
+  isValidEntryLimit(entryLimit: number | null) {
+    if (entryLimit == null) return true
+    return entryLimit > 1
   }
 }
