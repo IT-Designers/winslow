@@ -4,7 +4,7 @@ import {CsvFileContent, parseCsv} from "./csv-parser";
 import {map, switchMap} from "rxjs/operators";
 import {StageInfo} from "../api/project-api.service";
 
-export interface CsvFileInfo {
+export interface CsvFile {
   stageId: string
   filename: string
   directory: string
@@ -23,23 +23,23 @@ export class CsvFileController {
     this.stages$ = new BehaviorSubject<StageCsvInfo[]>([]);
   }
 
-  getCsvFiles$(filename: string): Observable<CsvFileInfo[]> {
+  getCsvFiles$(filename: string): Observable<CsvFile[]> {
     return this.stages$.pipe(
       switchMap(stages => {
-        const info$s = stages.map(stage => this.getFileInfo$(stage, filename))
-        return combineLatest(info$s);
+        const file$s = stages.map(stage => this.getCsvFile$(stage, filename))
+        return combineLatest(file$s);
       }),
     )
   }
 
-  private static getFileDirectory(stageCsvInfo: StageCsvInfo) {
+  private static pathToCsvFilesOfStage(stageCsvInfo: StageCsvInfo) {
     return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`;
   }
 
-  private getFileInfo$(stage: StageCsvInfo, filename: string): Observable<CsvFileInfo> {
+  private getCsvFile$(stage: StageCsvInfo, filename: string): Observable<CsvFile> {
     const csvFileSource = this.getCsvFileSource(stage, filename);
     return csvFileSource.content$.pipe(
-      map((content: CsvFileContent): CsvFileInfo => ({
+      map((content: CsvFileContent): CsvFile => ({
         content: content,
         directory: csvFileSource.directory,
         filename: csvFileSource.filename,
@@ -58,7 +58,7 @@ export class CsvFileController {
   }
 
   private loadCsvFile(stageCsvInfo: StageCsvInfo, filename: string): CsvFileSource {
-    const directory = CsvFileController.getFileDirectory(stageCsvInfo);
+    const directory = CsvFileController.pathToCsvFilesOfStage(stageCsvInfo);
     const filepath = `${directory}/${filename}`;
 
     const csvFileSource: CsvFileSource = {
@@ -66,6 +66,12 @@ export class CsvFileController {
       directory: directory,
       filename: filename,
     }
+
+    /*
+    this.getFileInfo(directory, filename).then(file => {
+      console.log(file)
+    })
+     */
 
     console.log(`Loading file ${filename} from ${directory}`);
 
@@ -86,6 +92,11 @@ export class CsvFileController {
       });
 
     return csvFileSource;
+  }
+
+  private async getFileInfo(directory: string, filename: string) {
+    const files = await this.filesApi.listFiles(directory)
+    return files.find(file => file.name == filename)
   }
 }
 

@@ -8,7 +8,7 @@ import {
   LogChartDefinition,
   LogChartSnapshot
 } from "../log-analysis/log-chart-definition";
-import {CsvFileInfo} from "../log-analysis/csv-file-controller";
+import {CsvFile} from "../log-analysis/csv-file-controller";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
@@ -37,7 +37,7 @@ export class LogAnalysisChartDialogComponent {
     this.chart.definition$.next(this.definition)
   }
 
-  findEmptyCsvFiles(snapshot: LogChartSnapshot): CsvFileInfo[] {
+  findEmptyCsvFiles(snapshot: LogChartSnapshot): CsvFile[] {
     if (snapshot == null) return []
     return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0)
   }
