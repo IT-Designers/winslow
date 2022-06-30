@@ -1,11 +1,11 @@
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {map, switchMap} from "rxjs/operators";
 import {CsvFileContent} from "./csv-parser";
-import {CsvFileController, CsvFileInfo} from "./csv-file-controller";
+import {CsvFileController, CsvFile} from "./csv-file-controller";
 
 export class LogChartSnapshot {
 
-  constructor(definition: LogChartDefinition, csvFiles: CsvFileInfo[]) {
+  constructor(definition: LogChartDefinition, csvFiles: CsvFile[]) {
     this.definition = definition
     this.csvFiles = csvFiles
     this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles)
@@ -14,11 +14,11 @@ export class LogChartSnapshot {
   }
 
   readonly definition: LogChartDefinition
-  readonly csvFiles: CsvFileInfo[]
+  readonly csvFiles: CsvFile[]
   readonly chartData: ChartDataSet[]
   readonly formatterVariables: string[]
 
-  private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFileInfo[]): string[] {
+  private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFile[]): string[] {
     if (!definition.formatterFromHeaderRow) return definition.customFormatter.split(";");
 
     const variables = [];

@@ -8,7 +8,7 @@ import {
   LogChartDefinition,
   LogChartSnapshot
 } from "../log-analysis/log-chart-definition";
-import {CsvFileInfo} from "../log-analysis/csv-file-controller";
+import {CsvFile} from "../log-analysis/csv-file-controller";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
