@@ -9,6 +9,15 @@
   </mat-slide-toggle>
 </mat-dialog-content>
 
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="input-field">
+    <mat-label>Refresh data</mat-label>
+    <input matInput [(ngModel)]="data.refreshTime">
+  </mat-form-field>
+  <mat-slide-toggle class="input-toggle" [(ngModel)]="data.enableRefreshing">
+  </mat-slide-toggle>
+</mat-dialog-content>
+
 <mat-dialog-actions class="dialog-actions">
   <button mat-button [mat-dialog-close]="">Save</button>
 </mat-dialog-actions>
