@@ -42,7 +42,9 @@ export class LogChartSnapshot {
 export class LogChart {
   static overrides: ChartOverrides = {
     enableEntryLimit: false,
-    entryLimit: 50
+    entryLimit: 50,
+    enableRefreshing: true,
+    refreshTime: 5000,
   };
 
   readonly snapshot$: Observable<LogChartSnapshot>
@@ -147,4 +149,6 @@ export interface ChartDialogData {
 export interface ChartOverrides {
   enableEntryLimit: boolean;
   entryLimit: number;
+  enableRefreshing: boolean;
+  refreshTime: number;
 }
