@@ -3,6 +3,7 @@ import {BehaviorSubject, combineLatest, Observable, Subject} from "rxjs";
 import {CsvFileContent, parseCsv} from "./csv-parser";
 import {map, switchMap} from "rxjs/operators";
 import {StageInfo} from "../api/project-api.service";
+import {ChartOverrides} from "./log-chart-definition";
 
 export interface CsvFile {
   stageId: string
@@ -12,32 +13,34 @@ export interface CsvFile {
 }
 
 export class CsvFileController {
-  static readonly PATH_TO_WORKSPACES = '/workspaces';
+  static readonly PATH_TO_WORKSPACES = '/workspaces'
 
-  private readonly filesApi: FilesApiService;
+  private readonly filesApi: FilesApiService
 
-  stages$: BehaviorSubject<StageCsvInfo[]>;
+  stages$: Observable<StageCsvInfo[]>
+  overrides$: Observable<ChartOverrides>
 
-  constructor(api) {
-    this.filesApi = api;
-    this.stages$ = new BehaviorSubject<StageCsvInfo[]>([]);
+  constructor(api, stages$, overrides$) {
+    this.filesApi = api
+    this.stages$ = stages$
+    this.overrides$ = overrides$
   }
 
   getCsvFiles$(filename: string): Observable<CsvFile[]> {
     return this.stages$.pipe(
       switchMap(stages => {
         const file$s = stages.map(stage => this.getCsvFile$(stage, filename))
-        return combineLatest(file$s);
+        return combineLatest(file$s)
       }),
     )
   }
 
   private static pathToCsvFilesOfStage(stageCsvInfo: StageCsvInfo) {
-    return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`;
+    return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`
   }
 
   private getCsvFile$(stage: StageCsvInfo, filename: string): Observable<CsvFile> {
-    const csvFileSource = this.getCsvFileSource(stage, filename);
+    const csvFileSource = this.getCsvFileSource(stage, filename)
     return csvFileSource.content$.pipe(
       map((content: CsvFileContent): CsvFile => ({
         content: content,
@@ -51,10 +54,10 @@ export class CsvFileController {
   private getCsvFileSource(stage: StageCsvInfo, filename: string): CsvFileSource {
     let csvFileSource = stage.csvFiles.find(csvFile => csvFile.filename == filename)
     if (csvFileSource == null) {
-      csvFileSource = this.loadCsvFile(stage, filename);
-      stage.csvFiles.push(csvFileSource);
+      csvFileSource = this.loadCsvFile(stage, filename)
+      stage.csvFiles.push(csvFileSource)
     }
-    return csvFileSource;
+    return csvFileSource
   }
 
   private loadCsvFile(stageCsvInfo: StageCsvInfo, filename: string): CsvFileSource {
