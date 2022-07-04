@@ -4,12 +4,13 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartDialogData, LogChart, LogChartDefinition} from "./log-chart-definition";
+import {ChartDialogData, ChartOverrides, LogChart, LogChartDefinition} from "./log-chart-definition";
 import {
   LogAnalysisSettingsDialogComponent
 } from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
 import {CsvFileController, StageCsvInfo} from "./csv-file-controller";
+import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis',
@@ -42,6 +43,14 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   stagesToCompare: StageCsvInfo[] = [];
+
+  private stages$: BehaviorSubject<StageCsvInfo[]> = new BehaviorSubject<StageCsvInfo[]>([]);
+  private overrides$: BehaviorSubject<ChartOverrides> = new BehaviorSubject<ChartOverrides>({
+    enableEntryLimit: false,
+    entryLimit: 50,
+    enableRefreshing: false,
+    refreshTime: 5000
+  });
 
   @Input()
   set project(project: ProjectInfo) {
@@ -79,7 +88,7 @@ export class LogAnalysisComponent implements OnInit {
     private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
   ) {
-    this.csvFileController = new CsvFileController(filesApi);
+    this.csvFileController = new CsvFileController(this.filesApi, this.stages$, this.overrides$);
   }
 
   ngOnInit(): void {
@@ -104,15 +113,6 @@ export class LogAnalysisComponent implements OnInit {
 
   isLatestStage(stageCsvInfo: StageCsvInfo): boolean {
     return stageCsvInfo.stage == this.latestStage;
-  }
-
-  getLatestStage(): StageInfo {
-    return this.selectableStages.slice(-1)[0];
-  }
-
-  private refreshStages() {
-    const stages = [this.stageToDisplay, ...this.stagesToCompare];
-    this.csvFileController.stages$.next(stages);
   }
 
   updateStage(stageCsvInfo: StageCsvInfo, stage: StageInfo) {
@@ -187,15 +187,25 @@ export class LogAnalysisComponent implements OnInit {
     })
   }
 
-  openDisplaySettingsDialog() {
-    const dialogData = LogChart.overrides;
+  openGlobalSettingsDialog() {
+    const dialogData = this.overrides$.getValue();
 
     const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
       data: dialogData,
     });
 
     dialogRef.afterClosed().subscribe(_ => {
+      this.overrides$.next(dialogData)
     })
+  }
+
+  private getLatestStage(): StageInfo {
+    return this.selectableStages.slice(-1)[0];
+  }
+
+  private refreshStages() {
+    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    this.stages$.next(stages);
   }
 
   private loadStagesFromHistory(projectHistory) {
