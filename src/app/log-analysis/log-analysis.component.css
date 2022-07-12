@@ -40,11 +40,6 @@
   grid-auto-rows: minmax(300px, 1fr);
 }
 
-.create-chart-tile {
-  align-self: center;
-  justify-self: center;
-}
-
 .chart-card {
   margin: 4px;
   flex-grow: 1;
