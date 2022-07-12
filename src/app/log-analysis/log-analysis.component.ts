@@ -48,7 +48,7 @@ export class LogAnalysisComponent implements OnInit {
   private overrides$: BehaviorSubject<ChartOverrides> = new BehaviorSubject<ChartOverrides>({
     enableEntryLimit: false,
     entryLimit: 50,
-    enableRefreshing: false,
+    enableRefreshing: true,
     refreshTime: 5000
   });
 
