@@ -1,13 +1,16 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo} from '../api/project-api.service';
+import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo} from "../api/project-api.service";
 import {MatDialog} from '@angular/material/dialog';
-import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import {FileInfo, FilesApiService} from '../api/files-api.service';
-import {LogChart, LogChartDefinition} from './log-chart-definition';
-import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
-import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
-import {getColor} from './colors';
-import {CsvFilesService} from './csv-files.service';
+import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
+import {LongLoadingDetector} from "../long-loading-detector";
+import {FileInfo, FilesApiService} from "../api/files-api.service";
+import {ChartDialogData, ChartOverrides, LogChart, LogChartDefinition} from "./log-chart-definition";
+import {
+  LogAnalysisSettingsDialogComponent
+} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
+import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
+import {CsvFileController, StageCsvInfo} from "./csv-file-controller";
+import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis',
@@ -15,127 +18,210 @@ import {CsvFilesService} from './csv-files.service';
   styleUrls: ['./log-analysis.component.css']
 })
 export class LogAnalysisComponent implements OnInit {
+  private static readonly LONG_LOADING_HISTORY_FLAG = 'history';
+  private static readonly LONG_LOADING_CHARTS_FLAG = 'charts';
+  private static readonly LONG_LOADING_PIPELINES_FLAG = 'pipelines';
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
 
-  probablyPipelineId = null;
-  isLongLoading: boolean = true
+  private readonly csvFileController: CsvFileController;
 
+  longLoading = new LongLoadingDetector();
+  hasSelectableStages = true;
+  probablyPipelineId = null;
+
+  selectedProject: ProjectInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
   latestStage: StageInfo = null;
   selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
 
-  stageToDisplay: StageInfo;
-  stagesToCompare: StageInfo[] = [];
+  stageToDisplay: StageCsvInfo = {
+    id: null,
+    stage: null,
+    csvFiles: [],
+  }
 
-  private projectInfo: ProjectInfo;
+  stagesToCompare: StageCsvInfo[] = [];
+
+  private stages$: BehaviorSubject<StageCsvInfo[]> = new BehaviorSubject<StageCsvInfo[]>([]);
+  private overrides$: BehaviorSubject<ChartOverrides> = new BehaviorSubject<ChartOverrides>({
+    enableEntryLimit: false,
+    entryLimit: 50,
+    enableRefreshing: true,
+    refreshTime: 5000
+  });
+
+  @Input()
+  set project(project: ProjectInfo) {
+    this.selectedProject = project
+
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG)
+    const projectPromise = this.projectApi.getProjectHistory(this.selectedProject.id)
+      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
+
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
+    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
+      .then(pipelines => this.findProjectPipeline(pipelines))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
+
+    Promise.all([projectPromise, pipelinePromise]).then(
+      () => this.loadCharts()
+    )
+  }
+
+  @Input()
+  set selectedStage(id: string) {
+    if (id == null) {
+      return;
+    }
+
+    this.stageToDisplay.id = id;
+
+    this.autoSelectStage();
+  }
 
   constructor(
     private dialog: MatDialog,
     private projectApi: ProjectApiService,
     private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
-    private csvFilesService: CsvFilesService,
   ) {
-  }
-
-  @Input() selectedStage: string;
-
-  @Input() set project(project: ProjectInfo) {
-    this.isLongLoading = true;
-    this.projectInfo = project;
-    this.resetStagesAndCharts();
-
-    const projectPromise = this.projectApi.getProjectHistory(project.id)
-      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
-
-    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
-      .then(pipelines => this.findProjectPipeline(pipelines))
-
-    Promise.all([projectPromise, pipelinePromise])
-      .then(() => this.loadCharts())
-      .finally(() => this.isLongLoading = false);
+    this.csvFileController = new CsvFileController(this.filesApi, this.stages$, this.overrides$);
   }
 
   ngOnInit(): void {
   }
 
+  isLongLoading(): boolean {
+    return this.longLoading.isLongLoading();
+  }
+
   stageLabel(stage: StageInfo): string {
     if (stage == null) {
-      return 'Stage is null!';
+      return "Stage is null!";
     }
 
     const dateValue = stage.finishTime ?? stage.startTime;
     const dateString = new Date(dateValue).toLocaleString();
 
-    const name = stage.id.slice(this.projectInfo.id.length + 1);
+    const name = stage.id.slice(this.selectedProject.id.length + 1);
 
-    return `${dateString} · ${name}`;
+    return `${dateString} · ${name}`
   }
 
-  stageColor(step: number) {
-    return getColor(step);
+  isLatestStage(stageCsvInfo: StageCsvInfo): boolean {
+    return stageCsvInfo.stage == this.latestStage;
   }
 
-  hasSelectableStages(): boolean {
-    return this.selectableStages.length > 0
-  }
+  updateStage(stageCsvInfo: StageCsvInfo, stage: StageInfo) {
+    if (stage == null) {
+      stage = this.latestStage;
+    }
+    stageCsvInfo.id = stage.id;
+    stageCsvInfo.stage = stage;
+    stageCsvInfo.csvFiles = [];
 
-  isLatestStage(stageInfo: StageInfo): boolean {
-    return stageInfo == this.latestStage;
-  }
+    console.log(`Selected stage ${stage.id}`);
 
-  displayLatestStage() {
-    this.stageToDisplay = this.latestStage;
-    this.refreshStages();
+    this.refreshStages()
   }
 
   addStageToCompare() {
-    this.stagesToCompare.push(this.latestStage);
+    let stageCsvInfo: StageCsvInfo = {
+      csvFiles: [],
+      stage: undefined,
+      id: ""
+    }
+    this.updateStage(stageCsvInfo, this.latestStage);
+    this.stagesToCompare.push(stageCsvInfo);
 
-    this.refreshStages();
-  }
-
-  compareWithLatestStage(index: number) {
-    this.stagesToCompare[index] = this.latestStage;
-    this.refreshStages();
+    this.refreshStages()
   }
 
   removeStageToCompare(stageIndex: number) {
     this.stagesToCompare.splice(stageIndex, 1);
 
-    this.refreshStages();
-  }
-
-  refreshStages() {
-    const stages = [this.stageToDisplay, ...this.stagesToCompare];
-    this.csvFilesService.setStages(stages);
-  }
-
-  private resetStagesAndCharts() {
-    this.charts = []
-    this.selectableStages = []
-    this.stagesToCompare = []
-
     this.refreshStages()
+  }
+
+  createChart() {
+    const chart = new LogChart(this.csvFileController);
+    this.charts.push(chart);
+    this.openEditChartDialog(chart);
+  }
+
+  removeChart(chartIndex: number) {
+    let chart = this.charts[chartIndex];
+    if (!chart) {
+      throw "Chart index is out of range!";
+    }
+    this.deleteChart(chart);
+    this.charts.splice(chartIndex, 1);
+  }
+
+  saveCharts() {
+    this.charts.forEach(chart => {
+      const filename = chart.filename;
+      this.saveChart(filename, chart.definition$.getValue());
+    })
+  }
+
+  openEditChartDialog(chart: LogChart) {
+    const dialogData: ChartDialogData = {
+      definition: chart.definition$.getValue(),
+      chart: chart,
+      csvFileController: this.csvFileController,
+    }
+
+    const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(definition => {
+      if (definition != null) {
+        chart.definition$.next(definition);
+        this.saveCharts();
+      }
+    })
+  }
+
+  openGlobalSettingsDialog() {
+    const dialogData = this.overrides$.getValue();
+
+    const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(_ => {
+      this.overrides$.next(dialogData)
+    })
   }
 
   private getLatestStage(): StageInfo {
     return this.selectableStages.slice(-1)[0];
   }
 
+  private refreshStages() {
+    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    this.stages$.next(stages);
+  }
+
   private loadStagesFromHistory(projectHistory) {
     this.projectHistory = projectHistory;
     this.selectableStages = this.getSelectableStages(projectHistory);
     this.latestStage = this.getLatestStage();
-    if (this.hasSelectableStages()) {
-      this.displayLatestStage();
+
+    this.hasSelectableStages = this.selectableStages.length > 0;
+
+    if (this.hasSelectableStages) {
+      this.autoSelectStage();
     }
   }
 
   private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
-    let stages: StageInfo[] = [];
+    let stages: StageInfo[] = []
 
     projectHistory.forEach(executionGroup => {
 
@@ -152,54 +238,27 @@ export class LogAnalysisComponent implements OnInit {
       } else {
         stages.push(...executionGroup.stages);
       }
-    });
+    })
 
     return stages;
   }
 
-  createChart() {
-    const chart = new LogChart(this.csvFilesService);
-    this.charts.push(chart);
-    this.openEditChartDialog(chart);
-  }
-
-  removeChart(chartIndex: number) {
-    let chart = this.charts[chartIndex];
-    if (!chart) {
-      throw 'Chart index is out of range!';
+  private autoSelectStage() {
+    this.stagesToCompare = [];
+    if (this.stageToDisplay.id && this.projectHistory) {
+      const stage = this.selectableStages.find(entry => entry.id == this.stageToDisplay.id)
+      this.updateStage(this.stageToDisplay, stage)
+    } else if (this.projectHistory) {
+      this.updateStage(this.stageToDisplay, this.getLatestStage())
     }
-    this.deleteChart(chart);
-    this.charts.splice(chartIndex, 1);
-  }
-
-  saveCharts() {
-    this.charts.forEach(chart => {
-      const filename = chart.filename;
-      this.saveChart(filename, chart.definition$.getValue());
-    });
-  }
-
-  openEditChartDialog(chart: LogChart) {
-    const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
-      data: chart.definition$.getValue(),
-    });
-
-    dialogRef.afterClosed().subscribe(definition => {
-      if (definition != null) {
-        chart.definition$.next(definition);
-        this.saveCharts();
-      }
-    });
-  }
-
-  openGlobalSettingsDialog() {
-    this.dialog.open(LogAnalysisSettingsDialogComponent);
   }
 
   private loadCharts() {
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
+
     const filepath = this.pathToChartsDir();
 
-    return this.filesApi.listFiles(filepath)
+    this.filesApi.listFiles(filepath)
       .then(files => {
         return Promise.all(files.map(this.loadChart));
       })
@@ -207,8 +266,11 @@ export class LogAnalysisComponent implements OnInit {
         this.charts = charts;
       })
       .catch(error => {
-        alert('Failed to load charts');
+        alert("Failed to load charts");
         console.error(error);
+      })
+      .finally(() => {
+        this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
       })
   }
 
@@ -217,30 +279,30 @@ export class LogAnalysisComponent implements OnInit {
     return this.filesApi.getFile(file.path).toPromise().then(text => {
       const definition = new LogChartDefinition();
       Object.assign(definition, JSON.parse(text));
-      return new LogChart(this.csvFilesService, file.name, definition);
+      return new LogChart(this.csvFileController, file.name, definition);
     });
-  };
+  }
 
   private saveChart(filename: string, chart: LogChartDefinition) {
-    const file = new File([JSON.stringify(chart, null, 2)], filename, {type: 'application/json'});
+    const file = new File([JSON.stringify(chart, null, 2)], filename, {type: "application/json"});
     this.filesApi.uploadFile(this.pathToChartsDir(), file).toPromise()
-      .then(() => console.log(`Uploaded chart ${filename}`));
+      .then(() => console.log(`Uploaded chart ${filename}`))
   }
 
   private pathToChartsDir() {
-    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.projectInfo.id}`;
+    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.selectedProject.id}`;
   }
 
   private deleteChart(chart: LogChart) {
     let filepath = this.pathToChartsDir();
     this.filesApi.delete(`${filepath}/${chart.filename}`).catch(error => {
-      alert('Failed to delete chart');
+      alert("Failed to delete chart");
       console.error(error);
     });
   }
 
   private findProjectPipeline(pipelines: PipelineInfo[]) {
-    const project = this.projectInfo;
+    const project = this.selectedProject;
     this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines)
   }
 }
