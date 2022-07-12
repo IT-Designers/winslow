@@ -1,5 +1,5 @@
 import {FilesApiService} from "../api/files-api.service";
-import {combineLatest, interval, Observable, of} from "rxjs";
+import {combineLatest, Observable, of, timer} from "rxjs";
 import {CsvFileContent, parseCsv} from "./csv-parser";
 import {map, share, switchMap} from "rxjs/operators";
 import {StageInfo} from "../api/project-api.service";
@@ -60,7 +60,7 @@ export class CsvFileController {
     return this.overrides$.pipe(
       switchMap(overrides => {
         if (overrides.enableRefreshing == false) return of(1)
-        return interval(overrides.refreshTime)
+        return timer(0, overrides.refreshTime)
       }),
       switchMap(ignored => {
         console.log(`Loading file ${fullPathToFile}.`)
@@ -76,10 +76,10 @@ export class CsvFileController {
   }
 
   private createCsvFileSource(stageCsvInfo: StageCsvInfo, relativePathToFile: string): CsvFileSource {
-    const fullPathToWorkspace =`${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`
+    const fullPathToWorkspace = `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`
     const fullPathToFile = `${fullPathToWorkspace}/${relativePathToFile}`;
 
-    console.log(`Watching file ${fullPathToFile}`)
+    console.log(`Watching file ${fullPathToFile}.`)
 
     return {
       content$: this.content$(fullPathToFile),
