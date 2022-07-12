@@ -1,176 +1,94 @@
-import {StageInfo} from "../api/project-api.service";
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
-import {FilesApiService} from "../api/files-api.service";
 import {map, switchMap} from "rxjs/operators";
+import {CsvFileContent} from "./csv-parser";
+import {CsvFileController, CsvFile} from "./csv-file-controller";
 
-export interface StageCsvInfo {
-  id: string;
-  stage: StageInfo;
-  csvFiles: CsvFileInfo[];
-}
+export class LogChartSnapshot {
 
-export interface CsvFileInfo {
-  filename: string;
-  directory: string;
-  content$: BehaviorSubject<CsvFileContent>;
-}
-
-export type CsvFileContent = string[][]
-
-export class CsvFileController {
-  static readonly PATH_TO_WORKSPACES = '/workspaces';
-
-  private readonly filesApi: FilesApiService;
-
-  stages$: BehaviorSubject<StageCsvInfo[]>;
-
-  constructor(api) {
-    this.filesApi = api;
-    this.stages$ = new BehaviorSubject<StageCsvInfo[]>(null);
-  }
-
-  getFileContentsObservable(filename: string) {
-
-    return this.stages$.pipe(
-      switchMap(stages => {
-        const content$s = stages.map(stage => {
-          const csvFile = this.getCsvFile(stage, filename);
-          return csvFile.content$;
-        })
-        return combineLatest(content$s);
-      }),
+  constructor(definition: LogChartDefinition, csvFiles: CsvFile[], overrides: ChartOverrides) {
+    this.definition = definition
+    this.csvFiles = csvFiles
+    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles)
+    const csvFileContents = this.csvFiles.map(csvFile => csvFile.content)
+    this.chartData = csvFileContents.map(
+      csvFileContent => definition.getDataSet(csvFileContent, this.formatterVariables, overrides)
     )
-
   }
 
-  private getCsvFile(stage: StageCsvInfo, filename: string) {
-    let csvFile = stage.csvFiles.find(csvFile => csvFile.filename == filename)
-    if (csvFile == null) {
-      csvFile = this.loadCsvFile(stage, filename);
-      stage.csvFiles.push(csvFile);
-    }
-    return csvFile;
-  }
+  readonly definition: LogChartDefinition
+  readonly csvFiles: CsvFile[]
+  readonly chartData: ChartDataSet[]
+  readonly formatterVariables: string[]
 
-  private loadCsvFile(stageCsvInfo: StageCsvInfo, filename: string) {
-    const directory = CsvFileController.getFileDirectory(stageCsvInfo);
-    const filepath = `${directory}/${filename}`;
+  private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFile[]): string[] {
+    if (!definition.formatterFromHeaderRow) return definition.customFormatter.split(";");
 
-    const csvFile: CsvFileInfo = {
-      content$: new BehaviorSubject<CsvFileContent>([]),
-      directory: directory,
-      filename: filename,
-    }
+    const variables = [];
 
-    console.log(`Loading file ${filename} from ${directory}`);
-
-    this.filesApi.getFile(filepath).toPromise()
-      .then(text => {
-        const content = this.parseCsv(text);
-        console.log(`Finished loading file ${filename} from ${directory}`)
-        csvFile.content$.next(content);
-
-        if (text.trim().length == 0) {
-          console.warn(`File ${filename} from ${directory} is empty or might be missing.`);
-        }
-
+    csvFiles.map(csvFile => csvFile.content).forEach(csvContent => {
+      if (csvContent.length > 0) csvContent[0].forEach(field => {
+        if (!variables.includes(field)) variables.push(field)
       })
-      .catch(error => {
-        console.log(`Failed to load file ${filename} from ${directory}`)
-        console.warn(error);
-      });
-
-    return csvFile;
-  }
-
-  private static getFileDirectory(stageCsvInfo: StageCsvInfo) {
-    return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`;
-  }
-
-  private parseCsv(text: string) {
-    const lines = text.split('\n');
-    const content = [];
-    lines.forEach(line => {
-      if (line.trim().length != 0) { // ignore empty lines
-        content.push(line.split(';'));
-      }
     })
-    return content;
+
+    return variables
   }
 }
 
 export class LogChart {
-  static overrides: ChartOverrides = {
-    enableEntryLimit: false,
-    entryLimit: 50
-  };
 
-  definition$: BehaviorSubject<LogChartDefinition>;
-  data$: Observable<ChartDataSet[]>;
-  filename: string;
+  readonly snapshot$: Observable<LogChartSnapshot>
+  readonly filename: string;
+  readonly definition$: BehaviorSubject<LogChartDefinition>;
 
-  constructor(csvFileController: CsvFileController, id?: string) {
+  constructor(csvFileController: CsvFileController, id?: string, definition?: LogChartDefinition) {
     this.filename = id ?? LogChart.generateUniqueId();
-    this.definition$ = new BehaviorSubject(new LogChartDefinition());
+    this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
 
-    this.data$ = this.definition$.pipe(
-      switchMap(definition => this.getDataObservable(csvFileController, definition))
+    const csvFileInfo$ = this.definition$.pipe(
+      switchMap(definition => csvFileController.getCsvFiles$(definition.file).pipe()),
     )
-  }
 
-  private getDataObservable(controller: CsvFileController, definition: LogChartDefinition): Observable<ChartDataSet[]> {
-    const contentsObservable = controller.getFileContentsObservable(definition.file);
-    return contentsObservable.pipe(
-      map(csvFileContents => csvFileContents.map(csvFileContent => {
-        return LogChartDefinition.getDataSet(definition, csvFileContent, LogChart.overrides)
-      }))
+    this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, csvFileController.overrides$]).pipe(
+      map(([definition, csvFileInfos, overrides]) => new LogChartSnapshot(definition, csvFileInfos, overrides))
     )
   }
 
   private static generateUniqueId() {
-    return `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}.chart`;
-  }
-
-  getDisplaySettingsObservable() {
-    return this.definition$.pipe(
-      map(definition => definition.displaySettings)
-    )
+    const id = `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}`
+    return `${id}.json`;
   }
 }
 
 export class LogChartDefinition {
-  displaySettings: ChartDisplaySettings;
-  file: string;
-  formatter: string;
-  xVariable: string;
-  yVariable: string;
-  entryLimit: null | number;
+  displaySettings: ChartDisplaySettings
+  file: string
+  formatterFromHeaderRow: boolean
+  customFormatter: string
+  xVariable: string
+  yVariable: string
+  entryLimit: null | number
 
   constructor() {
-    this.displaySettings = new ChartDisplaySettings();
-    this.file = "logfile.csv";
-    this.formatter = "\"$TIMESTAMP;$0;$1;$2;$3;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID\""
-    this.xVariable = "";
-    this.yVariable = "$1";
-    this.entryLimit = null;
+    this.displaySettings = new ChartDisplaySettings()
+    this.file = "logfile.csv"
+    this.formatterFromHeaderRow = true
+    this.customFormatter = "$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID"
+    this.xVariable = ""
+    this.yVariable = "$1"
+    this.entryLimit = null
   }
 
-  static getDataSet(chart: LogChartDefinition, csvContent: CsvFileContent, overrides: ChartOverrides): ChartDataSet {
-    let entryLimit = chart.entryLimit;
-
-    if (overrides?.enableEntryLimit) {
-      entryLimit = overrides.entryLimit;
-    }
-
-    const rows = LogChartDefinition.getLatestRows(csvContent, entryLimit);
-    const variableNames = chart.formatter.split(";");
-    const xIndex = variableNames.findIndex(variableName => variableName == chart.xVariable);
-    const yIndex = variableNames.findIndex(variableName => variableName == chart.yVariable);
+  getDataSet(csvContent: CsvFileContent, formatterVariables: string[], overrides: ChartOverrides): ChartDataSet {
+    const rowLimit = overrides?.enableEntryLimit ? overrides.entryLimit : this.entryLimit;
+    const rows = LogChartDefinition.getLatestRows(csvContent, rowLimit);
+    const xIndex = formatterVariables.findIndex(variableName => variableName == this.xVariable);
+    const yIndex = formatterVariables.findIndex(variableName => variableName == this.yVariable);
 
     return rows.map((rowContent, rowIndex): ChartDataPoint => {
-      const step = rowIndex - rows.length + 1;
-      const x = xIndex == -1 ? step : Number(rowContent[xIndex]);
-      const y = yIndex == -1 ? step : Number(rowContent[yIndex]);
+      const relativeRowIndex = rowIndex - rows.length + 1;
+      const x = xIndex == -1 ? relativeRowIndex : Number(rowContent[xIndex]);
+      const y = yIndex == -1 ? relativeRowIndex : Number(rowContent[yIndex]);
       return [x, y];
     });
   }
@@ -190,13 +108,13 @@ export class ChartDisplaySettings {
   name: string = "Unnamed chart";
 
   xAxisName: string = "x-Axis";
-  xAxisMinValue: string = "";
-  xAxisMaxValue: string = "";
+  xAxisMinValue: number = null;
+  xAxisMaxValue: number = null;
   xAxisType: ChartAxisType = ChartAxisType.VALUE;
 
   yAxisName: string = "y-Axis";
-  yAxisMinValue: string = "0";
-  yAxisMaxValue: string = "10";
+  yAxisMinValue: number = null
+  yAxisMaxValue: number = null;
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 
@@ -220,4 +138,6 @@ export interface ChartDialogData {
 export interface ChartOverrides {
   enableEntryLimit: boolean;
   entryLimit: number;
+  enableRefreshing: boolean;
+  refreshTime: number;
 }

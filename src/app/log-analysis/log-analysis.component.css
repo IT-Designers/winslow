@@ -36,13 +36,8 @@
 
 .chart-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-auto-rows: minmax(300px, 1fr);
-}
-
-.create-chart-tile {
-  align-self: center;
-  justify-self: center;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  align-content: space-between;
 }
 
 .chart-card {
@@ -58,4 +53,11 @@
 
 .scrollable {
   overflow-y: auto;
+}
+
+.create-chart-button {
+  position: absolute;
+  display: block;
+  bottom: 1.5em;
+  right: 1.5em;
 }

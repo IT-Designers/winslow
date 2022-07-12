@@ -20,11 +20,16 @@
   </mat-form-field>
 </mat-dialog-content>
 
+<mat-slide-toggle [(ngModel)]="definition.formatterFromHeaderRow" (ngModelChange)="refresh()">
+  Get Format from header row
+</mat-slide-toggle>
+
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="wide-field">
     <mat-label>CSV Format</mat-label>
     <code>
-      <input matInput [(ngModel)]="definition.formatter" (ngModelChange)="refresh()">
+      <input matInput [disabled]="definition.formatterFromHeaderRow" [(ngModel)]="definition.customFormatter"
+             (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
 </mat-dialog-content>
@@ -36,7 +41,7 @@
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="wide-field">
     <mat-label>Limit Entries</mat-label>
-    <input matInput [(ngModel)]="definition.entryLimit" (ngModelChange)="refresh()">
+    <input matInput type="number" [(ngModel)]="definition.entryLimit" (ngModelChange)="refresh()">
   </mat-form-field>
 </mat-dialog-content>
 
@@ -54,11 +59,19 @@
 <mat-dialog-content class="dialog-content">
   <mat-form-field appearance="fill" class="left-field">
     <mat-label>x-Axis Variable</mat-label>
-    <input matInput [(ngModel)]="definition.xVariable" (ngModelChange)="refresh()">
+    <input matInput [(ngModel)]="definition.xVariable" (ngModelChange)="refresh()" [matAutocomplete]="xAxisVariables">
+    <mat-autocomplete #xAxisVariables="matAutocomplete">
+      <mat-option *ngFor="let variable of snapshot.formatterVariables"
+                  [value]="variable">{{variable}}</mat-option>
+    </mat-autocomplete>
   </mat-form-field>
   <mat-form-field appearance="fill" class="right-field">
     <mat-label>y-Axis Variable</mat-label>
-    <input matInput [(ngModel)]="definition.yVariable" (ngModelChange)="refresh()">
+    <input matInput [(ngModel)]="definition.yVariable" (ngModelChange)="refresh()" [matAutocomplete]="yAxisVariables">
+    <mat-autocomplete #yAxisVariables="matAutocomplete">
+      <mat-option *ngFor="let variable of snapshot.formatterVariables"
+                  [value]="variable">{{variable}}</mat-option>
+    </mat-autocomplete>
   </mat-form-field>
 </mat-dialog-content>
 
@@ -81,13 +94,13 @@
   <mat-form-field appearance="fill" class="left-field">
     <mat-label>Custom x-Axis Minimum</mat-label>
     <code>
-      <input matInput [(ngModel)]="definition.displaySettings.xAxisMinValue" (ngModelChange)="refresh()">
+      <input matInput type="number" [(ngModel)]="definition.displaySettings.xAxisMinValue" (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
   <mat-form-field appearance="fill" class="right-field">
     <mat-label>Custom y-Axis Minimum</mat-label>
     <code>
-      <input matInput [(ngModel)]="definition.displaySettings.yAxisMinValue" (ngModelChange)="refresh()">
+      <input matInput type="number" [(ngModel)]="definition.displaySettings.yAxisMinValue" (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
 </mat-dialog-content>
@@ -96,13 +109,13 @@
   <mat-form-field appearance="fill" class="left-field">
     <mat-label>Custom x-Axis Maximum</mat-label>
     <code>
-      <input matInput [(ngModel)]="definition.displaySettings.xAxisMaxValue" (ngModelChange)="refresh()">
+      <input matInput type="number" [(ngModel)]="definition.displaySettings.xAxisMaxValue" (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
   <mat-form-field appearance="fill" class="right-field">
     <mat-label>Custom y-Axis Maximum</mat-label>
     <code>
-      <input matInput [(ngModel)]="definition.displaySettings.yAxisMaxValue" (ngModelChange)="refresh()">
+      <input matInput type="number" [(ngModel)]="definition.displaySettings.yAxisMaxValue" (ngModelChange)="refresh()">
     </code>
   </mat-form-field>
 </mat-dialog-content>
@@ -113,9 +126,36 @@
 
 <mat-dialog-content class="dialog-content">
   <app-log-analysis-chart
-    [data]="chart.data$ | async"
-    [settings]="chart.getDisplaySettingsObservable() | async"
+    [chart]="chart"
   ></app-log-analysis-chart>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <div class="warning-message" *ngFor="let csvFile of findEmptyCsvFiles(snapshot)">
+    <mat-icon color="warn">warning</mat-icon>
+    <p>
+      No data for file <code>{{csvFile.pathInWorkspace}}</code> for stage <code>{{csvFile.stageId}}</code>.
+      The file may be empty or missing.
+    </p>
+  </div>
+  <div class="warning-message" *ngIf="!isValidEntryLimit(snapshot.definition.entryLimit)">
+    <mat-icon color="warn">warning</mat-icon>
+    <p>
+      The entry limit should be greater than 1.
+    </p>
+  </div>
+  <div class="warning-message" *ngIf="isInvalidVariable(snapshot.definition.xVariable)">
+    <mat-icon color="warn">warning</mat-icon>
+    <p>
+      Variable for x-Axis <code>{{snapshot.definition.xVariable}}</code> is not part of the formatter.
+    </p>
+  </div>
+  <div class="warning-message" *ngIf="isInvalidVariable(snapshot.definition.yVariable)">
+    <mat-icon color="warn">warning</mat-icon>
+    <p>
+      Variable for y-Axis <code>{{snapshot.definition.yVariable}}</code> is not part of the formatter.
+    </p>
+  </div>
 </mat-dialog-content>
 
 <mat-dialog-actions class="dialog-actions">

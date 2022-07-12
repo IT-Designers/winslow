@@ -25,7 +25,7 @@
       Compare with another Stage
     </button>
 
-    <button class="display-settings-button" mat-raised-button (click)="openDisplaySettingsDialog()">
+    <button class="display-settings-button" mat-raised-button (click)="openGlobalSettingsDialog()">
       <mat-icon matTooltip="Display Settings">settings</mat-icon>
     </button>
 
@@ -65,8 +65,7 @@
       <mat-card class="chart-card">
         <mat-card-content class="chart-card-content">
           <app-log-analysis-chart
-            [settings]="chart.getDisplaySettingsObservable() | async"
-            [data]="chart.data$ | async"
+            [chart]="chart"
           ></app-log-analysis-chart>
         </mat-card-content>
         <mat-card-actions>
@@ -75,12 +74,13 @@
         </mat-card-actions>
       </mat-card>
     </ng-container>
-    <button class="create-chart-tile" mat-fab color="primary" (click)="createChart()">
-      <mat-icon matTooltip="Add Chart">add</mat-icon>
-    </button>
   </div>
 </div>
 
 <div *ngIf="!hasSelectableStages" class="none-defined-yet">
   <i>No stages to display yet</i>
 </div>
+
+<button class="create-chart-button" mat-fab color="primary" (click)="createChart()">
+  <mat-icon matTooltip="Add Chart">add</mat-icon>
+</button>

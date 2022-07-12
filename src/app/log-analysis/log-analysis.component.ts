@@ -4,14 +4,13 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
+import {ChartDialogData, ChartOverrides, LogChart, LogChartDefinition} from "./log-chart-definition";
 import {
-  ChartDialogData, CsvFileController,
-  LogChart,
-  LogChartDefinition,
-  StageCsvInfo
-} from "./log-chart-definition";
-import {LogAnalysisSettingsDialogComponent} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
+  LogAnalysisSettingsDialogComponent
+} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
+import {CsvFileController, StageCsvInfo} from "./csv-file-controller";
+import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis',
@@ -25,7 +24,7 @@ export class LogAnalysisComponent implements OnInit {
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
 
-  private readonly csvFileController : CsvFileController;
+  private readonly csvFileController: CsvFileController;
 
   longLoading = new LongLoadingDetector();
   hasSelectableStages = true;
@@ -45,16 +44,24 @@ export class LogAnalysisComponent implements OnInit {
 
   stagesToCompare: StageCsvInfo[] = [];
 
+  private stages$: BehaviorSubject<StageCsvInfo[]> = new BehaviorSubject<StageCsvInfo[]>([]);
+  private overrides$: BehaviorSubject<ChartOverrides> = new BehaviorSubject<ChartOverrides>({
+    enableEntryLimit: false,
+    entryLimit: 50,
+    enableRefreshing: false,
+    refreshTime: 5000
+  });
+
   @Input()
   set project(project: ProjectInfo) {
-    this.selectedProject = project;
+    this.selectedProject = project
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG)
     const projectPromise = this.projectApi.getProjectHistory(this.selectedProject.id)
       .then(projectHistory => this.loadStagesFromHistory(projectHistory))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
     const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
       .then(pipelines => this.findProjectPipeline(pipelines))
       .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
@@ -81,7 +88,7 @@ export class LogAnalysisComponent implements OnInit {
     private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
   ) {
-    this.csvFileController = new CsvFileController(filesApi);
+    this.csvFileController = new CsvFileController(this.filesApi, this.stages$, this.overrides$);
   }
 
   ngOnInit(): void {
@@ -106,15 +113,6 @@ export class LogAnalysisComponent implements OnInit {
 
   isLatestStage(stageCsvInfo: StageCsvInfo): boolean {
     return stageCsvInfo.stage == this.latestStage;
-  }
-
-  getLatestStage(): StageInfo {
-    return this.selectableStages.slice(-1)[0];
-  }
-
-  private refreshStages() {
-    const stages = [this.stageToDisplay, ...this.stagesToCompare];
-    this.csvFileController.stages$.next(stages);
   }
 
   updateStage(stageCsvInfo: StageCsvInfo, stage: StageInfo) {
@@ -163,6 +161,13 @@ export class LogAnalysisComponent implements OnInit {
     this.charts.splice(chartIndex, 1);
   }
 
+  saveCharts() {
+    this.charts.forEach(chart => {
+      const filename = chart.filename;
+      this.saveChart(filename, chart.definition$.getValue());
+    })
+  }
+
   openEditChartDialog(chart: LogChart) {
     const dialogData: ChartDialogData = {
       definition: chart.definition$.getValue(),
@@ -180,6 +185,27 @@ export class LogAnalysisComponent implements OnInit {
         this.saveCharts();
       }
     })
+  }
+
+  openGlobalSettingsDialog() {
+    const dialogData = this.overrides$.getValue();
+
+    const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(_ => {
+      this.overrides$.next(dialogData)
+    })
+  }
+
+  private getLatestStage(): StageInfo {
+    return this.selectableStages.slice(-1)[0];
+  }
+
+  private refreshStages() {
+    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    this.stages$.next(stages);
   }
 
   private loadStagesFromHistory(projectHistory) {
@@ -251,24 +277,14 @@ export class LogAnalysisComponent implements OnInit {
   private loadChart = (file: FileInfo) => {
     console.log(`Loading chart ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
-      const chart = new LogChart(this.csvFileController, file.name);
       const definition = new LogChartDefinition();
       Object.assign(definition, JSON.parse(text));
-      chart.definition$.next(definition);
-      return chart;
+      return new LogChart(this.csvFileController, file.name, definition);
     });
-  };
-
-  saveCharts() {
-    this.charts.forEach(chart => {
-      const filename = chart.filename;
-      this.saveChart(filename, chart.definition$.getValue());
-    })
   }
 
   private saveChart(filename: string, chart: LogChartDefinition) {
-    const file = new File(
-      [JSON.stringify(chart, null, "\t")], filename, {type: "application/json"},);
+    const file = new File([JSON.stringify(chart, null, 2)], filename, {type: "application/json"});
     this.filesApi.uploadFile(this.pathToChartsDir(), file).toPromise()
       .then(() => console.log(`Uploaded chart ${filename}`))
   }
@@ -283,17 +299,6 @@ export class LogAnalysisComponent implements OnInit {
       alert("Failed to delete chart");
       console.error(error);
     });
-  }
-
-  openDisplaySettingsDialog() {
-    const dialogData = LogChart.overrides;
-
-    const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
-      data: dialogData,
-    });
-
-    dialogRef.afterClosed().subscribe(_ => {
-    })
   }
 
   private findProjectPipeline(pipelines: PipelineInfo[]) {
