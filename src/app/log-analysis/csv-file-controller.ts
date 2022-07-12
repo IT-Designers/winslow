@@ -1,5 +1,5 @@
 import {FilesApiService} from "../api/files-api.service";
-import {BehaviorSubject, combineLatest, Observable, Subject} from "rxjs";
+import {combineLatest, interval, Observable, of} from "rxjs";
 import {CsvFileContent, parseCsv} from "./csv-parser";
 import {map, switchMap} from "rxjs/operators";
 import {StageInfo} from "../api/project-api.service";
@@ -54,47 +54,38 @@ export class CsvFileController {
   private getCsvFileSource(stage: StageCsvInfo, filename: string): CsvFileSource {
     let csvFileSource = stage.csvFiles.find(csvFile => csvFile.filename == filename)
     if (csvFileSource == null) {
-      csvFileSource = this.loadCsvFile(stage, filename)
+      csvFileSource = this.createCsvFileSource(stage, filename)
       stage.csvFiles.push(csvFileSource)
     }
     return csvFileSource
   }
 
-  private loadCsvFile(stageCsvInfo: StageCsvInfo, filename: string): CsvFileSource {
+  private content$(filepath: string): Observable<CsvFileContent> {
+    return this.overrides$.pipe(
+      switchMap(overrides => {
+        if (overrides.enableRefreshing == false) return of(1)
+        return interval(overrides.refreshTime)
+      }),
+      switchMap(ignored => {
+        console.log(`Loading file ${filepath}.`)
+        return this.filesApi.getFile(filepath)
+      }),
+      map(text => {
+        if (text.trim().length == 0) console.warn(`File ${filepath} is empty or might be missing.`);
+        return parseCsv(text)
+      })
+    )
+  }
+
+  private createCsvFileSource(stageCsvInfo: StageCsvInfo, filename: string): CsvFileSource {
     const directory = CsvFileController.pathToCsvFilesOfStage(stageCsvInfo);
     const filepath = `${directory}/${filename}`;
 
-    const csvFileSource: CsvFileSource = {
-      content$: new BehaviorSubject<CsvFileContent>([]),
+    return {
+      content$: this.content$(filepath),
       directory: directory,
       filename: filename,
-    }
-
-    /*
-    this.getFileInfo(directory, filename).then(file => {
-      console.log(file)
-    })
-     */
-
-    console.log(`Loading file ${filename} from ${directory}`);
-
-    this.filesApi.getFile(filepath).toPromise()
-      .then(text => {
-        const content = parseCsv(text);
-        console.log(`Finished loading file ${filename} from ${directory}`)
-        csvFileSource.content$.next(content);
-
-        if (text.trim().length == 0) {
-          console.warn(`File ${filename} from ${directory} is empty or might be missing.`);
-        }
-
-      })
-      .catch(error => {
-        console.log(`Failed to load file ${filename} from ${directory}`)
-        console.warn(error);
-      });
-
-    return csvFileSource;
+    };
   }
 
   private async getFileInfo(directory: string, filename: string) {
@@ -109,8 +100,8 @@ export interface StageCsvInfo {
   csvFiles: CsvFileSource[];
 }
 
-interface CsvFileSource {
+export interface CsvFileSource {
   filename: string;
   directory: string;
-  content$: Subject<CsvFileContent>;
+  content$: Observable<CsvFileContent>;
 }
