@@ -1,14 +1,14 @@
 import {FilesApiService} from "../api/files-api.service";
 import {combineLatest, interval, Observable, of} from "rxjs";
 import {CsvFileContent, parseCsv} from "./csv-parser";
-import {map, switchMap} from "rxjs/operators";
+import {map, share, switchMap} from "rxjs/operators";
 import {StageInfo} from "../api/project-api.service";
 import {ChartOverrides} from "./log-chart-definition";
 
 export interface CsvFile {
   stageId: string
-  filename: string
-  directory: string
+  pathInWorkspace: string
+  pathToWorkspace: string
   content: CsvFileContent
 }
 
@@ -26,65 +26,65 @@ export class CsvFileController {
     this.overrides$ = overrides$
   }
 
-  getCsvFiles$(filename: string): Observable<CsvFile[]> {
+  getCsvFiles$(filepath: string): Observable<CsvFile[]> {
     return this.stages$.pipe(
       switchMap(stages => {
-        const file$s = stages.map(stage => this.getCsvFile$(stage, filename))
+        const file$s = stages.map(stage => this.getCsvFile$(stage, filepath))
         return combineLatest(file$s)
       }),
     )
   }
 
-  private static pathToCsvFilesOfStage(stageCsvInfo: StageCsvInfo) {
-    return `${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`
-  }
-
-  private getCsvFile$(stage: StageCsvInfo, filename: string): Observable<CsvFile> {
-    const csvFileSource = this.getCsvFileSource(stage, filename)
+  private getCsvFile$(stage: StageCsvInfo, filepath: string): Observable<CsvFile> {
+    const csvFileSource = this.getCsvFileSource(stage, filepath)
     return csvFileSource.content$.pipe(
       map((content: CsvFileContent): CsvFile => ({
         content: content,
-        directory: csvFileSource.directory,
-        filename: csvFileSource.filename,
+        pathToWorkspace: csvFileSource.pathToWorkspace,
+        pathInWorkspace: csvFileSource.pathInWorkspace,
         stageId: stage.id
       }))
     )
   }
 
-  private getCsvFileSource(stage: StageCsvInfo, filename: string): CsvFileSource {
-    let csvFileSource = stage.csvFiles.find(csvFile => csvFile.filename == filename)
+  private getCsvFileSource(stage: StageCsvInfo, filepath: string): CsvFileSource {
+    let csvFileSource = stage.csvFiles.find(csvFile => csvFile.pathInWorkspace == filepath)
     if (csvFileSource == null) {
-      csvFileSource = this.createCsvFileSource(stage, filename)
+      csvFileSource = this.createCsvFileSource(stage, filepath)
       stage.csvFiles.push(csvFileSource)
     }
     return csvFileSource
   }
 
-  private content$(filepath: string): Observable<CsvFileContent> {
+  private content$(fullPathToFile: string): Observable<CsvFileContent> {
     return this.overrides$.pipe(
       switchMap(overrides => {
         if (overrides.enableRefreshing == false) return of(1)
         return interval(overrides.refreshTime)
       }),
       switchMap(ignored => {
-        console.log(`Loading file ${filepath}.`)
-        return this.filesApi.getFile(filepath)
+        console.log(`Loading file ${fullPathToFile}.`)
+        return this.filesApi.getFile(fullPathToFile)
       }),
       map(text => {
-        if (text.trim().length == 0) console.warn(`File ${filepath} is empty or might be missing.`);
+        console.log(`Finished loading file ${fullPathToFile}.`)
+        if (text.trim().length == 0) console.warn(`File ${fullPathToFile} is empty or might be missing.`);
         return parseCsv(text)
-      })
+      }),
+      share()
     )
   }
 
-  private createCsvFileSource(stageCsvInfo: StageCsvInfo, filename: string): CsvFileSource {
-    const directory = CsvFileController.pathToCsvFilesOfStage(stageCsvInfo);
-    const filepath = `${directory}/${filename}`;
+  private createCsvFileSource(stageCsvInfo: StageCsvInfo, relativePathToFile: string): CsvFileSource {
+    const fullPathToWorkspace =`${CsvFileController.PATH_TO_WORKSPACES}/${stageCsvInfo.stage.workspace}/.log_parser_output`
+    const fullPathToFile = `${fullPathToWorkspace}/${relativePathToFile}`;
+
+    console.log(`Watching file ${fullPathToFile}`)
 
     return {
-      content$: this.content$(filepath),
-      directory: directory,
-      filename: filename,
+      content$: this.content$(fullPathToFile),
+      pathToWorkspace: fullPathToWorkspace,
+      pathInWorkspace: relativePathToFile,
     };
   }
 
@@ -101,7 +101,7 @@ export interface StageCsvInfo {
 }
 
 export interface CsvFileSource {
-  filename: string;
-  directory: string;
+  pathInWorkspace: string;
+  pathToWorkspace: string;
   content$: Observable<CsvFileContent>;
 }

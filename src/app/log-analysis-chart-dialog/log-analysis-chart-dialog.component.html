@@ -134,7 +134,7 @@
   <div class="warning-message" *ngFor="let csvFile of findEmptyCsvFiles(snapshot)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
-      No data for file <code>{{csvFile.filename}}</code> for stage <code>{{csvFile.stageId}}</code>.
+      No data for file <code>{{csvFile.pathInWorkspace}}</code> for stage <code>{{csvFile.stageId}}</code>.
       The file may be empty or missing.
     </p>
   </div>
