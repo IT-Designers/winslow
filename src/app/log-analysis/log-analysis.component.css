@@ -40,11 +40,6 @@
   grid-auto-rows: minmax(300px, 1fr);
 }
 
-.create-chart-tile {
-  align-self: center;
-  justify-self: center;
-}
-
 .chart-card {
   margin: 4px;
   flex-grow: 1;
@@ -58,4 +53,11 @@
 
 .scrollable {
   overflow-y: auto;
+}
+
+.create-chart-button {
+  position: absolute;
+  display: block;
+  bottom: 1.5em;
+  right: 1.5em;
 }
