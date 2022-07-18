@@ -1,7 +1,7 @@
 import {FilesApiService} from "../api/files-api.service";
 import {combineLatest, Observable, of, timer} from "rxjs";
 import {CsvFileContent, parseCsv} from "./csv-parser";
-import {map, share, switchMap} from "rxjs/operators";
+import {map, shareReplay, switchMap} from "rxjs/operators";
 import {StageInfo} from "../api/project-api.service";
 import {ChartOverrides} from "./log-chart-definition";
 
@@ -71,7 +71,7 @@ export class CsvFileController {
         if (text.trim().length == 0) console.warn(`File ${fullPathToFile} is empty or might be missing.`);
         return parseCsv(text)
       }),
-      share()
+      shareReplay(1)
     )
   }
 

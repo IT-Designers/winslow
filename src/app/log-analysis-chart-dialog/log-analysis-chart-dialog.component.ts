@@ -20,7 +20,7 @@ export class LogAnalysisChartDialogComponent {
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
-  snapshot: LogChartSnapshot;
+  latestSnapshot: LogChartSnapshot;
 
   AxisTypes = Object.values(ChartAxisType);
 
