@@ -49,7 +49,7 @@ export class LogAnalysisComponent implements OnInit {
     enableEntryLimit: false,
     entryLimit: 50,
     enableRefreshing: true,
-    refreshTime: 5000
+    refreshTimerInSeconds: 5
   });
 
   @Input()
