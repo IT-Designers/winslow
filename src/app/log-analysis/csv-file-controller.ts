@@ -60,7 +60,8 @@ export class CsvFileController {
     return this.overrides$.pipe(
       switchMap(overrides => {
         if (overrides.enableRefreshing == false) return of(1)
-        return timer(0, overrides.refreshTime)
+        const millis = overrides.refreshTimerInSeconds * 1000
+        return timer(0, millis)
       }),
       switchMap(ignored => {
         console.log(`Loading file ${fullPathToFile}.`)
