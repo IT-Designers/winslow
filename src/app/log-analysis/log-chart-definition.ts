@@ -50,7 +50,7 @@ export class LogChart {
     )
 
     this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, csvFileController.overrides$]).pipe(
-      map(([definition, csvFileInfos, overrides]) => new LogChartSnapshot(definition, csvFileInfos, overrides))
+      map(([definition, csvFileInfos, overrides]) => new LogChartSnapshot(definition, csvFileInfos, overrides)),
     )
   }
 
