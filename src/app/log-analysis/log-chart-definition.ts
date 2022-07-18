@@ -139,5 +139,5 @@ export interface ChartOverrides {
   enableEntryLimit: boolean;
   entryLimit: number;
   enableRefreshing: boolean;
-  refreshTime: number;
+  refreshTimerInSeconds: number;
 }
