@@ -61,7 +61,7 @@
     <mat-label>x-Axis Variable</mat-label>
     <input matInput [(ngModel)]="definition.xVariable" (ngModelChange)="refresh()" [matAutocomplete]="xAxisVariables">
     <mat-autocomplete #xAxisVariables="matAutocomplete">
-      <mat-option *ngFor="let variable of snapshot.formatterVariables"
+      <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
                   [value]="variable">{{variable}}</mat-option>
     </mat-autocomplete>
   </mat-form-field>
@@ -69,7 +69,7 @@
     <mat-label>y-Axis Variable</mat-label>
     <input matInput [(ngModel)]="definition.yVariable" (ngModelChange)="refresh()" [matAutocomplete]="yAxisVariables">
     <mat-autocomplete #yAxisVariables="matAutocomplete">
-      <mat-option *ngFor="let variable of snapshot.formatterVariables"
+      <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
                   [value]="variable">{{variable}}</mat-option>
     </mat-autocomplete>
   </mat-form-field>
@@ -130,30 +130,30 @@
   ></app-log-analysis-chart>
 </mat-dialog-content>
 
-<mat-dialog-content class="dialog-content">
-  <div class="warning-message" *ngFor="let csvFile of findEmptyCsvFiles(snapshot)">
+<mat-dialog-content class="dialog-content" *ngIf="latestSnapshot != null">
+  <div class="warning-message" *ngFor="let csvFile of findEmptyCsvFiles(latestSnapshot)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
       No data for file <code>{{csvFile.pathInWorkspace}}</code> for stage <code>{{csvFile.stageId}}</code>.
       The file may be empty or missing.
     </p>
   </div>
-  <div class="warning-message" *ngIf="!isValidEntryLimit(snapshot.definition.entryLimit)">
+  <div class="warning-message" *ngIf="!isValidEntryLimit(latestSnapshot.definition.entryLimit)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
       The entry limit should be greater than 1.
     </p>
   </div>
-  <div class="warning-message" *ngIf="isInvalidVariable(snapshot.definition.xVariable)">
+  <div class="warning-message" *ngIf="isInvalidVariable(latestSnapshot.definition.xVariable)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
-      Variable for x-Axis <code>{{snapshot.definition.xVariable}}</code> is not part of the formatter.
+      Variable for x-Axis <code>{{latestSnapshot.definition.xVariable}}</code> is not part of the formatter.
     </p>
   </div>
-  <div class="warning-message" *ngIf="isInvalidVariable(snapshot.definition.yVariable)">
+  <div class="warning-message" *ngIf="isInvalidVariable(latestSnapshot.definition.yVariable)">
     <mat-icon color="warn">warning</mat-icon>
     <p>
-      Variable for y-Axis <code>{{snapshot.definition.yVariable}}</code> is not part of the formatter.
+      Variable for y-Axis <code>{{latestSnapshot.definition.yVariable}}</code> is not part of the formatter.
     </p>
   </div>
 </mat-dialog-content>

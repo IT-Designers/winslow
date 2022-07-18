@@ -20,14 +20,18 @@ export class LogAnalysisChartDialogComponent {
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
-  snapshot: LogChartSnapshot;
+  latestSnapshot: LogChartSnapshot;
 
   constructor(@Inject(MAT_DIALOG_DATA) private data: ChartDialogData) {
     this.chart = new LogChart(data.csvFileController, data.chart.filename, data.definition);
-    this.chart.snapshot$.subscribe(snapshot => this.snapshot = snapshot)
 
     this.definition = Object.assign(new LogChartDefinition(), data.definition);
     this.definition.displaySettings = Object.assign(new ChartDisplaySettings(), data.definition.displaySettings);
+
+    this.chart.snapshot$.subscribe(snapshot => {
+      console.log()
+      return this.latestSnapshot = snapshot;
+    })
 
     this.refresh()
   }
@@ -44,7 +48,7 @@ export class LogAnalysisChartDialogComponent {
 
   isInvalidVariable(variable: string) {
     if (variable == "") return false
-    return !this.snapshot.formatterVariables.includes(variable)
+    return !this.latestSnapshot.formatterVariables.includes(variable)
   }
 
   isValidEntryLimit(entryLimit: number | null) {
