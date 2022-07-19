@@ -46,7 +46,7 @@ export class LogChart {
     this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
 
     const csvFileInfo$ = this.definition$.pipe(
-      switchMap(definition => csvFileController.getCsvFiles$(definition.file).pipe()),
+      switchMap(definition => csvFileController.getCsvFiles$(definition.file)),
     )
 
     this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, csvFileController.overrides$]).pipe(
