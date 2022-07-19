@@ -72,7 +72,10 @@ export class CsvFileController {
         if (text.trim().length == 0) console.warn(`File ${fullPathToFile} is empty or might be missing.`);
         return parseCsv(text)
       }),
-      shareReplay(1)
+      shareReplay({
+        bufferSize: 1,
+        refCount: true
+      })
     )
   }
 
