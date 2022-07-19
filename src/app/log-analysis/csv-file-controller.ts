@@ -59,9 +59,9 @@ export class CsvFileController {
   private content$(fullPathToFile: string): Observable<CsvFileContent> {
     return this.overrides$.pipe(
       switchMap(overrides => {
-        if (overrides.enableRefreshing == false) return of(1)
+        if (overrides.enableRefreshing == false) return of(1) // Emit an arbitrary value once, so that the file is loaded at least once.
         const millis = overrides.refreshTimerInSeconds * 1000
-        return timer(0, millis)
+        return timer(0, millis) // Emit a value periodically to trigger the reloading of the file.
       }),
       switchMap(ignored => {
         console.log(`Loading file ${fullPathToFile}.`)
@@ -72,9 +72,9 @@ export class CsvFileController {
         if (text.trim().length == 0) console.warn(`File ${fullPathToFile} is empty or might be missing.`);
         return parseCsv(text)
       }),
-      shareReplay({
-        bufferSize: 1,
-        refCount: true
+      shareReplay({ // For sharing the same file source across multiple observers without having to load the same file multiple times.
+        bufferSize: 1, // Replay the latest emission to new subscribers, so they do not have to wait for the file to be refreshed.
+        refCount: true // Stop files from being loaded when all observers have unsubscribed.
       })
     )
   }
