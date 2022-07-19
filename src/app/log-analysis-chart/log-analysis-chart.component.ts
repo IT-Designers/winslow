@@ -1,22 +1,30 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ChartDataSet, ChartDisplaySettings, LogChart} from "../log-analysis/log-chart-definition";
+import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis-chart',
   templateUrl: './log-analysis-chart.component.html',
   styleUrls: ['./log-analysis-chart.component.css']
 })
-export class LogAnalysisChartComponent {
+export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
   options: {}
+  subscription: Subscription;
 
-  @Input() set chart(chart: LogChart) {
-    chart.snapshot$.subscribe({
+  @Input() chart: LogChart
+
+  ngOnInit() {
+    this.subscription = this.chart.snapshot$.subscribe({
       next: snapshot => {
         this.settings(snapshot.definition.displaySettings)
         this.data(snapshot.chartData)
       }
     })
+  }
+
+  ngOnDestroy() {
+    this.subscription?.unsubscribe()
   }
 
   settings(settings: ChartDisplaySettings) {
