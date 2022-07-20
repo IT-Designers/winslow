@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../api/project-api.service';
+import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
 
 @Component({
   selector: 'app-projects-group-builder',
@@ -8,6 +8,7 @@ import {ProjectGroup, ProjectInfo} from '../api/project-api.service';
 })
 export class ProjectsGroupBuilderComponent implements OnInit {
 
+  CONTEXT_PREFIX = 'context::';
   groupsActivated = true;
   availableTagsValue: string[];
   projectsValue: ProjectInfo[];
@@ -31,7 +32,8 @@ export class ProjectsGroupBuilderComponent implements OnInit {
 
   @Input('availableTags')
   set availableTags(tags: string[]) {
-    this.availableTagsValue = tags;
+    this.availableTagsValue = tags
+      .filter(tag => !tag.startsWith(this.CONTEXT_PREFIX));
     this.updateGroups();
   }
 

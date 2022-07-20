@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {ProjectApiService, ProjectInfo} from '../api/project-api.service';
+import {Component, Inject, OnInit} from '@angular/core';
+import {ProjectApiService, ProjectGroup, ProjectInfo, StateInfo} from '../api/project-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
+import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 @Component({
   selector: 'app-group-actions',
@@ -10,8 +11,11 @@ import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
 })
 export class GroupActionsComponent implements OnInit {
 
-  projects: ProjectInfo[];
-  filtered: ProjectInfo[];
+  projects: ProjectInfo[] = [];
+  projectsFiltered: ProjectInfo[] = null;
+  projectsGroups: ProjectGroup[] = [];
+  stateInfo: Map<string, StateInfo> = null;
+  selectedProject: ProjectInfo = null;
 
   projectsLoadError = null;
   projectsLongLoading = new LongLoadingDetector();
@@ -19,14 +23,17 @@ export class GroupActionsComponent implements OnInit {
   pipelines: PipelineInfo[] = null;
   actionLoadError = null;
   actionLongLoading = new LongLoadingDetector();
+  groupsOnTop: boolean;
 
-  constructor(public api: ProjectApiService, private pipelineApi: PipelineApiService) {
+  constructor(public api: ProjectApiService,
+              @Inject(MAT_DIALOG_DATA) public data: any,
+              private pipelineApi: PipelineApiService) {
   }
 
   ngOnInit() {
     this.projectsLongLoading.increase();
     this.api.listProjects()
-      .then(projects => this.filtered = this.projects = projects)
+      .then(projects => this.projectsFiltered = this.projects = projects)
       .catch(err => this.projectsLoadError = err)
       .finally(() => this.projectsLongLoading.decrease());
 
@@ -36,7 +43,4 @@ export class GroupActionsComponent implements OnInit {
       .catch(err => this.actionLoadError = err)
       .finally(() => this.actionLongLoading.decrease());
   }
-
-
-
 }

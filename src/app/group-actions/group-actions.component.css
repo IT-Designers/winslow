@@ -7,11 +7,19 @@ mat-card {
   margin-top: 2em;
 }
 
-
 .centered-controls {
   text-align: center;
 }
 
 .centered-controls > *:not(:first-child) {
   margin-left: 1em;
+}
+
+.drawer-content {
+  background: #f5f5f5;
+}
+
+.drawer-element {
+  display: block;
+  margin: 0.5em;
 }

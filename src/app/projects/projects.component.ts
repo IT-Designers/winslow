@@ -37,6 +37,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   projectStateSubscription: Subscription = null;
   effects: Effects = null;
   groupsOnTop: boolean;
+  context: string;
 
   constructor(readonly api: ProjectApiService,
               readonly users: UserApiService,
@@ -207,11 +208,17 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
   }
 
-  openGroupActions() {
+  openGroupActions(name: string) {
     this.createDialog
       .open(GroupActionsComponent, {
-        data: {}
+        data: {tag: name}
       });
+  }
+
+  changeContext($event: string) {
+    let newContext: string;
+    newContext = $event;
+    this.context = newContext;
   }
 }
 

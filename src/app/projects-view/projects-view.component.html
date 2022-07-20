@@ -11,42 +11,14 @@
   <!-- Group-View with Groups on Top -->
   <div *ngIf="groupsOnTop">
     <mat-list class="group">
-    <h4>Groups</h4>
+      <h4>Groups</h4>
       <div *ngFor="let projectGroup of projectsGroups, last as isLast">
         <div *ngIf="projectGroup.projects.length > 1" id="groups">
-          <mat-expansion-panel class="group-on-top">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <div *ngIf="projectGroup.projects.length <= 9">
-                  <mat-icon matTooltip="Project group">filter_{{projectGroup.projects.length}}</mat-icon>
-                </div>
-                <div *ngIf="projectGroup.projects.length > 9">
-                  <mat-icon matTooltip="Project group">filter_9_plus</mat-icon>
-                </div>
-                <app-tags-with-autocomplete
-                  [readonly]="true"
-                  [tags]="[projectGroup.name]">
-                </app-tags-with-autocomplete>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <div>
-              <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
-                             (click)="selectProject(project)"
-                             [class.selected]="project.id == selectedProject?.id">
-                <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
-                <app-project-view-header
-                  [project]="project"
-                  [iconState]="stateInfo?.get(project.id)?.getState()"
-                  [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
-                  [progress]="stateInfo?.get(project.id)?.stageProgress"
-                  [running]="stateInfo?.get(project.id)?.isRunning()"
-                  [mostRecentStage]="stateInfo?.get(project.id)?.description"
-                  (tagActionPrimary)="filter.toggleIncludedTag($event)"
-                  (tagActionSecondary)="filter.addExcludedTag($event)"
-                ></app-project-view-header>
-              </mat-list-item>
-            </div>
-          </mat-expansion-panel>
+          <app-projects-group [projectGroup]="projectGroup" [filter]="filter"
+                              [menuPosition]="menuPosition" [selectedProject]="selectedProject"
+                              [stateInfo]="stateInfo"
+          ></app-projects-group>
+          <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
         </div>
         <div *ngIf="isLast && documentGet.getElementById('groups') == null" class="none-defined-yet">
           <i>There are no projects without a group</i>
@@ -58,7 +30,8 @@
           <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
                          (click)="selectProject(project)"
                          [class.selected]="project.id == selectedProject?.id">
-            <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
+            <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
+                 (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
               [project]="project"
               [iconState]="stateInfo?.get(project.id)?.getState()"
@@ -78,50 +51,23 @@
       </div>
     </mat-list>
   </div>
+
   <!-- Group-View mixed -->
   <div *ngIf="!groupsOnTop">
     <mat-list class="group">
       <div *ngFor="let projectGroup of projectsGroups, last as isLast">
         <div *ngIf="projectGroup.projects.length > 1">
-          <mat-expansion-panel class="group">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <div *ngIf="projectGroup.projects.length <= 9">
-                  <mat-icon matTooltip="Project group">filter_{{projectGroup.projects.length}}</mat-icon>
-                </div>
-                <div *ngIf="projectGroup.projects.length > 9">
-                  <mat-icon matTooltip="Project group">filter_9_plus</mat-icon>
-                </div>
-                <app-tags-with-autocomplete
-                  [readonly]="true"
-                  [tags]="[projectGroup.name]">
-                </app-tags-with-autocomplete>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <div>
-              <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
-                             (click)="selectProject(project)"
-                             [class.selected]="project.id == selectedProject?.id">
-                <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
-                <app-project-view-header
-                  [project]="project"
-                  [iconState]="stateInfo?.get(project.id)?.getState()"
-                  [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
-                  [progress]="stateInfo?.get(project.id)?.stageProgress"
-                  [running]="stateInfo?.get(project.id)?.isRunning()"
-                  [mostRecentStage]="stateInfo?.get(project.id)?.description"
-                  (tagActionPrimary)="filter.toggleIncludedTag($event)"
-                  (tagActionSecondary)="filter.addExcludedTag($event)"
-                ></app-project-view-header>
-              </mat-list-item>
-            </div>
-          </mat-expansion-panel>
+          <app-projects-group [projectGroup]="projectGroup" [filter]="filter"
+                              [menuPosition]="menuPosition" [selectedProject]="selectedProject"
+                              [stateInfo]="stateInfo"
+          ></app-projects-group>
         </div>
         <div *ngIf="projectGroup.projects.length <= 1">
           <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
                          (click)="selectProject(project)"
                          [class.selected]="project.id == selectedProject?.id">
-            <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
+            <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
+                 (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
               [project]="project"
               [iconState]="stateInfo?.get(project.id)?.getState()"
@@ -143,10 +89,11 @@
 <!-- Section for Normal-View -->
 <div *ngIf="projectsGroups == null">
   <mat-list>
-    <mat-list-item *ngFor="let project of projectsFiltered" class="project-selection-sidebar-item"
+    <mat-list-item *ngFor="let project of projectsFiltered, last as isLast" class="project-selection-sidebar-item"
                    (click)="selectProject(project)"
                    [class.selected]="project.id == selectedProject?.id">
-      <img class="icon" #avatar src="favicon.png" (error)="avatar.src = 'favicon.png'">
+      <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}" (error)="avatar.src = 'favicon.png'"
+           (click)="makeImageBigger(thumbnailUrl(project), $event)">
       <app-project-view-header
         [project]="project"
         [iconState]="stateInfo?.get(project.id)?.getState()"
@@ -157,6 +104,7 @@
         (tagActionPrimary)="filter.toggleIncludedTag($event)"
         (tagActionSecondary)="filter.addExcludedTag($event)"
       ></app-project-view-header>
+      <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
     </mat-list-item>
   </mat-list>
 </div>
