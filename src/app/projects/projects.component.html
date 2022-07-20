@@ -1,6 +1,12 @@
 <mat-drawer-container *ngIf="projects != null" class="drawer-container">
   <mat-drawer #drawer mode="side" [opened]="true" class="drawer">
     <div class="drawer-content">
+      <!-- Context filter -->
+      <app-projects-context-filter
+        [availableTags]="api.cachedTags"
+        (outputContext)="changeContext($event)"
+      ></app-projects-context-filter>
+
       <mat-accordion class="drawer-element">
         <mat-expansion-panel>
           <mat-expansion-panel-header>
@@ -13,23 +19,24 @@
             #filter
             [availableTags]="api.cachedTags"
             [projects]="projects"
+            [preSelectedTag]="context"
             (filtered)="projectsFiltered = $event"
             (projectsGroups)="this.projectsGroups = $event"
+            (groupsOnTop)="this.groupsOnTop = $event"
           ></app-tag-filter>
         </mat-expansion-panel>
       </mat-accordion>
 
+      <!-- Project view -->
       <app-projects-view class="drawer-element"
                          [projects]="projects"
                          [projectsFiltered]="projectsFiltered"
                          [projectsGroups]="projectsGroups"
                          [selectedProject]="selectedProject"
                          [stateInfo]="stateInfo"
-                         [filter]="filter"
-                         [router]="router"
-                         [route]="route">
+                         [groupsOnTop]="groupsOnTop"
+                         [filter]="filter">
       </app-projects-view>
-
     </div>
 
     <div class="button-group">
@@ -39,7 +46,7 @@
       <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
         <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
       </button>
-      <button mat-mini-fab color="warn" (click)="openGroupActions()">
+      <button mat-mini-fab color="warn" (click)="openGroupActions(context)">
         <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
       </button>
 
