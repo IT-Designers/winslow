@@ -47,11 +47,11 @@ import {CreatePipelineDialogComponent} from './pipeline-create-dialog/create-pip
 import {LoadingInfoComponent} from './connect-failed-info/loading-info.component';
 import {GroupActionsComponent} from './group-actions/group-actions.component';
 import {ScrollingModule} from '@angular/cdk/scrolling';
-import {TagsWithAutocompleteComponent} from './tags-with-autocomplete/tags-with-autocomplete.component';
-import {ProjectViewHeaderComponent} from './project-view-header/project-view-header.component';
+import {TagsWithAutocompleteComponent} from './projects-view/tags-with-autocomplete/tags-with-autocomplete.component';
+import {ProjectViewHeaderComponent} from './projects-view/project-view-header/project-view-header.component';
 import {StageExecutionSelectionComponent} from './stage-execution-selection/stage-execution-selection.component';
 import {ProjectListComponent} from './project-list/project-list.component';
-import {TagFilterComponent} from './tag-filter/tag-filter.component';
+import {TagFilterComponent} from './projects-view/tag-filter/tag-filter.component';
 import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settings-dialog.component';
 import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 import {SystemViewComponent} from './system-view/system-view.component';
@@ -78,11 +78,15 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
+import { ProjectsGroupBuilderComponent } from './projects-view/projects-group-builder/projects-group-builder.component';
+import { ProjectsViewComponent } from './projects-view/projects-view.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
 import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
 import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
 import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
+import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
+import { ProjectsContextFilterComponent } from './projects-view/projects-context-filter/projects-context-filter.component';
 
 @NgModule({
     declarations: [
@@ -126,11 +130,15 @@ import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dial
         ServerDetailsComponent,
         ProjectHistoryDetailsComponent,
         AuthTokensComponent,
+        ProjectsGroupBuilderComponent,
+        ProjectsViewComponent,
         LogAnalysisComponent,
         LogAnalysisChartDialogComponent,
         LogAnalysisChartComponent,
         RegularExpressionVisualiserComponent,
         LogAnalysisSettingsDialogComponent,
+        ProjectsGroupComponent,
+        ProjectsContextFilterComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

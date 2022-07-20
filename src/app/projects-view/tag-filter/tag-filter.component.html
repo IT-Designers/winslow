@@ -4,6 +4,7 @@
     <app-tags-with-autocomplete
       [tags]="includeTags"
       [proposals]="availableTagsValue"
+      [isFilter]=true
       (tags)="this.includeTags = $event; updateFilter()"
     ></app-tags-with-autocomplete>
     <mat-slide-toggle (change)="includeEmpty = $event.checked; updateFilter()">
@@ -15,6 +16,7 @@
     <app-tags-with-autocomplete
       [tags]="excludeTags"
       [proposals]="availableTagsValue"
+      [isFilter]=true
       (tags)="this.excludeTags = $event; updateFilter()"
     ></app-tags-with-autocomplete>
     <mat-slide-toggle (change)="excludeEmpty = $event.checked; updateFilter()">

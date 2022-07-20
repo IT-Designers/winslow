@@ -163,6 +163,15 @@ export class DialogService {
     });
   }
 
+  image(url: string) {
+    Swal.fire({
+        imageUrl: url,
+        imageAlt: 'Project Icon',
+        imageHeight: '15vh',
+        imageWidth: 'auto'
+      });
+  }
+
 }
 
 export class InputDefinition {

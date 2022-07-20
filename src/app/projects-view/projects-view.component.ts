@@ -1,7 +1,9 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {ProjectGroup, ProjectInfo, StateInfo} from '../api/project-api.service';
-import {TagFilterComponent} from '../tag-filter/tag-filter.component';
+import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
+import {FilesApiService} from '../api/files-api.service';
+import {DialogService} from '../dialog.service';
 
 @Component({
   selector: 'app-projects-view',
@@ -16,12 +18,18 @@ export class ProjectsViewComponent implements OnInit {
   @Input() selectedProject: ProjectInfo;
   @Input() stateInfo: Map<string, StateInfo>;
   @Input() filter: TagFilterComponent;
-  @Input() router: Router;
-  @Input() route: ActivatedRoute;
   @Input() groupsOnTop: boolean;
   documentGet = document;
 
-  constructor() {}
+  @Output() tagActionPrimary = new EventEmitter<string>();
+  @Output() tagActionSecondary = new EventEmitter<string>();
+  menuPosition =  {x: 0, y: 0};
+
+  constructor(public route: ActivatedRoute,
+              public router: Router,
+              private files: FilesApiService,
+              private dialog: DialogService) {
+  }
 
   ngOnInit(): void {
   }
@@ -32,4 +40,14 @@ export class ProjectsViewComponent implements OnInit {
     });
   }
 
+  thumbnailUrl(project: ProjectInfo) {
+    return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
+  }
+
+  makeImageBigger(imageUrl: string, image: MouseEvent) {
+    if (image.target[`currentSrc`].includes('favicon.png')) {
+      return;
+    }
+    this.dialog.image(imageUrl);
+  }
 }

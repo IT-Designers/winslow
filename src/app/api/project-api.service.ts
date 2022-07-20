@@ -53,6 +53,7 @@ export class ProjectApiService {
   }
 
   private cacheTags(tags: string[]) {
+    this.cachedTags = [...this.cachedTags];
     tags.forEach(tag => {
       if (this.cachedTags.indexOf(tag) < 0) {
         this.cachedTags.push(tag);
