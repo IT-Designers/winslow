@@ -1,6 +1,5 @@
 package de.itdesigners.winslow;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -11,7 +10,6 @@ import de.itdesigners.winslow.config.ExecutionGroupUpgrade;
 import de.itdesigners.winslow.config.PipelineUpgrade;
 import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.pipeline.Pipeline;
-import de.itdesigners.winslow.web.RangedValueJsonModule;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -103,7 +101,6 @@ public abstract class BaseRepository {
     @Nonnull
     public static ObjectMapper defaultObjectMapperModules(@Nonnull ObjectMapper mapper) {
         return mapper
-                .registerModule(new RangedValueJsonModule())
                 .registerModule(new Jdk8Module());
     }
 
