@@ -36,7 +36,7 @@ build:
     - cp api/target/winslow*.jar .
     - ls -lah
     #- cp target/winslow*.jar .
-    - mvn -s settings.xml -pl .,api deploy
+    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then mvn -s settings.xml -pl .,api deploy; fi
   coverage: '/([\d]+\.[\d]+) % covered/'
   artifacts:
     name: winslow-$CI_COMMIT_SHORT_SHA
