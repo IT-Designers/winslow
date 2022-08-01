@@ -198,6 +198,11 @@ export class LogAnalysisComponent implements OnInit {
     this.refreshStages();
   }
 
+  compareWithLatestStage(index: number) {
+    this.stagesToCompare[index] = this.latestStage
+    this.refreshStages()
+  }
+
   removeStageToCompare(stageIndex: number) {
     this.stagesToCompare.splice(stageIndex, 1);
 
