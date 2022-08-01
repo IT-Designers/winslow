@@ -4,13 +4,14 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-analysis-chart-dialog.component";
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartDialogData, ChartOverrides, LogChart, LogChartDefinition} from "./log-chart-definition";
+import {ChartDialogData, LogChart, LogChartDefinition} from "./log-chart-definition";
 import {
   LogAnalysisSettingsDialogComponent
 } from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
 import {CsvFileController, StageCsvInfo} from "./csv-file-controller";
 import {BehaviorSubject} from "rxjs";
+import {GlobalChartSettings, LocalStorageService} from "../api/local-storage.service";
 
 @Component({
   selector: 'app-log-analysis',
@@ -44,13 +45,8 @@ export class LogAnalysisComponent implements OnInit {
 
   stagesToCompare: StageCsvInfo[] = [];
 
-  private stages$: BehaviorSubject<StageCsvInfo[]> = new BehaviorSubject<StageCsvInfo[]>([]);
-  private overrides$: BehaviorSubject<ChartOverrides> = new BehaviorSubject<ChartOverrides>({
-    enableEntryLimit: false,
-    entryLimit: 50,
-    enableRefreshing: true,
-    refreshTimerInSeconds: 5
-  });
+  private readonly stages$: BehaviorSubject<StageCsvInfo[]> = new BehaviorSubject<StageCsvInfo[]>([]);
+  private readonly globalChartSettings$: BehaviorSubject<GlobalChartSettings>
 
   @Input()
   set project(project: ProjectInfo) {
@@ -87,8 +83,11 @@ export class LogAnalysisComponent implements OnInit {
     private projectApi: ProjectApiService,
     private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
+    private localStorageService: LocalStorageService
   ) {
-    this.csvFileController = new CsvFileController(this.filesApi, this.stages$, this.overrides$);
+    const globalChartSettings = localStorageService.getChartSettings()
+    this.globalChartSettings$ = new BehaviorSubject<GlobalChartSettings>(globalChartSettings)
+    this.csvFileController = new CsvFileController(this.filesApi, this.stages$, this.globalChartSettings$)
   }
 
   ngOnInit(): void {
@@ -188,14 +187,15 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   openGlobalSettingsDialog() {
-    const dialogData = this.overrides$.getValue();
+    const dialogData = this.globalChartSettings$.getValue();
 
     const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
       data: dialogData,
     });
 
     dialogRef.afterClosed().subscribe(_ => {
-      this.overrides$.next(dialogData)
+      this.localStorageService.setChartSettings(dialogData)
+      this.globalChartSettings$.next(dialogData)
     })
   }
 
