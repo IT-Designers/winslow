@@ -3,7 +3,7 @@ import {combineLatest, Observable, of, timer} from "rxjs";
 import {CsvFileContent, parseCsv} from "./csv-parser";
 import {map, shareReplay, switchMap} from "rxjs/operators";
 import {StageInfo} from "../api/project-api.service";
-import {ChartOverrides} from "./log-chart-definition";
+import {GlobalChartSettings} from "../api/local-storage.service";
 
 export interface CsvFile {
   stageId: string
@@ -18,12 +18,12 @@ export class CsvFileController {
   private readonly filesApi: FilesApiService
 
   stages$: Observable<StageCsvInfo[]>
-  overrides$: Observable<ChartOverrides>
+  globalChartSettings$: Observable<GlobalChartSettings>
 
-  constructor(api, stages$, overrides$) {
+  constructor(api, stages$, globalChartSettings$) {
     this.filesApi = api
     this.stages$ = stages$
-    this.overrides$ = overrides$
+    this.globalChartSettings$ = globalChartSettings$
   }
 
   getCsvFiles$(filepath: string): Observable<CsvFile[]> {
@@ -57,10 +57,10 @@ export class CsvFileController {
   }
 
   private content$(fullPathToFile: string): Observable<CsvFileContent> {
-    return this.overrides$.pipe(
-      switchMap(overrides => {
-        if (overrides.enableRefreshing == false) return of(1) // Emit an arbitrary value once, so that the file is loaded at least once.
-        const millis = overrides.refreshTimerInSeconds * 1000
+    return this.globalChartSettings$.pipe(
+      switchMap(globalSettings => {
+        if (globalSettings.enableRefreshing == false) return of(1) // Emit an arbitrary value once, so that the file is loaded at least once.
+        const millis = globalSettings.refreshTimerInSeconds * 1000
         return timer(0, millis) // Emit a value periodically to trigger the reloading of the file.
       }),
       switchMap(ignored => {
