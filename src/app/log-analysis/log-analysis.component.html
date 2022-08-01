@@ -5,14 +5,14 @@
 
     <button class="latest-stage-button" mat-raised-button color="accent"
             [disabled]="isLatestStage(stageToDisplay)"
-            (click)="updateStage(stageToDisplay, latestStage)">
+            (click)="displayLatestStage()">
       Show most recent Stage
     </button>
 
     <mat-form-field appearance="legacy" class="stage-selection">
       <mat-select
-        [(ngModel)]="stageToDisplay.stage"
-        (selectionChange)="updateStage(stageToDisplay, stageToDisplay.stage)"
+        [(ngModel)]="stageToDisplay"
+        (selectionChange)="refreshStages()"
       >
         <mat-option *ngFor="let stage of selectableStages" [value]="stage">
           {{stageLabel(stage)}}
@@ -29,19 +29,19 @@
       <mat-icon matTooltip="Display Settings">settings</mat-icon>
     </button>
 
-    <ng-container *ngFor="let stageCsvInfo of stagesToCompare; let i = index">
+    <ng-container *ngFor="let stageInfo of stagesToCompare; let i = index">
       <button class="latest-stage-button"
               mat-raised-button
               color="accent"
-              [disabled]="isLatestStage(stageCsvInfo)"
-              (click)="updateStage(stageCsvInfo, latestStage)"
+              [disabled]="isLatestStage(stageInfo)"
+              (click)="compareWithLatestStage(i)"
       >
         Show most recent Stage
       </button>
       <mat-form-field appearance="legacy" class="stage-selection">
         <mat-select
-          [(ngModel)]="stageCsvInfo.stage"
-          (selectionChange)="updateStage(stageCsvInfo, stageCsvInfo.stage)"
+          [(ngModel)]="stagesToCompare[i]"
+          (selectionChange)="refreshStages()"
         >
           <mat-option *ngFor="let stage of selectableStages" [value]="stage">
             {{stageLabel(stage)}}
