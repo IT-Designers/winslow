@@ -1,17 +1,18 @@
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {map, switchMap} from "rxjs/operators";
 import {CsvFileContent} from "./csv-parser";
-import {CsvFileController, CsvFile} from "./csv-file-controller";
+import {CsvFile, CsvFileController} from "./csv-file-controller";
+import {GlobalChartSettings} from "../api/local-storage.service";
 
 export class LogChartSnapshot {
 
-  constructor(definition: LogChartDefinition, csvFiles: CsvFile[], overrides: ChartOverrides) {
+  constructor(definition: LogChartDefinition, csvFiles: CsvFile[], globalChartSettings: GlobalChartSettings) {
     this.definition = definition
     this.csvFiles = csvFiles
     this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles)
     const csvFileContents = this.csvFiles.map(csvFile => csvFile.content)
     this.chartData = csvFileContents.map(
-      csvFileContent => definition.getDataSet(csvFileContent, this.formatterVariables, overrides)
+      csvFileContent => definition.getDataSet(csvFileContent, this.formatterVariables, globalChartSettings)
     )
   }
 
@@ -49,8 +50,8 @@ export class LogChart {
       switchMap(definition => csvFileController.getCsvFiles$(definition.file)),
     )
 
-    this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, csvFileController.overrides$]).pipe(
-      map(([definition, csvFileInfos, overrides]) => new LogChartSnapshot(definition, csvFileInfos, overrides)),
+    this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, csvFileController.globalChartSettings$]).pipe(
+      map(([definition, csvFileInfos, globalChartSettings]) => new LogChartSnapshot(definition, csvFileInfos, globalChartSettings)),
     )
   }
 
@@ -79,8 +80,8 @@ export class LogChartDefinition {
     this.entryLimit = null
   }
 
-  getDataSet(csvContent: CsvFileContent, formatterVariables: string[], overrides: ChartOverrides): ChartDataSet {
-    const rowLimit = overrides?.enableEntryLimit ? overrides.entryLimit : this.entryLimit;
+  getDataSet(csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
+    const rowLimit = globalChartSettings?.enableEntryLimit ? globalChartSettings.entryLimit : this.entryLimit;
     const rows = LogChartDefinition.getLatestRows(csvContent, rowLimit);
     const xIndex = formatterVariables.findIndex(variableName => variableName == this.xVariable);
     const yIndex = formatterVariables.findIndex(variableName => variableName == this.yVariable);
@@ -135,9 +136,3 @@ export interface ChartDialogData {
   definition: LogChartDefinition;
 }
 
-export interface ChartOverrides {
-  enableEntryLimit: boolean;
-  entryLimit: number;
-  enableRefreshing: boolean;
-  refreshTimerInSeconds: number;
-}
