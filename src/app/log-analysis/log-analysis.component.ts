@@ -9,7 +9,7 @@ import {
   LogAnalysisSettingsDialogComponent
 } from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
-import {CsvFileController, StageCsvInfo} from "./csv-file-controller";
+import {CsvFileController} from "./csv-file-controller";
 import {BehaviorSubject} from "rxjs";
 import {GlobalChartSettings, LocalStorageService} from "../api/local-storage.service";
 
@@ -63,19 +63,13 @@ export class LogAnalysisComponent implements OnInit {
   hasSelectableStages = true;
   probablyPipelineId = null;
 
-  selectedProject: ProjectInfo = null;
   projectHistory: ExecutionGroupInfo[] = [];
   latestStage: StageInfo = null;
   selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
 
-  stageToDisplay: StageCsvInfo = {
-    id: null,
-    stage: null,
-    csvFiles: [],
-  }
-
-  stagesToCompare: StageCsvInfo[] = [];
+  stageToDisplay: StageInfo
+  stagesToCompare: StageInfo[] = [];
 
   stageToDisplay: StageCsvInfo = {
     id: null,
@@ -152,10 +146,24 @@ export class LogAnalysisComponent implements OnInit {
   ) {
     const globalChartSettings = localStorageService.getChartSettings()
     this.globalChartSettings$ = new BehaviorSubject<GlobalChartSettings>(globalChartSettings)
-    this.csvFileController = new CsvFileController(this.filesApi, this.stages$, this.globalChartSettings$)
+    this.csvFileController = new CsvFileController(this.filesApi, this.globalChartSettings$)
   }
 
   ngOnInit(): void {
+
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG)
+    const projectPromise = this.projectApi.getProjectHistory(this.project.id)
+      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
+
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
+    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
+      .then(pipelines => this.findProjectPipeline(pipelines))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
+
+    Promise.all([projectPromise, pipelinePromise]).then(
+      () => this.loadCharts()
+    )
   }
 
   isLongLoading(): boolean {
@@ -170,37 +178,28 @@ export class LogAnalysisComponent implements OnInit {
     const dateValue = stage.finishTime ?? stage.startTime;
     const dateString = new Date(dateValue).toLocaleString();
 
-    const name = stage.id.slice(this.selectedProject.id.length + 1);
+    const name = stage.id.slice(this.project.id.length + 1);
 
     return `${dateString} · ${name}`
   }
 
-  isLatestStage(stageCsvInfo: StageCsvInfo): boolean {
-    return stageCsvInfo.stage == this.latestStage;
+  isLatestStage(stageInfo: StageInfo): boolean {
+    return stageInfo == this.latestStage;
   }
 
-  updateStage(stageCsvInfo: StageCsvInfo, stage: StageInfo) {
-    if (stage == null) {
-      stage = this.latestStage;
-    }
-    stageCsvInfo.id = stage.id;
-    stageCsvInfo.stage = stage;
-    stageCsvInfo.csvFiles = [];
-
-    console.log(`Selected stage ${stage.id}`);
-
+  displayLatestStage() {
+    this.stageToDisplay = this.latestStage
     this.refreshStages()
   }
 
   addStageToCompare() {
-    let stageCsvInfo: StageCsvInfo = {
-      csvFiles: [],
-      stage: undefined,
-      id: ""
-    }
-    this.updateStage(stageCsvInfo, this.latestStage);
-    this.stagesToCompare.push(stageCsvInfo);
+    this.stagesToCompare.push(this.latestStage);
 
+    this.refreshStages()
+  }
+
+  compareWithLatestStage(index: number) {
+    this.stagesToCompare[index] = this.latestStage
     this.refreshStages()
   }
 
@@ -208,6 +207,46 @@ export class LogAnalysisComponent implements OnInit {
     this.stagesToCompare.splice(stageIndex, 1);
 
     this.refreshStages()
+  }
+
+  refreshStages() {
+    const stages = [this.stageToDisplay, ...this.stagesToCompare];
+    this.csvFileController.setStages(stages);
+  }
+
+  private getLatestStage(): StageInfo {
+    return this.selectableStages.slice(-1)[0];
+  }
+
+  private loadStagesFromHistory(projectHistory) {
+    this.projectHistory = projectHistory;
+    this.selectableStages = this.getSelectableStages(projectHistory);
+    this.latestStage = this.getLatestStage();
+    this.hasSelectableStages = this.selectableStages.length > 0;
+    if (this.hasSelectableStages) this.displayLatestStage()
+  }
+
+  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
+    let stages: StageInfo[] = []
+
+    projectHistory.forEach(executionGroup => {
+
+      if (executionGroup.configureOnly) {
+        return;
+      }
+
+      if (executionGroup.stages.length == 0) {
+        return;
+      }
+
+      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
+        stages.push(executionGroup.stages[0]);
+      } else {
+        stages.push(...executionGroup.stages);
+      }
+    })
+
+    return stages;
   }
 
   createChart() {
@@ -262,60 +301,6 @@ export class LogAnalysisComponent implements OnInit {
       this.localStorageService.setChartSettings(dialogData)
       this.globalChartSettings$.next(dialogData)
     })
-  }
-
-  private getLatestStage(): StageInfo {
-    return this.selectableStages.slice(-1)[0];
-  }
-
-  private refreshStages() {
-    const stages = [this.stageToDisplay, ...this.stagesToCompare];
-    this.stages$.next(stages);
-  }
-
-  private loadStagesFromHistory(projectHistory) {
-    this.projectHistory = projectHistory;
-    this.selectableStages = this.getSelectableStages(projectHistory);
-    this.latestStage = this.getLatestStage();
-
-    this.hasSelectableStages = this.selectableStages.length > 0;
-
-    if (this.hasSelectableStages) {
-      this.autoSelectStage();
-    }
-  }
-
-  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
-    let stages: StageInfo[] = []
-
-    projectHistory.forEach(executionGroup => {
-
-      if (executionGroup.configureOnly) {
-        return;
-      }
-
-      if (executionGroup.stages.length == 0) {
-        return;
-      }
-
-      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
-        stages.push(executionGroup.stages[0]);
-      } else {
-        stages.push(...executionGroup.stages);
-      }
-    })
-
-    return stages;
-  }
-
-  private autoSelectStage() {
-    this.stagesToCompare = [];
-    if (this.stageToDisplay.id && this.projectHistory) {
-      const stage = this.selectableStages.find(entry => entry.id == this.stageToDisplay.id)
-      this.updateStage(this.stageToDisplay, stage)
-    } else if (this.projectHistory) {
-      this.updateStage(this.stageToDisplay, this.getLatestStage())
-    }
   }
 
   private loadCharts() {
@@ -588,7 +573,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private pathToChartsDir() {
-    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.selectedProject.id}`;
+    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.project.id}`;
   }
 
   private deleteChart(chart: LogChart) {
@@ -600,7 +585,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private findProjectPipeline(pipelines: PipelineInfo[]) {
-    const project = this.selectedProject;
+    const project = this.project;
     this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines)
   }
 
