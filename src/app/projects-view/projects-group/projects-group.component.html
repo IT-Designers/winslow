@@ -1,0 +1,53 @@
+<mat-expansion-panel class="group" (contextmenu)="rightClickAction(projectGroup.name, matMenuTrigger, $event)">
+    <mat-expansion-panel-header>
+        <mat-panel-title>
+            <div *ngIf="projectGroup.projects.length <= 9">
+                <mat-icon matTooltip="Project group">filter_{{projectGroup.projects.length}}</mat-icon>
+            </div>
+            <div *ngIf="projectGroup.projects.length > 9">
+                <mat-icon matTooltip="Project group">filter_9_plus</mat-icon>
+            </div>
+            <app-tags-with-autocomplete
+                    [readonly]="true"
+                    [tags]="[projectGroup.name]"
+                    (tagActionPrimary)="filter.toggleIncludedTag($event)"
+                    (tagActionSecondary)="filter.addExcludedTag($event)">
+            </app-tags-with-autocomplete>
+        </mat-panel-title>
+        <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
+             [matMenuTriggerFor]="menu"
+             [style.left.px]="menuPosition.x"
+             [style.top.px]="menuPosition.y"></div>
+        <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)='openGroupAction(projectGroup.name)'>
+                <span>Group action</span>
+            </button>
+            <button mat-menu-item (click)="filter.addExcludedTag(projectGroup.name)">
+                <span>Exclude Group from list</span>
+            </button>
+            <button mat-menu-item disabled>
+                <span>Add to Context</span>
+            </button>
+        </mat-menu>
+    </mat-expansion-panel-header>
+    <div>
+        <mat-list-item *ngFor="let project of projectGroup.projects, last as isInnerLast"
+                       class="project-selection-sidebar-item"
+                       (click)="selectProject(project)"
+                       [class.selected]="project.id == selectedProject?.id">
+            <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
+                 (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
+            <app-project-view-header
+                    [project]="project"
+                    [iconState]="stateInfo?.get(project.id)?.getState()"
+                    [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
+                    [progress]="stateInfo?.get(project.id)?.stageProgress"
+                    [running]="stateInfo?.get(project.id)?.isRunning()"
+                    [mostRecentStage]="stateInfo?.get(project.id)?.description"
+                    (tagActionPrimary)="filter.toggleIncludedTag($event)"
+                    (tagActionSecondary)="filter.addExcludedTag($event)"
+            ></app-project-view-header>
+            <mat-divider class="mat-divider" *ngIf="!isInnerLast" [inset]="true"></mat-divider>
+        </mat-list-item>
+    </div>
+</mat-expansion-panel>

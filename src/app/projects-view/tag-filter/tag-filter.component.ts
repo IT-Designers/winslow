@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../api/project-api.service';
+import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
 
 @Component({
   selector: 'app-tag-filter',
@@ -12,20 +12,36 @@ export class TagFilterComponent implements OnInit {
   projectsValue: ProjectInfo[];
   filteredProjects: ProjectInfo[];
   projectsGroupsValue: ProjectGroup[];
+  lastPreselectedTag: string;
 
   @Output('filtered') filtered = new EventEmitter<ProjectInfo[]>();
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
+  @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
+
+  @Input()
+  set preSelectedTag(tag: string | undefined) {
+    if (this.lastPreselectedTag) {
+      this.removeIncludedTag(this.lastPreselectedTag);
+    }
+    if (tag) {
+      this.addIncludedTag(tag);
+      this.lastPreselectedTag = tag;
+    }
+  }
 
   includeTags: string[] = [];
   includeEmpty = false;
   excludeTags: string[] = [];
   excludeEmpty = false;
+  groupsOnTopIsChecked: boolean;
 
   constructor() {
   }
 
   ngOnInit() {
-
+    if (this.preSelectedTag) {
+      this.addIncludedTag(this.preSelectedTag);
+    }
   }
 
   toggleIncludedTag(tag: string) {
@@ -49,6 +65,16 @@ export class TagFilterComponent implements OnInit {
     if (this.includeTags != null && this.includeTags.indexOf(tag) < 0) {
       const tags = this.includeTags.map(t => t);
       tags.push(tag);
+      this.includeTags = tags; // notify the bindings
+      this.updateFilter();
+    }
+  }
+
+  removeIncludedTag(tag: string) {
+    if (this.includeTags != null) {
+      const index = this.includeTags.indexOf(tag);
+      const tags = this.includeTags.map(t => t);
+      tags.splice(index, 1);
       this.includeTags = tags; // notify the bindings
       this.updateFilter();
     }
@@ -108,8 +134,9 @@ export class TagFilterComponent implements OnInit {
     });
   }
 
-  emitGroups(){
+  emitGroups() {
     this.projectsGroups.emit(this.projectsGroupsValue);
+    this.groupsOnTop.emit(this.groupsOnTopIsChecked);
   }
 
 }

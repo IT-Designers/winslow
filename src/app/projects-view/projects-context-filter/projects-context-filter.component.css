@@ -1,0 +1,32 @@
+.expansion-button {
+  position: absolute;
+  right: 0.7em;
+  top:0.5em;
+  background-color: whitesmoke;
+  color: #7f7f7f;
+  width: 2em;
+}
+
+.context /deep/ .mat-tab-label-container {
+  flex-wrap: nowrap;
+  overflow-x: clip;
+  white-space: nowrap;
+}
+
+.context /deep/ .mat-tab-label {
+  min-width: min-content;
+  padding: 0;
+}
+
+.context /deep/ .mat-tab-header-pagination {
+  display: none !important;
+}
+
+.context /deep/ .mat-tab-header {
+  margin-left: 0.5em;
+  margin-right: 3em;
+}
+
+.custom-tab {
+  padding: 0.5em 0.5em 0.5em 0.5em;
+}

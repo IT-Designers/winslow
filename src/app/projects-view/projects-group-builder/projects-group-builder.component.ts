@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../api/project-api.service';
+import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
 
 @Component({
   selector: 'app-projects-group-builder',
@@ -8,11 +8,14 @@ import {ProjectGroup, ProjectInfo} from '../api/project-api.service';
 })
 export class ProjectsGroupBuilderComponent implements OnInit {
 
+  CONTEXT_PREFIX = 'context::';
   groupsActivated = true;
   availableTagsValue: string[];
   projectsValue: ProjectInfo[];
 
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
+  @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
+  groupsOnTopIsChecked = false;
 
   constructor() {
   }
@@ -29,12 +32,13 @@ export class ProjectsGroupBuilderComponent implements OnInit {
 
   @Input('availableTags')
   set availableTags(tags: string[]) {
-    this.availableTagsValue = tags;
+    this.availableTagsValue = tags
+      .filter(tag => !tag.startsWith(this.CONTEXT_PREFIX));
     this.updateGroups();
   }
 
   updateGroups() {
-    if (this.projectsValue == null || this.groupsActivated === false || !this.availableTagsValue) {
+    if (this.projectsValue.length == null || this.groupsActivated === false || !this.availableTagsValue) {
       this.projectsGroups.emit(null);
       return;
     }
@@ -55,7 +59,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
       }
       if (projectsForTag[0] !== undefined) {
         if (projectsForTag[1] === undefined) {
-          if (!projectGroups.includes(this.buildGroup(projectsForTag[0].name, projectsForTag))) {
+          if (!this.isProjectForGroupExisting(projectGroups, projectsForTag[0])) {
             projectGroups.push(this.buildGroup(projectsForTag[0].name, projectsForTag));
           }
         } else {
@@ -66,7 +70,11 @@ export class ProjectsGroupBuilderComponent implements OnInit {
       }
     }
     projectGroups = this.sortGroups(projectGroups);
-    this.projectsGroups.emit(projectGroups);
+    if (projectGroups.length <= 0) {
+      this.projectsGroups.emit(null);
+    } else {
+      this.projectsGroups.emit(projectGroups);
+    }
   }
 
   private isProjectForGroupExisting(projectGroups: ProjectGroup[], project: ProjectInfo) {
@@ -80,6 +88,20 @@ export class ProjectsGroupBuilderComponent implements OnInit {
 
   private sortGroups(groups: ProjectGroup[]) {
     groups.sort((a, b) => a.name.localeCompare(b.name));
+    if (this.groupsOnTopIsChecked) {
+      const newGroups: ProjectGroup[] = [];
+      for (const group of groups) {
+        if (group.projects.length > 1) {
+          newGroups.push(group);
+        }
+      }
+      for (const group of groups) {
+        if (group.projects.length <= 1) {
+          newGroups.push(group);
+        }
+      }
+      groups = newGroups;
+    }
     return groups;
   }
 

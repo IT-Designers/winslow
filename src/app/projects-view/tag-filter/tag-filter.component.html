@@ -4,6 +4,7 @@
     <app-tags-with-autocomplete
       [tags]="includeTags"
       [proposals]="availableTagsValue"
+      [isFilter]=true
       (tags)="this.includeTags = $event; updateFilter()"
     ></app-tags-with-autocomplete>
     <mat-slide-toggle (change)="includeEmpty = $event.checked; updateFilter()">
@@ -15,6 +16,7 @@
     <app-tags-with-autocomplete
       [tags]="excludeTags"
       [proposals]="availableTagsValue"
+      [isFilter]=true
       (tags)="this.excludeTags = $event; updateFilter()"
     ></app-tags-with-autocomplete>
     <mat-slide-toggle (change)="excludeEmpty = $event.checked; updateFilter()">
@@ -23,12 +25,12 @@
   </div>
 
 </div>
-<div style="padding-top: 1.5em">
-</div>
-<div class="flex-grow-row tag-filter">
+<div style="padding-top: 1.5em"></div>
+<div>
   <app-projects-group-builder
     [projects]="this.filteredProjects"
     [availableTags]="this.availableTagsValue"
-    (projectsGroups)="projectsGroupsValue = $event; emitGroups()">
+    (projectsGroups)="projectsGroupsValue = $event; emitGroups()"
+    (groupsOnTop)="groupsOnTopIsChecked = $event; emitGroups()">
   </app-projects-group-builder>
 </div>
