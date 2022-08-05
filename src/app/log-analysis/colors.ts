@@ -42,17 +42,27 @@ function rgbToHexString(red: number, green: number, blue: number) {
   const redHex = Number(red).toString(radix)
   const greenHex = Number(green).toString(radix)
   const blueHex = Number(blue).toString(radix)
-  return `#${redHex}${greenHex}${blueHex}`
+  return `#${redHex}${blueHex}${greenHex}`
 }
 
-export function getColor(step: number) {
+export function getColorSet(amount: number) {
   const limit = 360
   const offset = 210
-  const increment = 277
-  const lightness = 60
-  const saturation = 80
+  const increment = limit / amount
+  const lightness = 50
+  const saturation = 50
 
-  const hue = (offset + step * increment) % limit
-  const [red, green, blue] = hslToRgb(hue, saturation, lightness)
-  return rgbToHexString(red, green, blue)
+  let results = []
+
+  for (let i = 0; i < amount; i++) {
+    const hue = (offset + i * increment) % limit
+    console.log(hue)
+    const [red, green, blue] = hslToRgb(hue, saturation, lightness)
+    const hex = rgbToHexString(red, green, blue)
+    console.log(hex)
+    results.push(hex)
+  }
+
+  console.log(results)
+  return results
 }
