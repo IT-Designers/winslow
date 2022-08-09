@@ -9,6 +9,8 @@
       Show most recent Stage
     </button>
 
+    <mat-icon class="color-icon" [ngStyle]="{'color': stageColor(0)}">trending_up</mat-icon>
+
     <mat-form-field appearance="legacy" class="stage-selection">
       <mat-select
         [(ngModel)]="stageToDisplay"
@@ -38,6 +40,9 @@
       >
         Show most recent Stage
       </button>
+
+      <mat-icon class="color-icon" [ngStyle]="{'color': stageColor(i + 1)}">trending_up</mat-icon>
+
       <mat-form-field appearance="legacy" class="stage-selection">
         <mat-select
           [(ngModel)]="stagesToCompare[i]"
@@ -48,6 +53,7 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
+
       <button class="remove-compared-stage-button" mat-raised-button
               (click)="removeStageToCompare(i)">
         Remove
