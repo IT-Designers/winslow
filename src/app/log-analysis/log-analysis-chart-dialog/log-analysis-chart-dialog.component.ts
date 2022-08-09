@@ -2,14 +2,13 @@ import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
-  ChartDialogData,
   ChartDisplaySettings,
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
 } from "../log-chart-definition";
-import {CsvFile} from "../csv-file-controller";
 import {Subscription} from "rxjs";
+import {CsvFile, CsvFilesService} from '../csv-files.service';
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
@@ -24,11 +23,15 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
   latestSnapshot: LogChartSnapshot;
   subscription: Subscription;
 
-  constructor(@Inject(MAT_DIALOG_DATA) private data: ChartDialogData) {
-    this.chart = new LogChart(data.csvFileController, data.chart.filename, data.definition);
+  constructor(
+    private csvFilesService: CsvFilesService,
+    @Inject(MAT_DIALOG_DATA) private data: LogChart,
+  ) {
+    const definition = this.chart.definition$.getValue();
+    this.chart = new LogChart(this.csvFilesService, this.chart.filename, definition);
 
-    this.definition = Object.assign(new LogChartDefinition(), data.definition);
-    this.definition.displaySettings = Object.assign(new ChartDisplaySettings(), data.definition.displaySettings);
+    this.definition = Object.assign(new LogChartDefinition(), definition);
+    this.definition.displaySettings = Object.assign(new ChartDisplaySettings(),definition);
     this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot)
 
     this.refresh()

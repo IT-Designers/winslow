@@ -1,31 +1,46 @@
-import {FilesApiService} from "../api/files-api.service";
-import {BehaviorSubject, combineLatest, Observable, of, timer} from "rxjs";
-import {CsvFileContent, parseCsv} from "./csv-parser";
-import {map, shareReplay, switchMap} from "rxjs/operators";
-import {StageInfo} from "../api/project-api.service";
-import {GlobalChartSettings} from "../api/local-storage.service";
+import {Injectable} from '@angular/core';
+import {FilesApiService} from '../api/files-api.service';
+import {BehaviorSubject, combineLatest, Observable, of, timer} from 'rxjs';
+import {StageInfo} from '../api/project-api.service';
+import {GlobalChartSettings, LocalStorageService} from '../api/local-storage.service';
+import {map, shareReplay, switchMap} from 'rxjs/operators';
+import {CsvFileContent, parseCsv} from './csv-parser';
 
 export interface CsvFile {
-  stageId: string
-  pathInWorkspace: string
-  pathToWorkspace: string
-  content: CsvFileContent
+  stageId: string;
+  pathInWorkspace: string;
+  pathToWorkspace: string;
+  content: CsvFileContent;
 }
 
-export class CsvFileController {
-  static readonly PATH_TO_WORKSPACES = '/workspaces'
+export interface CsvFileSource {
+  pathInWorkspace: string;
+  pathToWorkspace: string;
+  content$: Observable<CsvFileContent>;
+}
 
-  private readonly filesApi: FilesApiService
+@Injectable({
+  providedIn: 'root'
+})
+export class CsvFilesService {
+
+  private static readonly WORKSPACE_DIR = '/workspaces'
+  private static readonly CSV_FILE_DIR = '.log_parser_output';
+
   private readonly stages$: BehaviorSubject<StageInfo[]>
+  readonly globalChartSettings$: BehaviorSubject<GlobalChartSettings>
 
-  globalChartSettings$: Observable<GlobalChartSettings>
-  private csvFileSources: CsvFileSource[] = [];
+  constructor(
+    private filesApi: FilesApiService,
+    private localStorageService: LocalStorageService,
+  ) {
+    const settings = localStorageService.getChartSettings()
+    this.globalChartSettings$ = new BehaviorSubject<GlobalChartSettings>(settings)
 
-  constructor(api: FilesApiService, globalChartSettings$: Observable<GlobalChartSettings>) {
-    this.filesApi = api
     this.stages$ = new BehaviorSubject<StageInfo[]>([])
-    this.globalChartSettings$ = globalChartSettings$
   }
+
+  private csvFileSources: CsvFileSource[] = [];
 
   setStages(stages: StageInfo[]) {
     this.removeObsoleteFileSources(stages)
@@ -86,7 +101,7 @@ export class CsvFileController {
   }
 
   private createCsvFileSource(stage: StageInfo, relativePathToFile: string): CsvFileSource {
-    const fullPathToFile = CsvFileController.fullPathToFile(stage.workspace, relativePathToFile)
+    const fullPathToFile = CsvFilesService.fullPathToFile(stage.workspace, relativePathToFile)
 
     console.log(`Watching file ${fullPathToFile}.`)
 
@@ -108,12 +123,6 @@ export class CsvFileController {
   }
 
   private static fullPathToFile(pathToWorkspace: string, pathInWorkSpace: string) {
-    return `${CsvFileController.PATH_TO_WORKSPACES}/${pathToWorkspace}/.log_parser_output/${pathInWorkSpace}`
+    return `${CsvFilesService.WORKSPACE_DIR}/${pathToWorkspace}/${CsvFilesService.CSV_FILE_DIR}/${pathInWorkSpace}`
   }
-}
-
-export interface CsvFileSource {
-  pathInWorkspace: string;
-  pathToWorkspace: string;
-  content$: Observable<CsvFileContent>;
 }
