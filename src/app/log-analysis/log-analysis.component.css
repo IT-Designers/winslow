@@ -2,7 +2,7 @@
   display: grid;
   padding: 1em 0;
   grid-gap: 1em;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto auto 1fr auto auto;
 }
 
 .top-bar button {
@@ -13,21 +13,25 @@
   grid-column: 1/2;
 }
 
-.top-bar .stage-selection {
+.top-bar .color-icon {
   grid-column: 2/3;
+}
+
+.top-bar .stage-selection {
+  grid-column: 3/4;
   margin: -12px 0 -2em;
 }
 
 .top-bar .compare-stage-button {
-  grid-column: 3/4;
-}
-
-.top-bar .display-settings-button {
   grid-column: 4/5;
 }
 
+.top-bar .display-settings-button {
+  grid-column: 5/6;
+}
+
 .top-bar .remove-compared-stage-button {
-  grid-column: 3/5;
+  grid-column: 4/6;
 }
 
 .top-bar-divider {
