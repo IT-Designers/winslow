@@ -17,7 +17,8 @@
         <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
              [matMenuTriggerFor]="menu"
              [style.left.px]="menuPosition.x"
-             [style.top.px]="menuPosition.y"></div>
+             [style.top.px]="menuPosition.y"
+        ></div>
         <mat-menu #menu="matMenu">
             <button mat-menu-item (click)='openGroupAction(projectGroup.name)'>
                 <span>Group action</span>

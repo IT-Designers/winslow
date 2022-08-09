@@ -2,6 +2,7 @@ import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angul
 import {LogEntry, LogSource, ProjectApiService, ProjectInfo, State} from '../api/project-api.service';
 import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../long-loading-detector';
+import {MatMenuTrigger} from '@angular/material/menu';
 
 @Component({
   selector: 'app-log-view',
@@ -30,6 +31,11 @@ export class LogViewComponent implements OnInit, OnDestroy {
   downloadUrl: string = '';
   projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
+
+  menuPosition: { x: number, y: number } = {
+    x: 0,
+    y: 0
+  };
 
   regularExpressionPattern = '';
 
@@ -185,8 +191,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
     }
   }
 
-
-  lineId(log: LogEntry): string {
+  lineId(index: number, log: LogEntry): string {
     return log?.stageId + log?.line;
   }
 
@@ -204,5 +209,12 @@ export class LogViewComponent implements OnInit, OnDestroy {
 
   isPatternMatching() {
     return this.regularExpressionPattern.trim().length > 0;
+  }
+
+  rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent) {
+    event.preventDefault();
+    this.menuPosition.x = event.x;
+    this.menuPosition.y = event.y;
+    matMenuTrigger.openMenu();
   }
 }
