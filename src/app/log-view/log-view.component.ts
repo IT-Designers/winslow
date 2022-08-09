@@ -2,9 +2,6 @@ import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angul
 import {LogEntry, LogSource, ProjectApiService, ProjectInfo, State} from '../api/project-api.service';
 import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {MatMenuTrigger} from '@angular/material/menu';
-import {MatDialog} from '@angular/material/dialog';
-import {RegularExpressionEditorDialogComponent} from '../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 
 @Component({
   selector: 'app-log-view',
@@ -34,18 +31,9 @@ export class LogViewComponent implements OnInit, OnDestroy {
   projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
 
-  contextMenu: { x: number, y: number, log: LogEntry } = {
-    x: 0,
-    y: 0,
-    log: null,
-  };
-
   regularExpressionPattern = '';
 
-  constructor(
-    private api: ProjectApiService,
-    private dialog: MatDialog,
-  ) {
+  constructor(private api: ProjectApiService) {
   }
 
   ngOnInit(): void {
@@ -197,7 +185,8 @@ export class LogViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  lineId(index: number, log: LogEntry): string {
+
+  lineId(log: LogEntry): string {
     return log?.stageId + log?.line;
   }
 
@@ -215,21 +204,5 @@ export class LogViewComponent implements OnInit, OnDestroy {
 
   isPatternMatching() {
     return this.regularExpressionPattern.trim().length > 0;
-  }
-
-  rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent, log: LogEntry) {
-    event.preventDefault();
-    this.contextMenu.x = event.x;
-    this.contextMenu.y = event.y;
-    this.contextMenu.log = log;
-    matMenuTrigger.openMenu();
-  }
-
-  contextMenuCopy() {
-    navigator.clipboard.writeText(this.contextMenu.log.message).then();
-  }
-
-  contextMenuOpenEditor() {
-    this.dialog.open(RegularExpressionEditorDialogComponent, {data: this.contextMenu.log.message});
   }
 }
