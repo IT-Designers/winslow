@@ -31,7 +31,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
   projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
 
-  regularExpressionPattern = "";
+  regularExpressionPattern = '';
 
   constructor(private api: ProjectApiService) {
   }

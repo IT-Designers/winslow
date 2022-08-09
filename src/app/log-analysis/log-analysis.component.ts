@@ -5,9 +5,7 @@ import {LogAnalysisChartDialogComponent} from "../log-analysis-chart-dialog/log-
 import {LongLoadingDetector} from "../long-loading-detector";
 import {FileInfo, FilesApiService} from "../api/files-api.service";
 import {ChartDialogData, LogChart, LogChartDefinition} from "./log-chart-definition";
-import {
-  LogAnalysisSettingsDialogComponent
-} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
+import {LogAnalysisSettingsDialogComponent} from "../log-analysis-settings-dialog/log-analysis-settings-dialog.component";
 import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
 import {CsvFileController} from "./csv-file-controller";
 import {BehaviorSubject} from "rxjs";
