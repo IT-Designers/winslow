@@ -1,44 +1,52 @@
-import {BehaviorSubject, combineLatest, Observable} from "rxjs";
-import {map, switchMap} from "rxjs/operators";
-import {CsvFileContent} from "./csv-parser";
-import {CsvFile, CsvFileController} from "./csv-file-controller";
-import {GlobalChartSettings} from "../api/local-storage.service";
+import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
+import {map, switchMap} from 'rxjs/operators';
+import {CsvFileContent} from './csv-parser';
+import {CsvFile, CsvFileController} from './csv-file-controller';
+import {GlobalChartSettings} from '../api/local-storage.service';
+import {getColor} from './colors';
 
 export class LogChartSnapshot {
 
   constructor(definition: LogChartDefinition, csvFiles: CsvFile[], globalChartSettings: GlobalChartSettings) {
-    this.definition = definition
-    this.csvFiles = csvFiles
-    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles)
-    const csvFileContents = this.csvFiles.map(csvFile => csvFile.content)
-    this.chartData = csvFileContents.map(
-      csvFileContent => definition.getDataSet(csvFileContent, this.formatterVariables, globalChartSettings)
-    )
+    this.definition = definition;
+    this.csvFiles = csvFiles;
+    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles);
+    this.graphs = csvFiles.map((file, index) => ({
+      data: definition.getDataSet(file.content, this.formatterVariables, globalChartSettings),
+      name: file.stageId,
+      color: getColor(index)
+    }));
   }
 
-  readonly definition: LogChartDefinition
-  readonly csvFiles: CsvFile[]
-  readonly chartData: ChartDataSet[]
-  readonly formatterVariables: string[]
+  readonly definition: LogChartDefinition;
+  readonly csvFiles: CsvFile[];
+  readonly graphs: ChartGraph[];
+  readonly formatterVariables: string[];
 
   private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFile[]): string[] {
-    if (!definition.formatterFromHeaderRow) return definition.customFormatter.split(";");
+    if (!definition.formatterFromHeaderRow) {
+      return definition.customFormatter.split(';');
+    }
 
     const variables = [];
 
     csvFiles.map(csvFile => csvFile.content).forEach(csvContent => {
-      if (csvContent.length > 0) csvContent[0].forEach(field => {
-        if (!variables.includes(field)) variables.push(field)
-      })
-    })
+      if (csvContent.length > 0) {
+        csvContent[0].forEach(field => {
+          if (!variables.includes(field)) {
+            variables.push(field);
+          }
+        });
+      }
+    });
 
-    return variables
+    return variables;
   }
 }
 
 export class LogChart {
 
-  readonly snapshot$: Observable<LogChartSnapshot>
+  readonly snapshot$: Observable<LogChartSnapshot>;
   readonly filename: string;
   readonly definition$: BehaviorSubject<LogChartDefinition>;
 
@@ -48,36 +56,38 @@ export class LogChart {
 
     const csvFileInfo$ = this.definition$.pipe(
       switchMap(definition => csvFileController.getCsvFiles$(definition.file)),
-    )
+    );
 
     this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, csvFileController.globalChartSettings$]).pipe(
-      map(([definition, csvFileInfos, globalChartSettings]) => new LogChartSnapshot(definition, csvFileInfos, globalChartSettings)),
-    )
+      map(([definition, csvFileInfos, globalChartSettings]) => {
+        return new LogChartSnapshot(definition, csvFileInfos, globalChartSettings);
+      }),
+    );
   }
 
   private static generateUniqueId() {
-    const id = `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}`
+    const id = `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}`;
     return `${id}.json`;
   }
 }
 
 export class LogChartDefinition {
-  displaySettings: ChartDisplaySettings
-  file: string
-  formatterFromHeaderRow: boolean
-  customFormatter: string
-  xVariable: string
-  yVariable: string
-  entryLimit: null | number
+  displaySettings: ChartDisplaySettings;
+  file: string;
+  formatterFromHeaderRow: boolean;
+  customFormatter: string;
+  xVariable: string;
+  yVariable: string;
+  entryLimit: null | number;
 
   constructor() {
-    this.displaySettings = new ChartDisplaySettings()
-    this.file = "logfile.csv"
-    this.formatterFromHeaderRow = true
-    this.customFormatter = "$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID"
-    this.xVariable = ""
-    this.yVariable = "$1"
-    this.entryLimit = null
+    this.displaySettings = new ChartDisplaySettings();
+    this.file = 'logfile.csv';
+    this.formatterFromHeaderRow = true;
+    this.customFormatter = '$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID';
+    this.xVariable = '';
+    this.yVariable = '$1';
+    this.entryLimit = null;
   }
 
   getDataSet(csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
@@ -106,24 +116,24 @@ export class LogChartDefinition {
 }
 
 export class ChartDisplaySettings {
-  name: string = "Unnamed chart";
+  name: string = 'Unnamed chart';
 
-  xAxisName: string = "x-Axis";
+  xAxisName: string = 'x-Axis';
   xAxisMinValue: number = null;
   xAxisMaxValue: number = null;
   xAxisType: ChartAxisType = ChartAxisType.VALUE;
 
-  yAxisName: string = "y-Axis";
-  yAxisMinValue: number = null
+  yAxisName: string = 'y-Axis';
+  yAxisMinValue: number = null;
   yAxisMaxValue: number = null;
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 
 // used by echarts
 export enum ChartAxisType {
-  VALUE = "value",
-  LOG = "log",
-  TIME = "time",
+  VALUE = 'value',
+  LOG = 'log',
+  TIME = 'time',
 }
 
 export type ChartDataSet = ChartDataPoint[];
@@ -136,3 +146,8 @@ export interface ChartDialogData {
   definition: LogChartDefinition;
 }
 
+export interface ChartGraph {
+  data: ChartDataSet
+  name: string
+  color: string
+}

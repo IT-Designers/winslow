@@ -1,7 +1,6 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartDataSet, ChartDisplaySettings, LogChart} from "../log-analysis/log-chart-definition";
+import {ChartGraph, ChartDisplaySettings, LogChart} from "../log-analysis/log-chart-definition";
 import {Subscription} from "rxjs";
-import {getColorSet} from "../log-analysis/colors";
 
 @Component({
   selector: 'app-log-analysis-chart',
@@ -22,7 +21,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     this.subscription = this.chart.snapshot$.subscribe({
       next: snapshot => {
         this.settings(snapshot.definition.displaySettings)
-        this.data(snapshot.chartData)
+        this.data(snapshot.graphs)
       }
     })
   }
@@ -58,17 +57,21 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
         nameLocation: 'center',
         nameGap: 25,
       },
-      color: getColorSet(10),
+      tooltip: {
+        trigger: 'axis',
+      },
       animation: false,
     }
     this.updateOptions(newOptions);
   };
 
-  data(chartData: ChartDataSet[]) {
-    const series = chartData.map(data => ({
+  data(graphs: ChartGraph[]) {
+    const series = graphs.map(graph => ({
       type: 'line',
       showSymbol: false,
-      data: data,
+      data: graph.data,
+      name: graph.name,
+      color: graph.color,
     }))
     const newOptions = {
       series: series,
