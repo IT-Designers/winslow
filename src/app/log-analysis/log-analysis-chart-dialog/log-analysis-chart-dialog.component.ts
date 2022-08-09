@@ -7,8 +7,8 @@ import {
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
-} from "../log-analysis/log-chart-definition";
-import {CsvFile} from "../log-analysis/csv-file-controller";
+} from "../log-chart-definition";
+import {CsvFile} from "../csv-file-controller";
 import {Subscription} from "rxjs";
 
 @Component({
