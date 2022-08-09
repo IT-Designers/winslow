@@ -50,7 +50,7 @@
 <div class="logs-container flex-grow flex-grow-column">
   <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
     <div #scrollTopTarget></div>
-    <pre class="console-container">
+    <pre class="console-container" (contextmenu)="rightClickAction(matMenuTrigger, $event)">
           <code *ngIf="logs != null" class="console"
           ><ng-container *ngFor="let log of logs; trackBy:lineId"
           ><span
@@ -73,3 +73,18 @@
     <div #scrollBottomTarget></div>
   </div>
 </div>
+
+<div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
+     [matMenuTriggerFor]="menu"
+     [style.left.px]="menuPosition.x"
+     [style.top.px]="menuPosition.y"
+></div>
+<mat-menu #menu="matMenu">
+  <button mat-menu-item>
+    <span>Copy</span>
+  </button>
+  <!--
+  <button mat-menu-item (click)="">
+    <span>Exclude Group from list</span>
+  </button>-->
+</mat-menu>
