@@ -2,12 +2,14 @@ import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
+  ChartDialogData,
+  ChartDisplaySettings,
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
-} from '../log-chart-definition';
-import {Subscription} from 'rxjs';
-import {CsvFile, CsvFilesService} from '../csv-files.service';
+} from "../log-chart-definition";
+import {CsvFile} from "../csv-file-controller";
+import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
@@ -22,48 +24,37 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
   latestSnapshot: LogChartSnapshot;
   subscription: Subscription;
 
-  constructor(
-    private csvFilesService: CsvFilesService,
-    @Inject(MAT_DIALOG_DATA) dialogData: LogChartDefinition,
-  ) {
-    const definition = dialogData;
+  constructor(@Inject(MAT_DIALOG_DATA) private data: ChartDialogData) {
+    this.chart = new LogChart(data.csvFileController, data.chart.filename, data.definition);
 
-    this.chart = new LogChart(this.csvFilesService, null, definition);
+    this.definition = Object.assign(new LogChartDefinition(), data.definition);
+    this.definition.displaySettings = Object.assign(new ChartDisplaySettings(), data.definition.displaySettings);
+    this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot)
 
-    this.definition = {...definition};
-    this.definition.displaySettings = {...definition.displaySettings};
-    this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot);
-
-    this.refresh();
+    this.refresh()
   }
 
   ngOnDestroy() {
-    this.subscription?.unsubscribe();
+    this.subscription?.unsubscribe()
   }
 
   refresh() {
-    this.definition.displaySettings = Object.assign({}, this.definition.displaySettings);
-    this.chart.definition$.next(this.definition);
+    this.definition.displaySettings = Object.assign({}, this.definition.displaySettings)
+    this.chart.definition$.next(this.definition)
   }
 
   findEmptyCsvFiles(snapshot: LogChartSnapshot): CsvFile[] {
-    if (snapshot == null) {
-      return [];
-    }
-    return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0);
+    if (snapshot == null) return []
+    return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0)
   }
 
   isValidVariable(variable: string) {
-    if (variable == '') {
-      return true;
-    }
-    return this.latestSnapshot.formatterVariables.includes(variable);
+    if (variable == "") return true
+    return this.latestSnapshot.formatterVariables.includes(variable)
   }
 
   isValidEntryLimit(entryLimit: number | null) {
-    if (entryLimit == null) {
-      return true;
-    }
-    return entryLimit > 1;
+    if (entryLimit == null) return true
+    return entryLimit > 1
   }
 }
