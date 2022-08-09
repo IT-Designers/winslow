@@ -178,6 +178,10 @@ export class LogAnalysisComponent implements OnInit {
     return this.selectableStages.length > 0
   }
 
+  stageColor(step: number) {
+    return getColor(step);
+  }
+
   isLatestStage(stageInfo: StageInfo): boolean {
     return stageInfo == this.latestStage;
   }
