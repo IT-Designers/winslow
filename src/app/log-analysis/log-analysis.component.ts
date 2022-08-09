@@ -41,8 +41,20 @@ export class LogAnalysisComponent implements OnInit {
   private readonly globalChartSettings$: BehaviorSubject<GlobalChartSettings>
 
   private projectInfo: ProjectInfo;
-  @Input() selectedStage: string
 
+  constructor(
+    private dialog: MatDialog,
+    private projectApi: ProjectApiService,
+    private pipelineApi: PipelineApiService,
+    private filesApi: FilesApiService,
+    private localStorageService: LocalStorageService
+  ) {
+    const globalChartSettings = localStorageService.getChartSettings()
+    this.globalChartSettings$ = new BehaviorSubject<GlobalChartSettings>(globalChartSettings)
+    this.csvFileController = new CsvFileController(this.filesApi, this.globalChartSettings$)
+  }
+
+  @Input() selectedStage: string
   @Input() set project (project: ProjectInfo) {
     this.projectInfo = project
 
@@ -59,18 +71,6 @@ export class LogAnalysisComponent implements OnInit {
     Promise.all([projectPromise, pipelinePromise]).then(
       () => this.loadCharts()
     )
-  }
-
-  constructor(
-    private dialog: MatDialog,
-    private projectApi: ProjectApiService,
-    private pipelineApi: PipelineApiService,
-    private filesApi: FilesApiService,
-    private localStorageService: LocalStorageService
-  ) {
-    const globalChartSettings = localStorageService.getChartSettings()
-    this.globalChartSettings$ = new BehaviorSubject<GlobalChartSettings>(globalChartSettings)
-    this.csvFileController = new CsvFileController(this.filesApi, this.globalChartSettings$)
   }
 
   ngOnInit(): void {
