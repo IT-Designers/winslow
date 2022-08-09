@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartGraph, ChartDisplaySettings, LogChart} from "../log-analysis/log-chart-definition";
+import {ChartGraph, ChartDisplaySettings, LogChart} from "../log-chart-definition";
 import {Subscription} from "rxjs";
 
 @Component({
