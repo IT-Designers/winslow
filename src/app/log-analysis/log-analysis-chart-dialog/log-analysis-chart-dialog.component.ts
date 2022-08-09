@@ -2,14 +2,13 @@ import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
-  ChartDialogData,
   ChartDisplaySettings,
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
 } from "../log-chart-definition";
-import {CsvFile} from "../csv-file-controller";
 import {Subscription} from "rxjs";
+import {CsvFile, CsvFilesService} from '../csv-files.service';
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',

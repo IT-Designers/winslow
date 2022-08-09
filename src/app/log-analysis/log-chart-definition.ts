@@ -1,9 +1,9 @@
 import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {CsvFileContent} from './csv-parser';
-import {CsvFile, CsvFileController} from './csv-file-controller';
 import {GlobalChartSettings} from '../api/local-storage.service';
 import {getColor} from './colors';
+import {CsvFile, CsvFilesService} from './csv-files.service';
 
 export class LogChartSnapshot {
 
@@ -50,15 +50,15 @@ export class LogChart {
   readonly filename: string;
   readonly definition$: BehaviorSubject<LogChartDefinition>;
 
-  constructor(csvFileController: CsvFileController, id?: string, definition?: LogChartDefinition) {
+  constructor(service: CsvFilesService, id?: string, definition?: LogChartDefinition) {
     this.filename = id ?? LogChart.generateUniqueId();
     this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
 
     const csvFileInfo$ = this.definition$.pipe(
-      switchMap(definition => csvFileController.getCsvFiles$(definition.file)),
+      switchMap(definition => service.getCsvFiles$(definition.file)),
     );
 
-    this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, csvFileController.globalChartSettings$]).pipe(
+    this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, service.globalChartSettings$]).pipe(
       map(([definition, csvFileInfos, globalChartSettings]) => {
         return new LogChartSnapshot(definition, csvFileInfos, globalChartSettings);
       }),
@@ -139,12 +139,6 @@ export enum ChartAxisType {
 export type ChartDataSet = ChartDataPoint[];
 
 export type ChartDataPoint = [number, number];
-
-export interface ChartDialogData {
-  chart: LogChart;
-  csvFileController: CsvFileController;
-  definition: LogChartDefinition;
-}
 
 export interface ChartGraph {
   data: ChartDataSet

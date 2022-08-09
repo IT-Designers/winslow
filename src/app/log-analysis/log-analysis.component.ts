@@ -1,16 +1,14 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo} from "../api/project-api.service";
+import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo} from '../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
-import {LogAnalysisChartDialogComponent} from "./log-analysis-chart-dialog/log-analysis-chart-dialog.component";
-import {LongLoadingDetector} from "../long-loading-detector";
-import {FileInfo, FilesApiService} from "../api/files-api.service";
-import {ChartDialogData, LogChart, LogChartDefinition} from "./log-chart-definition";
-import {LogAnalysisSettingsDialogComponent} from "./log-analysis-settings-dialog/log-analysis-settings-dialog.component";
-import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
-import {CsvFileController} from "./csv-file-controller";
-import {BehaviorSubject} from "rxjs";
-import {GlobalChartSettings, LocalStorageService} from "../api/local-storage.service";
+import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
+import {LongLoadingDetector} from '../long-loading-detector';
+import {FileInfo, FilesApiService} from '../api/files-api.service';
+import {LogChart, LogChartDefinition} from './log-chart-definition';
+import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
+import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
 import {getColor} from './colors';
+import {CsvFilesService} from './csv-files.service';
 
 export interface CsvFile {
   name: string;
@@ -55,8 +53,6 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly LONG_LOADING_PIPELINES_FLAG = 'pipelines';
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
-
-  private readonly csvFileController: CsvFileController;
 
   longLoading = new LongLoadingDetector();
   hasSelectableStages = true;
@@ -141,12 +137,8 @@ export class LogAnalysisComponent implements OnInit {
     private projectApi: ProjectApiService,
     private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
-    private localStorageService: LocalStorageService
-  ) {
-    const globalChartSettings = localStorageService.getChartSettings()
-    this.globalChartSettings$ = new BehaviorSubject<GlobalChartSettings>(globalChartSettings)
-    this.csvFileController = new CsvFileController(this.filesApi, this.globalChartSettings$)
-  }
+    private csvFilesService: CsvFilesService,
+  ) {  }
 
   @Input() selectedStage: string
   @Input() set project (project: ProjectInfo) {
@@ -219,7 +211,7 @@ export class LogAnalysisComponent implements OnInit {
 
   refreshStages() {
     const stages = [this.stageToDisplay, ...this.stagesToCompare];
-    this.csvFileController.setStages(stages);
+    this.csvFilesService.setStages(stages);
   }
 
   private getLatestStage(): StageInfo {
@@ -258,7 +250,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   createChart() {
-    const chart = new LogChart(this.csvFileController);
+    const chart = new LogChart(this.csvFilesService);
     this.charts.push(chart);
     this.openEditChartDialog(chart);
   }
@@ -280,14 +272,8 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   openEditChartDialog(chart: LogChart) {
-    const dialogData: ChartDialogData = {
-      definition: chart.definition$.getValue(),
-      chart: chart,
-      csvFileController: this.csvFileController,
-    }
-
     const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
-      data: dialogData,
+      data: chart,
     });
 
     dialogRef.afterClosed().subscribe(definition => {
@@ -299,16 +285,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   openGlobalSettingsDialog() {
-    const dialogData = this.globalChartSettings$.getValue();
-
-    const dialogRef = this.dialog.open(LogAnalysisSettingsDialogComponent, {
-      data: dialogData,
-    });
-
-    dialogRef.afterClosed().subscribe(_ => {
-      this.localStorageService.setChartSettings(dialogData)
-      this.globalChartSettings$.next(dialogData)
-    })
+    this.dialog.open(LogAnalysisSettingsDialogComponent);
   }
 
   private loadCharts() {
@@ -337,7 +314,7 @@ export class LogAnalysisComponent implements OnInit {
     return this.filesApi.getFile(file.path).toPromise().then(text => {
       const definition = new LogChartDefinition();
       Object.assign(definition, JSON.parse(text));
-      return new LogChart(this.csvFileController, file.name, definition);
+      return new LogChart(this.csvFilesService, file.name, definition);
     });
   }
 
