@@ -12,6 +12,7 @@ import {PipelineApiService, PipelineInfo} from "../api/pipeline-api.service";
 import {CsvFileController} from "./csv-file-controller";
 import {BehaviorSubject} from "rxjs";
 import {GlobalChartSettings, LocalStorageService} from "../api/local-storage.service";
+import {getColor} from './colors';
 
 @Component({
   selector: 'app-log-analysis',
@@ -41,9 +42,26 @@ export class LogAnalysisComponent implements OnInit {
 
   private readonly globalChartSettings$: BehaviorSubject<GlobalChartSettings>
 
-  @Input() project: ProjectInfo
-
+  private projectInfo: ProjectInfo;
   @Input() selectedStage: string
+
+  @Input() set project (project: ProjectInfo) {
+    this.projectInfo = project
+
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG)
+    const projectPromise = this.projectApi.getProjectHistory(project.id)
+      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
+
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
+    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
+      .then(pipelines => this.findProjectPipeline(pipelines))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
+
+    Promise.all([projectPromise, pipelinePromise]).then(
+      () => this.loadCharts()
+    )
+  }
 
   constructor(
     private dialog: MatDialog,
@@ -58,20 +76,6 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG)
-    const projectPromise = this.projectApi.getProjectHistory(this.project.id)
-      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
-
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
-    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
-      .then(pipelines => this.findProjectPipeline(pipelines))
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
-
-    Promise.all([projectPromise, pipelinePromise]).then(
-      () => this.loadCharts()
-    )
   }
 
   isLongLoading(): boolean {
@@ -86,9 +90,13 @@ export class LogAnalysisComponent implements OnInit {
     const dateValue = stage.finishTime ?? stage.startTime;
     const dateString = new Date(dateValue).toLocaleString();
 
-    const name = stage.id.slice(this.project.id.length + 1);
+    const name = stage.id.slice(this.projectInfo.id.length + 1);
 
     return `${dateString} · ${name}`
+  }
+
+  stageColor(step: number) {
+    return getColor(step);
   }
 
   isLatestStage(stageInfo: StageInfo): boolean {
@@ -248,7 +256,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private pathToChartsDir() {
-    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.project.id}`;
+    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.projectInfo.id}`;
   }
 
   private deleteChart(chart: LogChart) {
@@ -260,7 +268,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private findProjectPipeline(pipelines: PipelineInfo[]) {
-    const project = this.project;
+    const project = this.projectInfo;
     this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines)
   }
 }
