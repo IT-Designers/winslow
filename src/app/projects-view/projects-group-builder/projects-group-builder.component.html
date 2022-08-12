@@ -1,14 +1,15 @@
 <div class="flex-grow-row tag-filter">
   <div>
     <mat-slide-toggle
-      [(ngModel)]="groupsActivated" (change)="updateGroups()"
+      [(ngModel)]="groupsActivated"
+      (change)="updateGroups(); updateLocalStorage(this.GROUPS_ACTIVATED, groupsActivated)"
       [disabled]="projectsValue.length < 1 || availableTagsValue.length <= 0">
       Turn Groups On/Off
     </mat-slide-toggle>
   </div>
   <div>
     <mat-slide-toggle [(ngModel)]="groupsOnTopIsChecked"
-                      (change)="updateGroups(); groupsOnTop.emit(groupsOnTopIsChecked)"
+                      (change)="updateGroups(); updateLocalStorage(this.GROUPS_ON_TOP_SETTING, groupsOnTopIsChecked); groupsOnTop.emit(groupsOnTopIsChecked)"
                       [disabled]="!groupsActivated || (projectsValue.length < 1 || availableTagsValue.length <= 0)">
       Show groups on Top
     </mat-slide-toggle>

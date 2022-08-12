@@ -1,5 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
+import {LocalStorageService} from '../../api/local-storage.service';
 
 @Component({
   selector: 'app-tag-filter',
@@ -13,6 +14,7 @@ export class TagFilterComponent implements OnInit {
   filteredProjects: ProjectInfo[];
   projectsGroupsValue: ProjectGroup[];
   lastPreselectedTag: string;
+  SELECTED_CONTEXT = 'SELECTED_CONTEXT';
 
   @Output('filtered') filtered = new EventEmitter<ProjectInfo[]>();
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
@@ -27,6 +29,7 @@ export class TagFilterComponent implements OnInit {
       this.addIncludedTag(tag);
       this.lastPreselectedTag = tag;
     }
+    this.updateFilter();
   }
 
   includeTags: string[] = [];
@@ -34,14 +37,23 @@ export class TagFilterComponent implements OnInit {
   excludeTags: string[] = [];
   excludeEmpty = false;
   groupsOnTopIsChecked: boolean;
+  GROUPS_ON_TOP_SETTING = 'GROUPS_ON_TOP';
 
-  constructor() {
+
+  constructor(private localStorageService: LocalStorageService) {
   }
 
   ngOnInit() {
-    if (this.preSelectedTag) {
-      this.addIncludedTag(this.preSelectedTag);
+    this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) ?
+      this.groupsOnTopIsChecked = this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) :
+      this.groupsOnTopIsChecked = false;
+    if (this.localStorageService.getSettings(this.SELECTED_CONTEXT) !== '' && this.localStorageService.getSettings(this.SELECTED_CONTEXT) != null) {
+      this.preSelectedTag = 'context::' + this.localStorageService.getSettings(this.SELECTED_CONTEXT);
+      if (this.preSelectedTag) {
+        this.addIncludedTag(this.preSelectedTag);
+      }
     }
+    this.updateFilter();
   }
 
   toggleIncludedTag(tag: string) {
@@ -51,13 +63,12 @@ export class TagFilterComponent implements OnInit {
         const tags = this.includeTags.map(t => t);
         tags.push(tag);
         this.includeTags = tags; // notify the bindings
-        this.updateFilter();
       } else {
         const tags = this.includeTags.map(t => t);
         tags.splice(index, 1);
         this.includeTags = tags; // notify the bindings
-        this.updateFilter();
       }
+      this.updateFilter();
     }
   }
 
@@ -66,8 +77,8 @@ export class TagFilterComponent implements OnInit {
       const tags = this.includeTags.map(t => t);
       tags.push(tag);
       this.includeTags = tags; // notify the bindings
-      this.updateFilter();
     }
+    this.updateFilter();
   }
 
   removeIncludedTag(tag: string) {
@@ -76,8 +87,8 @@ export class TagFilterComponent implements OnInit {
       const tags = this.includeTags.map(t => t);
       tags.splice(index, 1);
       this.includeTags = tags; // notify the bindings
-      this.updateFilter();
     }
+    this.updateFilter();
   }
 
   addExcludedTag(tag: string) {
@@ -85,8 +96,8 @@ export class TagFilterComponent implements OnInit {
       const tags = this.excludeTags.map(t => t);
       tags.push(tag);
       this.excludeTags = tags; // notify the bindings
-      this.updateFilter();
     }
+    this.updateFilter();
   }
 
   @Input('projects')
