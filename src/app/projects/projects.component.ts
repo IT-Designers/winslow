@@ -14,6 +14,7 @@ import {
 import {UserApiService} from '../api/user-api.service';
 import {FilesApiService} from '../api/files-api.service';
 import {GroupActionsComponent} from '../group-actions/group-actions.component';
+import {LocalStorageService} from '../api/local-storage.service';
 
 @Component({
   selector: 'app-projects',
@@ -37,7 +38,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   projectStateSubscription: Subscription = null;
   effects: Effects = null;
   groupsOnTop: boolean;
+  GROUPS_ON_TOP_SETTING = 'GROUPS_ON_TOP';
   context: string;
+  SELECTED_CONTEXT = 'SELECTED_CONTEXT';
 
   constructor(readonly api: ProjectApiService,
               readonly users: UserApiService,
@@ -45,10 +48,13 @@ export class ProjectsComponent implements OnInit, OnDestroy {
               private notification: NotificationService,
               private dialog: DialogService,
               public route: ActivatedRoute,
-              public router: Router) {
+              public router: Router,
+              private localStorageService: LocalStorageService) {
   }
 
   ngOnInit() {
+    this.groupsOnTop = this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING);
+    this.context = this.localStorageService.getSettings(this.SELECTED_CONTEXT);
     this.createEffects();
 
     this.projectSubscription = this.createProjectSubscription();
