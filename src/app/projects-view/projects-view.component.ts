@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ProjectGroup, ProjectInfo, StateInfo} from '../api/project-api.service';
 import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
