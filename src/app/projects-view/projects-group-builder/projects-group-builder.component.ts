@@ -1,5 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
+import {LocalStorageService} from '../../api/local-storage.service';
 
 @Component({
   selector: 'app-projects-group-builder',
@@ -17,10 +18,20 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
   groupsOnTopIsChecked = false;
 
-  constructor() {
+  GROUPS_ON_TOP_SETTING = 'GROUPS_ON_TOP';
+  GROUPS_ACTIVATED = 'GROUPS_ACTIVATED';
+
+  constructor(private localStorageService: LocalStorageService) {
   }
 
   ngOnInit(): void {
+    this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) ?
+      this.groupsOnTopIsChecked = this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) :
+      this.groupsOnTopIsChecked = false;
+    this.groupsOnTop.emit(this.groupsOnTopIsChecked);
+    this.localStorageService.getSettings(this.GROUPS_ACTIVATED) ?
+      this.groupsActivated = this.localStorageService.getSettings(this.GROUPS_ACTIVATED) :
+      this.groupsActivated = true;
     this.updateGroups();
   }
 
@@ -110,5 +121,9 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     group.name = tag;
     group.projects = projectsForTag;
     return group;
+  }
+
+  updateLocalStorage(key: string, value: boolean) {
+    this.localStorageService.setSettings(key, value);
   }
 }
