@@ -6,7 +6,7 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
-import {LocalStorageService} from '../../../api/local-storage.service';
+import {LocalStorageService} from '../../api/local-storage.service';
 
 @Component({
   selector: 'app-projects-context-filter',
@@ -31,8 +31,7 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    if (this.localStorageService.getSettings(this.SELECTED_CONTEXT) !== '' &&
-      this.localStorageService.getSettings(this.SELECTED_CONTEXT) != null) {
+    if (this.localStorageService.getSettings(this.SELECTED_CONTEXT) !== '' && this.localStorageService.getSettings(this.SELECTED_CONTEXT) != null) {
       this.changeContext(this.localStorageService.getSettings(this.SELECTED_CONTEXT));
     }
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
