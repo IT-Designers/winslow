@@ -78,7 +78,7 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
-import { ProjectsGroupBuilderComponent } from './projects-view/tag-filter/projects-group-builder/projects-group-builder.component';
+import { ProjectsGroupBuilderComponent } from './projects-view/projects-group-builder/projects-group-builder.component';
 import { ProjectsViewComponent } from './projects-view/projects-view.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
 import { LogAnalysisChartDialogComponent } from './log-analysis/log-analysis-chart-dialog/log-analysis-chart-dialog.component';
@@ -86,15 +86,8 @@ import { LogAnalysisChartComponent } from './log-analysis/log-analysis-chart/log
 import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
 import { LogAnalysisSettingsDialogComponent } from './log-analysis/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
-import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
-import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
+import { ProjectsContextFilterComponent } from './projects-view/projects-context-filter/projects-context-filter.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
-import { PipelineViewComponent } from './pipeline-view/pipeline-view.component';
-import { DiagramNodeComponent } from './pipeline-view/diagram-node/diagram-node.component';
-import { DiagramLibraryComponent } from './pipeline-view/diagram-library/diagram-library.component';
-import { EditFormsComponent } from './pipeline-view/diagram-library/edit-forms/edit-forms.component';
-import { DiagramGatewayComponent } from './pipeline-view/diagram-gateway/diagram-gateway.component';
-import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component';
 
 @NgModule({
     declarations: [
@@ -147,14 +140,7 @@ import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component
         LogAnalysisSettingsDialogComponent,
         ProjectsGroupComponent,
         ProjectsContextFilterComponent,
-        AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
-        PipelineViewComponent,
-        DiagramNodeComponent,
-        DiagramLibraryComponent,
-        EditFormsComponent,
-        DiagramGatewayComponent,
-        AddToolsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -190,11 +176,11 @@ import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component
 
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
-                path: 'system',
-                children: [{
-                    path: ':cfg',
-                    component: SystemViewComponent
-                }]
+              path: 'system',
+              children: [{
+                path: ':cfg',
+                component: SystemViewComponent
+              }]
             },
         ]),
 
@@ -238,7 +224,7 @@ import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component
         MatMenuModule,
         MatRadioModule,
         NgxEchartsModule.forRoot({
-            echarts: {init: echarts.init}
+          echarts: { init: echarts.init }
         }),
 
     ],
