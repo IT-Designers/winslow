@@ -87,6 +87,7 @@ import { RegularExpressionVisualiserComponent } from './regular-expression-visua
 import { LogAnalysisSettingsDialogComponent } from './log-analysis/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
 import { ProjectsContextFilterComponent } from './projects-view/projects-context-filter/projects-context-filter.component';
+import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 
 @NgModule({
     declarations: [
@@ -139,6 +140,7 @@ import { ProjectsContextFilterComponent } from './projects-view/projects-context
         LogAnalysisSettingsDialogComponent,
         ProjectsGroupComponent,
         ProjectsContextFilterComponent,
+        RegularExpressionEditorDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
