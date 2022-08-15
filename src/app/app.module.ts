@@ -155,11 +155,11 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
 
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
-                path: 'system',
-                children: [{
-                    path: ':cfg',
-                    component: SystemViewComponent
-                }]
+              path: 'system',
+              children: [{
+                path: ':cfg',
+                component: SystemViewComponent
+              }]
             },
         ]),
 
@@ -203,7 +203,7 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         MatMenuModule,
         MatRadioModule,
         NgxEchartsModule.forRoot({
-            echarts: {init: echarts.init}
+          echarts: { init: echarts.init }
         }),
 
     ],
