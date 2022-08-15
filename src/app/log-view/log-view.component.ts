@@ -3,6 +3,8 @@ import {LogEntry, LogSource, ProjectApiService, ProjectInfo, State} from '../api
 import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {MatMenuTrigger} from '@angular/material/menu';
+import {MatDialog} from '@angular/material/dialog';
+import {RegularExpressionEditorDialogComponent} from '../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 
 @Component({
   selector: 'app-log-view',
@@ -32,14 +34,18 @@ export class LogViewComponent implements OnInit, OnDestroy {
   projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
 
-  menuPosition: { x: number, y: number } = {
+  contextMenu: { x: number, y: number, log: LogEntry } = {
     x: 0,
-    y: 0
+    y: 0,
+    log: null,
   };
 
   regularExpressionPattern = '';
 
-  constructor(private api: ProjectApiService) {
+  constructor(
+    private api: ProjectApiService,
+    private dialog: MatDialog,
+  ) {
   }
 
   ngOnInit(): void {
@@ -211,10 +217,19 @@ export class LogViewComponent implements OnInit, OnDestroy {
     return this.regularExpressionPattern.trim().length > 0;
   }
 
-  rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent) {
+  rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent, log: LogEntry) {
     event.preventDefault();
-    this.menuPosition.x = event.x;
-    this.menuPosition.y = event.y;
+    this.contextMenu.x = event.x;
+    this.contextMenu.y = event.y;
+    this.contextMenu.log = log;
     matMenuTrigger.openMenu();
+  }
+
+  contextMenuCopy() {
+    navigator.clipboard.writeText(this.contextMenu.log.message).then();
+  }
+
+  contextMenuOpenEditor() {
+    this.dialog.open(RegularExpressionEditorDialogComponent, {data: this.contextMenu.log.message});
   }
 }

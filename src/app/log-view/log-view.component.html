@@ -50,10 +50,10 @@
 <div class="logs-container flex-grow flex-grow-column">
   <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
     <div #scrollTopTarget></div>
-    <pre class="console-container" (contextmenu)="rightClickAction(matMenuTrigger, $event)">
+    <pre class="console-container">
           <code *ngIf="logs != null" class="console"
           ><ng-container *ngFor="let log of logs; trackBy:lineId"
-          ><span
+          ><span (contextmenu)="rightClickAction(matMenuTrigger, $event, log)"
           ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{log.line}}</span
           ><span *ngIf="isPatternMatching()"
                  [class.console-err]="log.error"
@@ -76,15 +76,14 @@
 
 <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
      [matMenuTriggerFor]="menu"
-     [style.left.px]="menuPosition.x"
-     [style.top.px]="menuPosition.y"
+     [style.left.px]="contextMenu.x"
+     [style.top.px]="contextMenu.y"
 ></div>
 <mat-menu #menu="matMenu">
-  <button mat-menu-item>
+  <button mat-menu-item (click)="contextMenuCopy()">
     <span>Copy</span>
   </button>
-  <!--
-  <button mat-menu-item (click)="">
-    <span>Exclude Group from list</span>
-  </button>-->
+  <button mat-menu-item (click)="contextMenuOpenEditor()">
+    <span>Open in Regular-Expression-Editor</span>
+  </button>
 </mat-menu>
