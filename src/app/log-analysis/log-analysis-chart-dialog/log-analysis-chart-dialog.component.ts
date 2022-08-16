@@ -6,8 +6,8 @@ import {
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
-} from "../log-chart-definition";
-import {Subscription} from "rxjs";
+} from '../log-chart-definition';
+import {Subscription} from 'rxjs';
 import {CsvFile, CsvFilesService} from '../csv-files.service';
 
 @Component({
@@ -25,39 +25,46 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
 
   constructor(
     private csvFilesService: CsvFilesService,
-    @Inject(MAT_DIALOG_DATA) private data: LogChart,
+    @Inject(MAT_DIALOG_DATA) dialogData: LogChartDefinition,
   ) {
-    const definition = this.chart.definition$.getValue();
-    this.chart = new LogChart(this.csvFilesService, this.chart.filename, definition);
+    const definition = dialogData
+
+    this.chart = new LogChart(this.csvFilesService, null, definition);
 
     this.definition = Object.assign(new LogChartDefinition(), definition);
-    this.definition.displaySettings = Object.assign(new ChartDisplaySettings(),definition);
-    this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot)
+    this.definition.displaySettings = Object.assign(new ChartDisplaySettings(), definition);
+    this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot);
 
-    this.refresh()
+    this.refresh();
   }
 
   ngOnDestroy() {
-    this.subscription?.unsubscribe()
+    this.subscription?.unsubscribe();
   }
 
   refresh() {
-    this.definition.displaySettings = Object.assign({}, this.definition.displaySettings)
-    this.chart.definition$.next(this.definition)
+    this.definition.displaySettings = Object.assign({}, this.definition.displaySettings);
+    this.chart.definition$.next(this.definition);
   }
 
   findEmptyCsvFiles(snapshot: LogChartSnapshot): CsvFile[] {
-    if (snapshot == null) return []
-    return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0)
+    if (snapshot == null) {
+      return [];
+    }
+    return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0);
   }
 
   isValidVariable(variable: string) {
-    if (variable == "") return true
-    return this.latestSnapshot.formatterVariables.includes(variable)
+    if (variable == '') {
+      return true;
+    }
+    return this.latestSnapshot.formatterVariables.includes(variable);
   }
 
   isValidEntryLimit(entryLimit: number | null) {
-    if (entryLimit == null) return true
+    if (entryLimit == null) {
+      return true;
+    }
     return entryLimit > 1
   }
 }
