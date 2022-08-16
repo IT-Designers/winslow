@@ -1,1 +1,30 @@
-<p>regular-expression-editor-dialog works!</p>
+<h1 matDialogTitle>Regular Expression Editor</h1>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="wide-field">
+    <mat-label>Regular Expression</mat-label>
+    <code>
+      <input matInput [(ngModel)]="expression">
+    </code>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="fill" class="sample-text-field wide-field">
+    <mat-label>Example text</mat-label>
+    <code>
+      <textarea matInput
+                [(ngModel)]="textToTest"
+      ></textarea>
+      <app-regular-expression-visualiser style="position: absolute; left: 0"
+                                         [text]="textToTest"
+                                         [pattern]="expression"
+      ></app-regular-expression-visualiser>
+    </code>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button>COPY REGULAR EXPRESSION</button>
+  <button mat-button>CLOSE</button>
+</mat-dialog-actions>
