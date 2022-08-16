@@ -6,8 +6,8 @@ import {
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
-} from "../log-chart-definition";
-import {Subscription} from "rxjs";
+} from '../log-chart-definition';
+import {Subscription} from 'rxjs';
 import {CsvFile, CsvFilesService} from '../csv-files.service';
 
 @Component({
@@ -52,7 +52,9 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
   }
 
   isValidEntryLimit(entryLimit: number | null) {
-    if (entryLimit == null) return true
+    if (entryLimit == null) {
+      return true;
+    }
     return entryLimit > 1
   }
 }
