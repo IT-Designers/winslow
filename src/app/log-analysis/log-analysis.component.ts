@@ -80,16 +80,16 @@ export class LogAnalysisComponent implements OnInit {
     this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
     const projectPromise = this.projectApi.getProjectHistory(this.selectedProject.id)
       .then(projectHistory => this.loadStagesFromHistory(projectHistory))
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG));
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG)
+    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
     const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
       .then(pipelines => this.findProjectPipeline(pipelines))
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG))
+      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG));
 
     Promise.all([projectPromise, pipelinePromise]).then(
       () => this.loadCharts()
-    )
+    );
   }
 
   private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
@@ -203,8 +203,8 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   compareWithLatestStage(index: number) {
-    this.stagesToCompare[index] = this.latestStage
-    this.refreshStages()
+    this.stagesToCompare[index] = this.latestStage;
+    this.refreshStages();
   }
 
   removeStageToCompare(stageIndex: number) {
@@ -493,12 +493,12 @@ export class LogAnalysisComponent implements OnInit {
         this.refreshAllCharts();
       })
       .catch(error => {
-        alert("Failed to load charts");
+        alert('Failed to load charts');
         console.error(error);
       })
       .finally(() => {
         this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
-      })
+      });
   }
 
   private loadChart = (file: FileInfo) => {
