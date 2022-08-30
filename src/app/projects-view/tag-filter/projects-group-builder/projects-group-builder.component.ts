@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
-import {LocalStorageService} from '../../api/local-storage.service';
+import {ProjectGroup, ProjectInfo} from '../../../api/project-api.service';
+import {LocalStorageService} from '../../../api/local-storage.service';
 
 @Component({
   selector: 'app-projects-group-builder',

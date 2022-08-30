@@ -78,16 +78,15 @@ import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
 import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
-import { ProjectsGroupBuilderComponent } from './projects-view/projects-group-builder/projects-group-builder.component';
+import { ProjectsGroupBuilderComponent } from './projects-view/tag-filter/projects-group-builder/projects-group-builder.component';
 import { ProjectsViewComponent } from './projects-view/projects-view.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
-import { LogAnalysisChartDialogComponent } from './log-analysis/log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import { LogAnalysisChartComponent } from './log-analysis/log-analysis-chart/log-analysis-chart.component';
+import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
+import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
 import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
-import { LogAnalysisSettingsDialogComponent } from './log-analysis/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
+import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
-import { ProjectsContextFilterComponent } from './projects-view/projects-context-filter/projects-context-filter.component';
-import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
 
 @NgModule({
     declarations: [
@@ -140,7 +139,6 @@ import { RegularExpressionEditorDialogComponent } from './regular-expression-edi
         LogAnalysisSettingsDialogComponent,
         ProjectsGroupComponent,
         ProjectsContextFilterComponent,
-        RegularExpressionEditorDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

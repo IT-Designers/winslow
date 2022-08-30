@@ -17,8 +17,7 @@
         <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
              [matMenuTriggerFor]="menu"
              [style.left.px]="menuPosition.x"
-             [style.top.px]="menuPosition.y"
-        ></div>
+             [style.top.px]="menuPosition.y"></div>
         <mat-menu #menu="matMenu">
             <button mat-menu-item (click)='openGroupAction(projectGroup.name)'>
                 <span>Group action</span>
@@ -29,7 +28,7 @@
           <button mat-menu-item (click)="filter.addIncludedTag(projectGroup.name)">
             <span>Filter by Group-Tag</span>
           </button>
-            <button mat-menu-item (click)="openAddToContext()">
+            <button mat-menu-item disabled>
                 <span>Add Group to Context</span>
             </button>
         </mat-menu>

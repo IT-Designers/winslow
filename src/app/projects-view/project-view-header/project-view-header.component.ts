@@ -3,8 +3,6 @@ import {ProjectInfo, State} from '../../api/project-api.service';
 import {StateIconComponent} from '../../state-icon/state-icon.component';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {MatMenuTrigger} from '@angular/material/menu';
-import {MatDialog} from '@angular/material/dialog';
-import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
 
 @Component({
   selector: 'app-project-view-header',
@@ -30,7 +28,7 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   stage: string = null;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
 
-  constructor(public dialog: MatDialog) { }
+  constructor() { }
 
   @Input()
   set iconState(value: State) {
@@ -68,12 +66,4 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   includeTags(project: ProjectInfo) {
     project.tags.forEach( tag => { this.filter.addIncludedTag(tag); });
   }
-
-  openAddToContext() {
-    this.dialog.open(AddToContextPopupComponent, {
-      position: {top: `${this.menuPosition.y + 20}px`, left: `${this.menuPosition.x}px`},
-      data: {project: this.project},
-    });
-  }
-
 }
