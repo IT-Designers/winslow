@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MatMenuTrigger} from '@angular/material/menu';
-import {ProjectGroup, ProjectInfo, State, StateInfo} from '../../api/project-api.service';
+import {ProjectGroup, ProjectInfo, StateInfo} from '../../api/project-api.service';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FilesApiService} from '../../api/files-api.service';
@@ -17,7 +17,7 @@ export class ProjectsGroupComponent implements OnInit {
 
   @Input() projectGroup: ProjectGroup;
   @Input() filter: TagFilterComponent;
-  @Input() menuPosition: { x: number; y: number };
+  menuPosition: { x: number; y: number } = {x: 0, y: 0};
   @Input() selectedProject: ProjectInfo;
   @Input() stateInfo: Map<string, StateInfo>;
 
@@ -26,6 +26,7 @@ export class ProjectsGroupComponent implements OnInit {
               private files: FilesApiService,
               private createDialog: MatDialog,
               private dialog: DialogService) {
+    this.menuPosition.x = this.menuPosition.y = 0;
   }
 
   ngOnInit(): void {
@@ -48,7 +49,7 @@ export class ProjectsGroupComponent implements OnInit {
     this.dialog.image(imageUrl);
   }
 
-  rightClickAction(name: string, matMenuTrigger: MatMenuTrigger, event: MouseEvent) {
+  rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent) {
     event.preventDefault();
     this.menuPosition.x = event.x;
     this.menuPosition.y = event.y;

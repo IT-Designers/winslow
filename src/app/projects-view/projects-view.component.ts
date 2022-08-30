@@ -23,7 +23,6 @@ export class ProjectsViewComponent implements OnInit {
 
   @Output() tagActionPrimary = new EventEmitter<string>();
   @Output() tagActionSecondary = new EventEmitter<string>();
-  menuPosition =  {x: 0, y: 0};
 
   constructor(public route: ActivatedRoute,
               public router: Router,
