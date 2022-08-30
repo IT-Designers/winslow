@@ -87,6 +87,7 @@ import { RegularExpressionVisualiserComponent } from './regular-expression-visua
 import { LogAnalysisSettingsDialogComponent } from './log-analysis/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
 import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
+import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 import { PipelineViewComponent } from './pipeline-view/pipeline-view.component';
 import { DiagramComponent } from './pipeline-view/diagram/diagram.component';
@@ -142,6 +143,7 @@ import { DiagramComponent } from './pipeline-view/diagram/diagram.component';
         LogAnalysisSettingsDialogComponent,
         ProjectsGroupComponent,
         ProjectsContextFilterComponent,
+        AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
         PipelineViewComponent,
         DiagramComponent,

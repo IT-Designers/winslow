@@ -7,6 +7,7 @@ import {FilesApiService} from '../../api/files-api.service';
 import {DialogService} from '../../dialog.service';
 import {GroupActionsComponent} from '../../group-actions/group-actions.component';
 import {MatDialog} from '@angular/material/dialog';
+import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
 
 @Component({
   selector: 'app-projects-group',
@@ -61,6 +62,13 @@ export class ProjectsGroupComponent implements OnInit {
       .open(GroupActionsComponent, {
         data: {tag: name}
       });
+  }
+
+  openAddToContext() {
+    this.createDialog.open(AddToContextPopupComponent, {
+      position: {top: `${this.menuPosition.y}px`, left: `${this.menuPosition.x}px`},
+      data: {projectGroup: this.projectGroup},
+    });
   }
 
 }
