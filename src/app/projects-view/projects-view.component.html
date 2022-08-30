@@ -15,7 +15,7 @@
       <div *ngFor="let projectGroup of projectsGroups, last as isLast">
         <div *ngIf="projectGroup.projects.length > 1" id="groups">
           <app-projects-group [projectGroup]="projectGroup" [filter]="filter"
-                              [menuPosition]="menuPosition" [selectedProject]="selectedProject"
+                              [selectedProject]="selectedProject"
                               [stateInfo]="stateInfo"
           ></app-projects-group>
           <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
@@ -33,7 +33,7 @@
             <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
                  (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
-              [project]="project"
+              [project]="project" [filter]="filter"
               [iconState]="stateInfo?.get(project.id)?.getState()"
               [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
               [progress]="stateInfo?.get(project.id)?.stageProgress"
@@ -58,7 +58,7 @@
       <div *ngFor="let projectGroup of projectsGroups, last as isLast">
         <div *ngIf="projectGroup.projects.length > 1">
           <app-projects-group [projectGroup]="projectGroup" [filter]="filter"
-                              [menuPosition]="menuPosition" [selectedProject]="selectedProject"
+                              [selectedProject]="selectedProject"
                               [stateInfo]="stateInfo"
           ></app-projects-group>
         </div>
@@ -69,7 +69,7 @@
             <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
                  (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
-              [project]="project"
+              [project]="project" [filter]="filter"
               [iconState]="stateInfo?.get(project.id)?.getState()"
               [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
               [progress]="stateInfo?.get(project.id)?.stageProgress"
@@ -95,7 +95,7 @@
       <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}" (error)="avatar.src = 'favicon.png'"
            (click)="makeImageBigger(thumbnailUrl(project), $event)">
       <app-project-view-header
-        [project]="project"
+        [project]="project" [filter]="filter"
         [iconState]="stateInfo?.get(project.id)?.getState()"
         [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
         [progress]="stateInfo?.get(project.id)?.stageProgress"
