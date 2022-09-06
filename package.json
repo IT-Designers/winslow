@@ -24,6 +24,8 @@
     "@stomp/ng2-stompjs": "^7.2.0",
     "@sweetalert2/ngx-sweetalert2": "^8.1.1",
     "@swimlane/ngx-charts": "^16.0.0",
+    "bpmn-js": "^9.4.1",
+    "core-js": "^3.25.0",
     "echarts": "^5.0.2",
     "echarts-gl": "^2.0.4",
     "fontsource-roboto": "^3.0.3",
