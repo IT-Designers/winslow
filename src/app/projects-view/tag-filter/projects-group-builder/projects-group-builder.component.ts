@@ -57,12 +57,12 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     for (const tag of this.availableTagsValue) {
       const projectsForTag: ProjectInfo[] = [];
       for (const project of this.projectsValue) {
-        for (const tagOfProject of project.tags) {
+        for (const tagOfProject of this.filterProjectTag(project)) {
           if (tag === tagOfProject) {
             projectsForTag.push(project);
           }
         }
-        if (project.tags.length <= 0) {
+        if (this.filterProjectTag(project).length <= 0) {
           if (!this.isProjectForGroupExisting(projectGroups, project)) {
             projectGroups.push(this.buildGroup(project.name, [project]));
           }
@@ -86,6 +86,10 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     } else {
       this.projectsGroups.emit(projectGroups);
     }
+  }
+
+  private filterProjectTag(project: ProjectInfo) {
+    return project.tags.filter(tag => !tag.startsWith(this.CONTEXT_PREFIX));
   }
 
   private isProjectForGroupExisting(projectGroups: ProjectGroup[], project: ProjectInfo) {
