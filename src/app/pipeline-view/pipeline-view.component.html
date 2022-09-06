@@ -1,0 +1,9 @@
+
+<div class="diagram-parent">
+  <bpmn-modeler [url]="diagramUrl" (importDone)="handleImported($event)"></bpmn-modeler>
+
+  <div class="import-error" *ngIf="importError">
+    <strong>Failed to render diagram: </strong>
+    {{ importError.message }}
+  </div>
+</div>
