@@ -182,11 +182,11 @@ import { DiagramComponent } from './pipeline-view/diagram/diagram.component';
 
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
-              path: 'system',
-              children: [{
-                path: ':cfg',
-                component: SystemViewComponent
-              }]
+                path: 'system',
+                children: [{
+                    path: ':cfg',
+                    component: SystemViewComponent
+                }]
             },
         ]),
 
@@ -230,7 +230,7 @@ import { DiagramComponent } from './pipeline-view/diagram/diagram.component';
         MatMenuModule,
         MatRadioModule,
         NgxEchartsModule.forRoot({
-          echarts: { init: echarts.init }
+            echarts: {init: echarts.init}
         }),
 
     ],
