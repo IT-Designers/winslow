@@ -7,7 +7,7 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 
-import {BpmnModelerComponent} from './bpmn-modeler.component';
+import { DiagramComponent } from './diagram.component';
 
 
 const BPMN_DIAGRAM = `
@@ -46,16 +46,16 @@ const BPMN_DIAGRAM_WITH_WARNINGS = `
 describe('DiagramComponent', () => {
 
   let httpMock: HttpTestingController;
-  let fixture: ComponentFixture<BpmnModelerComponent>;
+  let fixture: ComponentFixture<DiagramComponent>;
   let component: DebugNode['componentInstance'];
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      declarations: [BpmnModelerComponent]
+      declarations: [DiagramComponent]
     });
 
-    fixture = TestBed.createComponent(BpmnModelerComponent);
+    fixture = TestBed.createComponent(DiagramComponent);
     component = fixture.debugElement.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -147,3 +147,4 @@ describe('DiagramComponent', () => {
   });
 
 });
+
