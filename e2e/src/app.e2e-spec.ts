@@ -12,6 +12,10 @@ describe('workspace-project App', () => {
     page.navigateTo();
     expect(page.getTitleText()).toEqual('Welcome to winslow-ui-ng!');
   });
+  it('should display diagram', () => {
+    page.navigateTo();
+    expect(page.getDiagramContainer()).toBeTruthy();
+  });
 
   afterEach(async () => {
     // Assert that there are no errors emitted from the browser

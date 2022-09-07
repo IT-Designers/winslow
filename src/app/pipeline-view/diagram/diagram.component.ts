@@ -26,7 +26,7 @@ import * as BpmnJS from 'bpmn-js/dist/bpmn-modeler.production.min.js';
 import { from, Observable, Subscription } from 'rxjs';
 
 @Component({
-  selector: 'bpmn-modeler',
+  selector: 'app-diagram',
   template: `
     <div #ref class="diagram-container"></div>
   `,
@@ -39,13 +39,13 @@ import { from, Observable, Subscription } from 'rxjs';
     `
   ]
 })
-export class BpmnModelerComponent implements AfterContentInit, OnChanges, OnDestroy {
-  private bpmnJS: BpmnJS;
+export class DiagramComponent implements AfterContentInit, OnChanges, OnDestroy {
+private bpmnJS: BpmnJS;
 
-  @ViewChild('ref', { static: true }) private el: ElementRef;
-  @Output() private importDone: EventEmitter<any> = new EventEmitter();
+@ViewChild('ref', { static: true }) private el: ElementRef;
+@Output() private importDone: EventEmitter<any> = new EventEmitter();
 
-  @Input() private url: string;
+@Input() private url: string;
 
   constructor(private http: HttpClient) {
 
@@ -105,7 +105,7 @@ export class BpmnModelerComponent implements AfterContentInit, OnChanges, OnDest
    *
    * @see https://github.com/bpmn-io/bpmn-js-callbacks-to-promises#importxml
    */
-  private importDiagram(xml: string): Observable<{warnings: Array<any>}> {
+private importDiagram(xml: string): Observable<{warnings: Array<any>}> {
     return from(this.bpmnJS.importXML(xml) as Promise<{warnings: Array<any>}>);
   }
 }
