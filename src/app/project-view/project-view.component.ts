@@ -906,5 +906,6 @@ export enum Tab {
   Logs,
   Analysis,
   PipelineDefinition,
+  PipelineView,
   Settings
 }

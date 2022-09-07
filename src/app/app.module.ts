@@ -88,7 +88,7 @@ import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dial
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
 import { ProjectsContextFilterComponent } from './projects-view/projects-context-filter/projects-context-filter.component';
 import { PipelineViewComponent } from './pipeline-view/pipeline-view.component';
-import { BpmnModelerComponent } from './bpmn-modeler/bpmn-modeler.component';
+import { DiagramComponent } from './pipeline-view/diagram/diagram.component';
 
 @NgModule({
   declarations: [
@@ -142,7 +142,8 @@ import { BpmnModelerComponent } from './bpmn-modeler/bpmn-modeler.component';
     ProjectsGroupComponent,
     ProjectsContextFilterComponent,
     PipelineViewComponent,
-    BpmnModelerComponent,
+    DiagramComponent,
+
   ],
     imports: [
         SweetAlert2Module.forRoot(),
