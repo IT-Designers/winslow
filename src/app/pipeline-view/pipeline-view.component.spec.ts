@@ -5,6 +5,7 @@ import { DiagramComponent } from './diagram/diagram.component';
 import { DebugNode } from '@angular/core';
 
 describe('PipelineViewComponent', () => {
+
   let fixture: ComponentFixture<PipelineViewComponent>;
   let component: DebugNode['componentInstance'];
 
@@ -28,7 +29,7 @@ describe('PipelineViewComponent', () => {
 
 
   it('renders a diagram component', () => {
-    expect(fixture.nativeElement.querySelector('diagram')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-diagram')).toBeTruthy();
   });
 
 
@@ -42,4 +43,5 @@ describe('PipelineViewComponent', () => {
 
     expect(component.importError).toEqual(error);
   });
+
 });
