@@ -484,7 +484,7 @@ export class LogAnalysisComponent implements OnInit {
 
     const filepath = this.pathToChartsDir();
 
-    this.filesApi.listFiles(filepath)
+    return this.filesApi.listFiles(filepath)
       .then(files => {
         return Promise.all(files.map(this.loadChart));
       })
@@ -496,9 +496,6 @@ export class LogAnalysisComponent implements OnInit {
         alert('Failed to load charts');
         console.error(error);
       })
-      .finally(() => {
-        this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
-      });
   }
 
   private loadChart = (file: FileInfo) => {
