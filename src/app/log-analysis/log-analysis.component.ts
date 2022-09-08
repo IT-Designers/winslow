@@ -2,7 +2,6 @@ import {Component, Input, OnInit} from '@angular/core';
 import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo} from '../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import {LongLoadingDetector} from '../long-loading-detector';
 import {FileInfo, FilesApiService} from '../api/files-api.service';
 import {LogChart, LogChartDefinition} from './log-chart-definition';
 import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
@@ -16,15 +15,11 @@ import {CsvFilesService} from './csv-files.service';
   styleUrls: ['./log-analysis.component.css']
 })
 export class LogAnalysisComponent implements OnInit {
-  private static readonly LONG_LOADING_HISTORY_FLAG = 'history';
-  private static readonly LONG_LOADING_CHARTS_FLAG = 'charts';
-  private static readonly LONG_LOADING_PIPELINES_FLAG = 'pipelines';
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
 
-  longLoading = new LongLoadingDetector();
-  hasSelectableStages = true;
   probablyPipelineId = null;
+  isLongLoading: boolean = true
 
   projectHistory: ExecutionGroupInfo[] = [];
   latestStage: StageInfo = null;
@@ -48,28 +43,22 @@ export class LogAnalysisComponent implements OnInit {
   @Input() selectedStage: string;
 
   @Input() set project(project: ProjectInfo) {
+    this.isLongLoading = true;
     this.projectInfo = project;
+    this.resetStagesAndCharts();
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG);
     const projectPromise = this.projectApi.getProjectHistory(project.id)
       .then(projectHistory => this.loadStagesFromHistory(projectHistory))
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_HISTORY_FLAG));
 
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG);
     const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
       .then(pipelines => this.findProjectPipeline(pipelines))
-      .finally(() => this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_PIPELINES_FLAG));
 
-    Promise.all([projectPromise, pipelinePromise]).then(
-      () => this.loadCharts()
-    );
+    Promise.all([projectPromise, pipelinePromise])
+      .then(() => this.loadCharts())
+      .finally(() => this.isLongLoading = false);
   }
 
   ngOnInit(): void {
-  }
-
-  isLongLoading(): boolean {
-    return this.longLoading.isLongLoading();
   }
 
   stageLabel(stage: StageInfo): string {
@@ -87,6 +76,10 @@ export class LogAnalysisComponent implements OnInit {
 
   stageColor(step: number) {
     return getColor(step);
+  }
+
+  hasSelectableStages(): boolean {
+    return this.selectableStages.length > 0
   }
 
   isLatestStage(stageInfo: StageInfo): boolean {
@@ -120,6 +113,14 @@ export class LogAnalysisComponent implements OnInit {
     this.csvFilesService.setStages(stages);
   }
 
+  private resetStagesAndCharts() {
+    this.charts = []
+    this.selectableStages = []
+    this.stagesToCompare = []
+
+    this.refreshStages()
+  }
+
   private getLatestStage(): StageInfo {
     return this.selectableStages.slice(-1)[0];
   }
@@ -128,8 +129,7 @@ export class LogAnalysisComponent implements OnInit {
     this.projectHistory = projectHistory;
     this.selectableStages = this.getSelectableStages(projectHistory);
     this.latestStage = this.getLatestStage();
-    this.hasSelectableStages = this.selectableStages.length > 0;
-    if (this.hasSelectableStages) {
+    if (this.hasSelectableStages()) {
       this.displayLatestStage();
     }
   }
@@ -197,11 +197,9 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private loadCharts() {
-    this.longLoading.raise(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
-
     const filepath = this.pathToChartsDir();
 
-    this.filesApi.listFiles(filepath)
+    return this.filesApi.listFiles(filepath)
       .then(files => {
         return Promise.all(files.map(this.loadChart));
       })
@@ -212,9 +210,6 @@ export class LogAnalysisComponent implements OnInit {
         alert('Failed to load charts');
         console.error(error);
       })
-      .finally(() => {
-        this.longLoading.clear(LogAnalysisComponent.LONG_LOADING_CHARTS_FLAG);
-      });
   }
 
   private loadChart = (file: FileInfo) => {
