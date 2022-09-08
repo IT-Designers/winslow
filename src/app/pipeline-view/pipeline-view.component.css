@@ -1,7 +1,6 @@
 .diagram-parent {
-  margin-top: 20px;
   height: 80vh;
-  border: solid 3px black;
+  border: solid 3px #EEE;
   position: relative;
 }
 
