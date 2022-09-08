@@ -24,6 +24,7 @@ import { map, switchMap } from 'rxjs/operators';
 import * as BpmnJS from 'bpmn-js/dist/bpmn-modeler.production.min.js';
 
 import { from, Observable, Subscription } from 'rxjs';
+import {PipelineApiService, PipelineInfo} from "../../api/pipeline-api.service";
 
 @Component({
   selector: 'app-diagram',
@@ -46,8 +47,11 @@ private bpmnJS: BpmnJS;
 @Output() private importDone: EventEmitter<any> = new EventEmitter();
 
 @Input() private url: string;
+//@Input() private pipeline: PipelineInfo;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private api: PipelineApiService,
+    private http: HttpClient) {
 
     this.bpmnJS = new BpmnJS();
 
@@ -56,6 +60,7 @@ private bpmnJS: BpmnJS;
         this.bpmnJS.get('canvas').zoom('fit-viewport');
       }
     });
+
   }
 
   ngAfterContentInit(): void {
