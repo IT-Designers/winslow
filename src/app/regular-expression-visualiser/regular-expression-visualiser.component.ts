@@ -92,7 +92,6 @@ export class RegularExpressionVisualiserComponent implements OnInit {
     }
   }
 
-
   private static segmentsOfMatch(match: RegExpMatchIndices, text: string): Segment[] {
     const matchHasGroups = match.groups.length > 0;
 
