@@ -1,6 +1,6 @@
-<app-loading-info [loading]="isLongLoading()"></app-loading-info>
+<app-loading-info [loading]="isLongLoading"></app-loading-info>
 
-<div *ngIf="hasSelectableStages" class="scrollable">
+<div *ngIf="hasSelectableStages()" class="scrollable">
   <div class="top-bar">
 
     <button class="latest-stage-button" mat-raised-button color="accent"
@@ -83,7 +83,7 @@
   </div>
 </div>
 
-<div *ngIf="!hasSelectableStages" class="none-defined-yet">
+<div *ngIf="!hasSelectableStages()" class="none-defined-yet">
   <i>No stages to display yet</i>
 </div>
 
