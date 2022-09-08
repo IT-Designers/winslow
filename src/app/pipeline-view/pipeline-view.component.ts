@@ -6,7 +6,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./pipeline-view.component.css']
 })
 export class PipelineViewComponent{
-
   title = 'bpmn-js-angular';
   diagramUrl = 'https://cdn.staticaly.com/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
   importError?: Error;
@@ -29,6 +28,5 @@ export class PipelineViewComponent{
 
     this.importError = error;
   }
-
 
 }
