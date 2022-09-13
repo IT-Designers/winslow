@@ -25,7 +25,6 @@ type TokenInfo = {
   type: TokenType
 }
 
-
 enum State {
   BeforeQuote,
   InsideQuote,
@@ -153,3 +152,4 @@ export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIO
   pushLineToFile();
   return fileContent;
 }
+
