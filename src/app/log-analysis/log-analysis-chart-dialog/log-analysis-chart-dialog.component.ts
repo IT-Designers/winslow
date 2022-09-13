@@ -2,7 +2,6 @@ import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
-  ChartDisplaySettings,
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
@@ -55,6 +54,6 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     if (entryLimit == null) {
       return true;
     }
-    return entryLimit > 1
+    return entryLimit > 1;
   }
 }
