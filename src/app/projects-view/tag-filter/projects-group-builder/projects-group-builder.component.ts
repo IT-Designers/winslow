@@ -1,5 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
+import {ProjectGroup, ProjectInfo} from '../../../api/project-api.service';
+import {LocalStorageService} from '../../../api/local-storage.service';
 
 @Component({
   selector: 'app-projects-group-builder',
@@ -17,10 +18,20 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
   groupsOnTopIsChecked = false;
 
-  constructor() {
+  GROUPS_ON_TOP_SETTING = 'GROUPS_ON_TOP';
+  GROUPS_ACTIVATED = 'GROUPS_ACTIVATED';
+
+  constructor(private localStorageService: LocalStorageService) {
   }
 
   ngOnInit(): void {
+    this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) ?
+      this.groupsOnTopIsChecked = this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) :
+      this.groupsOnTopIsChecked = false;
+    this.groupsOnTop.emit(this.groupsOnTopIsChecked);
+    this.localStorageService.getSettings(this.GROUPS_ACTIVATED) ?
+      this.groupsActivated = this.localStorageService.getSettings(this.GROUPS_ACTIVATED) :
+      this.groupsActivated = true;
     this.updateGroups();
   }
 
@@ -46,12 +57,12 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     for (const tag of this.availableTagsValue) {
       const projectsForTag: ProjectInfo[] = [];
       for (const project of this.projectsValue) {
-        for (const tagOfProject of project.tags) {
+        for (const tagOfProject of this.filterProjectTag(project)) {
           if (tag === tagOfProject) {
             projectsForTag.push(project);
           }
         }
-        if (project.tags.length <= 0) {
+        if (this.filterProjectTag(project).length <= 0) {
           if (!this.isProjectForGroupExisting(projectGroups, project)) {
             projectGroups.push(this.buildGroup(project.name, [project]));
           }
@@ -75,6 +86,10 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     } else {
       this.projectsGroups.emit(projectGroups);
     }
+  }
+
+  private filterProjectTag(project: ProjectInfo) {
+    return project.tags.filter(tag => !tag.startsWith(this.CONTEXT_PREFIX));
   }
 
   private isProjectForGroupExisting(projectGroups: ProjectGroup[], project: ProjectInfo) {
@@ -110,5 +125,9 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     group.name = tag;
     group.projects = projectsForTag;
     return group;
+  }
+
+  updateLocalStorage(key: string, value: boolean) {
+    this.localStorageService.setSettings(key, value);
   }
 }

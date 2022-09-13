@@ -6,6 +6,7 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
+import {LocalStorageService} from '../../../api/local-storage.service';
 
 @Component({
   selector: 'app-projects-context-filter',
@@ -17,18 +18,23 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   availableTagsValue: string[];
   notVisibleTags = [];
   selectedContext: string;
+  SELECTED_CONTEXT = 'SELECTED_CONTEXT';
   @Output() outputContext = new EventEmitter<string>();
   CONTEXT_PREFIX = 'context::';
   selectedIndex = 0;
   observer: IntersectionObserver;
 
-  constructor() {
+  constructor(private localStorageService: LocalStorageService) {
   }
 
   ngOnInit(): void {
   }
 
   ngAfterViewInit() {
+    if (this.localStorageService.getSettings(this.SELECTED_CONTEXT) !== '' &&
+      this.localStorageService.getSettings(this.SELECTED_CONTEXT) != null) {
+      this.changeContext(this.localStorageService.getSettings(this.SELECTED_CONTEXT));
+    }
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
     this.createTagObserver();
   }
@@ -44,10 +50,12 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   changeContext(selection: string) {
     if (this.selectedContext === selection || selection === '') {
       this.selectedContext = '';
+      this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
       this.outputContext.emit(undefined);
       this.selectedIndex = 0;
     } else {
       this.selectedContext = selection;
+      this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
       this.outputContext.emit('context::' + this.selectedContext);
       this.selectedIndex = 1;
     }
@@ -55,7 +63,6 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   }
 
   createTagObserver() {
-    console.log(this.observer);
     this.observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         const tag = entry.target.textContent;

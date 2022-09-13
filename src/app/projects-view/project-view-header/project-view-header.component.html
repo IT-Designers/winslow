@@ -1,22 +1,39 @@
-<mat-panel-title class="title">
-  <!--<img class="icon" #avatar src="{{thumbnailUrl()}}" (error)="avatar.src = 'favicon.png'">-->
-  <app-state-icon #icon></app-state-icon>
-  <label>{{project.name}}</label>
-</mat-panel-title>
+<div class="right-click-trigger" (contextmenu)="rightClickAction(matMenuTrigger, $event)">
+  <mat-panel-title class="title">
+    <app-state-icon #icon></app-state-icon>
+    <label>{{project.name}}</label>
+  </mat-panel-title>
 
-<mat-panel-description class="description-tags">
-  <app-tags-with-autocomplete
-    [readonly]="true"
-    [tags]="project.tags"
-    (tagActionPrimary)="tagActionPrimary.emit($event)"
-    (tagActionSecondary)="tagActionSecondary.emit($event)"
-  ></app-tags-with-autocomplete>
-</mat-panel-description>
+  <mat-panel-description class="description-tags" (contextmenu)="rightClickAction(matMenuTrigger, $event)">
+    <app-tags-with-autocomplete
+      [readonly]="true"
+      [tags]="project.tags"
+      (tagActionPrimary)="tagActionPrimary.emit($event)"
+      (tagActionSecondary)="tagActionSecondary.emit($event)"
+    ></app-tags-with-autocomplete>
+  </mat-panel-description>
 
-<mat-panel-description class="description-etc">
-  {{pauseReason}}{{pauseReason != null && stage != null ? ', ' : ''}}{{stage}}
-  <mat-progress-bar class="description-progress-bar"
-                    *ngIf="progress != null && running"
-                    [value]="progress">
-  </mat-progress-bar>
-</mat-panel-description>
+  <mat-panel-description class="description-etc" (contextmenu)="rightClickAction(matMenuTrigger, $event)">
+    {{pauseReason}}{{pauseReason != null && stage != null ? ', ' : ''}}{{stage}}
+    <mat-progress-bar class="description-progress-bar"
+                      *ngIf="progress != null && running"
+                      [value]="progress">
+    </mat-progress-bar>
+  </mat-panel-description>
+
+  <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
+       [matMenuTriggerFor]="menu"
+       [style.left.px]="menuPosition.x"
+       [style.top.px]="menuPosition.y"></div>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="excludeTags(project)">
+      <span>Exclude Project-Tags from list</span>
+    </button>
+    <button mat-menu-item (click)="includeTags(project)">
+      <span>Filter for Projects-Tags</span>
+    </button>
+    <button mat-menu-item (click)="openAddToContext()">
+      <span>Add Project to Context</span>
+    </button>
+  </mat-menu>
+</div>

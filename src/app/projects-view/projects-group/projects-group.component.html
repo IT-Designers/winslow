@@ -1,5 +1,5 @@
-<mat-expansion-panel class="group" (contextmenu)="rightClickAction(projectGroup.name, matMenuTrigger, $event)">
-    <mat-expansion-panel-header>
+<mat-expansion-panel class="group">
+    <mat-expansion-panel-header (contextmenu)="rightClickAction(matMenuTrigger, $event)">
         <mat-panel-title>
             <div *ngIf="projectGroup.projects.length <= 9">
                 <mat-icon matTooltip="Project group">filter_{{projectGroup.projects.length}}</mat-icon>
@@ -24,10 +24,13 @@
                 <span>Group action</span>
             </button>
             <button mat-menu-item (click)="filter.addExcludedTag(projectGroup.name)">
-                <span>Exclude Group from list</span>
+                <span>Exclude Group-Tag from list</span>
             </button>
-            <button mat-menu-item disabled>
-                <span>Add to Context</span>
+          <button mat-menu-item (click)="filter.addIncludedTag(projectGroup.name)">
+            <span>Filter by Group-Tag</span>
+          </button>
+            <button mat-menu-item (click)="openAddToContext()">
+                <span>Add Group to Context</span>
             </button>
         </mat-menu>
     </mat-expansion-panel-header>
@@ -39,7 +42,7 @@
             <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
                  (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
-                    [project]="project"
+                    [project]="project" [filter]="filter"
                     [iconState]="stateInfo?.get(project.id)?.getState()"
                     [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
                     [progress]="stateInfo?.get(project.id)?.stageProgress"
