@@ -12,7 +12,7 @@ export class LogChartSnapshot {
     this.csvFiles = csvFiles;
     this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles);
     this.graphs = csvFiles.map((file, index) => ({
-      data: definition.getDataSet(file.content, this.formatterVariables, globalChartSettings),
+      data: LogChartSnapshot.getDataSet(definition, file.content, this.formatterVariables, globalChartSettings),
       name: file.stageId,
       color: getColor(index)
     }));
@@ -42,6 +42,30 @@ export class LogChartSnapshot {
 
     return variables;
   }
+
+  private static getDataSet(definition: LogChartDefinition, csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
+    const rowLimit = globalChartSettings?.enableEntryLimit ? globalChartSettings.entryLimit : definition.entryLimit;
+    const rows = LogChartSnapshot.getLatestRows(csvContent, rowLimit);
+    const xIndex = formatterVariables.findIndex(variableName => variableName == definition.xVariable);
+    const yIndex = formatterVariables.findIndex(variableName => variableName == definition.yVariable);
+
+    return rows.map((rowContent, rowIndex): ChartDataPoint => {
+      const relativeRowIndex = rowIndex - rows.length + 1;
+      const x = xIndex == -1 ? relativeRowIndex : Number(rowContent[xIndex]);
+      const y = yIndex == -1 ? relativeRowIndex : Number(rowContent[yIndex]);
+      return [x, y];
+    });
+  }
+
+  private static getLatestRows(csvContent: CsvFileContent, displayAmount: number) {
+    let sectionEnd = csvContent.length;
+    let sectionStart = 0;
+    if (displayAmount > 0) {
+      sectionStart = sectionEnd - displayAmount;
+    }
+
+    return csvContent.slice(sectionStart, sectionEnd);
+  }
 }
 
 export class LogChart {
@@ -54,11 +78,11 @@ export class LogChart {
     this.filename = id ?? LogChart.generateUniqueId();
     this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
 
-    const csvFileInfo$ = this.definition$.pipe(
+    const csvFileInfos$ = this.definition$.pipe(
       switchMap(definition => service.getCsvFiles$(definition.file)),
     );
 
-    this.snapshot$ = combineLatest([this.definition$, csvFileInfo$, service.globalChartSettings$]).pipe(
+    this.snapshot$ = combineLatest([this.definition$, csvFileInfos$, service.globalChartSettings$]).pipe(
       map(([definition, csvFileInfos, globalChartSettings]) => {
         return new LogChartSnapshot(definition, csvFileInfos, globalChartSettings);
       }),
@@ -89,30 +113,6 @@ export class LogChartDefinition {
     this.yVariable = '$1';
     this.entryLimit = null;
   }
-
-  getDataSet(csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
-    const rowLimit = globalChartSettings?.enableEntryLimit ? globalChartSettings.entryLimit : this.entryLimit;
-    const rows = LogChartDefinition.getLatestRows(csvContent, rowLimit);
-    const xIndex = formatterVariables.findIndex(variableName => variableName == this.xVariable);
-    const yIndex = formatterVariables.findIndex(variableName => variableName == this.yVariable);
-
-    return rows.map((rowContent, rowIndex): ChartDataPoint => {
-      const relativeRowIndex = rowIndex - rows.length + 1;
-      const x = xIndex == -1 ? relativeRowIndex : Number(rowContent[xIndex]);
-      const y = yIndex == -1 ? relativeRowIndex : Number(rowContent[yIndex]);
-      return [x, y];
-    });
-  }
-
-  private static getLatestRows(csvContent: CsvFileContent, displayAmount: number) {
-    let sectionEnd = csvContent.length;
-    let sectionStart = 0;
-    if (displayAmount > 0) {
-      sectionStart = sectionEnd - displayAmount;
-    }
-
-    return csvContent.slice(sectionStart, sectionEnd);
-  }
 }
 
 export class ChartDisplaySettings {
@@ -141,7 +141,7 @@ export type ChartDataSet = ChartDataPoint[];
 export type ChartDataPoint = [number, number];
 
 export interface ChartGraph {
-  data: ChartDataSet
-  name: string
-  color: string
+  data: ChartDataSet;
+  name: string;
+  color: string;
 }
