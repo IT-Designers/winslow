@@ -2,7 +2,6 @@ import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {
   ChartAxisType,
-  ChartDisplaySettings,
   LogChart,
   LogChartDefinition,
   LogChartSnapshot
@@ -27,12 +26,12 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     private csvFilesService: CsvFilesService,
     @Inject(MAT_DIALOG_DATA) dialogData: LogChartDefinition,
   ) {
-    const definition = dialogData
+    const definition = dialogData;
 
     this.chart = new LogChart(this.csvFilesService, null, definition);
 
-    this.definition = Object.assign(new LogChartDefinition(), definition);
-    this.definition.displaySettings = Object.assign(new ChartDisplaySettings(), definition);
+    this.definition = {...definition};
+    this.definition.displaySettings = {...definition.displaySettings};
     this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot);
 
     this.refresh();
@@ -65,6 +64,6 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     if (entryLimit == null) {
       return true;
     }
-    return entryLimit > 1
+    return entryLimit > 1;
   }
 }
