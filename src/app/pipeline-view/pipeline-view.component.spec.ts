@@ -1,8 +1,8 @@
-import { TestBed, ComponentFixture, waitForAsync } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { PipelineViewComponent } from './pipeline-view.component';
-import { DiagramComponent } from './diagram/diagram.component';
-import { DebugNode } from '@angular/core';
+import {TestBed, ComponentFixture, waitForAsync} from '@angular/core/testing';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {PipelineViewComponent} from './pipeline-view.component';
+import {DiagramComponent} from './diagram/diagram.component';
+import {DebugNode} from '@angular/core';
 
 describe('PipelineViewComponent', () => {
   let fixture: ComponentFixture<PipelineViewComponent>;

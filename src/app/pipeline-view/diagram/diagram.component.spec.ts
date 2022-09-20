@@ -1,13 +1,13 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 
-import { DebugNode } from '@angular/core';
+import {DebugNode} from '@angular/core';
 
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
 
-import { DiagramComponent } from './diagram.component';
+import {DiagramComponent} from './diagram.component';
 
 
 const BPMN_DIAGRAM = `
@@ -91,7 +91,7 @@ describe('DiagramComponent', () => {
     // when
     component.loadUrl(diagramURL);
 
-    const request = httpMock.expectOne({ url: diagramURL, method: 'GET' });
+    const request = httpMock.expectOne({url: diagramURL, method: 'GET'});
 
     request.flush(BPMN_DIAGRAM);
   });
@@ -115,7 +115,7 @@ describe('DiagramComponent', () => {
     // when
     component.loadUrl(diagramURL);
 
-    const request = httpMock.expectOne({ url: diagramURL, method: 'GET' });
+    const request = httpMock.expectOne({url: diagramURL, method: 'GET'});
 
     request.flush(BPMN_DIAGRAM_WITH_WARNINGS);
   });
@@ -138,7 +138,7 @@ describe('DiagramComponent', () => {
       done();
     });
 
-    const request = httpMock.expectOne({ url: diagramURL, method: 'GET' });
+    const request = httpMock.expectOne({url: diagramURL, method: 'GET'});
 
     request.flush('Not Found', {
       status: 404,
