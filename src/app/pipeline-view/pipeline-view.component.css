@@ -1,15 +1,13 @@
+@import '~bpmn-js/dist/assets/diagram-js.css';
+@import '~bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
+@import '~bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
+@import '~bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css';
+@import 'https://unpkg.com/bpmn-js-properties-panel/dist/assets/element-templates.css';
+@import 'https://unpkg.com/bpmn-js-properties-panel/dist/assets/properties-panel.css';
+
 .diagram-parent {
-  margin-top: 20px;
   height: 80vh;
-  border: solid 3px #EEE;
-  position: relative;
-}
-
-.import-error {
-  color: red;
-  padding: 20px;
-
-  position: absolute;
-  top: 0;
-  left: 0;
+  width: 98%;
+  border: 2px solid #ccc;
+  margin: 10px;
 }
