@@ -6,13 +6,10 @@ import {ProjectInfo} from "../api/project-api.service";
   templateUrl: './pipeline-view.component.html',
   styleUrls: ['./pipeline-view.component.css']
 })
-export class PipelineViewComponent{
-
-  title = 'bpmn-js-angular';
-  diagramUrl = 'https://cdn.staticaly.com/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
+export class PipelineViewComponent {
   importError?: Error;
 
-  @Input() private project: ProjectInfo;
+  @Input() public project: ProjectInfo;
 
   handleImported(event) {
 
@@ -23,7 +20,7 @@ export class PipelineViewComponent{
     } = event;
 
     if (type === 'success') {
-      console.log(`Rendered diagram (%s warnings)`, warnings.length);
+      console.log(`Rendered diagram (%s warnings)`, warnings.length)
     }
 
     if (type === 'error') {

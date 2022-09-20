@@ -1,0 +1,32 @@
+#js-properties-panel {
+  width: 400px;
+}
+
+.content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.canvas {
+  width: 100%;
+}
+
+.canvas,
+.properties-panel-parent {
+  display: block;
+}
+
+.properties-panel-parent {
+  border-right: 1px solid #ccc;
+  overflow: auto;
+}
+
+.djs-properties-panel {
+  padding-bottom: 70px;
+  min-height: 100%;
+}
+
+
+
