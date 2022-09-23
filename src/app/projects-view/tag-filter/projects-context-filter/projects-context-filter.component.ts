@@ -48,7 +48,7 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   }
 
   changeContext(selection: string) {
-    if (this.selectedContext === selection || selection === '') {
+    if (this.selectedContext === selection || selection === '' || selection === '[No]') {
       this.selectedContext = '';
       this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
       this.outputContext.emit(undefined);
@@ -57,7 +57,8 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
       this.selectedContext = selection;
       this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
       this.outputContext.emit('context::' + this.selectedContext);
-      this.selectedIndex = 1;
+      this.availableTagsValue.indexOf(selection);
+      this.selectedIndex = this.availableTagsValue.indexOf(selection) + 1;
     }
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
   }
