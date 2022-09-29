@@ -152,7 +152,7 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
             {path: 'about', component: AboutComponent},
-
+            {path: 'groups', component: GroupsViewComponent},
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
                 path: 'system',

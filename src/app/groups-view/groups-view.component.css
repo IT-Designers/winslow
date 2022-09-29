@@ -1,0 +1,49 @@
+.groupAdministrationDiv {
+  margin-left: 5%;
+}
+
+.dropdown-container {
+  position: relative;
+  /*display: inline-block;*/
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-content {
+  position: relative;
+  background-color: #f6f6f6;
+  min-width: 230px;
+  max-width: 20%;
+  border: 1px solid #ddd;
+  z-index: 1;
+}
+
+.dropdown-item {
+  cursor: pointer;
+  margin: 5px;
+}
+
+.newGroupForm {
+  display: flex;
+  flex-direction: column;
+}
+
+#dropdownSearchText {
+  width: 100%;
+  font-size: 16px;
+  padding: 14px 20px 12px 45px;
+  border: none;
+  border-bottom: 1px solid #ddd;
+}
+
+.text-input {
+  max-width: 20%;
+}
+
+.form-btn {
+  max-width: 10%;
+}
+
+.submitButton {
+  max-width: 10%;
+}
