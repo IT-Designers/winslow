@@ -1,45 +1,25 @@
-import {TestBed, ComponentFixture, waitForAsync} from '@angular/core/testing';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {PipelineViewComponent} from './pipeline-view.component';
-import {DiagramComponent} from './diagram/diagram.component';
-import {DebugNode} from '@angular/core';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { PipelineViewComponent } from './pipeline-view.component';
 
 describe('PipelineViewComponent', () => {
+  let component: PipelineViewComponent;
   let fixture: ComponentFixture<PipelineViewComponent>;
-  let component: DebugNode['componentInstance'];
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [
-        PipelineViewComponent,
-        DiagramComponent
-      ],
-      imports: [HttpClientTestingModule]
-    }).compileComponents();
-    fixture = TestBed.createComponent(PipelineViewComponent);
-    component = fixture.debugElement.componentInstance;
-    fixture.detectChanges();
+      declarations: [ PipelineViewComponent ]
+    })
+      .compileComponents();
   }));
 
+  beforeEach(() => {
+    fixture = TestBed.createComponent(PipelineViewComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-
-  it('renders a diagram component', () => {
-    expect(fixture.nativeElement.querySelector('diagram')).toBeTruthy();
-  });
-
-
-  it('sets an error message', () => {
-    const error = new Error('ERROR');
-
-    component.handleImported({
-      type: 'error',
-      error
-    });
-
-    expect(component.importError).toEqual(error);
   });
 });
