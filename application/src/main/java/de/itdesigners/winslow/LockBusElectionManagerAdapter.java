@@ -113,16 +113,17 @@ public class LockBusElectionManagerAdapter {
         election.getMostFittingParticipant().ifPresentOrElse(participant -> {
             if (nodeName.equals(participant)) {
                 var thread = new Thread(() -> {
-                    var project    = orchestrator.getProjectUnsafe(election.getProjectId());
-                    var definition = project.map(Project::getPipelineDefinition);
-                    var exclusive  = project.flatMap(orchestrator::getPipelineExclusive);
+                    var projectOpt    = orchestrator.getProjectUnsafe(election.getProjectId());
+                    var definitionOpt = projectOpt.map(Project::getPipelineDefinition);
+                    var exclusiveOpt  = projectOpt.flatMap(orchestrator::getPipelineExclusive);
 
-                    exclusive.ifPresentOrElse(
+                    exclusiveOpt.ifPresentOrElse(
                             container -> {
                                 try (var lock = container.getLock()) {
                                     var pipeline = container.get().get();
-                                    var projectId = pipeline.getProjectId();
-                                    if (orchestrator.startPipeline(lock, projectId, definition.get(), pipeline)) {
+                                    var project = projectOpt.get();
+                                    var definition = definitionOpt.get();
+                                    if (orchestrator.startPipeline(lock, project, definition, pipeline)) {
                                         LOG.info("Updating pipeline...");
                                         container.update(pipeline);
                                     } else {

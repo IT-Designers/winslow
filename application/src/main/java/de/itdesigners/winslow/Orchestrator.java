@@ -440,12 +440,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     protected boolean startPipeline(
             @Nonnull Lock lock,
-            @Nonnull String projectId,
+            @Nonnull Project project,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        return startNextPipelineStage(lock, definition, pipeline).map(result -> {
+        return startNextPipelineStage(lock, definition, pipeline, project).map(result -> {
             hookUpResourceReservationAndFreeingHandler(
-                    projectId,
+                    project.getId(),
                     result.getValue0().getStageDefinition(),
                     result.getValue2()
             );
@@ -476,7 +476,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     private Optional<Triplet<ExecutionGroup, Stage, Executor>> startNextPipelineStage(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) {
+            @Nonnull Pipeline pipeline,
+            @Nonnull Project project) {
         if (pipeline.getActiveExecutionGroup().isEmpty()) {
             try {
                 pipeline.retrieveNextActiveExecution();
@@ -515,7 +516,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     stageDefinition,
                     stageId,
                     executor,
-                    env
+                    env,
+                    project
             );
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
@@ -537,7 +539,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull StageId stageId,
             @Nonnull Executor executor,
-            @Nonnull Map<String, String> globalEnvironmentVariables) {
+            @Nonnull Map<String, String> globalEnvironmentVariables,
+            @Nonnull Project project) {
         var thread = new Thread(() -> {
             var projectId = pipeline.getProjectId();
             var assembler = new StageAssembler();
@@ -571,6 +574,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                 });
                             }))
                             .assemble(new Context(
+                                    project,
                                     pipeline,
                                     definition,
                                     executionGroup,

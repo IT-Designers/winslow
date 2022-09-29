@@ -7,6 +7,7 @@ import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
+import de.itdesigners.winslow.project.Project;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,7 +22,8 @@ import java.util.logging.Level;
 
 public class Context {
 
-    private final @Nonnull  Pipeline           pipeline;
+    private final @Nonnull Project project;
+    private final @Nonnull Pipeline pipeline;
     private final @Nonnull  PipelineDefinition pipelineDefinition;
     private final @Nonnull  ExecutionGroup     executionGroup;
     private final @Nullable Executor           executor;
@@ -31,18 +33,25 @@ public class Context {
     @Nonnull private final Map<Class<?>, Object> intermediateResults = new HashMap<>();
 
     public Context(
+            @Nonnull Project project,
             @Nonnull Pipeline pipeline,
             @Nonnull PipelineDefinition definition,
             @Nonnull ExecutionGroup executionGroup,
             @Nullable Executor executor,
             @Nonnull StageId stageId,
             @Nonnull Submission submission) {
+        this.project            = project;
         this.pipeline           = pipeline;
         this.pipelineDefinition = definition;
         this.executionGroup     = executionGroup;
         this.executor           = executor;
         this.stageId            = stageId;
         this.submission         = submission;
+    }
+
+    @Nonnull
+    public Project getProject() {
+        return project;
     }
 
     @Nonnull
@@ -94,9 +103,10 @@ public class Context {
 
     /**
      * Logs an internal message with the given level
-     * @param level Categorization of the log
+     *
+     * @param level   Categorization of the log
      * @param message Message to log
-     * @param t {@link Throwable} to append to the logs
+     * @param t       {@link Throwable} to append to the logs
      */
     public void log(@Nonnull Level level, @Nonnull String message, @Nonnull Throwable t) {
         var baos = new ByteArrayOutputStream();
@@ -109,7 +119,8 @@ public class Context {
 
     /**
      * Logs an internal message with the given level
-     * @param level Categorization of the log
+     *
+     * @param level   Categorization of the log
      * @param message Message to log
      */
     public void log(@Nonnull Level level, @Nonnull String message) {
