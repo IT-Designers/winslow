@@ -89,6 +89,7 @@ import { ProjectsGroupComponent } from './projects-view/projects-group/projects-
 import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import { GroupsViewComponent } from './groups-view/groups-view.component';
 
 @NgModule({
     declarations: [
@@ -143,6 +144,7 @@ import { RegularExpressionEditorDialogComponent } from './regular-expression-edi
         ProjectsContextFilterComponent,
         AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
+        GroupsViewComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -175,7 +177,7 @@ import { RegularExpressionEditorDialogComponent } from './regular-expression-edi
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
             {path: 'about', component: AboutComponent},
-
+            {path: 'groups', component: GroupsViewComponent},
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
               path: 'system',
