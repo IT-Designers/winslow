@@ -10,7 +10,7 @@ before_script:
 
 test:
   stage: test
-  image: maven:3.6.3-jdk-11
+  image: maven:3.8.5-openjdk-17
   tags:
     - docker
   script:
@@ -24,7 +24,7 @@ build:
   only:
     refs:
       - master
-  image: maven:3.6.3-jdk-11
+  image: maven:3.8.5-openjdk-17
   tags:
     - docker
   script:
