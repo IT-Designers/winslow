@@ -81,13 +81,15 @@ import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 import { ProjectsGroupBuilderComponent } from './projects-view/tag-filter/projects-group-builder/projects-group-builder.component';
 import { ProjectsViewComponent } from './projects-view/projects-view.component';
 import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
-import { LogAnalysisChartDialogComponent } from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import { LogAnalysisChartComponent } from './log-analysis-chart/log-analysis-chart.component';
+import { LogAnalysisChartDialogComponent } from './log-analysis/log-analysis-chart-dialog/log-analysis-chart-dialog.component';
+import { LogAnalysisChartComponent } from './log-analysis/log-analysis-chart/log-analysis-chart.component';
 import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
-import { LogAnalysisSettingsDialogComponent } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
+import { LogAnalysisSettingsDialogComponent } from './log-analysis/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
 import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
+import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import { GroupsViewComponent } from './groups-view/groups-view.component';
 
 @NgModule({
     declarations: [
@@ -141,6 +143,8 @@ import { AddToContextPopupComponent } from './projects-view/add-to-context-popup
         ProjectsGroupComponent,
         ProjectsContextFilterComponent,
         AddToContextPopupComponent,
+        RegularExpressionEditorDialogComponent,
+        GroupsViewComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -173,7 +177,7 @@ import { AddToContextPopupComponent } from './projects-view/add-to-context-popup
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
             {path: 'about', component: AboutComponent},
-
+            {path: 'groups', component: GroupsViewComponent},
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
               path: 'system',
