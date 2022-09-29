@@ -21,9 +21,6 @@ test:
 
 build:
   stage: build
-  only:
-    refs:
-      - master
   image: maven:3.8.5-openjdk-17
   tags:
     - docker
