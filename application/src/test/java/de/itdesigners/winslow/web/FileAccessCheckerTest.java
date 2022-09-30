@@ -55,7 +55,7 @@ public class FileAccessCheckerTest {
 
     @Test
     public void anyValidUserCanAccessGlobalResources() {
-        var user = new User("just-me", false, DUMMY_GROUP_RESOLVER);
+        var user = new User("just-me", DUMMY_GROUP_RESOLVER);
         assertTrue(checker.isAllowedToAccessPath(user, config.getRelativePathOfResources().resolve("some-file")));
         assertTrue(checker.isAllowedToAccessPath(user, config.getRelativePathOfResources()));
     }
@@ -69,8 +69,8 @@ public class FileAccessCheckerTest {
 
     @Test
     public void noneCanAccessWorkDir() {
-        var root = new User("root", true, DUMMY_GROUP_RESOLVER);
-        var user = new User("user", false, DUMMY_GROUP_RESOLVER);
+        var root = new User(User.SUPER_USER_NAME, DUMMY_GROUP_RESOLVER);
+        var user = new User("not_" + User.SUPER_USER_NAME, DUMMY_GROUP_RESOLVER);
 
         assertFalse(checker.isAllowedToAccessPath(root, workDir.relativize(workDir)));
         assertFalse(checker.isAllowedToAccessPath(user, workDir.relativize(workDir)));
@@ -78,24 +78,24 @@ public class FileAccessCheckerTest {
 
     @Test
     public void everyoneCanAccessWorkspacesMainDirectory() {
-        var root = new User("root", true, DUMMY_GROUP_RESOLVER);
-        var user = new User("user", false, DUMMY_GROUP_RESOLVER);
+        var root = new User(User.SUPER_USER_NAME, DUMMY_GROUP_RESOLVER);
+        var user = new User("not_" + User.SUPER_USER_NAME, DUMMY_GROUP_RESOLVER);
 
         assertTrue(checker.isAllowedToAccessPath(root, config.getRelativePathOfWorkspaces()));
         assertTrue(checker.isAllowedToAccessPath(user, config.getRelativePathOfWorkspaces()));
     }
 
     @Test
-    public void onlyPrivilegedUsersCanAccessWorkspacesOfProject() {
+    public void onlyPrivilegedUsersCanAccessWorkspacesOfProject() throws InvalidNameException, NameAlreadyInUseException {
         var groupRepository = new GroupRepository();
         var userRepository  = new UserRepository(groupRepository);
 
         var root   = userRepository.getUser("root").orElseThrow();
-        var owner  = userRepository.createUser("project-owner", false);
-        var member = userRepository.createUser("project-member", false);
-        var other  = userRepository.createUser("random-guy", false);
+        var owner  = userRepository.createUserWithoutGroup("project-owner");
+        var member = userRepository.createUserWithoutGroup("project-member");
+        var other  = userRepository.createUserWithoutGroup("random-guy");
 
-        groupRepository.createGroup("project-group", false).withUser(member.getName());
+        groupRepository.createGroup("project-group", member.getName(), Role.MEMBER);
 
         var workspace = config.getRelativePathOfWorkspaces().resolve("workspace-id");
 
@@ -107,7 +107,7 @@ public class FileAccessCheckerTest {
 
     @Test
     public void canNotAccessOutsideFilesNotEventAsSuperUser() {
-        var superUser = new User("root", true, DUMMY_GROUP_RESOLVER);
+        var superUser = new User(User.SUPER_USER_NAME, DUMMY_GROUP_RESOLVER);
         assertFalse(checker.isAllowedToAccessPath(superUser, Path.of("test")));
         assertFalse(checker.isAllowedToAccessPath(superUser, Path.of("../tmp")));
         assertFalse(checker.isAllowedToAccessPath(superUser, config.getRelativePathOfResources().resolve("../tmp")));
@@ -115,7 +115,7 @@ public class FileAccessCheckerTest {
 
     @Test
     public void canAccessPublicProjectAsNonSuperuserAndNonMember() {
-        var waldo = new User("waldo", false, DUMMY_GROUP_RESOLVER);
+        var waldo = new User("waldo", DUMMY_GROUP_RESOLVER);
 
         this.publicProject = true;
         var workspace = config.getRelativePathOfWorkspaces().resolve("workspace-id");
@@ -126,13 +126,13 @@ public class FileAccessCheckerTest {
 
     private static final GroupAssignmentResolver DUMMY_GROUP_RESOLVER = new GroupAssignmentResolver() {
         @Override
-        public boolean canAccessGroup(@Nonnull String user, @Nonnull String group) {
+        public boolean isPartOfGroup(@Nonnull String user, @Nonnull String group) {
             return false;
         }
 
         @Nonnull
         @Override
-        public Stream<String> getAssignedGroups(@Nonnull String user) {
+        public Stream<Group> getAssignedGroups(@Nonnull String user) {
             return Stream.empty();
         }
 

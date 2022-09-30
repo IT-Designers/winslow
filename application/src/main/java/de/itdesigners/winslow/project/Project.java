@@ -158,11 +158,7 @@ public class Project {
     public boolean canBeAccessedBy(@Nonnull User user) {
         return this.isPublic()
                 || this.canBeManagedBy(user)
-                || user.getGroups()
-                       .anyMatch(Objects.requireNonNullElseGet(
-                               this.groups,
-                               Collections::emptyList
-                       )::contains);
+                || (this.groups != null && user.getGroups().anyMatch(g -> this.groups.contains(g.getName())));
     }
 
     @Nonnull

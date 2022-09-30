@@ -6,10 +6,10 @@ import java.util.stream.Stream;
 
 public interface GroupAssignmentResolver {
 
-    boolean canAccessGroup(@Nonnull String user, @Nonnull String group);
+    boolean isPartOfGroup(@Nonnull String user, @Nonnull String group);
 
     @Nonnull
-    Stream<String> getAssignedGroups(@Nonnull String user);
+    Stream<Group> getAssignedGroups(@Nonnull String user);
 
     @Nonnull
     Optional<Group> getGroup(@Nonnull String name);

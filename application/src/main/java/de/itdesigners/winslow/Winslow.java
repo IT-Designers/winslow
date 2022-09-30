@@ -1,7 +1,6 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.auth.GroupRepository;
-import de.itdesigners.winslow.auth.UserRepository;
+import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.cli.FixWorkspacePaths;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.fs.LockBus;
@@ -62,8 +61,15 @@ public class Winslow implements Runnable {
         this.settingsRepository = settingsRepository;
         this.nodeRepository     = nodeRepository;
 
-        for (var user : Env.getRootUsers()) {
-            userRepository.createUser(user, true);
+        for (var userName : Env.getRootUsers()) {
+            try {
+                userRepository.createUserAndGroup(userName);
+                groupRepository.addMemberToGroup(Group.SUPER_GROUP_NAME, userName, Role.OWNER);
+            } catch (InvalidNameException | NameAlreadyInUseException | NameNotFoundException |
+                     LinkWithNameAlreadyExistsException e) {
+                // there is nothing reasonable recovery from this, fail fast, don't hide the error!
+                throw new RuntimeException(e);
+            }
         }
     }
 
