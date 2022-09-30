@@ -49,16 +49,17 @@
 
 .dropdown-content {
   position: relative;
+  padding-bottom: 5px;
   background-color: #f6f6f6;
   min-width: 230px;
-  max-width: 40%;
+  max-height: 200px;
   border: 1px solid #ddd;
+  border-radius: 5px;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .dropdown-item {
   cursor: default;
   padding: 4px;
@@ -71,11 +72,34 @@
 .dropdown-item:hover {
   background-color: lightgrey;
 }
+.second-dropdown-content {
+  position: relative;
+  padding-bottom: 5px;
+  background-color: #f6f6f6;
+  min-width: 230px;
+  max-height: 200px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.scrollable {
+  width: 90%;
+  overflow-y: scroll;
+}
+
+.member-dropdowns-container {
+  display:flex;
+  flex-direction: row;
+}
+
+
 #newMemberItem {
   cursor: pointer;
   text-align: center;
   font-size: 14px;
-  margin-bottom: 5px;
   background-color: #def3f3;
   font-weight: bold;
 }
@@ -110,6 +134,14 @@
   font-size: 15px;
   margin-top: 5px;
   margin-bottom: 5px;
+}
+#groupNameTextInput {
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
 }
 
 #usersDropdownBtn {
