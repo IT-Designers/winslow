@@ -7,20 +7,120 @@ import { Component, OnInit } from '@angular/core';
 })
 export class GroupsViewComponent implements OnInit {
   groupName = '';
-  showGroupDropdown = false;
+  showAddGroup = true;
+  showMemberDropdown = false;
+  showNewMemberDropdown = false;
+  mockUsers = [
+    {name: 'User 1', id: 1},
+    {name: 'User 2', id: 2},
+    {name: 'User 3', id: 3},
+    {name: 'User 4', id: 4},
+    {name: 'User 5', id: 5}
+  ];
+
+  mockGroups = [
+    {
+      name: 'Gruppe 1',
+      owners: [
+        {name: 'User 1', id: 1},
+        {name: 'User 2', id: 2},
+        {name: 'User 3', id: 3},
+        {name: 'User 4', id: 4},
+        {name: 'User 5', id: 5}
+      ],
+      members: [
+        {name: 'User 1', id: 1},
+        {name: 'User 2', id: 2},
+        {name: 'User 3', id: 3},
+        {name: 'User 4', id: 4},
+        {name: 'User 5', id: 5}
+      ]
+    },
+    {
+      name: 'Gruppe 2',
+      owners: [
+        {name: 'User 2', id: 2},
+      ],
+      members: [
+        {name: 'User 2', id: 2},
+        {name: 'User 4', id: 4},
+        {name: 'User 5', id: 5}
+      ]
+    },
+    {
+      name: 'Gruppe 3',
+      owners: [
+        {name: 'User 3', id: 3},
+        {name: 'User 5', id: 5}
+      ],
+      members: [
+        {name: 'User 1', id: 1},
+        {name: 'User 2', id: 2},
+        {name: 'User 3', id: 3},
+        {name: 'User 5', id: 5}
+      ]
+    },
+    {
+      name: 'Gruppe 4',
+      owners: [
+        {name: 'User 1', id: 1},
+        {name: 'User 2', id: 2},
+        {name: 'User 4', id: 4},
+      ],
+      members: [
+        {name: 'User 1', id: 1},
+        {name: 'User 2', id: 2},
+        {name: 'User 4', id: 4},
+        {name: 'User 5', id: 5}
+      ]
+    },
+    {
+      name: 'Gruppe 5',
+      owners: [
+        {name: 'User 5', id: 5}
+      ],
+      members: [
+        {name: 'User 5', id: 5}
+      ]
+    },
+  ];
 
   constructor() { }
 
   ngOnInit(): void {
+    console.dir(this.mockGroups);
   }
   onDropdownToggle() {
-    this.showGroupDropdown = !this.showGroupDropdown;
+    this.showMemberDropdown = !this.showMemberDropdown;
+  }
+  onItemClick(user) {
+    console.log('User: ' + user.name + ' has been clicked');
+  }
+  onAddGroupToggle() {
+    console.log('Group toggle');
+    this.showAddGroup = !this.showAddGroup;
   }
   filterFunction() {
-    console.log('Filter');
+    console.log('Filter Function');
+    let input;
+    let filter;
+    let divs;
+    let i;
+    input = document.getElementById('memberDropdownSearchText');
+    filter = input.value.toUpperCase();
+    const div = document.getElementById('usersDropdown');
+    divs = div.getElementsByTagName('dropdown-item');
+    console.dir(divs);
+    for (i = 0; i < divs.length; i++) {
+      const txtValue = divs[i].textContent || divs[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        divs[i].style.display = '';
+      } else {
+        divs[i].style.display = 'none';
+      }
+    }
   }
-  onItemClick() {
-    console.log('Item Click');
+  onAddMemberClick() {
+    this.showNewMemberDropdown = !this.showNewMemberDropdown;
   }
-
 }
