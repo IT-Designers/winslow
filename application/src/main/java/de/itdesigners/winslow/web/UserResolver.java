@@ -44,13 +44,11 @@ public class UserResolver implements HandlerMethodArgumentResolver, WebMvcConfig
             ModelAndViewContainer modelAndViewContainer,
             NativeWebRequest nativeWebRequest,
             WebDataBinderFactory webDataBinderFactory) throws Exception {
-        return Optional.ofNullable(nativeWebRequest.getRemoteUser()).or(() -> {
-            if (Env.isDevEnv()) {
-                return Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER));
-            } else {
-                return Optional.empty();
-            }
-        }).flatMap(users::getUserOrCreateAuthenticated).orElse(null);
+        return Optional
+                .ofNullable(nativeWebRequest.getRemoteUser())
+                .or(Env::getDevUser)
+                .flatMap(users::getUserOrCreateAuthenticated)
+                .orElse(null);
     }
 }
 

@@ -430,11 +430,9 @@ public class ProjectsEndpointController {
     }
 
     public static Optional<User> getUser(@Nonnull Winslow winslow, @Nullable String user) {
-        var devUserName = Env.isDevEnv()
-                          ? Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER))
-                          : Optional.<String>empty();
-        var userName = devUserName.or(() -> Optional.ofNullable(user));
-        return userName.flatMap(winslow.getUserRepository()::getUserOrCreateAuthenticated);
+        return Env.getDevUser()
+                  .or(() -> Optional.ofNullable(user))
+                  .flatMap(winslow.getUserRepository()::getUserOrCreateAuthenticated);
     }
 
     @Nonnull
