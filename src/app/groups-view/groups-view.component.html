@@ -1,24 +1,37 @@
+<h1>Gruppenverwaltung</h1>
 <div class="groupAdministrationDiv">
-  <h1>Gruppenverwaltung</h1>
-
-  <h2> {{groupName}}</h2>
-
-  <form class="newGroupForm">
-    <label for="groupName"> Gruppenname </label>
-    <input type="text" class="text-input" name="groupName" id="groupName" [(ngModel)]="groupName">
-    <div class="dropdown-container">
-      <label for="usersDropdownBtn"> Nutzer aussuchen </label>
-      <button id="usersDropdownBtn" (click)="onDropdownToggle()" class="form-btn"> Nutzer </button>
-      <div *ngIf="showGroupDropdown" id="usersDropdown" class="dropdown-content">
-        <input type="text" class="text-input" placeholder="Suche.." id="dropdownSearchText" onkeyup="filterFunction()">
-        <div class="dropdown-item" (click)="onItemClick()">User 1</div>
-        <div class="dropdown-item" (click)="onItemClick()">User 2</div>
-        <div class="dropdown-item" (click)="onItemClick()">User 3</div>
-        <div class="dropdown-item" (click)="onItemClick()">User 4</div>
-        <div class="dropdown-item" (click)="onItemClick()">User 5</div>
-      </div>
+  <div class="groups-list">
+    <h2> Meine Gruppen </h2>
+    <div class="group-list-item" *ngFor="let group of mockGroups">
+      {{group.name}}
     </div>
-    <button class="submitButton"> Gruppe erstellen </button>
-  </form>
+    <button class="mat-raised-button new-group-btn" color="primary" mat-raised-button="" (click)="onAddGroupToggle()"> Neue Gruppe </button>
+  </div>
+
+  <div *ngIf="showAddGroup" class="add-group-container">
+    <h2> Neue Gruppe erstellen: </h2>
+
+      <div class="group-members-container">
+        <label for="usersDropdownBtn" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'flex-shrink':'0', 'width':'30%', 'margin-top': '7px'}"> Nutzer aussuchen: </label>
+        <div class="group-members-dropdown">
+          <button class="mat-raised-button form-btn" color="primary" mat-raised-button="" name="usersDropdownBtn" id="usersDropdownBtn" dense="" (click)="onDropdownToggle()"> Nutzer </button>
+          <div *ngIf="showMemberDropdown" id="membersDropdown" class="dropdown-content">
+            <input type="text" class="text-input" placeholder="Suche.." id="memberDropdownSearchText" (keydown)="filterFunction()">
+            <div class="dropdown-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">{{user.name}}</div>
+            <div class="dropdown-item" id="newMemberItem" (click)="onAddMemberClick()" > Member hinzufügen </div>
+            <div *ngIf="showNewMemberDropdown" id="usersDropdown" class="dropdown-content">
+              <input type="text" class="text-input" placeholder="Suche.." id="newMemberDropdownSearchText" (keydown)="filterFunction()">
+              <div class="dropdown-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">{{user.name}}</div>
+            </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="group-name-container">
+        <label for="groupName" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
+        <input type="text" class="text-input" name="groupName" id="groupName" [(ngModel)]="groupName" placeholder="Gruppenname...">
+      </div>
+    <button class="mat-raised-button submit-group-btn" color="primary" mat-raised-button=""> Gruppe erstellen </button>
+  </div>
 
 </div>

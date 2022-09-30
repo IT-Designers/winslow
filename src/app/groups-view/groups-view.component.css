@@ -1,26 +1,86 @@
 .groupAdministrationDiv {
+  display: flex;
+  flex-direction: row;
   margin-left: 5%;
+  height: 100%;
+  margin-top: 0;
+}
+
+.groups-list {
+  margin-right: 7%;
+  width: 30%;
+  height: 100%;
+  border-right: 1px solid lightgrey;
+}
+
+.group-list-item {
+  padding: 10px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  margin-left: 10px;
+  margin-right: 10px;
+  border: 1px solid lightgrey;
+  width: 80%;
+}
+
+.group-list-item:hover {
+  background-color: lightgrey;
+}
+
+.add-group-container {
+  width: 40%;
+}
+
+
+.new-group-btn {
+  margin-top: 20px;
+  margin-right: 50px;
+  float: right;
 }
 
 .dropdown-container {
+  margin-top: 10px;
+  margin-left: 10px;
   position: relative;
   /*display: inline-block;*/
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .dropdown-content {
   position: relative;
   background-color: #f6f6f6;
   min-width: 230px;
-  max-width: 20%;
+  max-width: 40%;
   border: 1px solid #ddd;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .dropdown-item {
+  cursor: default;
+  padding: 4px;
+  border: 1px solid lightgrey;
+  border-radius: 4px;
+  margin: 1px;
+  width: 90%;
+  font-size: 14px;
+}
+.dropdown-item:hover {
+  background-color: lightgrey;
+}
+#newMemberItem {
   cursor: pointer;
-  margin: 5px;
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 5px;
+  background-color: #def3f3;
+  font-weight: bold;
+}
+#newMemberItem:hover {
+  background-color: #d1eeee;
 }
 
 .newGroupForm {
@@ -28,22 +88,38 @@
   flex-direction: column;
 }
 
-#dropdownSearchText {
+.group-members-container {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 0;
+  display: flex;
+  flex-direction: row;
+}
+.group-members-dropdown {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  font-size: 16px;
-  padding: 14px 20px 12px 45px;
-  border: none;
-  border-bottom: 1px solid #ddd;
+}
+#memberDropdownSearchText, #newMemberDropdownSearchText {
+  width: 90%;
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
-.text-input {
-  max-width: 20%;
+#usersDropdownBtn {
+  width: 20%;
+  margin-bottom: 5px;
 }
 
-.form-btn {
-  max-width: 10%;
-}
-
-.submitButton {
-  max-width: 10%;
+.submit-group-btn {
+  width: 20%;
+  float: right;
+  margin-top: 40px;
+  margin-right: 100px;
 }
