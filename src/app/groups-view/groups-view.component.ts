@@ -11,10 +11,17 @@ export class GroupsViewComponent implements OnInit {
   showMemberDropdown = false;
   showNewMemberDropdown = false;
   mockUsers = [
-    {name: 'User 1', id: 1},
     {name: 'User 2', id: 2},
-    {name: 'User 3', id: 3},
     {name: 'User 4', id: 4},
+    {name: 'User 6', id: 6},
+    {name: 'User 7', id: 7},
+    {name: 'User 8', id: 8},
+    {name: 'User 9', id: 9},
+    {name: 'User 10', id: 10},
+  ];
+  mockMembers = [
+    {name: 'User 1', id: 1},
+    {name: 'User 3', id: 3},
     {name: 'User 5', id: 5}
   ];
 
@@ -92,6 +99,9 @@ export class GroupsViewComponent implements OnInit {
   }
   onDropdownToggle() {
     this.showMemberDropdown = !this.showMemberDropdown;
+    if (!this.showMemberDropdown) {
+      this.showNewMemberDropdown = false;
+    }
   }
   onItemClick(user) {
     console.log('User: ' + user.name + ' has been clicked');

@@ -15,21 +15,27 @@
         <label for="usersDropdownBtn" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'flex-shrink':'0', 'width':'30%', 'margin-top': '7px'}"> Nutzer aussuchen: </label>
         <div class="group-members-dropdown">
           <button class="mat-raised-button form-btn" color="primary" mat-raised-button="" name="usersDropdownBtn" id="usersDropdownBtn" dense="" (click)="onDropdownToggle()"> Nutzer </button>
-          <div *ngIf="showMemberDropdown" id="membersDropdown" class="dropdown-content">
-            <input type="text" class="text-input" placeholder="Suche.." id="memberDropdownSearchText" (keydown)="filterFunction()">
-            <div class="dropdown-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">{{user.name}}</div>
-            <div class="dropdown-item" id="newMemberItem" (click)="onAddMemberClick()" > Member hinzufügen </div>
-            <div *ngIf="showNewMemberDropdown" id="usersDropdown" class="dropdown-content">
-              <input type="text" class="text-input" placeholder="Suche.." id="newMemberDropdownSearchText" (keydown)="filterFunction()">
-              <div class="dropdown-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">{{user.name}}</div>
+          <div class="member-dropdowns-container">
+            <div *ngIf="showMemberDropdown" id="membersDropdown" class="dropdown-content">
+              <input type="text" class="text-input" placeholder="Suche.." id="memberDropdownSearchText" (keydown)="filterFunction()">
+              <div class="scrollable">
+                <div class="dropdown-item" *ngFor="let user of mockMembers" (click)="onItemClick(user)">{{user.name}}</div>
+                <div class="dropdown-item" id="newMemberItem" (click)="onAddMemberClick()" > Member hinzufügen </div>
+              </div>
             </div>
+            <div *ngIf="showNewMemberDropdown" id="usersDropdown" class="second-dropdown-content">
+              <input type="text" class="text-input" placeholder="Suche.." id="newMemberDropdownSearchText" (keydown)="filterFunction()">
+              <div class="scrollable">
+                <div class="dropdown-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">{{user.name}}</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
       </div>
       <div class="group-name-container">
-        <label for="groupName" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
-        <input type="text" class="text-input" name="groupName" id="groupName" [(ngModel)]="groupName" placeholder="Gruppenname...">
+        <label for="groupNameTextInput" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
+        <input type="text" class="text-input" name="groupName" id="groupNameTextInput" [(ngModel)]="groupName" placeholder="Gruppenname...">
       </div>
     <button class="mat-raised-button submit-group-btn" color="primary" mat-raised-button=""> Gruppe erstellen </button>
   </div>
