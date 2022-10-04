@@ -66,12 +66,20 @@
   border: 1px solid lightgrey;
   border-radius: 4px;
   margin: 1px;
-  width: 90%;
+  /*width: 90%;*/
   font-size: 14px;
 }
 .dropdown-item:hover {
   background-color: lightgrey;
 }
+.item-icon {
+  vertical-align: middle;
+  cursor: pointer;
+}
+.delete-icon {
+  font-size: 20px;
+}
+
 .second-dropdown-content {
   position: relative;
   padding-bottom: 5px;

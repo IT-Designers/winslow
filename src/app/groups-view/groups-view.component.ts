@@ -20,9 +20,9 @@ export class GroupsViewComponent implements OnInit {
     {name: 'User 10', id: 10},
   ];
   mockMembers = [
-    {name: 'User 1', id: 1},
-    {name: 'User 3', id: 3},
-    {name: 'User 5', id: 5}
+    {name: 'Kyle Mezger', id: 1},
+    {name: 'Rico Hoffmann', id: 3},
+    {name: 'Michael Watzko', id: 5}
   ];
 
   mockGroups = [
@@ -110,17 +110,14 @@ export class GroupsViewComponent implements OnInit {
     console.log('Group toggle');
     this.showAddGroup = !this.showAddGroup;
   }
-  filterFunction() {
-    console.log('Filter Function');
+  filterFunction(elementName: string, searchTextId: string) {
     let input;
     let filter;
     let divs;
     let i;
-    input = document.getElementById('memberDropdownSearchText');
+    input = document.getElementById(searchTextId);
     filter = input.value.toUpperCase();
-    const div = document.getElementById('usersDropdown');
-    divs = div.getElementsByTagName('dropdown-item');
-    console.dir(divs);
+    divs = document.getElementsByName(elementName);
     for (i = 0; i < divs.length; i++) {
       const txtValue = divs[i].textContent || divs[i].innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -132,5 +129,7 @@ export class GroupsViewComponent implements OnInit {
   }
   onAddMemberClick() {
     this.showNewMemberDropdown = !this.showNewMemberDropdown;
+  }
+  onRemoveMemberClick() {
   }
 }
