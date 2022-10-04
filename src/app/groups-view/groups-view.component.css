@@ -73,11 +73,9 @@
   background-color: lightgrey;
 }
 .item-icon {
-  vertical-align: middle;
-  cursor: pointer;
-}
-.delete-icon {
   font-size: 20px;
+  float: right;
+  cursor: pointer;
 }
 
 .second-dropdown-content {
