@@ -17,9 +17,9 @@
           <button class="mat-raised-button" color="primary" mat-raised-button="" name="ownersDropdownBtn" id="ownersDropdownBtn" dense="" (click)="onOwnerDropdownToggle()"> Owner </button>
           <div class="owner-dropdowns-container">
             <div *ngIf="showOwnerDropdown" id="ownersDropdown" class="dropdown-content">
-              <input type="text" class="text-input" placeholder="Suche.." (keyup)="filterFunction('owner-dropdown-1-item', 'memberDropdownSearchText')">
+              <input type="text" class="text-input" id="ownerDropdownSearchText" placeholder="Suche.." (keyup)="filterFunction('owner-dropdown-1-item', 'ownerDropdownSearchText')">
               <div class="scrollable">
-                <div class="dropdown-item" name="owner-dropdown-1-item" *ngFor="let user of mockMembers" (click)="onItemClick(user)">
+                <div class="dropdown-item" name="owner-dropdown-1-item" *ngFor="let user of mockOwners" (click)="onItemClick(user)">
                   {{user.name}}
                   <mat-icon class="item-icon" (click)="onRemoveOwnerClick(user)">remove</mat-icon>
                 </div>
@@ -27,7 +27,7 @@
               </div>
             </div>
             <div *ngIf="showNewOwnerDropdown" id="usersAddOwnerDropdown" class="second-dropdown-content">
-              <input type="text" class="text-input" placeholder="Suche.." (keyup)="filterFunction('owner-dropdown-2-item', 'newMemberDropdownSearchText')">
+              <input type="text" class="text-input" id="newOwnerDropdownSearchText" placeholder="Suche.." (keyup)="filterFunction('owner-dropdown-2-item', 'newOwnerDropdownSearchText')">
               <div class="scrollable">
                 <div class="dropdown-item" name="owner-dropdown-2-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">
                   {{user.name}}
@@ -42,10 +42,10 @@
     <div class="group-members-container">
         <label for="usersDropdownBtn" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'flex-shrink':'0', 'width':'30%', 'margin-top': '7px'}"> Mitglieder zuweisen: </label>
         <div class="group-members-dropdown">
-          <button class="mat-raised-button" color="primary" mat-raised-button="" name="usersDropdownBtn" id="usersDropdownBtn" dense="" (click)="onDropdownToggle()"> Nutzer </button>
+          <button class="mat-raised-button" color="primary" mat-raised-button="" name="usersDropdownBtn" id="usersDropdownBtn" dense="" (click)="onDropdownToggle()"> Mitglieder </button>
           <div class="member-dropdowns-container">
             <div *ngIf="showMemberDropdown" id="membersDropdown" class="dropdown-content">
-              <input type="text" class="text-input" placeholder="Suche.." (keyup)="filterFunction('members-dropdown-1-item', 'memberDropdownSearchText')">
+              <input type="text" class="text-input" id="memberDropdownSearchText" placeholder="Suche.." (keyup)="filterFunction('members-dropdown-1-item', 'memberDropdownSearchText')">
               <div class="scrollable">
                 <div class="dropdown-item" name="members-dropdown-1-item" *ngFor="let user of mockMembers" (click)="onItemClick(user)">
                   {{user.name}}
@@ -55,7 +55,7 @@
               </div>
             </div>
             <div *ngIf="showNewMemberDropdown" id="usersDropdown" class="second-dropdown-content">
-              <input type="text" class="text-input" placeholder="Suche.." (keyup)="filterFunction('members-dropdown-2-item', 'newMemberDropdownSearchText')">
+              <input type="text" class="text-input" id="newMemberDropdownSearchText" placeholder="Suche.." (keyup)="filterFunction('members-dropdown-2-item', 'newMemberDropdownSearchText')">
               <div class="scrollable">
                 <div class="dropdown-item" name="members-dropdown-2-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">
                   {{user.name}}
