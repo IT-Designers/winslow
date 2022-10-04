@@ -10,6 +10,8 @@ export class GroupsViewComponent implements OnInit {
   showAddGroup = true;
   showMemberDropdown = false;
   showNewMemberDropdown = false;
+  showOwnerDropdown = false;
+  showNewOwnerDropdown = false;
   mockUsers = [
     {name: 'User 2', id: 2},
     {name: 'User 4', id: 4},
@@ -103,6 +105,18 @@ export class GroupsViewComponent implements OnInit {
       this.showNewMemberDropdown = false;
     }
   }
+  onAddMemberClick() {
+    this.showNewMemberDropdown = !this.showNewMemberDropdown;
+  }
+  onOwnerDropdownToggle() {
+    this.showOwnerDropdown = !this.showOwnerDropdown;
+    if (!this.showOwnerDropdown) {
+      this.showNewOwnerDropdown = false;
+    }
+  }
+  onAddOwnerClick() {
+    this.showNewOwnerDropdown = !this.showNewOwnerDropdown;
+  }
   onItemClick(user) {
     console.log('User: ' + user.name + ' has been clicked');
   }
@@ -128,12 +142,15 @@ export class GroupsViewComponent implements OnInit {
     }
   }
   onRemoveMemberClick(user) {
-    console.log('Remove Function for ' + user.name + ' called');
-  }
-  onAddMemberClick() {
-    this.showNewMemberDropdown = !this.showNewMemberDropdown;
+    console.log('Remove member Function for ' + user.name + ' called');
   }
   onAddUserAsMemberClick(user) {
-    console.log('Add function for ' + user.name + ' called');
+    console.log('Add member function for ' + user.name + ' called');
+  }
+  onRemoveOwnerClick(user) {
+    console.log('Remove owner Function for ' + user.name + ' called');
+  }
+  onAddUserAsOwnerClick(user) {
+    console.log('Add owner function for ' + user.name + ' called');
   }
 }
