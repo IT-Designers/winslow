@@ -17,16 +17,21 @@
           <button class="mat-raised-button form-btn" color="primary" mat-raised-button="" name="usersDropdownBtn" id="usersDropdownBtn" dense="" (click)="onDropdownToggle()"> Nutzer </button>
           <div class="member-dropdowns-container">
             <div *ngIf="showMemberDropdown" id="membersDropdown" class="dropdown-content">
-              <input type="text" class="text-input" placeholder="Suche.." id="memberDropdownSearchText" (keydown)="filterFunction()">
+              <input type="text" class="text-input" placeholder="Suche.." id="memberDropdownSearchText" (keyup)="filterFunction('dropdown-1-item', 'memberDropdownSearchText')">
               <div class="scrollable">
-                <div class="dropdown-item" *ngFor="let user of mockMembers" (click)="onItemClick(user)">{{user.name}}</div>
+                <div class="dropdown-item" name="dropdown-1-item" *ngFor="let user of mockMembers" (click)="onItemClick(user)">
+                  {{user.name}}
+                  <mat-icon (click)="onRemoveMemberClick()" class="item-icon">
+                    <i class="material-icons delete-icon">delete</i>
+                  </mat-icon>
+                </div>
                 <div class="dropdown-item" id="newMemberItem" (click)="onAddMemberClick()" > Member hinzufügen </div>
               </div>
             </div>
             <div *ngIf="showNewMemberDropdown" id="usersDropdown" class="second-dropdown-content">
-              <input type="text" class="text-input" placeholder="Suche.." id="newMemberDropdownSearchText" (keydown)="filterFunction()">
+              <input type="text" class="text-input" placeholder="Suche.." id="newMemberDropdownSearchText" (keyup)="filterFunction('dropdown-2-item', 'newMemberDropdownSearchText')">
               <div class="scrollable">
-                <div class="dropdown-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">{{user.name}}</div>
+                <div class="dropdown-item" name="dropdown-2-item" *ngFor="let user of mockUsers" (click)="onItemClick(user)">{{user.name}}</div>
               </div>
             </div>
           </div>
