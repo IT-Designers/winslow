@@ -26,6 +26,9 @@ export class GroupsViewComponent implements OnInit {
     {name: 'Rico Hoffmann', id: 3},
     {name: 'Michael Watzko', id: 5}
   ];
+  mockOwners = [
+    {name: 'Kyle Mezger', id: 1}
+  ];
 
   mockGroups = [
     {
