@@ -127,9 +127,13 @@ export class GroupsViewComponent implements OnInit {
       }
     }
   }
+  onRemoveMemberClick(user) {
+    console.log('Remove Function for ' + user.name + ' called');
+  }
   onAddMemberClick() {
     this.showNewMemberDropdown = !this.showNewMemberDropdown;
   }
-  onRemoveMemberClick() {
+  onAddUserAsMemberClick(user) {
+    console.log('Add function for ' + user.name + ' called');
   }
 }
