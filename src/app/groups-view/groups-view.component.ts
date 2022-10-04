@@ -12,6 +12,7 @@ export class GroupsViewComponent implements OnInit {
   showNewMemberDropdown = false;
   showOwnerDropdown = false;
   showNewOwnerDropdown = false;
+
   mockUsers = [
     {name: 'User 2', id: 2},
     {name: 'User 4', id: 4},
@@ -145,15 +146,23 @@ export class GroupsViewComponent implements OnInit {
     }
   }
   onRemoveMemberClick(user) {
-    console.log('Remove member Function for ' + user.name + ' called');
+    const delIndex = this.mockMembers.findIndex((tempUser) => tempUser.id === user.id);
+    this.mockUsers.push(this.mockMembers[delIndex]);
+    this.mockMembers.splice(delIndex, 1);
   }
   onAddUserAsMemberClick(user) {
-    console.log('Add member function for ' + user.name + ' called');
+    const addIndex = this.mockUsers.findIndex((tempUser) => tempUser.id === user.id);
+    this.mockMembers.push(this.mockUsers[addIndex]);
+    this.mockUsers.splice(addIndex, 1);
   }
   onRemoveOwnerClick(user) {
-    console.log('Remove owner Function for ' + user.name + ' called');
+    const delIndex = this.mockOwners.findIndex((tempUser) => tempUser.id === user.id);
+    this.mockUsers.push(this.mockOwners[delIndex]);
+    this.mockOwners.splice(delIndex, 1);
   }
   onAddUserAsOwnerClick(user) {
-    console.log('Add owner function for ' + user.name + ' called');
+    const addIndex = this.mockUsers.findIndex((tempUser) => tempUser.id === user.id);
+    this.mockOwners.push(this.mockUsers[addIndex]);
+    this.mockUsers.splice(addIndex, 1);
   }
 }
