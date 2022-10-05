@@ -23,7 +23,7 @@
                   {{user.name}}
                   <mat-icon class="item-icon" (click)="onRemoveOwnerClick(user)">remove</mat-icon>
                 </div>
-                <div class="dropdown-item" id="newOwnerItem" (click)="onAddOwnerClick()" > Member hinzufügen </div>
+                <div class="dropdown-item" id="newOwnerItem" (click)="onAddOwnerClick()" > Owner hinzufügen </div>
               </div>
             </div>
             <div *ngIf="showNewOwnerDropdown" id="usersAddOwnerDropdown" class="second-dropdown-content">
@@ -71,7 +71,7 @@
         <label for="groupNameTextInput" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
         <input type="text" name="groupName" id="groupNameTextInput" [(ngModel)]="groupName" placeholder="Gruppenname...">
       </div>
-
+    <button class="mat-raised-button cancel-btn" (click)="onCancel()" color="primary" mat-raised-button=""> Abbrechen </button>
     <button class="mat-raised-button submit-group-btn" (click)="onSaveGroup()" color="primary" mat-raised-button=""> Gruppe erstellen </button>
   </div>
 

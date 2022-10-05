@@ -161,3 +161,9 @@
   margin-top: 40px;
   margin-right: 100px;
 }
+
+.cancel-btn {
+  width: 20%;
+  float: left;
+  margin-top: 40px;
+}
