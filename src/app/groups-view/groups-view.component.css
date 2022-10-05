@@ -31,116 +31,12 @@
   margin-right: 50px;
   float: right;
 }
-
-/* ----- add group -----*/
-
 .add-group-container {
   width: 40%;
 }
-
-.dropdown-container {
-  margin-top: 10px;
-  margin-left: 10px;
-  position: relative;
-  /*display: inline-block;*/
-  display: flex;
-  flex-direction: row;
-}
-
-.dropdown-content {
-  position: relative;
-  padding-bottom: 5px;
-  background-color: #f6f6f6;
-  min-width: 230px;
-  max-height: 200px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.dropdown-item {
-  cursor: default;
-  padding: 4px;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-  margin: 1px;
-  /*width: 90%;*/
-  font-size: 14px;
-}
-.dropdown-item:hover {
-  background-color: lightgrey;
-}
-.item-icon {
-  font-size: 20px;
-  float: right;
-  cursor: pointer;
-}
-
-.second-dropdown-content {
-  position: relative;
-  padding-bottom: 5px;
-  background-color: #f6f6f6;
-  min-width: 230px;
-  max-height: 200px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.scrollable {
-  width: 90%;
-  overflow-y: scroll;
-}
-
-.member-dropdowns-container, .owner-dropdowns-container {
-  display:flex;
-  flex-direction: row;
-}
+/* ----- add group -----*/
 
 
-#newMemberItem, #newOwnerItem {
-  cursor: pointer;
-  text-align: center;
-  font-size: 14px;
-  background-color: #def3f3;
-  font-weight: bold;
-}
-#newMemberItem:hover, #newOwnerItem:hover {
-  background-color: #d1eeee;
-}
-
-.newGroupForm {
-  display: flex;
-  flex-direction: column;
-}
-
-.group-members-container, .group-owners-container {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  margin-left: 0;
-  display: flex;
-  flex-direction: row;
-}
-.group-members-dropdown, .group-owners-dropdown {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-.text-input {
-  width: 90%;
-  padding: 2px;
-  padding-left: 5px;
-  border: 1px solid lightgrey;
-  border-bottom: 1px solid grey;
-  border-radius: 3px;
-  font-size: 15px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
 #groupNameTextInput {
   padding: 2px;
   padding-left: 5px;
