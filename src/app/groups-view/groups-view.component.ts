@@ -171,10 +171,21 @@ export class GroupsViewComponent implements OnInit {
   }
   onSaveGroup() {
     const newGroup = {
+      name: this.groupName,
       owners: this.mockOwners,
       members: this.mockMembers,
-      name: this.groupName,
     };
-    console.dir(newGroup);
+    this.mockGroups.push(newGroup);
+    this.onCancel();
+  }
+  onCancel() {
+    this.groupName = '';
+    this.mockMembers = [];
+    this.mockOwners = [];
+    this.showAddGroup = false;
+    this.showOwnerDropdown = false;
+    this.showNewOwnerDropdown = false;
+    this.showMemberDropdown = false;
+    this.showNewMemberDropdown = false;
   }
 }
