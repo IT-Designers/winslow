@@ -90,6 +90,7 @@ import { ProjectsContextFilterComponent } from './projects-view/tag-filter/proje
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 import { GroupsViewComponent } from './groups-view/groups-view.component';
+import { GroupsDropdownComponent } from './groups-dropdown/groups-dropdown.component';
 
 @NgModule({
     declarations: [
@@ -145,6 +146,7 @@ import { GroupsViewComponent } from './groups-view/groups-view.component';
         AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
         GroupsViewComponent,
+        GroupsDropdownComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
