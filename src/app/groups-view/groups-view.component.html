@@ -72,7 +72,7 @@
         <input type="text" name="groupName" id="groupNameTextInput" [(ngModel)]="groupName" placeholder="Gruppenname...">
       </div>
 
-    <button class="mat-raised-button submit-group-btn" color="primary" mat-raised-button=""> Gruppe erstellen </button>
+    <button class="mat-raised-button submit-group-btn" (click)="onSaveGroup()" color="primary" mat-raised-button=""> Gruppe erstellen </button>
   </div>
 
 </div>
