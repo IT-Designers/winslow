@@ -1,0 +1,27 @@
+<div class="dropdowns-and-label-container">
+  <label for="dropdownBtn" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'flex-shrink':'0', 'width':'30%', 'margin-top': '7px'}"> {{label}} </label>
+  <div class="dropdowns-and-button-container">
+    <button class="mat-raised-button" color="primary" mat-raised-button="" name="ownersDropdownBtn" id="dropdownBtn" dense="" (click)="onDropdownsToggle()"> Owner </button>
+    <div class="dropdowns-container">
+      <div *ngIf="showDropdown" id="dropdown1" class="dropdown-content">
+        <input type="text" class="text-input" id="dropdownSearchText" placeholder="Suche.." (keyup)="filterFunction('dropdownSearchText','dropdown-item')">
+        <div class="scrollable">
+          <div class="dropdown-item" name="dropdown-item" *ngFor="let user of items">
+            {{user.name}}
+            <mat-icon class="item-icon" (click)="onRemoveItemClick(user)">remove</mat-icon>
+          </div>
+          <div class="dropdown-item" id="openSecondDropdownItem" (click)="onOpenSecondDropdownClick()" > {{openDropdown2Text}} </div>
+        </div>
+      </div>
+      <div *ngIf="showDropdown2" id="dropdown2" class="second-dropdown-content">
+        <input type="text" class="text-input" id="dropdown2SearchText" placeholder="Suche.." (keyup)="filterFunction( 'dropdown2SearchText', 'dropdown-2-item')">
+        <div class="scrollable">
+          <div class="dropdown-item" name="owner-dropdown-2-item" *ngFor="let user of items2">
+            {{user.name}}
+            <mat-icon class="item-icon" (click)="onAddItemClick(user)">person_add</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
