@@ -149,20 +149,32 @@ export class GroupsViewComponent implements OnInit {
     const delIndex = this.mockMembers.findIndex((tempUser) => tempUser.id === user.id);
     this.mockUsers.push(this.mockMembers[delIndex]);
     this.mockMembers.splice(delIndex, 1);
+    this.mockUsers.sort((a, b) => a.id - b.id);
   }
   onAddUserAsMemberClick(user) {
     const addIndex = this.mockUsers.findIndex((tempUser) => tempUser.id === user.id);
     this.mockMembers.push(this.mockUsers[addIndex]);
     this.mockUsers.splice(addIndex, 1);
+    this.mockMembers.sort((a, b) => a.id - b.id);
   }
   onRemoveOwnerClick(user) {
     const delIndex = this.mockOwners.findIndex((tempUser) => tempUser.id === user.id);
     this.mockUsers.push(this.mockOwners[delIndex]);
     this.mockOwners.splice(delIndex, 1);
+    this.mockUsers.sort((a, b) => a.id - b.id);
   }
   onAddUserAsOwnerClick(user) {
     const addIndex = this.mockUsers.findIndex((tempUser) => tempUser.id === user.id);
     this.mockOwners.push(this.mockUsers[addIndex]);
     this.mockUsers.splice(addIndex, 1);
+    this.mockOwners.sort((a, b) => a.id - b.id);
+  }
+  onSaveGroup() {
+    const newGroup = {
+      owners: this.mockOwners,
+      members: this.mockMembers,
+      name: this.groupName,
+    };
+    console.dir(newGroup);
   }
 }
