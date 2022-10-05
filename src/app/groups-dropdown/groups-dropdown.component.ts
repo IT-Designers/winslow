@@ -12,6 +12,7 @@ export class GroupsDropdownComponent implements OnInit {
   @Input() label = 'No Label:';
   @Input() buttonName = 'Öffnen';     // text in button to open dropdown
   @Input() openDropdown2Text = 'Hinzufügen';    // text on last item of left dropdown
+  @Input() searchIdentifier = '';     // needs to be different for every dropdown component
   showDropdown = false;
   showDropdown2 = false;
   constructor() { }
@@ -31,7 +32,7 @@ export class GroupsDropdownComponent implements OnInit {
     let i;
     input = document.getElementById(inputId);
     filter = input.value.toUpperCase();
-    divs = document.getElementsByName(divName);
+    divs = document.getElementsByClassName(divName);
     for (i = 0; i < divs.length; i++) {
       const txtValue = divs[i].textContent || divs[i].innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {

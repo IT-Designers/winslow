@@ -61,6 +61,9 @@
   background-color: #def3f3;
   font-weight: bold;
 }
+#openSecondDropdownItem:hover {
+  background-color: #d1eeee;
+}
 .text-input {
   width: 90%;
   padding: 2px;

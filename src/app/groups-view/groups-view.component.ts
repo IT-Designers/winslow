@@ -8,10 +8,6 @@ import { Component, OnInit } from '@angular/core';
 export class GroupsViewComponent implements OnInit {
   groupName = '';
   showAddGroup = false;
-  showMemberDropdown = false;
-  showNewMemberDropdown = false;
-  showOwnerDropdown = false;
-  showNewOwnerDropdown = false;
 
   mockUsers = [
     {name: 'User 2', id: 2},
@@ -103,76 +99,12 @@ export class GroupsViewComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    console.dir(this.mockGroups);
-  }
-  onDropdownToggle() {
-    this.showMemberDropdown = !this.showMemberDropdown;
-    if (!this.showMemberDropdown) {
-      this.showNewMemberDropdown = false;
-    }
-  }
-  onAddMemberClick() {
-    this.showNewMemberDropdown = !this.showNewMemberDropdown;
-  }
-  onOwnerDropdownToggle() {
-    this.showOwnerDropdown = !this.showOwnerDropdown;
-    if (!this.showOwnerDropdown) {
-      this.showNewOwnerDropdown = false;
-    }
-  }
-  onAddOwnerClick() {
-    this.showNewOwnerDropdown = !this.showNewOwnerDropdown;
-  }
-  onItemClick(user) {
-    console.log('User: ' + user.name + ' has been clicked');
   }
   onAddGroupToggle() {
-    console.log('Group toggle');
     this.showAddGroup = !this.showAddGroup;
     if (this.showAddGroup) {
       this.showGroupDetail = false;
     }
-  }
-  filterFunction(elementName: string, searchTextId: string) {
-    let input;
-    let filter;
-    let divs;
-    let i;
-    input = document.getElementById(searchTextId);
-    filter = input.value.toUpperCase();
-    divs = document.getElementsByName(elementName);
-    for (i = 0; i < divs.length; i++) {
-      const txtValue = divs[i].textContent || divs[i].innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        divs[i].style.display = '';
-      } else {
-        divs[i].style.display = 'none';
-      }
-    }
-  }
-  onRemoveMemberClick(user) {
-    const delIndex = this.mockMembers.findIndex((tempUser) => tempUser.id === user.id);
-    this.mockUsers.push(this.mockMembers[delIndex]);
-    this.mockMembers.splice(delIndex, 1);
-    this.mockUsers.sort((a, b) => a.id - b.id);
-  }
-  onAddUserAsMemberClick(user) {
-    const addIndex = this.mockUsers.findIndex((tempUser) => tempUser.id === user.id);
-    this.mockMembers.push(this.mockUsers[addIndex]);
-    this.mockUsers.splice(addIndex, 1);
-    this.mockMembers.sort((a, b) => a.id - b.id);
-  }
-  onRemoveOwnerClick(user) {
-    const delIndex = this.mockOwners.findIndex((tempUser) => tempUser.id === user.id);
-    this.mockUsers.push(this.mockOwners[delIndex]);
-    this.mockOwners.splice(delIndex, 1);
-    this.mockUsers.sort((a, b) => a.id - b.id);
-  }
-  onAddUserAsOwnerClick(user) {
-    const addIndex = this.mockUsers.findIndex((tempUser) => tempUser.id === user.id);
-    this.mockOwners.push(this.mockUsers[addIndex]);
-    this.mockUsers.splice(addIndex, 1);
-    this.mockOwners.sort((a, b) => a.id - b.id);
   }
   onSaveGroup() {
     const newGroup = {
@@ -188,10 +120,6 @@ export class GroupsViewComponent implements OnInit {
     this.mockMembers = [];
     this.mockOwners = [];
     this.showAddGroup = false;
-    this.showOwnerDropdown = false;
-    this.showNewOwnerDropdown = false;
-    this.showMemberDropdown = false;
-    this.showNewMemberDropdown = false;
   }
   groupClicked(group) {
     this.selectedGroup = group;
