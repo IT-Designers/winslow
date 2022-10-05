@@ -1,7 +1,7 @@
 <div class="dropdowns-and-label-container">
   <label for="dropdownBtn" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'flex-shrink':'0', 'width':'30%', 'margin-top': '7px'}"> {{label}} </label>
   <div class="dropdowns-and-button-container">
-    <button class="mat-raised-button" color="primary" mat-raised-button="" name="ownersDropdownBtn" id="dropdownBtn" dense="" (click)="onDropdownsToggle()"> Owner </button>
+    <button class="mat-raised-button" color="primary" mat-raised-button="" id="dropdownBtn" dense="" (click)="onDropdownsToggle()"> {{buttonName}} </button>
     <div class="dropdowns-container">
       <div *ngIf="showDropdown" id="dropdown1" class="dropdown-content">
         <input type="text" class="text-input" id="dropdownSearchText" placeholder="Suche.." (keyup)="filterFunction('dropdownSearchText','dropdown-item')">
