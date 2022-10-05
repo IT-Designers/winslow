@@ -26,16 +26,16 @@
 .group-list-item:hover {
   background-color: lightgrey;
 }
-
-.add-group-container {
-  width: 40%;
-}
-
-
 .new-group-btn {
   margin-top: 20px;
   margin-right: 50px;
   float: right;
+}
+
+/* ----- add group -----*/
+
+.add-group-container {
+  width: 40%;
 }
 
 .dropdown-container {
@@ -166,4 +166,10 @@
   width: 20%;
   float: left;
   margin-top: 40px;
+}
+
+/* ----- Group Detail ------*/
+
+.group-detail-container {
+  width: 40%;
 }

@@ -7,7 +7,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class GroupsViewComponent implements OnInit {
   groupName = '';
-  showAddGroup = true;
+  showAddGroup = false;
   showMemberDropdown = false;
   showNewMemberDropdown = false;
   showOwnerDropdown = false;
@@ -97,6 +97,8 @@ export class GroupsViewComponent implements OnInit {
       ]
     },
   ];
+  showGroupDetail = false;
+  selectedGroup = {name: 'No Group Selected', owners: [], members: []};
 
   constructor() { }
 
@@ -127,6 +129,9 @@ export class GroupsViewComponent implements OnInit {
   onAddGroupToggle() {
     console.log('Group toggle');
     this.showAddGroup = !this.showAddGroup;
+    if (this.showAddGroup) {
+      this.showGroupDetail = false;
+    }
   }
   filterFunction(elementName: string, searchTextId: string) {
     let input;
@@ -187,5 +192,18 @@ export class GroupsViewComponent implements OnInit {
     this.showNewOwnerDropdown = false;
     this.showMemberDropdown = false;
     this.showNewMemberDropdown = false;
+  }
+  groupClicked(group) {
+    this.selectedGroup = group;
+    this.showGroupDetail = true;
+    if (this.showGroupDetail) {
+      this.showAddGroup = false;
+    }
+    /*this.showGroupDetail = !this.showGroupDetail;
+    if (this.showGroupDetail) {
+      this.selectedGroup = group;
+    } else {
+      this.selectedGroup = {name: 'No Group Selected', owners: [], members: []};
+    }*/
   }
 }
