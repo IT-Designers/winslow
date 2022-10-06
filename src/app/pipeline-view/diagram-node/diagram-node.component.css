@@ -1,0 +1,17 @@
+.node {
+  max-width: 400px;
+}
+
+.title {
+  font-size: medium;
+  font-weight: bold;
+}
+
+.subtitle {
+  font-size: small;
+}
+
+.selected {
+  background-color: #f5f5f5;
+  border: 2px solid #007aff;
+}
