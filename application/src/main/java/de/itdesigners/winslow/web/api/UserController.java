@@ -18,6 +18,6 @@ public class UserController {
 
     @GetMapping("/users/self/name")
     public Optional<String> getSelfName(User user) {
-        return Optional.ofNullable(user).map(User::getName);
+        return Optional.ofNullable(user).map(User::name);
     }
 }

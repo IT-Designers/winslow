@@ -3,7 +3,7 @@ package de.itdesigners.winslow.web;
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.auth.User;
-import de.itdesigners.winslow.auth.UserRepository;
+import de.itdesigners.winslow.auth.UserManager;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -13,6 +13,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +22,10 @@ import java.util.Optional;
 @Configuration
 public class UserResolver implements HandlerMethodArgumentResolver, WebMvcConfigurer {
 
-    private final UserRepository users;
+    private final @Nonnull UserManager users;
 
     public UserResolver(Winslow winslow) {
-        this.users = winslow.getUserRepository();
+        this.users = winslow.getUserManager();
     }
 
     @Override

@@ -9,11 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.*;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -86,16 +84,16 @@ public class FileAccessCheckerTest {
     }
 
     @Test
-    public void onlyPrivilegedUsersCanAccessWorkspacesOfProject() throws InvalidNameException, NameAlreadyInUseException {
-        var groupRepository = new GroupRepository();
-        var userRepository  = new UserRepository(groupRepository);
+    public void onlyPrivilegedUsersCanAccessWorkspacesOfProject() throws InvalidNameException, NameAlreadyInUseException, IOException {
+        var groupRepository = new GroupManager(new DummyGroupPersistence());
+        var userRepository  = new UserManager(groupRepository);
 
         var root   = userRepository.getUser("root").orElseThrow();
         var owner  = userRepository.createUserWithoutGroup("project-owner");
         var member = userRepository.createUserWithoutGroup("project-member");
         var other  = userRepository.createUserWithoutGroup("random-guy");
 
-        groupRepository.createGroup("project-group", member.getName(), Role.MEMBER);
+        groupRepository.createGroup("project-group", member.name(), Role.MEMBER);
 
         var workspace = config.getRelativePathOfWorkspaces().resolve("workspace-id");
 
@@ -132,8 +130,8 @@ public class FileAccessCheckerTest {
 
         @Nonnull
         @Override
-        public Stream<Group> getAssignedGroups(@Nonnull String user) {
-            return Stream.empty();
+        public List<Group> getAssignedGroups(@Nonnull String user) {
+            return Collections.emptyList();
         }
 
         @Nonnull

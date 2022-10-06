@@ -1532,8 +1532,8 @@ public class FilesControllerTest {
 
         @Nonnull
         @Override
-        public Stream<Group> getAssignedGroups(@Nonnull String user) {
-            return Stream.empty();
+        public List<Group> getAssignedGroups(@Nonnull String user) {
+            return Collections.emptyList();
         }
 
         @Nonnull

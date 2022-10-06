@@ -22,7 +22,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <jackson.version>2.10.5</jackson.version>
+        <jackson.version>2.12.7</jackson.version>
     </properties>
 
     <distributionManagement>

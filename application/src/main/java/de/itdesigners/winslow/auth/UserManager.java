@@ -2,21 +2,22 @@ package de.itdesigners.winslow.auth;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
-public class UserRepository implements GroupAssignmentResolver {
+public class UserManager implements GroupAssignmentResolver {
 
-    private static final Logger LOG = Logger.getLogger(UserRepository.class.getSimpleName());
+    private static final Logger LOG = Logger.getLogger(UserManager.class.getSimpleName());
 
     private final @Nonnull Map<String, User> users = new HashMap<>();
-    private final @Nonnull GroupRepository   groups;
+    private final @Nonnull GroupManager      groups;
 
-    public UserRepository(@Nonnull GroupRepository groups) {
+    public UserManager(@Nonnull GroupManager groups) {
         this.groups = groups;
         this.users.put(
                 User.SUPER_USER_NAME,
@@ -38,17 +39,37 @@ public class UserRepository implements GroupAssignmentResolver {
     }
 
     @Nonnull
-    public User createUserAndGroup(@Nonnull String name) throws InvalidNameException, NameAlreadyInUseException {
-        var user = this.createUserWithoutGroup(name);
+    public User createUserAndGroupIgnoreIfAlreadyExists(@Nonnull String name) throws InvalidNameException, IOException {
+        try {
+            return this.createUserAndGroup(name);
+        } catch (NameAlreadyInUseException ignored) {
+            return getUser(name).orElseThrow();
+        }
+    }
+
+    @Nonnull
+    public User createUserAndGroup(@Nonnull String name) throws InvalidNameException, NameAlreadyInUseException, IOException {
+        var group = Prefix.User.wrap(Prefix.unwrap_or_given(name));
+        var user  = this.createUserWithoutGroup(name);
 
         try {
-            this.groups.createGroup(
-                    Prefix.User.wrap(Prefix.unwrap_or_given(name)),
-                    user.getName(),
-                    Role.OWNER
-            );
+            try {
+                this.groups.createGroup(
+                        group,
+                        user.name(),
+                        Role.OWNER
+                );
+            } catch (NameAlreadyInUseException ignored) {
+                try {
+                    this.groups.addOrUpdateMembership(group, user.name(), Role.OWNER);
+                } catch (NameNotFoundException e) {
+                    throw new IOException(e);
+                }
+            }
+
+
             return user;
-        } catch (InvalidNameException | NameAlreadyInUseException e) {
+        } catch (InvalidNameException | IOException e) {
             // cleanup: delete the user
             this.users.remove(name);
             throw e;
@@ -91,6 +112,9 @@ public class UserRepository implements GroupAssignmentResolver {
                     } catch (InvalidNameException e) {
                         LOG.log(Level.WARNING, "Failed to create authenticated user", e);
                         return Optional.empty();
+                    } catch (IOException e) {
+                        LOG.log(Level.WARNING, "Failed to persist changes", e);
+                        return Optional.empty();
                     }
                 }));
     }
@@ -102,7 +126,7 @@ public class UserRepository implements GroupAssignmentResolver {
 
     @Nonnull
     @Override
-    public Stream<Group> getAssignedGroups(@Nonnull String user) {
+    public List<Group> getAssignedGroups(@Nonnull String user) {
         return this.groups.getGroupsWithMember(user);
     }
 

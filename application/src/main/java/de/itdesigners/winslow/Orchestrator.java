@@ -6,7 +6,7 @@ import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.auth.User;
-import de.itdesigners.winslow.auth.UserRepository;
+import de.itdesigners.winslow.auth.UserManager;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.Lock;
@@ -57,7 +57,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
     private final @Nonnull RunInfoRepository  hints;
     private final @Nonnull LogRepository      logs;
     private final @Nonnull SettingsRepository settings;
-    private final @Nonnull UserRepository     users;
+    private final @Nonnull UserManager        users;
     private final @Nonnull NodeRepository     nodes;
     private final @Nonnull String             nodeName;
 
@@ -82,7 +82,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
             @Nonnull SettingsRepository settings,
-            @Nonnull UserRepository users,
+            @Nonnull UserManager users,
             @Nonnull NodeRepository nodes,
             @Nonnull String nodeName,
             @Nonnull ResourceAllocationMonitor monitor,

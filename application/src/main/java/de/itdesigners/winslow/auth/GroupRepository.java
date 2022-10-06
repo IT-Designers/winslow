@@ -1,85 +1,166 @@
 package de.itdesigners.winslow.auth;
 
+import de.itdesigners.winslow.BaseRepository;
+import de.itdesigners.winslow.CachedFunction;
+import de.itdesigners.winslow.fs.Event;
+import de.itdesigners.winslow.fs.LockBus;
+import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
+import de.itdesigners.winslow.util.ThrowingFunction;
+
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
-public class GroupRepository {
+public class GroupRepository extends BaseRepository implements GroupPersistence {
 
-    private final Map<String, Group> groups = new HashMap<>();
+    private static final String FILE_EXTENSION = ".yml";
 
-    public GroupRepository() {
-        this.groups.put(
-                Group.SUPER_GROUP_NAME,
-                new Group(
-                        Group.SUPER_GROUP_NAME,
-                        List.of(
-                                new Link(User.SUPER_USER_NAME, Role.OWNER)
-                        )
-                )
+    private final @Nonnull CachedFunction<String, Optional<Group>> cachedLoader;
+
+    public GroupRepository(
+            @Nonnull LockBus lockBus,
+            @Nonnull WorkDirectoryConfiguration workDirectoryConfiguration) throws IOException {
+        super(lockBus, workDirectoryConfiguration);
+        this.cachedLoader = new CachedFunction<>(
+                name -> getGroupHandle(name).unsafe().or(() -> {
+                    // insert hook to always be able to retrieve the super-group
+                    if (Group.SUPER_GROUP_NAME.equals(name)) {
+                        return Optional.of(new Group(
+                                name,
+                                List.of(
+                                        new Link(User.SUPER_USER_NAME, Role.OWNER)
+                                )
+                        ));
+                    } else {
+                        return Optional.empty();
+                    }
+                })
+        );
+
+        lockBus.registerEventListener(
+                Event.Command.RELEASE,
+                event -> {
+                    var eventPath = Path.of(event.getSubject()).normalize();
+                    var eventFile = eventPath.getFileName().toString();
+                    var dir       = workDirectoryConfiguration.getAuthGroupDirectory();
+                    var parent    = workDirectoryConfiguration.getPath().resolve(eventPath).getParent().toUri();
+
+                    if (parent.getPath().equals(dir.toUri().getPath()) && eventFile.endsWith(FILE_EXTENSION)) {
+                        var groupName = eventFile.substring(0, eventFile.length() - FILE_EXTENSION.length());
+                        synchronizedVoidLoader(loader -> loader.forget(groupName));
+                    }
+                },
+                LockBus.RegistrationOption.NOTIFY_ONLY_IF_ISSUER_IS_NOT_US
         );
     }
 
     @Nonnull
-    public Group createGroup(
-            @Nonnull String name,
-            @Nonnull String user,
-            @Nonnull Role userRole) throws InvalidNameException, NameAlreadyInUseException {
-        return createGroup(name, new Link(user, userRole));
+    @Override
+    protected Path getRepositoryDirectory() {
+        return this.workDirectoryConfiguration.getAuthGroupDirectory();
     }
 
     @Nonnull
-    public Group createGroup(
-            @Nonnull String name,
-            @Nonnull Link... members) throws InvalidNameException, NameAlreadyInUseException {
-        return createGroup(name, List.of(members));
-    }
-
-    public Group createGroup(
-            @Nonnull String name,
-            @Nonnull List<Link> members) throws InvalidNameException, NameAlreadyInUseException {
-        var group = new Group(name, Collections.unmodifiableList(members));
-        this.withGroup(group);
-        return group;
+    private Handle<Group> getGroupHandle(@Nonnull String name) {
+        return createHandle(getGroupFilePath(name), Group.class);
     }
 
     @Nonnull
-    private GroupRepository withGroup(@Nonnull Group group) {
-        if (!this.groups.containsKey(group.getName())) {
-            this.groups.put(group.getName(), group);
+    private Path getGroupFilePath(@Nonnull String name) {
+        return getRepositoryDirectory().resolve(Path.of(name + FILE_EXTENSION).normalize().getFileName());
+    }
+
+    private synchronized <T> T synchronizedLoader(Function<CachedFunction<String, Optional<Group>>, T> callback) {
+        return callback.apply(this.cachedLoader);
+    }
+
+    private void synchronizedVoidLoader(Consumer<CachedFunction<String, Optional<Group>>> callback) {
+        this.synchronizedLoader(loader -> {
+            callback.accept(loader);
+            return null;
+        });
+    }
+
+    @Nonnull
+    @Override
+    public Optional<Group> loadUnsafeNoThrows(@Nonnull String name) {
+        return synchronizedLoader(loader -> loader.apply(name));
+    }
+
+    @Override
+    public void store(@Nonnull Group group) throws IOException {
+        try (var container = getGroupHandle(group.name()).exclusive().orElseThrow()) {
+            container.update(group);
         }
-        return this;
+        synchronizedVoidLoader(loader -> loader.remember(group.name(), Optional.of(group)));
     }
 
-    public void addMemberToGroup(
-            @Nonnull String group,
-            @Nonnull String user,
-            @Nonnull Role role) throws NameNotFoundException, LinkWithNameAlreadyExistsException {
-        this.addMemberToGroup(group, new Link(user, role));
+    @Override
+    public void storeIfNotExists(@Nonnull Group group) throws IOException, NameAlreadyInUseException {
+        var handle = getGroupHandle(group.name());
+        if (!handle.exists()) {
+            try (var container = handle.exclusive().orElseThrow()) {
+                container.update(group);
+            }
+            synchronizedVoidLoader(loader -> loader.remember(group.name(), Optional.of(group)));
+        } else {
+            throw new NameAlreadyInUseException(group.name());
+        }
     }
 
-    public void addMemberToGroup(
-            @Nonnull String group,
-            @Nonnull Link link) throws NameNotFoundException, LinkWithNameAlreadyExistsException {
-        var oldGroup = Optional.ofNullable(this.groups.get(group)).orElseThrow(() -> new NameNotFoundException(group));
+    @Nonnull
+    @Override
+    public <E extends Throwable> Group updateComputeIfAbsent(
+            @Nonnull String name,
+            @Nonnull ThrowingFunction<Group, Group, E> updater,
+            @Nonnull Supplier<Optional<Group>> supplier) throws NameNotFoundException, IOException, E {
+        try (var container = getGroupHandle(name).exclusive().orElseThrow()) {
+            var oldGroup = container.getNoThrow().or(supplier).orElseThrow(() -> new NameNotFoundException(name));
+            var newGroup = updater.apply(oldGroup);
+            container.update(newGroup);
+            synchronizedVoidLoader(loader -> loader.remember(name, Optional.of(newGroup)));
+            return newGroup;
+        }
+    }
 
-        if (oldGroup.getMembers().stream().anyMatch(l -> l.name().equals(link.name()))) {
-            throw new LinkWithNameAlreadyExistsException(link.name());
+    @Override
+    public void delete(@Nonnull String name) throws NameNotFoundException, IOException {
+        var handle = getGroupHandle(name);
+
+        if (!handle.exists()) {
+            throw new NameNotFoundException(name);
         }
 
-
-        var newMembers = new ArrayList<>(oldGroup.getMembers());
-        newMembers.add(link);
-        this.groups.put(group, new Group(group, newMembers));
+        try (var container = handle.exclusive().orElseThrow()) {
+            container.delete();
+            synchronizedVoidLoader(loader -> loader.forget(name));
+        }
     }
 
     @Nonnull
-    public Optional<Group> getGroup(String name) {
-        return Optional.ofNullable(this.groups.get(name));
-    }
+    @Override
+    public Stream<String> listGroupNamesNoThrows() {
+        Function<Stream<Path>, Stream<String>> noneThrowingMapping = stream -> stream
+                .filter(Files::isRegularFile)
+                .map(path -> path.getFileName().toString())
+                .filter(name -> name.endsWith(FILE_EXTENSION))
+                .map(name -> name.substring(0, name.length() - FILE_EXTENSION.length()))
+                .toList()
+                .stream();
 
-    @Nonnull
-    public Stream<Group> getGroupsWithMember(String user) {
-        return this.groups.values().stream().filter(group -> group.isMember(user));
+        try (var stream = Files.list(getRepositoryDirectory())) {
+            return noneThrowingMapping.apply(stream);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to list groups directory", e);
+            return Stream.empty();
+        }
     }
 }

@@ -1,10 +1,12 @@
 package de.itdesigners.winslow.auth;
 
+import de.itdesigners.winslow.LockedContainer;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.logging.Logger;
 
 /**
  * Current snapshot of a user. An instance is not intended to be cached in memory.
@@ -14,13 +16,15 @@ import java.util.stream.Stream;
  * Provides convenience functions such as {@link #isSuperUser()}, {@link #hasSuperPrivileges()} (String)} and
  * {@link #isPartOfGroup(String)}.
  *
- * @param getName                    The name (might be {@link Prefix}ed)
- * @param getGroupAssignmentResolver Helper to resolve group assignment requests
+ * @param name                    The name (might be {@link Prefix}ed)
+ * @param groupAssignmentResolver Helper to resolve group assignment requests
  */
 public record User(
-        @Nonnull String getName,
-        @Nonnull GroupAssignmentResolver getGroupAssignmentResolver
+        @Nonnull String name,
+        @Nonnull GroupAssignmentResolver groupAssignmentResolver
 ) {
+
+    private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
     /**
      * The name of the user with super privileges / the name of the user that is privileged.
@@ -32,7 +36,7 @@ public record User(
      * @return Whether this {@link User} is privileged through its name, see {@link #SUPER_USER_NAME}
      */
     public boolean isSuperUser() {
-        return SUPER_USER_NAME.equals(this.getName());
+        return SUPER_USER_NAME.equals(this.name());
     }
 
     /**
@@ -40,15 +44,15 @@ public record User(
      * or by inheriting super privileges through an assigned group
      */
     public boolean hasSuperPrivileges() {
-        return this.isSuperUser() || this.getGroups().anyMatch(Group::isSuperGroup);
+        return this.isSuperUser() || this.getGroups().stream().anyMatch(Group::isSuperGroup);
     }
 
     /**
-     * @return Names of {@link Group}s that list this {@link User} as member.
+     * @return {@link Group}s that list this {@link User} as member.
      */
     @Nonnull
-    public Stream<Group> getGroups() {
-        return this.getGroupAssignmentResolver().getAssignedGroups(this.getName());
+    public List<Group> getGroups() {
+        return this.groupAssignmentResolver().getAssignedGroups(this.name());
     }
 
     /**
@@ -59,11 +63,12 @@ public record User(
      * @return Whether this user is a member of the group with the given name
      */
     public boolean isPartOfGroup(@Nonnull String group) {
-        return this.getGroupAssignmentResolver().isPartOfGroup(this.getName(), group);
+        return this.groupAssignmentResolver().isPartOfGroup(this.name(), group);
     }
 
     @Nonnull
     public Optional<ResourceLimitation> getResourceLimitation() {
+        // TODO
         return Optional.empty();
     }
 }

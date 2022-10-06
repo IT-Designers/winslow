@@ -93,7 +93,7 @@ public class ProjectRepository extends BaseRepository {
                     return this.createProject(owner, pipeline, customizer);
                 }
 
-                var project = new Project(id, owner.getName(), pipeline);
+                var project = new Project(id, owner.name(), pipeline);
                 customizer.accept(project);
                 storable.update(project);
                 return Optional.of(project);

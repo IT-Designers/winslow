@@ -432,7 +432,7 @@ public class ProjectsEndpointController {
     public static Optional<User> getUser(@Nonnull Winslow winslow, @Nullable String user) {
         return Env.getDevUser()
                   .or(() -> Optional.ofNullable(user))
-                  .flatMap(winslow.getUserRepository()::getUserOrCreateAuthenticated);
+                  .flatMap(winslow.getUserManager()::getUserOrCreateAuthenticated);
     }
 
     @Nonnull
