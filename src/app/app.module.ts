@@ -90,6 +90,8 @@ import { ProjectsContextFilterComponent } from './projects-view/tag-filter/proje
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 import { PipelineViewComponent } from './pipeline-view/pipeline-view.component';
+import { DiagramNodeComponent } from './pipeline-view/diagram-node/diagram-node.component';
+import { DiagramLibraryComponent } from './pipeline-view/diagram-library/diagram-library.component';
 
 @NgModule({
     declarations: [
@@ -145,6 +147,8 @@ import { PipelineViewComponent } from './pipeline-view/pipeline-view.component';
         AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
         PipelineViewComponent,
+        DiagramNodeComponent,
+        DiagramLibraryComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
