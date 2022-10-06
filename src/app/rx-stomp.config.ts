@@ -25,7 +25,7 @@ export const RxStompConfig: InjectableRxStompConfig = {
   // Skip this key to stop logging to console
   debug: (msg: string): void => {
     if (!environment.production) {
-      console.log(new Date(), msg);
+      //console.log(new Date(), msg);
     }
   },
 
