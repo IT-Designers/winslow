@@ -1,5 +1,6 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.cli.FixWorkspacePaths;
 import de.itdesigners.winslow.config.ExecutionGroup;

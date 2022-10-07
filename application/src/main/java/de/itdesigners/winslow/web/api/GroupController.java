@@ -1,7 +1,11 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.auth.GroupInfo;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.auth.*;
+import de.itdesigners.winslow.web.GroupInfoConverter;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,44 +35,48 @@ public class GroupController {
     }
 
     @GetMapping("/groups")
-    public Stream<Group> getGroups(@Nonnull User user) {
+    public Stream<GroupInfo> getGroups(@Nonnull User user) {
         // mask "not found" and "not allowed to see" as empty response
         return winslow
                 .getGroupManager()
                 .getGroups()
                 .stream()
-                .filter(group -> isAllowedToSeeGroup(user, group));
+                .filter(group -> isAllowedToSeeGroup(user, group))
+                .map(GroupInfoConverter::from);
     }
 
     @GetMapping("/groups/{name}")
-    public Optional<Group> getGroup(
+    public Optional<GroupInfo> getGroup(
             @Nonnull User user,
             @PathVariable("name") String name) {
         // mask "not found" and "not allowed to see" as empty response
         return winslow
                 .getGroupManager()
                 .getGroup(name)
-                .filter(group -> isAllowedToSeeGroup(user, group));
+                .filter(group -> isAllowedToSeeGroup(user, group))
+                .map(GroupInfoConverter::from);
     }
 
     @PostMapping("/groups")
-    public Group createGroup(
+    public GroupInfo createGroup(
             @Nullable User user,
             @RequestBody Group group) {
         try {
             ensure(isAllowedToCreateNewGroup(user));
 
-            return winslow.getGroupManager().createGroup(
-                    Prefix.unwrap_or_given(group.name()),
-                    Stream.concat(
-                            Stream.of(new Link(user.name(), Role.OWNER)),
-                            group
-                                    .members()
-                                    .stream()
-                                    .filter(link -> !link
-                                            .name()
-                                            .equals(user.name()))
-                    ).toList()
+            return GroupInfoConverter.from(
+                    winslow.getGroupManager().createGroup(
+                        Prefix.unwrap_or_given(group.name()),
+                        Stream.concat(
+                                Stream.of(new Link(user.name(), Role.OWNER)),
+                                group
+                                        .members()
+                                        .stream()
+                                        .filter(link -> !link
+                                                .name()
+                                                .equals(user.name()))
+                        ).toList()
+                )
             );
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);

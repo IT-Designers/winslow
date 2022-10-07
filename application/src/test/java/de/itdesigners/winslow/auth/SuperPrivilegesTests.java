@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.auth;
 
+import de.itdesigners.winslow.api.auth.Role;
 import org.junit.Test;
 
 import java.io.IOException;

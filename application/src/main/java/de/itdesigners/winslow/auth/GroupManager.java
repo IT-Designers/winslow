@@ -1,5 +1,8 @@
 package de.itdesigners.winslow.auth;
 
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
+
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;

@@ -1,7 +1,9 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.auth.UserInfo;
 import de.itdesigners.winslow.auth.User;
+import de.itdesigners.winslow.web.UserInfoConverter;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,10 +33,11 @@ public class UserController {
 
     @ApiOperation(value = "A potentially incomplete list of known Users")
     @GetMapping("/users")
-    public Stream<User> getUsers(@Nonnull User user) {
+    public Stream<UserInfo> getUsers(@Nonnull User user) {
         // mask "not found" and "not allowed to see" as empty response
         return winslow
                 .getUserManager()
-                .getUsersPotentiallyIncomplete();
+                .getUsersPotentiallyIncomplete()
+                .map(UserInfoConverter::from);
     }
 }

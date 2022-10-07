@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.web;
 
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.project.Project;

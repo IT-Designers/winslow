@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.auth;
+package de.itdesigners.winslow.api.auth;
 
 /**
  * The roles are ordered descendingly in level of their privileges. The first entry (@link #OWNER) represents the most

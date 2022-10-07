@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.auth;
+package de.itdesigners.winslow.api.auth;
 
 import javax.annotation.Nonnull;
 

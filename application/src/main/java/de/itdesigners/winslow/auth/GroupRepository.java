@@ -2,6 +2,8 @@ package de.itdesigners.winslow.auth;
 
 import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.CachedFunction;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;

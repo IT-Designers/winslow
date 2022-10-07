@@ -1,5 +1,7 @@
 package de.itdesigners.winslow.auth;
 
+import de.itdesigners.winslow.api.auth.Link;
+
 import javax.annotation.Nonnull;
 import java.util.stream.Stream;
 
