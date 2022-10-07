@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class UserManager implements GroupAssignmentResolver {
 
@@ -86,6 +87,11 @@ public class UserManager implements GroupAssignmentResolver {
     @Nonnull
     public Optional<User> getUser(@Nonnull String name) {
         return Optional.ofNullable(this.users.get(name));
+    }
+
+    @Nonnull
+    public Stream<User> getUsersPotentiallyIncomplete() {
+        return this.users.values().stream();
     }
 
     /**

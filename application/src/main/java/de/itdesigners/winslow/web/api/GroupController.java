@@ -2,6 +2,7 @@ package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.auth.*;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -146,6 +147,12 @@ public class GroupController {
             LOG.log(Level.SEVERE, "Failed to delete group membership because of an io-error", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @ApiOperation(value = "In privileges descendingly ordered list of all available Roles for memberships")
+    @GetMapping("/groups/member-roles")
+    public Role[] getMemberRoles() {
+        return Role.values();
     }
 
 

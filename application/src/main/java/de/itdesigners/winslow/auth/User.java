@@ -4,6 +4,7 @@ import de.itdesigners.winslow.LockedContainer;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 
 import javax.annotation.Nonnull;
+import java.beans.Transient;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
  */
 public record User(
         @Nonnull String name,
-        @Nonnull GroupAssignmentResolver groupAssignmentResolver
+        @Nonnull @Transient GroupAssignmentResolver groupAssignmentResolver
 ) {
 
     private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
@@ -35,6 +36,7 @@ public record User(
     /**
      * @return Whether this {@link User} is privileged through its name, see {@link #SUPER_USER_NAME}
      */
+    @Transient
     public boolean isSuperUser() {
         return SUPER_USER_NAME.equals(this.name());
     }
@@ -43,6 +45,7 @@ public record User(
      * @return Whether this user has super privileges either by {@link #isSuperUser()}
      * or by inheriting super privileges through an assigned group
      */
+    @Transient
     public boolean hasSuperPrivileges() {
         return this.isSuperUser() || this.getGroups().stream().anyMatch(Group::isSuperGroup);
     }
@@ -51,6 +54,7 @@ public record User(
      * @return {@link Group}s that list this {@link User} as member.
      */
     @Nonnull
+    @Transient
     public List<Group> getGroups() {
         return this.groupAssignmentResolver().getAssignedGroups(this.name());
     }
@@ -62,11 +66,13 @@ public record User(
      * @param group The name of the {@link Group} to test for
      * @return Whether this user is a member of the group with the given name
      */
+    @Transient
     public boolean isPartOfGroup(@Nonnull String group) {
         return this.groupAssignmentResolver().isPartOfGroup(this.name(), group);
     }
 
     @Nonnull
+    @Transient // TODO for now
     public Optional<ResourceLimitation> getResourceLimitation() {
         // TODO
         return Optional.empty();
