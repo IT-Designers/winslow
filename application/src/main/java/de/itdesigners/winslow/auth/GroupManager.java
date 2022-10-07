@@ -103,7 +103,7 @@ public class GroupManager {
             return current.get();
         }
 
-        return this.persistence.update(group, oldGroup -> new Group(
+        return this.persistence.updateComputeIfAbsent(group, oldGroup -> new Group(
                 oldGroup.name(),
                 Stream.concat(
                         oldGroup
@@ -112,7 +112,7 @@ public class GroupManager {
                                 .filter(l -> !l.name().equals(link.name())),
                         Stream.of(link)
                 ).toList()
-        ));
+        ), () -> getSuperGroupSupplier(group));
     }
 
     @Nonnull
