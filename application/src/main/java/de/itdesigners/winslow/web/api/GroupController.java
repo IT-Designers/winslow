@@ -6,7 +6,6 @@ import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.web.GroupInfoConverter;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -156,13 +155,6 @@ public class GroupController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    @ApiOperation(value = "In privileges descendingly ordered list of all available Roles for memberships")
-    @GetMapping("/groups/member-roles")
-    public Role[] getMemberRoles() {
-        return Role.values();
-    }
-
 
     private void ensure(boolean accessGranted) throws ResponseStatusException {
         if (!accessGranted) {
