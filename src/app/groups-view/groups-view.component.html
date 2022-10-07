@@ -1,9 +1,11 @@
-<h1>Gruppenverwaltung</h1>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
+<h1 [ngStyle]="{'margin-left':'50px'}">Gruppenverwaltung</h1>
 <div class="groupAdministrationDiv">
   <div class="groups-list">
     <h2> Meine Gruppen </h2>
     <div class="group-list-item" *ngFor="let group of mockGroups" (click)="groupClicked(group)">
       {{group.name}}
+      <span class="material-symbols-outlined item-icon" (click)="groupClicked(group)">menu</span>
     </div>
     <button class="mat-raised-button new-group-btn" color="primary" mat-raised-button="" (click)="onAddGroupToggle()"> Neue Gruppe </button>
   </div>
@@ -14,13 +16,13 @@
     <app-groups-dropdown
       [items]="mockOwners"
       [items2]="mockUsers"
-      label="Owners:"
+      label="Owner:"
       buttonName="Owner anzeigen"
       openDropdown2Text="Owner hinzufügen"
       searchIdentifier="a"></app-groups-dropdown>
     <app-groups-dropdown
       [items]="mockMembers"
-      [items2]="mockUsers"
+      [items2]="mockUsers2"
       label="Gruppenmitglieder:"
       buttonName="Mitglieder anzeigen"
       openDropdown2Text="Mitglieder hinzufügen"
@@ -39,21 +41,23 @@
     <app-groups-dropdown
     [items]="selectedGroup.owners"
     [items2]="mockUsers"
-    label="Owners:"
+    label="Owner:"
     buttonName="Owner anzeigen"
     openDropdown2Text="Owner hinzufügen"
     searchIdentifier="c"></app-groups-dropdown>
     <app-groups-dropdown
       [items]="selectedGroup.members"
-      [items2]="mockUsers"
+      [items2]="mockUsers2"
       label="Gruppenmitglieder:"
       buttonName="Mitglieder anzeigen"
       openDropdown2Text="Mitglieder hinzufügen"
       searchIdentifier="d"></app-groups-dropdown>
     <div class="group-name-container">
       <label for="detailGroupNameTextInput" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
-      <input type="text" name="groupName" id="detailGroupNameTextInput" [(ngModel)]="selectedGroup.name" placeholder="Gruppenname...">
+      <input type="text" name="groupName" id="detailGroupNameTextInput" [ngModel]="selectedGroup.name" placeholder="Gruppenname...">
     </div>
+    <button class="mat-raised-button cancel-btn" (click)="onEditCancel()" color="primary" mat-raised-button=""> Abbrechen </button>
+    <button class="mat-raised-button submit-group-btn" (click)="onSaveGroupEdit()" color="primary" mat-raised-button=""> Speichern </button>
   </div>
 
 </div>

@@ -9,7 +9,7 @@ export class GroupsDropdownComponent implements OnInit {
 
   @Input() items = [];    // left dropdown
   @Input() items2 = [];   // right dropdown
-  @Input() label = 'No Label:';
+  @Input() label = 'No Label:';     // text for label
   @Input() buttonName = 'Öffnen';     // text in button to open dropdown
   @Input() openDropdown2Text = 'Hinzufügen';    // text on last item of left dropdown
   @Input() searchIdentifier = '';     // needs to be different for every dropdown component
