@@ -13,18 +13,18 @@ export class GroupsDropdownComponent implements OnInit {
   @Input() buttonName = 'Öffnen';     // text in button to open dropdown
   @Input() openDropdown2Text = 'Hinzufügen';    // text on last item of left dropdown
   @Input() searchIdentifier = '';     // needs to be different for every dropdown component
-  showDropdown = false;
-  showDropdown2 = false;
+  /*showDropdown = true;
+  showDropdown2 = false;*/
   constructor() { }
 
   ngOnInit(): void {
   }
-  onDropdownsToggle() {
+  /*onDropdownsToggle() {
     this.showDropdown = !this.showDropdown;
     if (!this.showDropdown) {
       this.showDropdown2 = false;
     }
-  }
+  }*/
   filterFunction(inputId: string, divName: string) {
     let input;
     let filter;
@@ -54,7 +54,7 @@ export class GroupsDropdownComponent implements OnInit {
     this.items2.splice(addIndex, 1);
     this.items.sort((a, b) => a.id - b.id);
   }
-  onOpenSecondDropdownClick() {
+  /*onOpenSecondDropdownClick() {
     this.showDropdown2 = !this.showDropdown2;
-  }
+  }*/
 }

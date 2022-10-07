@@ -10,6 +10,8 @@ export class GroupsViewComponent implements OnInit {
   groupName = '';
   showAddGroup = false;
 
+  allGroups = [];
+
   mockUsers = [
     {name: 'User 2', id: 2},
     {name: 'User 4', id: 4},
@@ -106,7 +108,9 @@ export class GroupsViewComponent implements OnInit {
   showGroupDetail = false;
   selectedGroup = {name: 'No Group Selected', owners: [], members: []};
 
-  constructor(private groupApiService: GroupApiService) { }
+  constructor(private api: GroupApiService) {
+    this.api.getGroups().then((groups) => this.allGroups = groups);
+  }
 
   ngOnInit(): void {
   }
@@ -134,7 +138,7 @@ export class GroupsViewComponent implements OnInit {
   onEditCancel() {
     this.selectedGroup = {name: 'No Group Selected', owners: [], members: []};
     this.showGroupDetail = false;
-    this.groupApiService.getGroups().then((data) => console.dir(data));
+    this.api.getGroups().then((data) => console.dir(data));
   }
   onSaveGroupEdit() {
     let nameField;

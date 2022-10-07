@@ -3,7 +3,7 @@
 <div class="groupAdministrationDiv">
   <div class="groups-list">
     <h2> Meine Gruppen </h2>
-    <div class="group-list-item" *ngFor="let group of mockGroups" (click)="groupClicked(group)">
+    <div class="group-list-item" *ngFor="let group of allGroups" (click)="groupClicked(group)">
       {{group.name}}
       <span class="material-symbols-outlined item-icon" (click)="groupClicked(group)">menu</span>
     </div>
@@ -13,49 +13,34 @@
   <div *ngIf="showAddGroup" class="add-group-container">
     <h2> Neue Gruppe erstellen:</h2>
 
+    <div class="group-name-container">
+      <label for="groupNameTextInput" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
+      <input type="text" name="groupName" id="groupNameTextInput" [(ngModel)]="groupName" placeholder="Gruppenname...">
+    </div>
+
     <app-groups-dropdown
       [items]="mockOwners"
       [items2]="mockUsers"
-      label="Owner:"
-      buttonName="Owner anzeigen"
+      label="Member:"
       openDropdown2Text="Owner hinzufügen"
       searchIdentifier="a"></app-groups-dropdown>
-    <app-groups-dropdown
-      [items]="mockMembers"
-      [items2]="mockUsers2"
-      label="Gruppenmitglieder:"
-      buttonName="Mitglieder anzeigen"
-      openDropdown2Text="Mitglieder hinzufügen"
-      searchIdentifier="b"></app-groups-dropdown>
 
-    <div class="group-name-container">
-        <label for="groupNameTextInput" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
-        <input type="text" name="groupName" id="groupNameTextInput" [(ngModel)]="groupName" placeholder="Gruppenname...">
-      </div>
     <button class="mat-raised-button cancel-btn" (click)="onCancel()" color="primary" mat-raised-button=""> Abbrechen </button>
     <button class="mat-raised-button submit-group-btn" (click)="onSaveGroup()" color="primary" mat-raised-button=""> Gruppe erstellen </button>
   </div>
 
   <div *ngIf="showGroupDetail" class="group-detail-container">
     <h2>Gruppendetails</h2>
-    <app-groups-dropdown
-    [items]="selectedGroup.owners"
-    [items2]="mockUsers"
-    label="Owner:"
-    buttonName="Owner anzeigen"
-    openDropdown2Text="Owner hinzufügen"
-    searchIdentifier="c"></app-groups-dropdown>
-    <app-groups-dropdown
-      [items]="selectedGroup.members"
-      [items2]="mockUsers2"
-      label="Gruppenmitglieder:"
-      buttonName="Mitglieder anzeigen"
-      openDropdown2Text="Mitglieder hinzufügen"
-      searchIdentifier="d"></app-groups-dropdown>
     <div class="group-name-container">
       <label for="detailGroupNameTextInput" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'30%'}"> Gruppenname: </label>
       <input type="text" name="groupName" id="detailGroupNameTextInput" [ngModel]="selectedGroup.name" placeholder="Gruppenname...">
     </div>
+    <app-groups-dropdown
+    [items]="selectedGroup.members"
+    [items2]="mockUsers"
+    label="Member:"
+    openDropdown2Text="Owner hinzufügen"
+    searchIdentifier="c"></app-groups-dropdown>
     <button class="mat-raised-button cancel-btn" (click)="onEditCancel()" color="primary" mat-raised-button=""> Abbrechen </button>
     <button class="mat-raised-button submit-group-btn" (click)="onSaveGroupEdit()" color="primary" mat-raised-button=""> Speichern </button>
   </div>
