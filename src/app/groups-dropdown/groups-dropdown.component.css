@@ -40,9 +40,10 @@
 }
 .dropdown-item {
   cursor: default;
-  padding: 4px;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
+  padding: 3px;
+  /*border: 1px solid lightgrey;*/
+  border-bottom: 1px solid lightgrey;
+  /*border-radius: 4px;*/
   margin: 1px;
   font-size: 14px;
 }
@@ -50,9 +51,13 @@
   background-color: lightgrey;
 }
 .item-icon {
-  font-size: 20px;
+  font-size: 22px;
   float: right;
   cursor: pointer;
+  margin-right: 5px;
+}
+.item-icon:hover {
+  scale: 1.1;
 }
 #openSecondDropdownItem {
   cursor: pointer;
