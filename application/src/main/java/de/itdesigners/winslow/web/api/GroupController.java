@@ -79,7 +79,7 @@ public class GroupController {
         }
     }
 
-    @GetMapping("/groups/{group}/links")
+    @GetMapping("/groups/{group}/members")
     public List<Link> getMemberships(
             @Nullable User user,
             @PathVariable("group") String groupName) {
@@ -92,7 +92,7 @@ public class GroupController {
                 .orElse(Collections.emptyList());
     }
 
-    @PostMapping("/groups/{group}/links")
+    @PostMapping("/groups/{group}/members")
     public List<Link> addOrUpdateMembership(
             @Nullable User user,
             @PathVariable("group") String groupName,
@@ -130,7 +130,7 @@ public class GroupController {
         }
     }
 
-    @DeleteMapping("/groups/{group}/link/{user}")
+    @DeleteMapping("/groups/{group}/members/{user}")
     public void deleteGroupMembership(
             @Nullable User user,
             @PathVariable("group") String groupName,
