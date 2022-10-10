@@ -31,6 +31,12 @@
 .group-list-item:hover {
   background-color: lightgrey;
 }
+.group-list-item:visited {
+  background-color: #5ac8fa;
+}
+.item-clicked {
+  background-color: #5ac8fa;
+}
 
 .item-icon {
   font-size: 22px;

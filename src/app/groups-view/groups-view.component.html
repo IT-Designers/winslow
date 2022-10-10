@@ -3,9 +3,9 @@
 <div class="groupAdministrationDiv">
   <div class="groups-list">
     <h2> Meine Gruppen </h2>
-    <div class="group-list-item" *ngFor="let group of allGroups" (click)="groupClicked(group)">
+    <div class="group-list-item" *ngFor="let group of allGroups" (click)="groupClicked(group, $event)">
       {{group.name}}
-      <span class="material-symbols-outlined item-icon" (click)="groupClicked(group)">menu</span>
+      <span class="material-symbols-outlined item-icon" (click)="groupClicked(group, $event)">menu</span>
     </div>
     <button class="mat-raised-button new-group-btn" color="primary" mat-raised-button="" (click)="onAddGroupToggle()"> Neue Gruppe </button>
   </div>
