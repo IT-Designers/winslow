@@ -9,6 +9,7 @@ import { GroupApiService } from '../api/group-api.service';
 export class GroupsViewComponent implements OnInit {
   groupName = '';
   showAddGroup = false;
+  itemSelected = false;
 
   allGroups = [];
 
@@ -138,7 +139,14 @@ export class GroupsViewComponent implements OnInit {
   onEditCancel() {
     this.selectedGroup = {name: 'No Group Selected', owners: [], members: []};
     this.showGroupDetail = false;
-    this.api.getGroups().then((data) => console.dir(data));
+    if (this.itemSelected) {
+      const items = document.getElementsByClassName('group-list-item');
+      let i;
+      for (i = 0; i < items.length; i++) {
+        items[i].classList.remove('item-clicked');
+      }
+      this.itemSelected = false;
+    }
   }
   onSaveGroupEdit() {
     let nameField;
@@ -153,12 +161,23 @@ export class GroupsViewComponent implements OnInit {
     console.dir(editedGroup);
     this.onEditCancel();
   }
-  groupClicked(group) {
+  groupClicked(group, event) {
     this.selectedGroup = group;
     this.showGroupDetail = true;
     if (this.showGroupDetail) {
       this.showAddGroup = false;
     }
+    console.dir(event);
+    /*event.target.style = 'background-color: #5ac8fa';*/
+    if (this.itemSelected) {
+      const items = document.getElementsByClassName('group-list-item');
+      let i;
+      for (i = 0; i < items.length; i++) {
+        items[i].classList.remove('item-clicked');
+      }
+    }
+    event.target.classList.add('item-clicked');
+    this.itemSelected = true;
     /*this.showGroupDetail = !this.showGroupDetail;
     if (this.showGroupDetail) {
       this.selectedGroup = group;
