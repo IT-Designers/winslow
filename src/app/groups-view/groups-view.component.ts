@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GroupApiService } from '../api/group-api.service';
+import { RoleApiService } from '../api/role-api.service';
 
 @Component({
   selector: 'app-groups-view',
@@ -12,6 +13,7 @@ export class GroupsViewComponent implements OnInit {
   itemSelected = false;
 
   allGroups = [];
+  allRoles = [''];
 
   mockUsers = [
     {name: 'User 2', id: 2},
@@ -109,8 +111,9 @@ export class GroupsViewComponent implements OnInit {
   showGroupDetail = false;
   selectedGroup = {name: 'No Group Selected', owners: [], members: []};
 
-  constructor(private api: GroupApiService) {
-    this.api.getGroups().then((groups) => this.allGroups = groups);
+  constructor(private groupApi: GroupApiService, private roleApi: RoleApiService) {
+    this.groupApi.getGroups().then((groups) => this.allGroups = groups);
+    this.roleApi.getRoles().then((roles) => this.allRoles = roles);
   }
 
   ngOnInit(): void {
@@ -147,6 +150,7 @@ export class GroupsViewComponent implements OnInit {
       }
       this.itemSelected = false;
     }
+    console.dir(this.allRoles);
   }
   onSaveGroupEdit() {
     let nameField;
