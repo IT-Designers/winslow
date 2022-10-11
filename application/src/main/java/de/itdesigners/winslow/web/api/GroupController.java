@@ -65,17 +65,17 @@ public class GroupController {
 
             return GroupInfoConverter.from(
                     winslow.getGroupManager().createGroup(
-                        Prefix.unwrap_or_given(group.name()),
-                        Stream.concat(
-                                Stream.of(new Link(user.name(), Role.OWNER)),
-                                group
-                                        .members()
-                                        .stream()
-                                        .filter(link -> !link
-                                                .name()
-                                                .equals(user.name()))
-                        ).toList()
-                )
+                            Prefix.unwrap_or_given(group.name()),
+                            Stream.concat(
+                                    Stream.of(new Link(user.name(), Role.OWNER)),
+                                    group
+                                            .members()
+                                            .stream()
+                                            .filter(link -> !link
+                                                    .name()
+                                                    .equals(user.name()))
+                            ).toList()
+                    )
             );
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
