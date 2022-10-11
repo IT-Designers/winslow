@@ -168,14 +168,16 @@ public class GroupController {
     }
 
     private boolean isAllowedToAdministrateGroup(@Nullable User user, @Nonnull String groupName) {
-        if (user != null && !user.hasSuperPrivileges()) {
+        if (user == null) {
+            return false;
+        } else if (user.hasSuperPrivileges()) {
+            return true;
+        } else {
             return winslow
                     .getGroupManager()
                     .getGroup(groupName)
                     .map(group -> group.hasMemberWithRole(user.name(), Role.OWNER))
                     .orElse(Boolean.FALSE);
-        } else {
-            return false;
         }
     }
 
