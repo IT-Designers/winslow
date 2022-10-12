@@ -1,21 +1,31 @@
-<mat-accordion>
-<mat-expansion-panel hideToggle>
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      Add Nodes
-    </mat-panel-title>
-  </mat-expansion-panel-header>
+<div>
   <div
-    data-id="node"
-    data-type="DiagramMaker.PotentialNode"
-    data-draggable={true}
-    data-event-target={true}
-    data-width={nodeWidth}
-    data-height={nodeHeight}
+    class="drag"
+    data-event-target="true"
+    data-draggable="true"
+    data-type="DiagramMaker.PanelDragHandle"
+    data-id="library"
   >
-    New Node
+    <mat-icon>drag_indicator</mat-icon>
   </div>
+  <div class="scroll">
+      <h3 class="category">Selected Node
+      <mat-icon class="iconCancel"(click)="this.cancelEdit()">cancel</mat-icon>
+      </h3>
+    <mat-card class="editCard" *ngIf="selectedNode$">
+      <h4>{{selectedNode$.consumerData.name}}</h4>
+      <p>{{selectedNode$.id}}</p>
+      <p>{{selectedNode$.consumerData.image.name}}</p>
+    </mat-card>
+    <h3 class="category">Add Node</h3>
 
-</mat-expansion-panel>
-</mat-accordion>
+    <div
+      class="node"
+      data-id="node1" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
+      data-width="200" data-height="75"
+    >
+      <app-diagram-node></app-diagram-node>
+    </div>
+  </div>
+</div>
 

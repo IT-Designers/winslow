@@ -1,14 +1,22 @@
 .node {
-  max-width: 400px;
+  max-width: 200px;
+  height: 75px;
+  overflow: hidden;
 }
 
 .title {
   font-size: medium;
   font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .subtitle {
   font-size: small;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .selected {

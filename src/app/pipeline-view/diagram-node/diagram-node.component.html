@@ -1,8 +1,8 @@
-<mat-card class="node"   [ngClass]="{
+<mat-card class="node" [ngClass]="{
   'selected': selected$
 }"
 >
-  <mat-card-title class="title">{{node$.consumerData.name}}</mat-card-title>
-  <mat-card-subtitle class="subtitle">ID: {{node$.id}}</mat-card-subtitle>
-  <mat-card-content>{{node$.consumerData.image.name}} </mat-card-content>
+  <mat-card-title class="title">{{this.containsNode ? node$.consumerData.name: 'New Stage'}}</mat-card-title>
+  <mat-card-subtitle class="subtitle">ID: {{this.containsNode ?  node$.id : '...' }}</mat-card-subtitle>
+  <mat-card-content>{{this.containsNode ? node$.consumerData.image.name : 'Drag into the canvas to create a new stage'}} </mat-card-content>
 </mat-card>
