@@ -1,7 +1,7 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {MatExpansionModule} from '@angular/material/expansion';
+import {Component, Input, OnInit, Output, EventEmitter} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
 import {StageDefinitionInfo} from "../../api/project-api.service";
+
 
 @Component({
   selector: 'app-diagram-library',
@@ -10,15 +10,24 @@ import {StageDefinitionInfo} from "../../api/project-api.service";
 })
 export class DiagramLibraryComponent implements OnInit {
 
-  selectedNode$? : DiagramMakerNode<StageDefinitionInfo>;
+  selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
   }
+
+  cancelEdit(){
+    this.selectedNode$ = undefined;
+    this.resetSelectedNode.emit();
+  }
+
   @Input()
   set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
     this.selectedNode$ = selectedNode;
   }
+  @Output() resetSelectedNode = new EventEmitter();
+
 
 }

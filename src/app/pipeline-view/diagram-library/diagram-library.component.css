@@ -1,0 +1,38 @@
+@import "https://fonts.googleapis.com/icon?family=Material+Icons";
+.drag{
+  border-top: 1px solid #7f7f7f;
+  border-bottom: 1px solid #7f7f7f;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.panel{
+  width: 100%;
+  min-width: 100%;
+}
+.category{
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+  padding: 4px;
+  border-top: 2px solid #dadada;
+  border-bottom: 2px solid #dadada;
+}
+.scroll{
+  overflow-y: scroll;
+  height: 520px;
+  background-color: #f5f5f5;
+}
+.editCard{
+  margin: auto;
+  margin-top: 10px;
+  width: 220px;
+}
+.node{
+  display: flex;
+  justify-content: center;
+}
+.iconCancel{
+  margin-bottom: auto;
+  margin-top: auto;
+}
