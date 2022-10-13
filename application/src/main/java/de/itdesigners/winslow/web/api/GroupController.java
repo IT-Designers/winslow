@@ -168,6 +168,27 @@ public class GroupController {
         try {
             ensure(isAllowedToAdministrateGroup(user, groupName));
 
+            // is the user trying to remove itself while being the last OWNER?
+            if (user.name().equals(userName)) {
+                winslow
+                        .getGroupManager()
+                        .getGroup(groupName)
+                        .ifPresent(group -> {
+                            var numberOfOtherOwners = group
+                                    .members()
+                                    .stream()
+                                    .filter(l -> l.role() == Role.OWNER && !l.name().equals(user.name()))
+                                    .count();
+
+                            if (numberOfOtherOwners == 0) {
+                                throw new ResponseStatusException(
+                                        HttpStatus.FORBIDDEN,
+                                        "The group must have at least one owner"
+                                );
+                            }
+                        });
+            }
+
             winslow.getGroupManager().deleteMembership(groupName, userName);
 
         } catch (NameNotFoundException | LinkWithNameNotFoundException e) {
