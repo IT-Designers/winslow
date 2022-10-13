@@ -9,13 +9,22 @@
     <mat-icon>drag_indicator</mat-icon>
   </div>
   <div class="scroll">
-      <h3 class="category">Selected Node
-      <mat-icon class="iconCancel"(click)="this.cancelEdit()">cancel</mat-icon>
-      </h3>
+    <h3 class="category">Selected Node
+      <mat-icon class="iconCancel" (click)="this.cancelEdit()">cancel</mat-icon>
+    </h3>
     <mat-card class="editCard" *ngIf="selectedNode$">
-      <h4>{{selectedNode$.consumerData.name}}</h4>
-      <p>{{selectedNode$.id}}</p>
-      <p>{{selectedNode$.consumerData.image.name}}</p>
+      <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
+      <form class="editNodeForm">
+        <mat-form-field class="full-width" appearance="fill">
+          <mat-label>Stage Name</mat-label>
+          <input matInput value="{{selectedNode$.consumerData.name}}">
+        </mat-form-field>
+        <mat-form-field class="full-width" appearance="fill">
+          <mat-label>Image Name</mat-label>
+          <input matInput value="{{selectedNode$.consumerData?.image?.name}}">
+        </mat-form-field>
+        <button mat-raised-button color="primary">Save</button>
+      </form>
     </mat-card>
     <h3 class="category">Add Node</h3>
 
