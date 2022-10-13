@@ -17,7 +17,7 @@ export class DiagramNodeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if(this.node$ !== undefined){
+    if (this.node$ !== undefined) {
       this.containsNode = true;
     }
   }

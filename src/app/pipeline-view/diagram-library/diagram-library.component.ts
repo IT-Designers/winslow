@@ -2,6 +2,7 @@ import {Component, Input, OnInit, Output, EventEmitter} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
 import {StageDefinitionInfo} from "../../api/project-api.service";
 
+//te
 
 @Component({
   selector: 'app-diagram-library',
@@ -18,7 +19,7 @@ export class DiagramLibraryComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  cancelEdit(){
+  cancelEdit() {
     this.selectedNode$ = undefined;
     this.resetSelectedNode.emit();
   }
@@ -27,6 +28,7 @@ export class DiagramLibraryComponent implements OnInit {
   set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
     this.selectedNode$ = selectedNode;
   }
+
   @Output() resetSelectedNode = new EventEmitter();
 
 
