@@ -1,16 +1,29 @@
 @import "https://fonts.googleapis.com/icon?family=Material+Icons";
-.drag{
+
+.drag {
   border-top: 1px solid #7f7f7f;
   border-bottom: 1px solid #7f7f7f;
   display: flex;
   justify-content: flex-end;
   margin-bottom: 10px;
 }
-.panel{
+
+.editNodeForm {
+  min-width: 150px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.panel {
   width: 100%;
   min-width: 100%;
 }
-.category{
+
+.category {
   display: flex;
   justify-content: space-between;
   align-content: center;
@@ -18,21 +31,26 @@
   border-top: 2px solid #dadada;
   border-bottom: 2px solid #dadada;
 }
-.scroll{
+
+.scroll {
   overflow-y: scroll;
   height: 520px;
   background-color: #f5f5f5;
 }
-.editCard{
+
+.editCard {
   margin: auto;
   margin-top: 10px;
   width: 220px;
 }
-.node{
+
+.node {
   display: flex;
   justify-content: center;
+  margin-bottom: 20px;
 }
-.iconCancel{
+
+.iconCancel {
   margin-bottom: auto;
   margin-top: auto;
 }

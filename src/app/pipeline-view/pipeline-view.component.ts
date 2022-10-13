@@ -87,14 +87,19 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
     },
     actionInterceptor: (action: Action, dispatch: Dispatch<Action>, getState: () => DiagramMakerData<{}, {}>) => {
       if (action.type === DiagramMakerActions.NODE_CREATE) {
+        const createAction = action as CreateNodeAction<any>;
+        const stageDef = new StageDefinitionInfo();
+        stageDef.name = "NewStage123"
+        console.log(stageDef);
+        this.project.pipelineDefinition.stages.push(stageDef)
         let newAction: CreateNodeAction<{}> = {
           type: DiagramMakerActions.NODE_CREATE,
           payload: {
-            id: `n${action.payload.id}`,
+            id: `n${createAction.payload.id}`,
             typeId: 'node',
-            position: {x: action.payload.position.x, y: action.payload.position.y},
+            position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
             size: {width: 200, height: 75},
-            consumerData: this.project.pipelineDefinition.stages[0]
+            consumerData: stageDef
           }
         }
         dispatch(newAction);
