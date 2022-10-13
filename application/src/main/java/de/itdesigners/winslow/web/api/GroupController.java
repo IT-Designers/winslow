@@ -130,7 +130,17 @@ public class GroupController {
         try {
             ensure(isAllowedToAdministrateGroup(user, groupName));
 
-            return winslow.getGroupManager().addOrUpdateMembership(groupName, link.name(), link.role()).members();
+            // is the user trying to downgrade itself while being the last OWNER?
+            if (user.name().equals(link.name())) {
+                winslow
+                        .getGroupManager()
+                        .getGroup(groupName)
+                        .ifPresent(group -> ensureNotLastOwner(group, user.name()));
+            }
+
+            return winslow
+                    .getGroupManager()
+                    .addOrUpdateMembership(groupName, link.name(), link.role()).members();
 
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
@@ -173,20 +183,7 @@ public class GroupController {
                 winslow
                         .getGroupManager()
                         .getGroup(groupName)
-                        .ifPresent(group -> {
-                            var numberOfOtherOwners = group
-                                    .members()
-                                    .stream()
-                                    .filter(l -> l.role() == Role.OWNER && !l.name().equals(user.name()))
-                                    .count();
-
-                            if (numberOfOtherOwners == 0) {
-                                throw new ResponseStatusException(
-                                        HttpStatus.FORBIDDEN,
-                                        "The group must have at least one owner"
-                                );
-                            }
-                        });
+                        .ifPresent(group -> ensureNotLastOwner(group, user.name()));
             }
 
             winslow.getGroupManager().deleteMembership(groupName, userName);
@@ -227,5 +224,20 @@ public class GroupController {
     private boolean isAllowedToSeeGroup(@Nullable User user, @Nonnull Group group) {
         // ordered in ascending query complexity
         return user != null && (user.isSuperUser() || group.isMember(user.name()) || user.hasSuperPrivileges());
+    }
+
+    private boolean ensureNotLastOwner(@Nonnull Group group, @Nonnull String userName) throws ResponseStatusException {
+        var numberOfOtherOwners = group
+                .members()
+                .stream()
+                .filter(l -> l.role() == Role.OWNER && !l.name().equals(userName))
+                .count();
+
+        if (numberOfOtherOwners == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "The group must have at least one owner"
+            );
+        }
     }
 }
