@@ -176,14 +176,14 @@ public class GroupController {
             @PathVariable("group") String groupName,
             @PathVariable("user") String userName) {
         try {
-            ensure(isAllowedToAdministrateGroup(user, groupName));
-
             // is the user trying to remove itself while being the last OWNER?
-            if (user.name().equals(userName)) {
+            if (user != null && user.name().equals(userName)) {
                 winslow
                         .getGroupManager()
                         .getGroup(groupName)
                         .ifPresent(group -> ensureNotLastOwner(group, user.name()));
+            } else {
+                ensure(isAllowedToAdministrateGroup(user, groupName));
             }
 
             winslow.getGroupManager().deleteMembership(groupName, userName);
