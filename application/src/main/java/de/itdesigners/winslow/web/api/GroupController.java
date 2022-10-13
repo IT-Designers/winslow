@@ -226,7 +226,7 @@ public class GroupController {
         return user != null && (user.isSuperUser() || group.isMember(user.name()) || user.hasSuperPrivileges());
     }
 
-    private boolean ensureNotLastOwner(@Nonnull Group group, @Nonnull String userName) throws ResponseStatusException {
+    private void ensureNotLastOwner(@Nonnull Group group, @Nonnull String userName) throws ResponseStatusException {
         var numberOfOtherOwners = group
                 .members()
                 .stream()
