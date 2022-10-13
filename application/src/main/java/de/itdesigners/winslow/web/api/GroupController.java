@@ -8,6 +8,7 @@ import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.web.GroupInfoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,6 +43,27 @@ public class GroupController {
                 .stream()
                 .filter(group -> isAllowedToSeeGroup(user, group))
                 .map(GroupInfoConverter::from);
+    }
+
+    @GetMapping("/groups/{name}/available")
+    public ResponseEntity<String> getGroupNameAvailable(
+            @Nonnull User user,
+            @PathVariable("name") String name) {
+        try {
+            InvalidNameException.ensureValid(name);
+            if (winslow
+                    .getGroupManager()
+                    .getGroup(name)
+                    .isPresent()) {
+                return new ResponseEntity<>("Name already taken.", HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (InvalidNameException e) {
+            return new ResponseEntity<>(
+                    "Invalid name. Name must contain only: " + InvalidNameException.REGEX_PATTERN_DESCRIPTION,
+                    HttpStatus.BAD_REQUEST
+            );
+        }
     }
 
     @GetMapping("/groups/{name}")

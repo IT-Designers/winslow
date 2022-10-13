@@ -6,10 +6,11 @@ import java.util.regex.Pattern;
 
 public class InvalidNameException extends Exception {
 
-    private static final @Nonnull String REGEX_PATTERN_SIMPLE   = "[a-zA-Z0-9_]";
-    private static final @Nonnull String REGEX_PATTERN_EXTENDED = "[a-zA-Z0-9_\\-.]";
-    private static final @Nonnull String REGEX_PATTERN          =
+    public static final @Nonnull String REGEX_PATTERN_SIMPLE      = "[a-zA-Z0-9_]";
+    public static final @Nonnull String REGEX_PATTERN_EXTENDED    = "[a-zA-Z0-9_\\-.]";
+    public static final @Nonnull String REGEX_PATTERN             =
             REGEX_PATTERN_SIMPLE + REGEX_PATTERN_EXTENDED + "*(::" + REGEX_PATTERN_SIMPLE + ")?" + REGEX_PATTERN_EXTENDED + '*';
+    public static final @Nonnull String REGEX_PATTERN_DESCRIPTION = "English letters, numbers, underscore, minus and dot";
 
     public InvalidNameException(@Nonnull String name) {
         super("The name '" + name + "' does not match the pattern '" + REGEX_PATTERN + "'");
