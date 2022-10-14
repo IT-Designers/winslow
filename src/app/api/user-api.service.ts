@@ -19,4 +19,9 @@ export class UserApiService {
       .get<string>(UserApiService.getUrl('self/name'))
       .toPromise();
   }
+  getUsers(): Promise<User[]> {
+    return this.client
+      .get<User[]>(UserApiService.getUrl(''))
+      .toPromise();
+  }
 }
