@@ -35,7 +35,7 @@
   background-color: #5ac8fa;
 }
 .item-clicked {
-  background-color: #5ac8fa;
+  background-color: #def3f3;
 }
 
 .item-icon {
@@ -60,24 +60,30 @@
 /* ----- add group -----*/
 
 .add-group-container {
-  width: 40%;
+  width: 54em;
 }
 
 .submit-group-btn {
-  width: 20%;
-  float: right;
+  width: 10em;
   margin-top: 40px;
-  margin-right: 100px;
+  margin-left: 1em;
 }
 
 .cancel-btn {
-  width: 20%;
+  width: 10em;
   float: left;
   margin-top: 40px;
+  margin-left: 11em;
 }
 
 /* ----- Group Detail ------*/
 
 .group-detail-container {
-  width: 40%;
+  width: 54em;
+}
+
+.delete-group-btn {
+  width: 10em;
+  float: right;
+  margin-top: 40px;
 }
