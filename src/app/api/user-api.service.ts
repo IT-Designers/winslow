@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {StateInfo} from './project-api.service';
+
+export interface User {
+  name: string;
+  role: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +22,11 @@ export class UserApiService {
   getSelfUserName(): Promise<string> {
     return this.client
       .get<string>(UserApiService.getUrl('self/name'))
+      .toPromise();
+  }
+  getUsers(): Promise<User[]> {
+    return this.client
+      .get<User[]>(UserApiService.getUrl(''))
       .toPromise();
   }
 }

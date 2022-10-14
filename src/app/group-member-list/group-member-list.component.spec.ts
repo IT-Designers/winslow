@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GroupsDropdownComponent } from './groups-dropdown.component';
+import { GroupsDropdownComponent } from './group-member-list.component';
 
 describe('GroupsDropdownComponent', () => {
   let component: GroupsDropdownComponent;

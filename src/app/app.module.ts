@@ -90,7 +90,10 @@ import { ProjectsContextFilterComponent } from './projects-view/tag-filter/proje
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 import { GroupsViewComponent } from './groups-view/groups-view.component';
-import { GroupsDropdownComponent } from './groups-dropdown/groups-dropdown.component';
+import { GroupMemberListComponent } from './group-member-list/group-member-list.component';
+import { GroupsAddMemberDialogComponent } from './groups-add-member-dialog/groups-add-member-dialog.component';
+import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
+import { GroupAddNameDialogComponent } from './group-add-name-dialog/group-add-name-dialog.component';
 
 @NgModule({
     declarations: [
@@ -146,7 +149,10 @@ import { GroupsDropdownComponent } from './groups-dropdown/groups-dropdown.compo
         AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
         GroupsViewComponent,
-        GroupsDropdownComponent,
+        GroupMemberListComponent,
+        GroupsAddMemberDialogComponent,
+        DeleteConfirmDialogComponent,
+        GroupAddNameDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

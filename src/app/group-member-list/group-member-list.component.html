@@ -1,0 +1,29 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
+<div class="list-and-label-container">
+  <label for="list-content" class="list-label"> {{label}} </label>
+  <div class="list-content" id="list-content">
+    <input type="text" class="text-input" id="dropdown{{searchIdentifier}}SearchText" placeholder="Search.." (keyup)="filterFunction('dropdown' + searchIdentifier + 'SearchText',searchIdentifier)">
+    <div class="scrollable">
+      <div class="list-item {{searchIdentifier}}" *ngFor="let user of items">
+        <label class="username-label">{{user.name}}</label>
+        <mat-form-field appearance="fill" class="role-dropdown">
+          <mat-label>Choose Role</mat-label>
+          <mat-select [(value)]="user.role" (selectionChange)="roleChanged(user)">
+            <mat-option>None</mat-option>
+            <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="remove-member-button-container" (click)="onRemoveItemClick(user)">
+          <span class="material-symbols-outlined item-icon">person_remove</span>
+        </div>
+        <!--<button mat-fab color="warn" [ngStyle]="{'scale':'0.8'}">
+             <mat-icon>remove</mat-icon>
+           </button>-->
+        <!--<span class="material-symbols-outlined item-icon" (click)="onRemoveItemClick(user)">person_remove</span>-->
+      </div>
+      <div class="add-member-button-container">
+        <button class="mat-raised-button" mat-raised-button="" color="primary" (click)="openAddMemberDialog()"> Add Member </button>
+      </div>
+    </div>
+  </div>
+</div>
