@@ -22,6 +22,7 @@ export class GroupMemberListComponent implements OnInit {
 
   allRoles = [''];
   selected = '';
+  userSearchInput = '';
 
   constructor(
     private roleApi: RoleApiService,
@@ -34,12 +35,10 @@ export class GroupMemberListComponent implements OnInit {
   ngOnInit(): void {
   }
   filterFunction(inputId: string, divName: string) {
-    let input;
     let filter;
     let divs;
     let i;
-    input = document.getElementById(inputId);
-    filter = input.value.toUpperCase();
+    filter = this.userSearchInput.toUpperCase();
     divs = document.getElementsByClassName(divName);
     for (i = 0; i < divs.length; i++) {
       const txtValue = this.items[i].name;

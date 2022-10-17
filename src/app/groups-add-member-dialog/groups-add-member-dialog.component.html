@@ -1,19 +1,19 @@
-<div>
+<div class="add-user-popup-container">
   <h2>Add a user</h2>
 
   <div class="inputs">
     <mat-form-field>
-      <input matInput placeholder="Search for name..." id="searchInput" (keyup)="filterFunction()">
+      <input matInput placeholder="Search for name..." id="searchInput" [(ngModel)]="userSearchInput" (keyup)="onKeyUp()">
     </mat-form-field>
 
-    <div id="list" class="list-container">
+    <div id="list" class="list-container" *ngIf="showUsersToggle">
       <div class="scrollable">
         <div class="user-item-from-dialog" *ngFor="let user of users">
           <label class="username-label">{{user.name}}</label>
           <mat-form-field appearance="fill" class="role-dropdown">
             <mat-label>Choose Role</mat-label>
             <mat-select [(value)]="user.role">
-              <mat-option>Keine</mat-option>
+              <mat-option>None</mat-option>
               <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
             </mat-select>
           </mat-form-field>

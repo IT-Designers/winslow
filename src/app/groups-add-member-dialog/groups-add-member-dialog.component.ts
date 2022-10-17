@@ -17,6 +17,8 @@ export class GroupsAddMemberDialogComponent implements OnInit {
 
   users: AddMemberData[];
   allRoles: string[];
+  userSearchInput = '';
+  showUsersToggle = false;
 
   constructor(
     public dialogRef: MatDialogRef<GroupsAddMemberDialogComponent>,
@@ -29,21 +31,32 @@ export class GroupsAddMemberDialogComponent implements OnInit {
     this.roleApi.getRoles().then((roles) => this.allRoles = roles);
   }
 
+  onKeyUp() {
+    if (this.userSearchInput.length >= 2) {
+      this.showUsersToggle = true;
+      this.filterFunction();
+    } else if (this.userSearchInput.length < 2) {
+      this.showUsersToggle = false;
+      this.filterFunction();
+    }
+    if (this.showUsersToggle) {
+      this.filterFunction();
+    }
+  }
+
   filterFunction() {
-    let input;
     let filter;
     let divs;
     let i;
-    input = document.getElementById('searchInput');
-    filter = input.value.toUpperCase();
+    filter = this.userSearchInput.toUpperCase();
     divs = document.getElementsByClassName('user-item-from-dialog');
     for (i = 0; i < divs.length; i++) {
       const txtValue = this.users[i].name;
       /*let txtValue = divs[i].textContent;
-      const substringToRemove = ' Choose Roleperson_add';
-      txtValue = txtValue.substring(0, txtValue.length - substringToRemove.length);
-      console.log(txtValue);
-      console.dir(this.users);*/
+       const substringToRemove = ' Choose Roleperson_add';
+       txtValue = txtValue.substring(0, txtValue.length - substringToRemove.length);
+       console.log(txtValue);
+       console.dir(this.users);*/
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
         divs[i].style.display = '';
       } else {

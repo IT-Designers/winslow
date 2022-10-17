@@ -49,6 +49,10 @@
   margin-left: 3.5em;
   font-size: 30px;*/
 }
+.add-user-popup-container {
+  width: 500px;
+  height: 350px;
+}
 /*.item-icon:hover {
   cursor: pointer;
   scale: 1.05;
