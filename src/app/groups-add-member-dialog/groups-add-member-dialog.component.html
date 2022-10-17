@@ -1,0 +1,37 @@
+<div>
+  <h2>Add a user</h2>
+
+  <div class="inputs">
+    <mat-form-field>
+      <input matInput placeholder="Search for name..." id="searchInput" (keyup)="filterFunction()">
+    </mat-form-field>
+
+    <div id="list" class="list-container">
+      <div class="scrollable">
+        <div class="user-item-from-dialog" *ngFor="let user of users">
+          <label class="username-label">{{user.name}}</label>
+          <mat-form-field appearance="fill" class="role-dropdown">
+            <mat-label>Choose Role</mat-label>
+            <mat-select [(value)]="user.role">
+              <mat-option>Keine</mat-option>
+              <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="remove-member-button-container" (click)="addUserClicked(user)">
+            <span class="material-symbols-outlined item-icon">person_add</span>
+          </div>
+          <!--<span class="material-symbols-outlined item-icon" (click)="addUserClicked(user)">person_add</span>-->
+        </div>
+      </div>
+    </div>
+
+
+    <div mat-dialog-actions align="end">
+      <button mat-raised-button color="primary" (click)="dialogRef.close()">Cancel</button>
+      <!--<button mat-raised-button color="primary"
+              (click)="dialogRef.close(data)">
+        Create
+      </button>-->
+    </div>
+  </div>
+</div>
