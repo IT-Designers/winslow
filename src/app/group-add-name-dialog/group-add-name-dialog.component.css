@@ -1,0 +1,9 @@
+.group-name-dialog-container {
+  width: 35em;
+}
+.app-group-name-add-dialog {
+  overflow: clip;
+}
+.mat-form-field {
+  width: 100%;
+}

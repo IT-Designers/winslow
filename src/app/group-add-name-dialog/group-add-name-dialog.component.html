@@ -1,0 +1,18 @@
+<div class="group-name-dialog-container">
+  <h2>Choose a Group Name</h2>
+
+  <div class="inputs">
+    <mat-form-field>
+      <input matInput placeholder="Groupname" id="nameInput" [(ngModel)]="nameInput">
+    </mat-form-field>
+
+
+    <div mat-dialog-actions align="end">
+      <button mat-raised-button color="primary" (click)="dialogRef.close()">Cancel</button>
+      <button mat-raised-button color="primary"
+              (click)="dialogRef.close(nameInput)">
+        Create
+      </button>
+    </div>
+  </div>
+</div>
