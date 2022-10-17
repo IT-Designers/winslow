@@ -39,6 +39,7 @@
 .scrollable {
   width: 90%;
   overflow-y: scroll;
+  border-bottom: 1px solid lightgray;
 }
 
 /* ---------- List Item Styling ---------- */
@@ -46,7 +47,7 @@
   cursor: default;
   padding: 3px;
   border-bottom: 1px solid lightgrey;
-  margin: 1px;
+  margin-top: 1px;
   font-size: 14px;
   display: flex;
   flex-direction: row;
