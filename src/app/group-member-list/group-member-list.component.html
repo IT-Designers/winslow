@@ -9,7 +9,6 @@
         <mat-form-field appearance="fill" class="role-dropdown">
           <mat-label>Choose Role</mat-label>
           <mat-select [(value)]="user.role" (selectionChange)="roleChanged(user)">
-            <mat-option>None</mat-option>
             <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
