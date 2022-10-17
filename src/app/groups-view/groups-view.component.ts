@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterContentInit } from '@angular/core';
 import { GroupApiService } from '../api/group-api.service';
 import { RoleApiService } from '../api/role-api.service';
 import {UserApiService} from '../api/user-api.service';
@@ -39,10 +39,60 @@ export class GroupsViewComponent implements OnInit {
       if (this.newGroup.members.length === 0) {
         this.newGroup.members = this.myUser;
       }
-    });
+      });
+      this.toggleUserGroups(false);
   }
 
   ngOnInit(): void {
+    this.toggleUserGroups(false);
+    /*console.log('ON INIT');
+    let groupListDivs;
+    groupListDivs = document.getElementsByClassName('group-list-item');
+    console.dir(groupListDivs);
+    // this.toggleUserGroups(false);
+    for (const groupDiv of groupListDivs) {
+      console.log('Currently hiding: ');
+      console.dir(groupDiv);
+      const groupName = groupDiv.innerText;
+      if (groupName.includes('::')) {
+        groupDiv.style.display = 'none';
+        groupDiv.classList.add('hidden');
+      }
+    }*/
+  }
+  /*ngAfterContentInit(): void {
+    console.log('ON INIT');
+    let groupListDivs;
+    groupListDivs = document.getElementsByClassName('group-list-item');
+    console.dir(groupListDivs);
+    // this.toggleUserGroups(false);
+    for (const groupDiv of groupListDivs) {
+      console.log('Currently hiding: ');
+      console.dir(groupDiv);
+      const groupName = groupDiv.innerText;
+      if (groupName.includes('::')) {
+        groupDiv.style.display = 'none';
+        groupDiv.classList.add('hidden');
+      }
+    }
+  }*/
+
+  toggleUserGroups(checked) {
+    let groupListDivs;
+    groupListDivs = document.getElementsByClassName('group-list-item');
+    if (checked) {
+      for (const groupDiv of groupListDivs) {
+        groupDiv.style.display = '';
+      }
+    }
+    else if (!checked) {
+      for (const groupDiv of groupListDivs) {
+        const groupName = groupDiv.innerText;
+        if (groupName.includes('::')) {
+          groupDiv.style.display = 'none';
+        }
+      }
+    }
   }
   onAddGroupToggle() {
     this.removeHighlighting();
