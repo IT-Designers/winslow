@@ -1,10 +1,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
 <div class="list-and-label-container">
-  <label for="list-content" class="list-label"> {{label}} </label>
+  <label for="list-content" class="list-label"> Members: </label>
   <div class="list-content" id="list-content">
-    <input type="text" class="text-input" id="dropdown{{searchIdentifier}}SearchText" [(ngModel)]="userSearchInput" placeholder="Search.." (keyup)="filterFunction('dropdown' + searchIdentifier + 'SearchText',searchIdentifier)">
+    <input type="text" class="text-input" [(ngModel)]="userSearchInput" placeholder="Search.." (keyup)="filterFunction()">
     <div class="scrollable">
-      <div class="list-item {{searchIdentifier}}" *ngFor="let user of items">
+      <div class="list-item" *ngFor="let user of group.members">
         <label class="username-label">{{user.name}}</label>
         <mat-form-field appearance="fill" class="role-dropdown">
           <mat-label>Choose Role</mat-label>

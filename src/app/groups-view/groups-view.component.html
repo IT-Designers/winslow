@@ -23,12 +23,9 @@
       <label id="detailGroupName">{{selectedGroup.name}}</label>
     </div>
     <app-group-member-list
-    [items]="selectedGroup.members"
+    [group]="selectedGroup"
     (memberEmitter)="onMemberAdded($event)"
-    (removeMember)="onRemoveMember($event)"
-    label="Members:"
-    groupName="{{selectedGroup.name}}"
-    searchIdentifier="b"></app-group-member-list>
+    (removeMember)="onRemoveMember($event)"></app-group-member-list>
     <!--<button class="mat-raised-button cancel-btn" (click)="onEditCancel()" color="primary" mat-raised-button=""> Cancel </button>-->
     <button class="mat-raised-button delete-group-btn" (click)="onGroupDelete()" color="warn" mat-raised-button=""> Delete </button>
     <!--<button class="mat-raised-button submit-group-btn" (click)="onSaveGroupEdit()" color="primary" mat-raised-button=""> Save </button>-->
