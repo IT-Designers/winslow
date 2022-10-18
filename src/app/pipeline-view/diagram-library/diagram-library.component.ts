@@ -1,6 +1,7 @@
 import {Component, Input, OnInit, Output, EventEmitter} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
 import {StageDefinitionInfo} from "../../api/project-api.service";
+import {FormGroup, FormBuilder} from "@angular/forms";
 
 //te
 
@@ -12,13 +13,22 @@ import {StageDefinitionInfo} from "../../api/project-api.service";
 export class DiagramLibraryComponent implements OnInit {
 
   selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
+  editForm: FormGroup;
 
-  constructor() {
+  constructor( private fb: FormBuilder) {
   }
-
   ngOnInit(): void {
-  }
+    this.editForm = this.fb.group({
+      stageName: `${this.selectedNode$?.consumerData?.name ? this.selectedNode$.consumerData.name : ''}`,
+      imageName: `${this.selectedNode$?.consumerData?.image?.name ? this.selectedNode$.consumerData.image.name : ''}`,
+      id: `${this.selectedNode$?.id}`
+    });
 
+  }
+  saveEdit(){
+    console.log(this.editForm);
+    this.editNode.emit(this.editForm.value);
+  }
   cancelEdit() {
     this.selectedNode$ = undefined;
     this.resetSelectedNode.emit();
@@ -30,6 +40,7 @@ export class DiagramLibraryComponent implements OnInit {
   }
 
   @Output() resetSelectedNode = new EventEmitter();
+  @Output() editNode = new EventEmitter();
 
 
 }
