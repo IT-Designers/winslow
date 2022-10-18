@@ -33,7 +33,6 @@
   margin: 2px 10px 2px 10px; /* top | right | bottom | left */
   border-bottom: 1px solid lightgrey;
   width: 80%;
-  /*cursor: pointer;*/
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -50,17 +49,13 @@
 }
 
 .item-icon {
-  font-size: 22px;
+  font-size: 25px;
   float: right;
-  cursor: pointer;
   margin-right: 5px;
   padding: 4px;
-  /*border: 1px solid lightgrey;*/
   border-radius: 50%;
-}
-.item-icon:hover {
-  background-color: white;
-  /*scale: 1.05;*/
+  background-color: transparent;
+  cursor: default;
 }
 .new-group-btn {
   margin-top: 20px;
