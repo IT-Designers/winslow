@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterContentInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { GroupApiService } from '../api/group-api.service';
 import { RoleApiService } from '../api/role-api.service';
 import {UserApiService} from '../api/user-api.service';
@@ -20,6 +20,7 @@ export class GroupsViewComponent implements OnInit {
   myUser = [];
 
   allGroups = [];
+  displayGroups = [];
   allRoles = [''];
 
   showGroupDetail = false;
@@ -31,7 +32,11 @@ export class GroupsViewComponent implements OnInit {
     private userApi: UserApiService,
     private createDialog: MatDialog,
     private dialog: DialogService) {
-      this.groupApi.getGroups().then((groups) => this.allGroups = groups);
+      this.groupApi.getGroups().then((groups) => {
+        this.allGroups = groups;
+        this.toggleUserGroups(false);
+        console.dir(this.allGroups);
+      });
       this.roleApi.getRoles().then((roles) => this.allRoles = roles);
       this.userApi.getSelfUserName().then((name) => {
       this.myName = name;
@@ -40,71 +45,24 @@ export class GroupsViewComponent implements OnInit {
         this.newGroup.members = this.myUser;
       }
       });
-      this.toggleUserGroups(false);
   }
 
   ngOnInit(): void {
-    this.toggleUserGroups(false);
-    /*console.log('ON INIT');
-    let groupListDivs;
-    groupListDivs = document.getElementsByClassName('group-list-item');
-    console.dir(groupListDivs);
-    // this.toggleUserGroups(false);
-    for (const groupDiv of groupListDivs) {
-      console.log('Currently hiding: ');
-      console.dir(groupDiv);
-      const groupName = groupDiv.innerText;
-      if (groupName.includes('::')) {
-        groupDiv.style.display = 'none';
-        groupDiv.classList.add('hidden');
-      }
-    }*/
   }
-  /*ngAfterContentInit(): void {
-    console.log('ON INIT');
-    let groupListDivs;
-    groupListDivs = document.getElementsByClassName('group-list-item');
-    console.dir(groupListDivs);
-    // this.toggleUserGroups(false);
-    for (const groupDiv of groupListDivs) {
-      console.log('Currently hiding: ');
-      console.dir(groupDiv);
-      const groupName = groupDiv.innerText;
-      if (groupName.includes('::')) {
-        groupDiv.style.display = 'none';
-        groupDiv.classList.add('hidden');
-      }
-    }
-  }*/
 
   toggleUserGroups(checked) {
-    let groupListDivs;
-    groupListDivs = document.getElementsByClassName('group-list-item');
-    /*console.dir(groupListDivs);*/
-    if (checked) {
-      for (const groupDiv of groupListDivs) {
-        groupDiv.style.display = '';
-      }
-    }
-    else if (!checked) {
-      /*console.log('NOT CHECKED');*/
-      // tslint:disable-next-line:prefer-for-of
-      /*for (let i = 0; i < groupListDivs.length; i++) {
-        console.log('Run ' + i + ' of ' + groupListDivs.length);
-        const groupName = groupListDivs[i].innerText;
-        console.dir(groupListDivs[i]);
-        if (groupName.includes('::')) {
-          groupListDivs[i].style.display = 'none';
+    console.log('Toggle with checked: ' + checked);
+    if (!checked) {
+      let i = 0;
+      this.displayGroups = Array.from(this.allGroups);
+      for (const group of this.displayGroups) {
+        if (group.name.includes('::')) {
+          this.displayGroups.splice(i, 1);
         }
-      }*/
-      for (const groupDiv of groupListDivs) {
-        const groupName = groupDiv.innerText;
-        /*console.dir(groupDiv);
-        console.log(groupName);*/
-        if (groupName.includes('::')) {
-          groupDiv.style.display = 'none';
-        }
+        i++;
       }
+    } else if (checked) {
+      this.displayGroups = this.allGroups;
     }
   }
   onAddGroupToggle() {

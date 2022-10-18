@@ -72,7 +72,7 @@ export class GroupsAddMemberDialogComponent implements OnInit {
     while (userLabels[i].innerHTML !== username) {
       i++;
     }
-    if (!role) {
+    if (role) {
       buttons[i].disabled = false;
     } else {
       buttons[i].disabled = true;
