@@ -23,8 +23,4 @@ export class GroupAddNameDialogComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  /*updateData() {
-    this.data.name = this.nameInput;
-  }*/
-
 }
