@@ -8,7 +8,7 @@
 
     <div id="list" class="list-container" *ngIf="showUsersToggle">
       <div class="scrollable">
-        <div class="user-item-from-dialog" *ngFor="let user of users">
+        <div class="user-item-from-dialog" *ngFor="let user of displayUsers">
           <label class="username-label-popup">{{user.name}}</label>
           <mat-form-field appearance="fill" class="role-dropdown">
             <mat-label>Choose Role</mat-label>
@@ -25,13 +25,8 @@
       </div>
     </div>
 
-
     <div mat-dialog-actions align="end">
       <button mat-raised-button color="primary" (click)="dialogRef.close()">Cancel</button>
-      <!--<button mat-raised-button color="primary"
-              (click)="dialogRef.close(data)">
-        Create
-      </button>-->
     </div>
   </div>
 </div>
