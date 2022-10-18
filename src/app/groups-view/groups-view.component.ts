@@ -80,14 +80,27 @@ export class GroupsViewComponent implements OnInit {
   toggleUserGroups(checked) {
     let groupListDivs;
     groupListDivs = document.getElementsByClassName('group-list-item');
+    /*console.dir(groupListDivs);*/
     if (checked) {
       for (const groupDiv of groupListDivs) {
         groupDiv.style.display = '';
       }
     }
     else if (!checked) {
+      /*console.log('NOT CHECKED');*/
+      // tslint:disable-next-line:prefer-for-of
+      /*for (let i = 0; i < groupListDivs.length; i++) {
+        console.log('Run ' + i + ' of ' + groupListDivs.length);
+        const groupName = groupListDivs[i].innerText;
+        console.dir(groupListDivs[i]);
+        if (groupName.includes('::')) {
+          groupListDivs[i].style.display = 'none';
+        }
+      }*/
       for (const groupDiv of groupListDivs) {
         const groupName = groupDiv.innerText;
+        /*console.dir(groupDiv);
+        console.log(groupName);*/
         if (groupName.includes('::')) {
           groupDiv.style.display = 'none';
         }
@@ -129,7 +142,9 @@ export class GroupsViewComponent implements OnInit {
     this.showGroupDetail = true;
     this.removeHighlighting();
     event.target.classList.add('item-clicked');
-    // event.target.parent.add('item-clicked');
+    if (event.target.classList.toString().includes('item-icon')) {
+      event.target.parentElement.classList.add('item-clicked');
+    }
     this.itemSelected = true;
   }
   onMemberAdded(event) {
