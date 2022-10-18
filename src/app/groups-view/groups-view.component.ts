@@ -35,7 +35,6 @@ export class GroupsViewComponent implements OnInit {
       this.groupApi.getGroups().then((groups) => {
         this.allGroups = groups;
         this.toggleUserGroups(false);
-        console.dir(this.allGroups);
       });
       this.roleApi.getRoles().then((roles) => this.allRoles = roles);
       this.userApi.getSelfUserName().then((name) => {
@@ -51,7 +50,6 @@ export class GroupsViewComponent implements OnInit {
   }
 
   toggleUserGroups(checked) {
-    console.log('Toggle with checked: ' + checked);
     if (!checked) {
       let i = 0;
       this.displayGroups = Array.from(this.allGroups);
@@ -83,6 +81,7 @@ export class GroupsViewComponent implements OnInit {
             .then(() => {
               /* TODO: currently highlights previous last list entry */
               this.allGroups.push(newGroup);
+              this.displayGroups.push(newGroup);
               this.selectedGroup = newGroup;
               this.showGroupDetail = true;
               this.showAddGroup = false;
@@ -149,6 +148,8 @@ export class GroupsViewComponent implements OnInit {
             .then(() => {
               const delIndex = this.allGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
               this.allGroups.splice(delIndex, 1);
+              const delIndex2 = this.displayGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
+              this.displayGroups.splice(delIndex2, 1);
               this.onEditCancel();
             }),
               'Deleting Group');
