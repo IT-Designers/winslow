@@ -8,7 +8,7 @@
     </div>
     <div class="group-list-item" *ngFor="let group of displayGroups" (click)="groupClicked(group, $event)">
       {{group.name}}
-      <span class="material-symbols-outlined item-icon">menu</span>
+      <span class="material-symbols-outlined item-icon">edit</span>
     </div>
     <button class="mat-raised-button new-group-btn" color="primary" mat-raised-button="" (click)="onAddGroupToggle()"> New Group </button>
   </div>
@@ -16,19 +16,14 @@
   <div *ngIf="showGroupDetail" class="group-detail-container">
     <h2>Group Details</h2>
     <div class="group-name-container">
-      <label for="detailGroupName" [ngStyle]="{'font-weight':'bold', 'display':'inline-block', 'width':'10em'}"> Groupname: </label>
-<!--
-      <input type="text" name="groupName" id="detailGroupNameTextInput" [ngModel]="selectedGroup.name" placeholder="Groupname..">
--->
+      <label for="detailGroupName" class="groupname-label"> Groupname: </label>
       <label id="detailGroupName">{{selectedGroup.name}}</label>
     </div>
     <app-group-member-list
     [group]="selectedGroup"
     (memberEmitter)="onMemberAdded($event)"
     (removeMember)="onRemoveMember($event)"></app-group-member-list>
-    <!--<button class="mat-raised-button cancel-btn" (click)="onEditCancel()" color="primary" mat-raised-button=""> Cancel </button>-->
     <button class="mat-raised-button delete-group-btn" (click)="onGroupDelete()" color="warn" mat-raised-button=""> Delete </button>
-    <!--<button class="mat-raised-button submit-group-btn" (click)="onSaveGroupEdit()" color="primary" mat-raised-button=""> Save </button>-->
   </div>
 
 </div>
