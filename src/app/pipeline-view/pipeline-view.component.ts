@@ -22,9 +22,10 @@ import {
   DiagramMakerActions, CreateNodeAction
 } from 'diagram-maker';
 
-import {ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
+import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
 import {DiagramNodeComponent} from "./diagram-node/diagram-node.component";
 import {DiagramLibraryComponent} from "./diagram-library/diagram-library.component";
+import {ResourceInfo} from "../api/pipeline-api.service";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -54,8 +55,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         const componentInstance = this.viewContainerRef.createComponent(componentFactory);
         componentInstance.instance.node = node;
         diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
-        // this.nodeComponentInstances.push(componentInstance);
-        // console.log(this.nodeComponentInstances);
         if (node.diagramMakerData.selected) {
           componentInstance.instance.selected = true;
           this.currentNode = node;
@@ -77,7 +76,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
           diagramMakerContainer.innerHTML = '';
           const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
           const componentInstance = this.viewContainerRef.createComponent(componentFactory);
+          componentInstance.instance.editNode.subscribe(editForm => this.editState(editForm))
           componentInstance.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined)
+          console.log(this.currentNode);
           diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
           if (this.currentNode) {
             componentInstance.instance.selectedNode = this.currentNode;
@@ -89,7 +90,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
       if (action.type === DiagramMakerActions.NODE_CREATE) {
         const createAction = action as CreateNodeAction<any>;
         const stageDef = new StageDefinitionInfo();
-        stageDef.name = "NewStage123"
+        stageDef.image = new ImageInfo();
+        stageDef.name = "New Stage";
+        stageDef.env = new Map;
+        stageDef.requiredEnvVariables = [];
+        stageDef.requiredResources = null;
         console.log(stageDef);
         this.project.pipelineDefinition.stages.push(stageDef)
         let newAction: CreateNodeAction<{}> = {
@@ -103,7 +108,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
           }
         }
         dispatch(newAction);
-        console.log(this.project.pipelineDefinition.stages)
       }
       if (action.type !== DiagramMakerActions.NODE_CREATE) {
         dispatch(action);
@@ -116,6 +120,36 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
 
   constructor(private viewContainerRef: ViewContainerRef,
               private componentFactoryResolver: ComponentFactoryResolver) {
+  }
+
+  editState(editForm) {
+    //for (const key of Object.keys(this.project.pipelineDefinition.stages[0])) {
+    //  console.log(key + " = " + this.project.pipelineDefinition.stages[0][key] + ", " + typeof this.project.pipelineDefinition.stages[0][key]);
+    //}
+    const currentState = this.diagramMaker.store.getState();
+    let editNode = currentState.nodes[editForm.id];
+    console.log(editForm.id);
+    console.log(editNode);
+    if (editNode) {
+      let editData = JSON.parse(JSON.stringify(editNode.consumerData));
+      let i = this.project.pipelineDefinition.stages.map(function(stage) { return stage.name; }).indexOf(`${editData.name}`);
+      editData.name = editForm.stageName;
+      editData.image.name = editForm.imageName;
+      editNode = Object.assign({}, editNode, {
+        consumerData: editData,
+        diagramMakerData: {
+          selected: false,
+          size: editNode.diagramMakerData.size,
+          position: editNode.diagramMakerData.position,
+        },
+      });
+      this.diagramMaker.store.dispatch({
+        type: 'UPDATE_NODE',
+        payload: editNode,
+      });
+      this.project.pipelineDefinition.stages[i] = editData;
+      console.log(i);
+    }
   }
 
 
@@ -135,7 +169,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         consumerData: this.project.pipelineDefinition.stages[i]
       }
       if (i < (this.project.pipelineDefinition.stages.length - 1)) {
-        edges[`n${i}`] = {
+        edges[`edge${i}`] = {
           id: `edge${i}`,
           src: `n${i}`,
           dest: `n${i + 1}`,
@@ -175,7 +209,20 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
     this.diagramMaker = new DiagramMaker(
       this.diagramEditorContainer.nativeElement,
       this.config,
-      {initialData: this.initialData}
+      {
+        initialData: this.initialData,
+        consumerRootReducer: (state: any, action: any) => {
+          switch (action.type) {
+            case 'UPDATE_NODE':
+              const newNode: any = {};
+              newNode[action.payload.id] = action.payload;
+              const newNodes = Object.assign({}, state.nodes, newNode);
+              return Object.assign({}, state, {nodes: newNodes});
+            default:
+              return state;
+          }
+        }
+      },
     );
 
     window.addEventListener('resize', () => {
