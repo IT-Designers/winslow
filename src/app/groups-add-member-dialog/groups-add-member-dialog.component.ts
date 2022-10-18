@@ -15,7 +15,8 @@ export interface AddMemberData {
 })
 export class GroupsAddMemberDialogComponent implements OnInit {
 
-  users: AddMemberData[];
+  allUsers: AddMemberData[];
+  displayUsers: AddMemberData[];
   allRoles: string[];
   userSearchInput = '';
   showUsersToggle = false;
@@ -27,7 +28,9 @@ export class GroupsAddMemberDialogComponent implements OnInit {
     private roleApi: RoleApiService) { }
 
   ngOnInit(): void {
-    this.userApi.getUsers().then((users) => this.users = users);
+    this.userApi.getUsers().then((users) => {
+      this.allUsers = users;
+    });
     this.roleApi.getRoles().then((roles) => this.allRoles = roles);
   }
 
@@ -45,24 +48,36 @@ export class GroupsAddMemberDialogComponent implements OnInit {
   }
 
   filterFunction() {
-    let filter;
+    this.displayUsers = Array.from(this.allUsers);
+    if (this.userSearchInput) {
+      let i = 0;
+      for (const user of this.displayUsers) {
+        if (!user.name.includes(this.userSearchInput)) {
+          this.displayUsers.splice(i, 1);
+        }
+        i++;
+      }
+    }
+
+
+    /*let filter;
     let divs;
     let i;
     filter = this.userSearchInput.toUpperCase();
     divs = document.getElementsByClassName('user-item-from-dialog');
     for (i = 0; i < divs.length; i++) {
-      const txtValue = this.users[i].name;
-      /*let txtValue = divs[i].textContent;
+      const txtValue = this.allUsers[i].name;
+      /!*let txtValue = divs[i].textContent;
        const substringToRemove = ' Choose Roleperson_add';
        txtValue = txtValue.substring(0, txtValue.length - substringToRemove.length);
        console.log(txtValue);
-       console.dir(this.users);*/
+       console.dir(this.users);*!/
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
         divs[i].style.display = '';
       } else {
         divs[i].style.display = 'none';
       }
-    }
+    }*/
   }
 
   roleChanged(role, username) {
