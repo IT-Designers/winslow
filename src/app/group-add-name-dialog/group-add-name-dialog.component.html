@@ -2,15 +2,15 @@
   <h2>Choose a Group Name</h2>
 
   <div class="inputs">
+    <label class="error-label">{{errorMessage}}</label>
     <mat-form-field>
       <input matInput placeholder="Groupname" id="nameInput" [(ngModel)]="nameInput">
     </mat-form-field>
 
-
     <div mat-dialog-actions align="end">
       <button mat-raised-button color="primary" (click)="dialogRef.close()">Cancel</button>
       <button mat-raised-button color="primary"
-              (click)="dialogRef.close(nameInput)">
+              (click)="createClicked()">
         Create
       </button>
     </div>
