@@ -49,4 +49,9 @@ export class GroupApiService {
       .delete(GroupApiService.getUrl(groupName + '/members/' + userName))
       .toPromise();
   }
+  getGroupNameAvailable(groupName): Promise<object> {
+    return this.client
+      .get(GroupApiService.getUrl(groupName + '/available'))
+      .toPromise();
+  }
 }
