@@ -1,6 +1,5 @@
 <div class="add-user-popup-container">
   <h2>Add a user</h2>
-
   <div class="inputs">
     <mat-form-field>
       <input matInput placeholder="Search for name..." id="searchInput" [(ngModel)]="userSearchInput" (keyup)="onKeyUp()">
@@ -12,12 +11,12 @@
           <label class="username-label-popup">{{user.name}}</label>
           <mat-form-field appearance="fill" class="role-dropdown">
             <mat-label>Choose Role</mat-label>
-            <mat-select [(value)]="user.role" (selectionChange)="roleChanged(user.role, user.name)">
+            <mat-select [(value)]="user.role">
               <mat-option>None</mat-option>
               <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
             </mat-select>
           </mat-form-field>
-          <button class="add-member-round-button" (click)="addUserClicked(user)" disabled="true">
+          <button class="add-member-round-button"  (click)="addUserClicked(user)" [disabled]="!user.role">
             <span class="material-symbols-outlined item-icon">person_add</span>
           </button>
           <!--<span class="material-symbols-outlined item-icon" (click)="addUserClicked(user)">person_add</span>-->
