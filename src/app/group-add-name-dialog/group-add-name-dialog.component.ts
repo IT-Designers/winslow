@@ -27,18 +27,16 @@ export class GroupAddNameDialogComponent implements OnInit {
   }
 
   createClicked() {
-    if (!this.nameInput.includes(' ')) {
-      this.groupApi.getGroupNameAvailable(this.nameInput)
-        .then(
-          () => {
-            this.dialogRef.close(this.nameInput);
-          }
-        ).catch(() => {
-        this.errorMessage = 'Error: Name is already taken, please choose another';
-        console.log('Name rejected');
-      });
-    } else if (this.nameInput.includes(' ')) {
-      this.errorMessage = 'Error: Name cannot include empty spaces';
-    }
+    this.dialogRef.close(this.nameInput);
+  }
+  checkName() {
+    this.errorMessage = '';
+    this.groupApi.getGroupNameAvailable(this.nameInput)
+      .then()
+      .catch((error) => {
+      console.log(error.error);
+      this.errorMessage = 'Error: ' + error.error;
+      console.log('Name rejected');
+    });
   }
 }
