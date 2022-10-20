@@ -38,10 +38,7 @@ export class GroupsAddMemberDialogComponent implements OnInit {
     if (this.userSearchInput.length >= 2) {
       this.showUsersToggle = true;
       this.filterFunction();
-    } /*else if (this.userSearchInput.length < 2) {
-      this.showUsersToggle = false;
-      this.filterFunction();
-    }*/
+    }
     if (this.showUsersToggle) {
       this.filterFunction();
     }
@@ -58,44 +55,9 @@ export class GroupsAddMemberDialogComponent implements OnInit {
         i++;
       }
     }
-
-
-    /*let filter;
-    let divs;
-    let i;
-    filter = this.userSearchInput.toUpperCase();
-    divs = document.getElementsByClassName('user-item-from-dialog');
-    for (i = 0; i < divs.length; i++) {
-      const txtValue = this.allUsers[i].name;
-      /!*let txtValue = divs[i].textContent;
-       const substringToRemove = ' Choose Roleperson_add';
-       txtValue = txtValue.substring(0, txtValue.length - substringToRemove.length);
-       console.log(txtValue);
-       console.dir(this.users);*!/
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        divs[i].style.display = '';
-      } else {
-        divs[i].style.display = 'none';
-      }
-    }*/
-  }
-
-  roleChanged(role, username) {
-    const buttons = document.getElementsByClassName('add-member-round-button') as HTMLCollectionOf<HTMLButtonElement>;
-    const userLabels = document.getElementsByClassName('username-label-popup');
-    let i = 0;
-    while (userLabels[i].innerHTML !== username) {
-      i++;
-    }
-    if (role) {
-      buttons[i].disabled = false;
-    } else {
-      buttons[i].disabled = true;
-    }
   }
 
   addUserClicked(user) {
-    /*console.log('Add User ' + user.name + ' with role ' + user.role);*/
     this.data.name = user.name;
     this.data.role = user.role;
     if (this.data.role) {
