@@ -26,8 +26,9 @@ export class DiagramLibraryComponent implements OnInit {
 
   }
   saveEdit(){
-    console.log(this.editForm);
+    //console.log(this.editForm);
     this.editNode.emit(this.editForm.value);
+    this.cancelEdit();
   }
   cancelEdit() {
     this.selectedNode$ = undefined;

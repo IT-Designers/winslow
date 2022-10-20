@@ -6,7 +6,7 @@ import {
   OnDestroy,
   ViewChild,
   Input,
-  OnChanges, ViewContainerRef, ComponentFactoryResolver
+  ViewContainerRef, ComponentFactoryResolver
 } from '@angular/core';
 import {
   DiagramMaker,
@@ -25,14 +25,13 @@ import {
 import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
 import {DiagramNodeComponent} from "./diagram-node/diagram-node.component";
 import {DiagramLibraryComponent} from "./diagram-library/diagram-library.component";
-import {ResourceInfo} from "../api/pipeline-api.service";
 
 @Component({
   selector: 'app-pipeline-view',
   templateUrl: './pipeline-view.component.html',
   styleUrls: ['./pipeline-view.component.css']
 })
-export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
+export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
 
   @Input() public project: ProjectInfo;
 
@@ -54,6 +53,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramNodeComponent);
         const componentInstance = this.viewContainerRef.createComponent(componentFactory);
         componentInstance.instance.node = node;
+        this.nodeComponentInstances.push(componentInstance);
         diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
         if (node.diagramMakerData.selected) {
           componentInstance.instance.selected = true;
@@ -64,11 +64,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         diagramMakerContainer.innerHTML = '';
         const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramNodeComponent);
         const componentInstance = this.viewContainerRef.createComponent(componentFactory);
-        console.log("test")
         diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
-        this.nodeComponentInstances.push(componentInstance);
+        componentInstance.destroy();
       },
-      destroy: (diagramMakerContainer: HTMLElement, consumerContainer?: HTMLElement | void) => {
+      destroy: () => {
+        this.nodeComponentInstances.forEach(instance => instance.destroy());
         // TODO update nodeComponentInstances
       },
       panels: {
@@ -78,7 +78,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
           const componentInstance = this.viewContainerRef.createComponent(componentFactory);
           componentInstance.instance.editNode.subscribe(editForm => this.editState(editForm))
           componentInstance.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined)
-          console.log(this.currentNode);
+          //console.log(this.currentNode);
           diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
           if (this.currentNode) {
             componentInstance.instance.selectedNode = this.currentNode;
@@ -86,7 +86,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         }
       },
     },
-    actionInterceptor: (action: Action, dispatch: Dispatch<Action>, getState: () => DiagramMakerData<{}, {}>) => {
+    actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {
       if (action.type === DiagramMakerActions.NODE_CREATE) {
         const createAction = action as CreateNodeAction<any>;
         const stageDef = new StageDefinitionInfo();
@@ -95,7 +95,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         stageDef.env = new Map;
         stageDef.requiredEnvVariables = [];
         stageDef.requiredResources = null;
-        console.log(stageDef);
+        //console.log(stageDef);
         this.project.pipelineDefinition.stages.push(stageDef)
         let newAction: CreateNodeAction<{}> = {
           type: DiagramMakerActions.NODE_CREATE,
@@ -109,10 +109,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         }
         dispatch(newAction);
       }
-      if (action.type !== DiagramMakerActions.NODE_CREATE) {
+      else {
         dispatch(action);
       }
-      console.log(action);
+      //console.log(action);
+      //console.log(this.nodeComponentInstances);
     },
   };
 
@@ -128,11 +129,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
     //}
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
-    console.log(editForm.id);
-    console.log(editNode);
     if (editNode) {
       let editData = JSON.parse(JSON.stringify(editNode.consumerData));
-      let i = this.project.pipelineDefinition.stages.map(function(stage) { return stage.name; }).indexOf(`${editData.name}`);
+      let i = this.project.pipelineDefinition.stages.map(function (stage) {
+        return stage.name;
+      }).indexOf(`${editData.name}`);
       editData.name = editForm.stageName;
       editData.image.name = editForm.imageName;
       editNode = Object.assign({}, editNode, {
@@ -148,10 +149,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
         payload: editNode,
       });
       this.project.pipelineDefinition.stages[i] = editData;
-      console.log(i);
     }
   }
-
 
   ngOnInit() {
 
@@ -186,7 +185,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
       panels: {
         library: {
           id: 'library',
-          position: {x: 20, y: 0},
+          position: {x: 20, y: 20},
           size: {width: 320, height: 600},
         },
       },
@@ -206,31 +205,31 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy, 
 
 
   ngAfterViewInit(): void {
-    this.diagramMaker = new DiagramMaker(
-      this.diagramEditorContainer.nativeElement,
-      this.config,
-      {
-        initialData: this.initialData,
-        consumerRootReducer: (state: any, action: any) => {
-          switch (action.type) {
-            case 'UPDATE_NODE':
-              const newNode: any = {};
-              newNode[action.payload.id] = action.payload;
-              const newNodes = Object.assign({}, state.nodes, newNode);
-              return Object.assign({}, state, {nodes: newNodes});
-            default:
-              return state;
+    setTimeout(() => {
+      this.diagramMaker = new DiagramMaker(
+        this.diagramEditorContainer.nativeElement,
+        this.config,
+        {
+          initialData: this.initialData,
+          consumerRootReducer: (state: any, action: any) => {
+            switch (action.type) {
+              case 'UPDATE_NODE':
+                const newNode: any = {};
+                newNode[action.payload.id] = action.payload;
+                const newNodes = Object.assign({}, state.nodes, newNode);
+                return Object.assign({}, state, {nodes: newNodes});
+              default:
+                return state;
+            }
           }
-        }
-      },
-    );
+        },
+      );
 
-    window.addEventListener('resize', () => {
-      this.diagramMaker.updateContainer();
-    });
-  }
+      window.addEventListener('resize', () => {
+        this.diagramMaker.updateContainer();
+      });
+    }, 1000);
 
-  ngOnChanges() {
   }
 
   ngOnDestroy(): void {
