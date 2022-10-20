@@ -1,11 +1,15 @@
+/*.add-user-popup-container {
+  overflow: clip;
+}*/
+.scrollable {
+  overflow: scroll;
+}
 .inputs {
   display: flex;
   flex-direction: column;
 }
-.list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+#list {
+  overflow: scroll;
 }
 .user-item-from-dialog {
   display: flex;
@@ -60,7 +64,7 @@
 }
 .add-user-popup-container {
   width: 500px;
-  height: 350px;
+  height: 400px;
 }
 /*.item-icon:hover {
   cursor: pointer;
