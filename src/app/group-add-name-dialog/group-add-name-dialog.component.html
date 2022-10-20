@@ -4,7 +4,7 @@
   <div class="inputs">
     <label class="error-label">{{errorMessage}}</label>
     <mat-form-field>
-      <input matInput placeholder="Groupname" id="nameInput" [(ngModel)]="nameInput">
+      <input matInput placeholder="Groupname" id="nameInput" [(ngModel)]="nameInput" (keyup.enter)="createClicked()">
     </mat-form-field>
 
     <div mat-dialog-actions align="end">

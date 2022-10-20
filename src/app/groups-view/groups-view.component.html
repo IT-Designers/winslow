@@ -9,7 +9,7 @@
       <h2> My Groups </h2>
       <mat-checkbox class="show-usergroups-checkbox" (change)="toggleUserGroups($event.checked)"> Show System Groups </mat-checkbox>
     </div>
-    <div class="group-list-item" *ngFor="let group of displayGroups" (click)="groupClicked(group, $event)">
+    <div class="group-list-item" *ngFor="let group of displayGroups" (click)="groupClicked(group)" [class.item-clicked]="group == selectedGroup">
       {{group.name}}
       <span class="material-symbols-outlined item-icon">edit</span>
     </div>

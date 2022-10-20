@@ -20,6 +20,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   allRoles = [''];
   userSearchInput = '';
   displayMembers = [];
+  disabledUser: {name: '', role: ''};
 
   constructor(
     private roleApi: RoleApiService,
@@ -34,6 +35,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     this.displayMembers = Array.from(this.group.members);
+    this.checkSelects();
   }
 
   filterFunction() {
@@ -54,6 +56,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     this.group.members.splice(delIndex, 1);
     const delIndex2 = this.displayMembers.findIndex((tempUser) => tempUser.name === item.name);
     this.displayMembers.splice(delIndex2, 1);
+    this.checkSelects();
   }
   openAddMemberDialog() {
     this.createDialog
@@ -66,13 +69,31 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
         if (result) {
           this.memberEmitter.emit(result);
           this.displayMembers.push(result);
+          this.checkSelects();
         }
       });
   }
   roleChanged(user) {
+    this.checkSelects();
     return this.dialog.openLoadingIndicator(
       this.groupApi.addOrUpdateMembership(this.group.name, user),
       'Adding Member to group'
     );
+  }
+  checkSelects() {
+    if (this.displayMembers.length === 1) {
+      this.disabledUser = this.displayMembers[0];
+    } else {
+      let ownerCount = 0;
+      for (const member of this.displayMembers) {
+        if (member.role === 'OWNER') {
+          ownerCount++;
+          this.disabledUser = member;
+        }
+      }
+      if (ownerCount > 1) {
+        this.disabledUser = {name: '', role: ''};
+      }
+    }
   }
 }
