@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { GroupApiService } from '../api/group-api.service';
 import { RoleApiService } from '../api/role-api.service';
 import {UserApiService} from '../api/user-api.service';
@@ -13,7 +13,6 @@ import {GroupAddNameDialogComponent} from '../group-add-name-dialog/group-add-na
   styleUrls: ['./groups-view.component.css']
 })
 export class GroupsViewComponent implements OnInit {
-  showAddGroup = false;
   newGroup = {name: '', members: []};
   itemSelected = false;
   myName = '';
@@ -64,7 +63,6 @@ export class GroupsViewComponent implements OnInit {
     }
   }
   onAddGroupToggle() {
-    this.removeHighlighting();
     this.createDialog
       .open(GroupAddNameDialogComponent, {
         data: {
@@ -84,29 +82,24 @@ export class GroupsViewComponent implements OnInit {
               this.displayGroups.push(newGroup);
               this.selectedGroup = newGroup;
               this.showGroupDetail = true;
-              this.showAddGroup = false;
-              this.removeHighlighting();
-              const groupDivs = document.getElementsByClassName('group-list-item');
-              groupDivs[groupDivs.length - 1].classList.add('item-clicked');
-              this.itemSelected = true;
             }),
             'Creating Group');
         }
       });
   }
-  groupClicked(group, event) {
+  groupClicked(group) {
     this.selectedGroup = group;
     this.showGroupDetail = true;
-    this.removeHighlighting();
-    event.target.classList.add('item-clicked');
-    if (event.target.classList.toString().includes('item-icon')) {
-      event.target.parentElement.classList.add('item-clicked');
-    }
-    this.itemSelected = true;
   }
   onMemberAdded(event) {
     return this.dialog.openLoadingIndicator(
-      this.groupApi.addOrUpdateMembership(this.selectedGroup.name, event).then(() => this.selectedGroup.members.push(event)),
+      this.groupApi.addOrUpdateMembership(this.selectedGroup.name, event)
+        .then(() => {
+          this.selectedGroup.members.push(event);
+          // this.removeHighlighting();
+          /*const groupDivs = document.getElementsByClassName('group-list-item');
+          groupDivs[groupDivs.length - 1].classList.add('item-clicked');*/
+        }),
       'Adding Member to group'
     );
   }
@@ -119,21 +112,7 @@ export class GroupsViewComponent implements OnInit {
   onEditCancel() {
     this.selectedGroup = {name: 'No Group Selected', members: []};
     this.showGroupDetail = false;
-    this.removeHighlighting();
     this.itemSelected = false;
-  }
-  removeHighlighting() {
-    if (this.itemSelected) {
-      const items = document.getElementsByClassName('group-list-item');
-      const items2 = document.getElementsByClassName('item-icon');
-      let i;
-      for (i = 0; i < items.length; i++) {
-        items[i].classList.remove('item-clicked');
-      }
-      for (i = 0; i < items2.length; i++) {
-        items2[i].classList.remove('item-clicked');
-      }
-    }
   }
   onGroupDelete() {
     this.createDialog
