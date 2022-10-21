@@ -1,6 +1,8 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.*;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.pipeline.*;
 import de.itdesigners.winslow.api.project.*;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
@@ -22,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1441,5 +1444,76 @@ public class ProjectsController {
                     });
                 })
                 .isPresent();
+    }
+
+    @GetMapping("projects/{projectId}/groups")
+    public Stream<Link> getGroups(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .stream()
+                .flatMap(project -> project.getGroups().stream());
+    }
+
+    @GetMapping("projects/{projectId}/groups/{group}")
+    public Link getGroupLink(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("group") String group) {
+        return getProjectIfAllowedToAccess(user, projectId)
+                .map(project -> project
+                        .getGroups()
+                        .stream()
+                        .filter(link -> link.name().equals(group))
+                        .findFirst()
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "There is no such group for the given project"
+                        )))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+    }
+
+    @PostMapping("projects/{projectId}/groups")
+    public void addOrUpdateGroup(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @RequestBody Link group) {
+        winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> project.canBeManagedBy(user))
+                .ifPresentOrElse(
+                        project -> project.addGroup(group),
+                        () -> {
+                            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                        }
+                );
+    }
+
+    @DeleteMapping("projects/{projectId}/groups/{group}")
+    public void removeGroup(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId,
+            @PathVariable("group") String group) {
+        winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> project.canBeManagedBy(user))
+                .ifPresentOrElse(
+                        project -> {
+                            if (!project.removeGroup(group)) {
+                                throw new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "The group is not a member of the project"
+                                );
+                            }
+                        },
+                        () -> {
+                            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                        }
+                );
+
     }
 }
