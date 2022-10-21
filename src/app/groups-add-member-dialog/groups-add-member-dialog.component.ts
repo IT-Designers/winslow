@@ -47,6 +47,15 @@ export class GroupsAddMemberDialogComponent implements OnInit {
   filterFunction() {
     this.displayUsers = Array.from(this.allUsers);
     if (this.userSearchInput) {
+      const searchedUsers = [];
+      for (const user of this.displayUsers) {
+        if (user.name.toUpperCase().includes(this.userSearchInput.toUpperCase())) {
+          searchedUsers.push(user);
+        }
+      }
+      this.displayUsers = Array.from(searchedUsers);
+    }
+    /*if (this.userSearchInput) {
       let i = 0;
       for (const user of this.displayUsers) {
         if (!user.name.includes(this.userSearchInput)) {
@@ -54,7 +63,7 @@ export class GroupsAddMemberDialogComponent implements OnInit {
         }
         i++;
       }
-    }
+    }*/
   }
 
   addUserClicked(user) {
