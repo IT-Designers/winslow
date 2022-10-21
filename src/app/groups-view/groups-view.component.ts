@@ -16,7 +16,7 @@ export class GroupsViewComponent implements OnInit {
   newGroup = {name: '', members: []};
   itemSelected = false;
   myName = '';
-  myUser = [];
+  myUser = {name: '', role: ''};
 
   allGroups = [];
   displayGroups = [];
@@ -40,11 +40,11 @@ export class GroupsViewComponent implements OnInit {
       });
       this.roleApi.getRoles().then((roles) => this.allRoles = roles);
       this.userApi.getSelfUserName().then((name) => {
-      this.myName = name;
-      this.myUser = [{name: this.myName, role: 'OWNER'}];
-      if (this.newGroup.members.length === 0) {
-        this.newGroup.members = this.myUser;
-      }
+        this.myName = name;
+        this.myUser = {name: this.myName, role: 'OWNER'};
+        if (this.newGroup.members.length === 0) {
+          this.newGroup.members.push(this.myUser);
+        }
       });
   }
 
@@ -110,7 +110,7 @@ export class GroupsViewComponent implements OnInit {
       .subscribe((name) => {
         if (name) {
           const newGroup = {
-            members: this.myUser,
+            members: [this.myUser],
             name,
           };
           return this.dialog.openLoadingIndicator(this.groupApi.createGroup(newGroup)
