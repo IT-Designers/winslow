@@ -1,5 +1,6 @@
 package de.itdesigners.winslow;
 
+import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.node.AllocInfo;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.config.PipelineDefinition;
@@ -297,7 +298,7 @@ public class DistributedAllocationViewTests {
         return new Project(
                 projectId,
                 ownerId,
-                null,
+                (Iterable<Link>) null,
                 null,
                 "name-of-" + projectId,
                 null,
