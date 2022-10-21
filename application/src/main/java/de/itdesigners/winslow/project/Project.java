@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.project;
 
-import de.itdesigners.winslow.LockedContainer;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
@@ -9,16 +10,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.ConstructorProperties;
 import java.util.*;
-import java.util.logging.Logger;
 
 public class Project {
-
-    private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
     private @Nonnull final String id;
     private @Nonnull final String owner;
 
-    private @Nullable List<String> groups;
+    private @Nullable List<Link>   groups;
     private @Nullable List<String> tags;
 
     private @Nonnull  PipelineDefinition pipeline;
@@ -37,7 +35,29 @@ public class Project {
     public Project(
             @Nonnull String id,
             @Nonnull String owner,
-            @Nullable Iterable<String> groups,
+            @Nullable List<String> groups,
+            @Nullable Iterable<String> tags,
+            @Nonnull String name,
+            @Nullable Boolean publicAccess,
+            @Nonnull PipelineDefinition pipelineDefinition,
+            @Nullable ResourceLimitation resourceLimit) {
+        this(
+                id,
+                owner,
+                groups != null ? groups.stream().map(Link::member).toList() : null,
+                tags,
+                name,
+                publicAccess,
+                pipelineDefinition,
+                resourceLimit
+        );
+    }
+
+    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "public", "pipelineDefinition", "resourceLimit"})
+    public Project(
+            @Nonnull String id,
+            @Nonnull String owner,
+            @Nullable Iterable<Link> groups,
             @Nullable Iterable<String> tags,
             @Nonnull String name,
             @Nullable Boolean publicAccess,
@@ -101,7 +121,7 @@ public class Project {
     }
 
     @Nonnull
-    public List<String> getGroups() {
+    public List<Link> getGroups() {
         if (this.groups != null) {
             return Collections.unmodifiableList(this.groups);
         } else {
@@ -109,17 +129,30 @@ public class Project {
         }
     }
 
-    public void addGroup(String group) {
+    public void addGroup(@Nonnull Link group) {
         if (this.groups == null) {
             this.groups = new ArrayList<>();
         }
-        if (!this.groups.contains(group)) {
-            this.groups.add(group);
+        for (int i = 0; i < this.groups.size(); ++i) {
+            if (this.groups.get(i).name().equals(group.name())) {
+                this.groups.set(i, group);
+                return;
+            }
         }
+        this.groups.add(group);
     }
 
-    public boolean removeGroup(String group) {
-        return this.groups != null && this.groups.remove(group);
+    public boolean removeGroup(@Nonnull String groupName) {
+        if (this.groups == null) {
+            return false;
+        }
+        for (int i = 0; i < this.groups.size(); ++i) {
+            if (this.groups.get(i).name().equals(groupName)) {
+                this.groups.remove(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nonnull
@@ -156,13 +189,15 @@ public class Project {
     }
 
     public boolean canBeManagedBy(@Nonnull User user) {
-        return user.isSuperUser() || getOwner().equals(user.name());
+        return user.hasSuperPrivileges()
+                || getOwner().equals(user.name())
+                || getGroups().stream().anyMatch(link -> link.name().equals(user.name()) && link.role() == Role.OWNER);
     }
 
     public boolean canBeAccessedBy(@Nonnull User user) {
-        return this.isPublic()
-                || this.canBeManagedBy(user)
-                || (this.groups != null && user.getGroups().stream().anyMatch(g -> this.groups.contains(g.name())));
+        return isPublic()
+                || canBeManagedBy(user)
+                || getGroups().stream().anyMatch(link -> link.name().equals(user.name()) && link.role() == Role.MEMBER);
     }
 
     @Nonnull
