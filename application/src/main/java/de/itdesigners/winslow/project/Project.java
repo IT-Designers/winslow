@@ -32,7 +32,6 @@ public class Project {
         this.name     = "[no name]";
     }
 
-    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "public", "pipelineDefinition", "resourceLimit"})
     public Project(
             @Nonnull String id,
             @Nonnull String owner,
