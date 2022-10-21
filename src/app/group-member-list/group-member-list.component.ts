@@ -40,7 +40,16 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
 
   filterFunction() {
     this.displayMembers = Array.from(this.group.members);
-    if (this.userSearchInput) {
+    if (this.userSearchInput !== '') {
+      const searchedMembers = [];
+      for (const member of this.displayMembers) {
+        if (member.name.toUpperCase().includes(this.userSearchInput.toUpperCase())) {
+          searchedMembers.push(member);
+        }
+      }
+      this.displayMembers = Array.from(searchedMembers);
+    }
+    /*if (this.userSearchInput) {
       let i = 0;
       for (const member of this.displayMembers) {
         if (!member.name.includes(this.userSearchInput)) {
@@ -48,7 +57,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
         }
         i++;
       }
-    }
+    }*/
   }
   onRemoveItemClick(item) {
     this.removeMember.emit(item);

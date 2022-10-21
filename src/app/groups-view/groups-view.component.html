@@ -11,8 +11,8 @@
     </div>
     <!--<input matInput class="group-search-input" placeholder="Search Group..." [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">-->
     <mat-form-field class="group-search-container" appearance="fill">
-      <mat-label>Groupname</mat-label>
-      <input matInput placeholder="Groupname" [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">
+      <mat-label>Search...</mat-label>
+      <input matInput placeholder="Groupname..." [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">
     </mat-form-field>
     <div class="groups-list">
       <div class="group-list-item" *ngFor="let group of displayGroups" (click)="groupClicked(group)" [class.item-clicked]="group == selectedGroup">
