@@ -43,7 +43,8 @@
   display: flex;
   flex-direction: column;
   width: 85%;
-  max-height: 440px;
+  /*max-height: 440px;*/
+  height: 440px;
   border-bottom: 1px solid lightgrey;
 }
 .hidden {
