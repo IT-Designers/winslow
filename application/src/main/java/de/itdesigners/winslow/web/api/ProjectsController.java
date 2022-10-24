@@ -2,7 +2,6 @@ package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.api.auth.Link;
-import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.pipeline.*;
 import de.itdesigners.winslow.api.project.*;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
@@ -1455,17 +1454,25 @@ public class ProjectsController {
             @Nonnull User user,
             @PathVariable("projectId") String projectId,
             @RequestBody Link group) {
-        winslow
+        var handle = winslow
                 .getProjectRepository()
-                .getProject(projectId)
+                .getProject(projectId);
+
+        handle
                 .unsafe()
                 .filter(project -> project.canBeManagedBy(user))
-                .ifPresentOrElse(
-                        project -> project.addGroup(group),
-                        () -> {
-                            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-                        }
-                );
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+
+        try (var exclusive = handle
+                .exclusive()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE))) {
+            var project = exclusive.get().orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+            project.addGroup(group);
+            exclusive.update(project);
+        } catch (IOException | LockException e) {
+            LOG.log(Level.SEVERE, "Failed to addOrUpdateGroup on project=" + projectId, e);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
+        }
     }
 
     @DeleteMapping("projects/{projectId}/groups/{group}")
@@ -1473,24 +1480,30 @@ public class ProjectsController {
             @Nonnull User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("group") String group) {
-        winslow
+        var handle = winslow
                 .getProjectRepository()
-                .getProject(projectId)
+                .getProject(projectId);
+
+        handle
                 .unsafe()
                 .filter(project -> project.canBeManagedBy(user))
-                .ifPresentOrElse(
-                        project -> {
-                            if (!project.removeGroup(group)) {
-                                throw new ResponseStatusException(
-                                        HttpStatus.NOT_FOUND,
-                                        "The group is not a member of the project"
-                                );
-                            }
-                        },
-                        () -> {
-                            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-                        }
-                );
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
 
+
+        try (var exclusive = handle
+                .exclusive()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE))) {
+            var project = exclusive.get().orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+            if (!project.removeGroup(group)) {
+                throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "The group is not a member of the project"
+                );
+            }
+            exclusive.update(project);
+        } catch (IOException | LockException e) {
+            LOG.log(Level.SEVERE, "Failed to removeGroup on project=" + projectId, e);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
+        }
     }
 }
