@@ -235,6 +235,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.updateTabSelection(params.tab);
       }
     });
+    this.groupApi.getGroups().then((groups) => {
+      for (const group of groups) {
+        if (!group.name.includes('::')) {
+          this.allUserGroupnames.push(group.name);
+        }
+      }
+      // console.dir(this.allUserGroupnames);
+    });
+    this.projectGroupnames = this.project.groups.map(x => x.name);
+    console.log('Project groups: ');
+    console.dir(this.project.groups);
+    console.dir(this.projectGroupnames);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
