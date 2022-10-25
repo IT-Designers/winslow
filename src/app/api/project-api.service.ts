@@ -8,6 +8,7 @@ import {SubscriptionHandler} from './subscription-handler';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
+import {group} from '@angular/animations';
 
 
 @Injectable({
@@ -277,6 +278,20 @@ export class ProjectApiService {
         this.cacheTags(tags);
         return result;
       });
+  }
+
+  addOrUpdateGroup(projectId: string, groupLink: object): Promise<void> {
+    return this
+      .client
+      .post<void>(ProjectApiService.getUrl(`${projectId}/groups`), groupLink)
+      .toPromise();
+  }
+
+  removeGroup(projectId: string, groupname: string): Promise<object> {
+    return this
+      .client
+      .delete(ProjectApiService.getUrl(`${projectId}/groups/${groupname}`))
+      .toPromise();
   }
 
   stopStage(projectId: string, pause: boolean, stageId: string = null): Promise<boolean> {
