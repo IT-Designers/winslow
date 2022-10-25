@@ -1,0 +1,104 @@
+/* ---------- Overall Container Styling ---------- */
+.list-and-label-container {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 0;
+  display: flex;
+  flex-direction: row;
+}
+app-groups-add-member-dialog {
+  overflow: clip;
+}
+
+/*.list-container {
+  display:flex;
+  flex-direction: row;
+}*/
+.list-content {
+  position: relative;
+  padding-bottom: 5px;
+  background-color: #f6f6f6;
+  min-width: 830px;
+  max-height: 400px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 290px;
+}
+.scrollable {
+  width: 90%;
+  overflow-y: scroll;
+  border-bottom: 1px solid lightgray;
+}
+
+/* ---------- List Item Styling ---------- */
+.list-item {
+  cursor: default;
+  padding: 3px;
+  border-bottom: 1px solid lightgrey;
+  margin-top: 1px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.dropdown-item:hover {
+  background-color: lightgrey;
+}
+.username-label {
+  margin-left: 1em;
+  margin-right: 1em;
+  width: 4em;
+}
+.role-dropdown {
+  width: 8em;
+  display: flex;
+  align-items: center;
+  margin-top: 1.2em;
+}
+.remove-member-button {
+  border: none;
+  background-color: #3f51b5;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
+  margin-left: 9.5em;
+}
+.remove-member-button:enabled {
+  cursor: pointer;
+}
+.remove-member-button:enabled:hover {
+  scale: 1.1;
+}
+.remove-member-button:disabled {
+  background-color: grey;
+  cursor: default;
+}
+.item-icon {
+  font-size: 30px;
+  color: white;
+  margin-left: 5px;
+  margin-top: 2px;
+}
+.text-input {
+  width: 90%;
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.add-member-button-container {
+  text-align: center;
+  margin-top: 4px;
+}
+
