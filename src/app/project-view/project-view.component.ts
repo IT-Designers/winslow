@@ -28,6 +28,7 @@ import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.compon
 import {ActivatedRoute, Router} from '@angular/router';
 import {pipe, Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
+import {GroupApiService} from '../api/group-api.service';
 
 
 @Component({
@@ -42,7 +43,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
               private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
               private dialog: DialogService,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private groupApi: GroupApiService) {
               this.setHistoryListHeight(window.innerHeight)
   }
 
@@ -150,6 +152,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   resourceLimit: ResourceLimitation = null;
   authTokens: AuthTokenInfo[] = null;
 
+  allUserGroupnames: string[] = [];
+  projectGroupnames: string[] = [];
+
 
   // load more entries, when user is scrolling to the bottom
   // on project history list
@@ -212,6 +217,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.updateTabSelection(params.tab);
       }
     });
+    this.groupApi.getGroups().then((groups) => {
+      for (const group of groups) {
+        if (!group.name.includes('::')) {
+          this.allUserGroupnames.push(group.name);
+        }
+      }
+      // console.dir(this.allUserGroupnames);
+    });
+    this.projectGroupnames = this.project.groups.map(x => x.name);
+    console.log('Project groups: ');
+    console.dir(this.project.groups);
+    console.dir(this.projectGroupnames);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -588,6 +605,30 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         }),
       'Updating tags'
     );
+  }
+
+  setGroups(groups: string[], groupsToDelete) {
+    console.log('setGroups: ');
+    console.dir(groups);
+    console.dir(groupsToDelete);
+    if (groupsToDelete) {
+      for (const delGroup of groupsToDelete) {
+        this.api
+          .removeGroup(this.project.id, delGroup);
+      }
+    }
+    for (const group of groups) {
+      // TODO: currently only first group gets added
+      const groupToAdd = {
+        name: group,
+        role: 'MEMBER'
+      };
+      return this.dialog.openLoadingIndicator(
+        this.api
+          .addOrUpdateGroup(this.project.id, groupToAdd),
+          'Updating Groups'
+      );
+    }
   }
 
   onSelectedPipelineChanged(info: PipelineInfo) {

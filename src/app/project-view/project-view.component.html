@@ -268,6 +268,23 @@
         </button>
       </div>
       <div class="stage-control-item">
+        <label>Group Access</label>
+        <app-group-tags-with-autocomplete #groupTags
+                                    [sort]="false"
+                                    [groupTags]="projectGroupnames"
+                                    [proposals]="allUserGroupnames">
+        </app-group-tags-with-autocomplete>
+        <button mat-stroked-button color="primary" #groupTagsButton
+                [disabled]="(project.groups.sort() | json) == (groupTags.selectedTags.sort() | json)"
+                (click)="setGroups(groupTags.selectedTags, groupTags.groupsToDelete)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <app-project-groups-list
+        [project]="project"></app-project-groups-list>
+      </div>
+      <div class="stage-control-item">
         <label>Project Pipeline</label>
         <mat-form-field>
           <mat-select #pipelineSelection [value]="this.probablyProjectPipelineId">
