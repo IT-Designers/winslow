@@ -1,9 +1,10 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {UserApiService} from '../api/user-api.service';
+import {User, UserApiService} from '../api/user-api.service';
 import {RoleApiService} from '../api/role-api.service';
 
 export interface AddMemberData {
+  members: User[];
   name: string;
   role: string;
 }
@@ -15,8 +16,8 @@ export interface AddMemberData {
 })
 export class GroupsAddMemberDialogComponent implements OnInit {
 
-  allUsers: AddMemberData[];
-  displayUsers: AddMemberData[];
+  allUsers: User[];
+  displayUsers: User[];
   allRoles: string[];
   userSearchInput = '';
   showUsersToggle = false;
@@ -29,7 +30,16 @@ export class GroupsAddMemberDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.userApi.getUsers().then((users) => {
-      this.allUsers = users;
+      this.allUsers = users.filter((user) => {
+        let exists = false;
+        for (const member of this.data.members) {
+          if (member.name === user.name) {
+            exists = true;
+            return false;
+          }
+        }
+        return true;
+      });
     });
     this.roleApi.getRoles().then((roles) => this.allRoles = roles);
   }
@@ -55,15 +65,6 @@ export class GroupsAddMemberDialogComponent implements OnInit {
       }
       this.displayUsers = Array.from(searchedUsers);
     }
-    /*if (this.userSearchInput) {
-      let i = 0;
-      for (const user of this.displayUsers) {
-        if (!user.name.includes(this.userSearchInput)) {
-          this.displayUsers.splice(i, 1);
-        }
-        i++;
-      }
-    }*/
   }
 
   addUserClicked(user) {
