@@ -1,37 +1,14 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {map} from 'rxjs/operators';
 import {RxStompService} from '@stomp/ng2-stompjs';
+import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
 import {SubscriptionHandler} from './subscription-handler';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
-import {
-  AuthTokenInfo,
-  EnvVariable,
-  ExecutionGroupInfo,
-  ImageInfo,
-  LogEntryInfo,
-  ParseError,
-  PipelineDefinitionInfo,
-  ProjectInfo,
-  RangedList,
-  RangedValue,
-  RangeWithStepSize,
-  ResourceInfo,
-  ResourceLimitation,
-  StageAndGatewayDefinitionInfo,
-  StageDefinitionInfoUnion,
-  StageInfo,
-  StageWorkerDefinitionInfo,
-  StageXOrGatewayDefinitionInfo,
-  State,
-  StateInfo,
-  StatsInfo,
-  WorkspaceConfiguration,
-  WorkspaceMode
-} from './winslow-api';
-import {loadPipelineDefinition} from './pipeline-api.service';
+import {group} from '@angular/animations';
 
 
 @Injectable({
@@ -42,19 +19,22 @@ export class ProjectApiService {
   static LOGS_LATEST = 'latest';
 
   public cachedTags: string[] = [];
-  private readonly projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
-  private readonly publicProjectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
-  private readonly ownProjectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
-  private readonly projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
-  private readonly publicProjectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
-  private readonly ownProjectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
+  private projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
+  private projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
 
   private static getUrl(more?: string) {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
+  private static fixExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {
+    origin.stages = origin.stages.map(stage => new StageInfo(stage));
+    return new ExecutionGroupInfo(origin);
+  }
+
   private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
-    return groups.map(origin => loadExecutionGroupInfo(origin));
+    return groups.map(origin => {
+      return ProjectApiService.fixExecutionGroupInfo(origin);
+    });
   }
 
   static toMap(entry) {
@@ -63,60 +43,14 @@ export class ProjectApiService {
 
 
   constructor(private client: HttpClient, private rxStompService: RxStompService) {
-    this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
-      rxStompService,
-      '/projects',
-      p => loadProjectInfo(p)
-    );
-
-    this.publicProjectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
-      rxStompService,
-      '/projects/public',
-      p => loadProjectInfo(p)
-    );
-
-    this.ownProjectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
-      rxStompService,
-      '/projects/own',
-      p => loadProjectInfo(p)
-    );
+    this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(rxStompService, '/projects');
+    this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(rxStompService, '/projects/states', s => new StateInfo(s));
 
     this.projectSubscriptionHandler.subscribe((id, value) => {
       if (value != null) {
         this.cacheTags(value.tags);
       }
     });
-
-    this.publicProjectSubscriptionHandler.subscribe((id, value) => {
-      if (value != null) {
-        this.cacheTags(value.tags);
-      }
-    });
-
-    this.ownProjectSubscriptionHandler.subscribe((id, value) => {
-      if (value != null) {
-        this.cacheTags(value.tags);
-      }
-    });
-
-
-    this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
-      rxStompService,
-      '/projects/states',
-      s => new StateInfo(s)
-    );
-
-    this.publicProjectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
-      rxStompService,
-      '/projects/public',
-      s => new StateInfo(s)
-    );
-
-    this.ownProjectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
-      rxStompService,
-      '/projects/own',
-      s => new StateInfo(s)
-    );
   }
 
   private cacheTags(tags: string[]) {
@@ -133,17 +67,14 @@ export class ProjectApiService {
     return this.rxStompService.watch(`/projects/${projectId}/stats`).subscribe((message: Message) => {
       const events: ChangeEvent<string, StatsInfo>[] = JSON.parse(message.body);
       events.forEach(event => {
-        if (event.identifier === projectId && event.value) {
-          listener(new StatsInfo(event.value));
+        if (event.identifier === projectId) {
+          listener(event.value ? event.value : new StatsInfo());
         }
       });
     });
   }
 
-  private watchProjectExecutionGroupInfo(
-    projectId: string,
-    specialization: string,
-    listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  private watchProjectExecutionGroupInfo(projectId: string, specialization: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/${specialization}`).subscribe((message: Message) => {
       const events: ChangeEvent<string, ExecutionGroupInfo[]>[] = JSON.parse(message.body);
       events.forEach(event => {
@@ -173,15 +104,12 @@ export class ProjectApiService {
     });
   }
 
-  public watchLogs(
-    projectId: string,
-    listener: (logs: LogEntryInfo[]) => void,
-    stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
+  public watchLogs(projectId: string, listener: (logs: LogEntry[]) => void, stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/logs/${stageId}`).subscribe(message => {
-      const events: ChangeEvent<string, LogEntryInfo[]>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, LogEntry[]>[] = JSON.parse(message.body);
       events.forEach(event => {
         if (event.value) {
-          listener(event.value.map(e => new LogEntryInfo(e)));
+          listener(event.value);
         }
       });
     });
@@ -191,27 +119,11 @@ export class ProjectApiService {
     return this.projectSubscriptionHandler;
   }
 
-  public getPublicProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
-    return this.publicProjectSubscriptionHandler;
-  }
-
-  public getOwnProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
-    return this.ownProjectSubscriptionHandler;
-  }
-
   public getProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
     return this.projectStateSubscriptionHandler;
   }
 
-  public getPublicProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
-    return this.publicProjectStateSubscriptionHandler;
-  }
-
-  public getOwnProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
-    return this.ownProjectStateSubscriptionHandler;
-  }
-
-  createProject(name: string, pipeline: PipelineDefinitionInfo, tags?: string[]): Promise<ProjectInfo> {
+  createProject(name: string, pipeline: PipelineInfo, tags?: string[]): Promise<ProjectInfo> {
     return this.client
       .post<ProjectInfo>(
         ProjectApiService.getUrl(null),
@@ -220,19 +132,17 @@ export class ProjectApiService {
           pipeline: pipeline.id,
           tags
         })
-      .toPromise()
-      .then(result => result ?? loadProjectInfo(result));
+      .toPromise();
   }
 
   listProjects(): Promise<ProjectInfo[]> {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
-  getProjectPipelineDefinition(projectId: string): Promise<PipelineDefinitionInfo> {
+  getProjectPipelineDefinition(projectId: string): Promise<PipelineInfo> {
     return this.client
-      .get<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
-      .toPromise()
-      .then(loadPipelineDefinition);
+      .get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
+      .toPromise();
   }
 
   getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
@@ -245,6 +155,18 @@ export class ProjectApiService {
     return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
+  }
+
+  getProjectEnqueued(projectId: string): Promise<ExecutionGroupInfo[]> {
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
+      .pipe(map(enqueued => {
+        const fixed = ProjectApiService.fixExecutionGroupInfoArray(enqueued);
+        for (let i = 0; i < fixed.length; ++i) {
+          fixed[i].enqueueIndex = i;
+        }
+        return fixed;
+      }))
+      .toPromise();
   }
 
   deleteEnqueued(projectId: string, groupId: string): Promise<boolean> {
@@ -260,7 +182,7 @@ export class ProjectApiService {
 
   enqueue(
     projectId: string,
-    nextStageId: string,
+    nextStageIndex: number,
     env: any,
     rangedEnv?: Map<string, RangeWithStepSize>,
     image: ImageInfo = null,
@@ -273,9 +195,9 @@ export class ProjectApiService {
     return this.client.post<void>(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
       {
-        id: nextStageId,
         env,
         rangedEnv,
+        stageIndex: nextStageIndex,
         image,
         requiredResources,
         workspaceConfiguration,
@@ -286,14 +208,7 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-
-  configureGroup(
-    projectId: string,
-    stageIndex: number,
-    projectIds: string[],
-    env: any,
-    image: ImageInfo = null,
-    requiredResources: ResourceInfo = null): Promise<boolean[]> {
+  configureGroup(projectId: string, stageIndex: number, projectIds: string[], env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null): Promise<boolean[]> {
     return this.client.post<boolean[]>(
       ProjectApiService.getUrl(`${projectId}/enqueued-on-others`),
       {
@@ -329,12 +244,11 @@ export class ProjectApiService {
   }
 
   setProjectRawPipelineDefinition(projectId: string, raw: string): Promise<void | ParseError> {
-    return this.client
-      .put<object | ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), raw)
+    return this.client.put<ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), raw)
       .toPromise()
       .then(r => {
         if (r != null && Object.keys(r).length !== 0) {
-          return Promise.reject(new ParseError(r as ParseError));
+          return Promise.reject(r);
         } else {
           return Promise.resolve(null);
         }
@@ -344,14 +258,8 @@ export class ProjectApiService {
   getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
     return this.client
       .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
-      .toPromise()
-      .then(response => {
-        const map = new Map();
-        for (const [key, value] of Object.entries(response)) {
-          map.set(key, new EnvVariable(value));
-        }
-        return map;
-      });
+      .pipe(map(response => new Map(Object.entries(response))))
+      .toPromise();
   }
 
   setName(projectId: string, name: string): Promise<void> {
@@ -370,6 +278,20 @@ export class ProjectApiService {
         this.cacheTags(tags);
         return result;
       });
+  }
+
+  addOrUpdateGroup(projectId: string, groupLink: object): Promise<void> {
+    return this
+      .client
+      .post<void>(ProjectApiService.getUrl(`${projectId}/groups`), groupLink)
+      .toPromise();
+  }
+
+  removeGroup(projectId: string, groupname: string): Promise<object> {
+    return this
+      .client
+      .delete(ProjectApiService.getUrl(`${projectId}/groups/${groupname}`))
+      .toPromise();
   }
 
   stopStage(projectId: string, pause: boolean, stageId: string = null): Promise<boolean> {
@@ -469,16 +391,14 @@ export class ProjectApiService {
     return this
       .client
       .get<AuthTokenInfo[]>(ProjectApiService.getUrl(`${projectId}/auth-tokens`))
-      .toPromise()
-      .then(e => e.map(o => new AuthTokenInfo(o)));
+      .toPromise();
   }
 
   createAuthToken(projectId: string, name: string): Promise<AuthTokenInfo> {
     return this
       .client
       .post<AuthTokenInfo>(ProjectApiService.getUrl(`${projectId}/auth-tokens?name=${name}`), new FormData())
-      .toPromise()
-      .then(e => new AuthTokenInfo(e));
+      .toPromise();
   }
 
   deleteAuthToken(projectId: string, id: string): Promise<boolean> {
@@ -515,178 +435,312 @@ export class ProjectApiService {
     return alt;
   }
 
-  findProjectPipeline(project: ProjectInfo, pipelines: PipelineDefinitionInfo[]) {
+  findProjectPipeline(project: ProjectInfo, pipelines: PipelineInfo[]) {
     for (const pipeline of pipelines) {
       if (pipeline.name === project.pipelineDefinition.name) {
-        return pipeline.id;
+        return  pipeline.id;
       }
     }
     return null;
   }
 }
 
-export function loadProjectInfo(origin: ProjectInfo): ProjectInfo {
-  return new ProjectInfo({
-    ...origin,
-    pipelineDefinition: loadPipelineDefinition(origin.pipelineDefinition)
-  });
+export enum State {
+  Running = 'Running',
+  Paused = 'Paused',
+  Succeeded = 'Succeeded',
+  Failed = 'Failed',
+  Preparing = 'Preparing',
+  // local only
+  Warning = 'Warning',
+  Enqueued = 'Enqueued',
+  Skipped = 'Skipped'
 }
 
+export enum Action {
+  Execute = 'Execute',
+  Configure = 'Configure',
+}
+
+export class ProjectInfo {
+  id: string;
+  owner: string;
+  groups: string[];
+  tags: string[];
+  name: string;
+  publicAccess: boolean;
+  pipelineDefinition: PipelineInfo;
+  // local only
+  version: number;
+  environment: Map<string, string>;
+  userInput: string[];
+}
 
 export class ProjectGroup {
   name: string;
   projects: ProjectInfo[];
 }
 
-export function createRangeWithStepSize(min: number, max: number, stepSize: number): RangeWithStepSize {
-  const stp = Math.abs(stepSize);
-  const dist = (max - min);
-  return new RangeWithStepSize({
-    '@type': 'DiscreteSteps',
-    min,
-    max,
-    stepCount: Math.ceil(dist / stp) + 1,
-    stepSize
-  });
-}
+export class RangedValue {
+  DiscreteSteps?: RangeWithStepSize;
+  List?: RangedList;
 
-export function createRangedList(values: string[]): RangedList {
-  return new RangedList({
-    '@type': 'List',
-    stepCount: values.length,
-    values
-  });
-}
-
-export function loadExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {
-  return new ExecutionGroupInfo({
-    ...origin,
-    stages: origin.stages.map(stage => loadStageInfo(stage)),
-    stageDefinition: loadStageDefinition(origin.stageDefinition)
-  });
-}
-
-declare module './winslow-api' {
-  interface ExecutionGroupInfo {
-    enqueueIndex?: number;
-
-    rangedValuesKeys(): string[];
-
-    hasStagesState(state: State): boolean;
-
-    getMostRecentStage(): StageInfo;
-
-    getMostRecentStartOrFinishTime(): number;
-
-    getMostRelevantState(projectState?: State): State;
-
-    isMostRecentStateRunning(): boolean;
-
-    hasRunningStages(): boolean;
-
-    getGroupSize(): number;
-  }
-}
-
-ExecutionGroupInfo.prototype.rangedValuesKeys = function(): string[] {
-  return Object.keys(this.rangedValues);
-};
-
-ExecutionGroupInfo.prototype.hasStagesState = function(state: State): boolean {
-  for (const stage of this.stages) {
-    if (stage.state === state) {
-      return true;
+  constructor(origin?: RangedValue) {
+    if (origin != null) {
+      if (origin.DiscreteSteps != null) {
+        this.DiscreteSteps = new RangeWithStepSize(origin.DiscreteSteps);
+      } else if (origin.List != null) {
+        this.List = new RangedList(origin.List);
+      }
     }
   }
-  return false;
-};
 
-ExecutionGroupInfo.prototype.getMostRecentStage = function(): StageInfo {
-  for (const stage of [...this.stages].reverse()) {
-    if (stage.finishTime != null) {
-      return stage;
-    } else if (stage.startTime != null) {
-      return stage;
+  getStageCount(): number {
+    if (this.DiscreteSteps != null) {
+      return this.DiscreteSteps.getStageCount();
+    } else if (this.List != null) {
+      return this.List.getStageCount();
+    } else {
+      return 0;
     }
   }
-  return null;
-};
+}
 
-ExecutionGroupInfo.prototype.getMostRecentStartOrFinishTime = function(): number {
-  const stage = this.getMostRecentStage();
-  if (stage == null) {
+export class RangedList {
+  values: string[];
+
+  constructor(origin?: RangedList) {
+    if (origin != null) {
+      this.values = origin.values ?? [];
+    }
+  }
+
+  getStageCount(): number {
+    return this.values.length;
+  }
+}
+
+export class RangeWithStepSize {
+  min: number;
+  max: number;
+  stepSize: number;
+
+  constructor(origin?: RangeWithStepSize) {
+    if (origin != null) {
+      this.min = origin.min;
+      this.max = origin.max;
+      this.stepSize = origin.stepSize;
+    }
+  }
+
+  getStageCount(): number {
+    const min = Math.min(this.min, this.max);
+    const max = Math.max(this.min, this.max);
+    const stp = Math.abs(this.stepSize);
+    const dist = (max - min);
+    return Math.ceil(dist / stp) + 1;
+  }
+}
+
+export class AuthTokenInfo {
+  id: string;
+  secret?: string;
+  name: string;
+  capabilities: string[];
+}
+
+export class ExecutionGroupInfo {
+  id: string;
+  configureOnly: boolean;
+  stageDefinition: StageDefinitionInfo;
+  rangedValues: Map<string, RangedValue>;
+  workspaceConfiguration: WorkspaceConfiguration;
+  stages: StageInfo[];
+  active: boolean;
+  enqueued: boolean;
+  comment?: string;
+  // local only
+  enqueueIndex?: number;
+
+  constructor(origin: ExecutionGroupInfo = null) {
+    if (origin != null) {
+      Object.assign(this, origin);
+      this.stageDefinition = new StageDefinitionInfo(origin.stageDefinition);
+      this.rangedValues = new Map();
+
+      for (const [key, value] of ProjectApiService.toMap(origin.rangedValues)) {
+        this.rangedValues.set(key, new RangedValue(value));
+      }
+    }
+  }
+
+  hasStagesState(state: State): boolean {
+    for (const stage of this.stages) {
+      if (stage.state === state) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public getMostRecentStage(): StageInfo {
+    for (const stage of [...this.stages].reverse()) {
+      if (stage.finishTime != null) {
+        return stage;
+      } else if (stage.startTime != null) {
+        return stage;
+      }
+    }
     return null;
-  } else if (stage.startTime != null) {
-    return stage.startTime;
-  } else if (stage?.finishTime != null) {
-    return stage.finishTime;
-  } else {
-    return null;
   }
-};
 
-ExecutionGroupInfo.prototype.getMostRelevantState = function(projectState: State = null): State {
-  const states: Array<State> = ['RUNNING', 'PREPARING', 'FAILED'];
-  for (const state of states) {
-    if (this.hasStagesState(state)) {
-      return state;
+  public getMostRecentStartOrFinishTime(): number {
+    const stage = this.getMostRecentStage();
+    if (stage?.startTime != null) {
+      return stage.startTime;
+    } else if (stage?.finishTime != null) {
+      return stage.finishTime;
+    } else {
+      return null;
     }
   }
-  if (this.enqueued) {
-    return 'ENQUEUED';
-  } else if (this.active) {
-    const alternative = projectState === 'PAUSED' ? 'PAUSED' : 'PREPARING';
-    return this.getMostRecentStage()?.state ?? alternative;
-  } else {
-    return this.getMostRecentStage()?.state ?? 'SKIPPED';
-  }
-};
 
-ExecutionGroupInfo.prototype.isMostRecentStateRunning = function(): boolean {
-  return this.getMostRelevantState() === 'RUNNING';
-};
-
-ExecutionGroupInfo.prototype.hasRunningStages = function(): boolean {
-  for (const stage of this.stages) {
-    if (stage.state === 'RUNNING') {
-      return true;
+  public getMostRelevantState(projectState: State = null): State {
+    for (const state of [State.Running, State.Preparing, State.Failed]) {
+      if (this.hasStagesState(state)) {
+        return state;
+      }
+    }
+    if (this.enqueued) {
+      return State.Enqueued;
+    } else if (this.active) {
+      const alternative = projectState === State.Paused ? State.Paused : State.Preparing;
+      return this.getMostRecentStage()?.state ?? alternative;
+    } else {
+      return this.getMostRecentStage()?.state ?? State.Skipped;
     }
   }
-  return false;
-};
 
-ExecutionGroupInfo.prototype.getGroupSize = function(): number {
-  const rvKeys = Object.keys(this.rangedValues);
-
-  if (rvKeys.length > 0) {
-    let size = 0;
-    for (const entry of Object.entries(this.rangedValues)) {
-      size += (entry[1] as RangedValue).stepCount;
-    }
-    return size;
-  } else {
-    return 1;
+  public isMostRecentStateRunning() {
+    return this.getMostRelevantState() === State.Running;
   }
-};
 
+  public hasRunningStages(): boolean {
+    for (const stage of this.stages) {
+      if (stage.state === State.Running) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-export function loadStageInfo(stage: StageInfo): StageInfo {
-  return new StageInfo(stage);
+  public getGroupSize(): number {
+    if (this.rangedValues?.size > 0) {
+      let size = 0;
+      for (const entry of this.rangedValues.entries()) {
+        size += entry[1].getStageCount();
+      }
+      return size;
+    } else {
+      return 1;
+    }
+  }
 }
 
-export function loadStageDefinition(stage: StageDefinitionInfoUnion): StageDefinitionInfoUnion {
-  const type = stage['@type'];
-  if (type === 'Worker') {
-    return new StageWorkerDefinitionInfo(stage as StageWorkerDefinitionInfo);
-  } else if (type === 'XorGateway') {
-    return new StageXOrGatewayDefinitionInfo(stage as StageXOrGatewayDefinitionInfo);
-  } else if (type === 'AndGateway') {
-    return new StageAndGatewayDefinitionInfo(stage as StageAndGatewayDefinitionInfo);
-  } else {
-    // TODO
-    console.error(`Unexpected StageDefinitionInfo type ${type}`);
-    return stage;
+export class StageInfo {
+  id: string;
+  startTime?: number;
+  finishTime?: number;
+  state?: State;
+  workspace?: string;
+  env: Map<string, string>;
+  envPipeline: Map<string, string>;
+  envSystem: Map<string, string>;
+  envInternal: Map<string, string>;
+
+  constructor(origin: StageInfo = null) {
+    if (origin != null) {
+      Object.assign(this, origin);
+      this.env = ProjectApiService.toMap(origin.env);
+      this.envPipeline = ProjectApiService.toMap(origin.envPipeline);
+      this.envSystem = ProjectApiService.toMap(origin.envSystem);
+      this.envInternal = ProjectApiService.toMap(origin.envInternal);
+    }
   }
+}
+
+export class StageDefinitionInfo {
+  name: string;
+  image?: ImageInfo;
+  requiredEnvVariables: string[];
+  requiredResources: ResourceInfo;
+  env: Map<string, string>;
+
+  constructor(origin: StageDefinitionInfo = null) {
+    if (origin != null) {
+      Object.assign(this, origin);
+      this.env = ProjectApiService.toMap(origin.env);
+    }
+  }
+}
+
+export enum LogSource {
+  STANDARD_IO = 'STANDARD_IO',
+  MANAGEMENT_EVENT = 'MANAGEMENT_EVENT'
+}
+
+export class LogEntry {
+  line: number;
+  time: number;
+  source: LogSource;
+  error: boolean;
+  message: string;
+  stageId?: string; // ProjectsController.LogEntryInfo
+}
+
+export class StateInfo {
+  state: State;
+  pauseReason?: string;
+  description?: string;
+  stageProgress?: number;
+  hasEnqueuedStages: boolean;
+
+  constructor(json: any) {
+    Object.keys(json).forEach(key => this[key] = json[key]);
+  }
+
+  isRunning(): boolean {
+    return State.Running === this.getState();
+  }
+
+  getState(): State {
+    return this.state;
+  }
+}
+
+export class ImageInfo {
+  name?: string;
+  args?: string[];
+  shmMegabytes?: number;
+}
+
+export class ParseError {
+  line: number;
+  column: number;
+  message: string;
+
+  static canShadow(obj: any): boolean {
+    return obj != null
+      && obj.line != null
+      && obj.column != null
+      && obj.message != null;
+  }
+}
+
+export class EnvVariable {
+  key: string;
+  value?: string;
+  valueInherited?: null;
 }
 
 export class DeletionPolicy {
@@ -695,31 +749,56 @@ export class DeletionPolicy {
   alwaysKeepMostRecentWorkspace?: boolean;
 }
 
-export function createWorkspaceConfiguration(
-  mode: WorkspaceMode = 'INCREMENTAL',
-  value: string = null,
-  sharedWithinGroup: boolean = false,
-  nestedWithinGroup: boolean = true): WorkspaceConfiguration {
-  return new WorkspaceConfiguration({
-    mode, value, sharedWithinGroup, nestedWithinGroup
-  });
+export class StatsInfo {
+  stageId?: string;
+  runningOnNode?: string;
+  cpuUsed = 0;
+  cpuMaximum = 0;
+  memoryAllocated = 0;
+  memoryMaximum = 0;
 }
 
-
-export function loadResourceLimitation(origin: ResourceLimitation): ResourceLimitation {
-  return new ResourceLimitation({
-    ...origin
-  });
+export enum WorkspaceMode {
+  STANDALONE = 'STANDALONE',
+  INCREMENTAL = 'INCREMENTAL',
+  CONTINUATION = 'CONTINUATION',
 }
 
-export function createResourceLimitation(cpu: number = null, mem: number = null, gpu: number = null): ResourceLimitation {
-  return new ResourceLimitation({cpu, mem, gpu});
+export class WorkspaceConfiguration {
+  mode: WorkspaceMode;
+  value: string;
+  sharedWithinGroup: boolean;
+  nestedWithinGroup: boolean;
+
+  constructor(
+    mode: WorkspaceMode = WorkspaceMode.INCREMENTAL,
+    value: string = null,
+    sharedWithinGroup: boolean = false,
+    nestedWithinGroup: boolean = true
+  ) {
+    this.mode = mode;
+    this.value = value;
+    this.sharedWithinGroup = sharedWithinGroup != null && sharedWithinGroup;
+    this.nestedWithinGroup = nestedWithinGroup != null && nestedWithinGroup;
+  }
 }
 
-export function similarResourceLimitation(a?: ResourceLimitation, b?: ResourceLimitation) {
-  if (a != null && b != null) {
-    return a.cpu === b.cpu && a.mem === b.mem && a.gpu === b.gpu;
-  } else {
-    return a == null && b == null;
+export class ResourceLimitation {
+  cpu?: number = null;
+  mem?: number = null;
+  gpu?: number = null;
+
+  constructor(src?: ResourceLimitation) {
+    this.cpu = src?.cpu;
+    this.mem = src?.mem;
+    this.gpu = src?.gpu;
+  }
+
+  static equals(a?: ResourceLimitation, b?: ResourceLimitation) {
+    if (a != null && b != null) {
+      return a.cpu === b.cpu && a.mem === b.mem && a.gpu === b.gpu;
+    } else {
+      return a == null && b == null;
+    }
   }
 }
