@@ -372,7 +372,7 @@ export class ProjectApiService {
       });
   }
 
-  addOrUpdateGroup(projectId: string, groupLink: object): Promise<void> {
+  addOrUpdateGroup(projectId: string, groupLink: Group): Promise<void> {
     return this
       .client
       .post<void>(ProjectApiService.getUrl(`${projectId}/groups`), groupLink)

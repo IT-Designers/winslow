@@ -2,6 +2,7 @@ import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core'
 import {Group, ProjectApiService, ProjectInfo} from '../../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
+import {AddGroupData, ProjectAddGroupDialogComponent} from '../project-add-group-dialog/project-add-group-dialog.component';
 
 @Component({
   selector: 'app-project-groups-list',
@@ -43,7 +44,27 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
     }
   }
   openAddGroupDialog() {
-    console.log('Add Group Dialog');
+    this.createDialog
+      .open(ProjectAddGroupDialogComponent, {
+        data: {
+          alreadyAssigned: this.displayGroups
+        } as AddGroupData
+      })
+      .afterClosed()
+      .subscribe((data) => {
+        if (data) {
+          const groupToAdd = {
+            name: data.groupName,
+            role: data.groupRole
+          };
+          this.dialog.openLoadingIndicator(
+            this.projectApi.addOrUpdateGroup(this.project.id, groupToAdd),
+            'Assigning Group to Project'
+          );
+          /*this.projectApi.addOrUpdateGroup(this.project.id, groupToAdd);*/
+          this.displayGroups.push(groupToAdd);
+        }
+      });
   }
   onRemoveItemClick(item) {
     const delIndex = this.project.groups.findIndex((group) => group.name === item.name);
