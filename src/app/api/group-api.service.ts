@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {Group} from './project-api.service';
 
 
 @Injectable({
@@ -14,9 +15,9 @@ export class GroupApiService {
     return `${environment.apiLocation}groups${more != null ? `/${more}` : ''}`;
   }
 
-  getGroups(): Promise<object[]> {
+  getGroups(): Promise<Group[]> {
     return this.client
-      .get<object[]>(GroupApiService.getUrl(''))
+      .get<Group[]>(GroupApiService.getUrl(''))
       .toPromise();
   }
   getGroup(groupName): Promise<object> {

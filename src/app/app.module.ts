@@ -94,6 +94,9 @@ import { GroupMemberListComponent } from './group-member-list/group-member-list.
 import { GroupsAddMemberDialogComponent } from './groups-add-member-dialog/groups-add-member-dialog.component';
 import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
 import { GroupAddNameDialogComponent } from './group-add-name-dialog/group-add-name-dialog.component';
+import { GroupTagsWithAutocompleteComponent } from './projects-view/group-tags-with-autocomplete/group-tags-with-autocomplete.component';
+import { ProjectGroupsListComponent } from './projects-view/project-groups-list/project-groups-list.component';
+import { ProjectAddGroupDialogComponent } from './projects-view/project-add-group-dialog/project-add-group-dialog.component';
 
 @NgModule({
     declarations: [
@@ -153,6 +156,9 @@ import { GroupAddNameDialogComponent } from './group-add-name-dialog/group-add-n
         GroupsAddMemberDialogComponent,
         DeleteConfirmDialogComponent,
         GroupAddNameDialogComponent,
+        GroupTagsWithAutocompleteComponent,
+        ProjectGroupsListComponent,
+        ProjectAddGroupDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
