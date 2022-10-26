@@ -49,15 +49,6 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
       }
       this.displayMembers = Array.from(searchedMembers);
     }
-    /*if (this.userSearchInput) {
-      let i = 0;
-      for (const member of this.displayMembers) {
-        if (!member.name.includes(this.userSearchInput)) {
-          this.displayMembers.splice(i, 1);
-        }
-        i++;
-      }
-    }*/
   }
   onRemoveItemClick(item) {
     this.removeMember.emit(item);
@@ -71,6 +62,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     this.createDialog
       .open(GroupsAddMemberDialogComponent, {
         data: {
+          members: this.displayMembers
         } as AddMemberData
       })
       .afterClosed()
