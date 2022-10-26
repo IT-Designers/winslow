@@ -1,7 +1,5 @@
-FROM nexus.itd-intern.de/winslow/component-server as server
 FROM nexus.itd-intern.de/winslow/component-html as html
-
-FROM openjdk:11-jre-slim-buster
+FROM nexus.itd-intern.de/winslow/component-server as server
 
 RUN apt update && \
     apt install iproute2 nfs-common curl gnupg unzip lsof -y && \
