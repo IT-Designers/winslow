@@ -78,28 +78,6 @@ export class GroupsViewComponent implements OnInit {
       }
       this.displayGroups = Array.from(searchedGroups);
     }
-    /*if (this.groupSearchInput !== '') {
-      const input = this.groupSearchInput;
-      const filter = input.toUpperCase();
-      for (let i = 0; i < this.displayGroups.length; i++) {
-        const txtValue = this.displayGroups[i].name;
-        if (!(txtValue.toUpperCase().indexOf(filter) > -1)) {
-          this.displayGroups.splice(i, 1);
-        }
-      }
-    }*/
-      /*let i = 0;
-      for (const group of this.displayGroups) {
-        console.log('Now checking group ///' + group.name + '/// with input ///' + this.groupSearchInput + '///');
-        console.dir(group.name);
-        if (!group.name.includes(this.groupSearchInput)) {
-          // console.log('Group number ' + i + ' with name ' + group.name + ' doesnt include string ' + this.groupSearchInput);
-          console.log('--------------- Removing Group: ');
-          console.dir(this.displayGroups[i]);
-          this.displayGroups.splice(i, 1);
-        }
-        i++;
-      }*/
   }
   onAddGroupToggle() {
     this.createDialog
