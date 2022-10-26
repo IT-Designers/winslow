@@ -26,15 +26,14 @@ export class GroupsAddMemberDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<GroupsAddMemberDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AddMemberData,
     private userApi: UserApiService,
-    private roleApi: RoleApiService) { }
+    private roleApi: RoleApiService
+  ) { }
 
   ngOnInit(): void {
     this.userApi.getUsers().then((users) => {
       this.allUsers = users.filter((user) => {
-        let exists = false;
         for (const member of this.data.members) {
           if (member.name === user.name) {
-            exists = true;
             return false;
           }
         }
