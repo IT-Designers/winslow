@@ -1,6 +1,6 @@
 FROM nexus.itd-intern.de/winslow/component-html as html
 FROM nexus.itd-intern.de/winslow/component-server as server
-FROM openjdk-17-jdk-slim
+FROM openjdk:17-jdk-slim
 RUN apt-get update && \
     apt-get install iproute2 nfs-common curl gnupg unzip lsof -y && \
     apt-get clean && \
