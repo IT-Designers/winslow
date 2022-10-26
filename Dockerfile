@@ -1,8 +1,8 @@
 FROM nexus.itd-intern.de/winslow/component-html as html
 FROM nexus.itd-intern.de/winslow/component-server as server
 
-RUN apt update && \
-    apt install iproute2 nfs-common curl gnupg unzip lsof -y && \
+RUN apt-get update && \
+    apt-get install iproute2 nfs-common curl gnupg unzip lsof -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
