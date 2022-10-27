@@ -42,7 +42,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Orchestrator implements Closeable, AutoCloseable {
@@ -50,26 +49,26 @@ public class Orchestrator implements Closeable, AutoCloseable {
     private static final Logger  LOG                   = Logger.getLogger(Orchestrator.class.getSimpleName());
     public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
 
-    @Nonnull private final LockBus            lockBus;
-    @Nonnull private final Environment        environment;
-    @Nonnull private final Backend            backend;
-    @Nonnull private final ProjectRepository  projects;
-    @Nonnull private final PipelineRepository pipelines;
-    @Nonnull private final RunInfoRepository  hints;
-    @Nonnull private final LogRepository      logs;
-    @Nonnull private final SettingsRepository settings;
-    @Nonnull private final UserRepository     users;
-    @Nonnull private final NodeRepository     nodes;
-    @Nonnull private final String             nodeName;
+    private final @Nonnull LockBus            lockBus;
+    private final @Nonnull Environment        environment;
+    private final @Nonnull Backend            backend;
+    private final @Nonnull ProjectRepository  projects;
+    private final @Nonnull PipelineRepository pipelines;
+    private final @Nonnull RunInfoRepository  hints;
+    private final @Nonnull LogRepository      logs;
+    private final @Nonnull SettingsRepository settings;
+    private final @Nonnull UserRepository     users;
+    private final @Nonnull NodeRepository     nodes;
+    private final @Nonnull String             nodeName;
 
-    @Nonnull private final Map<String, Executor>     executors         = new ConcurrentHashMap<>();
-    @Nonnull private final Set<String>               missingResources  = new ConcurrentSkipListSet<>();
-    @Nonnull private final DelayedExecutor           delayedExecutions = new DelayedExecutor();
-    @Nonnull private final ResourceAllocationMonitor monitor;
-    @Nonnull private final ElectionManager           electionManager;
+    private final @Nonnull Map<String, Executor>     executors         = new ConcurrentHashMap<>();
+    private final @Nonnull Set<String>               missingResources  = new ConcurrentSkipListSet<>();
+    private final @Nonnull DelayedExecutor           delayedExecutions = new DelayedExecutor();
+    private final @Nonnull ResourceAllocationMonitor monitor;
+    private final @Nonnull ElectionManager           electionManager;
 
-    private final boolean       executeStages;
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final          boolean       executeStages;
+    private final @Nonnull AtomicBoolean started = new AtomicBoolean(false);
 
     private final @Nonnull Map<String, Queue<Consumer<Pipeline>>> deferredPipelineUpdates = new ConcurrentHashMap<>();
     private final @Nonnull Set<String>                            stageExecutionTags      = new ConcurrentSkipListSet<>();
@@ -414,6 +413,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 });
     }
 
+    @Nonnull
     public Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
@@ -473,6 +473,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return copy;
     }
 
+    @Nonnull
     private Optional<Triplet<ExecutionGroup, Stage, Executor>> startNextPipelineStage(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
@@ -640,6 +641,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         }
     }
 
+    @Nonnull
     private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String stageId) {
         return entry -> {
             var matcher = PROGRESS_HINT_PATTERN.matcher(entry.getMessage());
@@ -832,6 +834,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
     }
 
+    @Nonnull
     private Pipeline tryUpdateContainer(
             @Nonnull LockedContainer<Pipeline> container,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
@@ -843,6 +846,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         }
     }
 
+    @Nonnull
     private LockedContainer<Pipeline> exclusivePipelineContainer(@Nonnull Project project) throws OrchestratorException {
         return this.pipelines
                 .getPipeline(project.getId())
@@ -850,10 +854,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
     }
 
+    @Nonnull
     public static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
         return getWorkspacePathForPipeline(pipeline.getProjectId());
     }
 
+    @Nonnull
     private static Path getWorkspacePathForPipeline(@Nonnull String projectId) {
         return Path.of(projectId);
     }
@@ -975,6 +981,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return logs.getLogSize(project.getId(), stageId);
     }
 
+    @Nonnull
     private Executor startExecutor(
             @Nonnull String projectId,
             @Nonnull String stageId,
@@ -1005,7 +1012,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .getActiveAndPastExecutionGroups()
                             .flatMap(g -> g.getStages().map(s -> new Pair<>(g, s)))
                             .filter(s -> s.getValue1().getState() == State.Failed)
-                            .collect(Collectors.toUnmodifiableList());
+                            .toList();
 
 
                     for (var pair : prunable) {
@@ -1047,9 +1054,5 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Override
     public void close() throws IOException {
         this.backend.close();
-    }
-
-    private enum SimpleState {
-        Running, Failed, Succeeded,
     }
 }
