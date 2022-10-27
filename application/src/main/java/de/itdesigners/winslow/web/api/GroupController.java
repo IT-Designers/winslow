@@ -60,7 +60,7 @@ public class GroupController {
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (InvalidNameException e) {
             return new ResponseEntity<>(
-                    "Invalid name. Name must contain only: " + InvalidNameException.REGEX_PATTERN_DESCRIPTION,
+                    "Invalid name. Name must contain only: " + InvalidNameException.REGEX_PATTERN_DESCRIPTION + " and not exceed "+ InvalidNameException.MAX_LENGTH +" characters",
                     HttpStatus.BAD_REQUEST
             );
         }
