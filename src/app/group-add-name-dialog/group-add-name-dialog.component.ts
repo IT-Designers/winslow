@@ -15,7 +15,7 @@ import {GroupApiService} from '../api/group-api.service';
 export class GroupAddNameDialogComponent implements OnInit {
 
   nameInput: string;
-  errorMessage = '';
+  errorMessage = ' ';
 
   constructor(
     public dialogRef: MatDialogRef<GroupAddNameDialogComponent>,
@@ -31,12 +31,15 @@ export class GroupAddNameDialogComponent implements OnInit {
   }
   checkName() {
     this.errorMessage = '';
-    this.groupApi.getGroupNameAvailable(this.nameInput)
-      .then()
-      .catch((error) => {
-      console.log(error.error);
-      this.errorMessage = 'Error: ' + error.error;
-      console.log('Name rejected');
-    });
+    if (this.nameInput.length < 20) {
+      this.groupApi.getGroupNameAvailable(this.nameInput)
+        .then()
+        .catch((error) => {
+          console.log(error.error);
+          this.errorMessage = 'Error: ' + error.error;
+        });
+    } else if (this.nameInput.length >= 20) {
+      this.errorMessage = 'Error: Name too long';
+    }
   }
 }
