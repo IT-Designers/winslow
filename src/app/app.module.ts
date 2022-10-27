@@ -92,6 +92,7 @@ import { RegularExpressionEditorDialogComponent } from './regular-expression-edi
 import { PipelineViewComponent } from './pipeline-view/pipeline-view.component';
 import { DiagramNodeComponent } from './pipeline-view/diagram-node/diagram-node.component';
 import { DiagramLibraryComponent } from './pipeline-view/diagram-library/diagram-library.component';
+import { EditFormsComponent } from './pipeline-view/diagram-library/edit-forms/edit-forms.component';
 
 @NgModule({
     declarations: [
@@ -149,6 +150,7 @@ import { DiagramLibraryComponent } from './pipeline-view/diagram-library/diagram
         PipelineViewComponent,
         DiagramNodeComponent,
         DiagramLibraryComponent,
+        EditFormsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
