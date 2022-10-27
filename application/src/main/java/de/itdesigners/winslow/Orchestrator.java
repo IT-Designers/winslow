@@ -965,6 +965,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return this.getLogs(projectId, stageId, 0L);
     }
 
+    @Nonnull
     public Stream<LogEntry> getLogs(@Nonnull String projectId, @Nonnull String stageId, long skipBytes) {
         try {
             return LogReader.stream(logs.getRawInputStreamNonExclusive(projectId, stageId, skipBytes));
