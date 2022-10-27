@@ -154,6 +154,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   allUserGroupnames: string[] = [];
   projectGroupnames: string[] = [];
+  showGroupList = false;
 
 
   // load more entries, when user is scrolling to the bottom
@@ -226,9 +227,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       // console.dir(this.allUserGroupnames);
     });
     this.projectGroupnames = this.project.groups.map(x => x.name);
-    console.log('Project groups: ');
+    /*console.log('Project groups: ');
     console.dir(this.project.groups);
-    console.dir(this.projectGroupnames);
+    console.dir(this.projectGroupnames);*/
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -607,7 +608,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  setGroups(groups: string[], groupsToDelete) {
+  /*Project Groups methods*/
+  /*setGroups(groups: string[], groupsToDelete) {
     console.log('setGroups: ');
     console.dir(groups);
     console.dir(groupsToDelete);
@@ -629,7 +631,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
           'Updating Groups'
       );
     }
-  }
+  }*/
+
+  /*groupTagsEmitted(event) {
+    // this.projectGroupnames = Array.from(event);
+    if (event) {
+      // this.project.groups = event;
+      console.log('----- Updated project.groups -----');
+      console.dir(this.project.groups);
+    }
+  }*/
 
   onSelectedPipelineChanged(info: PipelineInfo) {
     this.selectedPipeline = info;
