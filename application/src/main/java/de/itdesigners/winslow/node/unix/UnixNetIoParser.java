@@ -1,7 +1,6 @@
 package de.itdesigners.winslow.node.unix;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -9,10 +8,10 @@ import java.util.stream.Stream;
 
 public class UnixNetIoParser {
 
-
     private static final Pattern WHITESPACE_SEPARATOR = Pattern.compile("[ ]+");
 
-    public static Stream<InterfaceInfo> getNetInfoConsiderOnlyPhysicalInterfaces(Stream<String> lines) throws IOException {
+    @Nonnull
+    public static Stream<InterfaceInfo> getNetInfoConsiderOnlyPhysicalInterfaces(Stream<String> lines) {
         return parseInterfaces(lines).flatMap(entry -> {
             if (entry.getKey().startsWith("eth") || entry.getKey().startsWith("en") || entry.getKey().startsWith("wl")) {
                 return Stream.of(entry.getValue());
@@ -22,6 +21,7 @@ public class UnixNetIoParser {
         });
     }
 
+    @Nonnull
     private static Stream<Map.Entry<String, InterfaceInfo>> parseInterfaces(Stream<String> lines) {
         return lines.flatMap(line -> {
             var split = line.split(":");

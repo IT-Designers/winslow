@@ -3,6 +3,7 @@ package de.itdesigners.winslow.node.unix;
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.api.node.GpuInfo;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UnixGpuInfoParser {
@@ -20,11 +20,13 @@ public class UnixGpuInfoParser {
     public static final Logger LOG              = Logger.getLogger(UnixGpuInfoParser.class.getSimpleName());
     public static final String NVIDIA_SEPARATOR = ",";
 
-    public static List<GpuInfo> loadGpuInfo() throws IOException {
+    @Nonnull
+    public static List<GpuInfo> loadGpuInfo() {
         // Stream.concat(nvidia, amd, ..).collect(..)
-        return getNvidiaGpuInfoNoThrows().collect(Collectors.toList());
+        return getNvidiaGpuInfoNoThrows().toList();
     }
 
+    @Nonnull
     public static Stream<GpuInfo> getNvidiaGpuInfoNoThrows() {
         try {
             return getNvidiaGpuInfo();
@@ -34,6 +36,7 @@ public class UnixGpuInfoParser {
         }
     }
 
+    @Nonnull
     public static Stream<GpuInfo> getNvidiaGpuInfo() throws IOException, InterruptedException {
         var processBuilder = new ProcessBuilder(
                 "nvidia-smi",
@@ -71,7 +74,7 @@ public class UnixGpuInfoParser {
         } else {
             var buffer = new ByteArrayOutputStream();
             process.getErrorStream().transferTo(buffer);
-            throw new IOException("nvidia-smi failed: " + new String(buffer.toByteArray(), StandardCharsets.UTF_8));
+            throw new IOException("nvidia-smi failed: " + buffer.toString(StandardCharsets.UTF_8));
         }
     }
 }
