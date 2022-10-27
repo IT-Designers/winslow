@@ -104,6 +104,7 @@ public abstract class BaseRepository {
                 .registerModule(new Jdk8Module());
     }
 
+    @Nonnull
     public static <T> Writer<T> defaultWriter() {
         return (outputStream, value) -> defaultObjectMapper().writeValue(outputStream, value);
     }
@@ -146,6 +147,7 @@ public abstract class BaseRepository {
         return this.lockBus.isLockedByAnotherInstance(getLockSubjectForPath(path));
     }
 
+    @Nonnull
     protected <T> Optional<LockedContainer<T>> getLocked(Path path, Reader<T> reader, Writer<T> writer) {
         return getLocked(path, reader, writer, DEFAULT_RETRY_COUNT, e -> {
             if (e instanceof LockAlreadyExistsException) {
@@ -156,6 +158,7 @@ public abstract class BaseRepository {
         });
     }
 
+    @Nonnull
     protected <T> Optional<LockedContainer<T>> getLocked(
             Path path,
             Reader<T> reader,
@@ -182,6 +185,7 @@ public abstract class BaseRepository {
         return Optional.empty();
     }
 
+    @Nonnull
     private <T> LockedContainer.Writer<T> lockedWriter(Path path, Writer<T> writer) {
         return (l, value) -> {
             // TODO remove
@@ -209,6 +213,7 @@ public abstract class BaseRepository {
         };
     }
 
+    @Nonnull
     private <T> LockedContainer.Reader<T> lockedReader(Path path, Reader<T> reader) {
         return lock -> {
             try (InputStream inputStream = new LockedInputStream(path.toFile(), lock)) {
@@ -228,15 +233,18 @@ public abstract class BaseRepository {
         };
     }
 
+    @Nonnull
     protected Lock getLockForPath(Path path) throws LockException {
         return getLockForPath(path, Lock.DEFAULT_LOCK_DURATION_MS);
     }
 
+    @Nonnull
     protected Lock getLockForPath(Path path, int durationMs) throws LockException {
         String subject = getLockSubjectForPath(path);
         return new Lock(lockBus, subject, durationMs);
     }
 
+    @Nonnull
     protected String getLockSubjectForPath(@Nonnull Path path) {
         return workDirectoryConfiguration.getPath().relativize(path).toString();
     }
