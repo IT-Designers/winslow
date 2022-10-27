@@ -19,9 +19,9 @@ app-groups-add-member-dialog {
   padding-bottom: 5px;
   background-color: #f6f6f6;
   min-width: 830px;
-  max-height: 400px;
+  max-height: 460px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 8px;
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -58,7 +58,8 @@ app-groups-add-member-dialog {
   width: 8em;
   display: flex;
   align-items: center;
-  margin-top: 1.2em;
+  margin-top: 17px;
+  height: 45px;
 }
 .remove-member-button {
   border: none;
@@ -68,6 +69,7 @@ app-groups-add-member-dialog {
   height: 45px;
   box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
   margin-left: 9.5em;
+  margin-right: 10px;
 }
 .remove-member-button:enabled {
   cursor: pointer;
