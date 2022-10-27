@@ -15,15 +15,13 @@
     <mat-card class="editCard" *ngIf="selectedNode$">
       <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
 
-      <form class="editNodeForm" [formGroup]="editForm" (ngSubmit)="saveEdit()">
-        <mat-form-field class="full-width" appearance="fill">
-          <mat-label>Stage Name</mat-label>
-          <input matInput formControlName="stageName">
-        </mat-form-field>
-        <mat-form-field class="full-width" appearance="fill">
-          <mat-label>Image Name</mat-label>
-          <input matInput formControlName="imageName">
-        </mat-form-field>
+      <form class="editNodeForm" (ngSubmit)="clickSave()">
+       <app-edit-forms #form
+                       [formMap]="formHtmlMap"
+                       [formObj]="formObj"
+                       (onCollectData)="saveEdit($event)"
+       >
+       </app-edit-forms>
         <button type="submit"  mat-raised-button color="primary">Save</button>
       </form>
 

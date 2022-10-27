@@ -1,0 +1,19 @@
+<form [formGroup]="editForm">
+  <ng-container *ngFor="let entry of formMap | keyvalue:keepOriginalOrder">
+    <mat-form-field *ngIf="entry.key != 'id' && isNotObject(entry.value)" class="full-width" appearance="fill">
+      <mat-label>{{entry.key}}</mat-label>
+      <input matInput formControlName="{{entry.key}}">
+    </mat-form-field>
+    <div *ngIf="!isNotObject(entry.value)" class="nestedField">
+      <h5>{{entry.key}}</h5>
+      <app-edit-forms
+        #form
+        [formMap]="entry.value"
+        [formObj]="entry.value"
+        [objPlace]="entry.key"
+        (onCollectData)="collectFormData($event)"
+      >
+      </app-edit-forms>
+    </div>
+  </ng-container>
+</form>

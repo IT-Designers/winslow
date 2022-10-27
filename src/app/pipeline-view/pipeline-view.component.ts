@@ -1,25 +1,27 @@
 import {
   AfterViewInit,
-  OnInit,
   Component,
+  ComponentFactoryResolver,
   ElementRef,
-  OnDestroy,
-  ViewChild,
   Input,
-  ViewContainerRef, ComponentFactoryResolver
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewContainerRef
 } from '@angular/core';
 import {
-  DiagramMaker,
-  DiagramMakerConfig,
-  DiagramMakerNode,
-  DiagramMakerData,
-  EditorMode,
-  ConnectorPlacement,
-  DiagramMakerEdge,
-  DiagramMakerPotentialNode,
   Action,
+  ConnectorPlacement,
+  CreateNodeAction,
+  DiagramMaker,
+  DiagramMakerActions,
+  DiagramMakerConfig,
+  DiagramMakerData,
+  DiagramMakerEdge,
+  DiagramMakerNode,
+  DiagramMakerPotentialNode,
   Dispatch,
-  DiagramMakerActions, CreateNodeAction
+  EditorMode,
 } from 'diagram-maker';
 
 import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
@@ -53,7 +55,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
         const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramNodeComponent);
         const componentInstance = this.viewContainerRef.createComponent(componentFactory);
         componentInstance.instance.node = node;
-        this.nodeComponentInstances.push(componentInstance);
         diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
         if (node.diagramMakerData.selected) {
           componentInstance.instance.selected = true;
@@ -90,11 +91,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
       if (action.type === DiagramMakerActions.NODE_CREATE) {
         const createAction = action as CreateNodeAction<any>;
         const stageDef = new StageDefinitionInfo();
-        stageDef.image = new ImageInfo();
         stageDef.name = "New Stage";
-        stageDef.env = new Map;
+        stageDef.image = new ImageInfo();
         stageDef.requiredEnvVariables = [];
         stageDef.requiredResources = null;
+        stageDef.env = new Map;
         //console.log(stageDef);
         this.project.pipelineDefinition.stages.push(stageDef)
         let newAction: CreateNodeAction<{}> = {
@@ -124,9 +125,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   editState(editForm) {
-    //for (const key of Object.keys(this.project.pipelineDefinition.stages[0])) {
-    //  console.log(key + " = " + this.project.pipelineDefinition.stages[0][key] + ", " + typeof this.project.pipelineDefinition.stages[0][key]);
-    //}
+    console.log(editForm);
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -134,8 +133,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
       let i = this.project.pipelineDefinition.stages.map(function (stage) {
         return stage.name;
       }).indexOf(`${editData.name}`);
-      editData.name = editForm.stageName;
-      editData.image.name = editForm.imageName;
+      editData = editForm;
+      delete editData.id;
       editNode = Object.assign({}, editNode, {
         consumerData: editData,
         diagramMakerData: {
