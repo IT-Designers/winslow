@@ -32,10 +32,7 @@
   width: 85%;
 }
 .group-search-input {
-  width: 85%;
-  border: 1px solid lightgrey;
-  border-radius: 3px;
-  border-bottom: solid 1px grey;
+
 }
 .groups-list {
   overflow-y: scroll;
@@ -110,6 +107,14 @@
   font-weight: bold;
   display: inline-block;
   width: 10em;
+}
+#detailGroupName {
+  padding: 6px 10px;
+  display: inline-block;
+  width: 680px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f6f6f6;
 }
 
 .group-detail-container {
