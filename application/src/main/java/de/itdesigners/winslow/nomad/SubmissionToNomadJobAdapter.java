@@ -158,14 +158,11 @@ public class SubmissionToNomadJobAdapter {
 
     @Nonnull
     private static Optional<Map<String, Object>> getMount(@Nonnull DockerVolume volume) {
-        switch (volume.getType().toLowerCase()) {
-            case "nfs":
-                return Optional.of(getNfsVolumeMount(volume));
-            case "bind":
-                return Optional.of(getBindVolumeMount(volume));
-            default:
-                return Optional.empty();
-        }
+        return switch (volume.getType().toLowerCase()) {
+            case "nfs" -> Optional.of(getNfsVolumeMount(volume));
+            case "bind" -> Optional.of(getBindVolumeMount(volume));
+            default -> Optional.empty();
+        };
     }
 
     @Nonnull
