@@ -609,6 +609,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   /*Project Groups methods*/
+  getColor(group) {
+    if (group.role === 'OWNER') {
+      return '#8ed69b';
+    } else {
+      return '#d88bca';
+    }
+  }
   /*setGroups(groups: string[], groupsToDelete) {
     console.log('setGroups: ');
     console.dir(groups);
