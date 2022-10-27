@@ -36,6 +36,7 @@ public class SubmissionToNomadJobAdapter {
         this.backend  = backend;
     }
 
+    @Nonnull
     public SubmissionResult submit(@Nonnull Submission submission) throws OrchestratorException, IOException, NomadException {
         if (submission.getResult().isPresent()) {
             throw new OrchestratorException("Submission already submitted");
@@ -113,6 +114,7 @@ public class SubmissionToNomadJobAdapter {
                 );
     }
 
+    @Nonnull
     private HashMap<String, String> getVisibleEnvironmentVariables(@Nonnull Submission submission) {
         var env = new HashMap<String, String>();
 
