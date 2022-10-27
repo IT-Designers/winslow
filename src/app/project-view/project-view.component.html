@@ -242,7 +242,9 @@
   <mat-tab label="Settings">
     <ng-template matTabContent>
       <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-      <div class="stage-control-item">
+      <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">General</h3>
+
+      <div class="stage-control-item"><!--Project Name-->
         <label>Project Name</label>
         <mat-form-field>
           <input #nameOriginal hidden [value]="project.name">
@@ -253,38 +255,8 @@
         <button #updateName mat-stroked-button disabled color="primary" (click)="setName(nameEntered.value)">
           Update
         </button>
-      </div>
-      <div class="stage-control-item">
-        <label>Project Tags</label>
-        <app-tags-with-autocomplete #tags
-                                    [sort]="false"
-                                    [tags]="project.tags"
-                                    [proposals]="api.cachedTags">
-        </app-tags-with-autocomplete>
-        <button mat-stroked-button color="primary" #tagsButton
-                [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
-                (click)="setTags(tags.selectedTags)">
-          Update
-        </button>
-      </div>
-      <div class="stage-control-item">
-        <label>Group Access</label>
-        <app-group-tags-with-autocomplete #groupTags
-                                    [sort]="false"
-                                    [groupTags]="projectGroupnames"
-                                    [proposals]="allUserGroupnames">
-        </app-group-tags-with-autocomplete>
-        <button mat-stroked-button color="primary" #groupTagsButton
-                [disabled]="(project.groups.sort() | json) == (groupTags.selectedTags.sort() | json)"
-                (click)="setGroups(groupTags.selectedTags, groupTags.groupsToDelete)">
-          Update
-        </button>
-      </div>
-      <div class="stage-control-item">
-        <app-project-groups-list
-        [project]="project"></app-project-groups-list>
-      </div>
-      <div class="stage-control-item">
+      </div><!--Project Name-->
+      <div class="stage-control-item"><!--Project Pipeline-->
         <label>Project Pipeline</label>
         <mat-form-field>
           <mat-select #pipelineSelection [value]="this.probablyProjectPipelineId">
@@ -297,9 +269,41 @@
                 (click)="setPipeline(pipelineSelection.value)">
           Update
         </button>
-      </div>
+      </div><!--Project Pipeline-->
+      <div class="stage-control-item"><!--Project Tags-->
+        <label>Project Tags</label>
+        <app-tags-with-autocomplete #tags
+                                    [sort]="false"
+                                    [tags]="project.tags"
+                                    [proposals]="api.cachedTags">
+        </app-tags-with-autocomplete>
+        <button mat-stroked-button color="primary" #tagsButton
+                [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
+                (click)="setTags(tags.selectedTags)">
+          Update
+        </button>
+      </div><!--Project Tags-->
 
-      <div class="stage-control-item whitespace-separator-top">
+      <div class="whitespace-separator separator-line"></div>
+      <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">Project Access</h3>
+
+      <div class="stage-control-item"><!--Group Access (Chiplist)-->
+        <label>Group Access</label>
+        <app-group-tags-with-autocomplete #groupTags
+                                    [sort]="false"
+                                    [proposals]="allUserGroupnames"
+                                    [project]="project">
+        </app-group-tags-with-autocomplete>
+        <button mat-stroked-button color="primary" #groupTagsButton
+                (click)="showGroupList = !showGroupList">
+          Expand
+        </button>
+      </div><!--Group Access (Chiplist)-->
+      <div class="stage-control-item" *ngIf="showGroupList"><!--Group List-->
+        <app-project-groups-list
+        [project]="project"></app-project-groups-list>
+      </div><!--Group List-->
+      <div class="stage-control-item"><!--Public Access-->
         <label>Public Access</label>
         <mat-slide-toggle #publicAccess [checked]="this.project?.publicAccess"></mat-slide-toggle>
         <button mat-stroked-button color="primary"
@@ -307,69 +311,77 @@
                 (click)="updatePublicAccess(publicAccess.checked)">
           Update
         </button>
-      </div>
+      </div><!--Public Access-->
+      <div class="whitespace-separator-top"><!--Authentication Tokens-->
+        <app-auth-tokens
+          class="whitespace-separator-top "
+          title="Authentication Tokens"
+          [tokens]="authTokens"
+          (create)="createAuthToken($event)"
+          (delete)="deleteAuthToken($event.id)"
+        ></app-auth-tokens>
+      </div><!--Authentication Tokens-->
+
+      <div class="whitespace-separator separator-line"></div>
+      <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">Other</h3>
+
+      <div class="stage-control-item whitespace-separator-top"><!--Project specific Deletion Policy-->
+        <mat-card-subtitle>
+          <mat-slide-toggle
+            #custom
+            [checked]="deletionPolicyLocal != null"
+            (change)="maybeResetDeletionPolicy(!$event.checked)">
+            Project specific Deletion Policy
+          </mat-slide-toggle>
+        </mat-card-subtitle>
+        <button mat-stroked-button color="primary"
+                [disabled]="deletionPolicyLocal === deletionPolicyRemote"
+                (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+          Update
+        </button>
+      </div><!--Project specific Deletion Policy-->
+      <div class="stage-control-item"><!--Number of workspaces of successful stages to keep-->
+        <label [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
+        <mat-form-field>
+          <input #limit matInput type="number"
+                 [disabled]="deletionPolicyLocal == null || !custom.checked"
+                 [value]="deletionPolicyLocal != null ? ''+deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : ''"
+                 [min]="1">
+        </mat-form-field>
+        <button mat-stroked-button color="primary"
+                [disabled]="deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked"
+                (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+          Update
+        </button>
+      </div><!--Number of workspaces of successful stages to keep-->
+      <div class="stage-control-item"><!--Keep workspaces of failed stages-->
+        <label [class.disabled]="!custom.checked">Keep workspaces of failed stages</label>
+        <mat-slide-toggle #keep
+                          [disabled]="deletionPolicyLocal == null || !custom.checked"
+                          [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage"
+        ></mat-slide-toggle>
+        <button mat-stroked-button color="primary"
+                [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked"
+                (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+          Update
+        </button>
+      </div><!--Keep workspaces of failed stages-->
+      <div class="stage-control-item"><!--Always keep most recent workspace-->
+        <label [class.disabled]="!custom.checked">Always keep most recent workspace</label>
+        <mat-slide-toggle #always
+                          [disabled]="deletionPolicyLocal == null || !custom.checked"
+                          [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
+        ></mat-slide-toggle>
+        <button mat-stroked-button color="primary"
+                [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked"
+                (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+          Update
+        </button>
+      </div><!--Always keep most recent workspace-->
 
       <div class="whitespace-separator separator-line"></div>
 
-      <div class="whitespace-separator-top">
-        <div class="whitespace-separator-top stage-control-item">
-          <mat-card-subtitle>
-            <mat-slide-toggle
-              #custom
-              [checked]="deletionPolicyLocal != null"
-              (change)="maybeResetDeletionPolicy(!$event.checked)">
-              Project specific Deletion Policy
-            </mat-slide-toggle>
-          </mat-card-subtitle>
-          <button mat-stroked-button color="primary"
-                  [disabled]="deletionPolicyLocal === deletionPolicyRemote"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
-            Update
-          </button>
-        </div>
-        <div class="stage-control-item">
-          <label [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
-          <mat-form-field>
-            <input #limit matInput type="number"
-                   [disabled]="deletionPolicyLocal == null || !custom.checked"
-                   [value]="deletionPolicyLocal != null ? ''+deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : ''"
-                   [min]="1">
-          </mat-form-field>
-          <button mat-stroked-button color="primary"
-                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
-            Update
-          </button>
-        </div>
-        <div class="stage-control-item">
-          <label [class.disabled]="!custom.checked">Keep workspaces of failed stages</label>
-          <mat-slide-toggle #keep
-                            [disabled]="deletionPolicyLocal == null || !custom.checked"
-                            [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage"
-          ></mat-slide-toggle>
-          <button mat-stroked-button color="primary"
-                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
-            Update
-          </button>
-        </div>
-        <div class="stage-control-item">
-          <label [class.disabled]="!custom.checked">Always keep most recent workspace</label>
-          <mat-slide-toggle #always
-                            [disabled]="deletionPolicyLocal == null || !custom.checked"
-                            [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
-          ></mat-slide-toggle>
-          <button mat-stroked-button color="primary"
-                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked"
-                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
-            Update
-          </button>
-        </div>
-      </div>
-
-      <div class="whitespace-separator separator-line"></div>
-
-      <div class="whitespace-separator-top">
+      <div class="whitespace-separator-top"><!--Project specific Resource Limitation-->
         <app-resource-limitation
           class="whitespace-separator-top "
           title="Project specific Resource Limitation"
@@ -377,11 +389,11 @@
           (limit)="setResourceLimitation($event)"
         ></app-resource-limitation>
 
-      </div>
+      </div><!--Project specific Resource Limitation-->
 
       <div class="whitespace-separator separator-line"></div>
 
-      <div class="stage-control-item">
+      <div class="stage-control-item"><!--Default workspace configuration mode-->
         <label>Default workspace configuration mode</label>
         <mat-form-field>
           <mat-select #workspaceModeSelection [value]="this.workspaceMode">
@@ -393,25 +405,17 @@
         <button mat-stroked-button color="primary" (click)="setWorkspaceMode(workspaceModeSelection.value)">
           Update
         </button>
-      </div>
+      </div><!--Default workspace configuration mode-->
+
+      <!--<div class="whitespace-separator separator-line"></div>-->
+
+
 
       <div class="whitespace-separator separator-line"></div>
 
-      <div class="whitespace-separator-top">
-        <app-auth-tokens
-          class="whitespace-separator-top "
-            title="Authentication Tokens"
-            [tokens]="authTokens"
-            (create)="createAuthToken($event)"
-            (delete)="deleteAuthToken($event.id)"
-        ></app-auth-tokens>
-      </div>
-
-      <div class="whitespace-separator separator-line"></div>
-
-      <div class="stage-control-item whitespace-separator-top">
+      <div class="stage-control-item whitespace-separator-top"><!--Delete Button-->
         <button class="whitespace-separator-top" mat-stroked-button color="warn" (click)="delete()">Delete</button>
-      </div>
+      </div><!--Delete Button-->
     </ng-template>
   </mat-tab>
 </mat-tab-group>
