@@ -1,47 +1,54 @@
-import {Component, Input, OnInit, Output, EventEmitter} from '@angular/core';
+import {Component, Input, OnInit, Output, EventEmitter, ViewChild} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
 import {StageDefinitionInfo} from "../../api/project-api.service";
-import {FormGroup, FormBuilder} from "@angular/forms";
-
-//te
 
 @Component({
   selector: 'app-diagram-library',
   templateUrl: './diagram-library.component.html',
-  styleUrls: ['./diagram-library.component.css']
+  styleUrls: ['./diagram-library.component.css'],
 })
 export class DiagramLibraryComponent implements OnInit {
 
-  selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
-  editForm: FormGroup;
+  @Output() resetSelectedNode = new EventEmitter();
+  @Output() editNode = new EventEmitter();
 
-  constructor( private fb: FormBuilder) {
+  selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
+  formHtmlMap : Map<string, object> = new Map();
+  formObj : Object = {};
+
+  @ViewChild('form') childForm;
+
+  constructor() {
   }
   ngOnInit(): void {
-    this.editForm = this.fb.group({
-      stageName: `${this.selectedNode$?.consumerData?.name ? this.selectedNode$.consumerData.name : ''}`,
-      imageName: `${this.selectedNode$?.consumerData?.image?.name ? this.selectedNode$.consumerData.image.name : ''}`,
-      id: `${this.selectedNode$?.id}`
-    });
-
   }
-  saveEdit(){
-    //console.log(this.editForm);
-    this.editNode.emit(this.editForm.value);
+  @Input()
+  set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
+    this.selectedNode$ = selectedNode;
+
+    this.formHtmlMap = new Map();
+    for (const key of Object.keys(this.selectedNode$.consumerData)){
+      this.formHtmlMap.set(key, this.selectedNode$.consumerData[key]);
+    }
+    console.log(this.formHtmlMap);
+    this.formObj['id']= this.selectedNode$.id;
+    for (const key of Object.keys(this.selectedNode$.consumerData)){
+      this.formObj[key] = this.selectedNode$.consumerData[key];
+    }
+    console.log(this.formObj);
+    //console.log(this.editForm.value);
+  }
+  clickSave(){
+    this.childForm.sendFormData();
+  }
+  saveEdit(savedForm : Object){
+    this.editNode.emit(savedForm[1]);
     this.cancelEdit();
   }
   cancelEdit() {
     this.selectedNode$ = undefined;
     this.resetSelectedNode.emit();
   }
-
-  @Input()
-  set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
-    this.selectedNode$ = selectedNode;
-  }
-
-  @Output() resetSelectedNode = new EventEmitter();
-  @Output() editNode = new EventEmitter();
 
 
 }
