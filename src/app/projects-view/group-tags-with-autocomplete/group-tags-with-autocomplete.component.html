@@ -1,15 +1,16 @@
 <ng-template #template>
   <mat-chip-list #chipList aria-label="Tag selection">
-    <mat-chip *ngFor="let tag of selectedTags"
+    <mat-chip *ngFor="let group of project.groups"
               [selectable]="selectable"
               [removable]="!readonly && removable"
-              (removed)="remove(tag)"
-              (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
-              (auxclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
-              (dblclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
-              [style.background-color]="colorful ? bgColor(tag) : ''">
-      {{tag}}
-      <mat-icon matChipRemove *ngIf="!readonly && removable">cancel</mat-icon>
+              [color]=""
+              (removed)="remove(group.name)"
+              (click)="$event.preventDefault(); tagActionPrimary.emit(group.name)"
+              (auxclick)="$event.preventDefault(); tagActionSecondary.emit(group.name)"
+              (dblclick)="$event.preventDefault(); tagActionSecondary.emit(group.name)"
+              [style.background-color]="getColor(group)">
+      {{group.name}}
+      <!--<mat-icon matChipRemove *ngIf="!readonly && removable">cancel</mat-icon>-->
     </mat-chip>
     <input
       [hidden]="readonly"
