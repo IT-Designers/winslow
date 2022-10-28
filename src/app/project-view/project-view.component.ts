@@ -155,6 +155,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   allUserGroupnames: string[] = [];
   projectGroupnames: string[] = [];
   showGroupList = false;
+  groupListBtnText = 'Expand';
+  groupListBtnIcon = 'expand_more';
 
 
   // load more entries, when user is scrolling to the bottom
@@ -614,6 +616,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       return '#8ed69b';
     } else {
       return '#d88bca';
+    }
+  }
+  getTooltip(group) {
+    if (this.getColor(group) === '#8ed69b') {
+      return 'OWNER';
+    } else if (this.getColor(group) === '#d88bca') {
+      return 'MEMBER';
+    }
+  }
+  changeGroupListBtnTextAndIcon() {
+    this.showGroupList = !this.showGroupList;
+    if (this.groupListBtnText === 'Expand') {
+      this.groupListBtnText = 'Collapse';
+      this.groupListBtnIcon = 'expand_less';
+    } else if (this.groupListBtnText === 'Collapse') {
+      this.groupListBtnText = 'Expand';
+      this.groupListBtnIcon = 'expand_more';
     }
   }
   /*setGroups(groups: string[], groupsToDelete) {
