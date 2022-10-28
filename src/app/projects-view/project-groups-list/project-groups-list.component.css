@@ -19,7 +19,7 @@ app-groups-add-member-dialog {
   padding-bottom: 5px;
   background-color: #f6f6f6;
   min-width: 830px;
-  max-height: 460px;
+  max-height: 440px;
   border: 1px solid #ddd;
   border-radius: 8px;
   z-index: 1;
@@ -68,7 +68,7 @@ app-groups-add-member-dialog {
   width: 45px;
   height: 45px;
   box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
-  margin-left: 9.5em;
+  margin-left: 120px;
   margin-right: 10px;
 }
 .remove-member-button:enabled {

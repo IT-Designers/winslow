@@ -286,25 +286,54 @@
 
       <div class="whitespace-separator separator-line"></div>
       <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">Project Access</h3>
+      <!--<label>Group Access</label>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <div class="stage-control-item">&lt;!&ndash;Group Access (Chiplist)&ndash;&gt;
 
+            <mat-chip-list>
+              <mat-chip *ngFor="let group of project.groups"
+                        [style.background-color]="getColor(group)"
+                        [matTooltip]="getTooltip(group)"
+                        (click)="changeGroupListBtnText()">
+                {{group.name}}
+              </mat-chip>
+            </mat-chip-list>
+            <button mat-stroked-button color="primary" #groupTagsButton
+                    (click)="changeGroupListBtnText()">
+              {{groupListBtnText}}
+            </button>
+          </div>&lt;!&ndash;Group Access (Chiplist)&ndash;&gt;
+        </mat-expansion-panel-header>
+        <div class="stage-control-item">&lt;!&ndash;Group List&ndash;&gt;
+          <app-project-groups-list
+            [project]="project"></app-project-groups-list>
+        </div>&lt;!&ndash;Group List&ndash;&gt;
+      </mat-expansion-panel>-->
       <div class="stage-control-item"><!--Group Access (Chiplist)-->
         <label>Group Access</label>
-        <mat-chip-list>
-          <mat-chip *ngFor="let group of project.groups"
-                    [style.background-color]="getColor(group)">
-            {{group.name}}
-          </mat-chip>
-        </mat-chip-list>
-        <button mat-stroked-button color="primary" #groupTagsButton
-                (click)="showGroupList = !showGroupList">
-          Expand
-        </button>
-      </div><!--Group Access (Chiplist)-->
-      <div class="stage-control-item" *ngIf="showGroupList"><!--Group List-->
-        <app-project-groups-list
-        [project]="project"></app-project-groups-list>
-      </div><!--Group List-->
-      <div class="stage-control-item"><!--Public Access-->
+            <mat-chip-list>
+              <mat-chip *ngFor="let group of project.groups"
+                        [style.background-color]="getColor(group)"
+                        [matTooltip]="getTooltip(group)"
+                        matTooltipShowDelay="250"
+                        (click)="changeGroupListBtnTextAndIcon()">
+                {{group.name}}
+              </mat-chip>
+            </mat-chip-list>
+            <button mat-raised-button color="primary" #groupTagsButton
+                    (click)="changeGroupListBtnTextAndIcon()">
+              <!--{{groupListBtnText}}-->
+              <mat-icon>{{groupListBtnIcon}}</mat-icon><!--Remove ngIf for list to make icon work!!-->
+            </button>
+          </div><!--Group Access (Chiplist)-->
+      <div class="stage-control-item" *ngIf="showGroupList"><!--Group List--><!--Remove ngIf to make icon work!!-->
+          <app-project-groups-list
+            [project]="project"></app-project-groups-list>
+        </div><!--Group List-->
+
+
+      <div class="stage-control-item whitespace-separator-top"><!--Public Access-->
         <label>Public Access</label>
         <mat-slide-toggle #publicAccess [checked]="this.project?.publicAccess"></mat-slide-toggle>
         <button mat-stroked-button color="primary"
@@ -415,7 +444,7 @@
       <div class="whitespace-separator separator-line"></div>
 
       <div class="stage-control-item whitespace-separator-top"><!--Delete Button-->
-        <button class="whitespace-separator-top" mat-stroked-button color="warn" (click)="delete()">Delete</button>
+        <button class="whitespace-separator-top" mat-raised-button color="warn" (click)="delete()">Delete</button>
       </div><!--Delete Button-->
     </ng-template>
   </mat-tab>
