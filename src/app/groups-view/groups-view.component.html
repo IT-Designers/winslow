@@ -12,12 +12,12 @@
     <!--<input matInput class="group-search-input" placeholder="Search Group..." [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">-->
     <mat-form-field class="group-search-container" appearance="fill">
       <mat-label>Search...</mat-label>
-      <input matInput placeholder="Groupname..." [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">
+      <input matInput class="group-search-input" placeholder="Groupname..." [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">
     </mat-form-field>
     <div class="groups-list">
       <div class="group-list-item" *ngFor="let group of displayGroups" (click)="groupClicked(group)" [class.item-clicked]="group == selectedGroup">
         {{group.name}}
-        <span class="material-symbols-outlined item-icon">edit</span>
+        <span matTooltip="Edit Group" matTooltipShowDelay="500" class="material-symbols-outlined item-icon">edit</span>
       </div>
     </div>
     <button class="mat-raised-button new-group-btn" color="primary" mat-raised-button="" (click)="onAddGroupToggle()"> New Group </button>
