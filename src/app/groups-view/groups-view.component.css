@@ -30,6 +30,8 @@
 }
 .group-search-container {
   width: 85%;
+  height: 60px;
+  margin-bottom: 1px;
 }
 .group-search-input {
 
@@ -42,7 +44,7 @@
   width: 85%;
   /*max-height: 440px;*/
   height: 440px;
-  border-bottom: 1px solid lightgrey;
+  /*border-bottom: 1px solid lightgrey;*/
 }
 .hidden {
   display: none;
@@ -76,6 +78,11 @@
   border-radius: 50%;
   background-color: transparent;
   cursor: default;
+}
+.new-group-btn-container {
+  width: 85%;
+  border-top: 1px solid grey;
+  margin-top: 2px;
 }
 .new-group-btn {
   margin-top: 20px;
