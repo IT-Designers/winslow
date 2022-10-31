@@ -30,9 +30,9 @@ export class GroupApiService {
       .post<object>(GroupApiService.getUrl(''), group)
       .toPromise();
   }
-  deleteGroup(name): Promise<object> {
+  deleteGroup(name): Promise<void> {
     return this.client
-      .delete<object>(GroupApiService.getUrl(name))
+      .delete<void>(GroupApiService.getUrl(name))
       .toPromise();
   }
   getMemberships(name): Promise<object> {
