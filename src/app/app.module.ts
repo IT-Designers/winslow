@@ -92,7 +92,6 @@ import { RegularExpressionEditorDialogComponent } from './regular-expression-edi
 import { GroupsViewComponent } from './groups-view/groups-view.component';
 import { GroupMemberListComponent } from './group-member-list/group-member-list.component';
 import { GroupsAddMemberDialogComponent } from './groups-add-member-dialog/groups-add-member-dialog.component';
-import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
 import { GroupAddNameDialogComponent } from './group-add-name-dialog/group-add-name-dialog.component';
 import { GroupTagsWithAutocompleteComponent } from './projects-view/group-tags-with-autocomplete/group-tags-with-autocomplete.component';
 import { ProjectGroupsListComponent } from './projects-view/project-groups-list/project-groups-list.component';
@@ -154,7 +153,6 @@ import { ProjectAddGroupDialogComponent } from './projects-view/project-add-grou
         GroupsViewComponent,
         GroupMemberListComponent,
         GroupsAddMemberDialogComponent,
-        DeleteConfirmDialogComponent,
         GroupAddNameDialogComponent,
         GroupTagsWithAutocompleteComponent,
         ProjectGroupsListComponent,

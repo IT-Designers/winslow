@@ -4,7 +4,6 @@ import { RoleApiService } from '../api/role-api.service';
 import {UserApiService} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
-import {ResponseData, DeleteConfirmDialogComponent} from '../delete-confirm-dialog/delete-confirm-dialog.component';
 import {GroupAddNameDialogComponent} from '../group-add-name-dialog/group-add-name-dialog.component';
 
 @Component({
@@ -130,7 +129,7 @@ export class GroupsViewComponent implements OnInit {
     this.itemSelected = false;
   }
   onGroupDelete() {
-    this.createDialog
+    /*this.createDialog
       .open(DeleteConfirmDialogComponent, {
         data: {
         } as ResponseData
@@ -148,6 +147,17 @@ export class GroupsViewComponent implements OnInit {
             }),
               'Deleting Group');
         }
-      });
+      });*/
+    this.dialog.openAreYouSure(
+      `Group being deleted: ${this.selectedGroup.name}`,
+      () => this.groupApi.deleteGroup(this.selectedGroup.name)
+            .then(() => {
+              const delIndex = this.allGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
+              this.allGroups.splice(delIndex, 1);
+              const delIndex2 = this.displayGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
+              this.displayGroups.splice(delIndex2, 1);
+              this.onEditCancel();
+            })
+    );
   }
 }
