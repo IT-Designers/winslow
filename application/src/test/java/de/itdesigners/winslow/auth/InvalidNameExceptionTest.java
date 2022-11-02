@@ -10,7 +10,7 @@ import static org.junit.Assert.fail;
 public class InvalidNameExceptionTest {
 
     @Test
-    public void givenSimpleValidNameNoThrows() {
+    public void acceptsSimpleValidNames() {
         ensureNoThrowsForName(
                 User.SUPER_USER_NAME,
                 Group.SUPER_GROUP_NAME,
@@ -28,6 +28,34 @@ public class InvalidNameExceptionTest {
     @Test
     public void throwsOnMalformedPrefix() {
         ensureThrowsForName("system:root", "system:::root", "system::r::oot", "/", "-name", ".name");
+    }
+
+    @Test
+    public void acceptsNotTooLongNames() {
+        var maxCharacters = new StringBuilder("a");
+        for (int i = 0; i < InvalidNameException.MAX_LENGTH - 1; ++i) {
+            maxCharacters.append(i % 10);
+        }
+
+        ensureNoThrowsForName(
+                maxCharacters + "::root",
+                "system::" + maxCharacters,
+                maxCharacters + "::" + maxCharacters
+        );
+    }
+
+    @Test
+    public void throwsOnTooLongNames() {
+        var tooManyCharacters = new StringBuilder("a");
+        for (int i = 0; i < InvalidNameException.MAX_LENGTH; ++i) {
+            tooManyCharacters.append(i % 10);
+        }
+
+        ensureThrowsForName(
+                tooManyCharacters + "::root",
+                "system::" + tooManyCharacters,
+                tooManyCharacters + "::" + tooManyCharacters
+        );
     }
 
     private void ensureThrowsForName(@Nonnull String... names) {
