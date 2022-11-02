@@ -9,11 +9,13 @@ public class InvalidNameException extends Exception {
     /**
      * Chosen by the mystical Gods
      */
-    public static final          int    MAX_LENGTH                = 20;
-    public static final @Nonnull String REGEX_PATTERN_SIMPLE      = "[a-zA-Z0-9_]";
-    public static final @Nonnull String REGEX_PATTERN_EXTENDED    = "[a-zA-Z0-9_\\-.]";
-    public static final @Nonnull String REGEX_PATTERN             =
-            REGEX_PATTERN_SIMPLE + REGEX_PATTERN_EXTENDED + "*(::" + REGEX_PATTERN_SIMPLE + ")?" + REGEX_PATTERN_EXTENDED + '*';
+    public static final          int    MAX_LENGTH             = 20;
+    public static final @Nonnull String REGEX_PATTERN_SIMPLE   = "[a-zA-Z_]";
+    public static final @Nonnull String REGEX_PATTERN_EXTENDED = "[a-zA-Z0-9_\\-.]";
+    public static final @Nonnull String REGEX_PATTERN          =
+            "(" + REGEX_PATTERN_SIMPLE + REGEX_PATTERN_EXTENDED + "{0," + (MAX_LENGTH - 1) + "}" + Prefix.SEPARATOR + ")?" +
+                    REGEX_PATTERN_SIMPLE + REGEX_PATTERN_EXTENDED + "{0," + (MAX_LENGTH - 1) + "}";
+    
     public static final @Nonnull String REGEX_PATTERN_DESCRIPTION = "English letters, numbers, underscore, minus and dot";
 
     public InvalidNameException(@Nonnull String name) {
@@ -22,10 +24,6 @@ public class InvalidNameException extends Exception {
 
     @Nonnull
     public static String ensureValid(@Nonnull String name) throws InvalidNameException {
-        if (name.length() > MAX_LENGTH) {
-            throw new InvalidNameException(name);
-        }
-
         Pattern pattern = Pattern.compile(REGEX_PATTERN);
         Matcher matcher = pattern.matcher(name);
         if (!matcher.matches()) {

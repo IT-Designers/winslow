@@ -12,7 +12,7 @@ public enum Prefix {
 
     public static final @Nonnull String SEPARATOR = "::";
 
-    private final @Nonnull String prefix;
+    public final @Nonnull String prefix;
 
     Prefix(@Nonnull String prefix) {
         this.prefix = prefix;
