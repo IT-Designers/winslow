@@ -50,18 +50,30 @@ export class GroupsViewComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  sortDisplayGroupsByName() {
+    this.displayGroups.sort((a, b) => {
+      if (a.name.toUpperCase() > b.name.toUpperCase()) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  }
   filterSystemGroups() {
     if (!this.showSystemGroups) {
       let i = 0;
       this.displayGroups = Array.from(this.allGroups);
+      this.sortDisplayGroupsByName();
       for (const group of this.displayGroups) {
         if (group.name.includes('::')) {
           this.displayGroups.splice(i, 1);
+          i--;
         }
         i++;
       }
     } else if (this.showSystemGroups) {
       this.displayGroups = Array.from(this.allGroups);
+      this.sortDisplayGroupsByName();
     }
   }
   searchGroupFilter() {
@@ -76,6 +88,7 @@ export class GroupsViewComponent implements OnInit {
         }
       }
       this.displayGroups = Array.from(searchedGroups);
+      this.sortDisplayGroupsByName();
     }
   }
   onAddGroupToggle() {
@@ -94,6 +107,7 @@ export class GroupsViewComponent implements OnInit {
             .then(() => {
               this.allGroups.push(newGroup);
               this.displayGroups.push(newGroup);
+              this.sortDisplayGroupsByName();
               this.selectedGroup = newGroup;
               this.showGroupDetail = true;
             }),
