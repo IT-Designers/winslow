@@ -20,6 +20,7 @@ export class EditFormsComponent implements OnInit {
   @Input() formObj;
   @Input() objPlace;
   @Output() onCollectData : EventEmitter<Object> = new EventEmitter();
+  @Output() onTriggerSaveData : EventEmitter<Object> = new EventEmitter();
   editForm: FormGroup;
   extended: boolean[];
 
@@ -28,13 +29,13 @@ export class EditFormsComponent implements OnInit {
   constructor( private fb: FormBuilder) { }
 
   ngOnInit(): void {
-    this.extended =Array(this.formMap.lenght);
+    this.extended = Array(this.formMap.lenght);
     this.extended.fill(false);
     //console.log(this.formObj);
     console.log(this.objPlace);
     this.editForm = this.fb.group(this.formObj);
     //console.log(this.editForm);
-    //this.editForm.valueChanges.subscribe(value => this.sendFormData())
+    this.editForm.valueChanges.subscribe(value => this.triggerSaveData())
   }
 
   public keepOriginalOrder = (a, b) => a.key;
@@ -50,7 +51,7 @@ export class EditFormsComponent implements OnInit {
   collectFormData(collectedFormData){
     this.formObj = this.editForm.value;
     this.formObj[collectedFormData[0]] = collectedFormData[1];
-    this.editForm = this.fb.group(this.formObj);
+    this.editForm.setValue(collectedFormData);
   }
   sendFormData(){
     if (this.childForm){
@@ -59,6 +60,9 @@ export class EditFormsComponent implements OnInit {
       });
     }
     this.onCollectData.emit([this.objPlace, this.editForm.value]);
+  }
+  triggerSaveData(){
+    this.onTriggerSaveData.emit();
   }
 
   extendData(index){

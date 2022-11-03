@@ -21,6 +21,7 @@
               [formMap]="entry.value"
               [formObj]="entry.value"
               [objPlace]="entry.key"
+              (onTriggerSaveData)="triggerSaveData()"
               (onCollectData)="collectFormData($event)"
             >
             </app-edit-forms>

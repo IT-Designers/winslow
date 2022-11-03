@@ -15,14 +15,14 @@
     <mat-card class="editCard" *ngIf="selectedNode$">
       <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
 
-      <form class="editNodeForm" (ngSubmit)="clickSave()">
+      <form class="editNodeForm" (ngSubmit)="startSave()">
        <app-edit-forms #form
                        [formMap]="formHtmlMap"
                        [formObj]="formObj"
                        (onCollectData)="saveEdit($event)"
+                       (onTriggerSaveData)="startSave()"
        >
        </app-edit-forms>
-        <button type="submit" style="margin-top: 10px" mat-raised-button color="primary">Save</button>
       </form>
 
     </mat-card>
