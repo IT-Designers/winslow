@@ -667,8 +667,19 @@ export class StageDefinitionInfo {
     if (origin != null) {
       Object.assign(this, origin);
       this.env = ProjectApiService.toMap(origin.env);
+      this.image = origin.image != null ? new ImageInfo(origin.image) : null;
     }
   }
+
+  /*
+  public getDefault() {
+
+    return new StageDefinitionInfo({
+      image: new ImageInfo(),
+      requiredResources: new ResourceInfo(),
+    });
+  }
+  */
 }
 
 export enum LogSource {
@@ -709,6 +720,12 @@ export class ImageInfo {
   name?: string;
   args?: string[];
   shmMegabytes?: number;
+
+  constructor(origin?: ImageInfo) {
+    if (origin != null) {
+      Object.assign(this, origin);
+    }
+  }
 }
 
 export class ParseError {

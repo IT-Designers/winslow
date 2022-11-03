@@ -138,7 +138,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
       editNode = Object.assign({}, editNode, {
         consumerData: editData,
         diagramMakerData: {
-          selected: false,
+          selected: true,
           size: editNode.diagramMakerData.size,
           position: editNode.diagramMakerData.position,
         },
