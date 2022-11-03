@@ -16,6 +16,7 @@ export class GroupAddNameDialogComponent implements OnInit {
 
   nameInput: string;
   errorMessage = ' ';
+  isLoading = false;
 
   constructor(
     public dialogRef: MatDialogRef<GroupAddNameDialogComponent>,
@@ -31,7 +32,7 @@ export class GroupAddNameDialogComponent implements OnInit {
   }
   checkName() {
     this.errorMessage = '';
-    if (this.nameInput.length < 20) {
+    /*if (this.nameInput.length < 20) {
       this.groupApi.getGroupNameAvailable(this.nameInput)
         .then()
         .catch((error) => {
@@ -40,6 +41,19 @@ export class GroupAddNameDialogComponent implements OnInit {
         });
     } else if (this.nameInput.length >= 20) {
       this.errorMessage = 'Error: Name too long';
+    }*/
+    this.isLoading = true;
+    if (!(this.nameInput.includes('%') || this.nameInput.includes('/') || this.nameInput.includes('\\'))) {
+      this.groupApi.getGroupNameAvailable(encodeURIComponent(this.nameInput))
+        .then(() => this.isLoading = false)
+        .catch((error) => {
+          console.log(error.error);
+          this.errorMessage = 'Error: ' + error.error;
+          this.isLoading = false;
+        });
+    } else {
+      this.isLoading = false;
+      this.errorMessage = 'Error: Invalid name. Name must contain only: English letters, numbers, underscore, minus and dot and not exceed 20 characters';
     }
   }
 }
