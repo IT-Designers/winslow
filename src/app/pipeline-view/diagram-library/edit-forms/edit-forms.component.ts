@@ -21,12 +21,15 @@ export class EditFormsComponent implements OnInit {
   @Input() objPlace;
   @Output() onCollectData : EventEmitter<Object> = new EventEmitter();
   editForm: FormGroup;
+  extended: boolean[];
 
   @ViewChildren('form') childForm:QueryList<EditFormsComponent>;
 
   constructor( private fb: FormBuilder) { }
 
   ngOnInit(): void {
+    this.extended =Array(this.formMap.lenght);
+    this.extended.fill(false);
     //console.log(this.formObj);
     console.log(this.objPlace);
     this.editForm = this.fb.group(this.formObj);
@@ -56,6 +59,10 @@ export class EditFormsComponent implements OnInit {
       });
     }
     this.onCollectData.emit([this.objPlace, this.editForm.value]);
+  }
+
+  extendData(index){
+    this.extended[index] = !this.extended[index];
   }
 
 }
