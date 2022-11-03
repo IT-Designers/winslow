@@ -2,7 +2,8 @@
   font-size: small;
   font-weight: bold;
   margin-bottom: 20px;
-  border: 2px dashed black;
+  border-left: 2px dashed black;
+  border-right: 2px dashed black;
 }
 .nestedField div{
   padding-left: 10px;
