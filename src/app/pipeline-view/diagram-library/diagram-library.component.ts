@@ -25,17 +25,18 @@ export class DiagramLibraryComponent implements OnInit {
   @Input()
   set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
     this.selectedNode$ = selectedNode;
+    console.log(selectedNode.consumerData)
 
     this.formHtmlMap = new Map();
     for (const key of Object.keys(this.selectedNode$.consumerData)){
       this.formHtmlMap.set(key, this.selectedNode$.consumerData[key]);
     }
-    console.log(this.formHtmlMap);
+    //console.log(this.formHtmlMap);
     this.formObj['id']= this.selectedNode$.id;
     for (const key of Object.keys(this.selectedNode$.consumerData)){
       this.formObj[key] = this.selectedNode$.consumerData[key];
     }
-    console.log(this.formObj);
+    //console.log(this.formObj);
     //console.log(this.editForm.value);
   }
   clickSave(){
