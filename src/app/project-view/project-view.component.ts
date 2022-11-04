@@ -229,6 +229,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       // console.dir(this.allUserGroupnames);
     });
     this.projectGroupnames = this.project.groups.map(x => x.name);
+    this.sortGroups();
     /*console.log('Project groups: ');
     console.dir(this.project.groups);
     console.dir(this.projectGroupnames);*/
@@ -611,6 +612,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   /*Project Groups methods*/
+  sortGroups() {
+    this.project.groups.sort((a, b) => {
+      if (a.role < b.role) {
+        return 1;
+      } else if (a.role === b.role) {
+        if (a.name.toUpperCase() > b.name.toUpperCase()) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
+    });
+  }
   getColor(group) {
     if (group.role === 'OWNER') {
       return '#8ed69b';
