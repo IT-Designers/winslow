@@ -3,56 +3,25 @@
 <h1 [ngStyle]="{'margin-left':'35px'}">Group Administration</h1>
 
 <div class="groupAdministrationDiv">
-
-  <!--<div class="groups-list-container">
-    <div class="header-checkbox-container">
-      <h2> My Groups </h2>
-      <mat-checkbox class="show-usergroups-checkbox"
-                    [(ngModel)]="showSystemGroups"
-                    (change)="filterSystemGroups()"> Show System Groups </mat-checkbox>
-    </div>
-    <mat-form-field class="group-search-container" appearance="fill">
-      <mat-label>Search...</mat-label>
-      <input matInput class="group-search-input" placeholder="Groupname..." [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">
-    </mat-form-field>
-    <div class="groups-list">
-      <div class="group-list-item" *ngFor="let group of displayGroups" (click)="groupClicked(group)" [class.item-clicked]="group == selectedGroup">
-        {{group.name}}
-        <span matTooltip="Edit Group" matTooltipShowDelay="500" class="material-symbols-outlined item-icon">edit</span>
-      </div>
-    </div>
-    <div class="new-group-btn-container">
-      <button class="mat-raised-button new-group-btn"
-              color="primary"
-              mat-raised-button=""
-              (click)="onAddGroupToggle()"
-      > New Group </button>
-    </div>
-  </div>-->
-
   <div class="groups-list-container">
-
-    <mat-form-field class="group-search-container" appearance="fill">
-      <mat-label>Search...</mat-label>
-      <input matInput class="group-search-input" placeholder="Groupname..." [(ngModel)]="groupSearchInput" (keyup)="searchGroupFilter()">
-    </mat-form-field>
-    <div class="groups-list">
-      <div class="group-list-item" *ngFor="let group of displayGroups" (click)="groupClicked(group)" [class.item-clicked]="group == selectedGroup">
-        {{group.name}}
-        <span matTooltip="Edit Group" matTooltipShowDelay="500" class="material-symbols-outlined item-icon">edit</span>
-      </div>
-    </div>
+    <app-searchable-list
+      [allItems]="displayGroups"
+      searchPlaceholderText="Groupname..."
+      (itemEmitter)="groupClicked($event)"
+      class="searchable-list">
+    </app-searchable-list>
     <div class="new-group-btn-container">
-      <mat-checkbox class="show-usergroups-checkbox"
-                    [(ngModel)]="showSystemGroups"
-                    (change)="filterSystemGroups()"> Show System Groups </mat-checkbox>
-      <button class="mat-raised-button new-group-btn"
-              color="primary"
-              mat-raised-button=""
-              (click)="onAddGroupToggle()"
-      > New Group </button>
-    </div>
+    <mat-checkbox class="show-usergroups-checkbox"
+                  [(ngModel)]="showSystemGroups"
+                  (change)="filterSystemGroups()"> Show System Groups </mat-checkbox>
+    <button class="mat-raised-button new-group-btn"
+            color="primary"
+            mat-raised-button=""
+            (click)="onAddGroupToggle()"
+    > New Group </button>
   </div>
+  </div>
+
 
   <div *ngIf="showGroupDetail" class="group-detail-container">
     <h2>Group Details</h2>
