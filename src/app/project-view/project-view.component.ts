@@ -244,6 +244,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       // console.dir(this.allUserGroupnames);
     });
     this.projectGroupnames = this.project.groups.map(x => x.name);
+    this.sortGroups();
     /*console.log('Project groups: ');
     console.dir(this.project.groups);
     console.dir(this.projectGroupnames);*/
