@@ -96,6 +96,7 @@ import { GroupAddNameDialogComponent } from './group-add-name-dialog/group-add-n
 import { GroupTagsWithAutocompleteComponent } from './projects-view/group-tags-with-autocomplete/group-tags-with-autocomplete.component';
 import { ProjectGroupsListComponent } from './projects-view/project-groups-list/project-groups-list.component';
 import { ProjectAddGroupDialogComponent } from './projects-view/project-add-group-dialog/project-add-group-dialog.component';
+import { SearchableListComponent } from './groups-view/searchable-list/searchable-list.component';
 
 @NgModule({
     declarations: [
@@ -157,6 +158,7 @@ import { ProjectAddGroupDialogComponent } from './projects-view/project-add-grou
         GroupTagsWithAutocompleteComponent,
         ProjectGroupsListComponent,
         ProjectAddGroupDialogComponent,
+        SearchableListComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
