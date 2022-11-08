@@ -7,7 +7,7 @@
   <div class="list">
     <div class="list-item" *ngFor="let item of displayItems" (click)="itemClicked(item)" [class.item-clicked]="item == selectedItem">
       {{item.name}}
-      <span matTooltip="Edit Group" matTooltipShowDelay="500" class="material-symbols-outlined item-icon">edit</span>
+      <span matTooltip="{{listItemTooltip}}" matTooltipShowDelay="500" class="material-symbols-outlined item-icon">edit</span>
     </div>
   </div>
 </div>
