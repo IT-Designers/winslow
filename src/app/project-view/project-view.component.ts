@@ -1,20 +1,20 @@
 import {AfterViewInit, Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {
-    AuthTokenInfo,
-    DeletionPolicy,
-    EnvVariable,
-    ExecutionGroupInfo,
-    ImageInfo,
-    ParseError,
-    ProjectApiService,
-    ProjectInfo,
-    RangedValue, ResourceLimitation,
-    StageDefinitionInfo,
-    StageInfo,
-    State,
-    StateInfo,
-    WorkspaceConfiguration,
-    WorkspaceMode
+  AuthTokenInfo,
+  DeletionPolicy,
+  EnvVariable,
+  ExecutionGroupInfo, Group,
+  ImageInfo,
+  ParseError,
+  ProjectApiService,
+  ProjectInfo,
+  RangedValue, ResourceLimitation,
+  StageDefinitionInfo,
+  StageInfo,
+  State,
+  StateInfo,
+  WorkspaceConfiguration,
+  WorkspaceMode
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog} from '@angular/material/dialog';
@@ -247,6 +247,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.selectedHistoryEntryStage = null;
       }
     }
+    this.sortGroups();
   }
 
   ngAfterViewInit() {
@@ -649,38 +650,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.groupListBtnIcon = 'expand_more';
     }
   }
-  /*setGroups(groups: string[], groupsToDelete) {
-    console.log('setGroups: ');
-    console.dir(groups);
-    console.dir(groupsToDelete);
-    if (groupsToDelete) {
-      for (const delGroup of groupsToDelete) {
-        this.api
-          .removeGroup(this.project.id, delGroup);
-      }
-    }
-    for (const group of groups) {
-      // TODO: currently only first group gets added
-      const groupToAdd = {
-        name: group,
-        role: 'MEMBER'
-      };
-      return this.dialog.openLoadingIndicator(
-        this.api
-          .addOrUpdateGroup(this.project.id, groupToAdd),
-          'Updating Groups'
+  remove(group: Group) {
+    console.log('Before Removing Group ' + group.name);
+    console.dir(this.project.groups);
+    const index = this.project.groups.indexOf(group);
+    if (index >= 0) {
+      this.project.groups.splice(index, 1);
+      this.dialog.openLoadingIndicator(
+        this.api.removeGroup(this.project.id, group.name),
+        'Removing Group from Project'
       );
     }
-  }*/
-
-  /*groupTagsEmitted(event) {
-    // this.projectGroupnames = Array.from(event);
-    if (event) {
-      // this.project.groups = event;
-      console.log('----- Updated project.groups -----');
-      console.dir(this.project.groups);
-    }
-  }*/
+    this.sortGroups();
+    console.log('After Removing Group ' + group.name);
+    console.dir(this.project.groups);
+  }
 
   onSelectedPipelineChanged(info: PipelineInfo) {
     this.selectedPipeline = info;
