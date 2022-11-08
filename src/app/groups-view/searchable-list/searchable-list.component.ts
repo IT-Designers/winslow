@@ -9,6 +9,7 @@ export class SearchableListComponent implements OnInit, OnChanges {
 
   @Input() allItems: object[] = [];
   @Input() searchPlaceholderText = 'Search...';
+  @Input() listItemTooltip = 'Edit';
 
   @Output() itemEmitter = new EventEmitter();
 
