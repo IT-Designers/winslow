@@ -317,8 +317,10 @@
                         [style.background-color]="getColor(group)"
                         [matTooltip]="getTooltip(group)"
                         matTooltipShowDelay="250"
-                        (click)="changeGroupListBtnTextAndIcon()">
+                        (click)="changeGroupListBtnTextAndIcon()"
+                        (removed)="remove(group)">
                 {{group.name}}
+                <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip>
             </mat-chip-list>
             <button mat-raised-button color="primary" #groupTagsButton
