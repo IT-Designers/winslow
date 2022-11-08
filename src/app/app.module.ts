@@ -93,7 +93,6 @@ import { GroupsViewComponent } from './groups-view/groups-view.component';
 import { GroupMemberListComponent } from './group-member-list/group-member-list.component';
 import { GroupsAddMemberDialogComponent } from './groups-add-member-dialog/groups-add-member-dialog.component';
 import { GroupAddNameDialogComponent } from './group-add-name-dialog/group-add-name-dialog.component';
-import { GroupTagsWithAutocompleteComponent } from './projects-view/group-tags-with-autocomplete/group-tags-with-autocomplete.component';
 import { ProjectGroupsListComponent } from './projects-view/project-groups-list/project-groups-list.component';
 import { ProjectAddGroupDialogComponent } from './projects-view/project-add-group-dialog/project-add-group-dialog.component';
 import { SearchableListComponent } from './groups-view/searchable-list/searchable-list.component';
@@ -156,7 +155,6 @@ import { UserAddNameDialogComponent } from './groups-view/user-add-name-dialog/u
         GroupMemberListComponent,
         GroupsAddMemberDialogComponent,
         GroupAddNameDialogComponent,
-        GroupTagsWithAutocompleteComponent,
         ProjectGroupsListComponent,
         ProjectAddGroupDialogComponent,
         SearchableListComponent,
