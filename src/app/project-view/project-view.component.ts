@@ -262,6 +262,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.selectedHistoryEntryStage = null;
       }
     }
+    this.sortGroups();
   }
 
   ngAfterViewInit() {
