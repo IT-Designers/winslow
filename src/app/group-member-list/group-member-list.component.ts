@@ -36,8 +36,22 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.displayMembers = Array.from(this.group.members);
     this.checkSelects();
+    this.sortMembers();
   }
 
+  sortMembers() {
+    this.displayMembers.sort((a, b) => {
+      if (a.role < b.role) {
+        return 1;
+      } else if (a.role === b.role) {
+        if (a.name.toUpperCase() > b.name.toUpperCase()) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
+    });
+  }
   filterFunction() {
     this.displayMembers = Array.from(this.group.members);
     if (this.userSearchInput !== '') {
@@ -76,6 +90,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   }
   roleChanged(user) {
     this.checkSelects();
+    this.sortMembers();
     return this.dialog.openLoadingIndicator(
       this.groupApi.addOrUpdateMembership(this.group.name, user),
       'Adding Member to group'

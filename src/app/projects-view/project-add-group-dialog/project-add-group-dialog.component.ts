@@ -41,8 +41,19 @@ export class ProjectAddGroupDialogComponent implements OnInit {
     });
   }
 
+  sortGroups() {
+    this.displayGroups.sort((a, b) => {
+      if (a.name.toUpperCase() > b.name.toUpperCase()) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  }
+
   filterFunction() {
     this.displayGroups = Array.from(this.allGroups);
+    this.sortGroups();
     if (this.groupSearchInput) {
       const searchedGroups = [];
       for (const user of this.displayGroups) {
