@@ -29,4 +29,9 @@ export class UserApiService {
       .get<User[]>(UserApiService.getUrl(''))
       .toPromise();
   }
+  getUserNameAvailable(userName): Promise<object> {
+    return this.client
+      .get(UserApiService.getUrl(userName + '/available'))
+      .toPromise();
+  }
 }

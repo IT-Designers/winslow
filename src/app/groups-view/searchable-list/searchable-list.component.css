@@ -27,7 +27,8 @@
   flex-direction: column;
   width: 95%;
   /*max-height: 440px;*/
-  max-height: 620px;
+  /*max-height: 620px;*/
+  height: 620px;
   /*border-bottom: 1px solid lightgrey;*/
 }
 .list-item {
