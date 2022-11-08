@@ -5,6 +5,7 @@ import {UserApiService} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
 import {GroupAddNameDialogComponent} from '../group-add-name-dialog/group-add-name-dialog.component';
+import {UserAddNameDialogComponent} from './user-add-name-dialog/user-add-name-dialog.component';
 
 @Component({
   selector: 'app-groups-view',
@@ -23,6 +24,12 @@ export class GroupsViewComponent implements OnInit {
   showSystemGroups = false;
   groupSearchInput = '';
 
+  userTabTooltip = '';
+  allUsers = [];
+  displayUsers = [];
+  showUserDetail = false;
+  selectedUser = {name: 'No User Selected'};
+
   showGroupDetail = false;
   selectedGroup = {name: 'No Group Selected', members: []};
 
@@ -37,6 +44,11 @@ export class GroupsViewComponent implements OnInit {
         this.filterSystemGroups();
         this.searchGroupFilter();
       });
+      this.userApi.getUsers().then((users) => {
+        this.allUsers = Array.from(users);
+        this.displayUsers = Array.from(users);
+        this.sortDisplayUsersByName();
+      });
       this.roleApi.getRoles().then((roles) => this.allRoles = roles);
       this.userApi.getSelfUserName().then((name) => {
         this.myName = name;
@@ -50,8 +62,22 @@ export class GroupsViewComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  isUserAdmin() {
+    // TODO: Check if current User is admin
+    // TODO: Set userTabTooltip according to user admin status
+    return true;
+  }
   sortDisplayGroupsByName() {
     this.displayGroups.sort((a, b) => {
+      if (a.name.toUpperCase() > b.name.toUpperCase()) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  }
+  sortDisplayUsersByName() {
+    this.displayUsers.sort((a, b) => {
       if (a.name.toUpperCase() > b.name.toUpperCase()) {
         return 1;
       } else {
@@ -115,9 +141,32 @@ export class GroupsViewComponent implements OnInit {
         }
       });
   }
+  onAddUserToggle() {
+    console.log('Add New User pressed');
+    this.createDialog
+      .open(UserAddNameDialogComponent, {
+        data: {} as string
+      })
+      .afterClosed()
+      .subscribe((name) => {
+        if (name) {
+          const newUser = {
+            name
+          };
+          console.log('Creating new user: ' + newUser.name);
+          // TODO: actually create user, show progress with LoadingIndicator
+        }
+      });
+  }
   groupClicked(group) {
     this.selectedGroup = group;
+    this.showUserDetail = false;
     this.showGroupDetail = true;
+  }
+  userClicked(user) {
+    this.selectedUser = user;
+    this.showGroupDetail = false;
+    this.showUserDetail = true;
   }
   onMemberAdded(event) {
     return this.dialog.openLoadingIndicator(
@@ -143,25 +192,6 @@ export class GroupsViewComponent implements OnInit {
     this.itemSelected = false;
   }
   onGroupDelete() {
-    /*this.createDialog
-      .open(DeleteConfirmDialogComponent, {
-        data: {
-        } as ResponseData
-      })
-      .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          return this.dialog.openLoadingIndicator(this.groupApi.deleteGroup(this.selectedGroup.name)
-            .then(() => {
-              const delIndex = this.allGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
-              this.allGroups.splice(delIndex, 1);
-              const delIndex2 = this.displayGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
-              this.displayGroups.splice(delIndex2, 1);
-              this.onEditCancel();
-            }),
-              'Deleting Group');
-        }
-      });*/
     this.dialog.openAreYouSure(
       `Group being deleted: ${this.selectedGroup.name}`,
       () => this.groupApi.deleteGroup(this.selectedGroup.name)
@@ -173,5 +203,9 @@ export class GroupsViewComponent implements OnInit {
               this.onEditCancel();
             })
     );
+  }
+  onUserDelete() {
+    console.log('User Delete Pressed');
+    // TODO: Implement AreYouSure Dialog and actual API to delete
   }
 }
