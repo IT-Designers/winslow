@@ -43,6 +43,16 @@ export class GroupsAddMemberDialogComponent implements OnInit {
     this.roleApi.getRoles().then((roles) => this.allRoles = roles);
   }
 
+  sortUsers() {
+    this.displayUsers.sort((a, b) => {
+      if (a.name.toUpperCase() > b.name.toUpperCase()) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  }
+
   onKeyUp() {
     if (this.userSearchInput.length >= 2) {
       this.showUsersToggle = true;
@@ -55,6 +65,7 @@ export class GroupsAddMemberDialogComponent implements OnInit {
 
   filterFunction() {
     this.displayUsers = Array.from(this.allUsers);
+    this.sortUsers();
     if (this.userSearchInput) {
       const searchedUsers = [];
       for (const user of this.displayUsers) {

@@ -1,4 +1,7 @@
-mat-tab {
+.mat-sidenav-content {
+  overflow: clip;
+}
+.mat-drawer-content {
   overflow: clip;
 }
 /*---------- Group List ----------*/
