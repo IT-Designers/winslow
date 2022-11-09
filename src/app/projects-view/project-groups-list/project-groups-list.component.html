@@ -4,7 +4,13 @@
     <input type="text" class="text-input" [(ngModel)]="groupSearchInput" placeholder="Search.." (keyup)="filterFunction()">
     <div class="scrollable">
       <div class="list-item" *ngFor="let group of displayGroups">
-        <label class="username-label">{{group.name}}</label>
+        <div class="username-label">
+          <mat-chip
+            [style.background-color]="getColor(group)"
+            [matTooltip]="getTooltip(group)"
+            matTooltipShowDelay="250"
+          >{{group.name}}</mat-chip>
+        </div>
         <mat-form-field appearance="fill" class="role-dropdown">
           <mat-label>Choose Role</mat-label>
           <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
