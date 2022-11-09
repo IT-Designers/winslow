@@ -634,9 +634,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
   getTooltip(group) {
-    if (this.getColor(group) === '#8ed69b') {
+    if (group.role === 'OWNER') {
       return 'OWNER';
-    } else if (this.getColor(group) === '#d88bca') {
+    } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
   }

@@ -31,6 +31,20 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
     this.displayGroups = Array.from(this.project.groups);
   }
 
+  getColor(group) {
+    if (group.role === 'OWNER') {
+      return '#8ed69b';
+    } else {
+      return '#d88bca';
+    }
+  }
+  getTooltip(group) {
+    if (group.role === 'OWNER') {
+      return 'OWNER';
+    } else if (group.role === 'MEMBER') {
+      return 'MEMBER';
+    }
+  }
   filterFunction() {
     this.displayGroups = Array.from(this.project.groups);
     if (this.groupSearchInput !== '') {
