@@ -28,7 +28,8 @@
   width: 95%;
   /*max-height: 440px;*/
   /*max-height: 620px;*/
-  height: 620px;
+  height: 550px;
+  padding-bottom: 80px;
   /*border-bottom: 1px solid lightgrey;*/
 }
 .list-item {
@@ -58,4 +59,13 @@
   border-radius: 50%;
   background-color: transparent;
   cursor: default;
+}
+.btn-container {
+  width: 95%;
+  border-top: 1px solid grey;
+  padding-top: 20px;
+  margin-top: 2px;
+}
+.new-btn {
+  float: right;
 }

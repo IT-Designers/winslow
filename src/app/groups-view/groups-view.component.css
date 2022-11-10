@@ -4,16 +4,23 @@
 .mat-drawer-content {
   overflow: clip;
 }
-/*---------- Group List ----------*/
-.groupAdministrationDiv {
+.header {
+  padding-left: 35px;
+  padding-top: 0;
+  margin-bottom: 0;
+}
+/*---------- Group/User List ----------*/
+.groupAdministrationDiv, .user-administration-div {
   display: flex;
   flex-direction: row;
   height: 100%;
-  margin-top: 0;
+  /*margin-top: 10px;*/
   overflow: clip;
 }
 
-.groups-list-container {
+.groups-list-container, .user-list-container {
+  padding-top: 10px;
+  background-color: whitesmoke;
   margin-right: 80px;
   padding-right: 20px;
   padding-left: 20px;
@@ -30,7 +37,7 @@
 .hidden {
   display: none;
 }
-.new-group-btn-container {
+.new-group-btn-container, .new-user-btn-container {
   width: 95%;
   border-top: 1px solid grey;
   padding-top: 20px;
@@ -39,37 +46,7 @@
 .show-usergroups-checkbox {
 
 }
-.new-group-btn {
-  float: right;
-}
-
-/*---------- user List ----------*/
-.user-administration-div {
-  display: flex;
-  flex-direction: row;
-  height: 100%;
-  margin-top: 0;
-  overflow: clip;
-}
-
-.user-list-container {
-  margin-right: 80px;
-  padding-right: 20px;
-  padding-left: 20px;
-  width: 30%;
-  height: 100%;
-  border-right: 1px solid lightgrey;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.new-user-btn-container {
-  width: 95%;
-  border-top: 1px solid grey;
-  padding-top: 20px;
-  margin-top: 2px;
-}
-.new-user-btn {
+.new-group-btn, .new-user-btn {
   float: right;
 }
 
@@ -92,13 +69,13 @@
   margin-left: 11em;
 }
 
-/* ----- Group Detail ------*/
-.groupname-label {
+/* ----- Group/User Detail ------*/
+.groupname-label, .username-label {
   font-weight: bold;
   display: inline-block;
   width: 10em;
 }
-#detailGroupName {
+#detailGroupName, #detailUserName {
   padding: 6px 10px;
   display: inline-block;
   width: 680px;
@@ -107,41 +84,15 @@
   background-color: #f6f6f6;
 }
 
-.group-detail-container {
+.group-detail-container, .user-detail-container {
   width: 54em;
   /*padding-left: 60px;
   border-left: 1px solid lightgrey;*/
 }
 
-.delete-group-btn {
+.delete-group-btn, .delete-user-btn {
   width: 10em;
   float: right;
   margin-top: 40px;
 }
 
-/* ----- User Detail ------*/
-.username-label {
-  font-weight: bold;
-  display: inline-block;
-  width: 10em;
-}
-#detailUserName {
-  padding: 6px 10px;
-  display: inline-block;
-  width: 680px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f6f6f6;
-}
-
-.user-detail-container {
-  width: 54em;
-  /*padding-left: 60px;
-  border-left: 1px solid lightgrey;*/
-}
-
-.delete-user-btn {
-  width: 10em;
-  float: right;
-  margin-top: 40px;
-}
