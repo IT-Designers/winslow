@@ -1,4 +1,7 @@
 import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+import {GroupAddNameDialogComponent} from '../../group-add-name-dialog/group-add-name-dialog.component';
+import {UserAddNameDialogComponent} from '../user-add-name-dialog/user-add-name-dialog.component';
 
 @Component({
   selector: 'app-searchable-list',
@@ -7,26 +10,49 @@ import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges
 })
 export class SearchableListComponent implements OnInit, OnChanges {
 
+  @Input() type = 'none';
   @Input() allItems: object[] = [];
   @Input() searchPlaceholderText = 'Search...';
   @Input() listItemTooltip = 'Edit';
 
   @Output() itemEmitter = new EventEmitter();
+  @Output() newItemEmitter = new EventEmitter();
 
   displayItems: object[];
-  selectedItem: object;
+  selectedItemName = '';
   itemSearchInput: string;
-  constructor() { }
+  showSystemGroups = false;
+
+  constructor(private createDialog: MatDialog) {
+  }
 
   ngOnInit(): void {
-    console.dir(this.allItems);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     this.displayItems = Array.from(this.allItems);
+    this.filterSystemGroups();
+    this.sortDisplayItemsByName();
   }
 
-
+  filterSystemGroups() {
+    if (!this.showSystemGroups) {
+      let i = 0;
+      this.displayItems = Array.from(this.allItems);
+      this.sortDisplayItemsByName();
+      for (const item of this.displayItems) {
+        // @ts-ignore
+        if (item.name.includes('::')) {
+          this.displayItems.splice(i, 1);
+          i--;
+        }
+        i++;
+      }
+    } else if (this.showSystemGroups) {
+      this.displayItems = Array.from(this.allItems);
+      this.sortDisplayItemsByName();
+    }
+  }
   sortDisplayItemsByName() {
     this.displayItems.sort((a, b) => {
       // @ts-ignore
@@ -54,8 +80,30 @@ export class SearchableListComponent implements OnInit, OnChanges {
     }
   }
   itemClicked(item) {
-    this.selectedItem = item;
+    this.selectedItemName = item.name;
     this.itemEmitter.emit(item);
   }
 
+  newBtnClicked() {
+    console.log('Button clicked');
+    if (this.type === 'Group') {
+      this.createDialog.open(GroupAddNameDialogComponent, {
+        data: {} as string
+      })
+        .afterClosed()
+        .subscribe((name) => {
+          this.selectedItemName = name;
+          this.newItemEmitter.emit(name);
+        });
+    } else if (this.type === 'User') {
+      this.createDialog.open(UserAddNameDialogComponent, {
+        data: {} as string
+      })
+        .afterClosed()
+        .subscribe((name) => {
+          this.selectedItemName = name;
+          this.newItemEmitter.emit(name);
+        });
+    }
+  }
 }
