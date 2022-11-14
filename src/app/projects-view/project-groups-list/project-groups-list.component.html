@@ -3,13 +3,14 @@
   <div class="list-content" id="list-content">
     <input type="text" class="text-input" [(ngModel)]="groupSearchInput" placeholder="Search.." (keyup)="filterFunction()">
     <div class="scrollable">
-      <div class="list-item" *ngFor="let group of displayGroups">
+      <!-- ---------- Version with seperate remove button ---------- -->
+      <!--<div class="list-item" *ngFor="let group of displayGroups">
         <div class="username-label">
-          <mat-chip
-            [style.background-color]="getColor(group)"
-            [matTooltip]="getTooltip(group)"
-            matTooltipShowDelay="250"
-          >{{group.name}}</mat-chip>
+          <mat-chip [style.background-color]="getColor(group)"
+                    [matTooltip]="getTooltip(group)"
+                    matTooltipShowDelay="250">
+            {{group.name}}
+          </mat-chip>
         </div>
         <mat-form-field appearance="fill" class="role-dropdown">
           <mat-label>Choose Role</mat-label>
@@ -20,6 +21,24 @@
         <button class="remove-member-button" (click)="onRemoveItemClick(group)">
           <span class="material-symbols-outlined item-icon">group_remove</span>
         </button>
+      </div>-->
+      <!-- ---------- Version with removable chips ---------- -->
+      <div class="list-item" *ngFor="let group of displayGroups">
+        <div class="username-label">
+          <mat-chip [style.background-color]="getColor(group)"
+                    [matTooltip]="getTooltip(group)"
+                    matTooltipShowDelay="250"
+                    (removed)="onRemoveItemClick(group)">
+            {{group.name}}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </div>
+        <mat-form-field appearance="fill" class="role-dropdown">
+          <mat-label>Choose Role</mat-label>
+          <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
+            <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
     </div>
     <div class="add-member-button-container">
