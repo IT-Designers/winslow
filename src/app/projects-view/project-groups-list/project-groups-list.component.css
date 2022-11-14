@@ -35,7 +35,8 @@ app-groups-add-member-dialog {
 }
 
 /* ---------- List Item Styling ---------- */
-.list-item {
+/* ----- Version with seperate remove button ------ */
+/*.list-item {
   cursor: default;
   padding: 3px;
   border-bottom: 1px solid lightgrey;
@@ -43,7 +44,7 @@ app-groups-add-member-dialog {
   font-size: 14px;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  !*justify-content: space-between;*!
   align-items: center;
 }
 .dropdown-item:hover {
@@ -51,7 +52,7 @@ app-groups-add-member-dialog {
 }
 .username-label {
   margin-left: 1em;
-  margin-right: 1em;
+  margin-right: 32%;
   width: 4em;
 }
 .role-dropdown {
@@ -67,8 +68,8 @@ app-groups-add-member-dialog {
   border-radius: 50%;
   width: 45px;
   height: 45px;
-  box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
-  margin-left: 120px;
+  box-shadow: 0 1px 3px gray; !* horizontal shadow | vertical shadow | shadow blur | shadow color*!
+  margin-left: 265px;
   margin-right: 10px;
 }
 .remove-member-button:enabled {
@@ -87,6 +88,45 @@ app-groups-add-member-dialog {
   margin-left: 3px;
   margin-top: 2px;
 }
+.text-input {
+  width: 90%;
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}*/
+/* ----- Version with removable chips ------ */
+.list-item {
+  cursor: default;
+  padding: 3px;
+  border-bottom: 1px solid lightgrey;
+  margin-top: 1px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.dropdown-item:hover {
+  background-color: lightgrey;
+}
+.username-label {
+  margin-left: 45px;
+  width: 4em;
+}
+.role-dropdown {
+  width: 8em;
+  display: flex;
+  align-items: center;
+  margin-top: 17px;
+  margin-right: 140px;
+  height: 45px;
+}
+
 .text-input {
   width: 90%;
   padding: 2px;
