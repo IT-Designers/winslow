@@ -483,12 +483,21 @@ export class FilesComponent implements OnInit {
     }
   }
 
+  private addLeadingZero(input) {
+    console.log('Is ' + input + ' smaller than 10?');
+    if (input < 10) {
+      return '0' + input;
+    } else {
+      return input;
+    }
+  }
+
   timeStampToDate(timeStamp: number) {
    const noFormat = new Date(timeStamp);
-   return noFormat.getHours()
-     + ':' + noFormat.getMinutes()
-     + ', ' + noFormat.getDay()
-     + '/' + noFormat.getMonth()
+   return this.addLeadingZero(noFormat.getHours())
+     + ':' + this.addLeadingZero(noFormat.getMinutes())
+     + ', ' + this.addLeadingZero(noFormat.getDay())
+     + '/' + this.addLeadingZero(noFormat.getMonth())
      + '/' + noFormat.getFullYear();
   }
 }
