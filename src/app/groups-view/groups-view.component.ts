@@ -17,14 +17,11 @@ export class GroupsViewComponent implements OnInit {
   myUser = {name: '', role: ''};
 
   allGroups = [];
-  displayGroups = [];
   allRoles = [''];
-  showSystemGroups = false;
-  groupSearchInput = '';
 
   userTabTooltip = '';
   allUsers = [];
-  displayUsers = [];
+  /*displayUsers = [];*/
   showUserDetail = false;
   selectedUser = {name: 'No User Selected'};
 
@@ -42,8 +39,8 @@ export class GroupsViewComponent implements OnInit {
       });
       this.userApi.getUsers().then((users) => {
         this.allUsers = Array.from(users);
-        this.displayUsers = Array.from(users);
-        this.sortDisplayUsersByName();
+        /*this.displayUsers = Array.from(users);*/
+        /*this.sortDisplayUsersByName();*/
       });
       this.roleApi.getRoles().then((roles) => this.allRoles = roles);
       this.userApi.getSelfUserName().then((name) => {
@@ -63,7 +60,7 @@ export class GroupsViewComponent implements OnInit {
     // TODO: Set userTabTooltip according to user admin status
     return true;
   }
-  sortDisplayUsersByName() {
+  /*sortDisplayUsersByName() {
     this.displayUsers.sort((a, b) => {
       if (a.name.toUpperCase() > b.name.toUpperCase()) {
         return 1;
@@ -71,7 +68,7 @@ export class GroupsViewComponent implements OnInit {
         return -1;
       }
     });
-  }
+  }*/
 
   onAddGroupToggle(name) {
     if (name) {
@@ -113,9 +110,6 @@ export class GroupsViewComponent implements OnInit {
       this.groupApi.addOrUpdateMembership(this.selectedGroup.name, event)
         .then(() => {
           this.selectedGroup.members.push(event);
-          // this.removeHighlighting();
-          /*const groupDivs = document.getElementsByClassName('group-list-item');
-          groupDivs[groupDivs.length - 1].classList.add('item-clicked');*/
         }),
       'Adding Member to group'
     );
