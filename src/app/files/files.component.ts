@@ -482,6 +482,15 @@ export class FilesComponent implements OnInit {
       return Math.max(1, Math.round(seconds)) + 's';
     }
   }
+
+  timeStampToDate(timeStamp: number) {
+   const noFormat = new Date(timeStamp);
+   return noFormat.getHours()
+     + ':' + noFormat.getMinutes()
+     + ', ' + noFormat.getDay()
+     + '/' + noFormat.getMonth()
+     + '/' + noFormat.getFullYear();
+  }
 }
 
 export interface UploadProgress {
