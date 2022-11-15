@@ -23,7 +23,7 @@
         </button>
       </div>-->
       <!-- ---------- Version with removable chips ---------- -->
-      <div class="list-item" *ngFor="let group of displayGroups">
+      <!--<div class="list-item" *ngFor="let group of displayGroups">
         <div class="username-label">
           <mat-chip [style.background-color]="getColor(group)"
                     [matTooltip]="getTooltip(group)"
@@ -39,7 +39,53 @@
             <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
+      </div>-->
+      <!-- ---------- Version with dropdown and button on right ---------- -->
+      <div class="list-item" *ngFor="let group of displayGroups">
+        <div class="username-label">
+          <mat-chip [style.background-color]="getColor(group)"
+                    [matTooltip]="getTooltip(group)"
+                    matTooltipShowDelay="250">
+            {{group.name}}
+          </mat-chip>
+        </div>
+        <div class="dropdown-and-button">
+          <mat-form-field appearance="fill" class="role-dropdown">
+            <mat-label>Choose Role</mat-label>
+            <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
+              <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button class="remove-member-button" (click)="onRemoveItemClick(group)">
+            <span class="material-symbols-outlined item-icon">group_remove</span>
+          </button>
+        </div>
+
       </div>
+      <!-- ---------- Version with name in middle ---------- -->
+      <!--<div class="list-item" *ngFor="let group of displayGroups">
+        <div class="list-item-section">
+          <mat-form-field appearance="fill" class="role-dropdown">
+            <mat-label>Choose Role</mat-label>
+            <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
+              <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="list-item-section">
+          <mat-chip [style.background-color]="getColor(group)"
+                    [matTooltip]="getTooltip(group)"
+                    matTooltipShowDelay="250">
+            {{group.name}}
+          </mat-chip>
+        </div>
+        <div class="list-item-section">
+          <button class="remove-member-button" (click)="onRemoveItemClick(group)">
+            <span class="material-symbols-outlined item-icon">group_remove</span>
+          </button>
+        </div>
+      </div>
+    </div>-->
     </div>
     <div class="add-member-button-container">
       <button class="mat-raised-button" mat-raised-button="" color="primary" (click)="openAddGroupDialog()"> Add Group </button>
