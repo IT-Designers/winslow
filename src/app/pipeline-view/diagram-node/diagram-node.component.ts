@@ -9,6 +9,7 @@ import {StageDefinitionInfo} from "../../api/project-api.service";
 })
 export class DiagramNodeComponent implements OnInit {
 
+  @Input() nodeTypeName : String;
   node$?: DiagramMakerNode<StageDefinitionInfo>;
   selected$?: boolean = false;
   containsNode?: boolean = false;

@@ -1,5 +1,4 @@
-<div>
-  <div
+ <div
     class="drag"
     data-event-target="true"
     data-draggable="true"
@@ -17,6 +16,7 @@
 
       <form class="editNodeForm" (ngSubmit)="startSave()">
        <app-edit-forms #form
+                       [currentNodeID]="selectedNode$.id"
                        [formMap]="formHtmlMap"
                        [formObj]="formObj"
                        (onCollectData)="saveEdit($event)"
@@ -30,11 +30,17 @@
 
     <div
       class="node"
-      data-id="node1" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
+      data-id="node-normal" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
       data-width="200" data-height="75"
     >
-      <app-diagram-node></app-diagram-node>
+      <app-diagram-node [nodeTypeName]="'New Normal Stage'"></app-diagram-node>
     </div>
-  </div>
-</div>
+    <div
+      class="node"
+      data-id="node-start" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
+      data-width="200" data-height="75"
+    >
+      <app-diagram-node [nodeTypeName]="'New Start Stage'"></app-diagram-node>
+    </div>
 
+</div>
