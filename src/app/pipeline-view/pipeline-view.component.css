@@ -1,3 +1,4 @@
-:host ::ng-deep .dm-content{
-  padding: 1px !important;
+
+#library .dm-panel .dm-content{
+  padding: 1px;
 }
