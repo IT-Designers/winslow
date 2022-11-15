@@ -1,8 +1,21 @@
 .mat-sidenav-content {
   overflow: clip;
 }
-.mat-drawer-content {
+.drawer-container {
+  height: 845px;
   overflow: clip;
+  /*height: 100%;*/
+}
+.drawer {
+  width: 30vw;
+  background-color: whitesmoke;
+  overflow-y: clip;
+}
+.drawer-content {
+  /*padding: 0.2em;*/
+  padding: 10px;
+  overflow-y: hidden;
+  margin-bottom: 2em;
 }
 .header {
   padding-left: 35px;
