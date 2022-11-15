@@ -1,10 +1,10 @@
 .mat-sidenav-content {
   overflow: clip;
 }
-.drawer-container {
+/*.drawer-container {
   height: 845px;
   overflow: clip;
-  /*height: 100%;*/
+  !*height: 100%;*!
 }
 .drawer {
   width: 30vw;
@@ -12,11 +12,11 @@
   overflow-y: clip;
 }
 .drawer-content {
-  /*padding: 0.2em;*/
+  !*padding: 0.2em;*!
   padding: 10px;
   overflow-y: hidden;
   margin-bottom: 2em;
-}
+}*/
 .header {
   padding-left: 35px;
   padding-top: 0;
@@ -38,7 +38,7 @@
   padding-right: 20px;
   padding-left: 20px;
   width: 30%;
-  height: 100%;
+  height: 880px;
   border-right: 1px solid lightgrey;
   display: flex;
   flex-direction: column;
@@ -83,6 +83,12 @@
 }
 
 /* ----- Group/User Detail ------*/
+.nothing-selected {
+  width: 54em;
+  text-align: center;
+  padding: 3em;
+  font-style: italic;
+}
 .groupname-label, .username-label {
   font-weight: bold;
   display: inline-block;

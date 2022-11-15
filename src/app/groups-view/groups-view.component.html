@@ -2,25 +2,19 @@
 <mat-tab-group class="height">
   <mat-tab label="Users" [disabled]="!isUserAdmin()" [matTooltip]="userTabTooltip">
     <div class="user-administration-div">
-      <mat-drawer-container class="drawer-container">
-        <mat-drawer #drawer mode="side" [opened]="true" class="drawer">
-          <div class="drawer-content">
-            <!--<div class="user-list-container">-->
-              <app-searchable-list
-                type="User"
-                [allItems]="allUsers"
-                searchPlaceholderText="Username..."
-                listItemTooltip="Edit User"
-                (itemEmitter)="userClicked($event)"
-                (newItemEmitter)="onAddUserToggle($event)"
-                class="searchable-list">
-              </app-searchable-list>
-            <!--</div>-->
-          </div>
-        </mat-drawer>
-      </mat-drawer-container>
+      <div class="user-list-container">
+        <app-searchable-list
+          type="User"
+          [allItems]="allUsers"
+          searchPlaceholderText="Username..."
+          listItemTooltip="Edit User"
+          (itemEmitter)="userClicked($event)"
+          (newItemEmitter)="onAddUserToggle($event)"
+          class="searchable-list">
+        </app-searchable-list>
+      </div>
 
-
+      <label *ngIf="!showUserDetail" class="nothing-selected">No user selected</label>
       <div *ngIf="showUserDetail" class="user-detail-container">
         <h2>User Details</h2>
         <div class="user-name-container">
@@ -32,25 +26,20 @@
     </div>
   </mat-tab>
   <mat-tab label=Groups>
-    <!--<div class="groupAdministrationDiv">-->
-      <mat-drawer-container class="drawer-container">
-        <mat-drawer #drawer mode="side" [opened]="true" class="drawer">
-          <!--<div class="groups-list-container">-->
-          <div class="drawer-content">
-            <app-searchable-list
-              type="Group"
-              [allItems]="allGroups"
-              searchPlaceholderText="Groupname..."
-              listItemTooltip="Edit Group"
-              (itemEmitter)="groupClicked($event)"
-              (newItemEmitter)="onAddGroupToggle($event)"
-              class="searchable-list">
-            </app-searchable-list>
-          </div>
+    <div class="groupAdministrationDiv">
+      <div class="groups-list-container">
+          <app-searchable-list
+            type="Group"
+            [allItems]="allGroups"
+            searchPlaceholderText="Groupname..."
+            listItemTooltip="Edit Group"
+            (itemEmitter)="groupClicked($event)"
+            (newItemEmitter)="onAddGroupToggle($event)"
+            class="searchable-list">
+          </app-searchable-list>
+      </div>
 
-          <!--</div>-->
-        </mat-drawer>
-      </mat-drawer-container>
+      <label *ngIf="!showGroupDetail" class="nothing-selected">No group selected</label>
       <div *ngIf="showGroupDetail" class="group-detail-container">
         <h2>Group Details</h2>
         <div class="group-name-container">
@@ -63,7 +52,7 @@
         ></app-group-member-list>
         <button class="mat-raised-button delete-group-btn" (click)="onGroupDelete()" color="warn" mat-raised-button=""> Delete </button>
       </div>
-    <!--</div>-->
+    </div>
   </mat-tab>
 </mat-tab-group>
 
