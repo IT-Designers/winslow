@@ -4,7 +4,7 @@
       <tr>
     <span *ngIf="entry.key != 'id' && isNotObject(entry.value)" class="val-string">
       <td>{{entry.key}}</td>
-      <td> <input formControlName="{{entry.key}}"> </td>
+      <td> <input (focusout)="triggerSaveData()" formControlName="{{entry.key}}"> </td>
     </span>
       </tr>
       <tr *ngIf="!isNotObject(entry.value)">
@@ -13,11 +13,12 @@
             <mat-icon class="icon" (click)="extendData(i)" *ngIf="!extended[i]">keyboard_arrow_right</mat-icon>
             <mat-icon class="icon" (click)="extendData(i)" *ngIf="extended[i]">keyboard_arrow_down</mat-icon>
             <div (click)="extendData(i)">{{entry.key}} </div>
-          <mat-icon class="icon add-icon">add_box</mat-icon>
+          <mat-icon class="icon add-icon" (click)="addContent(entry)">add_box</mat-icon>
           </span>
-          <div *ngIf="extended[i]">
+          <div *ngIf="entry.value != null" [hidden]="!extended[i]">
             <app-edit-forms
               #form
+              [currentNodeID]="currentNodeID"
               [formMap]="entry.value"
               [formObj]="entry.value"
               [objPlace]="entry.key"

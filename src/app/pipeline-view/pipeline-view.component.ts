@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import {
   Action,
-  ConnectorPlacement,
+  ConnectorPlacement, CreateEdgeAction,
   CreateNodeAction,
   DiagramMaker,
   DiagramMakerActions,
@@ -21,7 +21,7 @@ import {
   DiagramMakerNode,
   DiagramMakerPotentialNode,
   Dispatch,
-  EditorMode,
+  EditorMode, VisibleConnectorTypes,
 } from 'diagram-maker';
 
 import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
@@ -40,6 +40,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
   public diagramMaker!: DiagramMaker;
   public initialData!: DiagramMakerData<StageDefinitionInfo, {}>;
   public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
+  public componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
+  public libraryComponent = null;
 
   @ViewChild('diagramEditorContainer')
   diagramEditorContainer!: ElementRef;
@@ -66,7 +68,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
         const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramNodeComponent);
         const componentInstance = this.viewContainerRef.createComponent(componentFactory);
         diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
-        componentInstance.destroy();
+        //setTimeout(() => { componentInstance.destroy(); }, 1000);
       },
       destroy: () => {
         this.nodeComponentInstances.forEach(instance => instance.destroy());
@@ -74,15 +76,16 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
       },
       panels: {
         library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {
-          diagramMakerContainer.innerHTML = '';
-          const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
-          const componentInstance = this.viewContainerRef.createComponent(componentFactory);
-          componentInstance.instance.editNode.subscribe(editForm => this.editState(editForm))
-          componentInstance.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined)
+          //diagramMakerContainer.innerHTML = '';
+          if (this.libraryComponent == null){
+          this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
+          this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
+          this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
           //console.log(this.currentNode);
-          diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
+          diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
+          }
           if (this.currentNode) {
-            componentInstance.instance.selectedNode = this.currentNode;
+            this.libraryComponent.instance.selectedNode = this.currentNode;
           }
         }
       },
@@ -102,7 +105,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
           type: DiagramMakerActions.NODE_CREATE,
           payload: {
             id: `n${createAction.payload.id}`,
-            typeId: 'node',
+            typeId: `${createAction.payload.typeId}`,
             position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
             size: {width: 200, height: 75},
             consumerData: stageDef
@@ -110,12 +113,35 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
         }
         dispatch(newAction);
       }
+      else if (action.type === DiagramMakerActions.EDGE_CREATE){
+        let edgePossible = true;
+        const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges))
+        let createEdgeAction = action as CreateEdgeAction<{}>;
+        for (let edge of edgeMap.values()){
+          if (edge.dest == createEdgeAction.payload.dest){ return edgePossible = false }
+          else {edgePossible = true;}
+        }
+        if (edgePossible){
+          dispatch(createEdgeAction);
+        }
+      }
       else {
         dispatch(action);
       }
       //console.log(action);
       //console.log(this.nodeComponentInstances);
     },
+    nodeTypeConfig: {
+      'node-normal': {
+        size: {width: 200, height: 75},
+        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
+      },
+      'node-start': {
+        size: {width: 200, height: 75},
+        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
+        visibleConnectorTypes: VisibleConnectorTypes.OUTPUT_ONLY,
+      },
+    }
   };
 
   nodeComponentInstances = [];
@@ -125,7 +151,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   editState(editForm) {
-    console.log(editForm);
+    //console.log(editForm);
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -152,6 +178,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   ngOnInit() {
+    const stageDef = this.project.pipelineDefinition.stages[1] as StageDefinitionInfo;
+    console.log(stageDef.env instanceof Map);
+    console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
 
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
@@ -159,9 +188,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
     for (let i = 0; i < this.project.pipelineDefinition.stages.length; i++) {
       nodes[`n${i}`] = {
         id: `n${i}`,
-        typeId: 'node',
+        typeId: `${ i == 0 ? "node-start" : "node-normal" }`,
         diagramMakerData: {
-          position: {x: 350 * (i + 1), y: 200},
+          position: {x: 200+250 * (i + 1), y: 200},
           size: {width: 200, height: 75},
         },
         consumerData: this.project.pipelineDefinition.stages[i]
@@ -176,7 +205,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
 
       }
     }
-
 
     this.initialData = {
       nodes,
@@ -201,7 +229,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
     }
 
   }
-
 
   ngAfterViewInit(): void {
     setTimeout(() => {

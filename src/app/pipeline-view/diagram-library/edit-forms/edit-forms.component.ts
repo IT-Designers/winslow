@@ -8,6 +8,8 @@ import {
   ViewChildren
 } from '@angular/core';
 import {FormBuilder, FormGroup} from "@angular/forms";
+import {ResourceInfo} from "../../../api/pipeline-api.service";
+import {ImageInfo} from "../../../api/project-api.service";
 
 @Component({
   selector: 'app-edit-forms',
@@ -19,10 +21,12 @@ export class EditFormsComponent implements OnInit {
   @Input() formMap;
   @Input() formObj;
   @Input() objPlace;
+  @Input() currentNodeID;
   @Output() onCollectData : EventEmitter<Object> = new EventEmitter();
   @Output() onTriggerSaveData : EventEmitter<Object> = new EventEmitter();
   editForm: FormGroup;
   extended: boolean[];
+  lastNodeID : String = "";
 
   @ViewChildren('form') childForm:QueryList<EditFormsComponent>;
 
@@ -31,27 +35,28 @@ export class EditFormsComponent implements OnInit {
   ngOnInit(): void {
     this.extended = Array(this.formMap.lenght);
     this.extended.fill(false);
-    //console.log(this.formObj);
-    console.log(this.objPlace);
+    console.log("Form nginit");
+    if (this.currentNodeID != this.lastNodeID){
     this.editForm = this.fb.group(this.formObj);
-    //console.log(this.editForm);
-    this.editForm.valueChanges.subscribe(value => this.triggerSaveData())
+    }
+    this.lastNodeID = this.currentNodeID;
+    //this.editForm.valueChanges.subscribe(value => this.triggerSaveData())
   }
 
   public keepOriginalOrder = (a, b) => a.key;
 
   isNotObject(prop) : boolean {
-    if (typeof prop === "object" && prop != null){
-      //console.log(Object.keys(prop).length <= 0);
-      return Object.keys(prop).length <= 0;
+    if (typeof prop == "number" || typeof prop == "string"){
+      return true;
     }
-    else {return true;}
+    else {return false;}
   }
 
   collectFormData(collectedFormData){
     this.formObj = this.editForm.value;
     this.formObj[collectedFormData[0]] = collectedFormData[1];
-    this.editForm.setValue(collectedFormData);
+    //console.log(collectedFormData)
+    //this.editForm.setValue(this.formObj.value);
   }
   sendFormData(){
     if (this.childForm){
@@ -67,6 +72,25 @@ export class EditFormsComponent implements OnInit {
 
   extendData(index){
     this.extended[index] = !this.extended[index];
+  }
+  addContent(entry){
+    //console.log(entry.value instanceof Array);
+    console.log(entry.value instanceof ImageInfo);
+    //console.log(entry);
+    //console.log(this.editForm)
+    if (entry.value instanceof Array){
+      //let newArray = new Array();
+      let newArray : String[]  = Object.assign([], this.formObj[entry.key]);
+      console.log(newArray);
+      newArray.push("New Entry");
+      this.formObj[entry.key] = newArray;
+      this.formMap.set(entry.key , newArray);
+      //this.editForm.patchValue({entry.key: })
+      this.triggerSaveData();
+    }
+    console.log(this.formObj);
+    console.log(this.formMap);
+    console.log(this.editForm);
   }
 
 }
