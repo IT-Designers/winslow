@@ -484,7 +484,6 @@ export class FilesComponent implements OnInit {
   }
 
   private addLeadingZero(input) {
-    console.log('Is ' + input + ' smaller than 10?');
     if (input < 10) {
       return '0' + input;
     } else {
