@@ -227,7 +227,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
       },
       editor: {mode: EditorMode.DRAG},
     }
-
   }
 
   ngAfterViewInit(): void {
