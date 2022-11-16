@@ -312,7 +312,7 @@
       </mat-expansion-panel>-->
       <div class="stage-control-item"><!--Group Access (Chiplist)-->
         <label>Group Access</label>
-            <mat-chip-list>
+            <mat-chip-list *ngIf="project.groups.length > 0">
               <mat-chip *ngFor="let group of project.groups"
                         [style.background-color]="getColor(group)"
                         [matTooltip]="getTooltip(group)"
@@ -323,6 +323,9 @@
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip>
             </mat-chip-list>
+            <label *ngIf="project.groups.length < 1" [ngStyle]="{'font-style':'italic'}">
+              No groups assigned
+            </label>
             <button mat-raised-button color="primary" #groupTagsButton
                     (click)="changeGroupListBtnTextAndIcon()">
               <!--{{groupListBtnText}}-->
