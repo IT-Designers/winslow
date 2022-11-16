@@ -85,7 +85,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
           diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
           }
           if (this.currentNode) {
-            this.libraryComponent.instance.selectedNode = this.currentNode;
+              this.libraryComponent.instance.selectedNode = this.currentNode;
           }
         }
       },
