@@ -27,9 +27,9 @@ tr{
 td{
   text-align: left;
   vertical-align: middle;
-  width: 105px;
-  min-width: 105px;
-  max-width: 105px;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
   font-weight: normal;
   overflow: hidden;
   word-wrap: break-word;
@@ -48,7 +48,7 @@ input {
   background-color: transparent;
   border: hidden;
   border-bottom: 1px solid black;
-  width: 100px;
+  width: 115px;
 }
 .icon{
   font-size: 20px;
