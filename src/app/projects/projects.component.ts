@@ -148,6 +148,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
           return this.dialog.openLoadingIndicator(
             this.api.createProject(result.name, result.pipeline, result.tags).then(r => {
               this.projects.push(r);
+              this.projectsFiltered.push(r);
               this.selectedProject = r;
             }),
             `Creating new Project`
@@ -181,9 +182,13 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   onDeleted(project: ProjectInfo) {
+    console.log('--------------- Deleting project: ' + project.name);
+    console.dir(this.projects);
+    console.dir(this.projectsFiltered);
     for (let i = 0; i < this.projects.length; ++i) {
       if (this.projects[i].id === project.id) {
         this.projects.splice(i, 1);
+        this.projectsFiltered.splice(i, 1);
         this.projects = this.projects.sort();
         if (this.selectedProject != null && this.selectedProject.id === project.id) {
           if (this.projects.length > 0) {
