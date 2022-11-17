@@ -94,6 +94,7 @@ import { DiagramNodeComponent } from './pipeline-view/diagram-node/diagram-node.
 import { DiagramLibraryComponent } from './pipeline-view/diagram-library/diagram-library.component';
 import { EditFormsComponent } from './pipeline-view/diagram-library/edit-forms/edit-forms.component';
 import { DiagramGatewayComponent } from './pipeline-view/diagram-gateway/diagram-gateway.component';
+import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component';
 
 @NgModule({
     declarations: [
@@ -153,6 +154,7 @@ import { DiagramGatewayComponent } from './pipeline-view/diagram-gateway/diagram
         DiagramLibraryComponent,
         EditFormsComponent,
         DiagramGatewayComponent,
+        AddToolsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

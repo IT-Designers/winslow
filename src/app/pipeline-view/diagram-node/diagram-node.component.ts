@@ -28,8 +28,8 @@ export class DiagramNodeComponent implements OnInit {
     ){
       this.splitter = true;
     }
-    if (this.nodeTypeName == "All Combiner" || this.nodeTypeName == "Priority Combiner"||
-      this.node$?.typeId == "node-all-combiner" || this.node$?.typeId == "node-prio-combiner"
+    if (this.nodeTypeName == "ALL Merger" || this.nodeTypeName == "ANY Merger"||
+      this.node$?.typeId == "node-all-merger" || this.node$?.typeId == "node-any-merger"
     ){
       this.combiner = true;
     }
