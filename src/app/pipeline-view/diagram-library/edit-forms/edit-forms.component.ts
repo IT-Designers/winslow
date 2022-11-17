@@ -21,25 +21,22 @@ export class EditFormsComponent implements OnInit {
   @Input() formMap;
   @Input() formObj;
   @Input() objPlace;
-  @Input() currentNodeID;
   @Output() onCollectData : EventEmitter<Object> = new EventEmitter();
   @Output() onTriggerSaveData : EventEmitter<Object> = new EventEmitter();
   editForm: FormGroup;
   extended: boolean[];
-  lastNodeID : String = "";
 
   @ViewChildren('form') childForm:QueryList<EditFormsComponent>;
 
   constructor( private fb: FormBuilder) { }
 
   ngOnInit(): void {
+    console.log(this.formObj);
+    console.log(this.formMap);
     this.extended = Array(this.formMap.lenght);
     this.extended.fill(false);
-    console.log("Form nginit");
-    if (this.currentNodeID != this.lastNodeID){
     this.editForm = this.fb.group(this.formObj);
-    }
-    this.lastNodeID = this.currentNodeID;
+
     //this.editForm.valueChanges.subscribe(value => this.triggerSaveData())
   }
 
@@ -86,7 +83,7 @@ export class EditFormsComponent implements OnInit {
       this.formObj[entry.key] = newArray;
       this.formMap.set(entry.key , newArray);
       //this.editForm.patchValue({entry.key: })
-      this.triggerSaveData();
+      //this.triggerSaveData();
     }
     console.log(this.formObj);
     console.log(this.formMap);

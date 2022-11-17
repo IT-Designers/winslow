@@ -1,4 +1,5 @@
-import {
+export class DiagramConfig {}
+/* import {
   AfterViewInit,
   Component,
   ComponentFactoryResolver,
@@ -21,32 +22,18 @@ import {
   DiagramMakerNode,
   DiagramMakerPotentialNode,
   Dispatch,
-  EditorMode, PositionAnchor, VisibleConnectorTypes,
+  EditorMode, VisibleConnectorTypes,
 } from 'diagram-maker';
 
 import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
 import {DiagramNodeComponent} from "./diagram-node/diagram-node.component";
 import {DiagramLibraryComponent} from "./diagram-library/diagram-library.component";
-import {DiagramConfig} from "./diagram-config";
-import {AddToolsComponent} from "./add-tools/add-tools.component";
 
-@Component({
-  selector: 'app-pipeline-view',
-  templateUrl: './pipeline-view.component.html',
-  styleUrls: ['./pipeline-view.component.css']
-})
-export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DiagramConfig {
 
-  @Input() public project: ProjectInfo;
-
-  public diagramMaker!: DiagramMaker;
-  public initialData!: DiagramMakerData<StageDefinitionInfo, {}>;
-  public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
-  public componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
-  public libraryComponent = null;
-
-  @ViewChild('diagramEditorContainer')
-  diagramEditorContainer!: ElementRef;
+  constructor(private viewContainerRef: ViewContainerRef,
+              private componentFactoryResolver: ComponentFactoryResolver) {
+  }
 
   config: DiagramMakerConfig<{}, {}> = {
     options: {
@@ -79,8 +66,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
       panels: {
         library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {
           //diagramMakerContainer.innerHTML = '';
-          console.log(this.libraryComponent == null || this.libraryComponent?.instance?.selectedNode$?.id != this.currentNode?.id)
-          console.log( this.libraryComponent?.instance?.selectedNode$?.id +" "+ this.currentNode?.id)
           if (this.libraryComponent == null) {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
             this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
@@ -91,11 +76,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           if (this.currentNode) {
             this.libraryComponent.instance.selectedNode = this.currentNode;
           }
-        },
-        tools: (panel: any, state : any, diagramMakerContainer: HTMLElement ) => {
-          let addToolsFactory = this.componentFactoryResolver.resolveComponentFactory(AddToolsComponent);
-          let addToolsComponent = this.viewContainerRef.createComponent(addToolsFactory);
-          diagramMakerContainer.appendChild(addToolsComponent.location.nativeElement);
         }
       },
     },
@@ -126,8 +106,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         if (createAction.payload.typeId == "node-and-splitter" ||
           createAction.payload.typeId == "node-if-splitter" ||
-          createAction.payload.typeId == "node-all-merger" ||
-          createAction.payload.typeId == "node-any-merger"
+          createAction.payload.typeId == "node-all-combiner" ||
+          createAction.payload.typeId == "node-prio-combiner"
         ){
           const stageDef = new StageDefinitionInfo();
           stageDef.name = `${createAction.payload.typeId}`;
@@ -182,142 +162,16 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         size: {width: 150, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
-      'node-all-merger': {
+      'node-all-combiner': {
         size: {width: 150, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
-      'node-any-merger': {
+      'node-prio-combiner': {
         size: {width: 150, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
     }
   };
 
-  nodeComponentInstances = [];
-
-  constructor(private viewContainerRef: ViewContainerRef,
-              private componentFactoryResolver: ComponentFactoryResolver) {
-  }
-
-  editState(editForm) {
-    //console.log(editForm);
-    const currentState = this.diagramMaker.store.getState();
-    let editNode = currentState.nodes[editForm.id];
-    if (editNode) {
-      let editData = JSON.parse(JSON.stringify(editNode.consumerData));
-      let i = this.project.pipelineDefinition.stages.map(function (stage) {
-        return stage.name;
-      }).indexOf(`${editData.name}`);
-      editData = editForm;
-      delete editData.id;
-      editNode = Object.assign({}, editNode, {
-        consumerData: editData,
-        diagramMakerData: {
-          selected: true,
-          size: editNode.diagramMakerData.size,
-          position: editNode.diagramMakerData.position,
-        },
-      });
-      this.diagramMaker.store.dispatch({
-        type: 'UPDATE_NODE',
-        payload: editNode,
-      });
-      this.project.pipelineDefinition.stages[i] = editData;
-    }
-  }
-
-  ngOnInit() {
-    const stageDef = this.project.pipelineDefinition.stages[1] as StageDefinitionInfo;
-    console.log(stageDef.env instanceof Map);
-    console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
-
-    let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
-    let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-
-    for (let i = 0; i < this.project.pipelineDefinition.stages.length; i++) {
-      nodes[`n${i}`] = {
-        id: `n${i}`,
-        typeId: `${i == 0 ? "node-start" : "node-normal"}`,
-        diagramMakerData: {
-          position: {x: 250 * (i + 1) - 200, y: 200},
-          size: {width: 200, height: 75},
-        },
-        consumerData: this.project.pipelineDefinition.stages[i]
-      }
-      if (i < (this.project.pipelineDefinition.stages.length - 1)) {
-        edges[`edge${i}`] = {
-          id: `edge${i}`,
-          src: `n${i}`,
-          dest: `n${i + 1}`,
-          diagramMakerData: {}
-        }
-
-      }
-    }
-
-    this.initialData = {
-      nodes,
-      edges,
-      panels: {
-        library: {
-          id: 'library',
-          position: {x: 10, y: 10},
-          size: {width: 320, height: 600},
-          positionAnchor: PositionAnchor.TOP_RIGHT,
-        },
-        tools:{
-          id: 'tools',
-          position: { x: 10, y : 10},
-          size: {width: 900, height: 40},
-        },
-      },
-      workspace: {
-        position: {x: 0, y: 0},
-        scale: 1,
-        canvasSize: {width: 5000, height: 5000},
-        viewContainerSize: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-        },
-      },
-      editor: {mode: EditorMode.DRAG},
-    }
-  }
-
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.diagramMaker = new DiagramMaker(
-        this.diagramEditorContainer.nativeElement,
-        this.config,
-        {
-          initialData: this.initialData,
-          consumerRootReducer: (state: any, action: any) => {
-            switch (action.type) {
-              case 'UPDATE_NODE':
-                const newNode: any = {};
-                newNode[action.payload.id] = action.payload;
-                const newNodes = Object.assign({}, state.nodes, newNode);
-                return Object.assign({}, state, {nodes: newNodes});
-              default:
-                return state;
-            }
-          }
-        },
-      );
-
-      window.addEventListener('resize', () => {
-        this.diagramMaker.updateContainer();
-      });
-    }, 1000);
-
-  }
-
-  ngOnDestroy(): void {
-    if (this.diagramEditorContainer.nativeElement != null) {
-      this.diagramMaker.destroy();
-    }
-    this.nodeComponentInstances.forEach(instance => instance.destroy());
-  }
-
-
 }
+*/

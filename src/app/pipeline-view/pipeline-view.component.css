@@ -2,3 +2,6 @@
 #library .dm-panel .dm-content{
   padding: 1px;
 }
+:host ::ng-deep .dm-panel{
+  
+}
