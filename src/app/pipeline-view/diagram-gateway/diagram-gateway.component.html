@@ -1,0 +1,8 @@
+<mat-card class="node" [ngClass]="{
+  'selected': selected$,
+  'combiner' : combiner,
+  'splitter' : splitter
+}"
+>
+  <mat-card-content>{{this.node$?.typeId ? this.node$.typeId : "New " + nodeTypeName}} </mat-card-content>
+</mat-card>

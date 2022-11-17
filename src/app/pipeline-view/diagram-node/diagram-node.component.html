@@ -1,8 +1,10 @@
 <mat-card class="node" [ngClass]="{
-  'selected': selected$
+  'selected': selected$,
+  'combiner' : combiner,
+  'splitter' : splitter
 }"
 >
-  <mat-card-title class="title">{{this.containsNode ? node$.consumerData.name : nodeTypeName}}</mat-card-title>
+  <mat-card-title class="title">{{this.containsNode ? node$.consumerData.name : "New " + nodeTypeName}}</mat-card-title>
   <mat-card-subtitle class="subtitle">ID: {{this.containsNode ? node$.id : '...' }}</mat-card-subtitle>
-  <mat-card-content>{{this.containsNode ? node$.consumerData?.image?.name : "Drag this into the workspace to create a new stage"}} </mat-card-content>
+  <mat-card-content>{{this.containsNode ? node$.consumerData?.image?.name : "Drag this into the workspace to create a new " + nodeTypeName}} </mat-card-content>
 </mat-card>

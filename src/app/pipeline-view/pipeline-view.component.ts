@@ -33,7 +33,7 @@ import {DiagramLibraryComponent} from "./diagram-library/diagram-library.compone
   templateUrl: './pipeline-view.component.html',
   styleUrls: ['./pipeline-view.component.css']
 })
-export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
+export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input() public project: ProjectInfo;
 
@@ -77,15 +77,15 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
       panels: {
         library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {
           //diagramMakerContainer.innerHTML = '';
-          if (this.libraryComponent == null){
-          this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
-          this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
-          this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
-          //console.log(this.currentNode);
-          diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
+          if (this.libraryComponent == null) {
+            this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
+            this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
+            this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
+            //console.log(this.currentNode);
+            diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
           }
           if (this.currentNode) {
-              this.libraryComponent.instance.selectedNode = this.currentNode;
+            this.libraryComponent.instance.selectedNode = this.currentNode;
           }
         }
       },
@@ -93,39 +93,63 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
     actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {
       if (action.type === DiagramMakerActions.NODE_CREATE) {
         const createAction = action as CreateNodeAction<any>;
-        const stageDef = new StageDefinitionInfo();
-        stageDef.name = "New Stage";
-        stageDef.image = new ImageInfo();
-        stageDef.requiredEnvVariables = [];
-        stageDef.requiredResources = null;
-        stageDef.env = new Map;
-        //console.log(stageDef);
-        this.project.pipelineDefinition.stages.push(stageDef)
-        let newAction: CreateNodeAction<{}> = {
-          type: DiagramMakerActions.NODE_CREATE,
-          payload: {
-            id: `n${createAction.payload.id}`,
-            typeId: `${createAction.payload.typeId}`,
-            position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
-            size: {width: 200, height: 75},
-            consumerData: stageDef
+        if (createAction.payload.typeId == "node-normal" || createAction.payload.typeId == "node-start"){
+
+          const stageDef = new StageDefinitionInfo();
+          stageDef.name = "New Stage";
+          stageDef.image = new ImageInfo();
+          stageDef.requiredEnvVariables = [];
+          stageDef.requiredResources = null;
+          stageDef.env = new Map;
+          //console.log(stageDef);
+          this.project.pipelineDefinition.stages.push(stageDef)
+          let newAction: CreateNodeAction<{}> = {
+            type: DiagramMakerActions.NODE_CREATE,
+            payload: {
+              id: `n${createAction.payload.id}`,
+              typeId: `${createAction.payload.typeId}`,
+              position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
+              size: {width: 200, height: 75},
+              consumerData: stageDef
+            }
           }
+          dispatch(newAction);
         }
-        dispatch(newAction);
+        if (createAction.payload.typeId == "node-and-splitter" ||
+          createAction.payload.typeId == "node-if-splitter" ||
+          createAction.payload.typeId == "node-all-combiner" ||
+          createAction.payload.typeId == "node-prio-combiner"
+        ){
+          const stageDef = new StageDefinitionInfo();
+          stageDef.name = `${createAction.payload.typeId}`;
+          let newAction: CreateNodeAction<{}> = {
+            type: DiagramMakerActions.NODE_CREATE,
+            payload: {
+              id: `n${createAction.payload.id}`,
+              typeId: `${createAction.payload.typeId}`,
+              position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
+              size: {width: 150, height: 75},
+              consumerData: stageDef,
+            }
+          }
+          dispatch(newAction);
+        }
       }
-      else if (action.type === DiagramMakerActions.EDGE_CREATE){
+      else if (action.type === DiagramMakerActions.EDGE_CREATE) {
         let edgePossible = true;
         const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges))
         let createEdgeAction = action as CreateEdgeAction<{}>;
-        for (let edge of edgeMap.values()){
-          if (edge.dest == createEdgeAction.payload.dest){ return edgePossible = false }
-          else {edgePossible = true;}
+        for (let edge of edgeMap.values()) {
+          if (edge.dest == createEdgeAction.payload.dest) {
+            return edgePossible = false
+          } else {
+            edgePossible = true;
+          }
         }
-        if (edgePossible){
+        if (edgePossible) {
           dispatch(createEdgeAction);
         }
-      }
-      else {
+      } else {
         dispatch(action);
       }
       //console.log(action);
@@ -140,6 +164,22 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
         size: {width: 200, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
         visibleConnectorTypes: VisibleConnectorTypes.OUTPUT_ONLY,
+      },
+      'node-if-splitter': {
+        size: {width: 150, height: 75},
+        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
+      },
+      'node-and-splitter': {
+        size: {width: 150, height: 75},
+        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
+      },
+      'node-all-combiner': {
+        size: {width: 150, height: 75},
+        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
+      },
+      'node-prio-combiner': {
+        size: {width: 150, height: 75},
+        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
     }
   };
@@ -188,9 +228,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy{
     for (let i = 0; i < this.project.pipelineDefinition.stages.length; i++) {
       nodes[`n${i}`] = {
         id: `n${i}`,
-        typeId: `${ i == 0 ? "node-start" : "node-normal" }`,
+        typeId: `${i == 0 ? "node-start" : "node-normal"}`,
         diagramMakerData: {
-          position: {x: 200+250 * (i + 1), y: 200},
+          position: {x: 200 + 250 * (i + 1), y: 200},
           size: {width: 200, height: 75},
         },
         consumerData: this.project.pipelineDefinition.stages[i]

@@ -3,14 +3,14 @@ import {DiagramMakerNode} from "diagram-maker";
 import {StageDefinitionInfo} from "../../api/project-api.service";
 
 @Component({
-  selector: 'app-diagram-node',
-  templateUrl: './diagram-node.component.html',
-  styleUrls: ['./diagram-node.component.css']
+  selector: 'app-diagram-gateway',
+  templateUrl: './diagram-gateway.component.html',
+  styleUrls: ['./diagram-gateway.component.css']
 })
-export class DiagramNodeComponent implements OnInit {
+export class DiagramGatewayComponent implements OnInit {
 
-  @Input() nodeTypeName : String;
-  node$?: DiagramMakerNode<StageDefinitionInfo>;
+  @Input() nodeTypeName: String;
+  node$?: DiagramMakerNode<{}>;
   selected$?: boolean = false;
   containsNode?: boolean = false;
   splitter: boolean = false;
@@ -24,13 +24,13 @@ export class DiagramNodeComponent implements OnInit {
       this.containsNode = true;
     }
     if (this.nodeTypeName == "AND Splitter" || this.nodeTypeName == "IF Splitter" ||
-        this.node$?.typeId == "node-and-splitter" || this.node$?.typeId == "node-if-splitter"
-    ){
+      this.node$?.typeId == "node-and-splitter" || this.node$?.typeId == "node-if-splitter"
+    ) {
       this.splitter = true;
     }
-    if (this.nodeTypeName == "All Combiner" || this.nodeTypeName == "Priority Combiner"||
+    if (this.nodeTypeName == "All Combiner" || this.nodeTypeName == "Priority Combiner" ||
       this.node$?.typeId == "node-all-combiner" || this.node$?.typeId == "node-prio-combiner"
-    ){
+    ) {
       this.combiner = true;
     }
   }
@@ -45,4 +45,5 @@ export class DiagramNodeComponent implements OnInit {
     this.selected$ = selected;
   }
 }
+
 
