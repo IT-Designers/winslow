@@ -4,6 +4,7 @@ import de.itdesigners.winslow.LockedContainer;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.beans.Transient;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,9 @@ import java.util.logging.Logger;
  */
 public record User(
         @Nonnull String name,
+        @Nullable String displayName,
+        @Nullable String email,
+        @Nullable PasswordHash password,
         @Nonnull @Transient GroupAssignmentResolver groupAssignmentResolver
 ) {
 
