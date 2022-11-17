@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {Group, ProjectApiService, ProjectInfo} from '../../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
@@ -12,6 +12,8 @@ import {AddGroupData, ProjectAddGroupDialogComponent} from '../project-add-group
 export class ProjectGroupsListComponent implements OnInit, OnChanges {
 
   @Input() project: ProjectInfo;
+
+  @Output() newGroupEmitter = new EventEmitter();
 
   roles = ['OWNER', 'MEMBER'];
   groupSearchInput = '';
@@ -77,6 +79,7 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
           );
           /*this.projectApi.addOrUpdateGroup(this.project.id, groupToAdd);*/
           this.displayGroups.push(groupToAdd);
+          this.newGroupEmitter.emit(groupToAdd);
         }
       });
   }

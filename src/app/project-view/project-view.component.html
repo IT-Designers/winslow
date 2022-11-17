@@ -329,12 +329,11 @@
             <button mat-raised-button color="primary" #groupTagsButton
                     (click)="changeGroupListBtnTextAndIcon()">
               <!--{{groupListBtnText}}-->
-              <mat-icon>{{groupListBtnIcon}}</mat-icon><!--Remove ngIf for list to make icon work!!-->
+              <mat-icon>{{groupListBtnIcon}}</mat-icon>
             </button>
           </div><!--Group Access (Chiplist)-->
-      <div class="stage-control-item" *ngIf="showGroupList"><!--Group List--><!--Remove ngIf to make icon work!!-->
-          <app-project-groups-list
-            [project]="project"></app-project-groups-list>
+      <div class="stage-control-item" *ngIf="showGroupList"><!--Group List-->
+          <app-project-groups-list [project]="project" (newGroupEmitter)="groupAdded($event)"></app-project-groups-list>
         </div><!--Group List-->
 
 

@@ -650,6 +650,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.groupListBtnIcon = 'expand_more';
     }
   }
+  groupAdded(group: Group) {
+    if (!this.project.groups.includes(group)) {
+      this.project.groups.push(group);
+    }
+  }
   remove(group: Group) {
     console.log('Before Removing Group ' + group.name);
     console.dir(this.project.groups);
