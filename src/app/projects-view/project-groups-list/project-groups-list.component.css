@@ -33,10 +33,15 @@ app-groups-add-member-dialog {
   overflow-y: scroll;
   border-bottom: 1px solid lightgray;
 }
-
+.no-groups-label {
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  padding: 5px;
+}
 /* ---------- List Item Styling ---------- */
 /* ----- Version with seperate remove button ------ */
-/*.list-item {
+.list-item {
   cursor: default;
   padding: 3px;
   border-bottom: 1px solid lightgrey;
@@ -44,7 +49,7 @@ app-groups-add-member-dialog {
   font-size: 14px;
   display: flex;
   flex-direction: row;
-  !*justify-content: space-between;*!
+  /*justify-content: space-between;*/
   align-items: center;
 }
 .dropdown-item:hover {
@@ -52,7 +57,8 @@ app-groups-add-member-dialog {
 }
 .username-label {
   margin-left: 1em;
-  margin-right: 32%;
+  /*margin-right: 32%;*/
+  margin-right: 27%;
   width: 4em;
 }
 .role-dropdown {
@@ -62,7 +68,7 @@ app-groups-add-member-dialog {
   margin-top: 17px;
   height: 45px;
 }
-.remove-member-button {
+/*.remove-member-button {
   border: none;
   background-color: #3f51b5;
   border-radius: 50%;
@@ -70,6 +76,17 @@ app-groups-add-member-dialog {
   height: 45px;
   box-shadow: 0 1px 3px gray; !* horizontal shadow | vertical shadow | shadow blur | shadow color*!
   margin-left: 265px;
+  margin-right: 10px;
+}*/
+.remove-member-button {
+  border: none;
+  background-color: #3f51b5;
+  border-radius: 23px;
+  min-width: 100px;
+  width: 45px;
+  height: 45px;
+  box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
+  margin-left: 235px;
   margin-right: 10px;
 }
 .remove-member-button:enabled {
@@ -98,7 +115,7 @@ app-groups-add-member-dialog {
   font-size: 15px;
   margin-top: 5px;
   margin-bottom: 5px;
-}*/
+}
 /* ----- Version with removable chips ------ */
 /*.list-item {
   cursor: default;
@@ -139,7 +156,7 @@ app-groups-add-member-dialog {
   margin-bottom: 5px;
 }*/
 /* ----- Version with dropdown and button on right ------ */
-.list-item {
+/*.list-item {
   cursor: default;
   padding: 3px;
   border-bottom: 1px solid lightgrey;
@@ -170,7 +187,7 @@ app-groups-add-member-dialog {
   display: flex;
   align-items: center;
   margin-top: 17px;
-  /*margin-left: 265px;*/
+  !*margin-left: 265px;*!
   height: 45px;
 }
 .remove-member-button {
@@ -209,7 +226,7 @@ app-groups-add-member-dialog {
   font-size: 15px;
   margin-top: 5px;
   margin-bottom: 5px;
-}
+}*/
 /* ----- Version with name in middle ------ */
 /*.list-item-section {
   width: 277px;
