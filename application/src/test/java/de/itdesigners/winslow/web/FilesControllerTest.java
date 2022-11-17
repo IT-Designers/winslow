@@ -1552,6 +1552,6 @@ public class FilesControllerTest {
     }
 
     private User getUser(String root) {
-        return new User(root, DUMMY_GROUP_RESOLVER);
+        return new User(root, null, null, null, DUMMY_GROUP_RESOLVER);
     }
 }
