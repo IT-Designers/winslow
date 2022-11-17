@@ -26,7 +26,11 @@ public class UserManager implements GroupAssignmentResolver {
                 User.SUPER_USER_NAME,
                 new User(
                         User.SUPER_USER_NAME,
+                        null,
+                        null,
+                        null,
                         this
+
                 )
         );
     }
@@ -36,7 +40,7 @@ public class UserManager implements GroupAssignmentResolver {
         InvalidNameException.ensureValid(name);
         NameAlreadyInUseException.ensureNotPresent(this.users.keySet(), name);
 
-        var user = new User(name, this);
+        var user = new User(name, null, null, null, this);
         this.users.put(name, user);
         return user;
     }
