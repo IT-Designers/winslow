@@ -493,11 +493,11 @@ export class FilesComponent implements OnInit {
 
   timeStampToDate(timeStamp: number) {
    const noFormat = new Date(timeStamp);
-   return this.addLeadingZero(noFormat.getHours())
-     + ':' + this.addLeadingZero(noFormat.getMinutes())
-     + ', ' + this.addLeadingZero(noFormat.getDay())
+   return noFormat.getFullYear()
      + '/' + this.addLeadingZero(noFormat.getMonth())
-     + '/' + noFormat.getFullYear();
+     + '/' + this.addLeadingZero(noFormat.getDay())
+     + ', ' + this.addLeadingZero(noFormat.getHours())
+     + ':' + this.addLeadingZero(noFormat.getMinutes());
   }
 }
 
