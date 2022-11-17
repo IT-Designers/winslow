@@ -18,7 +18,6 @@
           <div *ngIf="entry.value != null" [hidden]="!extended[i]">
             <app-edit-forms
               #form
-              [currentNodeID]="currentNodeID"
               [formMap]="entry.value"
               [formObj]="entry.value"
               [objPlace]="entry.key"

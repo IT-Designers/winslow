@@ -17,7 +17,6 @@
 
       <form class="editNodeForm" (ngSubmit)="startSave()">
        <app-edit-forms #form
-                       [currentNodeID]="selectedNode$.id"
                        [formMap]="formHtmlMap"
                        [formObj]="formObj"
                        (onCollectData)="saveEdit($event)"
@@ -27,50 +26,5 @@
       </form>
 
     </mat-card>
-    <h3 class="category">Add Node</h3>
-
-    <div
-      class="node"
-      data-id="node-normal" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
-      data-width="200" data-height="75"
-    >
-      <app-diagram-node [nodeTypeName]="'Normal Stage'"></app-diagram-node>
-    </div>
-    <div
-      class="node"
-      data-id="node-start" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
-      data-width="200" data-height="75"
-    >
-      <app-diagram-node [nodeTypeName]="'Start Stage'"></app-diagram-node>
-    </div>
-    <div
-      class="node"
-      data-id="node-and-splitter" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
-      data-width="75" data-height="75"
-    >
-      <app-diagram-node [nodeTypeName]="'AND Splitter'"></app-diagram-node>
-    </div>
-    <div
-      class="node"
-      data-id="node-if-splitter" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
-      data-width="75" data-height="75"
-    >
-      <app-diagram-node [nodeTypeName]="'IF Splitter'"></app-diagram-node>
-    </div>
-    <div
-      class="node"
-      data-id="node-all-combiner" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
-      data-width="75" data-height="75"
-    >
-      <app-diagram-node [nodeTypeName]="'All Combiner'"></app-diagram-node>
-    </div>
-    <div
-      class="node"
-      data-id="node-prio-combiner" data-type="DiagramMaker.PotentialNode" data-draggable="true" data-event-target="true"
-      data-width="75" data-height="75"
-    >
-      <app-diagram-node [nodeTypeName]="'Priority Combiner'"></app-diagram-node>
-    </div>
-
 </div>
 </ng-container>
