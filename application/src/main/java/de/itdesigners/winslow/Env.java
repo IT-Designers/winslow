@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.Optional;
 
 public class Env {
@@ -38,6 +39,10 @@ public class Env {
     // public static final String LDAP_GROUP_SEARCH_FILTER = SELF_PREFIX + "_LDAP_GROUP_SEARCH_FILTER";
 
     public static final String ROOT_USERS = SELF_PREFIX + "_ROOT_USERS";
+
+    public static final String AUTH_METHOD       = SELF_PREFIX + "_AUTH_METHOD";
+    public static final String AUTH_METHOD_LDAP  = "ldap";
+    public static final String AUTH_METHOD_LOCAL = "local";
 
     private Env() {
     }
@@ -120,8 +125,25 @@ public class Env {
         return "1".equals(env) || Boolean.parseBoolean(env);
     }
 
+    @Nullable
+    public static String getAuthMethod() {
+        return System.getenv(AUTH_METHOD);
+    }
+
+    public static boolean isAuthMethodSet() {
+        return System.getenv(AUTH_METHOD) != null;
+    }
+
     public static boolean isLdapAuthEnabled() {
-        return !isDevEnv() && System.getenv(LDAP_URL) != null;
+        var explicit = Objects.equals(AUTH_METHOD_LDAP, getAuthMethod());
+        var implicit = System.getenv(LDAP_URL) != null && !isAuthMethodSet() && !isDevEnv();
+        return explicit || implicit;
+    }
+
+    public static boolean isLocalAuthEnabled() {
+        var explicit = Objects.equals(AUTH_METHOD_LOCAL, getAuthMethod());
+        var implicit = !isAuthMethodSet() && !isDevEnv();
+        return explicit || implicit;
     }
 
     @Nullable
