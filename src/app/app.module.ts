@@ -73,6 +73,7 @@ import { CheckableNumberInputComponent } from './checkable-number-input/checkabl
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
 import { ServersComponent } from './servers/servers.component';
 import { NgxEchartsModule } from 'ngx-echarts';
+// @ts-ignore
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
@@ -152,7 +153,7 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
             {path: 'about', component: AboutComponent},
-            {path: 'groups', component: GroupsViewComponent},
+            {path: 'groups', component: UserAndGroupManagementComponent},
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
                 path: 'system',
