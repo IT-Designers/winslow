@@ -1,9 +1,9 @@
 import {Component, EventEmitter, OnInit, OnChanges, Input, Output, SimpleChanges} from '@angular/core';
-import {RoleApiService} from '../api/role-api.service';
+import {RoleApiService} from '../../api/role-api.service';
 import {MatDialog} from '@angular/material/dialog';
-import {DialogService} from '../dialog.service';
-import {AddMemberData, GroupsAddMemberDialogComponent} from '../groups-add-member-dialog/groups-add-member-dialog.component';
-import {GroupApiService} from '../api/group-api.service';
+import {DialogService} from '../../dialog.service';
+import {AddMemberData, GroupAddMemberDialogComponent} from '../group-add-member-dialog/group-add-member-dialog.component';
+import {GroupApiService} from '../../api/group-api.service';
 
 @Component({
   selector: 'app-group-member-list',
@@ -74,7 +74,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   }
   openAddMemberDialog() {
     this.createDialog
-      .open(GroupsAddMemberDialogComponent, {
+      .open(GroupAddMemberDialogComponent, {
         data: {
           members: this.displayMembers
         } as AddMemberData

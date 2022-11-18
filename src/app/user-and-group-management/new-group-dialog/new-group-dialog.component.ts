@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {GroupApiService} from '../api/group-api.service';
+import {GroupApiService} from '../../api/group-api.service';
 
 /*export interface GroupNameDialogData {
   name: string;
@@ -8,18 +8,18 @@ import {GroupApiService} from '../api/group-api.service';
 
 
 @Component({
-  selector: 'app-group-add-name-dialog',
-  templateUrl: './group-add-name-dialog.component.html',
-  styleUrls: ['./group-add-name-dialog.component.css']
+  selector: 'app-new-group-dialog',
+  templateUrl: './new-group-dialog.component.html',
+  styleUrls: ['./new-group-dialog.component.css']
 })
-export class GroupAddNameDialogComponent implements OnInit {
+export class NewGroupDialogComponent implements OnInit {
 
   nameInput: string;
   errorMessage = ' ';
   isLoading = false;
 
   constructor(
-    public dialogRef: MatDialogRef<GroupAddNameDialogComponent>,
+    public dialogRef: MatDialogRef<NewGroupDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: string,
     private groupApi: GroupApiService
   ) { }
