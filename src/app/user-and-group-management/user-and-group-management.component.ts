@@ -7,10 +7,10 @@ import {DialogService} from '../dialog.service';
 
 @Component({
   selector: 'app-groups-view',
-  templateUrl: './groups-view.component.html',
-  styleUrls: ['./groups-view.component.css']
+  templateUrl: './user-and-group-management.component.html',
+  styleUrls: ['./user-and-group-management.component.css']
 })
-export class GroupsViewComponent implements OnInit {
+export class UserAndGroupManagementComponent implements OnInit {
   newGroup = {name: '', members: []};
   itemSelected = false;
   myName = '';

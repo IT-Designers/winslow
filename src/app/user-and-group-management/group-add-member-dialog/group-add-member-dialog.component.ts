@@ -1,7 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {User, UserApiService} from '../api/user-api.service';
-import {RoleApiService} from '../api/role-api.service';
+import {User, UserApiService} from '../../api/user-api.service';
+import {RoleApiService} from '../../api/role-api.service';
 
 export interface AddMemberData {
   members: User[];
@@ -11,10 +11,10 @@ export interface AddMemberData {
 
 @Component({
   selector: 'app-groups-add-member-dialog',
-  templateUrl: './groups-add-member-dialog.component.html',
-  styleUrls: ['./groups-add-member-dialog.component.css']
+  templateUrl: './group-add-member-dialog.component.html',
+  styleUrls: ['./group-add-member-dialog.component.css']
 })
-export class GroupsAddMemberDialogComponent implements OnInit {
+export class GroupAddMemberDialogComponent implements OnInit {
 
   allUsers: User[];
   displayUsers: User[];
@@ -23,7 +23,7 @@ export class GroupsAddMemberDialogComponent implements OnInit {
   showUsersToggle = false;
 
   constructor(
-    public dialogRef: MatDialogRef<GroupsAddMemberDialogComponent>,
+    public dialogRef: MatDialogRef<GroupAddMemberDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AddMemberData,
     private userApi: UserApiService,
     private roleApi: RoleApiService
