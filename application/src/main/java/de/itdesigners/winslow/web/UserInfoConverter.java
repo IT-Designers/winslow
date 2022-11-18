@@ -10,7 +10,9 @@ public class UserInfoConverter {
     @Nonnull
     public static UserInfo from(@Nonnull User user) {
         return new UserInfo(
-                user.name()
+                user.name(),
+                user.displayName(),
+                user.email()
         );
     }
 }
