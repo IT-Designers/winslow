@@ -15,7 +15,7 @@ import static de.itdesigners.winslow.web.webdav.WebDavController.EXPORT_NAME;
 
 @Configuration
 @EnableWebSecurity
-public class Security extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 
     private @Value("${winslow.ldap.user.search-base:#{null}}")             String userSearchBase;
