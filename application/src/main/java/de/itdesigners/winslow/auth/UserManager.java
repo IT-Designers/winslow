@@ -37,10 +37,18 @@ public class UserManager implements GroupAssignmentResolver {
 
     @Nonnull
     public User createUserWithoutGroup(@Nonnull String name) throws InvalidNameException, NameAlreadyInUseException {
+        return this.createUserWithoutGroup(name, null, null, null);
+    }
+
+    public User createUserWithoutGroup(
+            @Nonnull String name,
+            @Nullable String displayName,
+            @Nullable String email,
+            @Nullable PasswordHash passwordHash) throws InvalidNameException, NameAlreadyInUseException {
         InvalidNameException.ensureValid(name);
         NameAlreadyInUseException.ensureNotPresent(this.users.keySet(), name);
 
-        var user = new User(name, null, null, null, this);
+        var user = new User(name, displayName, email, passwordHash, this);
         this.users.put(name, user);
         return user;
     }
@@ -56,8 +64,17 @@ public class UserManager implements GroupAssignmentResolver {
 
     @Nonnull
     public User createUserAndGroup(@Nonnull String name) throws InvalidNameException, NameAlreadyInUseException, IOException {
+        return this.createUserAndGroup(name, null, null, null);
+    }
+
+    @Nonnull
+    public User createUserAndGroup(
+            @Nonnull String name,
+            @Nullable String displayName,
+            @Nullable String email,
+            @Nullable PasswordHash passwordHash) throws InvalidNameException, NameAlreadyInUseException, IOException {
         var group = Prefix.User.wrap(Prefix.unwrap_or_given(name));
-        var user  = this.createUserWithoutGroup(name);
+        var user  = this.createUserWithoutGroup(name, displayName, email, passwordHash);
 
         try {
             try {
@@ -93,6 +110,29 @@ public class UserManager implements GroupAssignmentResolver {
     @Nonnull
     public Optional<User> getUser(@Nonnull String name) {
         return Optional.ofNullable(this.users.get(name));
+    }
+
+    /**
+     * Updates the {@link PasswordHash} for the {@link User} of the given name. Returns the updated {@link User} instance.
+     *
+     * @param name         The name of the user to update the password for
+     * @param passwordHash The new password to set
+     * @return If found, the updated {@link User} instance, otherwise {@link Optional#empty}
+     */
+    @Nonnull
+    public Optional<User> setUserPassword(@Nonnull String name, @Nullable PasswordHash passwordHash) {
+        return this.getUser(name)
+                   .map(user -> {
+                       var newUser = new User(
+                               user.name(),
+                               user.displayName(),
+                               user.email(),
+                               passwordHash,
+                               user.groupAssignmentResolver()
+                       );
+                       this.users.put(newUser.name(), newUser);
+                       return newUser;
+                   });
     }
 
     @Nonnull
