@@ -1,11 +1,7 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 
-export interface User {
-  name: string;
-  role: string;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -24,14 +20,22 @@ export class UserApiService {
       .get<string>(UserApiService.getUrl('self/name'))
       .toPromise();
   }
-  getUsers(): Promise<User[]> {
+
+  getUsers(): Promise<UserInfo[]> {
     return this.client
-      .get<User[]>(UserApiService.getUrl(''))
+      .get<UserInfo[]>(UserApiService.getUrl(''))
       .toPromise();
   }
+
   getUserNameAvailable(userName): Promise<object> {
     return this.client
       .get(UserApiService.getUrl(userName + '/available'))
       .toPromise();
   }
+}
+
+export class UserInfo {
+  name: string;
+  displayName: string;
+  email: string;
 }
