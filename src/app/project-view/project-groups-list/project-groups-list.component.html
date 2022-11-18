@@ -19,8 +19,9 @@
               <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
             </mat-select>
           </mat-form-field>
-          <button class="remove-member-button" (click)="onRemoveItemClick(group)">
-            <span class="material-symbols-outlined item-icon">group_remove</span>
+          <button mat-raised-button class="remove-member-button" color="primary" (click)="onRemoveItemClick(group)">
+            <!--<span class="material-symbols-outlined item-icon">group_remove</span>-->
+            Remove
           </button>
         </div>
       </div>
