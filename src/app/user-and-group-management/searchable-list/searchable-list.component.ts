@@ -1,6 +1,6 @@
 import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {GroupAddNameDialogComponent} from '../../group-add-name-dialog/group-add-name-dialog.component';
+import {NewGroupDialogComponent} from '../new-group-dialog/new-group-dialog.component';
 import {UserAddNameDialogComponent} from '../user-add-name-dialog/user-add-name-dialog.component';
 
 @Component({
@@ -87,7 +87,7 @@ export class SearchableListComponent implements OnInit, OnChanges {
   newBtnClicked() {
     console.log('Button clicked');
     if (this.type === 'Group') {
-      this.createDialog.open(GroupAddNameDialogComponent, {
+      this.createDialog.open(NewGroupDialogComponent, {
         data: {} as string
       })
         .afterClosed()
