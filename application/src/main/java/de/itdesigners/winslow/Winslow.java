@@ -17,10 +17,8 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -78,20 +76,38 @@ public class Winslow implements Runnable {
         orchestrator.start();
 
         LOG.info("Serving interactive console");
-        var commands = new TreeMap<String, Consumer<ConsoleHandle>>();
+        var commands = new TreeMap<String, BiConsumer<ConsoleHandle, Arguments>>();
         commands.put("exit", ConsoleHandle::stop);
         commands.put("stop", ConsoleHandle::stop);
         commands.put("reload", this::reload);
         commands.put("fix-workspace-paths", this::fixWorkspacePaths);
         commands.put("prune-lost-workspaces", this::pruneLostWorkspaces);
+        commands.put("passwd", this::passwd);
+        commands.put("adduser", this::addUser);
+        commands.put("lsuser", this::lsUser);
 
         try (Scanner scanner = new Scanner(System.in)) {
             var handle = new ConsoleHandle(scanner);
 
             String line;
-            while ((line = handle.nextLine()) != null) {
-                if (commands.containsKey(line)) {
-                    commands.get(line).accept(handle);
+            while ((line = handle.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                var command = line.trim();
+                var argLine = (String) null;
+                var split   = (String[]) null;
+
+                var firstSpace = command.indexOf(' ');
+                if (firstSpace > 0) {
+                    argLine = command.substring(firstSpace).trim();
+                    command = command.substring(0, firstSpace);
+                    split   = argLine.split(" ");
+                }
+
+                if (commands.containsKey(command)) {
+                    commands.get(command).accept(handle, new Arguments(command, argLine, split));
                 } else if (!line.isEmpty()) {
                     System.out.println("Unknown command, valid commands are: ");
                     commands.keySet().forEach(k -> System.out.println(" - " + k));
@@ -100,7 +116,7 @@ public class Winslow implements Runnable {
         }
     }
 
-    private void reload(@Nonnull ConsoleHandle _console) {
+    private void reload(@Nonnull ConsoleHandle _console, @Nonnull Arguments _args) {
         getProjectRepository()
                 .getProjects()
                 .map(BaseRepository.Handle::unsafe)
@@ -117,7 +133,7 @@ public class Winslow implements Runnable {
                 });
     }
 
-    private void pruneLostWorkspaces(@Nonnull ConsoleHandle console) {
+    private void pruneLostWorkspaces(@Nonnull ConsoleHandle console, @Nonnull Arguments _args) {
         getOrchestrator()
                 .getPipelines()
                 .getAllPipelines()
@@ -149,7 +165,7 @@ public class Winslow implements Runnable {
                         if (!directories.isEmpty()) {
 
                             System.out.println(">> Delete? [y/N] ");
-                            var result = console.nextLine();
+                            var result = console.readLine();
 
                             if ("y".equals(result)) {
                                 directories.values().forEach(directory -> {
@@ -171,12 +187,156 @@ public class Winslow implements Runnable {
         System.out.println("Done.");
     }
 
-    private void fixWorkspacePaths(@Nonnull ConsoleHandle _console) {
+    private void fixWorkspacePaths(@Nonnull ConsoleHandle _console, @Nonnull Arguments _args) {
         new FixWorkspacePaths()
                 .withProjectIds(this.projectRepository.getProjectIds().collect(Collectors.toList()))
                 .searchForProjectsWithFixableWorkspaces(projectRepository, orchestrator)
                 .tryFixProjectsWithFixableWorkspacePaths(orchestrator)
                 .printResults(System.out);
+    }
+
+    /**
+     * Updates the password of a {@link User}.
+     * Accepts the username as first argument, otherwise it will read it interactively from the {@link ConsoleHandle}.
+     *
+     * @param console {@link ConsoleHandle} to use for reading the user password
+     * @param args    {@link Arguments}, optionally accepts the username here.
+     */
+    private void passwd(@Nonnull ConsoleHandle console, @Nonnull Arguments args) {
+        var username = args.argLine;
+        if (username == null) {
+            System.out.print("           Username: ");
+            username = console.readLine();
+        }
+
+        var pw1 = console.readPassword("       Password: ");
+        var pw2 = console.readPassword("Repeat password: ");
+
+
+        if (pw1 == null || pw2 == null) {
+            System.out.println("ERROR: Failed to access system console for reading passwords, operation aborted.");
+        } else if (!Arrays.equals(pw1, pw2)) {
+            System.out.println("ERROR: Passwords do not match");
+        } else if (username == null || this.userManager
+                .setUserPassword(
+                        username,
+                        pw1.length > 0 ? PasswordHash.calculate(pw1) : null
+                )
+                .isEmpty()) {
+            System.out.println("ERROR: There is no such user");
+        } else {
+            System.out.println("Password has been updated");
+        }
+    }
+
+    /**
+     * Adds a new {@link User}.
+     * Accepts the username as first argument, otherwise it will read it interactively from the {@link ConsoleHandle}.
+     * Further user details are always read interactively from the {@link ConsoleHandle}
+     *
+     * @param console {@link ConsoleHandle} to use for IO
+     * @param args    {@link Arguments}, optionally accepts the username here.
+     */
+    private void addUser(@Nonnull ConsoleHandle console, @Nonnull Arguments args) {
+        var username = args.argLine;
+        if (username == null) {
+            System.out.print("         Username: ");
+            username = console.readLine();
+        }
+
+        System.out.print("Display Name   []: ");
+        var displayName = console.readLine();
+        if (displayName != null && displayName.trim().isEmpty()) {
+            displayName = null;
+        }
+
+        System.out.print("E-Mail Address []: ");
+        var email = console.readLine();
+        if (email != null && email.trim().isEmpty()) {
+            email = null;
+        }
+
+        var pw1 = console.readPassword("         Password: ");
+        var pw2 = console.readPassword("  Repeat password: ");
+
+        if (pw1 == null || pw2 == null) {
+            System.out.println("ERROR: Failed to access system console for reading passwords, operation aborted.");
+        } else if (!Arrays.equals(pw1, pw2)) {
+            System.out.println("ERROR: Passwords do not match");
+        } else if (username == null) {
+            System.out.println("ERROR: Missing user name");
+        } else {
+            try {
+                var hash = pw1.length > 0 ? PasswordHash.calculate(pw1) : null;
+                this.userManager.createUserAndGroup(username, displayName, email, hash);
+                System.out.println("User has been created successfully");
+            } catch (InvalidNameException e) {
+                System.out.println("ERROR: Invalid user name");
+            } catch (NameAlreadyInUseException e) {
+                System.out.println("ERROR: Username is already in use");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Lists a table with all {@link User}s that are returend by {@link UserManager#getUsersPotentiallyIncomplete()}.
+     *
+     * @param console {@link ConsoleHandle} to use for IO
+     * @param _args   ignored
+     */
+    private void lsUser(@Nonnull ConsoleHandle console, @Nonnull Arguments _args) {
+        try (var users = this.userManager.getUsersPotentiallyIncomplete()) {
+            var columnWidths = new int[6];
+            var contents     = new ArrayList<String[]>();
+            contents.add(new String[]{
+                    "Name", "Display Name", "E-Mail", "Password", "Privileges", "Groups"
+            });
+
+            users.forEach(user -> {
+                contents.add(new String[]{
+                        user.name(),
+                        user.displayName() != null ? user.displayName() : "",
+                        user.email() != null ? user.email() : "",
+                        user.password() != null ? "*" : "",
+                        user.hasSuperPrivileges() ? "super" : "user",
+                        user.getGroups().stream().map(Group::name).collect(Collectors.joining(", "))
+                });
+            });
+
+            for (var content : contents) {
+                for (int i = 0; i < content.length; ++i) {
+                    if (columnWidths[i] < content[i].length()) {
+                        columnWidths[i] = content[i].length();
+                    }
+                }
+            }
+
+            int currentRow = 0;
+            System.out.println();
+            for (var content : contents) {
+                if (currentRow == 1) {
+                    for (int i = 0; i < columnWidths.length; ++i) {
+                        if (i != 0) {
+                            System.out.print("--+--");
+                        }
+                        System.out.print("-".repeat(columnWidths[i]));
+                    }
+                    System.out.println();
+                }
+
+                for (int i = 0; i < content.length; ++i) {
+                    if (i != 0) {
+                        System.out.print("  |  ");
+                    }
+                    System.out.printf("%" + columnWidths[i] + "s", content[i]);
+                }
+                System.out.println();
+                ++currentRow;
+            }
+            System.out.println();
+        }
     }
 
     @Nonnull
@@ -240,6 +400,13 @@ public class Winslow implements Runnable {
         return settingsRepository;
     }
 
+    private record Arguments(
+            @Nonnull String command,
+            @Nullable String argLine,
+            @Nullable String[] args
+    ) {
+    }
+
     private static class ConsoleHandle {
         private final @Nonnull Scanner scanner;
         private                boolean keepRunning = true;
@@ -248,8 +415,8 @@ public class Winslow implements Runnable {
             this.scanner = scanner;
         }
 
-        public @Nullable
-        String nextLine() {
+        @Nullable
+        public String readLine() {
             if (keepRunning) {
                 return this.scanner.nextLine();
             } else {
@@ -257,7 +424,26 @@ public class Winslow implements Runnable {
             }
         }
 
-        public void stop() {
+        @Nullable
+        public char[] readPassword(@Nonnull String fmt, Object... args) {
+            var console = keepRunning ? System.console() : null;
+            if (console != null) {
+                return console.readPassword(fmt, args);
+            } else if (Env.isDevEnv()) {
+                System.out.println("Console not available, dev-env allows cleartext password input");
+                System.out.printf(fmt, args);
+                var line = readLine();
+                if (line != null) {
+                    return line.toCharArray();
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        }
+
+        public void stop(@Nonnull Arguments _args) {
             this.keepRunning = false;
         }
     }
