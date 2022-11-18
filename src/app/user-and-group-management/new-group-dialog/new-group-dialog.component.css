@@ -1,5 +1,6 @@
 .group-name-dialog-container {
   width: 35em;
+  height: 195px !important;
 }
 .dialog-actions-container {
   justify-content: space-between;
