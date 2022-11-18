@@ -1,9 +1,9 @@
 .add-group-popup-container {
-  width: 800px;
-  height: 400px;
+  width: 700px !important;
+  height: 400px !important;
 }
 .scrollable {
-  overflow: scroll;
+  overflow: scroll !important;
 }
 .inputs {
   display: flex;

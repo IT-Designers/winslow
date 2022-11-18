@@ -73,6 +73,7 @@ import { CheckableNumberInputComponent } from './checkable-number-input/checkabl
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
 import { ServersComponent } from './servers/servers.component';
 import { NgxEchartsModule } from 'ngx-echarts';
+// @ts-ignore
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
@@ -89,14 +90,14 @@ import { ProjectsGroupComponent } from './projects-view/projects-group/projects-
 import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
-import { GroupsViewComponent } from './groups-view/groups-view.component';
-import { GroupMemberListComponent } from './group-member-list/group-member-list.component';
-import { GroupsAddMemberDialogComponent } from './groups-add-member-dialog/groups-add-member-dialog.component';
-import { GroupAddNameDialogComponent } from './group-add-name-dialog/group-add-name-dialog.component';
-import { ProjectGroupsListComponent } from './projects-view/project-groups-list/project-groups-list.component';
-import { ProjectAddGroupDialogComponent } from './projects-view/project-add-group-dialog/project-add-group-dialog.component';
-import { SearchableListComponent } from './groups-view/searchable-list/searchable-list.component';
-import { UserAddNameDialogComponent } from './groups-view/user-add-name-dialog/user-add-name-dialog.component';
+import { UserAndGroupManagementComponent } from './user-and-group-management/user-and-group-management.component';
+import { GroupMemberListComponent } from './user-and-group-management/group-member-list/group-member-list.component';
+import { GroupAddMemberDialogComponent } from './user-and-group-management/group-add-member-dialog/group-add-member-dialog.component';
+import { NewGroupDialogComponent } from './user-and-group-management/new-group-dialog/new-group-dialog.component';
+import { ProjectGroupsListComponent } from './project-view/project-groups-list/project-groups-list.component';
+import { ProjectAddGroupDialogComponent } from './project-view/project-add-group-dialog/project-add-group-dialog.component';
+import { SearchableListComponent } from './user-and-group-management/searchable-list/searchable-list.component';
+import { UserAddNameDialogComponent } from './user-and-group-management/user-add-name-dialog/user-add-name-dialog.component';
 
 @NgModule({
     declarations: [
@@ -151,10 +152,10 @@ import { UserAddNameDialogComponent } from './groups-view/user-add-name-dialog/u
         ProjectsContextFilterComponent,
         AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
-        GroupsViewComponent,
+        UserAndGroupManagementComponent,
         GroupMemberListComponent,
-        GroupsAddMemberDialogComponent,
-        GroupAddNameDialogComponent,
+        GroupAddMemberDialogComponent,
+        NewGroupDialogComponent,
         ProjectGroupsListComponent,
         ProjectAddGroupDialogComponent,
         SearchableListComponent,
@@ -191,7 +192,7 @@ import { UserAddNameDialogComponent } from './groups-view/user-add-name-dialog/u
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
             {path: 'about', component: AboutComponent},
-            {path: 'groups', component: GroupsViewComponent},
+            {path: 'groups', component: UserAndGroupManagementComponent},
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
               path: 'system',
