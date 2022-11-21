@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {Group, ProjectApiService, ProjectInfo} from '../../api/project-api.service';
+import {GroupInfo, ProjectApiService, ProjectInfo} from '../../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../project-add-group-dialog/project-add-group-dialog.component';
@@ -17,7 +17,7 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
 
   roles = ['OWNER', 'MEMBER'];
   groupSearchInput = '';
-  displayGroups: Group[];
+  displayGroups: GroupInfo[];
 
 
   constructor(
@@ -64,7 +64,7 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
       .open(ProjectAddGroupDialogComponent, {
         data: {
           alreadyAssigned: this.displayGroups
-        } as AddGroupData
+        } as unknown as AddGroupData
       })
       .afterClosed()
       .subscribe((data) => {

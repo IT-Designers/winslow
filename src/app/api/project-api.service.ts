@@ -280,7 +280,7 @@ export class ProjectApiService {
       });
   }
 
-  addOrUpdateGroup(projectId: string, groupLink: Group): Promise<void> {
+  addOrUpdateGroup(projectId: string, groupLink: GroupInfo): Promise<void> {
     return this
       .client
       .post<void>(ProjectApiService.getUrl(`${projectId}/groups`), groupLink)
@@ -462,7 +462,7 @@ export enum Action {
   Configure = 'Configure',
 }
 
-export class Group {
+export class GroupInfo {
   name: string;
   role: string;
 }
@@ -470,7 +470,7 @@ export class Group {
 export class ProjectInfo {
   id: string;
   owner: string;
-  groups: Group[];
+  groups: GroupInfo[];
   tags: string[];
   name: string;
   publicAccess: boolean;
