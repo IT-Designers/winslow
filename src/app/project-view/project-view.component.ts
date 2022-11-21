@@ -3,7 +3,7 @@ import {
   AuthTokenInfo,
   DeletionPolicy,
   EnvVariable,
-  ExecutionGroupInfo, Group,
+  ExecutionGroupInfo, GroupInfo,
   ImageInfo,
   ParseError,
   ProjectApiService,
@@ -650,12 +650,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.groupListBtnIcon = 'expand_more';
     }
   }
-  groupAdded(group: Group) {
+  groupAdded(group: GroupInfo) {
     if (!this.project.groups.includes(group)) {
       this.project.groups.push(group);
     }
   }
-  remove(group: Group) {
+  remove(group: GroupInfo) {
     console.log('Before Removing Group ' + group.name);
     console.dir(this.project.groups);
     const index = this.project.groups.indexOf(group);

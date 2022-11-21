@@ -1,10 +1,11 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {Group} from '../../api/project-api.service';
+import {GroupInfo} from '../../api/group-api.service';
+
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {GroupApiService} from '../../api/group-api.service';
 
 export interface AddGroupData {
-  alreadyAssigned: Group[];
+  alreadyAssigned: GroupInfo[];
   groupName: string;
   groupRole: string;
 }
@@ -18,8 +19,8 @@ export class ProjectAddGroupDialogComponent implements OnInit {
 
   groupSearchInput = '';
   showGroupsToggle = false;
-  allGroups: Group[];
-  displayGroups: Group[];
+  allGroups: GroupInfo[];
+  displayGroups: GroupInfo[];
   allRoles = ['OWNER', 'MEMBER'];
 
   constructor(

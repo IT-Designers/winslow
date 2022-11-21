@@ -1,10 +1,10 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {User, UserApiService} from '../../api/user-api.service';
+import {UserInfo, UserApiService} from '../../api/user-api.service';
 import {RoleApiService} from '../../api/role-api.service';
 
 export interface AddMemberData {
-  members: User[];
+  members: UserInfo[];
   name: string;
   role: string;
 }
@@ -16,8 +16,8 @@ export interface AddMemberData {
 })
 export class GroupAddMemberDialogComponent implements OnInit {
 
-  allUsers: User[];
-  displayUsers: User[];
+  allUsers: UserInfo[];
+  displayUsers: UserInfo[];
   allRoles: string[];
   userSearchInput = '';
   showUsersToggle = false;
