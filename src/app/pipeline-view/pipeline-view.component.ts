@@ -30,6 +30,7 @@ import {DiagramLibraryComponent} from "./diagram-library/diagram-library.compone
 import {DiagramConfig} from "./diagram-config";
 import {DiagramInitialData} from "./diagram-initial-data";
 import {AddToolsComponent} from "./add-tools/add-tools.component";
+import {DiagramGatewayComponent} from "./diagram-gateway/diagram-gateway.component";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -58,8 +59,15 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
     renderCallbacks: {
       node: (node: DiagramMakerNode<StageDefinitionInfo>, diagramMakerContainer: HTMLElement) => {
         diagramMakerContainer.innerHTML = '';
+        let componentInstance = undefined;
+        if (node.typeId == "node-normal" || node.typeId == "node-start"){
         const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramNodeComponent);
-        const componentInstance = this.viewContainerRef.createComponent(componentFactory);
+         componentInstance = this.viewContainerRef.createComponent(componentFactory);
+        }
+        else {
+          const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramGatewayComponent);
+          componentInstance = this.viewContainerRef.createComponent(componentFactory);
+        }
         componentInstance.instance.node = node;
         diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
         if (node.diagramMakerData.selected) {

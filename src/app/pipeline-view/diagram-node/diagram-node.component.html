@@ -1,10 +1,6 @@
-<mat-card class="node" [ngClass]="{
-  'selected': selected$,
-  'combiner' : combiner,
-  'splitter' : splitter
-}"
+<mat-card class="node" [ngClass]="{ 'selected': selected$ }"
 >
-  <mat-card-title class="title">{{this.containsNode ? node$.consumerData.name : "New " + nodeTypeName}}</mat-card-title>
+  <mat-card-title class="title">{{this.containsNode ? node$.consumerData.name : "New Element"}}</mat-card-title>
   <mat-card-subtitle class="subtitle">ID: {{this.containsNode ? node$.id : '...' }}</mat-card-subtitle>
-  <mat-card-content>{{this.containsNode ? node$.consumerData?.image?.name : "Drag this into the workspace to create a new " + nodeTypeName}} </mat-card-content>
+  <mat-card-content>{{this.containsNode ? node$.consumerData?.image?.name : ""}} </mat-card-content>
 </mat-card>
