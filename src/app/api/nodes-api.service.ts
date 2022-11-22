@@ -5,7 +5,7 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {IAllocInfo, IBuildInfo, ICpuInfo, IDiskInfo, IGpuInfo, IMemInfo, INetInfo, INodeUtilization} from './winslow-api';
+import {IAllocInfo, IBuildInfo, ICpuInfo, IDiskInfo, IGpuInfo, IMemInfo, INetInfo, INodeInfo, INodeUtilization} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -26,9 +26,9 @@ export class NodesApiService {
     return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
   }
 
-  public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
+  public watchNodes(listener: (update: ChangeEvent<string, INodeInfoExt>) => void): Subscription {
     return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
-      const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, INodeInfoExt>[] = JSON.parse(message.body);
       events.forEach(event => listener(event));
     });
   }
@@ -36,9 +36,9 @@ export class NodesApiService {
   /**
    * Retrieves the `NodeInfo` for all active nodes
    */
-  public getNodes(): Promise<NodeInfo> {
+  public getNodes(): Promise<INodeInfoExt> {
     return this.client
-      .get<NodeInfo>(NodesApiService.getUrl())
+      .get<INodeInfoExt>(NodesApiService.getUrl())
       .toPromise();
   }
 
@@ -64,11 +64,22 @@ export class NodesApiService {
   }
 }
 
+/**
+ *  The time this info was generated at (UNIX timestamp in ms)
+ *  time
+ *  The time in ms this node is up for
+ *  uptime
+ */
+export class INodeInfoExt extends INodeInfo {
+  // local only
+  update: (node: INodeInfoExt) => void;
+}
+
 export class NodeInfo {
   name: string;
-  // The time this info was generated at (UNIX timestamp in ms)
+
   time: number;
-  // The time in ms this node is up for
+
   uptime: number;
   cpuInfo: ICpuInfo;
   memInfo: IMemInfo;
@@ -78,8 +89,7 @@ export class NodeInfo {
   buildInfo: IBuildInfo;
   allocInfo: IAllocInfo[];
 
-  // local only
-  update: (node: NodeInfo) => void;
+
 }
 
 
