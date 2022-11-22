@@ -21,7 +21,7 @@ export class DiagramLibraryComponent implements OnInit {
   constructor() {
   }
   ngOnInit(): void {
-    console.log("Board Init")
+    //console.log("Board Init")
   }
   @Input()
   set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
@@ -36,7 +36,7 @@ export class DiagramLibraryComponent implements OnInit {
       for (const key of Object.keys(this.selectedNode$.consumerData)) {
         this.formObj[key] = this.selectedNode$.consumerData[key];
       }
-      console.log(this.formObj);
+      //console.log(this.formObj);
       //console.log(this.editForm.value);
   }
   startSave(){

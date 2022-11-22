@@ -79,32 +79,28 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         // TODO update nodeComponentInstances
       },
       panels: {
-        library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {
-          //diagramMakerContainer.innerHTML = '';
-          console.log(this.libraryComponent == null || this.libraryComponent?.instance?.selectedNode$?.id != this.currentNode?.id)
-          console.log( this.libraryComponent?.instance?.selectedNode$?.id +" "+ this.currentNode?.id)
+        library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {  //panel to edit Stages
           if (this.libraryComponent == null) {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
             this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
             this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
-            //console.log(this.currentNode);
             diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
           }
           if (this.currentNode) {
             this.libraryComponent.instance.selectedNode = this.currentNode;
           }
         },
-        tools: (panel: any, state : any, diagramMakerContainer: HTMLElement ) => {
+        tools: (panel: any, state : any, diagramMakerContainer: HTMLElement ) => {    //Bar to Add Nodes to diagramMaker
           let addToolsFactory = this.componentFactoryResolver.resolveComponentFactory(AddToolsComponent);
           let addToolsComponent = this.viewContainerRef.createComponent(addToolsFactory);
           diagramMakerContainer.appendChild(addToolsComponent.location.nativeElement);
         }
       },
     },
-    actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {
-      if (action.type === DiagramMakerActions.NODE_CREATE) {
+    actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {  //Intercepts actions before diagramMaker saves them into the store
+      if (action.type === DiagramMakerActions.NODE_CREATE) {      //required extra steps to append Data to the nodes before dispatching
         const createAction = action as CreateNodeAction<any>;
-        if (createAction.payload.typeId == "node-normal" || createAction.payload.typeId == "node-start"){
+        if (createAction.payload.typeId == "node-normal" || createAction.payload.typeId ==  "node-start"){
 
           const stageDef = new StageDefinitionInfo();
           stageDef.name = "New Stage";
@@ -146,25 +142,48 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           dispatch(newAction);
         }
       }
-      else if (action.type === DiagramMakerActions.EDGE_CREATE) {
-        let edgePossible = true;
-        const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges))
+      else if (action.type === DiagramMakerActions.EDGE_CREATE) {   //Logic if a Edge can be created or not
+        let edgeDestPossible = true;
+        let edgeSrcPossible = true;
+        const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
+        const nodeMap = this.diagramMaker.store.getState().nodes;
         let createEdgeAction = action as CreateEdgeAction<{}>;
-        for (let edge of edgeMap.values()) {
+        //Check if edge can be created depending on destination node
+        for (let edge of edgeMap.values()) {                //For Stages and Splitter Gateways
           if (edge.dest == createEdgeAction.payload.dest) {
-            return edgePossible = false
+            edgeDestPossible = false;
+            break;
           } else {
-            edgePossible = true;
+            edgeDestPossible = true;
           }
         }
-        if (edgePossible) {
+        //for Mergers
+        if (nodeMap[createEdgeAction.payload.dest].typeId == "node-any-merger" ||
+          nodeMap[createEdgeAction.payload.dest].typeId == "node-all-merger"
+        ){
+          edgeDestPossible = true;
+        }
+        //Check if edge can be created depending on source Node
+        for (let edge of edgeMap.values()) {                //For Stages and Merger Gateways
+          if (edge.src == createEdgeAction.payload.src) {
+            edgeSrcPossible = false;
+            break;
+          } else {
+            edgeSrcPossible = true;
+          }
+        } //For Splitters
+        if (nodeMap[createEdgeAction.payload.src].typeId == "node-and-splitter" ||
+          nodeMap[createEdgeAction.payload.src].typeId == "node-if-splitter"
+        ){
+          edgeSrcPossible = true;
+        }
+        if (edgeDestPossible && edgeSrcPossible) {
           dispatch(createEdgeAction);
         }
-      } else {
+      }
+      else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
       }
-      //console.log(action);
-      //console.log(this.nodeComponentInstances);
     },
     nodeTypeConfig: {
       'node-normal': {
@@ -230,8 +249,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     const stageDef = this.project.pipelineDefinition.stages[1] as StageDefinitionInfo;
-    console.log(stageDef.env instanceof Map);
-    console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
+    //console.log(stageDef.env instanceof Map);
+    //console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
     this.initialData = this.initClass.getInitData(this.project);
 
   }
