@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
+import {IFileInfo} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -22,9 +23,9 @@ export class FilesApiService {
 
   listFiles(path: string, aggregateSizeForDirectories: boolean = false) {
     return this.client
-      .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
+      .options<IFileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
       .toPromise()
-      .then(files => files.map(f => new FileInfo(f)));
+      .then(files => files.map(f => Object.assign(new IFileInfoExt(), f)));
   }
 
   createDirectory(path: string): Promise<any> {
@@ -63,7 +64,7 @@ export class FilesApiService {
     }
 
     return this.client.get(
-      FilesApiService.getUrl(pathToFile + params), {responseType: "text"}
+      FilesApiService.getUrl(pathToFile + params), {responseType: 'text'}
     );
   }
 
@@ -121,27 +122,9 @@ export class FilesApiService {
   }
 }
 
+export class IFileInfoExt extends IFileInfo {
 
-export class FileInfo {
-  name: string;
-  directory: boolean;
-  path: string;
-  fileSize?: number;
-  attributes: Map<string, unknown>;
-  // local only
   fileSizeHumanReadableCached?: string;
-
-  constructor(info: FileInfo = null) {
-    if (info != null) {
-      this.name = info.name;
-      this.directory = info.directory;
-      this.path = info.path;
-      this.fileSize = info.fileSize;
-      this.attributes = info.attributes;
-      this.fileSizeHumanReadableCached = FileInfo.toFileSizeHumanReadable(info.fileSize);
-    }
-  }
-
 
   public static toFileSizeHumanReadable(fileSize?: number): string {
     if (fileSize != null) {
@@ -204,11 +187,12 @@ export class FileInfo {
 
   public getFileSizeHumanReadable(): string {
     if (this.fileSizeHumanReadableCached == null) {
-      this.fileSizeHumanReadableCached = FileInfo.toFileSizeHumanReadable(this.fileSize);
+      this.fileSizeHumanReadableCached = IFileInfoExt.toFileSizeHumanReadable(this.fileSize);
     }
     return this.fileSizeHumanReadableCached;
   }
 }
+
 
 export enum FileInfoAttribute {
   GIT_BRANCH = 'git-branch',

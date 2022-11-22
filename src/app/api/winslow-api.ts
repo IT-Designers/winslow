@@ -5,7 +5,7 @@
 export interface IBuild {
 }
 
-export interface IFileInfo {
+export class IFileInfo {
     name: string;
     directory: boolean;
     path: string;
