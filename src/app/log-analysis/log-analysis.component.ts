@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo} from '../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import {FileInfo, FilesApiService} from '../api/files-api.service';
+import {FilesApiService, IFileInfoExt} from '../api/files-api.service';
 import {LogChart, LogChartDefinition} from './log-chart-definition';
 import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
@@ -19,7 +19,7 @@ export class LogAnalysisComponent implements OnInit {
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
 
   probablyPipelineId = null;
-  isLongLoading: boolean = true
+  isLongLoading = true;
 
   projectHistory: ExecutionGroupInfo[] = [];
   latestStage: StageInfo = null;
@@ -83,7 +83,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   isLatestStage(stageInfo: StageInfo): boolean {
-    return stageInfo == this.latestStage;
+    return stageInfo === this.latestStage;
   }
 
   displayLatestStage() {
@@ -114,11 +114,11 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private resetStagesAndCharts() {
-    this.charts = []
-    this.selectableStages = []
-    this.stagesToCompare = []
+    this.charts = [];
+    this.selectableStages = [];
+    this.stagesToCompare = [];
 
-    this.refreshStages()
+    this.refreshStages();
   }
 
   private getLatestStage(): StageInfo {
@@ -143,7 +143,7 @@ export class LogAnalysisComponent implements OnInit {
         return;
       }
 
-      if (executionGroup.stages.length == 0) {
+      if (executionGroup.stages.length === 0) {
         return;
       }
 
@@ -209,10 +209,10 @@ export class LogAnalysisComponent implements OnInit {
       .catch(error => {
         alert('Failed to load charts');
         console.error(error);
-      })
+      });
   }
 
-  private loadChart = (file: FileInfo) => {
+  private loadChart = (file: IFileInfoExt) => {
     console.log(`Loading chart ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
       const definition = new LogChartDefinition();

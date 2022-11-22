@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {HttpEventType} from '@angular/common/http';
-import {FileInfo, FilesApiService} from '../api/files-api.service';
+import {IFileInfoExt, FilesApiService} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService, InputDefinition} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
@@ -14,7 +14,7 @@ import {StorageApiService} from '../api/storage-api.service';
 })
 export class FilesComponent implements OnInit {
 
-  files: Map<string, FileInfo[]> = null;
+  files: Map<string, IFileInfoExt[]> = null;
   longLoading = new LongLoadingDetector();
   loadError = null;
 
@@ -38,7 +38,7 @@ export class FilesComponent implements OnInit {
     public readonly swalTargets: SwalPortalTargets
   ) {
     const root = [];
-    const info = new FileInfo();
+    const info = new IFileInfoExt();
     info.directory = true;
     info.name = 'resources';
     info.path = '/resources';
@@ -66,7 +66,7 @@ export class FilesComponent implements OnInit {
 
   @Input()
   public set additionalRoot(value: string) {
-    const additional = new FileInfo();
+    const additional = new IFileInfoExt();
     additional.directory = true;
     additional.name = value.split(';')[0];
     additional.path = `/${value.split(';')[1]}`;
@@ -107,7 +107,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  private insertListResourceResult(path: string, res: FileInfo[]) {
+  private insertListResourceResult(path: string, res: IFileInfoExt[]) {
     this.files.set(
       path,
       res
@@ -127,12 +127,12 @@ export class FilesComponent implements OnInit {
   private updateViewHint(): Promise<void> {
     return this.storage.getFilePathInfo(this.latestPath).then(info => {
       if (info != null) {
-        this.viewHint = FileInfo.toFileSizeHumanReadable(info.bytesFree) + ' free';
+        this.viewHint = IFileInfoExt.toFileSizeHumanReadable(info.bytesFree) + ' free';
       }
     });
   }
 
-  currentDirectory(): FileInfo[] {
+  currentDirectory(): IFileInfoExt[] {
     return this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [];
   }
 
@@ -340,22 +340,22 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  downloadFile(file: FileInfo) {
+  downloadFile(file: IFileInfoExt) {
     this.api.downloadFile(file.path);
   }
 
-  downloadUrl(file: FileInfo): string {
+  downloadUrl(file: IFileInfoExt): string {
     return this.api.downloadUrl(file.path);
   }
 
-  delete(file: FileInfo) {
+  delete(file: IFileInfoExt) {
     this.dialog.openAreYouSure(
       `Deleting ${file.directory ? 'directory' : 'file'} ${file.name}`,
       () => this.api.delete(file.path).then(r => this.loadDirectory(this.latestPath))
     );
   }
 
-  onItemSelected(file: FileInfo) {
+  onItemSelected(file: IFileInfoExt) {
     this.selectedPath.emit(file.path);
   }
 
@@ -368,7 +368,7 @@ export class FilesComponent implements OnInit {
     );
   }
 
-  rename(file: FileInfo) {
+  rename(file: IFileInfoExt) {
     this.dialog.renameAThing(
       file.name,
       'New name',
@@ -419,7 +419,7 @@ export class FilesComponent implements OnInit {
       });
   }
 
-  getCachedFileInfo(path: string): FileInfo {
+  getCachedFileInfo(path: string): IFileInfoExt {
     if (path.endsWith('/')) {
       path = path.substr(0, path.length - 1);
     }
@@ -443,7 +443,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  formatGitBranch(file: FileInfo) {
+  formatGitBranch(file: IFileInfoExt) {
     if (file.isGitRepository()) {
       return ` (${file.getGitBranch()})`;
     } else {
@@ -452,7 +452,7 @@ export class FilesComponent implements OnInit {
   }
 
   getSpeed(bytesPerSecond: number): string {
-    return FileInfo.toFileSizeHumanReadable(bytesPerSecond) + '/s';
+    return IFileInfoExt.toFileSizeHumanReadable(bytesPerSecond) + '/s';
   }
 
   getRemaining(bytesPerSecond: number, current: number, total: number): string {
@@ -493,7 +493,7 @@ export interface UploadProgress {
   currentUploadSpeedLastTimeDiff: number;
   overallUploadSpeed: number;
   overallUploadStarted: Date;
-  completed: boolean
+  completed: boolean;
 }
 
 export interface UploadFilesProgress {
