@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
+import {INodeInfoExt, NodesApiService} from '../api/nodes-api.service';
 import {Subscription} from 'rxjs';
 import {ChangeType} from '../api/api.service';
 
@@ -16,8 +16,8 @@ export class ServersComponent implements OnInit, OnDestroy {
   // max amount of server to display without scrollbar
   static readonly MAX_SERVERS = 7;
 
-  nodes: NodeInfo[] = [];
-  node: NodeInfo;
+  nodes: INodeInfoExt[] = [];
+  node: INodeInfoExt;
   selectedNodeIndex: number = null;
   loadError = null;
   subscription: Subscription = null;
@@ -86,11 +86,11 @@ export class ServersComponent implements OnInit, OnDestroy {
     }
   }
 
-  public trackNodeInfo(nodeInfo: NodeInfo): string {
+  public trackNodeInfo(nodeInfo: INodeInfoExt): string {
     return nodeInfo?.name;
   }
 
-  setNode(index: number,) {
+  setNode(index: number) {
     this.selectedNodeIndex = index;
   }
 
