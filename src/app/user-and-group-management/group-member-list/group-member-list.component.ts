@@ -13,6 +13,7 @@ import {GroupApiService} from '../../api/group-api.service';
 export class GroupMemberListComponent implements OnInit, OnChanges {
 
   @Input() group = {name: '', members: []};
+  @Input() myUser = {name: 'No Name', role: 'NO ROLE'};
 
   @Output() memberEmitter = new EventEmitter();
   @Output() removeMember = new EventEmitter();
@@ -73,6 +74,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     this.checkSelects();
   }
   openAddMemberDialog() {
+    console.dir(this.myUser);
     this.createDialog
       .open(GroupAddMemberDialogComponent, {
         data: {
@@ -111,5 +113,11 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
         this.disabledUser = {name: '', role: ''};
       }
     }
+  }
+
+  amIOwner() {
+    const index = this.displayMembers.findIndex((a) => a.name === this.myUser.name);
+
+    return this.displayMembers[index].role === 'OWNER';
   }
 }
