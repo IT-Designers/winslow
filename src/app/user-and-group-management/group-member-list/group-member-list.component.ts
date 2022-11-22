@@ -21,7 +21,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   allRoles = [''];
   userSearchInput = '';
   displayMembers = [];
-  disabledUser: {name: '', role: ''};
+  disabledUser: { name: '', role: '' };
 
   constructor(
     private roleApi: RoleApiService,
@@ -53,6 +53,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
       }
     });
   }
+
   filterFunction() {
     this.displayMembers = Array.from(this.group.members);
     if (this.userSearchInput !== '') {
@@ -65,6 +66,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
       this.displayMembers = Array.from(searchedMembers);
     }
   }
+
   onRemoveItemClick(item) {
     this.removeMember.emit(item);
     const delIndex = this.group.members.findIndex((tempUser) => tempUser.name === item.name);
@@ -73,6 +75,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     this.displayMembers.splice(delIndex2, 1);
     this.checkSelects();
   }
+
   openAddMemberDialog() {
     console.dir(this.myUser);
     this.createDialog
@@ -90,6 +93,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
         }
       });
   }
+
   roleChanged(user) {
     this.checkSelects();
     this.sortMembers();
@@ -98,6 +102,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
       'Adding Member to group'
     );
   }
+
   checkSelects() {
     if (this.displayMembers.length === 1) {
       this.disabledUser = this.displayMembers[0];
@@ -119,5 +124,21 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     const index = this.displayMembers.findIndex((a) => a.name === this.myUser.name);
 
     return this.displayMembers[index].role === 'OWNER';
+  }
+
+  getTooltipSelect(user) {
+    if (!this.amIOwner()) {
+      return 'Only OWNERs can edit roles';
+    } else if (user === this.disabledUser) {
+      return 'Not enough OWNERs to change this role';
+    }
+  }
+
+  getTooltipRemove(user) {
+    if (!this.amIOwner()) {
+      return 'Only OWNERs can remove members';
+    } else if (user === this.disabledUser) {
+      return 'Not enough OWNERs to remove this member';
+    }
   }
 }
