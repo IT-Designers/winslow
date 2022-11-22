@@ -11,7 +11,7 @@ export class DiagramLibraryComponent implements OnInit {
 
   @Output() resetSelectedNode = new EventEmitter();
   @Output() editNode = new EventEmitter();
-
+  @Output() diagramApiCall = new EventEmitter();
   selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
   formHtmlMap : Map<string, object> = new Map();
   formObj : Object = {};
@@ -38,6 +38,9 @@ export class DiagramLibraryComponent implements OnInit {
       }
       //console.log(this.formObj);
       //console.log(this.editForm.value);
+  }
+  onApiCall(action : String){
+    this.diagramApiCall.emit(action);
   }
   startSave(){
     this.childForm.sendFormData();
