@@ -17,8 +17,8 @@
 
       <form class="editNodeForm" (ngSubmit)="startSave()">
        <app-edit-forms #form
-                       [formMap]="formHtmlMap"
                        [formObj]="formObj"
+                       [formMap]="formHtmlMap"
                        (onCollectData)="saveEdit($event)"
                        (onTriggerSaveData)="startSave()"
        >

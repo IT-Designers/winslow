@@ -1,6 +1,6 @@
 <form [formGroup]="editForm">
   <table>
-    <ng-container *ngFor="let entry of formMap | keyvalue:keepOriginalOrder ; index as i">
+    <ng-container *ngFor="let entry of formMap$ | keyvalue:keepOriginalOrder ; index as i">
       <tr>
     <span *ngIf="entry.key != 'id' && isNotObject(entry.value)" class="val-string">
       <td>{{entry.key}}</td>
@@ -18,8 +18,8 @@
           <div *ngIf="entry.value != null" [hidden]="!extended[i]">
             <app-edit-forms
               #form
-              [formMap]="entry.value"
               [formObj]="entry.value"
+              [formMap]="entry.value"
               [objPlace]="entry.key"
               (onTriggerSaveData)="triggerSaveData()"
               (onCollectData)="collectFormData($event)"

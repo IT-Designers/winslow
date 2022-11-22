@@ -18,27 +18,41 @@ import {ImageInfo} from "../../../api/project-api.service";
 })
 export class EditFormsComponent implements OnInit {
 
-  @Input() formMap;
-  @Input() formObj;
+
   @Input() objPlace;
   @Output() onCollectData : EventEmitter<Object> = new EventEmitter();
   @Output() onTriggerSaveData : EventEmitter<Object> = new EventEmitter();
   editForm: FormGroup;
-  extended: boolean[];
+  extended: boolean[] = [];
+  formMap$;
+  formObj$;
 
   @ViewChildren('form') childForm:QueryList<EditFormsComponent>;
 
   constructor( private fb: FormBuilder) { }
 
-  ngOnInit(): void {
-    console.log(this.formObj);
-    console.log(this.formMap);
-    this.extended = Array(this.formMap.lenght);
-    this.extended.fill(false);
-    this.editForm = this.fb.group(this.formObj);
 
-    //this.editForm.valueChanges.subscribe(value => this.triggerSaveData())
+  ngOnInit(): void {
   }
+
+  @Input()
+  set formObj(formObj){
+    this.formObj$ = formObj;
+    this.editForm = this.fb.group(formObj);
+    console.log("inputFormObj")
+    console.log(this.formObj$)
+    if (this.formMap$) {
+      this.extended = Array(this.formMap$.lenght);
+      this.extended.fill(false);
+      console.log("inputForMap")
+      console.log(this.formMap$)
+    }
+  };
+  @Input()
+  set formMap(formMap){
+    this.formMap$ = formMap;
+
+  };
 
   public keepOriginalOrder = (a, b) => a.key;
 
@@ -50,8 +64,8 @@ export class EditFormsComponent implements OnInit {
   }
 
   collectFormData(collectedFormData){
-    this.formObj = this.editForm.value;
-    this.formObj[collectedFormData[0]] = collectedFormData[1];
+    this.formObj$ = this.editForm.value;
+    this.formObj$[collectedFormData[0]] = collectedFormData[1];
     //console.log(collectedFormData)
     //this.editForm.setValue(this.formObj.value);
   }
@@ -77,16 +91,16 @@ export class EditFormsComponent implements OnInit {
     //console.log(this.editForm)
     if (entry.value instanceof Array){
       //let newArray = new Array();
-      let newArray : String[]  = Object.assign([], this.formObj[entry.key]);
+      let newArray : String[]  = Object.assign([], this.formObj$[entry.key]);
       console.log(newArray);
       newArray.push("New Entry");
-      this.formObj[entry.key] = newArray;
-      this.formMap.set(entry.key , newArray);
+      this.formObj$[entry.key] = newArray;
+      this.formMap$.set(entry.key , newArray);
       //this.editForm.patchValue({entry.key: })
       //this.triggerSaveData();
     }
-    console.log(this.formObj);
-    console.log(this.formMap);
+    console.log(this.formObj$);
+    console.log(this.formMap$);
     console.log(this.editForm);
   }
 
