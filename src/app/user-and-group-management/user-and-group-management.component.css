@@ -92,12 +92,15 @@
   padding: 3em;
   font-style: italic;
 }
-.groupname-label, .username-label {
+.groupname-label, .username-label, .display-name-label, .email-label {
   font-weight: bold;
   display: inline-block;
   width: 10em;
 }
-#detailGroupName, #detailUserName {
+.display-name-label, .email-label {
+  margin-top: 20px;
+}
+#detailGroupName, #detailUserName, .display-name, .email {
   padding: 6px 10px;
   display: inline-block;
   width: 680px;
@@ -105,7 +108,9 @@
   border-radius: 8px;
   background-color: #f6f6f6;
 }
-
+.no-value {
+  font-style: italic;
+}
 .group-detail-container, .user-detail-container {
   width: 54em;
   /*padding-left: 60px;

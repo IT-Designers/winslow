@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
-import { GroupApiService } from '../api/group-api.service';
+import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import { RoleApiService } from '../api/role-api.service';
-import {UserApiService} from '../api/user-api.service';
+import {UserApiService, UserInfo} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
 
@@ -23,10 +23,10 @@ export class UserAndGroupManagementComponent implements OnInit {
   allUsers = [];
   /*displayUsers = [];*/
   showUserDetail = false;
-  selectedUser = {name: 'No User Selected'};
+  selectedUser: UserInfo = {name: 'No Name', displayName: 'No DisplayName', email: 'No Email'};
 
   showGroupDetail = false;
-  selectedGroup = {name: 'No Group Selected', members: []};
+  selectedGroup: GroupInfo = {name: 'No Group Selected', members: []};
 
   constructor(
     private groupApi: GroupApiService,
