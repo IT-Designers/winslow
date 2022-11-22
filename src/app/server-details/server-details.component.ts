@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {ChangeType} from '../api/api.service';
-import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
+import {INodeInfoExt, NodesApiService} from '../api/nodes-api.service';
 import {IGpuInfo} from '../api/winslow-api';
 
 @Component({
@@ -27,8 +27,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   isLive = true;
   panelOpenState = false;
 
-  nodes: NodeInfo[] = [];
-  node: NodeInfo;
+  nodes: INodeInfoExt[] = [];
+  node: INodeInfoExt;
   selectedNodeIndex: number = null;
   historyButtonValue = 'live';
   loadError = null;
@@ -898,7 +898,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  public trackNodeInfo(nodeInfo: NodeInfo): string {
+  public trackNodeInfo(nodeInfo: INodeInfoExt): string {
     return nodeInfo?.name;
   }
 
@@ -947,7 +947,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   getHistory(hours) {
     this.isLive = false;
 
-    const node: NodeInfo = this.nodes[this.selectedNodeIndex];
+    const node: INodeInfoExt = this.nodes[this.selectedNodeIndex];
     const to = new Date();
     const from = new Date().setHours(to.getHours() - hours);
     let chunkSpanMillis;
