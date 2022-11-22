@@ -1,7 +1,8 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {ChangeType} from '../api/api.service';
-import {GpuInfo, NodeInfo, NodesApiService} from '../api/nodes-api.service';
+import {NodeInfo, NodesApiService} from '../api/nodes-api.service';
+import {IGpuInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-server-details',
@@ -905,7 +906,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     return bytes / (1024 * 1024 * 1024);
   }
 
-  trackGpu(gpuInfo: GpuInfo): string {
+  trackGpu(gpuInfo: IGpuInfo): string {
     return gpuInfo?.id;
   }
 
