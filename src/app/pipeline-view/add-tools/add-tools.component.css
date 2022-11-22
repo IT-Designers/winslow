@@ -1,15 +1,26 @@
 .addToolBar{
-  height: 40px;
+  max-height: 46px;
+  height: 46px;
   list-style-type: none;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: clip;
 }
 .addToolBar li{
+  font-size: 0.95em;
+  font-weight: lighter;
+  height: 100%;
   float: left;
   display: block;
   text-align: center;
-  width: 107px;
-  padding: 10px;
+  padding: 0px 8px;
+  vertical-align: middle;
   border-right: 1px solid black;
+}
+.sub-font{
+  font-size: 0.8em;
+  color: #7f7f7f;
+}
+.last-li{
+  border-right: none !important;
 }

@@ -31,6 +31,7 @@ export class DiagramLibraryComponent implements OnInit {
         this.formHtmlMap.set(key, this.selectedNode$.consumerData[key]);
       }
       //console.log(this.formHtmlMap);
+      this.formObj = {};
       this.formObj['id'] = this.selectedNode$.id;
       for (const key of Object.keys(this.selectedNode$.consumerData)) {
         this.formObj[key] = this.selectedNode$.consumerData[key];

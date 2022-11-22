@@ -1,5 +1,4 @@
-export class DiagramConfig {}
-/* import {
+ import {
   AfterViewInit,
   Component,
   ComponentFactoryResolver,
@@ -30,7 +29,7 @@ import {DiagramNodeComponent} from "./diagram-node/diagram-node.component";
 import {DiagramLibraryComponent} from "./diagram-library/diagram-library.component";
 
 export class DiagramConfig {
-
+/*
   constructor(private viewContainerRef: ViewContainerRef,
               private componentFactoryResolver: ComponentFactoryResolver) {
   }
@@ -66,6 +65,8 @@ export class DiagramConfig {
       panels: {
         library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {
           //diagramMakerContainer.innerHTML = '';
+          console.log(this.libraryComponent == null || this.libraryComponent?.instance?.selectedNode$?.id != this.currentNode?.id)
+          console.log( this.libraryComponent?.instance?.selectedNode$?.id +" "+ this.currentNode?.id)
           if (this.libraryComponent == null) {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
             this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
@@ -76,6 +77,11 @@ export class DiagramConfig {
           if (this.currentNode) {
             this.libraryComponent.instance.selectedNode = this.currentNode;
           }
+        },
+        tools: (panel: any, state : any, diagramMakerContainer: HTMLElement ) => {
+          let addToolsFactory = this.componentFactoryResolver.resolveComponentFactory(AddToolsComponent);
+          let addToolsComponent = this.viewContainerRef.createComponent(addToolsFactory);
+          diagramMakerContainer.appendChild(addToolsComponent.location.nativeElement);
         }
       },
     },
@@ -106,8 +112,8 @@ export class DiagramConfig {
         }
         if (createAction.payload.typeId == "node-and-splitter" ||
           createAction.payload.typeId == "node-if-splitter" ||
-          createAction.payload.typeId == "node-all-combiner" ||
-          createAction.payload.typeId == "node-prio-combiner"
+          createAction.payload.typeId == "node-all-merger" ||
+          createAction.payload.typeId == "node-any-merger"
         ){
           const stageDef = new StageDefinitionInfo();
           stageDef.name = `${createAction.payload.typeId}`;
@@ -162,16 +168,16 @@ export class DiagramConfig {
         size: {width: 150, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
-      'node-all-combiner': {
+      'node-all-merger': {
         size: {width: 150, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
-      'node-prio-combiner': {
+      'node-any-merger': {
         size: {width: 150, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
     }
   };
-
-}
 */
+}
+
