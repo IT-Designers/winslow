@@ -28,6 +28,7 @@ import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.se
 import {DiagramNodeComponent} from "./diagram-node/diagram-node.component";
 import {DiagramLibraryComponent} from "./diagram-library/diagram-library.component";
 import {DiagramConfig} from "./diagram-config";
+import {DiagramInitialData} from "./diagram-initial-data";
 import {AddToolsComponent} from "./add-tools/add-tools.component";
 
 @Component({
@@ -44,6 +45,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
   public componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
   public libraryComponent = null;
+  public initClass = new DiagramInitialData();
 
   @ViewChild('diagramEditorContainer')
   diagramEditorContainer!: ElementRef;
@@ -230,58 +232,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const stageDef = this.project.pipelineDefinition.stages[1] as StageDefinitionInfo;
     console.log(stageDef.env instanceof Map);
     console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
+    this.initialData = this.initClass.getInitData(this.project);
 
-    let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
-    let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-
-    for (let i = 0; i < this.project.pipelineDefinition.stages.length; i++) {
-      nodes[`n${i}`] = {
-        id: `n${i}`,
-        typeId: `${i == 0 ? "node-start" : "node-normal"}`,
-        diagramMakerData: {
-          position: {x: 250 * (i + 1) - 200, y: 200},
-          size: {width: 200, height: 75},
-        },
-        consumerData: this.project.pipelineDefinition.stages[i]
-      }
-      if (i < (this.project.pipelineDefinition.stages.length - 1)) {
-        edges[`edge${i}`] = {
-          id: `edge${i}`,
-          src: `n${i}`,
-          dest: `n${i + 1}`,
-          diagramMakerData: {}
-        }
-
-      }
-    }
-
-    this.initialData = {
-      nodes,
-      edges,
-      panels: {
-        library: {
-          id: 'library',
-          position: {x: 10, y: 10},
-          size: {width: 320, height: 600},
-          positionAnchor: PositionAnchor.TOP_RIGHT,
-        },
-        tools:{
-          id: 'tools',
-          position: { x: 10, y : 10},
-          size: {width: 900, height: 40},
-        },
-      },
-      workspace: {
-        position: {x: 0, y: 0},
-        scale: 1,
-        canvasSize: {width: 5000, height: 5000},
-        viewContainerSize: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-        },
-      },
-      editor: {mode: EditorMode.DRAG},
-    }
   }
 
   ngAfterViewInit(): void {
