@@ -5,6 +5,7 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {IAllocInfo, IBuildInfo, ICpuInfo, IDiskInfo, IGpuInfo, IMemInfo, INetInfo, INodeUtilization} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -68,13 +69,13 @@ export class NodeInfo {
   time: number;
   // The time in ms this node is up for
   uptime: number;
-  cpuInfo: CpuInfo;
-  memInfo: MemInfo;
-  netInfo: NetInfo;
-  diskInfo: DiskInfo;
-  gpuInfo: GpuInfo[];
-  buildInfo: BuildInfo;
-  allocInfo: AllocInfo[];
+  cpuInfo: ICpuInfo;
+  memInfo: IMemInfo;
+  netInfo: INetInfo;
+  diskInfo: IDiskInfo;
+  gpuInfo: IGpuInfo[];
+  buildInfo: IBuildInfo;
+  allocInfo: IAllocInfo[];
 
   // local only
   update: (node: NodeInfo) => void;
@@ -108,46 +109,10 @@ export class NodeInfo {
 
 }
 
-export class CpuInfo {
-  modelName: string;
-  utilization: number[];
 
-  constructor(model: string, cores: number) {
-    this.modelName = model;
-    this.utilization = [];
-    for (let i = 0; i < cores; ++i) {
-      this.utilization.push(0);
-    }
-  }
 
-}
 
-export class MemInfo {
-  memoryTotal = 0;
-  memoryFree = 0;
-  systemCache = 0;
-  swapTotal = 0;
-  swapFree = 0;
 
-  constructor(memoryTotal: number, swapTotal: number) {
-    this.memoryTotal = memoryTotal;
-    this.memoryFree = memoryTotal;
-    this.swapTotal = swapTotal;
-    this.swapFree = swapTotal;
-  }
-}
-
-export class NetInfo {
-  transmitting = 0;
-  receiving = 0;
-}
-
-export class DiskInfo {
-  reading = 0;
-  writing = 0;
-  free = 0;
-  used = 0;
-}
 
 export class GpuInfo {
   id: string;
