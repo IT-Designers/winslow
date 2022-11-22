@@ -39,20 +39,23 @@ export class SearchableListComponent implements OnInit, OnChanges {
     if (!this.showSystemGroups) {
       let i = 0;
       this.displayItems = Array.from(this.allItems);
-      this.sortDisplayItemsByName();
+      // this.sortDisplayItemsByName();
       for (const item of this.displayItems) {
+        // @ts-ignore
         // @ts-ignore
         if (item.name.includes('::')) {
           this.displayItems.splice(i, 1);
-          i--;
+          /*i--;*/
         }
         i++;
       }
+      this.sortDisplayItemsByName();
     } else if (this.showSystemGroups) {
       this.displayItems = Array.from(this.allItems);
       this.sortDisplayItemsByName();
     }
   }
+
   sortDisplayItemsByName() {
     this.displayItems.sort((a, b) => {
       // @ts-ignore
@@ -79,7 +82,9 @@ export class SearchableListComponent implements OnInit, OnChanges {
       this.sortDisplayItemsByName();
     }
   }
+
   itemClicked(item) {
+    console.dir(this.displayItems);
     this.selectedItemName = item.name;
     this.itemEmitter.emit(item);
   }

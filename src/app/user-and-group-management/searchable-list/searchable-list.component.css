@@ -1,6 +1,7 @@
 
 .list-container {
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,8 +23,8 @@
   width: 95%;
   /*max-height: 440px;*/
   /*max-height: 620px;*/
-  height: 590px;
-  padding-bottom: 80px;
+  /*height: 570px;*/
+  padding-bottom: 1%;
   /*border-bottom: 1px solid lightgrey;*/
 }
 .list-item {
@@ -62,4 +63,8 @@
 }
 .new-btn {
   float: right;
+}
+
+.scrollable {
+  overflow-y: clip;
 }

@@ -123,7 +123,9 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   amIOwner() {
     const index = this.displayMembers.findIndex((a) => a.name === this.myUser.name);
 
-    return this.displayMembers[index].role === 'OWNER';
+    if (this.displayMembers[index]) {
+      return this.displayMembers[index].role === 'OWNER';
+    }
   }
 
   getTooltipSelect(user) {
