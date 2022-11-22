@@ -21,7 +21,7 @@ import {
   DiagramMakerNode,
   DiagramMakerPotentialNode,
   Dispatch,
-  EditorMode, PositionAnchor, VisibleConnectorTypes,
+  EditorMode, Layout, PositionAnchor, VisibleConnectorTypes, WorkflowLayoutDirection,
 } from 'diagram-maker';
 
 import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
@@ -92,6 +92,37 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
             this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
             this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
+            this.libraryComponent.instance.diagramApiCall.subscribe((action : String)=> {
+              console.log(action);
+              switch (action){
+                case 'fit':
+                  this.diagramMaker.api.fit();
+                  console.log("fit");
+                  break;
+                case 'layout':
+                  this.diagramMaker.api.layout({
+                    direction: WorkflowLayoutDirection.LEFT_RIGHT,
+                    distanceMin: 50,
+                    layoutType: Layout.WORKFLOW,
+                    fixedNodeId: this.diagramMaker.store.getState().nodes[Object.keys(this.diagramMaker.store.getState().nodes)[0]].id,
+                  })
+                  break;
+                case 'zoomIn':
+                  this.diagramMaker.api.zoomIn(100);
+                  break;
+                case 'zoomOut':
+                  this.diagramMaker.api.zoomOut(100);
+                  break;
+                case 'undo':
+                  this.diagramMaker.api.undo();
+                  break;
+                case 'redo':
+                  this.diagramMaker.api.redo();
+                  break;
+                default: break;
+              }
+            }
+            );
             diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
           }
           if (this.currentNode) {

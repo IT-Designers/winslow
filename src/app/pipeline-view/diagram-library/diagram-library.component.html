@@ -8,9 +8,15 @@
   >
     <mat-icon>drag_indicator</mat-icon>
   </div>
+  <mat-icon title="Fit all stages into viewport" (click)="onApiCall('fit')">settings_overscan</mat-icon>
+  <mat-icon title="Do workflow layout" (click)="onApiCall('layout')">repeat</mat-icon>
+  <mat-icon title="Zoom in" (click)="onApiCall('zoomIn')">zoom_in</mat-icon>
+  <mat-icon title="Zoom Out" (click)="onApiCall('zoomOut')">zoom_out</mat-icon>
+  <mat-icon title="Undo action" (click)="onApiCall('undo')">undo</mat-icon>
+  <mat-icon title="Redo action" (click)="onApiCall('redo')">redo</mat-icon>
   <div class="scroll">
     <h3 class="category">Selected Node
-      <mat-icon class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel</mat-icon>
+      <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel</mat-icon>
     </h3>
     <mat-card class="editCard" *ngIf="selectedNode$">
       <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
