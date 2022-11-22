@@ -10,11 +10,12 @@ import {StageDefinitionInfo} from "../../api/project-api.service";
 export class DiagramGatewayComponent implements OnInit {
 
   @Input() nodeTypeName: String;
+  gatewayName: String = "";
   node$?: DiagramMakerNode<{}>;
   selected$?: boolean = false;
   containsNode?: boolean = false;
   splitter: boolean = false;
-  combiner: boolean = false;
+  merger: boolean = false;
 
   constructor() {
   }
@@ -25,14 +26,19 @@ export class DiagramGatewayComponent implements OnInit {
     }
     if (this.nodeTypeName == "AND Splitter" || this.nodeTypeName == "IF Splitter" ||
       this.node$?.typeId == "node-and-splitter" || this.node$?.typeId == "node-if-splitter"
-    ) {
+    ){
       this.splitter = true;
+      if (this.node$?.typeId == "node-and-splitter" || this.nodeTypeName == "AND Splitter"){ this.gatewayName = "AND Splitter"}
+      else {this.gatewayName = "IF Splitter"}
     }
-    if (this.nodeTypeName == "All Combiner" || this.nodeTypeName == "Priority Combiner" ||
-      this.node$?.typeId == "node-all-combiner" || this.node$?.typeId == "node-prio-combiner"
-    ) {
-      this.combiner = true;
+    if (this.nodeTypeName == "ALL Merger" || this.nodeTypeName == "ANY Merger"||
+      this.node$?.typeId == "node-all-merger" || this.node$?.typeId == "node-any-merger"
+    ){
+      this.merger = true;
+      if (this.node$?.typeId == "node-all-merger" || this.nodeTypeName == "ALL Merger"){ this.gatewayName = "ALL Merger"}
+      else {this.gatewayName = "ANY Merger"}
     }
+
   }
 
   @Input()

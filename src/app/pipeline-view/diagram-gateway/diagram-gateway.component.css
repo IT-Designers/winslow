@@ -1,24 +1,15 @@
 .node {
   max-width: 200px;
   height: 75px;
+  justify-content: center;
   overflow: hidden;
 }
-
-.title {
-  font-size: medium;
+mat-card-content p{
   font-weight: bold;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
-
-.subtitle {
-  font-size: small;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+mat-icon{
+  transform: rotate(90deg) scale(1.5);
 }
-
 .selected {
   background-color: #f5f5f5;
   border: 2px solid #007aff;
@@ -26,6 +17,6 @@
 .splitter{
   border-right: 4px solid black;
 }
-.combiner{
+.merger{
   border-left: 4px solid black;
 }
