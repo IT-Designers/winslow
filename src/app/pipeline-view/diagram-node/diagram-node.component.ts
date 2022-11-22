@@ -13,8 +13,6 @@ export class DiagramNodeComponent implements OnInit {
   node$?: DiagramMakerNode<StageDefinitionInfo>;
   selected$?: boolean = false;
   containsNode?: boolean = false;
-  splitter: boolean = false;
-  combiner: boolean = false;
 
   constructor() {
   }
@@ -22,16 +20,6 @@ export class DiagramNodeComponent implements OnInit {
   ngOnInit(): void {
     if (this.node$ !== undefined) {
       this.containsNode = true;
-    }
-    if (this.nodeTypeName == "AND Splitter" || this.nodeTypeName == "IF Splitter" ||
-        this.node$?.typeId == "node-and-splitter" || this.node$?.typeId == "node-if-splitter"
-    ){
-      this.splitter = true;
-    }
-    if (this.nodeTypeName == "ALL Merger" || this.nodeTypeName == "ANY Merger"||
-      this.node$?.typeId == "node-all-merger" || this.node$?.typeId == "node-any-merger"
-    ){
-      this.combiner = true;
     }
   }
 
