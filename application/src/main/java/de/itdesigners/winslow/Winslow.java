@@ -217,15 +217,22 @@ public class Winslow implements Runnable {
             System.out.println("ERROR: Failed to access system console for reading passwords, operation aborted.");
         } else if (!Arrays.equals(pw1, pw2)) {
             System.out.println("ERROR: Passwords do not match");
-        } else if (username == null || this.userManager
-                .setUserPassword(
-                        username,
-                        pw1.length > 0 ? PasswordHash.calculate(pw1) : null
-                )
-                .isEmpty()) {
-            System.out.println("ERROR: There is no such user");
+        } else if (username == null) {
+            System.out.println("ERROR: Failed to read username");
         } else {
-            System.out.println("Password has been updated");
+            try {
+                this.userManager.setUserPassword(username, pw1.length > 0 ? pw1 : null);
+                System.out.println("Password has been updated");
+            } catch (IOException e) {
+                System.out.println("ERROR: io-error: " + e.getMessage());
+            } catch (InvalidNameException e) {
+                System.out.println("ERROR: Invalid username");
+            } catch (NameNotFoundException e) {
+                System.out.println("ERROR: User not found");
+            } catch (InvalidPasswordException e) {
+                System.out.println("ERROR: Invalid password: " + e.getMessage());
+            }
+
         }
     }
 
@@ -267,11 +274,12 @@ public class Winslow implements Runnable {
             System.out.println("ERROR: Missing user name");
         } else {
             try {
-                var hash = pw1.length > 0 ? PasswordHash.calculate(pw1) : null;
-                this.userManager.createUserAndGroup(username, displayName, email, hash);
+                this.userManager.createUserAndGroup(username, displayName, email, pw1);
                 System.out.println("User has been created successfully");
             } catch (InvalidNameException e) {
                 System.out.println("ERROR: Invalid user name");
+            } catch (InvalidPasswordException e) {
+                System.out.println("ERROR: Invalid password: " + e.getMessage());
             } catch (NameAlreadyInUseException e) {
                 System.out.println("ERROR: Username is already in use");
             } catch (IOException e) {
