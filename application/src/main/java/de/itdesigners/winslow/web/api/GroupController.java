@@ -223,7 +223,7 @@ public class GroupController {
 
     private boolean isAllowedToSeeGroup(@Nullable User user, @Nonnull Group group) {
         // ordered in ascending query complexity
-        return user != null && (user.isSuperUser() || group.isMember(user.name()) || user.hasSuperPrivileges());
+        return user != null && (group.isMember(user.name()) || user.hasSuperPrivileges());
     }
 
     private void ensureNotLastOwner(@Nonnull Group group, @Nonnull String userName) throws ResponseStatusException {

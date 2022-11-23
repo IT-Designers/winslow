@@ -55,7 +55,7 @@ public class SettingsController {
     public Optional<ResourceLimitation> getUserResourceLimitation(@Nonnull User user) {
         return Optional
                 .of(user)
-                .filter(User::isSuperUser)
+                .filter(User::hasSuperPrivileges)
                 .flatMap(u -> winslow.getSettingsRepository().getUserResourceLimitations().unsafe());
     }
 
@@ -65,7 +65,7 @@ public class SettingsController {
             @RequestBody ResourceLimitation limit) {
         return Optional
                 .of(user)
-                .filter(User::isSuperUser)
+                .filter(User::hasSuperPrivileges)
                 .flatMap(u -> {
                     try {
                         winslow.getSettingsRepository().updateUserResourceLimitations(new ResourceLimitation(

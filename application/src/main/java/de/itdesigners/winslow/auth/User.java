@@ -38,15 +38,19 @@ public record User(
     public static final String SUPER_USER_NAME = "root";
 
     /**
+     * This function should only be used internally if you know what you are doing. It does not
+     * check whether this {@link User} {@link #hasSuperPrivileges()} but rather if the user is
+     * the actual root ({@link #SUPER_USER_NAME}).
+     *
      * @return Whether this {@link User} is privileged through its name, see {@link #SUPER_USER_NAME}
      */
     @Transient
-    public boolean isSuperUser() {
+    boolean isSuperUser() {
         return SUPER_USER_NAME.equals(this.name());
     }
 
     /**
-     * @return Whether this user has super privileges either by {@link #isSuperUser()}
+     * @return Whether this user has super privileges either by being root ({@link #SUPER_USER_NAME}, {@link #isSuperUser()})
      * or by inheriting super privileges through an assigned group
      */
     @Transient
