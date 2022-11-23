@@ -1,0 +1,22 @@
+<label *ngIf="selectedUser === null" class="nothing-selected">No user selected</label>
+<div *ngIf="selectedUser != null" class="user-detail-container">
+  <h2>User Details</h2>
+  <div class="user-name-container">
+    <label for="detailUserName" class="username-label"> Username: </label>
+    <label id="detailUserName">{{selectedUser.name}}</label>
+
+    <label class="display-name-label"> Display Name: </label>
+    <label *ngIf="selectedUser.displayName != null" class="display-name">{{selectedUser.displayName}}</label>
+    <label *ngIf="!selectedUser.displayName" class="display-name no-value">No Display Name</label>
+
+    <label class="email-label"> E-Mail: </label>
+    <label *ngIf="selectedUser.email != null" class="email">{{selectedUser.email}}</label>
+    <label *ngIf="!selectedUser.email" class="email no-value">No Email</label>
+  </div>
+  <button class="mat-raised-button delete-user-btn"
+          (click)="onUserDelete()"
+          color="warn"
+          mat-raised-button="">
+    Delete
+  </button>
+</div>

@@ -14,7 +14,7 @@
         </app-searchable-list>
       </div>
 
-      <label *ngIf="!showUserDetail" class="nothing-selected">No user selected</label>
+      <!--<label *ngIf="!showUserDetail" class="nothing-selected">No user selected</label>
       <div *ngIf="showUserDetail" class="user-detail-container">
         <h2>User Details</h2>
         <div class="user-name-container">
@@ -31,7 +31,11 @@
 
         </div>
         <button class="mat-raised-button delete-group-btn" (click)="onUserDelete()" color="warn" mat-raised-button=""> Delete </button>
-      </div>
+      </div>-->
+      <app-user-details [selectedUser]="selectedUser"
+                        (deletedUserEmitter)="onUserDelete()"
+                        class="user-detail">
+      </app-user-details>
     </div>
   </mat-tab>
   <mat-tab label=Groups>

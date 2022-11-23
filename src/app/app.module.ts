@@ -98,6 +98,7 @@ import { ProjectGroupsListComponent } from './project-view/project-groups-list/p
 import { ProjectAddGroupDialogComponent } from './project-view/project-add-group-dialog/project-add-group-dialog.component';
 import { SearchableListComponent } from './user-and-group-management/searchable-list/searchable-list.component';
 import { UserAddNameDialogComponent } from './user-and-group-management/user-add-name-dialog/user-add-name-dialog.component';
+import { UserDetailsComponent } from './user-and-group-management/user-details/user-details.component';
 
 @NgModule({
     declarations: [
@@ -160,6 +161,7 @@ import { UserAddNameDialogComponent } from './user-and-group-management/user-add
         ProjectAddGroupDialogComponent,
         SearchableListComponent,
         UserAddNameDialogComponent,
+        UserDetailsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
