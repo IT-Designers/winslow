@@ -472,7 +472,7 @@ public class FilesController {
                                              .filter(File::isFile)
                                              .map(File::length)
                                              .orElseGet(() -> {
-                                                 if (aggregateSizeForDirectories && user.isSuperUser()) {
+                                                 if (aggregateSizeForDirectories && user.hasSuperPrivileges()) {
                                                      return aggregateSize(file);
                                                  } else {
                                                      return null;
@@ -481,7 +481,7 @@ public class FilesController {
                                      getFileInfoAttributes(file)
                              )
                         )
-                        .collect(Collectors.toUnmodifiableList())
+                        .toList()
                 )
                 .orElse(Collections.emptyList());
     }
@@ -652,7 +652,6 @@ public class FilesController {
             }
         } catch (Throwable t) {
             t.printStackTrace();
-            ;
         }
         return command;
     }
