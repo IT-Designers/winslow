@@ -21,9 +21,8 @@ export class UserAndGroupManagementComponent implements OnInit {
 
   userTabTooltip = '';
   allUsers = [];
-  /*displayUsers = [];*/
   showUserDetail = false;
-  selectedUser: UserInfo = {name: 'No Name', displayName: 'No DisplayName', email: 'No Email'};
+  selectedUser: UserInfo = {name: 'No Name', displayName: 'No DisplayName', email: 'No Email', password: null};
 
   showGroupDetail = false;
   selectedGroup: GroupInfo = {name: 'No Group Selected', members: []};
@@ -89,9 +88,20 @@ export class UserAndGroupManagementComponent implements OnInit {
   onAddUserToggle(name) {
     if (name) {
       const newUser = {
-        name
+        name,
+        displayName: null,
+        email: null,
+        password: null,
       };
       console.log('Creating new user: ' + newUser.name);
+      return this.dialog.openLoadingIndicator(this.userApi.createUser(newUser)
+        .then(() => {
+          this.allUsers.push(newUser);
+          this.allUsers = this.allUsers.concat([]);
+          this.selectedUser = newUser;
+          this.showUserDetail = true;
+        }),
+        'Creating User');
       // TODO: actually create user, show progress with LoadingIndicator
     }
   }
@@ -126,6 +136,10 @@ export class UserAndGroupManagementComponent implements OnInit {
     this.showGroupDetail = false;
     this.itemSelected = false;
   }
+  onUserEditCancel() {
+    this.selectedUser = {name: 'No Name', displayName: 'No DisplayName', email: 'No Email', password: null};
+    this.showUserDetail = false;
+  }
   onGroupDelete() {
     this.dialog.openAreYouSure(
       `Group being deleted: ${this.selectedGroup.name}`,
@@ -140,6 +154,16 @@ export class UserAndGroupManagementComponent implements OnInit {
   }
   onUserDelete() {
     console.log('User Delete Pressed');
+    this.dialog.openAreYouSure(
+      `User being deleted: ${this.selectedUser.name}`,
+      () => this.userApi.deleteUser(this.selectedUser.name)
+        .then(() => {
+          const delIndex = this.allUsers.findIndex((tempUser) => tempUser.name === this.selectedUser.name);
+          this.allUsers.splice(delIndex, 1);
+          this.allUsers = this.allUsers.concat([]);
+          this.onUserEditCancel();
+        })
+    );
     // TODO: Implement AreYouSure Dialog and actual API to delete
   }
 }
