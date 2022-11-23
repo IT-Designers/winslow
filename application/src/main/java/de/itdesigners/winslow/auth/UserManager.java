@@ -96,6 +96,32 @@ public class UserManager implements GroupAssignmentResolver {
         return user;
     }
 
+    public void setPassword(@Nonnull String name, @Nonnull char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
+        updatePassword(name, password);
+    }
+
+    public void deletePassword(@Nonnull String name) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
+        updatePassword(name, null);
+    }
+
+    protected void updatePassword(@Nonnull String name, @Nullable char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
+        InvalidNameException.ensureValid(name);
+
+        var current = this.getUser(name).orElseThrow(() -> new NameNotFoundException(name));
+
+        // for now (without proper persistence), just replace the object
+        this.users.put(
+                name,
+                new User(
+                        name,
+                        current.displayName(),
+                        current.email(),
+                        getPasswordHash(password),
+                        this
+                )
+        );
+    }
+
     @Nullable
     private PasswordHash getPasswordHash(@Nullable char[] password) throws InvalidPasswordException {
         return password != null
