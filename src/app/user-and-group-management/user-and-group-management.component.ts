@@ -22,7 +22,7 @@ export class UserAndGroupManagementComponent implements OnInit {
   userTabTooltip = '';
   allUsers = [];
   showUserDetail = false;
-  selectedUser: UserInfo = {name: 'No Name', displayName: 'No DisplayName', email: 'No Email', password: null};
+  selectedUser: UserInfo = null;
 
   showGroupDetail = false;
   selectedGroup: GroupInfo = {name: 'No Group Selected', members: []};
@@ -137,7 +137,7 @@ export class UserAndGroupManagementComponent implements OnInit {
     this.itemSelected = false;
   }
   onUserEditCancel() {
-    this.selectedUser = {name: 'No Name', displayName: 'No DisplayName', email: 'No Email', password: null};
+    this.selectedUser = null;
     this.showUserDetail = false;
   }
   onGroupDelete() {
