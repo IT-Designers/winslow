@@ -35,7 +35,7 @@ public class GroupController {
     }
 
     @GetMapping("/groups")
-    public Stream<GroupInfo> getGroups(@Nonnull User user) {
+    public Stream<GroupInfo> getGroups(@Nullable User user) {
         // mask "not found" and "not allowed to see" as empty response
         return winslow
                 .getGroupManager()
@@ -47,7 +47,7 @@ public class GroupController {
 
     @GetMapping("/groups/{name}/available")
     public ResponseEntity<String> getGroupNameAvailable(
-            @Nonnull User user,
+            @Nullable User user,
             @PathVariable("name") String name) {
         try {
             InvalidNameException.ensureValid(name);
@@ -68,7 +68,7 @@ public class GroupController {
 
     @GetMapping("/groups/{name}")
     public Optional<GroupInfo> getGroup(
-            @Nonnull User user,
+            @Nullable User user,
             @PathVariable("name") String name) {
         // mask "not found" and "not allowed to see" as empty response
         return winslow
@@ -81,7 +81,7 @@ public class GroupController {
     @PostMapping("/groups")
     public GroupInfo createGroup(
             @Nullable User user,
-            @RequestBody Group group) {
+            @RequestBody GroupInfo group) {
         try {
             ensure(isAllowedToCreateNewGroup(user));
 
@@ -102,9 +102,9 @@ public class GroupController {
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
         } catch (NameAlreadyInUseException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Name already in use", e);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to create a group because of an io-error", e);
+            LOG.log(Level.SEVERE, "Failed to create group because of an io-error", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
