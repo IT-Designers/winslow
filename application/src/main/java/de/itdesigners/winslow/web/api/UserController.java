@@ -144,10 +144,10 @@ public class UserController {
         }
     }
 
-    @PutMapping("/users/{user}/password")
+    @PutMapping("/users/{name}/password")
     public void setPassword(
             @Nullable User user,
-            @Nonnull @PathVariable("user") String name,
+            @Nonnull @PathVariable("name") String name,
             @Nullable @RequestBody char[] password) {
         try {
             ensure(isAllowedToModifyUser(user, name));
