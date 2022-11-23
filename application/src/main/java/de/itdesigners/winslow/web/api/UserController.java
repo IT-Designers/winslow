@@ -75,11 +75,11 @@ public class UserController {
         return winslow
                 .getUserManager()
                 .getUser(name)
-                .filter(userToBeLookedAt -> isAllowedToSeeGroup(user, userToBeLookedAt))
+                .filter(userToBeLookedAt -> isAllowedToSeeUser(user, userToBeLookedAt))
                 .map(UserInfoConverter::from);
     }
 
-    private boolean isAllowedToSeeGroup(@Nullable User user, @Nonnull User toBeLookedAt) {
+    private boolean isAllowedToSeeUser(@Nullable User user, @Nonnull User toBeLookedAt) {
         // ordered in ascending query complexity
         return user != null && (user.hasSuperPrivileges() || toBeLookedAt.name().equals(user.name()));
     }
