@@ -481,7 +481,7 @@ public class FilesController {
                                      getFileInfoAttributes(file)
                              )
                         )
-                        .collect(Collectors.toUnmodifiableList())
+                        .toList()
                 )
                 .orElse(Collections.emptyList());
     }
@@ -652,7 +652,6 @@ public class FilesController {
             }
         } catch (Throwable t) {
             t.printStackTrace();
-            ;
         }
         return command;
     }
