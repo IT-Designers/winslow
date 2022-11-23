@@ -12,7 +12,8 @@ public class UserInfoConverter {
         return new UserInfo(
                 user.name(),
                 user.displayName(),
-                user.email()
+                user.email(),
+                null
         );
     }
 }
