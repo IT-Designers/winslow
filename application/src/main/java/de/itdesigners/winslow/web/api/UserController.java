@@ -152,17 +152,31 @@ public class UserController {
         try {
             ensure(isAllowedToModifyUser(user, name));
 
-            User userData = winslow
-                    .getUserManager()
-                    .getUser(name)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            if (password == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing password");
+            }
 
-            winslow.getUserManager().updateUser(
-                    userData.name(),
-                    userData.displayName(),
-                    userData.email(),
-                    password
-            );
+            winslow.getUserManager().setPassword(name, password);
+        } catch (InvalidNameException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
+        } catch (InvalidPasswordException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        } catch (NameNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found", e);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to create user because of an io-error", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Removes the user password", notes = "Requires super privileges. This might cause the user to no longer being able to login.")
+    @DeleteMapping("/users/{name}/password")
+    public void deletePassword(
+            @Nullable User user,
+            @Nonnull @PathVariable("name") String name) {
+        try {
+            ensure(isAllowedToDeleteUserPassword(user));
+            winslow.getUserManager().deletePassword(name);
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
         } catch (InvalidPasswordException e) {
@@ -213,8 +227,14 @@ public class UserController {
         return user != null && (user.hasSuperPrivileges() || toBeModified.equals(user.name()));
     }
 
+    private boolean isAllowedToDeleteUserPassword(@Nullable User user) {
+        // only privileged users can unset passwords
+        return user != null && user.hasSuperPrivileges();
+    }
+
     private boolean isAllowedToDeleteUser(@Nullable User user) {
-        return isAllowedToCreateUser(user);
+        // only privileged users can delete users
+        return user != null && user.hasSuperPrivileges();
     }
 
     private boolean isAllowedToCreateUser(@Nullable User user) {
