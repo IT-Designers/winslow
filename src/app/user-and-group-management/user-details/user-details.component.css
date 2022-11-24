@@ -7,14 +7,14 @@
   padding: 3em;
   font-style: italic;
 }
-.groupname-label, .username-label, .display-name-label, .email-label {
+.attribute-label {
   font-weight: bold;
   display: inline-block;
-  width: 10em;
-}
-.display-name-label, .email-label {
+  min-width: 10em;
+  max-width: 10em;
   margin-top: 20px;
 }
+
 #detailGroupName, #detailUserName, .display-name, .email {
   padding: 6px 10px;
   display: inline-block;
@@ -35,4 +35,20 @@
   width: 10em;
   float: right;
   margin-top: 40px;
+}
+.detail-item {
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+}
+.update-btn {
+  float: right;
+  margin-left: 2%;
+  align-self: center;
+  height: 40px;
+}
+
+.input-width {
+  min-width: 70%;
+  max-width: 70%;
 }
