@@ -52,3 +52,16 @@
   min-width: 70%;
   max-width: 70%;
 }
+
+.red {
+  color: red;
+}
+.orange {
+  color: orange;
+}
+.yellow {
+  color: yellowgreen;
+}
+.green {
+  color: green;
+}

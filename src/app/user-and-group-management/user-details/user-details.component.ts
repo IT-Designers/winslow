@@ -15,6 +15,8 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   @Output() deletedUserEmitter = new EventEmitter();
 
   canIEditUser = false;
+  newPassword = '';
+  passwordHintColor = 'red';
 
 
 
@@ -24,38 +26,42 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.myName === this.selectedUser.name) {
-      this.canIEditUser = true;
-    } else {
-      this.userApi.hasSuperPrivileges(this.myName)
-        .then((bool) => {
-          console.log('Am I a super user? ' + bool);
-          this.canIEditUser = bool;
-        });
+    if (this.selectedUser) {
+      if (this.myName === this.selectedUser.name) {
+        this.canIEditUser = true;
+      } else {
+        this.userApi.hasSuperPrivileges(this.myName)
+          .then((bool) => {
+            this.canIEditUser = bool;
+          });
+      }
     }
-    console.log('Can i edit the user? ' + this.canIEditUser);
   }
 
   onUserDelete() {
     this.deletedUserEmitter.emit(this.selectedUser);
   }
 
-  canIUpdate() {
-    if (this.myName === this.selectedUser.name) {
-      this.canIEditUser = true;
-    } else {
-      this.userApi.hasSuperPrivileges(this.myName)
-        .then((bool) => {
-          console.log('Am I a super user? ' + bool);
-          this.canIEditUser = bool;
-        });
-    }
-  }
-
   onUpdate() {
     console.dir(this.selectedUser);
     this.dialog.openLoadingIndicator(this.userApi.updateUser(this.selectedUser),
       'Updating User');
+  }
+
+  setPasswordHintColor() {
+    if (this.newPassword.length < 8) {
+      this.passwordHintColor = 'red';
+    } else if (this.newPassword.length >= 8 && this.newPassword.length < 10) {
+      this.passwordHintColor = 'orange';
+    } else if (this.newPassword.length >= 10 && this.newPassword.length < 12) {
+      this.passwordHintColor = 'yellow';
+    } else if (this.newPassword.length >= 12) {
+      this.passwordHintColor = 'green';
+    }
+  }
+  onUpdatePassword() {
+    this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, this.newPassword),
+      'Updating Password');
   }
 
 }
