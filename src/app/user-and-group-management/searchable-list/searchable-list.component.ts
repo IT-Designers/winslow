@@ -84,13 +84,11 @@ export class SearchableListComponent implements OnInit, OnChanges {
   }
 
   itemClicked(item) {
-    console.dir(this.displayItems);
     this.selectedItemName = item.name;
     this.itemEmitter.emit(item);
   }
 
   newBtnClicked() {
-    console.log('Button clicked');
     if (this.type === 'Group') {
       this.createDialog.open(NewGroupDialogComponent, {
         data: {} as string
