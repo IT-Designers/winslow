@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -148,15 +147,11 @@ public class UserController {
     public void setPassword(
             @Nullable User user,
             @Nonnull @PathVariable("name") String name,
-            @Nullable @RequestBody char[] password) {
+            // https://stackoverflow.com/a/45250557
+            @RequestBody String password) {
         try {
             ensure(isAllowedToModifyUser(user, name));
-
-            if (password == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing password");
-            }
-
-            winslow.getUserManager().setPassword(name, password);
+            winslow.getUserManager().setPassword(name, password.toCharArray());
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
         } catch (InvalidPasswordException e) {
