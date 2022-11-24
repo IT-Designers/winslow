@@ -2,16 +2,57 @@
 <div *ngIf="selectedUser != null" class="user-detail-container">
   <h2>User Details</h2>
   <div class="user-name-container">
-    <label for="detailUserName" class="username-label"> Username: </label>
-    <label id="detailUserName">{{selectedUser.name}}</label>
+    <!--<label for="detailUserName" class="username-label"> Username: </label>
+    <label id="detailUserName">{{selectedUser.name}}</label>-->
 
-    <label class="display-name-label"> Display Name: </label>
+    <!--<label class="display-name-label"> Display Name: </label>
     <label *ngIf="selectedUser.displayName != null" class="display-name">{{selectedUser.displayName}}</label>
-    <label *ngIf="!selectedUser.displayName" class="display-name no-value">No Display Name</label>
+    <label *ngIf="!selectedUser.displayName" class="display-name no-value">No Display Name</label>-->
 
-    <label class="email-label"> E-Mail: </label>
-    <label *ngIf="selectedUser.email != null" class="email">{{selectedUser.email}}</label>
-    <label *ngIf="!selectedUser.email" class="email no-value">No Email</label>
+    <div class="detail-item">
+      <label class="attribute-label">  Username: </label>
+      <mat-form-field class="input-width">
+        <input matInput placeholder="Username" [defaultValue]="selectedUser.name" [(ngModel)]="selectedUser.name">
+      </mat-form-field>
+      <button mat-raised-button
+              color="primary"
+              (click)="onUpdate()"
+              class="update-btn"
+              [disabled]="!canIEditUser">
+        Update
+      </button>
+    </div>
+
+    <div class="detail-item">
+      <label class="attribute-label"> Display Name: </label>
+      <mat-form-field class="input-width">
+        <input matInput placeholder="Display Name" [defaultValue]="selectedUser.displayName" [(ngModel)]="selectedUser.displayName">
+      </mat-form-field>
+      <button mat-raised-button
+              color="primary"
+              (click)="onUpdate()"
+              class="update-btn"
+              [disabled]="!canIEditUser">
+        Update
+      </button>
+    </div>
+
+    <div class="detail-item">
+      <label class="attribute-label"> E-Mail: </label>
+      <mat-form-field class="input-width">
+        <input matInput placeholder="Email" [defaultValue]="selectedUser.email" [(ngModel)]="selectedUser.email">
+      </mat-form-field>
+      <button mat-raised-button
+              color="primary"
+              (click)="onUpdate()"
+              class="update-btn"
+              [disabled]="!canIEditUser">
+        Update
+      </button>
+    </div>
+
+    <!--<label *ngIf="selectedUser.email != null" class="email">{{selectedUser.email}}</label>
+    <label *ngIf="!selectedUser.email" class="email no-value">No Email</label>-->
   </div>
   <button class="mat-raised-button delete-user-btn"
           (click)="onUserDelete()"

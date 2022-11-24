@@ -33,6 +33,7 @@
         <button class="mat-raised-button delete-group-btn" (click)="onUserDelete()" color="warn" mat-raised-button=""> Delete </button>
       </div>-->
       <app-user-details [selectedUser]="selectedUser"
+                        [myName]="myName"
                         (deletedUserEmitter)="onUserDelete()"
                         class="user-detail">
       </app-user-details>
