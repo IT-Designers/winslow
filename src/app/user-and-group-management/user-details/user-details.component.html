@@ -51,6 +51,21 @@
       </button>
     </div>
 
+    <div class="detail-item">
+      <label class="attribute-label"> Password: </label>
+      <mat-form-field class="input-width">
+        <input matInput placeholder="Password" [(ngModel)]="newPassword" (keyup)="setPasswordHintColor()">
+        <mat-hint align="end" [class]="passwordHintColor">{{newPassword.length}} / 8</mat-hint>
+      </mat-form-field>
+      <button mat-raised-button
+              color="primary"
+              (click)="onUpdatePassword()"
+              class="update-btn"
+              [disabled]="!canIEditUser || !(newPassword.length >= 8)">
+        Update
+      </button>
+    </div>
+
     <!--<label *ngIf="selectedUser.email != null" class="email">{{selectedUser.email}}</label>
     <label *ngIf="!selectedUser.email" class="email no-value">No Email</label>-->
   </div>

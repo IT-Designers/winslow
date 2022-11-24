@@ -57,6 +57,12 @@ export class UserApiService {
       .toPromise();
   }
 
+  removePassword(userName: string): Promise<void> {
+    return  this.client
+      .delete<void>(UserApiService.getUrl(userName + '/password'))
+      .toPromise();
+  }
+
   hasSuperPrivileges(userName: string): Promise<boolean> {
     return this.client
       .get<boolean>(UserApiService.getUrl(userName + '/super-privileges'))
