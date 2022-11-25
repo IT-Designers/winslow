@@ -25,9 +25,7 @@ export class UserAndGroupManagementComponent implements OnInit {
   selectedUser: UserInfo = null;
 
   showGroupDetail = false;
-  selectedGroup: GroupInfo = {name: 'No Group Selected', members: []};
-  userDrawerOpen = true;
-  groupDrawerOpen = true;
+  selectedGroup: GroupInfo = null;
 
   constructor(
     private groupApi: GroupApiService,
@@ -117,22 +115,6 @@ export class UserAndGroupManagementComponent implements OnInit {
     this.showUserDetail = true;
   }
 
-  onMemberAdded(event) {
-    return this.dialog.openLoadingIndicator(
-      this.groupApi.addOrUpdateMembership(this.selectedGroup.name, event)
-        .then(() => {
-          this.selectedGroup.members.push(event);
-        }),
-      'Adding Member to group'
-    );
-  }
-  onRemoveMember(event) {
-    return this.dialog.openLoadingIndicator(
-      this.groupApi.deleteGroupMembership(this.selectedGroup.name, event.name),
-      'Removing Member from Group'
-    );
-  }
-
   onEditCancel() {
     this.selectedGroup = {name: 'No Group Selected', members: []};
     this.showGroupDetail = false;
@@ -166,9 +148,5 @@ export class UserAndGroupManagementComponent implements OnInit {
           this.onUserEditCancel();
         })
     );
-  }
-  tabHasChanged() {
-    console.log('Tab changed');
-    this.userDrawerOpen = true;
   }
 }

@@ -1,7 +1,8 @@
 /* ---------- Overall Container Styling ---------- */
 .list-and-label-container {
-  margin-top: 20px;
-  margin-bottom: 20px;
+  width: 100%;
+  margin-top: 2vh;
+  margin-bottom: 2vh;
   margin-left: 0;
   display: flex;
   flex-direction: row;
@@ -10,7 +11,8 @@
   font-weight: bold;
   display: inline-block;
   flex-shrink: 0;
-  width: 10em;
+  min-width: 13%;
+  max-width: 13%;
   margin-top: 7px;
 }
 app-groups-add-member-dialog {
@@ -25,7 +27,8 @@ app-groups-add-member-dialog {
   position: relative;
   padding-bottom: 5px;
   background-color: #f6f6f6;
-  min-width: 700px;
+  min-width: 87%;
+  max-width: 87%;
   max-height: 460px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -35,7 +38,7 @@ app-groups-add-member-dialog {
   align-items: center;
 }
 .scrollable {
-  width: 90%;
+  width: 97%;
   overflow-y: scroll;
   border-bottom: 1px solid lightgray;
 }
@@ -94,7 +97,7 @@ app-groups-add-member-dialog {
   margin-top: 2px;
 }
 .text-input {
-  width: 90%;
+  width: 96%;
   padding: 2px;
   padding-left: 5px;
   border: 1px solid lightgrey;
