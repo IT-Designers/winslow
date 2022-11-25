@@ -85,6 +85,7 @@ public class Winslow implements Runnable {
         commands.put("passwd", this::passwd);
         commands.put("adduser", this::addUser);
         commands.put("lsuser", this::lsUser);
+        commands.put("moduser", this::modUser);
 
         try (Scanner scanner = new Scanner(System.in)) {
             var handle = new ConsoleHandle(scanner);
@@ -205,7 +206,7 @@ public class Winslow implements Runnable {
     private void passwd(@Nonnull ConsoleHandle console, @Nonnull Arguments args) {
         var username = args.argLine;
         if (username == null) {
-            System.out.print("           Username: ");
+            System.out.print("       Username: ");
             username = console.readLine();
         }
 
@@ -296,14 +297,16 @@ public class Winslow implements Runnable {
      */
     private void lsUser(@Nonnull ConsoleHandle console, @Nonnull Arguments _args) {
         try (var users = this.userManager.getUsersPotentiallyIncomplete()) {
-            var columnWidths = new int[6];
+            var header = new String[]{
+                    "Active", "Name", "Display Name", "E-Mail", "Password", "Privileges", "Groups"
+            };
+            var columnWidths = new int[header.length];
             var contents     = new ArrayList<String[]>();
-            contents.add(new String[]{
-                    "Name", "Display Name", "E-Mail", "Password", "Privileges", "Groups"
-            });
+            contents.add(header);
 
             users.forEach(user -> {
                 contents.add(new String[]{
+                        user.active() ? "yes" : "no",
                         user.name(),
                         user.displayName() != null ? user.displayName() : "",
                         user.email() != null ? user.email() : "",
@@ -344,6 +347,35 @@ public class Winslow implements Runnable {
                 ++currentRow;
             }
             System.out.println();
+        }
+    }
+
+    private void modUser(@Nonnull ConsoleHandle console, @Nonnull Arguments args) {
+        if (args.args == null || args.args.length < 2) {
+            System.out.println("ERROR: Expected at least two arguments: <action> <user>");
+        } else {
+            var action   = args.args[0];
+            var username = args.args[1];
+
+            try {
+                var user = this.userManager.getUser(username).orElseThrow(() -> new NameNotFoundException(username));
+
+                switch (action) {
+                    case "activate", "deactivate" -> this.userManager.updateUser(
+                            user.name(),
+                            user.displayName(),
+                            user.email(),
+                            Objects.equals("activate", action)
+                    );
+                    default -> System.out.println("ERROR: Unexpected action: '" + action + "'");
+                }
+            } catch (InvalidNameException e) {
+                System.out.println("ERROR: Invalid username");
+            } catch (NameNotFoundException e) {
+                System.out.println("ERROR: User not found");
+            } catch (IOException e) {
+                System.out.println("ERROR: io-error: " + e.getMessage());
+            }
         }
     }
 
