@@ -14,9 +14,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -87,6 +89,21 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .and().csrf().ignoringAntMatchers("/" + EXPORT_NAME + "/**")
             .and().csrf().ignoringAntMatchers(Env.getWebsocketPath() + "**")
             .and().headers().frameOptions().sameOrigin();
+
+        http.addFilterAfter((servletRequest, servletResponse, filterChain) -> {
+            if (servletRequest instanceof HttpServletRequest sr) {
+                var user = Optional
+                        .of(sr)
+                        .filter(r -> r.getUserPrincipal() != null && r.getUserPrincipal().getName() != null)
+                        .flatMap(r -> winslow.getUserManager().getUser(r.getUserPrincipal().getName()));
+
+                if (user.isPresent() && !user.get().active()) {
+                    sr.getSession().invalidate();
+                }
+            }
+
+            filterChain.doFilter(servletRequest, servletResponse);
+        }, AuthorizationFilter.class);
     }
 
 
