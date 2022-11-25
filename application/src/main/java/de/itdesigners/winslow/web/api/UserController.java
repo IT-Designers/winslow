@@ -118,7 +118,8 @@ public class UserController {
                         winslow.getUserManager().updateUser(
                                 update.name(),
                                 update.displayName(),
-                                update.email()
+                                update.email(),
+                                update.active()
                         )
                 );
             } else {
@@ -127,6 +128,7 @@ public class UserController {
                                 update.name(),
                                 update.displayName(),
                                 update.email(),
+                                update.active(),
                                 update.password()
                         )
                 );

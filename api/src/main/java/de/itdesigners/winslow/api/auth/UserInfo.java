@@ -7,6 +7,7 @@ public record UserInfo(
         @Nonnull String name,
         @Nullable String displayName,
         @Nullable String email,
+        boolean active,
         @Nullable char[] password
 ) {
 }
