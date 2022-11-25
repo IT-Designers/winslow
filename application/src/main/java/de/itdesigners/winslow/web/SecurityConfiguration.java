@@ -115,7 +115,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                             .flatMap(pw -> winslow
                                     .getUserManager()
                                     .getUser(authentication.getName().trim())
-                                    .filter(user -> user.password() != null
+                                    .filter(user -> user.active()
+                                            && user.password() != null
                                             && user.password().isPasswordCorrect(pw)
                                     )
                                     .map(user -> new UsernamePasswordAuthenticationToken(

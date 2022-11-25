@@ -54,7 +54,7 @@ public class FileAccessCheckerTest {
 
     @Test
     public void anyValidUserCanAccessGlobalResources() {
-        var user = new User("just-me", null, null, null, DUMMY_GROUP_RESOLVER);
+        var user = new User("just-me", null, null, true, null, DUMMY_GROUP_RESOLVER);
         assertTrue(checker.isAllowedToAccessPath(user, config.getRelativePathOfResources().resolve("some-file")));
         assertTrue(checker.isAllowedToAccessPath(user, config.getRelativePathOfResources()));
     }
@@ -68,8 +68,8 @@ public class FileAccessCheckerTest {
 
     @Test
     public void noneCanAccessWorkDir() {
-        var root = new User(User.SUPER_USER_NAME, null, null, null, DUMMY_GROUP_RESOLVER);
-        var user = new User("not_" + User.SUPER_USER_NAME, null, null, null, DUMMY_GROUP_RESOLVER);
+        var root = new User(User.SUPER_USER_NAME, null, null, true, null, DUMMY_GROUP_RESOLVER);
+        var user = new User("not_" + User.SUPER_USER_NAME, null, null, true, null, DUMMY_GROUP_RESOLVER);
 
         assertFalse(checker.isAllowedToAccessPath(root, workDir.relativize(workDir)));
         assertFalse(checker.isAllowedToAccessPath(user, workDir.relativize(workDir)));
@@ -77,8 +77,8 @@ public class FileAccessCheckerTest {
 
     @Test
     public void everyoneCanAccessWorkspacesMainDirectory() {
-        var root = new User(User.SUPER_USER_NAME, null, null, null, DUMMY_GROUP_RESOLVER);
-        var user = new User("not_" + User.SUPER_USER_NAME, null, null, null, DUMMY_GROUP_RESOLVER);
+        var root = new User(User.SUPER_USER_NAME, null, null, true, null, DUMMY_GROUP_RESOLVER);
+        var user = new User("not_" + User.SUPER_USER_NAME, null, null, true, null, DUMMY_GROUP_RESOLVER);
 
         assertTrue(checker.isAllowedToAccessPath(root, config.getRelativePathOfWorkspaces()));
         assertTrue(checker.isAllowedToAccessPath(user, config.getRelativePathOfWorkspaces()));
@@ -106,7 +106,7 @@ public class FileAccessCheckerTest {
 
     @Test
     public void canNotAccessOutsideFilesNotEventAsSuperUser() {
-        var superUser = new User(User.SUPER_USER_NAME, null, null, null, DUMMY_GROUP_RESOLVER);
+        var superUser = new User(User.SUPER_USER_NAME, null, null, true, null, DUMMY_GROUP_RESOLVER);
         assertFalse(checker.isAllowedToAccessPath(superUser, Path.of("test")));
         assertFalse(checker.isAllowedToAccessPath(superUser, Path.of("../tmp")));
         assertFalse(checker.isAllowedToAccessPath(superUser, config.getRelativePathOfResources().resolve("../tmp")));
@@ -114,7 +114,7 @@ public class FileAccessCheckerTest {
 
     @Test
     public void canAccessPublicProjectAsNonSuperuserAndNonMember() {
-        var waldo = new User("waldo", null, null, null, DUMMY_GROUP_RESOLVER);
+        var waldo = new User("waldo", null, null, true, null, DUMMY_GROUP_RESOLVER);
 
         this.publicProject = true;
         var workspace = config.getRelativePathOfWorkspaces().resolve("workspace-id");

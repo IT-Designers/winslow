@@ -12,8 +12,8 @@ public class SuperPrivilegesTests {
 
     @Test
     public void testSuperConstructorFlag() {
-        assertTrue(new User(User.SUPER_USER_NAME, null, null, null, null).isSuperUser());
-        assertTrue(new User(User.SUPER_USER_NAME, null, null, null, null).hasSuperPrivileges());
+        assertTrue(new User(User.SUPER_USER_NAME, null, null, true, null, null).isSuperUser());
+        assertTrue(new User(User.SUPER_USER_NAME, null, null, true, null, null).hasSuperPrivileges());
     }
 
     @Test
