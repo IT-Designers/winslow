@@ -1,81 +1,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
-<!--<mat-tab-group class="height">
-  <mat-tab label="Users" [disabled]="!isUserAdmin()" [matTooltip]="userTabTooltip">
-    <div class="user-administration-div">
-      <div class="user-list-container">
-        <app-searchable-list
-          type="User"
-          [allItems]="allUsers"
-          searchPlaceholderText="Username..."
-          listItemTooltip="Edit User"
-          (itemEmitter)="userClicked($event)"
-          (newItemEmitter)="onAddUserToggle($event)"
-          class="searchable-list">
-        </app-searchable-list>
-      </div>
-
-      &lt;!&ndash;<label *ngIf="!showUserDetail" class="nothing-selected">No user selected</label>
-      <div *ngIf="showUserDetail" class="user-detail-container">
-        <h2>User Details</h2>
-        <div class="user-name-container">
-          <label for="detailUserName" class="username-label"> Username: </label>
-          <label id="detailUserName">{{selectedUser.name}}</label>
-
-          <label class="display-name-label"> Display Name: </label>
-          <label *ngIf="selectedUser.displayName != null" class="display-name">{{selectedUser.displayName}}</label>
-          <label *ngIf="!selectedUser.displayName" class="display-name no-value">No Display Name</label>
-
-          <label class="email-label"> E-Mail: </label>
-          <label *ngIf="selectedUser.email != null" class="email">{{selectedUser.email}}</label>
-          <label *ngIf="!selectedUser.email" class="email no-value">No Email</label>
-
-        </div>
-        <button class="mat-raised-button delete-group-btn" (click)="onUserDelete()" color="warn" mat-raised-button=""> Delete </button>
-      </div>&ndash;&gt;
-      <app-user-details [selectedUser]="selectedUser"
-                        [myName]="myName"
-                        (deletedUserEmitter)="onUserDelete()"
-                        class="user-detail">
-      </app-user-details>
-    </div>
-  </mat-tab>
-  <mat-tab label=Groups>
-    <div class="groupAdministrationDiv">
-      <div class="groups-list-container">
-          <app-searchable-list
-            type="Group"
-            [allItems]="allGroups"
-            searchPlaceholderText="Groupname..."
-            listItemTooltip="Edit Group"
-            (itemEmitter)="groupClicked($event)"
-            (newItemEmitter)="onAddGroupToggle($event)"
-            class="searchable-list">
-          </app-searchable-list>
-      </div>
-
-      <label *ngIf="!showGroupDetail" class="nothing-selected">No group selected</label>
-      <div *ngIf="showGroupDetail" class="group-detail-container">
-        <h2>Group Details</h2>
-        <div class="group-name-container">
-          <label for="detailGroupName" class="groupname-label"> Groupname: </label>
-          <label id="detailGroupName">{{selectedGroup.name}}</label>
-        </div>
-        <app-group-member-list [group]="selectedGroup"
-                               [myUser]="myUser"
-                               (memberEmitter)="onMemberAdded($event)"
-                               (removeMember)="onRemoveMember($event)"
-        ></app-group-member-list>
-        <button class="mat-raised-button delete-group-btn" (click)="onGroupDelete()" color="warn" mat-raised-button=""> Delete </button>
-      </div>
-    </div>
-  </mat-tab>
-</mat-tab-group>-->
-
-
-<mat-tab-group class="tab-height" (selectedTabChange)="tabHasChanged()">
+<mat-tab-group class="tab-height">
   <mat-tab label="Users" [disabled]="!isUserAdmin()" [matTooltip]="userTabTooltip" class="tab-height">
     <mat-drawer-container class="drawer-container" [autosize]="false">
-      <mat-drawer mode="side" class="drawer" [opened]="userDrawerOpen" [disableClose]="true">
+      <mat-drawer mode="side"
+                  class="drawer"
+                  [opened]="true"
+                  [disableClose]="true">
         <div class="drawer-content">
           <div class="drawer-element">
             <app-searchable-list
@@ -94,14 +24,18 @@
           <app-user-details [selectedUser]="selectedUser"
                             [myName]="myName"
                             (deletedUserEmitter)="onUserDelete()"
-                            class="user-detail">
+                            class="details">
           </app-user-details>
       </mat-drawer-content>
     </mat-drawer-container>
   </mat-tab>
   <mat-tab label="Groups">
     <mat-drawer-container class="drawer-container" [autosize]="false">
-      <mat-drawer id="userDrawer" mode="side" class="drawer" [opened]="groupDrawerOpen" [disableClose]="true">
+      <mat-drawer id="userDrawer"
+                  mode="side"
+                  class="drawer"
+                  [opened]="true"
+                  [disableClose]="true">
         <div class="drawer-content">
           <div class="drawer-element">
             <app-searchable-list
@@ -117,20 +51,12 @@
         </div>
       </mat-drawer>
       <mat-drawer-content class="detail-container">
-          <label *ngIf="!showGroupDetail" class="nothing-selected">No group selected</label>
-          <div *ngIf="showGroupDetail" class="group-detail-container">
-            <h2>Group Details</h2>
-            <div class="group-name-container">
-              <label for="detailGroupName" class="groupname-label"> Groupname: </label>
-              <label id="detailGroupName">{{selectedGroup.name}}</label>
-            </div>
-            <app-group-member-list [group]="selectedGroup"
-                                   [myUser]="myUser"
-                                   (memberEmitter)="onMemberAdded($event)"
-                                   (removeMember)="onRemoveMember($event)"
-            ></app-group-member-list>
-            <button class="mat-raised-button delete-group-btn" (click)="onGroupDelete()" color="warn" mat-raised-button=""> Delete </button>
-          </div>
+        <app-group-details [selectedGroup]="selectedGroup"
+                           [myUser]="myUser"
+                           (groupDeleteEmitter)="onGroupDelete()"
+                           class="details">
+
+        </app-group-details>
       </mat-drawer-content>
 
     </mat-drawer-container>
