@@ -1,7 +1,6 @@
 package de.itdesigners.winslow.auth;
 
 import de.itdesigners.winslow.api.auth.Role;
-import org.eclipse.jgit.util.IO;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
