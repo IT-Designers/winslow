@@ -1,131 +1,17 @@
-.mat-sidenav-content {
-  overflow: clip;
-}
-/*.drawer-container {
-  height: 845px;
-  overflow: clip;
-  !*height: 100%;*!
-}
-.drawer {
-  width: 30vw;
-  background-color: whitesmoke;
-  overflow-y: clip;
-}
-.drawer-content {
-  !*padding: 0.2em;*!
-  padding: 10px;
-  overflow-y: hidden;
-  margin-bottom: 2em;
-}*/
 .header {
   padding-left: 35px;
   padding-top: 0;
   margin-bottom: 0;
 }
 /*---------- Group/User List ----------*/
-.groupAdministrationDiv, .user-administration-div {
-  display: flex;
-  flex-direction: row;
-  height: 100%;
-  /*margin-top: 10px;*/
-  overflow: clip;
-}
-
-.groups-list-container, .user-list-container {
-  padding-top: 10px;
-  background-color: whitesmoke;
-  margin-right: 80px;
-  padding-right: 20px;
-  padding-left: 20px;
-  width: 30%;
-  height: 880px;
-  border-right: 1px solid lightgrey;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 .searchable-list {
   width: 100%;
 }
-.hidden {
-  display: none;
-}
-.new-group-btn-container, .new-user-btn-container {
-  width: 95%;
-  border-top: 1px solid grey;
-  padding-top: 20px;
-  margin-top: 2px;
-}
-.show-usergroups-checkbox {
-
-}
-.new-group-btn, .new-user-btn {
-  float: right;
-}
-
-/* ----- add group -----*/
-
-.add-group-container {
-  width: 54em;
-}
-
-.submit-group-btn {
-  width: 10em;
-  margin-top: 40px;
-  margin-left: 1em;
-}
-
-.cancel-btn {
-  width: 10em;
-  float: left;
-  margin-top: 40px;
-  margin-left: 11em;
-}
 
 /* ----- Group/User Detail ------*/
-.nothing-selected {
-  width: 54em;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 10px;
-  text-align: center;
-  padding: 3em;
-  font-style: italic;
-}
-.groupname-label, .username-label, .display-name-label, .email-label {
-  font-weight: bold;
-  display: inline-block;
-  width: 10em;
-}
-.display-name-label, .email-label {
-  margin-top: 20px;
-}
-#detailGroupName, #detailUserName, .display-name, .email {
-  padding: 6px 10px;
-  display: inline-block;
-  width: 680px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f6f6f6;
-}
-.no-value {
-  font-style: italic;
-}
-.group-detail-container, .user-detail-container {
-  width: 54em;
-  /*padding-left: 60px;
-  border-left: 1px solid lightgrey;*/
-}
-
-.user-detail {
+.details {
   width: 100%;
   display: flex;
-}
-
-.delete-group-btn, .delete-user-btn {
-  width: 10em;
-  float: right;
-  margin-top: 40px;
 }
 /*---------------------------------------------------*/
 .drawer-container {
@@ -154,10 +40,3 @@
   margin-left: 30vw;
 }
 
-.tab-height {
-  height: 100%;
-}
-
-.mat-tab-body-wrapper {
-  height: 100%;
-}
