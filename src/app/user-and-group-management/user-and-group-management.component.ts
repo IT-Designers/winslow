@@ -26,6 +26,8 @@ export class UserAndGroupManagementComponent implements OnInit {
 
   showGroupDetail = false;
   selectedGroup: GroupInfo = {name: 'No Group Selected', members: []};
+  userDrawerOpen = true;
+  groupDrawerOpen = true;
 
   constructor(
     private groupApi: GroupApiService,
@@ -164,6 +166,9 @@ export class UserAndGroupManagementComponent implements OnInit {
           this.onUserEditCancel();
         })
     );
-    // TODO: Implement AreYouSure Dialog and actual API to delete
+  }
+  tabHasChanged() {
+    console.log('Tab changed');
+    this.userDrawerOpen = true;
   }
 }
