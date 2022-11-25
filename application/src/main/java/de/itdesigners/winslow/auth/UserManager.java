@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.auth;
 
 import de.itdesigners.winslow.api.auth.Role;
+import org.eclipse.jgit.util.IO;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,6 +29,7 @@ public class UserManager implements GroupAssignmentResolver {
                         User.SUPER_USER_NAME,
                         null,
                         null,
+                        true,
                         null,
                         this
 
@@ -53,7 +55,7 @@ public class UserManager implements GroupAssignmentResolver {
         InvalidNameException.ensureValid(name);
         NameAlreadyInUseException.ensureNotPresent(this.users.keySet(), name);
 
-        var user = new User(name, displayName, email, getPasswordHash(password), this);
+        var user = new User(name, displayName, email, true, getPasswordHash(password), this);
         this.users.put(name, user);
         return user;
     }
@@ -62,12 +64,14 @@ public class UserManager implements GroupAssignmentResolver {
     public User updateUser(
             @Nonnull String name,
             @Nullable String displayName,
-            @Nullable String email) throws InvalidNameException, NameNotFoundException, IOException, InvalidPasswordException {
+            @Nullable String email,
+            boolean active) throws InvalidNameException, NameNotFoundException, IOException {
         InvalidNameException.ensureValid(name);
         return updateUser(
                 name,
                 displayName,
                 email,
+                active,
                 getUser(name).orElseThrow(() -> new NameNotFoundException(name)).password()
         );
     }
@@ -77,8 +81,9 @@ public class UserManager implements GroupAssignmentResolver {
             @Nonnull String name,
             @Nullable String displayName,
             @Nullable String email,
+            boolean active,
             @Nullable char[] password) throws InvalidNameException, NameNotFoundException, IOException, InvalidPasswordException {
-        return updateUser(name, displayName, email, getPasswordHash(password));
+        return updateUser(name, displayName, email, active, getPasswordHash(password));
     }
 
     @Nonnull
@@ -86,17 +91,20 @@ public class UserManager implements GroupAssignmentResolver {
             @Nonnull String name,
             @Nullable String displayName,
             @Nullable String email,
+            boolean active,
             @Nullable PasswordHash passwordHash) throws InvalidNameException, NameNotFoundException, IOException {
         InvalidNameException.ensureValid(name);
         NameNotFoundException.ensurePresent(this.users.keySet(), name);
 
         // for now (without proper persistence), just replace the object
-        var user = new User(name, displayName, email, passwordHash, this);
+        var user = new User(name, displayName, email, active, passwordHash, this);
         this.users.put(name, user);
         return user;
     }
 
-    public void setPassword(@Nonnull String name, @Nonnull char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
+    public void setPassword(
+            @Nonnull String name,
+            @Nonnull char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
         updatePassword(name, password);
     }
 
@@ -104,18 +112,21 @@ public class UserManager implements GroupAssignmentResolver {
         updatePassword(name, null);
     }
 
-    protected void updatePassword(@Nonnull String name, @Nullable char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
+    protected void updatePassword(
+            @Nonnull String name,
+            @Nullable char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
         InvalidNameException.ensureValid(name);
 
         var current = this.getUser(name).orElseThrow(() -> new NameNotFoundException(name));
 
         // for now (without proper persistence), just replace the object
         this.users.put(
-                name,
+                current.name(),
                 new User(
-                        name,
+                        current.name(),
                         current.displayName(),
                         current.email(),
+                        current.active(),
                         getPasswordHash(password),
                         this
                 )
@@ -212,6 +223,7 @@ public class UserManager implements GroupAssignmentResolver {
                         user.name(),
                         user.displayName(),
                         user.email(),
+                        user.active(),
                         getPasswordHash(password),
                         user.groupAssignmentResolver()
                 )
