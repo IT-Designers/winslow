@@ -12,13 +12,17 @@
     <div class="detail-item">
       <label class="attribute-label">  Username: </label>
       <mat-form-field class="input-width">
-        <input matInput placeholder="Username" [defaultValue]="selectedUser.name" [(ngModel)]="selectedUser.name">
+        <input matInput
+               placeholder="Username"
+               [defaultValue]="editableSelectedUser.name"
+               [(ngModel)]="editableSelectedUser.name"
+               (keyup)="usernameHasChanged()">
       </mat-form-field>
       <button mat-raised-button
               color="primary"
-              (click)="onUpdate()"
+              (click)="onUpdateUsername()"
               class="update-btn"
-              [disabled]="!canIEditUser">
+              [disabled]="!canIEditUser || !hasUsernameChanged">
         Update
       </button>
     </div>
@@ -26,13 +30,17 @@
     <div class="detail-item">
       <label class="attribute-label"> Display Name: </label>
       <mat-form-field class="input-width">
-        <input matInput placeholder="Display Name" [defaultValue]="selectedUser.displayName" [(ngModel)]="selectedUser.displayName">
+        <input matInput
+               placeholder="Display Name"
+               [defaultValue]="editableSelectedUser.displayName"
+               [(ngModel)]="editableSelectedUser.displayName"
+               (keyup)="displayNameHasChanged()">
       </mat-form-field>
       <button mat-raised-button
               color="primary"
-              (click)="onUpdate()"
+              (click)="onUpdateDisplayName()"
               class="update-btn"
-              [disabled]="!canIEditUser">
+              [disabled]="!canIEditUser || !hasDisplayNameChanged">
         Update
       </button>
     </div>
@@ -40,13 +48,17 @@
     <div class="detail-item">
       <label class="attribute-label"> E-Mail: </label>
       <mat-form-field class="input-width">
-        <input matInput placeholder="Email" [defaultValue]="selectedUser.email" [(ngModel)]="selectedUser.email">
+        <input matInput
+               placeholder="Email"
+               [defaultValue]="editableSelectedUser.email"
+               [(ngModel)]="editableSelectedUser.email"
+               (keyup)="emailHasChanged()">
       </mat-form-field>
       <button mat-raised-button
               color="primary"
-              (click)="onUpdate()"
+              (click)="onUpdateEmail()"
               class="update-btn"
-              [disabled]="!canIEditUser">
+              [disabled]="!canIEditUser || !hasEmailChanged">
         Update
       </button>
     </div>
@@ -54,7 +66,10 @@
     <div class="detail-item">
       <label class="attribute-label"> Password: </label>
       <mat-form-field class="input-width">
-        <input matInput placeholder="Password" [(ngModel)]="newPassword" (keyup)="setPasswordHintColor()">
+        <input matInput
+               placeholder="Password"
+               [(ngModel)]="newPassword"
+               (keyup)="setPasswordHintColor()">
         <mat-hint align="end" [class]="passwordHintColor">{{newPassword.length}} / 8</mat-hint>
       </mat-form-field>
       <button mat-raised-button
@@ -66,8 +81,24 @@
       </button>
     </div>
 
-    <!--<label *ngIf="selectedUser.email != null" class="email">{{selectedUser.email}}</label>
-    <label *ngIf="!selectedUser.email" class="email no-value">No Email</label>-->
+    <div class="detail-item">
+      <label class="attribute-label"> Active: </label>
+      <div class="checkbox-container">
+        <mat-checkbox [(ngModel)]="editableSelectedUser.active"
+                      class="checkbox"
+                      (change)="userActiveHasChanged()">
+        </mat-checkbox>
+      </div>
+
+      <button mat-raised-button
+              color="primary"
+              (click)="onUpdateActive()"
+              class="update-btn"
+              [disabled]="!canIEditUser || !hasUserActiveChanged">
+        Update
+      </button>
+    </div>
+
   </div>
   <button class="mat-raised-button delete-user-btn"
           (click)="onUserDelete()"

@@ -91,6 +91,7 @@ export class UserAndGroupManagementComponent implements OnInit {
         name,
         displayName: null,
         email: null,
+        active: true,
         password: null,
       };
       console.log('Creating new user: ' + newUser.name);
