@@ -100,6 +100,7 @@ import { SearchableListComponent } from './user-and-group-management/searchable-
 import { UserAddNameDialogComponent } from './user-and-group-management/user-add-name-dialog/user-add-name-dialog.component';
 import { UserDetailsComponent } from './user-and-group-management/user-details/user-details.component';
 import { GroupDetailsComponent } from './user-and-group-management/group-details/group-details.component';
+import { PasswordDialogComponent } from './user-and-group-management/password-dialog/password-dialog.component';
 
 @NgModule({
     declarations: [
@@ -164,6 +165,7 @@ import { GroupDetailsComponent } from './user-and-group-management/group-details
         UserAddNameDialogComponent,
         UserDetailsComponent,
         GroupDetailsComponent,
+        PasswordDialogComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
