@@ -79,5 +79,6 @@ export class UserInfo {
   name: string;
   displayName: string;
   email: string;
+  active: boolean;
   password: string;
 }
