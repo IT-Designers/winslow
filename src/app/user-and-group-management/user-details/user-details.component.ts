@@ -1,6 +1,8 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {UserApiService, UserInfo} from '../../api/user-api.service';
 import {DialogService} from '../../dialog.service';
+import {MatDialog} from '@angular/material/dialog';
+import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
 
 @Component({
   selector: 'app-user-details',
@@ -25,7 +27,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   hasUserActiveChanged = false;
 
 
-  constructor(private userApi: UserApiService, private dialog: DialogService) {
+  constructor(private userApi: UserApiService, private dialog: DialogService, private createDialog: MatDialog) {
   }
 
   ngOnInit(): void {
@@ -90,7 +92,10 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   onUpdatePassword() {
-    this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, this.newPassword),
+    this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, this.newPassword)
+        .then(() => {
+          this.newPassword = '';
+        }),
       'Updating Password');
   }
 
@@ -150,5 +155,19 @@ export class UserDetailsComponent implements OnInit, OnChanges {
       console.log('Active has changed from ' + this.selectedUser.active + ' to ' + this.editableSelectedUser.active);
       this.hasUserActiveChanged = true;
     }
+  }
+
+  changePasswordBtnClicked() {
+    this.createDialog.open(PasswordDialogComponent, {
+      data: {
+        password: this.newPassword,
+      }
+    })
+      .afterClosed()
+      .subscribe((password) => {
+        if (this.newPassword === password) {
+          this.onUpdatePassword();
+        }
+      });
   }
 }
