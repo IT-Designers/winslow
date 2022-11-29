@@ -492,11 +492,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull Pipeline pipeline,
             @Nonnull Project project) {
         if (pipeline.canRetrieveNextActiveExecution()) {
-            try {
-                pipeline.retrieveNextActiveExecution();
-            } catch (ThereIsStillAnActiveExecutionGroupException e) {
-                LOG.log(Level.SEVERE, "Failed to retrieve execution group", e);
-            }
+            pipeline.retrieveNextActiveExecution();
         }
 
         var executionGroup = pipeline
