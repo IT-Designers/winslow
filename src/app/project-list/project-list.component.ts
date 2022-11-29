@@ -1,5 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ProjectInfo, State, StateInfo} from '../api/project-api.service';
+import {IProjectInfoExt, StateInfo} from '../api/project-api.service';
+import {IState} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-list',
@@ -8,7 +9,7 @@ import {ProjectInfo, State, StateInfo} from '../api/project-api.service';
 })
 export class ProjectListComponent implements OnInit {
 
-  @Input() projects: ProjectInfo[];
+  @Input() projects: IProjectInfoExt[];
   @Input() stateInfo: Map<string, StateInfo>;
 
   constructor() {
@@ -17,19 +18,19 @@ export class ProjectListComponent implements OnInit {
   ngOnInit() {
   }
 
-  isRunning(project: ProjectInfo) {
-    return this.stateInfoCheck(false, project, state => state.state === State.Running);
+  isRunning(project: IProjectInfoExt) {
+    return this.stateInfoCheck(false, project, state => state.state === 'Running');
   }
 
-  getProgress(project: ProjectInfo) {
+  getProgress(project: IProjectInfoExt) {
     return this.stateInfoCheck(null, project, state => state.stageProgress);
   }
 
-  getPauseReason(project: ProjectInfo) {
+  getPauseReason(project: IProjectInfoExt) {
     return this.stateInfoCheck(null, project, state => state.pauseReason);
   }
 
-  stateInfoCheck<T>(df: T, project: ProjectInfo, callback: (stateInfo: StateInfo) => T) {
+  stateInfoCheck<T>(df: T, project: IProjectInfoExt, callback: (stateInfo: StateInfo) => T) {
     if (project != null && this.stateInfo != null) {
       const info = this.stateInfo.get(project.id);
       if (info != null) {

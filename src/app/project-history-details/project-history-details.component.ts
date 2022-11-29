@@ -1,5 +1,7 @@
 import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import {ExecutionGroupInfo, StageInfo, State} from '../api/project-api.service';
+import {ExecutionGroupInfo, IExecutionGroupInfoExt, IStageInfoExt, StageInfo} from '../api/project-api.service';
+import {EditorState} from '../pipeline-editor/pipeline-editor.component';
+import {IState} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
@@ -8,31 +10,31 @@ import {ExecutionGroupInfo, StageInfo, State} from '../api/project-api.service';
 })
 export class ProjectHistoryDetailsComponent implements OnInit {
 
-  @Input() entry: ExecutionGroupInfo;
+  @Input() entry: IExecutionGroupInfoExt;
   @Input() entryNumber: number;
   @Input() stageNumber: number;
-  @Input() selectedStage: StageInfo;
-  @Input() projectState: State;
+  @Input() selectedStage: IStageInfoExt;
+  @Input() projectState: IState;
   @Input() firstEntry = true;
-  @Input() executionGroup: ExecutionGroupInfo;
+  @Input() executionGroup: IExecutionGroupInfoExt;
   @Input() expanded = false;
   @Input() pipelineIsPaused: boolean = null;
 
-  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickKillStage = new EventEmitter<StageInfo>();
-  @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
-  @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
-  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
-  @Output() clickOpenAnalysis = new EventEmitter<StageInfo>();
-  @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
+  @Output() clickResumeOnlyThisStage = new EventEmitter<IExecutionGroupInfoExt>();
+  @Output() clickResume = new EventEmitter<IExecutionGroupInfoExt>();
+  @Output() clickDelete = new EventEmitter<IExecutionGroupInfoExt>();
+  @Output() clickPauseAfterThis = new EventEmitter<IExecutionGroupInfoExt>();
+  @Output() clickKillStage = new EventEmitter<IStageInfoExt>();
+  @Output() clickUseAsBlueprint = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenWorkspace = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenLogs = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenAnalysis = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenTensorboard = new EventEmitter<IStageInfoExt>();
 
   historyDetailsHeight: any;
   @HostListener('window:resize', ['$event'])
   getScreenSize(event?) {
-    this.setHistoryDetailsHeight(window.innerHeight)
+    this.setHistoryDetailsHeight(window.innerHeight);
   }
 
 

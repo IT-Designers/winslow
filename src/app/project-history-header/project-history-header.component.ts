@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {State} from '../api/project-api.service';
+import {IState} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-header',
@@ -10,7 +10,7 @@ import {State} from '../api/project-api.service';
 export class ProjectHistoryHeaderComponent implements OnInit {
 
   @Input() itemNo: number;
-  @Input() state: State;
+  @Input() state: IState;
   @Input() isConfigure: boolean;
   @Input() time: number;
   @Input() stageName: string;

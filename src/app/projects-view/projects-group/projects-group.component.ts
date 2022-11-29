@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MatMenuTrigger} from '@angular/material/menu';
-import {ProjectGroup, ProjectInfo, StateInfo} from '../../api/project-api.service';
+import {IProjectInfoExt, ProjectGroup, StateInfo} from '../../api/project-api.service';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FilesApiService} from '../../api/files-api.service';
@@ -19,7 +19,7 @@ export class ProjectsGroupComponent implements OnInit {
   @Input() projectGroup: ProjectGroup;
   @Input() filter: TagFilterComponent;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
-  @Input() selectedProject: ProjectInfo;
+  @Input() selectedProject: IProjectInfoExt;
   @Input() stateInfo: Map<string, StateInfo>;
 
   constructor(public route: ActivatedRoute,
@@ -33,13 +33,13 @@ export class ProjectsGroupComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  selectProject(project: ProjectInfo) {
+  selectProject(project: IProjectInfoExt) {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
     });
   }
 
-  thumbnailUrl(project: ProjectInfo) {
+  thumbnailUrl(project: IProjectInfoExt) {
     return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
   }
 

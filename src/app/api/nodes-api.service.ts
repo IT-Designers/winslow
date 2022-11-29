@@ -75,23 +75,6 @@ export class INodeInfoExt extends INodeInfo {
   update: (node: INodeInfoExt) => void;
 }
 
-export class NodeInfo {
-  name: string;
-
-  time: number;
-
-  uptime: number;
-  cpuInfo: ICpuInfo;
-  memInfo: IMemInfo;
-  netInfo: INetInfo;
-  diskInfo: IDiskInfo;
-  gpuInfo: IGpuInfo[];
-  buildInfo: IBuildInfo;
-  allocInfo: IAllocInfo[];
-
-
-}
-
 
 
 
