@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../../../api/project-api.service';
+import {IProjectInfoExt, ProjectGroup} from '../../../api/project-api.service';
 import {LocalStorageService} from '../../../api/local-storage.service';
 
 @Component({
@@ -12,7 +12,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   CONTEXT_PREFIX = 'context::';
   groupsActivated = true;
   availableTagsValue: string[];
-  projectsValue: ProjectInfo[];
+  projectsValue: IProjectInfoExt[];
 
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
@@ -36,7 +36,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   }
 
   @Input('projects')
-  set projects(projects: ProjectInfo[]) {
+  set projects(projects: IProjectInfoExt[]) {
     this.projectsValue = projects;
     this.updateGroups();
   }
@@ -55,7 +55,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     }
     let projectGroups: ProjectGroup[] = [];
     for (const tag of this.availableTagsValue) {
-      const projectsForTag: ProjectInfo[] = [];
+      const projectsForTag: IProjectInfoExt[] = [];
       for (const project of this.projectsValue) {
         for (const tagOfProject of this.filterProjectTag(project)) {
           if (tag === tagOfProject) {
@@ -88,11 +88,11 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     }
   }
 
-  private filterProjectTag(project: ProjectInfo) {
+  private filterProjectTag(project: IProjectInfoExt) {
     return project.tags.filter(tag => !tag.startsWith(this.CONTEXT_PREFIX));
   }
 
-  private isProjectForGroupExisting(projectGroups: ProjectGroup[], project: ProjectInfo) {
+  private isProjectForGroupExisting(projectGroups: ProjectGroup[], project: IProjectInfoExt) {
     for (const group of projectGroups) {
       if (group.projects[0].id === project.id) {
         return true;
@@ -120,7 +120,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     return groups;
   }
 
-  private buildGroup(tag: string, projectsForTag: ProjectInfo[]) {
+  private buildGroup(tag: string, projectsForTag: IProjectInfoExt[]) {
     const group: ProjectGroup = new ProjectGroup();
     group.name = tag;
     group.projects = projectsForTag;

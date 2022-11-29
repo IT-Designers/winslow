@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {IStorageInfo} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -18,33 +19,28 @@ export class StorageApiService {
   }
 
   getAll() {
-    return this.client.get<StorageInfo[]>(StorageApiService.getUrl());
+    return this.client.get<IStorageInfo[]>(StorageApiService.getUrl());
   }
 
   getFilePathInfo(path: string) {
     return this
       .client
-      .get<StorageInfo>(StorageApiService.getUrl(path))
+      .get<IStorageInfo>(StorageApiService.getUrl(path))
       .toPromise();
   }
 
   getResourcesInfo() {
     return this
       .client
-      .get<StorageInfo>(StorageApiService.getUrl(`resources`))
+      .get<IStorageInfo>(StorageApiService.getUrl(`resources`))
       .toPromise();
   }
 
   getWorkspaceInfo(projectId: string) {
     return this
       .client
-      .get<StorageInfo>(StorageApiService.getUrl(`workspaces/${projectId}`))
+      .get<IStorageInfo>(StorageApiService.getUrl(`workspaces/${projectId}`))
       .toPromise();
   }
 }
 
-export class StorageInfo {
-  name: string;
-  bytesUsed: number;
-  bytesFree: number;
-}

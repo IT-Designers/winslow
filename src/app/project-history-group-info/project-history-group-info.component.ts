@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfo, ProjectApiService, StageInfo, State} from '../api/project-api.service';
+import {ExecutionGroupInfo, IExecutionGroupInfoExt, IStageInfoExt, ProjectApiService, StageInfo} from '../api/project-api.service';
+import {IStageInfo, IState} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-group-info',
@@ -9,19 +10,19 @@ import {ExecutionGroupInfo, ProjectApiService, StageInfo, State} from '../api/pr
 })
 export class ProjectHistoryGroupInfoComponent implements OnInit {
 
-  State = State;
 
-  @Input() executionGroup: ExecutionGroupInfo;
+
+  @Input() executionGroup: IExecutionGroupInfoExt;
   @Input() visibleStages = 10;
   @Input() selectedStageIndex: number;
   @Output() selectedStageIndexChange = new EventEmitter<number>();
-  @Output() clickKillStage = new EventEmitter<StageInfo>();
-  @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
-  @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
-  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
-  @Output() clickOpenAnalysis = new EventEmitter<StageInfo>();
-  @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
-  @Output() clickGetStage = new EventEmitter<StageInfo>();
+  @Output() clickKillStage = new EventEmitter<IStageInfoExt>();
+  @Output() clickUseAsBlueprint = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenWorkspace = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenLogs = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenAnalysis = new EventEmitter<IStageInfoExt>();
+  @Output() clickOpenTensorboard = new EventEmitter<IStageInfoExt>();
+  @Output() clickGetStage = new EventEmitter<IStageInfoExt>();
 
   constructor(private api: ProjectApiService) { }
 
@@ -29,10 +30,10 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
   }
 
-  emitStageAndSetIndex(stage: StageInfo, index: number) {
+  emitStageAndSetIndex(stage: IStageInfoExt, index: number) {
     this.clickGetStage.emit(stage);
     this.selectedStageIndex = index;
-    this.selectedStageIndexChange.emit(index)
+    this.selectedStageIndexChange.emit(index);
   }
 
   tryParseStageNumber(stageId: string, alt: number): number {
@@ -55,13 +56,12 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
     return Math.max(a, b);
   }
 
-  getRangeEnvVariableValues(stage: StageInfo): string {
+  getRangeEnvVariableValues(stage: IStageInfo): string {
     if (this.executionGroup.getGroupSize() > 1) {
       return [...this.executionGroup
-        .rangedValues
-        .keys()]
+        .rangedValues_keys() ]
         .sort()
-        .map(e => e + '=' + stage.env.get(e))
+        .map(e => e + '=' + stage.env[e])
         .join(', ');
     } else {
       return null;
@@ -79,4 +79,5 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   trackKey(keyValue: any): any {
     return keyValue.key;
   }
+
 }

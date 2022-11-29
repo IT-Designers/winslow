@@ -38,10 +38,10 @@ export class FilesComponent implements OnInit {
     public readonly swalTargets: SwalPortalTargets
   ) {
     const root = [];
-    const info = new IFileInfoExt();
-    info.directory = true;
-    info.name = 'resources';
-    info.path = '/resources';
+    const directory = true;
+    const name = 'resources';
+    const path = '/resources';
+    const info = new IFileInfoExt({name, path, directory, fileSize: 0, attributes: {}});
     root.push(info);
     this.files = new Map();
     this.files.set('/', root);
@@ -66,10 +66,11 @@ export class FilesComponent implements OnInit {
 
   @Input()
   public set additionalRoot(value: string) {
-    const additional = new IFileInfoExt();
-    additional.directory = true;
-    additional.name = value.split(';')[0];
-    additional.path = `/${value.split(';')[1]}`;
+
+    const directory = true;
+    const name = value.split(';')[0];
+    const path = `/${value.split(';')[1]}`;
+    const additional = new IFileInfoExt({name, directory, path, fileSize: 0, attributes: {}});
     this.files.get('/').splice(1);
     this.files.get('/').push(additional);
     this.files.set(additional.path, []);
@@ -267,9 +268,9 @@ export class FilesComponent implements OnInit {
               this.dataUpload.uploads[index].total = event.total;
               this.dataUpload.uploads[index].currentUploadSpeed = (
                 (MOVING_AVERAGE_SAMPLES - 1 + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff)
-                  * this.dataUpload.uploads[index].currentUploadSpeed
-                  + (byteSec * timeDiff)
-                ) / (MOVING_AVERAGE_SAMPLES + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff + timeDiff);
+                * this.dataUpload.uploads[index].currentUploadSpeed
+                + (byteSec * timeDiff)
+              ) / (MOVING_AVERAGE_SAMPLES + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff + timeDiff);
               this.dataUpload.uploads[index].currentUploadSpeedLastUpdate = now;
               this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff = timeDiff;
             } else {

@@ -10,7 +10,7 @@ import {ParseError} from '../api/project-api.service';
 export class PipelineEditorComponent implements OnInit {
 
   // what an ugly hack
-  State = State;
+  State = EditorState;
 
 
   @ViewChild('editorContainer') container: ElementRef<HTMLDivElement>;
@@ -25,7 +25,7 @@ export class PipelineEditorComponent implements OnInit {
   @Output() update = new EventEmitter<string>();
   @Output() check = new EventEmitter<string>();
 
-  @Output() state?: State = null;
+  @Output() state?: EditorState = null;
 
   editor = null;
   original = '';
@@ -122,18 +122,18 @@ export class PipelineEditorComponent implements OnInit {
 
   updateState() {
     if (this.errorV != null) {
-      this.state = State.Failure;
+      this.state = EditorState.Failure;
     } else if (this.rawV !== this.original) {
-      this.state = State.UnsavedChanges;
+      this.state = EditorState.UnsavedChanges;
     } else if (this.successV != null) {
-      this.state = State.Success;
+      this.state = EditorState.Success;
     } else {
       this.state = null;
     }
   }
 }
 
-export enum State {
+export enum EditorState {
   UnsavedChanges,
   Success,
   Failure

@@ -85,8 +85,8 @@
     [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
     [showKillCurrentStage]="executionGroup.active"
     [enqueued]="executionGroup.enqueueIndex != null"
-    [running]="executionGroup?.stages[0]?.state == State.Running"
-    [paused]="executionGroup?.stages[0]?.state == State.Paused"
+    [running]="executionGroup?.stages[0]?.state == 'Running'"
+    [paused]="executionGroup?.stages[0]?.state == 'Paused'"
     [comment]="executionGroup?.comment"
 
     (clickOpenWorkspace)="clickOpenWorkspace.emit(executionGroup.stages[0])"

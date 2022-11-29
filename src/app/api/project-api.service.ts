@@ -3,11 +3,21 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
 import {RxStompService} from '@stomp/ng2-stompjs';
-import {PipelineInfo, ResourceInfo} from './pipeline-api.service';
 import {SubscriptionHandler} from './subscription-handler';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
+import {
+  IExecutionGroupInfo,
+  IPipelineInfo,
+  IProjectInfo, IResourceInfo, IResourceLimitation, IStageDefinitionInfo,
+  IStageInfo,
+  IState,
+  IStateInfo,
+  IWorkspaceConfiguration,
+  IWorkspaceMode
+} from './winslow-api';
+import {supportsColor} from '@angular/cli/utilities/color';
 
 
 @Injectable({
@@ -18,19 +28,19 @@ export class ProjectApiService {
   static LOGS_LATEST = 'latest';
 
   public cachedTags: string[] = [];
-  private projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
+  private projectSubscriptionHandler: SubscriptionHandler<string, IProjectInfoExt>;
   private projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
 
   private static getUrl(more?: string) {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
-  private static fixExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {
-    origin.stages = origin.stages.map(stage => new StageInfo(stage));
-    return new ExecutionGroupInfo(origin);
+  private static fixExecutionGroupInfo(origin: IExecutionGroupInfoExt): IExecutionGroupInfoExt {
+    origin.stages = origin.stages.map(stage => new IStageInfo(stage));
+    return new IExecutionGroupInfoExt(origin);
   }
 
-  private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
+  private static fixExecutionGroupInfoArray(groups: IExecutionGroupInfoExt[]): IExecutionGroupInfoExt[] {
     return groups.map(origin => {
       return ProjectApiService.fixExecutionGroupInfo(origin);
     });
@@ -42,8 +52,10 @@ export class ProjectApiService {
 
 
   constructor(private client: HttpClient, private rxStompService: RxStompService) {
-    this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(rxStompService, '/projects');
-    this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(rxStompService, '/projects/states', s => new StateInfo(s));
+    this.projectSubscriptionHandler = new SubscriptionHandler<string, IProjectInfoExt>(rxStompService, '/projects');
+    this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
+      rxStompService, '/projects/states',
+      s => new StateInfo(s));
 
     this.projectSubscriptionHandler.subscribe((id, value) => {
       if (value != null) {
@@ -73,9 +85,12 @@ export class ProjectApiService {
     });
   }
 
-  private watchProjectExecutionGroupInfo(projectId: string, specialization: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  private watchProjectExecutionGroupInfo(
+    projectId: string,
+    specialization: string,
+    listener: (update: IExecutionGroupInfoExt[]) => void): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/${specialization}`).subscribe((message: Message) => {
-      const events: ChangeEvent<string, ExecutionGroupInfo[]>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, IExecutionGroupInfoExt[]>[] = JSON.parse(message.body);
       events.forEach(event => {
         if (event.identifier === projectId) {
           listener(event.value ? ProjectApiService.fixExecutionGroupInfoArray(event.value) : []);
@@ -84,15 +99,15 @@ export class ProjectApiService {
     });
   }
 
-  public watchProjectHistory(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  public watchProjectHistory(projectId: string, listener: (update: IExecutionGroupInfoExt[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'history', listener);
   }
 
-  public watchProjectExecutions(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  public watchProjectExecutions(projectId: string, listener: (update: IExecutionGroupInfoExt[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'executing', listener);
   }
 
-  public watchProjectEnqueued(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  public watchProjectEnqueued(projectId: string, listener: (update: IExecutionGroupInfoExt[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'enqueued', groups => {
       if (groups != null) {
         for (let i = 0; i < groups.length; ++i) {
@@ -114,7 +129,7 @@ export class ProjectApiService {
     });
   }
 
-  public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
+  public getProjectSubscriptionHandler(): SubscriptionHandler<string, IProjectInfoExt> {
     return this.projectSubscriptionHandler;
   }
 
@@ -122,9 +137,9 @@ export class ProjectApiService {
     return this.projectStateSubscriptionHandler;
   }
 
-  createProject(name: string, pipeline: PipelineInfo, tags?: string[]): Promise<ProjectInfo> {
+  createProject(name: string, pipeline: IPipelineInfo, tags?: string[]): Promise<IProjectInfoExt> {
     return this.client
-      .post<ProjectInfo>(
+      .post<IProjectInfoExt>(
         ProjectApiService.getUrl(null),
         {
           name,
@@ -134,30 +149,30 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  listProjects(): Promise<ProjectInfo[]> {
+  listProjects(): Promise<IProjectInfoExt[]> {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
-  getProjectPipelineDefinition(projectId: string): Promise<PipelineInfo> {
+  getProjectPipelineDefinition(projectId: string): Promise<IPipelineInfo> {
     return this.client
-      .get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
+      .get<IPipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
       .toPromise();
   }
 
-  getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
-    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
+  getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<IExecutionGroupInfoExt[]> {
+    return this.client.get<IExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
-  getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
-    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history`))
+  getProjectHistory(projectId: string): Promise<IExecutionGroupInfoExt[]> {
+    return this.client.get<IExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
-  getProjectEnqueued(projectId: string): Promise<ExecutionGroupInfo[]> {
-    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
+  getProjectEnqueued(projectId: string): Promise<IExecutionGroupInfoExt[]> {
+    return this.client.get<IExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
       .pipe(map(enqueued => {
         const fixed = ProjectApiService.fixExecutionGroupInfoArray(enqueued);
         for (let i = 0; i < fixed.length; ++i) {
@@ -185,8 +200,8 @@ export class ProjectApiService {
     env: any,
     rangedEnv?: Map<string, RangeWithStepSize>,
     image: ImageInfo = null,
-    requiredResources: ResourceInfo = null,
-    workspaceConfiguration: WorkspaceConfiguration = null,
+    requiredResources: IResourceInfo = null,
+    workspaceConfiguration: IWorkspaceConfigurationExt = null,
     comment: string = null,
     runSingle: boolean = false,
     resume?: boolean,
@@ -207,7 +222,14 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-  configureGroup(projectId: string, stageIndex: number, projectIds: string[], env: any, image: ImageInfo = null, requiredResources: ResourceInfo = null): Promise<boolean[]> {
+
+  configureGroup(
+    projectId: string,
+    stageIndex: number,
+    projectIds: string[],
+    env: any,
+    image: ImageInfo = null,
+    requiredResources: IResourceInfo = null): Promise<boolean[]> {
     return this.client.post<boolean[]>(
       ProjectApiService.getUrl(`${projectId}/enqueued-on-others`),
       {
@@ -335,40 +357,40 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  pruneHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
+  pruneHistory(projectId: string): Promise<IExecutionGroupInfoExt[]> {
     return this
       .client
-      .post<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
+      .post<IExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
-  getWorkspaceConfigurationMode(projectId: string): Promise<WorkspaceMode> {
+  getWorkspaceConfigurationMode(projectId: string): Promise<IWorkspaceMode> {
     return this
       .client
-      .get<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`))
+      .get<IWorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`))
       .toPromise();
   }
 
-  setWorkspaceConfigurationMode(projectId: string, mode: WorkspaceMode): Promise<WorkspaceMode> {
+  setWorkspaceConfigurationMode(projectId: string, mode: IWorkspaceMode): Promise<IWorkspaceMode> {
     return this
       .client
-      .put<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`), mode)
+      .put<IWorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`), mode)
       .toPromise();
   }
 
 
-  getResourceLimitation(projectId: string): Promise<ResourceLimitation> {
+  getResourceLimitation(projectId: string): Promise<IResourceLimitationExt> {
     return this
       .client
-      .get<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`))
+      .get<IResourceLimitationExt>(ProjectApiService.getUrl(`${projectId}/resource-limitation`))
       .toPromise();
   }
 
-  setResourceLimitation(projectId: string, limit: ResourceLimitation): Promise<ResourceLimitation> {
+  setResourceLimitation(projectId: string, limit: IResourceLimitationExt): Promise<IResourceLimitationExt> {
     return this
       .client
-      .put<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`), limit)
+      .put<IResourceLimitationExt>(ProjectApiService.getUrl(`${projectId}/resource-limitation`), limit)
       .toPromise();
   }
 
@@ -420,51 +442,34 @@ export class ProjectApiService {
     return alt;
   }
 
-  findProjectPipeline(project: ProjectInfo, pipelines: PipelineInfo[]) {
+  findProjectPipeline(project: IProjectInfoExt, pipelines: IPipelineInfo[]) {
     for (const pipeline of pipelines) {
       if (pipeline.name === project.pipelineDefinition.name) {
-        return  pipeline.id;
+        return pipeline.id;
       }
     }
     return null;
   }
 }
 
-export enum State {
-  Running = 'Running',
-  Paused = 'Paused',
-  Succeeded = 'Succeeded',
-  Failed = 'Failed',
-  Preparing = 'Preparing',
-  // local only
-  Warning = 'Warning',
-  Enqueued = 'Enqueued',
-  Skipped = 'Skipped'
-}
-
-export enum Action {
-  Execute = 'Execute',
-  Configure = 'Configure',
-}
-
-export class ProjectInfo {
-  id: string;
-  owner: string;
-  groups: string[];
-  tags: string[];
-  name: string;
-  publicAccess: boolean;
-  pipelineDefinition: PipelineInfo;
-  // local only
+export class IProjectInfoExt extends IProjectInfo {
   version: number;
   environment: Map<string, string>;
   userInput: string[];
 }
 
+
 export class ProjectGroup {
   name: string;
-  projects: ProjectInfo[];
+  projects: IProjectInfoExt[];
 }
+
+declare module './winslow-api' {
+  interface IRangedValue {
+    getStageCount(): number;
+  }
+}
+
 
 export class RangedValue {
   DiscreteSteps?: RangeWithStepSize;
@@ -534,32 +539,16 @@ export class AuthTokenInfo {
   capabilities: string[];
 }
 
-export class ExecutionGroupInfo {
-  id: string;
-  configureOnly: boolean;
-  stageDefinition: StageDefinitionInfo;
-  rangedValues: Map<string, RangedValue>;
-  workspaceConfiguration: WorkspaceConfiguration;
-  stages: StageInfo[];
-  active: boolean;
-  enqueued: boolean;
-  comment?: string;
-  // local only
+
+export class IExecutionGroupInfoExt extends IExecutionGroupInfo {
   enqueueIndex?: number;
 
-  constructor(origin: ExecutionGroupInfo = null) {
-    if (origin != null) {
-      Object.assign(this, origin);
-      this.stageDefinition = new StageDefinitionInfo(origin.stageDefinition);
-      this.rangedValues = new Map();
 
-      for (const [key, value] of ProjectApiService.toMap(origin.rangedValues)) {
-        this.rangedValues.set(key, new RangedValue(value));
-      }
-    }
+  public rangedValues_keys() {
+    return Object.keys(this.rangedValues);
   }
 
-  hasStagesState(state: State): boolean {
+  hasStagesState(state: IState): boolean {
     for (const stage of this.stages) {
       if (stage.state === state) {
         return true;
@@ -568,7 +557,7 @@ export class ExecutionGroupInfo {
     return false;
   }
 
-  public getMostRecentStage(): StageInfo {
+  public getMostRecentStage(): IStageInfo {
     for (const stage of [...this.stages].reverse()) {
       if (stage.finishTime != null) {
         return stage;
@@ -581,7 +570,7 @@ export class ExecutionGroupInfo {
 
   public getMostRecentStartOrFinishTime(): number {
     const stage = this.getMostRecentStage();
-    if (stage?.startTime != null) {
+    if (stage.startTime != null) {
       return stage.startTime;
     } else if (stage?.finishTime != null) {
       return stage.finishTime;
@@ -590,29 +579,30 @@ export class ExecutionGroupInfo {
     }
   }
 
-  public getMostRelevantState(projectState: State = null): State {
-    for (const state of [State.Running, State.Preparing, State.Failed]) {
+  public getMostRelevantState(projectState: IState = null): IState {
+    const states: Array<IState> = ['Running', 'Preparing', 'Failed'];
+    for (const state of states) {
       if (this.hasStagesState(state)) {
         return state;
       }
     }
     if (this.enqueued) {
-      return State.Enqueued;
+      return 'Enqueued';
     } else if (this.active) {
-      const alternative = projectState === State.Paused ? State.Paused : State.Preparing;
+      const alternative = projectState === 'Paused' ? 'Paused' : 'Preparing';
       return this.getMostRecentStage()?.state ?? alternative;
     } else {
-      return this.getMostRecentStage()?.state ?? State.Skipped;
+      return this.getMostRecentStage()?.state ?? 'Skipped';
     }
   }
 
   public isMostRecentStateRunning() {
-    return this.getMostRelevantState() === State.Running;
+    return this.getMostRelevantState() === 'Running';
   }
 
   public hasRunningStages(): boolean {
     for (const stage of this.stages) {
-      if (stage.state === State.Running) {
+      if (stage.state === 'Running') {
         return true;
       }
     }
@@ -620,9 +610,12 @@ export class ExecutionGroupInfo {
   }
 
   public getGroupSize(): number {
-    if (this.rangedValues?.size > 0) {
+    const rvKeys = Object.keys(this.rangedValues);
+
+    if (rvKeys.length > 0) {
       let size = 0;
-      for (const entry of this.rangedValues.entries()) {
+      for (const entry of Object.entries(this.rangedValues)) {
+
         size += entry[1].getStageCount();
       }
       return size;
@@ -632,11 +625,48 @@ export class ExecutionGroupInfo {
   }
 }
 
+
+export class ExecutionGroupInfo {
+  id: string;
+  configureOnly: boolean;
+  stageDefinition: IStageDefinitionInfo;
+  rangedValues: Map<string, RangedValue>;
+  workspaceConfiguration: IWorkspaceConfigurationExt;
+  stages: StageInfo[];
+  active: boolean;
+  enqueued: boolean;
+  comment?: string;
+  // local only
+  enqueueIndex?: number;
+
+  constructor(origin: ExecutionGroupInfo = null) {
+    if (origin != null) {
+      Object.assign(this, origin);
+      this.stageDefinition = new IStageDefinitionInfo(origin.stageDefinition);
+      this.rangedValues = new Map();
+
+      for (const [key, value] of ProjectApiService.toMap(origin.rangedValues)) {
+        this.rangedValues.set(key, new RangedValue(value));
+      }
+    }
+  }
+
+}
+
+export class IStageInfoExt extends IStageInfo {
+  constructor(origin: IStageInfo = null) {
+    if (origin != null) {
+      super(origin);
+    }
+  }
+
+}
+
 export class StageInfo {
   id: string;
   startTime?: number;
   finishTime?: number;
-  state?: State;
+  state?: IState;
   workspace?: string;
   env: Map<string, string>;
   envPipeline: Map<string, string>;
@@ -656,6 +686,7 @@ export class StageInfo {
   }
 }
 
+/*
 export class StageDefinitionInfo {
   name: string;
   image?: ImageInfo;
@@ -681,6 +712,7 @@ export class StageDefinitionInfo {
   }
   */
 }
+*/
 
 export enum LogSource {
   STANDARD_IO = 'STANDARD_IO',
@@ -696,8 +728,19 @@ export class LogEntry {
   stageId?: string; // ProjectsController.LogEntryInfo
 }
 
+
+export class IStateInfoExt extends IStateInfo {
+  isRunning(): boolean {
+    return this.getState() === 'Running';
+  }
+
+  getState(): IState {
+    return this.state;
+  }
+}
+
 export class StateInfo {
-  state: State;
+  state: IState;
   pauseReason?: string;
   description?: string;
   stageProgress?: number;
@@ -708,12 +751,13 @@ export class StateInfo {
   }
 
   isRunning(): boolean {
-    return State.Running === this.getState();
+    return this.getState() === 'Running';
   }
 
-  getState(): State {
+  getState(): IState {
     return this.state;
   }
+
 }
 
 export class ImageInfo {
@@ -762,43 +806,29 @@ export class StatsInfo {
   memoryMaximum = 0;
 }
 
-export enum WorkspaceMode {
-  STANDALONE = 'STANDALONE',
-  INCREMENTAL = 'INCREMENTAL',
-  CONTINUATION = 'CONTINUATION',
-}
 
-export class WorkspaceConfiguration {
-  mode: WorkspaceMode;
-  value: string;
-  sharedWithinGroup: boolean;
-  nestedWithinGroup: boolean;
+export class IWorkspaceConfigurationExt extends IWorkspaceConfiguration {
 
-  constructor(
-    mode: WorkspaceMode = WorkspaceMode.INCREMENTAL,
-    value: string = null,
-    sharedWithinGroup: boolean = false,
-    nestedWithinGroup: boolean = true
-  ) {
-    this.mode = mode;
-    this.value = value;
-    this.sharedWithinGroup = sharedWithinGroup != null && sharedWithinGroup;
-    this.nestedWithinGroup = nestedWithinGroup != null && nestedWithinGroup;
-  }
-}
 
-export class ResourceLimitation {
-  cpu?: number = null;
-  mem?: number = null;
-  gpu?: number = null;
-
-  constructor(src?: ResourceLimitation) {
-    this.cpu = src?.cpu;
-    this.mem = src?.mem;
-    this.gpu = src?.gpu;
+  // @ts-ignore
+  static create(mode: IWorkspaceMode = 'INCREMENTAL',
+                value: string = null,
+                sharedWithinGroup: boolean = false,
+                nestedWithinGroup: boolean = true) {
+    return new IWorkspaceConfigurationExt({
+      mode, value, sharedWithinGroup, nestedWithinGroup
+    });
   }
 
-  static equals(a?: ResourceLimitation, b?: ResourceLimitation) {
+}
+
+export class IResourceLimitationExt extends IResourceLimitation {
+
+  static create(cpu: number = null, mem: number = null, gpu: number = null) {
+    return new IResourceLimitationExt({cpu, mem, gpu});
+  }
+
+  static equals(a?: IResourceLimitation, b?: IResourceLimitation) {
     if (a != null && b != null) {
       return a.cpu === b.cpu && a.mem === b.mem && a.gpu === b.gpu;
     } else {
@@ -806,3 +836,4 @@ export class ResourceLimitation {
     }
   }
 }
+
