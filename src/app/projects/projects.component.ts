@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
-import {ProjectApiService, ProjectGroup, ProjectInfo, State, StateInfo} from '../api/project-api.service';
+import {IProjectInfoExt, ProjectApiService, ProjectGroup, StateInfo} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
@@ -15,6 +15,7 @@ import {UserApiService} from '../api/user-api.service';
 import {FilesApiService} from '../api/files-api.service';
 import {GroupActionsComponent} from '../group-actions/group-actions.component';
 import {LocalStorageService} from '../api/local-storage.service';
+import {IState, IStateInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-projects',
@@ -25,12 +26,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
 
-  projects: ProjectInfo[] = [];
-  projectsFiltered: ProjectInfo[] = null;
+  projects: IProjectInfoExt[] = [];
+  projectsFiltered: IProjectInfoExt[] = null;
   projectsGroups: ProjectGroup[] = [];
   stateInfo: Map<string, StateInfo> = null;
   interval;
-  selectedProject: ProjectInfo = null;
+  selectedProject: IProjectInfoExt = null;
   selectedProjectId: string = null;
 
   paramsSubscription: Subscription = null;
@@ -155,7 +156,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
   }
 
-  stopLoading(project: ProjectInfo) {
+  stopLoading(project: IProjectInfoExt) {
     if (project != null) {
       this.views.forEach(view => {
         if (view.project.id === project.id) {
@@ -165,7 +166,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  startLoading(project: ProjectInfo) {
+  startLoading(project: IProjectInfoExt) {
     if (project != null) {
       this.views.forEach(view => {
         if (view.project.id === project.id) {
@@ -179,7 +180,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDeleted(project: ProjectInfo) {
+  onDeleted(project: IProjectInfoExt) {
     for (let i = 0; i < this.projects.length; ++i) {
       if (this.projects[i].id === project.id) {
         this.projects.splice(i, 1);
@@ -199,7 +200,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectProject(project: ProjectInfo) {
+  selectProject(project: IProjectInfoExt) {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
     });
@@ -254,7 +255,7 @@ class Effects {
         this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/running.mp3`));
         this.audio.loop = true;
         this.audio.play();
-      } else if (this.prev != null && this.prev.getState() !== State.Failed && state.getState() === State.Failed) {
+      } else if (this.prev != null && this.prev.getState() !== 'Failed' && state.getState() === 'Failed') {
         if (this.audio != null) {
           this.audio.pause();
         }

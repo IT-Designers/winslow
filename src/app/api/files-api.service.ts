@@ -25,7 +25,7 @@ export class FilesApiService {
     return this.client
       .options<IFileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
       .toPromise()
-      .then(files => files.map(f => Object.assign(new IFileInfoExt(), f)));
+      .then(files => files.map(f => new IFileInfoExt(f)));
   }
 
   createDirectory(path: string): Promise<any> {
@@ -157,20 +157,20 @@ export class IFileInfoExt extends IFileInfo {
     }
   }
 
-  public getAttribute(key: string): unknown {
+  public getAttribute(key: FileInfoAttribute): unknown {
     return this.attributes != null ? this.attributes[key] : null;
   }
 
-  public hasAttribute(key: string): boolean {
+  public hasAttribute(key: FileInfoAttribute): boolean {
     return this.attributes != null && this.attributes[key] != null;
   }
 
   public isGitRepository(): boolean {
-    return this.hasAttribute(FileInfoAttribute.GIT_BRANCH);
+    return this.hasAttribute('git-branch');
   }
 
   public getGitBranch(): string {
-    const attr = this.getAttribute(FileInfoAttribute.GIT_BRANCH);
+    const attr = this.getAttribute('git-branch');
     if (typeof attr === typeof '') {
       return attr as string;
     } else {
@@ -182,7 +182,7 @@ export class IFileInfoExt extends IFileInfo {
     if (this.attributes == null) {
       this.attributes = new Map<string, unknown>();
     }
-    this.attributes[FileInfoAttribute.GIT_BRANCH] = branch;
+    this.attributes['git-branch'] = branch;
   }
 
   public getFileSizeHumanReadable(): string {
@@ -193,7 +193,4 @@ export class IFileInfoExt extends IFileInfo {
   }
 }
 
-
-export enum FileInfoAttribute {
-  GIT_BRANCH = 'git-branch',
-}
+export type FileInfoAttribute = 'git-branch';
