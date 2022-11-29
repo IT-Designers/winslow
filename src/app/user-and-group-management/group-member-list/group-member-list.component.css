@@ -59,16 +59,23 @@ app-groups-add-member-dialog {
   background-color: lightgrey;
 }
 .username-label {
-  margin-left: 1em;
-  margin-right: 1em;
-  width: 4em;
+  padding-left: 20px;
+  min-width: calc(33% - 20px);
+  max-width: calc(33% - 20px);
 }
 .role-dropdown {
-  width: 8em;
   display: flex;
   align-items: center;
+  justify-content: center;
   margin-top: 17px;
   height: 45px;
+  min-width: 33%;
+  max-width: 33%;
+}
+.btn-container {
+  padding-right: 20px;
+  min-width: calc(33% - 20px);
+  max-width: calc(33% - 20px);
 }
 .remove-member-button {
   border: none;
@@ -77,8 +84,7 @@ app-groups-add-member-dialog {
   width: 45px;
   height: 45px;
   box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
-  margin-left: 9.5em;
-  margin-right: 10px;
+  float: right;
 }
 .remove-member-button:enabled {
   cursor: pointer;
