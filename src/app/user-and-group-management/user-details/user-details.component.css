@@ -31,6 +31,18 @@
   /*padding-left: 60px;
   border-left: 1px solid lightgrey;*/
 }
+.bottom-btn-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+.bottom-btn {
+  width: 40%;
+  margin-bottom: 15px;
+}
+.bottom-btn:hover {
+  scale: 1.02;
+}
 .delete-user-btn {
   width: 100%;
   float: right;
@@ -49,7 +61,9 @@
   align-self: center;
   height: 40px;
 }
-
+.update-btn:hover:enabled {
+  scale: 1.03;
+}
 .input-width {
   min-width: 78%;
   max-width: 78%;

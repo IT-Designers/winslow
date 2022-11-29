@@ -52,8 +52,15 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   onUpdate() {
-    console.dir(this.selectedUser);
-    this.dialog.openLoadingIndicator(this.userApi.updateUser(this.selectedUser),
+    this.dialog.openLoadingIndicator(this.userApi.updateUser(this.editableSelectedUser)
+        .then(() => {
+          this.selectedUser = Object.assign({}, this.editableSelectedUser);
+          console.dir(this.selectedUser);
+          this.hasUsernameChanged = false;
+          this.hasDisplayNameChanged = false;
+          this.hasEmailChanged = false;
+          this.hasUserActiveChanged = false;
+        }),
       'Updating User');
   }
 
