@@ -1,13 +1,7 @@
 <label *ngIf="selectedUser === null" class="nothing-selected">No user selected</label>
-<div *ngIf="selectedUser != null" class="user-detail-container">
+<div *ngIf="selectedUser != null" class="detail-container">
   <h2>User Details</h2>
   <div class="user-name-container">
-    <!--<label for="detailUserName" class="username-label"> Username: </label>
-    <label id="detailUserName">{{selectedUser.name}}</label>-->
-
-    <!--<label class="display-name-label"> Display Name: </label>
-    <label *ngIf="selectedUser.displayName != null" class="display-name">{{selectedUser.displayName}}</label>
-    <label *ngIf="!selectedUser.displayName" class="display-name no-value">No Display Name</label>-->
 
     <div class="detail-item">
       <label class="attribute-label">  Username: </label>
@@ -63,7 +57,7 @@
       </button>
     </div>
 
-    <div class="detail-item">
+    <!--<div class="detail-item">
       <label class="attribute-label"> Password: </label>
       <mat-form-field class="input-width">
         <input matInput
@@ -78,6 +72,32 @@
               class="update-btn"
               [disabled]="!canIEditUser || !(newPassword.length >= 8)">
         Update
+      </button>
+    </div>-->
+
+    <div class="detail-item">
+      <label class="attribute-label"> Password: </label>
+      <label class="input-width password-status-label" *ngIf="selectedUser.password != null">
+        User already has a Password
+      </label>
+      <label class="input-width password-status-label" *ngIf="selectedUser.password === null">
+        User has no password
+      </label>
+      <button mat-raised-button
+              color="primary"
+              *ngIf="selectedUser.password != null"
+              (click)="changePasswordBtnClicked()"
+              class="update-btn"
+              [disabled]="!canIEditUser">
+        Change
+      </button>
+      <button mat-raised-button
+              color="primary"
+              *ngIf="selectedUser.password === null"
+              (click)="changePasswordBtnClicked()"
+              class="update-btn"
+              [disabled]="!canIEditUser">
+        Set
       </button>
     </div>
 
@@ -100,6 +120,7 @@
     </div>
 
   </div>
+
   <div class="bottom-btn-container">
     <button class="mat-raised-button bottom-btn"
             (click)="onUpdate()"
