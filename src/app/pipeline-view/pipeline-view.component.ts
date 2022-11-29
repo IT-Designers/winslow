@@ -12,7 +12,7 @@ import {
 import {
   Action,
   ConnectorPlacement, CreateEdgeAction,
-  CreateNodeAction,
+  CreateNodeAction, DeleteItemsAction,
   DiagramMaker,
   DiagramMakerActions,
   DiagramMakerConfig,
@@ -27,7 +27,7 @@ import {
 import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/project-api.service";
 import {DiagramNodeComponent} from "./diagram-node/diagram-node.component";
 import {DiagramLibraryComponent} from "./diagram-library/diagram-library.component";
-import {DiagramConfig} from "./diagram-config";
+import {DiagramConfigHelper} from "./diagram-config-helper";
 import {DiagramInitialData} from "./diagram-initial-data";
 import {AddToolsComponent} from "./add-tools/add-tools.component";
 import {DiagramGatewayComponent} from "./diagram-gateway/diagram-gateway.component";
@@ -46,6 +46,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
   public componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
   public libraryComponent = null;
+  public configClass = new DiagramConfigHelper();
   public initClass = new DiagramInitialData();
 
   @ViewChild('diagramEditorContainer')
@@ -92,36 +93,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
             this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
             this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
-            this.libraryComponent.instance.diagramApiCall.subscribe((action : String)=> {
-              console.log(action);
-              switch (action){
-                case 'fit':
-                  this.diagramMaker.api.fit();
-                  console.log("fit");
-                  break;
-                case 'layout':
-                  this.diagramMaker.api.layout({
-                    direction: WorkflowLayoutDirection.LEFT_RIGHT,
-                    distanceMin: 50,
-                    layoutType: Layout.WORKFLOW,
-                    fixedNodeId: this.diagramMaker.store.getState().nodes[Object.keys(this.diagramMaker.store.getState().nodes)[0]].id,
-                  })
-                  break;
-                case 'zoomIn':
-                  this.diagramMaker.api.zoomIn(100);
-                  break;
-                case 'zoomOut':
-                  this.diagramMaker.api.zoomOut(100);
-                  break;
-                case 'undo':
-                  this.diagramMaker.api.undo();
-                  break;
-                case 'redo':
-                  this.diagramMaker.api.redo();
-                  break;
-                default: break;
-              }
-            }
+            this.libraryComponent.instance.diagramApiCall.subscribe((action : String)=>
+              this.configClass.getApiSwitch(action , this.diagramMaker)
             );
             diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
           }
@@ -220,37 +193,17 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           dispatch(createEdgeAction);
         }
       }
+      else if(action.type === DiagramMakerActions.DELETE_ITEMS){
+        let deleteAction = action as DeleteItemsAction;
+        if(deleteAction.payload.nodeIds.includes("pipelineInfo")){}
+        else {dispatch(deleteAction)}
+      }
       else {      //Default dispatch action for all actions that get not intercepted
+        console.log(action);
         dispatch(action);
       }
     },
-    nodeTypeConfig: {
-      'node-normal': {
-        size: {width: 200, height: 75},
-        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
-      },
-      'node-start': {
-        size: {width: 200, height: 75},
-        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
-        visibleConnectorTypes: VisibleConnectorTypes.OUTPUT_ONLY,
-      },
-      'node-if-splitter': {
-        size: {width: 150, height: 75},
-        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
-      },
-      'node-and-splitter': {
-        size: {width: 150, height: 75},
-        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
-      },
-      'node-all-merger': {
-        size: {width: 150, height: 75},
-        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
-      },
-      'node-any-merger': {
-        size: {width: 150, height: 75},
-        connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
-      },
-    }
+    nodeTypeConfig: this.configClass.getNodeTypes(),
   };
 
   nodeComponentInstances = [];

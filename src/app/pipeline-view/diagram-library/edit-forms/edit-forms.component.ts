@@ -38,6 +38,8 @@ export class EditFormsComponent implements OnInit {
   @Input()
   set formObj(formObj){
     this.formObj$ = formObj;
+    console.log(formObj);
+    console.log(typeof formObj)
     this.editForm = this.fb.group(formObj);
     console.log("inputFormObj")
     console.log(this.formObj$)
