@@ -24,30 +24,7 @@
 
     <build>
         <plugins>
-            <plugin> <!-- todo this should write a javadoc.xml for the typescript generator. but it doesnt -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-                <executions>
-                    <execution>
-                        <id>xml-doclet</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>javadoc</goal>
-                        </goals>
-                        <configuration>
-                            <doclet>com.github.markusbernhardt.xmldoclet.XmlDoclet</doclet>
-                            <additionalparam>-d ${project.build.directory}</additionalparam>
-                            <useStandardDocletOptions>false</useStandardDocletOptions>
-                            <docletArtifact>
-                                <groupId>com.github.markusbernhardt</groupId>
-                                <artifactId>xml-doclet</artifactId>
-                                <version>1.0.5</version>
-                            </docletArtifact>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
             <plugin>
                 <!--
                       https://github.com/vojtechhabarta/typescript-generator
@@ -75,8 +52,12 @@
                         <class>de.itdesigners.winslow.api.pipeline.RangedValue</class>
                     </excludeClasses>
 
-                    <!--<classPatterns>de.itdesigners.winslow.api.**</classPatterns> -->
-                    <!--  <javadocXmlFiles>
+
+
+                    <!--
+                      todo: currently not working:
+                      https://github.com/vojtechhabarta/typescript-generator/issues/534
+                      <javadocXmlFiles>
                           <file>target/javadoc.xml</file>
                       </javadocXmlFiles>-->
                     <outputFileType>implementationFile</outputFileType>
