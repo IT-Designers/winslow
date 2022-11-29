@@ -100,10 +100,19 @@
     </div>
 
   </div>
-  <button class="mat-raised-button delete-user-btn"
-          (click)="onUserDelete()"
-          color="warn"
-          mat-raised-button="">
-    Delete
-  </button>
+  <div class="bottom-btn-container">
+    <button class="mat-raised-button bottom-btn"
+            (click)="onUpdate()"
+            color="primary"
+            mat-raised-button="">
+      Update Complete User
+    </button>
+    <button class="mat-raised-button bottom-btn"
+            (click)="onUserDelete()"
+            color="warn"
+            mat-raised-button="">
+      Delete
+    </button>
+  </div>
+
 </div>
