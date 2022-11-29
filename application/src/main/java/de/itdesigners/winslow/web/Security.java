@@ -11,8 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import static de.itdesigners.winslow.web.webdav.WebDavController.EXPORT_NAME;
-
 @Configuration
 @EnableWebSecurity
 public class Security extends WebSecurityConfigurerAdapter {
@@ -68,7 +66,6 @@ public class Security extends WebSecurityConfigurerAdapter {
         var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookiePath("/");
         http.csrf().csrfTokenRepository(repo)
-            .and().csrf().ignoringAntMatchers("/" + EXPORT_NAME + "/**")
             .and().csrf().ignoringAntMatchers(Env.getWebsocketPath() + "**")
         .and().headers().frameOptions().sameOrigin();
     }
