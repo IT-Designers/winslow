@@ -1,7 +1,7 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.auth.GroupRepository;
-import de.itdesigners.winslow.auth.UserRepository;
+import de.itdesigners.winslow.api.auth.Role;
+import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.cli.FixWorkspacePaths;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.fs.LockBus;
@@ -31,8 +31,8 @@ public class Winslow implements Runnable {
     @Nonnull private final Orchestrator                 orchestrator;
     @Nonnull private final WorkDirectoryConfiguration   configuration;
     @Nonnull private final ResourceManager              resourceManager;
-    @Nonnull private final GroupRepository              groupRepository;
-    @Nonnull private final UserRepository               userRepository;
+    @Nonnull private final GroupManager                 groupManager;
+    @Nonnull private final UserManager                  userManager;
     @Nonnull private final PipelineDefinitionRepository pipelineRepository;
     @Nonnull private final ProjectRepository            projectRepository;
     @Nonnull private final AuthTokenRepository          projectAuthTokenRepository;
@@ -48,13 +48,13 @@ public class Winslow implements Runnable {
             @Nonnull AuthTokenRepository projectAuthTokenRepository,
             @Nonnull SettingsRepository settingsRepository,
             @Nonnull NodeRepository nodeRepository,
-            @Nonnull GroupRepository groupRepository,
-            @Nonnull UserRepository userRepository) throws IOException {
+            @Nonnull GroupManager groupManager,
+            @Nonnull UserManager userManager) throws IOException {
         this.orchestrator               = orchestrator;
         this.configuration              = configuration;
         this.resourceManager            = resourceManager;
-        this.groupRepository            = groupRepository;
-        this.userRepository             = userRepository;
+        this.groupManager               = groupManager;
+        this.userManager                = userManager;
         this.projectAuthTokenRepository = projectAuthTokenRepository;
 
         this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
@@ -62,8 +62,14 @@ public class Winslow implements Runnable {
         this.settingsRepository = settingsRepository;
         this.nodeRepository     = nodeRepository;
 
-        for (var user : Env.getRootUsers()) {
-            userRepository.createUser(user, true);
+        for (var userName : Env.getRootUsers()) {
+            try {
+                userManager.createUserAndGroupIgnoreIfAlreadyExists(userName);
+                groupManager.addOrUpdateMembership(Group.SUPER_GROUP_NAME, userName, Role.OWNER);
+            } catch (InvalidNameException | NameNotFoundException e) {
+                // there is nothing reasonable recovery from this, fail fast, don't hide the error!
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -215,13 +221,13 @@ public class Winslow implements Runnable {
     }
 
     @Nonnull
-    public UserRepository getUserRepository() {
-        return this.userRepository;
+    public UserManager getUserManager() {
+        return this.userManager;
     }
 
     @Nonnull
-    public GroupRepository getGroupRepository() {
-        return groupRepository;
+    public GroupManager getGroupManager() {
+        return groupManager;
     }
 
     @Nonnull

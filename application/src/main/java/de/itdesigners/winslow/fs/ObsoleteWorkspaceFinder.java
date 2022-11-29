@@ -9,6 +9,7 @@ import org.springframework.lang.NonNull;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -206,8 +207,35 @@ public class ObsoleteWorkspaceFinder {
                 .ofNullable(groups)
                 .stream()
                 .flatMap(Collection::stream)
-                .flatMap(ExecutionGroup::getStages)
-                .flatMap(s -> s.getWorkspace().stream())
+                .flatMap(eg -> {
+                    if (eg.getWorkspaceConfiguration().isNestedWithinGroup() && eg.hasRangedValues()) {
+                        var paths = eg
+                                .getStages()
+                                .flatMap(s -> s.getWorkspace().stream())
+                                .map(Path::of)
+                                .collect(Collectors.toList());
+
+                        var commonParentDirectory = paths.stream().findFirst().flatMap(path -> {
+                            var groupDirectory = path.getParent();
+                            if (groupDirectory != null && paths.stream().allMatch(p -> p.startsWith(groupDirectory))) {
+                                // assuming the same directory
+                                return Optional.of(List.of(groupDirectory.toString()));
+                            } else {
+                                return Optional.empty();
+                            }
+                        });
+
+                        return commonParentDirectory
+                                .orElseGet(() -> paths
+                                        .stream()
+                                        .map(Path::toString)
+                                        .collect(Collectors.toList())
+                                )
+                                .stream();
+                    } else {
+                        return eg.getStages().flatMap(s -> s.getWorkspace().stream());
+                    }
+                })
                 .distinct();
     }
 
@@ -328,19 +356,30 @@ public class ObsoleteWorkspaceFinder {
 
                         group
                                 .getStages()
-                                .forEach(s -> s.getWorkspace().ifPresent(w -> {
-                                    var details = workspaceDistance.computeIfAbsent(
-                                            w,
-                                            ww -> new WorkspaceDetail(w, distance)
-                                    );
-                                    details.distance = Math.min(details.distance, distance);
-                                    details.notDiscardable |= !group.getStageDefinition().isDiscardable();
-                                    details.hasSucceededAtLeastOnce |= s.getState() == State.Succeeded;
-                                    details.hasExecutedAtLeastOnce |= !group.isConfigureOnly() && !group.isGateway();
-                                    details.hasSucceededWithoutDiscardableAtLeastOnce |= !group
-                                            .getStageDefinition()
-                                            .isDiscardable() && s.getState() == State.Succeeded;
-                                }));
+                                .forEach(s -> {
+                                    var workspace = s.getWorkspace();
+
+                                    if (group.getWorkspaceConfiguration().isNestedWithinGroup() && group.hasRangedValues()) {
+                                        workspace = s.getWorkspace()
+                                                .map(Path::of)
+                                                .flatMap(p -> Optional.ofNullable(p.getParent()))
+                                                .map(Path::toString);
+                                    }
+
+                                    workspace.ifPresent(w -> {
+                                        var details = workspaceDistance.computeIfAbsent(
+                                                w,
+                                                ww -> new WorkspaceDetail(w, distance)
+                                        );
+                                        details.distance = Math.min(details.distance, distance);
+                                        details.notDiscardable |= !group.getStageDefinition().isDiscardable();
+                                        details.hasSucceededAtLeastOnce |= s.getState() == State.Succeeded;
+                                        details.hasExecutedAtLeastOnce |= !group.isConfigureOnly() && !group.isGateway();
+                                        details.hasSucceededWithoutDiscardableAtLeastOnce |= !group
+                                                .getStageDefinition()
+                                                .isDiscardable() && s.getState() == State.Succeeded;
+                                    });
+                                });
                         ;
 
                         if (group

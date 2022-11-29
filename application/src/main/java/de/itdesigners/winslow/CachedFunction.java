@@ -14,6 +14,18 @@ public class CachedFunction<T, R> implements Function<T, R> {
         this.function = function;
     }
 
+    public void forgetAll() {
+        this.cache.clear();
+    }
+
+    public void forget(@Nonnull T key) {
+        this.cache.remove(key);
+    }
+
+    public void remember(@Nonnull T key, @Nonnull R value) {
+        this.cache.put(key, value);
+    }
+
     @Override
     public R apply(T parameter) {
         if (this.cache.containsKey(parameter)) {

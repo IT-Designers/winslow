@@ -112,6 +112,10 @@ public class Env {
         return isTrueOr1(System.getenv(DEV_ENV));
     }
 
+    public static Optional<String> getDevUser() {
+        return isDevEnv() ? Optional.ofNullable(System.getenv(DEV_REMOTE_USER)) : Optional.empty();
+    }
+
     private static boolean isTrueOr1(@Nullable String env) {
         return "1".equals(env) || Boolean.parseBoolean(env);
     }

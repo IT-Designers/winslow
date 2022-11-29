@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.project;
 
+import de.itdesigners.winslow.LockedContainer;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
@@ -8,8 +9,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.ConstructorProperties;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class Project {
+
+    private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
     private @Nonnull final String id;
     private @Nonnull final String owner;
@@ -152,17 +156,13 @@ public class Project {
     }
 
     public boolean canBeManagedBy(@Nonnull User user) {
-        return user.isSuperUser() || getOwner().equals(user.getName());
+        return user.isSuperUser() || getOwner().equals(user.name());
     }
 
     public boolean canBeAccessedBy(@Nonnull User user) {
         return this.isPublic()
                 || this.canBeManagedBy(user)
-                || user.getGroups()
-                       .anyMatch(Objects.requireNonNullElseGet(
-                               this.groups,
-                               Collections::emptyList
-                       )::contains);
+                || (this.groups != null && user.getGroups().stream().anyMatch(g -> this.groups.contains(g.name())));
     }
 
     @Nonnull

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class ExecutionGroupInfoConverter {
 
     @Nonnull
-    public static ExecutionGroupInfo convert(@Nonnull ExecutionGroup group, boolean active) {
+    public static ExecutionGroupInfo convert(@Nonnull ExecutionGroup group, boolean active, boolean enqueued) {
         return new ExecutionGroupInfo(
                 group.getFullyQualifiedId(),
                 group.isConfigureOnly(),
@@ -23,6 +23,7 @@ public class ExecutionGroupInfoConverter {
                         .map(StageInfoConverter::from)
                         .collect(Collectors.toList()),
                 active,
+                enqueued,
                 group.getComment().orElse(null)
         );
     }

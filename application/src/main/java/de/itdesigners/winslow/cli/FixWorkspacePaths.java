@@ -93,7 +93,7 @@ public class FixWorkspacePaths {
                         .flatMap(ExecutionGroup::getStages)
                         .forEach(stage -> {
                             if (hasFixableWorkspacePath(stage)) {
-                                var path = WorkspaceCreator.getWorkspacePathOf(stage.getId(), false).toString();
+                                var path = WorkspaceCreator.getWorkspacePathOf(stage.getId(), false, null).toString();
                                 stage.setWorkspace(path);
                                 response.put(stage.getFullyQualifiedId(), path);
                             }

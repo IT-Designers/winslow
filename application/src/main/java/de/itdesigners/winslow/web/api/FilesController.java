@@ -39,7 +39,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -47,7 +46,10 @@ import java.util.zip.ZipInputStream;
 @RestController
 public class FilesController {
 
-    public static final String ATTR_LAST_MODIFIED = "last-modified";
+    public static final String ATTR_LAST_MODIFIED                   = "last-modified";
+    public static final String PARAM_DOWNLOAD_HANDLER               = "handler";
+    public static final String DOWNLOAD_HANDLER_CSV_LINE_AGGREGATOR = "line-aggregator/csv";
+    public static final String DOWNLOAD_HANDLER_DEFAULT             = "default";
 
     private final ResourceManager   resourceManager;
     private final FileAccessChecker checker;
@@ -357,21 +359,29 @@ public class FilesController {
 
 
                     if (file.isFile()) {
-                        return responseEntity
-                                .contentLength(file.length())
-                                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                                .body((StreamingResponseBody) outputStream -> {
-                                    if (compress) {
-                                        try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(
-                                                outputStream)) {
-                                            try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
-                                                appendArchiveEntry(taos, file, file.getName());
+                        var handler = request.getParameter(PARAM_DOWNLOAD_HANDLER);
+                        switch (handler == null ? DOWNLOAD_HANDLER_DEFAULT : handler) {
+                            case DOWNLOAD_HANDLER_CSV_LINE_AGGREGATOR:
+                                return new StreamingCsvLineAggregatorAdapter(request, file)
+                                        .buildResponseEntity(responseEntity);
+                            case DOWNLOAD_HANDLER_DEFAULT:
+                            default:
+                                return responseEntity
+                                        .contentLength(file.length())
+                                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                                        .body((StreamingResponseBody) outputStream -> {
+                                            if (compress) {
+                                                try (GzipCompressorOutputStream gcos = new GzipCompressorOutputStream(
+                                                        outputStream)) {
+                                                    try (TarArchiveOutputStream taos = new TarArchiveOutputStream(gcos)) {
+                                                        appendArchiveEntry(taos, file, file.getName());
+                                                    }
+                                                }
+                                            } else {
+                                                Files.copy(file.toPath(), outputStream);
                                             }
-                                        }
-                                    } else {
-                                        Files.copy(file.toPath(), outputStream);
-                                    }
-                                });
+                                        });
+                        }
                     } else {
                         return responseEntity
                                 .header("X-Content-Length-Hint", String.valueOf(aggregateSize(file)))

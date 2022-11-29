@@ -2,26 +2,26 @@ package de.itdesigners.winslow.node.unix;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UnixCpuInfoParser {
 
     public static final String SEPARATOR = " ";
 
-    @Nonnull private final String[] lines;
-
-    private int cpuCount;
+    private final @Nonnull String[] lines;
+    private final          int      cpuCount;
 
     public UnixCpuInfoParser(@Nonnull String[] lines) {
         this.lines    = lines;
         this.cpuCount = parseCpuCount();
     }
 
+    @Nonnull
     private String getTotalCpuLine() {
         return lines[0];
     }
 
+    @Nonnull
     private Stream<String> getCpuCoreLines() {
         return Stream.of(lines).skip(1).takeWhile(line -> line.startsWith("cpu"));
     }
@@ -34,15 +34,17 @@ public class UnixCpuInfoParser {
         return cpuCount;
     }
 
+    @Nonnull
     public CpuTimes getTotalCpuTimes() {
         return new CpuTimes(getTotalCpuLine().split(SEPARATOR));
     }
 
+    @Nonnull
     public List<CpuTimes> getCpuTimes() {
         return getCpuCoreLines()
                 .map(line -> line.split(SEPARATOR))
                 .map(CpuTimes::new)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     public static class CpuTimes {

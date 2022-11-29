@@ -6,9 +6,11 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
+import de.itdesigners.winslow.api.Build;
 import de.itdesigners.winslow.api.node.NodeInfo;
+import de.itdesigners.winslow.auth.GroupManager;
 import de.itdesigners.winslow.auth.GroupRepository;
-import de.itdesigners.winslow.auth.UserRepository;
+import de.itdesigners.winslow.auth.UserManager;
 import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
@@ -61,7 +63,7 @@ public class Main {
         System.out.println("        work-directory = " + workDirectory);
         System.out.println("          storage-type = " + storageType);
         System.out.println("             log-level = INFO");
-        System.out.println("                  mode = STANDALONE");
+        System.out.println("               version = " + Build.DATE + "@" + Build.COMMIT_HASH_SHORT);
         System.out.println();
         System.out.println();
 
@@ -80,8 +82,8 @@ public class Main {
             var tokens          = new AuthTokenRepository(lockBus, config);
             var settings        = new SettingsRepository(lockBus, config);
             var nodes           = new NodeRepository(lockBus, config);
-            var groupRepository = new GroupRepository();
-            var userRepository  = new UserRepository(groupRepository);
+            var groupManager    = new GroupManager(new GroupRepository(lockBus, config));
+            var userManager     = new UserManager(groupManager);
 
             LOG.info("Preparing the orchestrator");
             var repository      = new PipelineRepository(lockBus, config);
@@ -108,7 +110,7 @@ public class Main {
                     attributes,
                     logs,
                     settings,
-                    userRepository,
+                    userManager,
                     nodes,
                     nodeName,
                     resourceMonitor,
@@ -129,8 +131,8 @@ public class Main {
                     tokens,
                     settings,
                     nodes,
-                    groupRepository,
-                    userRepository
+                    groupManager,
+                    userManager
             );
 
 

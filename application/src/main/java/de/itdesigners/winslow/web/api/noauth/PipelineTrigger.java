@@ -53,7 +53,7 @@ public class PipelineTrigger {
         final String fStage = stage;
         var result = getProjectForTokenSecret(projectId, secret, REQUIRED_CAPABILITY_TRIGGER_PIPELINE).map(project -> {
             var controller = new ProjectsController(winslow);
-            var user       = winslow.getUserRepository().getUserOrCreateAuthenticated(project.getOwner()).orElseThrow();
+            var user       = winslow.getUserManager().getUserOrCreateAuthenticated(project.getOwner()).orElseThrow();
 
             var stageIndex      = Optional.ofNullable(fStage).flatMap(name -> getStageIndex(project, name)).orElse(0);
             var stageDefinition = project.getPipelineDefinition().getStages().get(stageIndex);

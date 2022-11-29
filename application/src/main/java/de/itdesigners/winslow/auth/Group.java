@@ -1,40 +1,90 @@
 package de.itdesigners.winslow.auth;
 
-import java.util.ArrayList;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
+
+import javax.annotation.Nonnull;
+import java.beans.Transient;
 import java.util.List;
+import java.util.Optional;
 
-public class Group {
+/**
+ * Current snapshot of a group. An instance is not intended to be cached in memory.
+ * A {@link Group} instance will not be updated if the group is changed in the backend,
+ * thus not reflecting any changes after instantiation.
+ * <br>
+ * Provides convenience functions such as {@link #isSuperGroup()}, {@link #getRole(String)} and {@link #isMember(String)}.
+ *
+ * @param name    The name (might be {@link Prefix}ed)
+ * @param members An immutable {@link List} of {@link Link}ed members
+ */
+public record Group(
+        @Nonnull String name,
+        @Nonnull List<Link> members
+) {
 
-    private final String       name;
-    private final boolean      superGroup;
-    private final List<String> users = new ArrayList<>();
+    /**
+     * The name of the group with super privileges / the name of the group that is privileged.
+     * Similar to the root-user in UNIX like systems.
+     */
+    public static final String SUPER_GROUP_NAME = "root";
 
-    public Group(String name, boolean superGroup) {
-        this.name       = name;
-        this.superGroup = superGroup;
-    }
-
-    public String getName() {
-        return name;
-    }
-
+    /**
+     * @return Whether this {@link Group} is privileged, see {@link #SUPER_GROUP_NAME}.
+     */
+    @Transient
     public boolean isSuperGroup() {
-        return superGroup;
+        return SUPER_GROUP_NAME.equals(this.name());
     }
 
-    public boolean isMember(String name) {
-        return this.users.contains(name);
+    /**
+     * Does not care about any {@link Prefix} wrapping / unwrapping. The given name
+     * is compared with the members-list as given.
+     *
+     * @param name The name of the member to search for
+     * @return Whether there is a member entry for the given name
+     */
+    public boolean isMember(@Nonnull String name) {
+        return this.members().stream().anyMatch(link -> link.name().equals(name));
     }
 
-    public Group withUser(String name) {
-        if (!this.users.contains(name)) {
-            this.users.add(name);
-        }
-        return this;
+    /**
+     * Does not care about any {@link Prefix} wrapping / unwrapping. The given name
+     * is compared with the members-list as given.
+     *
+     * @param name The name of the member to search for
+     * @param role Expected {@link Role} of the member
+     * @return Whether there is a member entry for the given name and {@link Role}
+     */
+    public boolean hasMemberWithRole(@Nonnull String name, @Nonnull Role role) {
+        return hasMemberWithRole(new Link(name, role));
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "@{name='" + this.name + "'}#" + this.hashCode();
+    /**
+     * Does not care about any {@link Prefix} wrapping / unwrapping. The given name
+     * is compared with the members-list as given.
+     *
+     * @param link The name and {@link Role} of the member to search for
+     * @return Whether there is a member entry for the given name and {@link Role}
+     */
+    public boolean hasMemberWithRole(@Nonnull Link link) {
+        return this
+                .members()
+                .stream()
+                .anyMatch(link::equals);
+    }
+
+    /**
+     * param name The name of the member to search for
+     *
+     * @return If found, the {@link Role} for the given name, otherwise {@link Optional#empty()}
+     */
+    @Nonnull
+    public Optional<Role> getRole(@Nonnull String name) {
+        return this.members()
+                   .stream()
+                   .filter(link -> link.name().equals(name))
+                   .findFirst()
+                   .map(Link::role);
     }
 }

@@ -4,6 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>winslow-api</name>
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.10.5</version>
+        </dependency>
+    </dependencies>
     <artifactId>winslow-api</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -15,5 +22,58 @@
         <relativePath>..</relativePath>
     </parent>
 
+    <build>
+        <plugins>
+
+            <plugin>
+                <!--
+                      https://github.com/vojtechhabarta/typescript-generator
+                API: http://www.habarta.cz/typescript-generator/maven/typescript-generator-maven-plugin/generate-mojo.html
+                       todo: a bug currently creates a super()-call in record-constructors. those must be deleted manually
+                -->
+                <groupId>cz.habarta.typescript-generator</groupId>
+                <artifactId>typescript-generator-maven-plugin</artifactId>
+                <version>3.0.1157</version>
+                <executions>
+                    <execution>
+                        <id>generate</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jsonLibrary>jackson2</jsonLibrary>
+                    <classPatterns>de.itdesigners.winslow.api.**</classPatterns>
+                    <excludeClasses> <!-- classes that differ too much from frontend classes-->
+                        <class>de.itdesigners.winslow.api.pipeline.RangeWithStepSize</class>
+                        <class>de.itdesigners.winslow.api.pipeline.RangedList</class>
+                        <class>de.itdesigners.winslow.api.pipeline.RangedValue</class>
+                    </excludeClasses>
+
+
+
+                    <!--
+                      todo: currently not working:
+                      https://github.com/vojtechhabarta/typescript-generator/issues/534
+                      <javadocXmlFiles>
+                          <file>target/javadoc.xml</file>
+                      </javadocXmlFiles>-->
+                    <outputFileType>implementationFile</outputFileType>
+                    <addTypeNamePrefix>I</addTypeNamePrefix>
+                    <generateConstructors>true</generateConstructors>
+                    <mapClasses>asClasses</mapClasses>
+                    <outputKind>module</outputKind>
+                    <nullabilityDefinition>nullUnion</nullabilityDefinition>
+                    <optionalAnnotations>
+                        <annotation>javax.annotation.Nullable</annotation>
+                    </optionalAnnotations>
+
+                    <mapDate>asNumber</mapDate>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

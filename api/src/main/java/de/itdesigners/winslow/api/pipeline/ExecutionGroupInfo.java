@@ -15,6 +15,7 @@ public class ExecutionGroupInfo {
     public final @Nonnull  WorkspaceConfiguration   workspaceConfiguration;
     public final @Nonnull  List<StageInfo>          stages;
     public final           boolean                  active;
+    public final           boolean                  enqueued;
     public final @Nullable String                   comment;
 
     public ExecutionGroupInfo(
@@ -25,6 +26,7 @@ public class ExecutionGroupInfo {
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
             @Nonnull List<StageInfo> stages,
             boolean active,
+            boolean enqueued,
             @Nullable String comment) {
         this.id                     = id;
         this.configureOnly          = configureOnly;
@@ -33,6 +35,7 @@ public class ExecutionGroupInfo {
         this.workspaceConfiguration = workspaceConfiguration;
         this.stages                 = stages;
         this.active                 = active;
+        this.enqueued               = enqueued;
         this.comment                = comment;
     }
 
@@ -43,14 +46,9 @@ public class ExecutionGroupInfo {
         if (o == null || getClass() != o.getClass())
             return false;
         ExecutionGroupInfo that = (ExecutionGroupInfo) o;
-        return configureOnly == that.configureOnly &&
-                active == that.active &&
-                id.equals(that.id) &&
-                stageDefinition.equals(that.stageDefinition) &&
-                rangedValues.equals(that.rangedValues) &&
-                workspaceConfiguration.equals(that.workspaceConfiguration) &&
-                stages.equals(that.stages) &&
-                Objects.equals(comment, that.comment);
+        return configureOnly == that.configureOnly && active == that.active && enqueued == that.enqueued && id.equals(
+                that.id) && stageDefinition.equals(that.stageDefinition) && rangedValues.equals(that.rangedValues) && workspaceConfiguration.equals(
+                that.workspaceConfiguration) && stages.equals(that.stages) && Objects.equals(comment, that.comment);
     }
 
     @Override
@@ -63,6 +61,7 @@ public class ExecutionGroupInfo {
                 workspaceConfiguration,
                 stages,
                 active,
+                enqueued,
                 comment
         );
     }

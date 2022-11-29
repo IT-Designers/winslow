@@ -1,4 +1,5 @@
 stages:
+  - test
   - build
   - deploy
   - downstream
@@ -6,9 +7,21 @@ stages:
 before_script:
   - git submodule sync --recursive
   - git submodule update --init --recursive
+
+test:
+  stage: test
+  image: maven:3.8.5-openjdk-17
+  tags:
+    - docker
+  script:
+    - mvn clean test verify
+    - mv application/target/site/jacoco coverage-report
+    - awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
+  coverage: '/([\d]+\.[\d]+) % covered/'
+
 build:
   stage: build
-  image: maven:3.6.3-jdk-11
+  image: maven:3.8.5-openjdk-17
   tags:
     - docker
   script:

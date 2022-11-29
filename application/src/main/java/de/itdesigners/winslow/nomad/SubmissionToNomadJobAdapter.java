@@ -36,6 +36,7 @@ public class SubmissionToNomadJobAdapter {
         this.backend  = backend;
     }
 
+    @Nonnull
     public SubmissionResult submit(@Nonnull Submission submission) throws OrchestratorException, IOException, NomadException {
         if (submission.getResult().isPresent()) {
             throw new OrchestratorException("Submission already submitted");
@@ -113,6 +114,7 @@ public class SubmissionToNomadJobAdapter {
                 );
     }
 
+    @Nonnull
     private HashMap<String, String> getVisibleEnvironmentVariables(@Nonnull Submission submission) {
         var env = new HashMap<String, String>();
 
@@ -156,14 +158,11 @@ public class SubmissionToNomadJobAdapter {
 
     @Nonnull
     private static Optional<Map<String, Object>> getMount(@Nonnull DockerVolume volume) {
-        switch (volume.getType().toLowerCase()) {
-            case "nfs":
-                return Optional.of(getNfsVolumeMount(volume));
-            case "bind":
-                return Optional.of(getBindVolumeMount(volume));
-            default:
-                return Optional.empty();
-        }
+        return switch (volume.getType().toLowerCase()) {
+            case "nfs" -> Optional.of(getNfsVolumeMount(volume));
+            case "bind" -> Optional.of(getBindVolumeMount(volume));
+            default -> Optional.empty();
+        };
     }
 
     @Nonnull

@@ -141,13 +141,11 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
             return;
         }
 
-        obsolete.stream()
-                .map(Path::of)
-                .map(workspaces::getWorkspace)
-                .flatMap(Optional::stream)
-                .filter(Files::exists)
+        obsolete
+                .stream()
+                .filter(path -> workspaces.getWorkspace(Path.of(path)).isPresent())
                 .peek(path -> LOG.info("Deleting obsolete workspace at " + path))
-                .forEach(path -> orchestrator.forcePurgeNoThrows(purgeScope.get(), path));
+                .forEach(workspace -> orchestrator.forcePurgeWorkspaceNoThrows(projectId, Path.of(workspace)));
     }
 
 }

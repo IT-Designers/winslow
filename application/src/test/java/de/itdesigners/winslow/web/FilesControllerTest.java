@@ -197,12 +197,12 @@ public class FilesControllerTest {
         String directory = "my-project-id/stage1";
         assertEquals(
                 HttpStatus.NOT_FOUND,
-                controller.deleteInWorkspace(constructRequest(file), getUser("random-guy", false)).getStatusCode()
+                controller.deleteInWorkspace(constructRequest(file), getUser("random-guy")).getStatusCode()
         );
         assertEquals(
                 HttpStatus.NOT_FOUND,
                 controller
-                        .deleteInWorkspace(constructRequest(directory), getUser("random-guy", false))
+                        .deleteInWorkspace(constructRequest(directory), getUser("random-guy"))
                         .getStatusCode()
         );
         assertTrue(Files.exists(
@@ -312,7 +312,7 @@ public class FilesControllerTest {
                 Optional.empty(),
                 controller.createWorkspaceDirectory(
                         constructRequest(directory),
-                        getUser("random-guy", false)
+                        getUser("random-guy")
                 )
         );
         assertFalse(Files.exists(
@@ -477,7 +477,7 @@ public class FilesControllerTest {
                 ResponseStatusException.class,
                 () -> controller.uploadWorkspaceFile(
                         constructRequest("my-project-id/bitcoin.privatekey"),
-                        getUser("random-guy", false),
+                        getUser("random-guy"),
                         constructUploadFile(ABC_TXT),
                         false,
                         null
@@ -942,7 +942,7 @@ public class FilesControllerTest {
     private void testWorkspaceDownloadNotAllowed(boolean explicitCompress) {
         assertNull(controller.downloadWorkspaceFile(
                 constructRequest("my-project-id/stage1/some.file"),
-                getUser("random-user", false),
+                getUser("random-user"),
                 explicitCompress
         ));
     }
@@ -1079,10 +1079,6 @@ public class FilesControllerTest {
         assertTrue(lookup.isEmpty());
     }
 
-    private User getUser(String root, boolean b) {
-        return new User(root, b, DUMMY_GROUP_RESOLVER);
-    }
-
     @Test
     public void testBasicWorkspaceListingUnauthorized() {
         var listing = controller.listWorkspaceDirectory(
@@ -1098,7 +1094,7 @@ public class FilesControllerTest {
     public void testBasicWorkspaceListingNotAllowed() {
         assertFalse(controller.listWorkspaceDirectory(
                 constructRequest("my-project-id/stage1"),
-                getUser("unknown-user", false),
+                getUser("unknown-user"),
                 false
         ).iterator().hasNext());
     }
@@ -1303,6 +1299,7 @@ public class FilesControllerTest {
             }
 
             @Override
+            @Deprecated
             public String getRealPath(String s) {
                 return null;
             }
@@ -1490,6 +1487,7 @@ public class FilesControllerTest {
             }
 
             @Override
+            @Deprecated
             public boolean isRequestedSessionIdFromUrl() {
                 return false;
             }
@@ -1528,14 +1526,14 @@ public class FilesControllerTest {
 
     private static final GroupAssignmentResolver DUMMY_GROUP_RESOLVER = new GroupAssignmentResolver() {
         @Override
-        public boolean canAccessGroup(@Nonnull String user, @Nonnull String group) {
+        public boolean isPartOfGroup(@Nonnull String user, @Nonnull String group) {
             return false;
         }
 
         @Nonnull
         @Override
-        public Stream<String> getAssignedGroups(@Nonnull String user) {
-            return Stream.empty();
+        public List<Group> getAssignedGroups(@Nonnull String user) {
+            return Collections.emptyList();
         }
 
         @Nonnull
@@ -1546,10 +1544,14 @@ public class FilesControllerTest {
     };
 
     private User getRoot() {
-        return getUser("root", true);
+        return getUser(User.SUPER_USER_NAME);
     }
 
     private User getProjectOwner() {
-        return getUser("project-owner", false);
+        return getUser("project-owner");
+    }
+
+    private User getUser(String root) {
+        return new User(root, DUMMY_GROUP_RESOLVER);
     }
 }

@@ -1,6 +1,9 @@
 package de.itdesigners.winslow.auth;
 
+import de.itdesigners.winslow.api.auth.Role;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -9,33 +12,33 @@ public class SuperPrivilegesTests {
 
     @Test
     public void testSuperConstructorFlag() {
-        assertTrue(new User("user", true, null).isSuperUser());
-        assertTrue(new User("user", true, null).hasSuperPrivileges());
+        assertTrue(new User(User.SUPER_USER_NAME, null).isSuperUser());
+        assertTrue(new User(User.SUPER_USER_NAME, null).hasSuperPrivileges());
     }
 
     @Test
     public void testSuperUser() {
-        GroupRepository groupRepository = new GroupRepository();
-        UserRepository userRepository = new UserRepository(groupRepository);
+        GroupManager groupManager = new GroupManager(new DummyGroupPersistence());
+        UserManager  userManager  = new UserManager(groupManager);
 
-        var root = userRepository.getUser(UserRepository.SUPERUSER);
+        var root = userManager.getUser(User.SUPER_USER_NAME);
         assertTrue(root.isPresent());
         assertTrue(root.get().isSuperUser());
         assertTrue(root.get().hasSuperPrivileges());
     }
 
     @Test
-    public void testRandomUserInSuperGroupHavingSuperPrivileges() {
-        GroupRepository groupRepository = new GroupRepository();
-        UserRepository userRepository = new UserRepository(groupRepository);
+    public void testRandomUserInSuperGroupHavingSuperPrivileges() throws InvalidNameException, NameAlreadyInUseException, NameNotFoundException, LinkWithNameAlreadyExistsException, IOException {
+        GroupManager groupManager = new GroupManager(new DummyGroupPersistence());
+        UserManager  userManager  = new UserManager(groupManager);
 
-        var newUser = userRepository.createUser("random", false);
-        var rootGroup = groupRepository.getGroup(GroupRepository.SUPERGROUP).get();
+        var newUser   = userManager.createUserWithoutGroup("random");
+        var rootGroup = groupManager.getGroup(Group.SUPER_GROUP_NAME).orElseThrow();
 
         assertFalse(newUser.isSuperUser());
         assertFalse(newUser.hasSuperPrivileges());
 
-        rootGroup.withUser(newUser.getName());
+        groupManager.addMemberToGroup(rootGroup.name(), newUser.name(), Role.MEMBER);
 
         assertFalse(newUser.isSuperUser());
         assertTrue(newUser.hasSuperPrivileges());

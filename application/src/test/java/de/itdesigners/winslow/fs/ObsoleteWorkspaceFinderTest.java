@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.fs;
 
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
+import de.itdesigners.winslow.api.pipeline.RangedList;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
@@ -11,10 +12,7 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -326,6 +324,48 @@ public class ObsoleteWorkspaceFinderTest {
         );
     }
 
+    @Test
+    public void testProperlyConsidersDiscardableAndDoesNotDeleteParentDirectoryIfNested() {
+        var history = List.of(
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
+                constructFinishedStage(false, true, "w-broken/s1", State.Succeeded),
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w2" must not be substituted to its parent
+                constructFinishedStage(false, true, "w2", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w3/test" must not be substituted to its parent
+                constructFinishedStage(false, true, "w3/test", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(false, true, "w4", State.Succeeded),
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w5/s1", "w5/s2"), State.Failed)
+        );
+
+        assertEquals(
+                List.of("w1", "w-broken/s1", "w2", "w3/test"),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+                        .withExecutionHistory(history)
+                        .collectObsoleteWorkspaces()
+        );
+    }
+
+    @Test
+    public void testNotDeleteParentDirectoryIfNested() {
+        var history = List.of(
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
+                constructFinishedStage(false, false, "w-broken/s1", State.Succeeded),
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w2" must not be substituted to its parent
+                constructFinishedStage(false, false, "w2", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w3/test" must not be substituted to its parent
+                constructFinishedStage(false, false, "w3/test", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(false, false, "w4", State.Succeeded),
+                constructFinishedStageWithNestedWorkspaces(false, true, List.of("w5/s1", "w5/s2"), State.Failed)
+        );
+
+        assertEquals(
+                List.of("w1"),
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 4))
+                        .withExecutionHistory(history)
+                        .collectObsoleteWorkspaces()
+        );
+    }
+
 
     @Nonnull
     private static ExecutionGroup constructFinishedStage(
@@ -355,6 +395,16 @@ public class ObsoleteWorkspaceFinderTest {
             @Nullable Boolean discardable,
             @Nonnull String workspace,
             @Nonnull State finishState) {
+        return constructFinishedStage(configureOnly, discardable, workspace, finishState, null);
+    }
+
+    @Nonnull
+    private static ExecutionGroup constructFinishedStage(
+            boolean configureOnly,
+            @Nullable Boolean discardable,
+            @Nonnull String workspace,
+            @Nonnull State finishState,
+            @Nullable WorkspaceConfiguration workspaceConfiguration) {
         var group = new ExecutionGroup(
                 new ExecutionGroupId(
                         "randomish-project",
@@ -380,7 +430,9 @@ public class ObsoleteWorkspaceFinderTest {
                         null
                 ),
                 null,
-                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null),
+                workspaceConfiguration != null
+                    ? workspaceConfiguration
+                    : new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, null),
                 new ArrayList<>(),
                 0,
                 null,
@@ -398,6 +450,57 @@ public class ObsoleteWorkspaceFinderTest {
                 null,
                 null
         ));
+        return group;
+    }
+
+    @Nonnull
+    private static ExecutionGroup constructFinishedStageWithNestedWorkspaces(
+            boolean configureOnly,
+            @Nullable Boolean discardable,
+            @Nonnull Iterable<String> workspaces,
+            @Nonnull State finishState) {
+        var group = new ExecutionGroup(
+                new ExecutionGroupId(
+                        "randomish-project",
+                        0,
+                        "randomish-human-readable"
+                ),
+                configureOnly,
+                new StageDefinition(
+                        "some-definition",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        discardable,
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                Map.of("a", new RangedList(new String[]{"b", "c"})),
+                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, true),
+                new ArrayList<>(),
+                0,
+                null
+        );
+
+        var stageNumberWithinGroup = 0;
+        for (var workspace : workspaces) {
+            group.addStage(new Stage(
+                    group.getId().generateStageId(stageNumberWithinGroup++),
+                    new Date(0),
+                    workspace,
+                    new Date(),
+                    finishState,
+                    null,
+                    null,
+                    null,
+                    null
+            ));
+        }
         return group;
     }
 }

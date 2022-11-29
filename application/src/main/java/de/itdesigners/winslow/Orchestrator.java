@@ -6,7 +6,7 @@ import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.Stats;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.auth.User;
-import de.itdesigners.winslow.auth.UserRepository;
+import de.itdesigners.winslow.auth.UserManager;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.Lock;
@@ -43,7 +43,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Orchestrator implements Closeable, AutoCloseable {
@@ -52,26 +51,26 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
     public static final  Pattern RESULT_PATTERN        = Pattern.compile("WINSLOW_RESULT:[ ]+(.*)=(.*)");
 
-    @Nonnull private final LockBus            lockBus;
-    @Nonnull private final Environment        environment;
-    @Nonnull private final Backend            backend;
-    @Nonnull private final ProjectRepository  projects;
-    @Nonnull private final PipelineRepository pipelines;
-    @Nonnull private final RunInfoRepository  hints;
-    @Nonnull private final LogRepository      logs;
-    @Nonnull private final SettingsRepository settings;
-    @Nonnull private final UserRepository     users;
-    @Nonnull private final NodeRepository     nodes;
-    @Nonnull private final String             nodeName;
+    private final @Nonnull LockBus            lockBus;
+    private final @Nonnull Environment        environment;
+    private final @Nonnull Backend            backend;
+    private final @Nonnull ProjectRepository  projects;
+    private final @Nonnull PipelineRepository pipelines;
+    private final @Nonnull RunInfoRepository  hints;
+    private final @Nonnull LogRepository      logs;
+    private final @Nonnull SettingsRepository settings;
+    private final @Nonnull UserManager        users;
+    private final @Nonnull NodeRepository     nodes;
+    private final @Nonnull String             nodeName;
 
-    @Nonnull private final Map<String, Executor>     executors         = new ConcurrentHashMap<>();
-    @Nonnull private final Set<String>               missingResources  = new ConcurrentSkipListSet<>();
-    @Nonnull private final DelayedExecutor           delayedExecutions = new DelayedExecutor();
-    @Nonnull private final ResourceAllocationMonitor monitor;
-    @Nonnull private final ElectionManager           electionManager;
+    private final @Nonnull Map<String, Executor>     executors         = new ConcurrentHashMap<>();
+    private final @Nonnull Set<String>               missingResources  = new ConcurrentSkipListSet<>();
+    private final @Nonnull DelayedExecutor           delayedExecutions = new DelayedExecutor();
+    private final @Nonnull ResourceAllocationMonitor monitor;
+    private final @Nonnull ElectionManager           electionManager;
 
-    private final boolean       executeStages;
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final          boolean       executeStages;
+    private final @Nonnull AtomicBoolean started = new AtomicBoolean(false);
 
     private final @Nonnull Map<String, Queue<Consumer<Pipeline>>> deferredPipelineUpdates = new ConcurrentHashMap<>();
     private final @Nonnull Set<String>                            stageExecutionTags      = new ConcurrentSkipListSet<>();
@@ -85,7 +84,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
             @Nonnull SettingsRepository settings,
-            @Nonnull UserRepository users,
+            @Nonnull UserManager users,
             @Nonnull NodeRepository nodes,
             @Nonnull String nodeName,
             @Nonnull ResourceAllocationMonitor monitor,
@@ -424,6 +423,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 });
     }
 
+    @Nonnull
     public Optional<Boolean> isCapableOfExecutingNextStage(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveOrNextExecutionGroup()
@@ -452,12 +452,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     protected boolean startPipeline(
             @Nonnull Lock lock,
-            @Nonnull String projectId,
+            @Nonnull Project project,
             @Nonnull PipelineDefinition definition,
             @Nonnull Pipeline pipeline) {
-        return startNextPipelineStage(lock, definition, pipeline).map(result -> {
+        return startNextPipelineStage(lock, definition, pipeline, project).map(result -> {
             hookUpResourceReservationAndFreeingHandler(
-                    projectId,
+                    project.getId(),
                     result.getValue0().getStageDefinition(),
                     result.getValue2()
             );
@@ -485,12 +485,18 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return copy;
     }
 
+    @Nonnull
     private Optional<Triplet<ExecutionGroup, Stage, Executor>> startNextPipelineStage(
             @Nonnull Lock lock,
             @Nonnull PipelineDefinition definition,
-            @Nonnull Pipeline pipeline) {
+            @Nonnull Pipeline pipeline,
+            @Nonnull Project project) {
         if (pipeline.canRetrieveNextActiveExecution()) {
-            pipeline.retrieveNextActiveExecution();
+            try {
+                pipeline.retrieveNextActiveExecution();
+            } catch (ThereIsStillAnActiveExecutionGroupException e) {
+                LOG.log(Level.SEVERE, "Failed to retrieve execution group", e);
+            }
         }
 
         var executionGroup = pipeline
@@ -522,7 +528,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     stageDefinition,
                     stageId,
                     executor,
-                    env
+                    env,
+                    project
             );
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
@@ -544,7 +551,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull StageId stageId,
             @Nonnull Executor executor,
-            @Nonnull Map<String, String> globalEnvironmentVariables) {
+            @Nonnull Map<String, String> globalEnvironmentVariables,
+            @Nonnull Project project) {
         var thread = new Thread(() -> {
             var projectId = pipeline.getProjectId();
             var assembler = new StageAssembler();
@@ -592,6 +600,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                     }
                             ))
                             .assemble(new Context(
+                                    project,
                                     pipeline,
                                     definition,
                                     executionGroup,
@@ -669,6 +678,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         }
     }
 
+    @Nonnull
     private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String stageId) {
         return entry -> {
             var matcher = PROGRESS_HINT_PATTERN.matcher(entry.getMessage());
@@ -703,11 +713,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             }
 
             var workspace = environment.getResourceManager().getWorkspace(getWorkspacePathForPipeline(pipeline));
-            workspace.ifPresent(w -> environment
-                    .getResourceManager()
-                    .getWorkspacesDirectory()
-                    .ifPresent(wd -> forcePurgeNoThrows(wd, w))
-            );
+            workspace.ifPresent(w -> forcePurgeWorkspaceNoThrows(project.getId(), w));
             return workspace.isPresent() && container.deleteOmitExceptions();
 
         } catch (LockException e) {
@@ -715,11 +721,11 @@ public class Orchestrator implements Closeable, AutoCloseable {
         }
     }
 
-    public void forcePurgeNoThrows(@Nonnull Path mustBeWithin, @Nonnull Path directory) {
+    public void forcePurgeWorkspaceNoThrows(@Nonnull String projectId, @Nonnull Path workspace) {
         try {
-            forcePurge(environment.getWorkDirectoryConfiguration().getPath(), mustBeWithin, directory);
+            forcePurgeWorkspace(projectId, workspace);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to get rid of directory " + directory, e);
+            LOG.log(Level.SEVERE, "Failed to get rid of workspace=" + workspace + " for project=" + projectId, e);
         }
     }
 
@@ -728,14 +734,41 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .getResourceManager()
                 .getWorkspace(getWorkspacePathForPipeline(projectId))
                 .orElseThrow(() -> new IOException("Failed to determine scope for ProjectId " + projectId));
-        Orchestrator.forcePurge(environment.getWorkDirectoryConfiguration().getPath(), scope, workspace);
+        Orchestrator.forcePurge(
+                environment.getWorkDirectoryConfiguration().getPath(),
+                scope,
+                workspace.isAbsolute()
+                ? workspace
+                : this.environment
+                        .getResourceManager()
+                        .getWorkspace(workspace)
+                        .orElseThrow(() -> new IOException("Failed to resolve workspace-path=" + workspace)),
+                1
+        );
+    }
+
+    public void forcePurgeNoThrows(
+            @Nonnull Path mustBeWithin,
+            @Nonnull Path directory,
+            int requiredPathOffsetToWithin) {
+        try {
+            forcePurge(
+                    environment.getWorkDirectoryConfiguration().getPath(),
+                    mustBeWithin,
+                    directory,
+                    requiredPathOffsetToWithin
+            );
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to get rid of directory " + directory, e);
+        }
     }
 
     public static void forcePurge(
             @Nonnull Path workDirectory,
             @Nonnull Path mustBeWithin,
-            @Nonnull Path path) throws IOException {
-        ensurePathToPurgeIsValid(workDirectory, mustBeWithin, path);
+            @Nonnull Path path,
+            int requiredPathOffsetToWithin) throws IOException {
+        ensurePathToPurgeIsValid(workDirectory, mustBeWithin, path, requiredPathOffsetToWithin);
         if (Files.exists(path)) {
             Files.walkFileTree(path, new SimpleFileVisitor<>() {
                 @Override
@@ -756,7 +789,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public static void ensurePathToPurgeIsValid(
             @Nonnull Path workDirectory,
             @Nonnull Path scope,
-            @Nonnull Path path) throws IOException {
+            @Nonnull Path path,
+            int requiredPathOffsetToScope) throws IOException {
         if (!path.normalize().equals(path)) {
             throw new IOException("Path not normalized properly: " + path);
         }
@@ -775,13 +809,29 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
         if (workDirectory.getNameCount() + 1 >= path.getNameCount()) {
             //
-            // this matches the a path like this:
+            // this matches a path like this:
             //
             // /some/path/on/the/fs/winslow/workspaces/my-pipeline
             // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA               forbidden
             //                                        AAAAAAAAAAAA   fine
             //
-            throw new IOException("Path[" + path + "] too close to the working directory[" + workDirectory + "]");
+            throw new IOException("Path[" + path + "] is too close to the working directory[" + workDirectory + "]");
+        }
+
+        if (path.getNameCount() < scope.getNameCount() + requiredPathOffsetToScope) {
+            //
+            // this matches a path like this:
+            //
+            // offset: 1
+            //
+            // scope: /abc/def/ghi            (name count 3)
+            // path:  /abc/def/ghi            (name count 3)   - fails
+            // path:  /abc/def/ghi/jkl        (name count 4)   - succeeds
+            // path:  /abc/def/ghi/jkl/mno    (name count 5)   - succeeds
+            //        AAAAAAAAAAAA            forbidden
+            //                    AAA         must be present
+            var offset = path.getNameCount() - scope.getNameCount();
+            throw new IOException("Path[" + path + "] is too close[offset=" + offset + ",required>=" + requiredPathOffsetToScope + "] to the scope directory[" + scope + "]");
         }
     }
 
@@ -831,6 +881,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .orElseThrow(() -> new OrchestratorException("Failed to create init directory " + pipeline.getProjectId()));
     }
 
+    @Nonnull
     private Pipeline tryUpdateContainer(
             @Nonnull LockedContainer<Pipeline> container,
             @Nonnull Pipeline pipeline) throws OrchestratorException {
@@ -842,6 +893,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         }
     }
 
+    @Nonnull
     private LockedContainer<Pipeline> exclusivePipelineContainer(@Nonnull Project project) throws OrchestratorException {
         return this.pipelines
                 .getPipeline(project.getId())
@@ -849,10 +901,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .orElseThrow(() -> new OrchestratorException("Failed to access new pipeline exclusively"));
     }
 
+    @Nonnull
     public static Path getWorkspacePathForPipeline(@Nonnull Pipeline pipeline) {
         return getWorkspacePathForPipeline(pipeline.getProjectId());
     }
 
+    @Nonnull
     private static Path getWorkspacePathForPipeline(@Nonnull String projectId) {
         return Path.of(projectId);
     }
@@ -958,6 +1012,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return this.getLogs(projectId, stageId, 0L);
     }
 
+    @Nonnull
     public Stream<LogEntry> getLogs(@Nonnull String projectId, @Nonnull String stageId, long skipBytes) {
         try {
             return LogReader.stream(logs.getRawInputStreamNonExclusive(projectId, stageId, skipBytes));
@@ -974,6 +1029,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return logs.getLogSize(project.getId(), stageId);
     }
 
+    @Nonnull
     private Executor startExecutor(@Nonnull StageId stageId) throws LockException, FileNotFoundException {
         var executor = new Executor(stageId.getProjectId(), stageId.getFullyQualified(), this);
         executor.addShutdownListener(() -> this.executors.remove(stageId.getFullyQualified()));
@@ -1002,7 +1058,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .getActiveAndPastExecutionGroups()
                             .flatMap(g -> g.getStages().map(s -> new Pair<>(g, s)))
                             .filter(s -> s.getValue1().getState() == State.Failed)
-                            .collect(Collectors.toUnmodifiableList());
+                            .toList();
 
 
                     for (var pair : prunable) {
@@ -1044,9 +1100,5 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Override
     public void close() throws IOException {
         this.backend.close();
-    }
-
-    private enum SimpleState {
-        Running, Failed, Succeeded,
     }
 }

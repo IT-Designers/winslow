@@ -243,7 +243,7 @@ public class ProjectsEndpointController {
     private List<ExecutionGroupInfo> getEnqueuedInfo(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getEnqueuedExecutions()
-                .map(g -> ExecutionGroupInfoConverter.convert(g, false))
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false, true))
                 .collect(Collectors.toList());
     }
 
@@ -251,15 +251,15 @@ public class ProjectsEndpointController {
     private List<ExecutionGroupInfo> getExecutionInfo(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getActiveExecutionGroups()
-                .map(g -> ExecutionGroupInfoConverter.convert(g, true))
-                .collect(Collectors.toList());
+                .map(g -> ExecutionGroupInfoConverter.convert(g, true, false))
+                .toList();
     }
 
     @Nonnull
     private List<ExecutionGroupInfo> getHistoryInfo(@Nonnull Pipeline pipeline) {
         return pipeline
                 .getExecutionHistory()
-                .map(g -> ExecutionGroupInfoConverter.convert(g, false))
+                .map(g -> ExecutionGroupInfoConverter.convert(g, false, false))
                 .collect(Collectors.toList());
     }
 
@@ -428,11 +428,9 @@ public class ProjectsEndpointController {
     }
 
     public static Optional<User> getUser(@Nonnull Winslow winslow, @Nullable String user) {
-        var devUserName = Env.isDevEnv()
-                          ? Optional.ofNullable(System.getenv(Env.DEV_REMOTE_USER))
-                          : Optional.<String>empty();
-        var userName = devUserName.or(() -> Optional.ofNullable(user));
-        return userName.flatMap(winslow.getUserRepository()::getUserOrCreateAuthenticated);
+        return Env.getDevUser()
+                  .or(() -> Optional.ofNullable(user))
+                  .flatMap(winslow.getUserManager()::getUserOrCreateAuthenticated);
     }
 
     @Nonnull

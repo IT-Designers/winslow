@@ -59,6 +59,7 @@ public class ExecutionGroupUpgrade extends JsonDeserializer<ExecutionGroup> {
         )).orElseGet(() -> new WorkspaceConfiguration(
                 WorkspaceConfiguration.WorkspaceMode.INCREMENTAL,
                 null,
+                null,
                 null
         ));
 

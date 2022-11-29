@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class UnixNode implements Node {
 
@@ -208,9 +207,10 @@ public class UnixNode implements Node {
         return result;
     }
 
+    @Nonnull
     private static List<UnixCpuInfoParser.CpuTimes> getCpuTimes(@Nonnull Path path) throws IOException {
         try (var lineStream = Files.lines(path)) {
-            List<String> lines      = lineStream.collect(Collectors.toUnmodifiableList());
+            List<String> lines      = lineStream.toList();
             String[]     linesArray = new String[lines.size()];
             return new UnixCpuInfoParser(lines.toArray(linesArray)).getCpuTimes();
         }
@@ -223,6 +223,7 @@ public class UnixNode implements Node {
         }
     }
 
+    @Nonnull
     private NetInfo loadNetInfo() throws IOException {
         var current  = getInterfaceInfo(resolveNetDev());
         var previous = this.prevNetBytes;
@@ -240,14 +241,14 @@ public class UnixNode implements Node {
         return new NetInfo(receiving, transmitting);
     }
 
+    @Nonnull
     private static List<UnixNetIoParser.InterfaceInfo> getInterfaceInfo(@Nonnull Path path) throws IOException {
         try (var lines = Files.lines(path)) {
-            return UnixNetIoParser
-                    .getNetInfoConsiderOnlyPhysicalInterfaces(lines)
-                    .collect(Collectors.toUnmodifiableList());
+            return UnixNetIoParser.getNetInfoConsiderOnlyPhysicalInterfaces(lines).toList();
         }
     }
 
+    @Nonnull
     private DiskInfo loadDiskInfo() throws IOException {
         var current  = getDiskInfo(resolveDiskstats());
         var previous = this.prevDiskInfo;
@@ -270,14 +271,14 @@ public class UnixNode implements Node {
         return new DiskInfo(reading, writing, free, used);
     }
 
+    @Nonnull
     private static List<UnixDiskIoParser.DiskInfo> getDiskInfo(@Nonnull Path path) throws IOException {
         try (var lines = Files.lines(path)) {
-            return UnixDiskIoParser
-                    .getDiskInfoConsiderOnlyPhysicalInterfaces(lines)
-                    .collect(Collectors.toUnmodifiableList());
+            return UnixDiskIoParser.getDiskInfoConsiderOnlyPhysicalInterfaces(lines).toList();
         }
     }
 
+    @Nonnull
     private List<AllocInfo> loadAllocInfo() {
         var result = new ArrayList<AllocInfo>();
         for (var entry : this.resourceAllocationMonitor.getAllocationReport().entrySet()) {

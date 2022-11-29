@@ -66,7 +66,7 @@ public class WebDavController {
     private static Optional<User> getUser(@Nonnull Auth auth) {
         return MiltonConfiguration
                 .getWinslow()
-                .map(Winslow::getUserRepository)
+                .map(Winslow::getUserManager)
                 .flatMap(u -> u.getUserOrCreateAuthenticated(auth.getUser()));
     }
 
@@ -231,7 +231,8 @@ public class WebDavController {
             Orchestrator.forcePurge(
                     directory.getRoot(),
                     directory.getFullPath(),
-                    directory.getFullPath()
+                    directory.getFullPath(),
+                    0
             );
         }
     }
