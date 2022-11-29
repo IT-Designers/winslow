@@ -18,7 +18,6 @@ export class UserDetailsComponent implements OnInit, OnChanges {
 
   canIEditUser = false;
   newPassword = '';
-  passwordHintColor = 'red';
   editableSelectedUser = new UserInfo();
 
   hasUsernameChanged = false;
@@ -98,8 +97,8 @@ export class UserDetailsComponent implements OnInit, OnChanges {
       'Updating Users Email');
   }
 
-  onUpdatePassword() {
-    this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, this.newPassword)
+  onUpdatePassword(password: string) {
+    this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, password)
         .then(() => {
           this.newPassword = '';
         }),
@@ -115,18 +114,6 @@ export class UserDetailsComponent implements OnInit, OnChanges {
         this.hasUserActiveChanged = false;
       }),
       'Updating User Activation');
-  }
-
-  setPasswordHintColor() {
-    if (this.newPassword.length < 8) {
-      this.passwordHintColor = 'red';
-    } else if (this.newPassword.length >= 8 && this.newPassword.length < 10) {
-      this.passwordHintColor = 'orange';
-    } else if (this.newPassword.length >= 10 && this.newPassword.length < 12) {
-      this.passwordHintColor = 'yellow';
-    } else if (this.newPassword.length >= 12) {
-      this.passwordHintColor = 'green';
-    }
   }
 
   usernameHasChanged() {
@@ -172,14 +159,11 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   changePasswordBtnClicked() {
     this.createDialog.open(PasswordDialogComponent, {
       data: {
-        password: this.newPassword,
       }
     })
       .afterClosed()
       .subscribe((password) => {
-        if (this.newPassword === password) {
-          this.onUpdatePassword();
-        }
+        this.onUpdatePassword(password);
       });
   }
 }
