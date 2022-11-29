@@ -18,9 +18,13 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
+.pipeline-def{
+  border: 2px dashed black;
+}
 .selected {
   background-color: #f5f5f5;
   border: 2px solid #007aff;
 }
+
+
 

@@ -13,6 +13,7 @@ export class DiagramNodeComponent implements OnInit {
   node$?: DiagramMakerNode<StageDefinitionInfo>;
   selected$?: boolean = false;
   containsNode?: boolean = false;
+  isPipelineDef: boolean = false;
 
   constructor() {
   }
@@ -20,6 +21,9 @@ export class DiagramNodeComponent implements OnInit {
   ngOnInit(): void {
     if (this.node$ !== undefined) {
       this.containsNode = true;
+    }
+    if(this.node$.typeId == "node-start"){
+      this.isPipelineDef = true;
     }
   }
 

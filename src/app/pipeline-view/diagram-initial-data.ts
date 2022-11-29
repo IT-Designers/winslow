@@ -1,18 +1,33 @@
 import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "diagram-maker";
 import {StageDefinitionInfo} from "../api/project-api.service";
+import {pipe} from "rxjs";
+import {PipelineInfo} from "../api/pipeline-api.service";
 
 export class DiagramInitialData {
 
   getInitData(project) {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-
+    let pipelineInfo = new PipelineInfo(Object.assign({}, project.pipelineDefinition));
+    delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
+    //delete pipelineInfo.id;
+    delete pipelineInfo.requiredEnvVariables;
+    // @ts-ignore
+    nodes['pipelineInfo'] = {
+      id: 'pipelineInfo',
+      typeId: "node-start",
+      diagramMakerData: {
+        position: {x: 50, y: 200},
+        size: {width: 200, height: 75},
+      },
+      consumerData: pipelineInfo
+    }
     for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
       nodes[`n${i}`] = {
         id: `n${i}`,
-        typeId: `${i == 0 ? "node-start" : "node-normal"}`,
+        typeId: "node-normal",
         diagramMakerData: {
-          position: {x: 250 * (i + 1) - 200, y: 200},
+          position: {x: 250 * (i + 2) - 200, y: 200},
           size: {width: 200, height: 75},
         },
         consumerData: project.pipelineDefinition.stages[i]
@@ -26,6 +41,12 @@ export class DiagramInitialData {
         }
 
       }
+    }
+    edges["edgeStart"] = {
+      id: 'edgeStart',
+      src: 'pipelineInfo',
+      dest: 'n0',
+      diagramMakerData: {}
     }
 
     let initialData = {
@@ -41,7 +62,7 @@ export class DiagramInitialData {
         tools: {
           id: 'tools',
           position: {x: 10, y: 10},
-          size: {width: 600, height: 46},
+          size: {width: 521, height: 46},
         },
       },
       workspace: {
