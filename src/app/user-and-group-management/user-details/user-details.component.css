@@ -14,19 +14,13 @@
   max-width: 13%;
   align-self: center;
 }
-
-#detailGroupName, #detailUserName, .display-name, .email {
-  padding: 6px 10px;
-  display: inline-block;
-  width: 680px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f6f6f6;
+.password-status-label {
+  font-style: italic;
 }
 .no-value {
   font-style: italic;
 }
-.group-detail-container, .user-detail-container {
+.detail-container {
   width: 100%;
   /*padding-left: 60px;
   border-left: 1px solid lightgrey;*/
@@ -58,6 +52,8 @@
 .update-btn {
   float: right;
   margin-left: 2%;
+  max-width: 7%;
+  min-width: 7%;
   align-self: center;
   height: 40px;
 }
@@ -76,16 +72,4 @@
 }
 .checkbox {
   align-self: center;
-}
-.red {
-  color: red;
-}
-.orange {
-  color: orange;
-}
-.yellow {
-  color: yellowgreen;
-}
-.green {
-  color: green;
 }
