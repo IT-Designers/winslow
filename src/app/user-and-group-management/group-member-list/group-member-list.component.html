@@ -24,13 +24,15 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="remove-member-button"
-                (click)="onRemoveItemClick(user)"
-                matTooltipShowDelay="500"
-                [matTooltip]="getTooltipRemove(user)"
-                [disabled]="user == disabledUser || !amIOwner()">
-          <span class="material-symbols-outlined item-icon">person_remove</span>
-        </button>
+        <div class="btn-container">
+          <button class="remove-member-button"
+                  (click)="onRemoveItemClick(user)"
+                  matTooltipShowDelay="500"
+                  [matTooltip]="getTooltipRemove(user)"
+                  [disabled]="user == disabledUser || !amIOwner()">
+            <span class="material-symbols-outlined item-icon">person_remove</span>
+          </button>
+        </div>
       </div>
     </div>
     <div class="add-member-button-container">
