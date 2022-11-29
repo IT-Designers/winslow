@@ -65,7 +65,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
           this.selectedUser.name = this.editableSelectedUser.name;
           this.hasUsernameChanged = false;
         }),
-      'Updating User');
+      'Updating Users Username');
   }
 
   onUpdateDisplayName() {
@@ -77,7 +77,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
           this.selectedUser.displayName = this.editableSelectedUser.displayName;
           this.hasDisplayNameChanged = false;
         }),
-      'Updating User');
+      'Updating Users Display Name');
   }
 
   onUpdateEmail() {
@@ -88,7 +88,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
           this.selectedUser.email = this.editableSelectedUser.email;
           this.hasEmailChanged = false;
         }),
-      'Updating User');
+      'Updating Users Email');
   }
 
   onUpdatePassword() {
@@ -100,9 +100,14 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   onUpdateActive() {
-    this.selectedUser.active = this.editableSelectedUser.active;
-    console.log('Updated User: ');
-    console.dir(this.selectedUser);
+    const updatedUser: UserInfo = Object.assign(this.selectedUser);
+    updatedUser.active = this.editableSelectedUser.active;
+    this.dialog.openLoadingIndicator(this.userApi.updateUser(updatedUser)
+      .then(() => {
+        this.selectedUser.active = this.editableSelectedUser.active;
+        this.hasUserActiveChanged = false;
+      }),
+      'Updating User Activation');
   }
 
   setPasswordHintColor() {
