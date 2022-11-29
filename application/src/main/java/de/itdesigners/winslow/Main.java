@@ -4,8 +4,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
-import com.hashicorp.nomad.javasdk.NomadApiClient;
-import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
 import de.itdesigners.winslow.api.Build;
 import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.auth.GroupManager;
@@ -17,7 +15,7 @@ import de.itdesigners.winslow.node.NodeInfoUpdater;
 import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.node.unix.UnixNode;
-import de.itdesigners.winslow.nomad.NomadBackend;
+import de.itdesigners.winslow.nomad.NomadBackendBuilder;
 import de.itdesigners.winslow.project.AuthTokenRepository;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.ProjectRepository;
@@ -88,16 +86,18 @@ public class Main {
             LOG.info("Preparing the orchestrator");
             var repository      = new PipelineRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
-            var nomadClient     = new NomadApiClient(new NomadApiConfiguration.Builder().build());
+            var backendBuilder  = new NomadBackendBuilder(nodeName);
             var resourceMonitor = new ResourceAllocationMonitor();
+
             var node = getNode(
                     nodeName,
-                    tryRetrieveNomadPlatformInfoNoThrows(nomadClient).orElse(null),
+                    backendBuilder.tryRetrievePlatformInfoNoThrows().orElse(null),
                     resourceMonitor
             );
 
-            var backend = new NomadBackend(nodeName, node.getPlatformInfo(), nomadClient);
+            var backend = backendBuilder.create();
             var updater = NodeInfoUpdater.spawn(nodes, node);
+
             resourceMonitor.setAvailableResources(toResourceSet(node.loadInfo()));
             resourceMonitor.addChangeListener(updater::updateNoThrows);
 
@@ -172,21 +172,6 @@ public class Main {
                 System.exit(1);
                 throw new IOException("Invalid storage type: " + storageType.toLowerCase());
         }
-    }
-
-    @Nonnull
-    private static Optional<PlatformInfo> tryRetrieveNomadPlatformInfoNoThrows(@Nonnull NomadApiClient client) {
-        try {
-            LOG.info("Collecting platform information from Nomad");
-            var stub         = client.getNodesApi().list().getValue().get(0);
-            var node         = client.getNodesApi().info(stub.getId()).getValue();
-            var cpuFrequency = node.getAttributes().get("cpu.frequency");
-            return Optional.ofNullable(cpuFrequency).map(Integer::parseInt).map(PlatformInfo::new);
-        } catch (Throwable e) {
-            LOG.log(Level.WARNING, "Failed to retrieve (partial) PlatformInfo from Nomad");
-            return Optional.empty();
-        }
-
     }
 
     @Nonnull
