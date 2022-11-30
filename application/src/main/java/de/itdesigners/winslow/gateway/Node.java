@@ -112,6 +112,6 @@ public class Node {
 
     @Nonnull
     public String toString() {
-        return "Node@{name='" + getStageDefinition().getName() + "'}#" + hashCode();
+        return "Node@{name='" + getStageDefinition().getName() + "', id='" + getStageDefinition().getId() + "'}#" + hashCode();
     }
 }

@@ -21,10 +21,7 @@ import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 @RestController
@@ -169,7 +166,8 @@ public class PipelinesController {
                                             List.of("SOME", "ENV_VARS", "THAT_MUST_BE_SET")
                                     ),
                                     List.of(new StageDefinition(
-                                            "Auto Modest Stage",
+                                            UUID.randomUUID(),
+                                            "Sample Modest Stage",
                                             "Automatically generated stage description",
                                             new Image("library/hello-world", new String[0]),
                                             null,
@@ -185,8 +183,9 @@ public class PipelinesController {
                                             null,
                                             null
                                     ), new StageDefinition(
-                                            "Auto Nvidia Stage",
-                                            "Automatically generated stage description",
+                                            UUID.randomUUID(),
+                                            "Sample Nvidia Stage",
+                                            "Automatically generated stage that reqires a GPU",
                                             new Image("nvidia/cuda", new String[]{"nvidia-smi"}),
                                             new Requirements(
                                                     0,
@@ -205,8 +204,9 @@ public class PipelinesController {
                                             null,
                                             null
                                     ), new StageDefinition(
-                                            "Auto Stage 3",
-                                            "Downloading more RAM for speedup",
+                                            UUID.randomUUID(),
+                                            "Sample Stage 3",
+                                            "Another example",
                                             new Image("library/hello-world", new String[]{}),
                                             new Requirements(1, 10240, null),
                                             new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
