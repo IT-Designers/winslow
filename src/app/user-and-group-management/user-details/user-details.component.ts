@@ -163,7 +163,9 @@ export class UserDetailsComponent implements OnInit, OnChanges {
     })
       .afterClosed()
       .subscribe((password) => {
-        this.onUpdatePassword(password);
+        if (password) {
+          this.onUpdatePassword(password);
+        }
       });
   }
 }
