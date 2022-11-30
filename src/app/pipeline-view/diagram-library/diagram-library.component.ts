@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, Output, EventEmitter, ViewChild} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
-import {StageDefinitionInfo} from "../../api/project-api.service";
+import {StageDefinitionInfo} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-diagram-library',

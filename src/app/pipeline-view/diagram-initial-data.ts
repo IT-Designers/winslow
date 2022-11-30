@@ -1,7 +1,5 @@
 import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "diagram-maker";
-import {StageDefinitionInfo} from "../api/project-api.service";
-import {pipe} from "rxjs";
-import {PipelineInfo} from "../api/pipeline-api.service";
+import {PipelineInfo, StageDefinitionInfo} from "../api/winslow-api";
 
 export class DiagramInitialData {
 

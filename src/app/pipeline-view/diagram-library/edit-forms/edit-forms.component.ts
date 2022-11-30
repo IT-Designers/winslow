@@ -8,8 +8,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {ResourceInfo} from "../../../api/pipeline-api.service";
-import {ImageInfo} from "../../../api/project-api.service";
+import {ImageInfo} from "../../../api/winslow-api";
 
 @Component({
   selector: 'app-edit-forms',
