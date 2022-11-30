@@ -13,10 +13,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -47,20 +44,24 @@ public class EnvVariableResolverTest {
 
     @Test
     public void testHistoryOverwritesVariablesOfStageDefinition() {
+        var uuid = UUID.randomUUID();
         var resolver = new EnvVariableResolver()
                 .withInPipelineDefinitionDefinedVariables(Map.of("variable", "pipeline"))
                 .withInStageDefinitionDefinedVariables(Map.of("variable", "stage")) // this is expected to 'disappear'
-                .withStageName("some-stage-name")
+                .withIdAndStageName(uuid, "some-stage-name")
                 .withExecutionHistory(() -> Stream
                         .of(constructFinishedExecutionStage(
+                                uuid,
                                 "some-stage-name",
                                 State.Succeeded,
                                 Map.of("variable", "history")
                         ), constructFinishedExecutionStage(
+                                UUID.randomUUID(),
                                 "some-other-stage-name",
                                 State.Succeeded,
                                 Map.of("variable", "history-entry-with-wrong-name")
                         ), constructFinishedExecutionStage(
+                                uuid,
                                 "some-stage-name",
                                 State.Failed,
                                 Map.of("variable", "history-entry-which-failed")
@@ -71,18 +72,21 @@ public class EnvVariableResolverTest {
 
     @Test
     public void testEnQueuedOverwritesHistoryOverwritesVariablesOfStageDefinition() {
+        var uuid = UUID.randomUUID();
         var resolver = new EnvVariableResolver()
                 .withInPipelineDefinitionDefinedVariables(Map.of("variable", "pipeline"))
                 .withInStageDefinitionDefinedVariables(Map.of("variable", "stage")) // this is expected to 'disappear'
-                .withStageName("some-stage-name")
+                .withIdAndStageName(uuid,"some-stage-name")
                 .withExecutionHistory(() -> Stream
                         .of(constructFinishedExecutionStage(
+                                uuid,
                                 "some-stage-name",
                                 State.Succeeded,
                                 Map.of("variable", "history")
                         )));
 
         resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedSingleExecutionStage(
+                uuid,
                 "some-stage-name",
                 false,
                 Map.of("variable", "enqueued-stage-to-execute")
@@ -91,10 +95,12 @@ public class EnvVariableResolverTest {
         assertEnvVariable(resolver.resolve().get("variable"), "variable", "enqueued-stage-to-execute", "pipeline");
 
         resolver = resolver.withEnqueuedStages(() -> Stream.of(constructEnqueuedSingleExecutionStage(
+                uuid,
                 "some-stage-name",
                 false,
                 Map.of("variable", "enqueued-stage-to-execute")
         ), constructEnqueuedSingleExecutionStage(
+                uuid,
                 "some-stage-name",
                 true,
                 Map.of("variable", "enqueued-stage-to-configure")
@@ -105,12 +111,14 @@ public class EnvVariableResolverTest {
 
     @Test
     public void testPreservesUnrelatedVariables() {
+        var uuid = UUID.randomUUID();
         var resolved = new EnvVariableResolver()
                 .withGlobalVariables(Map.of("global", "global"))
                 .withInPipelineDefinitionDefinedVariables(Map.of("pipeline", "pipeline"))
                 .withInStageDefinitionDefinedVariables(Map.of("stage", "stage"))
-                .withStageName("some-stage-name")
+                .withIdAndStageName(uuid,"some-stage-name")
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
+                        uuid,
                         "some-stage-name",
                         State.Succeeded,
                         Map.of("history", "history")
@@ -128,13 +136,16 @@ public class EnvVariableResolverTest {
 
     @Test
     public void testConfigureStageOverwritesExecutedStageWithRemovedVariables() {
+        var uuid = UUID.randomUUID();
         var resolved = new EnvVariableResolver()
-                .withStageName("some-stage-name")
+                .withIdAndStageName(uuid,"some-stage-name")
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
+                        uuid,
                         "some-stage-name",
                         State.Succeeded,
                         Map.of("executed", "executed")
                 ), constructFinishedStageWithAction(
+                        uuid,
                         "some-stage-name",
                         State.Succeeded,
                         Map.of("configure", "configure"),
@@ -149,14 +160,17 @@ public class EnvVariableResolverTest {
 
     @Test
     public void testEnqueuedStageOverwritesExecutedStageWithRemovedVariables() {
+        var uuid = UUID.randomUUID();
         var resolved = new EnvVariableResolver()
-                .withStageName("some-stage-name")
+                .withIdAndStageName(uuid,"some-stage-name")
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
+                        uuid,
                         "some-stage-name",
                         State.Succeeded,
                         Map.of("executed", "executed")
                 )))
                 .withEnqueuedStages(() -> Stream.of(constructEnqueuedSingleExecutionStage(
+                        uuid,
                         "some-stage-name",
                         true,
                         Map.of("enqueued", "enqueued")
@@ -181,19 +195,22 @@ public class EnvVariableResolverTest {
 
     @NonNull
     private static ExecutionGroup constructFinishedExecutionStage(
+            @Nonnull UUID id,
             @NonNull String name,
             @NonNull State finishState,
             @Nullable Map<String, String> env) {
-        return constructFinishedStageWithAction(name, finishState, env, Action.Execute);
+        return constructFinishedStageWithAction(id, name, finishState, env, Action.Execute);
     }
 
     @NonNull
     private static ExecutionGroup constructFinishedStageWithAction(
+            @NonNull UUID id,
             @NonNull String name,
             @NonNull State finishState,
             @Nullable Map<String, String> env,
             @Nonnull Action action) {
         return wrap(
+                id,
                 name,
                 env,
                 (gid) -> new Stage(
@@ -213,14 +230,16 @@ public class EnvVariableResolverTest {
 
     @Nonnull
     private static ExecutionGroup wrap(
+            @Nonnull UUID stageDefId,
             @Nonnull String stageDefName,
             @Nullable Map<String, String> env,
             @Nonnull Function<ExecutionGroupId, Stage> stageBuilder) {
-        return wrapCustom(stageDefName, env, group -> group.addStage(stageBuilder.apply(group.getId())));
+        return wrapCustom(stageDefId, stageDefName, env, group -> group.addStage(stageBuilder.apply(group.getId())));
     }
 
     @Nonnull
     private static ExecutionGroup wrapCustom(
+            @Nonnull UUID stageDefId,
             @Nonnull String stageDefName,
             @Nullable Map<String, String> env,
             @Nonnull Consumer<ExecutionGroup> stuffer) {
@@ -231,6 +250,7 @@ public class EnvVariableResolverTest {
                         "randomish-human-readable"
                 ),
                 new StageDefinition(
+                        stageDefId,
                         stageDefName,
                         null,
                         null,
@@ -255,6 +275,7 @@ public class EnvVariableResolverTest {
 
     @NonNull
     private static ExecutionGroup constructEnqueuedSingleExecutionStage(
+            @Nonnull UUID stageDefId,
             @Nonnull String stageDefName,
             boolean configureOnly,
             @Nullable Map<String, String> env) {
@@ -266,6 +287,7 @@ public class EnvVariableResolverTest {
                 ),
                 configureOnly,
                 new StageDefinition(
+                        stageDefId,
                         stageDefName,
                         null,
                         null,

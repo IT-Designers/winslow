@@ -12,6 +12,7 @@ public class StageDefinitionInfoConverter {
     @Nonnull
     public static StageDefinitionInfo from(@Nonnull StageDefinition definition) {
         return new StageDefinitionInfo(
+                definition.getId(),
                 definition.getName(),
                 definition.getImage().map(ImageInfoConverter::from).orElse(null),
                 definition.getRequires().map(UserInput::getEnvironment).orElseGet(Collections::emptyList),

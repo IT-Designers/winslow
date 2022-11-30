@@ -82,7 +82,7 @@ public class AndGateway extends Gateway {
                                         .getStages()
                                         .stream()
                                         .filter(stageDefinition1 -> stageDefinition1
-                                                .getName()
+                                                .getId()
                                                 .equals(nextStageDefinitionNames))
                                         .findFirst()
                                         .orElseThrow(() -> new IOException("Failed to load")),

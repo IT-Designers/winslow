@@ -14,7 +14,7 @@ public class Graph {
 
     private final @Nonnull List<Node>                            nodes;
     private final @Nonnull Map<ExecutionGroupId, ExecutionGroup> cachedExecutionGroup;
-    private final @Nonnull Map<String, StageDefinition>          cachedStageDefinition;
+    private final @Nonnull Map<UUID, StageDefinition>          cachedStageDefinition;
 
     public Graph(
             @Nonnull Pipeline pipelineReadOnly,
@@ -28,7 +28,7 @@ public class Graph {
             cachedExecutionGroup.put(executionGroup.getId(), executionGroup);
         });
 
-        pipelineDefinition.getStages().forEach(s -> cachedStageDefinition.put(s.getName(), s));
+        pipelineDefinition.getStages().forEach(s -> cachedStageDefinition.put(s.getId(), s));
 
         addNode(rootNode);
         findAllDirectlyConnectedNodes();
@@ -70,14 +70,14 @@ public class Graph {
 
     public void findDirectlyConnectedNodes(@Nonnull Node node) {
         for (var def : this.cachedStageDefinition.values()) {
-            if (node.getStageDefinition().getNextStages().contains(def.getName())) {
-                getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(nextNode -> {
+            if (node.getStageDefinition().getNextStages().contains(def.getId())) {
+                getOrCreateNodeForStageDefinitionId(def.getId()).ifPresent(nextNode -> {
                     node.addNextNode(nextNode);
                     nextNode.addPreviousNode(node);
                 });
             }
-            if (def.getNextStages().contains(node.getStageDefinition().getName())) {
-                getOrCreateNodeForStageDefinitionName(def.getName()).ifPresent(prevNode -> {
+            if (def.getNextStages().contains(node.getStageDefinition().getId())) {
+                getOrCreateNodeForStageDefinitionId(def.getId()).ifPresent(prevNode -> {
                     node.addPreviousNode(prevNode);
                     prevNode.addNextNode(node);
                 });
@@ -90,8 +90,8 @@ public class Graph {
                 .getExecutionGroups()
                 .stream()
                 .flatMap(group -> group.getParentId().stream())
-                .flatMap(parentId -> getCachedExecutionGroupForId(parentId).stream())
-                .flatMap(exg -> getOrCreateNodeForStageDefinitionName(exg.getStageDefinition().getName())
+                .flatMap(parentId -> getCachedExecutionGroupForGroupId(parentId).stream())
+                .flatMap(exg -> getOrCreateNodeForStageDefinitionId(exg.getStageDefinition().getId())
                         .stream()
                         .peek(n -> n.addExecutionGroup(exg))
                 )
@@ -120,7 +120,7 @@ public class Graph {
                     }
                     return children.stream();
                 })
-                .flatMap(exg -> getOrCreateNodeForStageDefinitionName(exg.getStageDefinition().getName())
+                .flatMap(exg -> getOrCreateNodeForStageDefinitionId(exg.getStageDefinition().getId())
                         .stream()
                         .peek(n -> n.addExecutionGroup(exg))
                 )
@@ -137,16 +137,16 @@ public class Graph {
                 .getStageDefinition()
                 .getNextStages()
                 .stream()
-                .flatMap(s -> getOrCreateNodeForStageDefinitionName(s).stream())
+                .flatMap(s -> getOrCreateNodeForStageDefinitionId(s).stream())
                 .forEach(nextNode -> {
                     node.addNextNode(nextNode);
                     nextNode.addPreviousNode(node);
                 });
     }
 
-    private Optional<Node> getOrCreateNodeForStageDefinitionName(String name) {
-        return getNodeForStageDefinitionName(name)
-                .or(() -> getCachedStageDefinitionForName(name)
+    private Optional<Node> getOrCreateNodeForStageDefinitionId(UUID id) {
+        return getNodeForStageDefinitionId(id)
+                .or(() -> getCachedStageDefinitionForId(id)
                         .map(stageDefinition -> {
                             var newNode = new Node(stageDefinition, null);
                             addNode(newNode);
@@ -156,20 +156,20 @@ public class Graph {
     }
 
     @Nonnull
-    public Optional<Node> getNodeForStageDefinitionName(@Nonnull String name) {
+    public Optional<Node> getNodeForStageDefinitionId(@Nonnull UUID id) {
         return this.nodes
                 .stream()
-                .filter(s -> Objects.equals(name, s.getStageDefinition().getName()))
+                .filter(s -> Objects.equals(id, s.getStageDefinition().getId()))
                 .findFirst();
     }
 
     @Nonnull
-    private Optional<StageDefinition> getCachedStageDefinitionForName(@Nonnull String name) {
-        return Optional.ofNullable(cachedStageDefinition.get(name));
+    private Optional<StageDefinition> getCachedStageDefinitionForId(@Nonnull UUID id) {
+        return Optional.ofNullable(cachedStageDefinition.get(id));
     }
 
     @Nonnull
-    public Optional<ExecutionGroup> getCachedExecutionGroupForId(@Nonnull ExecutionGroupId id) {
+    public Optional<ExecutionGroup> getCachedExecutionGroupForGroupId(@Nonnull ExecutionGroupId id) {
         return Optional.ofNullable(cachedExecutionGroup.get(id));
     }
 }

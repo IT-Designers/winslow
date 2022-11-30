@@ -6,6 +6,7 @@ import java.util.*;
 
 public class StageDefinition {
 
+    private final @Nonnull  UUID                id;
     private final @Nonnull  String              name;
     private final @Nullable String              desc;
     private final @Nullable Image               image;
@@ -20,9 +21,10 @@ public class StageDefinition {
     private final @Nullable List<String>        tags;
     private final @Nullable Map<String, String> result;
     private final @Nonnull  StageType           type;
-    private final @Nullable List<String>        nextStages;
+    private final @Nullable List<UUID>          nextStages;
 
     public StageDefinition(
+            @Nullable UUID id,
             @Nonnull String name,
             @Nullable String description,
             @Nullable Image image,
@@ -38,7 +40,8 @@ public class StageDefinition {
             @Nullable List<String> tags,
             @Nullable Map<String, String> result,
             @Nullable StageType type,
-            @Nullable List<String> nextStages) {
+            @Nullable List<UUID> nextStages) {
+        this.id                                 = id != null ? id : idFromName(name);
         this.name                               = name;
         this.desc                               = description;
         this.image                              = image;
@@ -60,8 +63,18 @@ public class StageDefinition {
         this.check();
     }
 
+    public static UUID idFromName(String name){
+        return new UUID(name.hashCode(), name.length());
+    }
+
     public void check() {
         Objects.requireNonNull(name, "The name of a stage must be set");
+    }
+
+
+    @Nonnull
+    public UUID getId() {
+        return id;
     }
 
     @Nonnull
@@ -134,7 +147,7 @@ public class StageDefinition {
     }
 
     @Nonnull
-    public List<String> getNextStages() {
+    public List<UUID> getNextStages() {
         return nextStages != null ? nextStages : Collections.emptyList();
     }
 
@@ -158,6 +171,9 @@ public class StageDefinition {
             return false;
         StageDefinition stageDefinition = (StageDefinition) o;
         return Objects.equals(
+                id,
+                stageDefinition.id
+        ) && Objects.equals(
                 name,
                 stageDefinition.name
         ) && Objects.equals(
@@ -196,6 +212,7 @@ public class StageDefinition {
     @Override
     public int hashCode() {
         return Objects.hash(
+                id,
                 name,
                 desc,
                 image,

@@ -413,6 +413,7 @@ public class ObsoleteWorkspaceFinderTest {
                 ),
                 configureOnly,
                 new StageDefinition(
+                        UUID.randomUUID(),
                         "some-definition",
                         null,
                         null,
@@ -467,6 +468,7 @@ public class ObsoleteWorkspaceFinderTest {
                 ),
                 configureOnly,
                 new StageDefinition(
+                        UUID.randomUUID(),
                         "some-definition",
                         null,
                         null,

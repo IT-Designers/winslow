@@ -7,10 +7,7 @@ import org.springframework.lang.NonNull;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -27,7 +24,10 @@ public class EnvVariableResolver {
     private @Nullable Map<String, String>              stageDefinitionVariables;
     private @Nullable Supplier<Stream<ExecutionGroup>> executionHistory;
     private @Nullable Supplier<Stream<ExecutionGroup>> enqueuedStages;
-    private @Nullable String                           stageName;
+
+    private @Nullable UUID   id;
+    private @Nullable String stageName;
+
 
     @NonNull
     @CheckReturnValue
@@ -66,7 +66,8 @@ public class EnvVariableResolver {
 
     @NonNull
     @CheckReturnValue
-    public EnvVariableResolver withStageName(@Nullable String stageName) {
+    public EnvVariableResolver withIdAndStageName(@Nonnull UUID id, @Nonnull String stageName) {
+        this.id        = id;
         this.stageName = stageName;
         return this;
     }
@@ -132,7 +133,7 @@ public class EnvVariableResolver {
         if (this.executionHistory != null && this.stageName != null) {
             return this.executionHistory
                     .get()
-                    .filter(group -> group.getStageDefinition().getName().equals(this.stageName))
+                    .filter(group1 -> group1.getStageDefinition().getId().equals(this.id))
                     /*
                     .filter(group -> group.getRunningStages().count() == 0)
                     .filter(group -> group
@@ -152,7 +153,7 @@ public class EnvVariableResolver {
         if (this.enqueuedStages != null && this.stageName != null) {
             return this.enqueuedStages
                     .get()
-                    .filter(g -> this.stageName.equals(g.getStageDefinition().getName()))
+                    .filter(group -> group.getStageDefinition().getId().equals(this.id))
                     .reduce((first, second) -> second) // expect in order
                     .map(enqueued -> enqueued.getStageDefinition().getEnvironment());
         } else {

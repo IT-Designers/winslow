@@ -114,7 +114,7 @@ public class XOrGateway extends Gateway {
                                     .getStages()
                                     .stream()
                                     .filter(stageDefinition1 -> stageDefinition1
-                                            .getName()
+                                            .getId()
                                             .equals(nextStageDefinitionName))
                                     .findFirst()
                                     .orElseThrow(() -> new IOException("Failed to load")),
