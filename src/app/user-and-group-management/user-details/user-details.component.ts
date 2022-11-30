@@ -101,6 +101,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
     this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, password)
         .then(() => {
           this.newPassword = '';
+          this.selectedUser.password = '********';
         }),
       'Updating Password');
   }
