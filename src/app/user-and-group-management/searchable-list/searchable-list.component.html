@@ -10,7 +10,10 @@
            (keyup.backspace)="filterSystemGroups()">
   </mat-form-field>
   <div class="list">
-    <div class="list-item" *ngFor="let item of displayItems" (click)="itemClicked(item)" [class.item-clicked]="item.name == selectedItemName">
+    <div class="list-item"
+         *ngFor="let item of displayItems"
+         (click)="itemClicked(item)"
+         [class.item-clicked]="item.name == selectedItemName">
       {{item.name}}
       <span matTooltip="{{listItemTooltip}}"
             matTooltipShowDelay="500"
