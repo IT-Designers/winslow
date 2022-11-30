@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {IState} from '../api/winslow-api';
+import {State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-state-icon',
@@ -8,7 +8,7 @@ import {IState} from '../api/winslow-api';
 })
 export class StateIconComponent implements OnInit {
 
-  @Input() state: IState;
+  @Input() state: State;
   @Input() animation = false;
   @Input() configured = false;
 

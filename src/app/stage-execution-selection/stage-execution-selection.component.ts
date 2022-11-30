@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {
-  ExecutionGroupInfo, IWorkspaceConfigurationExt,
+  WorkspaceConfigurationExt,
   ProjectApiService,
   RangedList,
   RangedValue,
@@ -9,12 +9,12 @@ import {
 } from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
 import {
-  IEnvVariable,
-  IImageInfo,
-  IPipelineInfo,
-  IResourceInfo,
-  IStageDefinitionInfo,
-  IWorkspaceMode
+  EnvVariable, ExecutionGroupInfo,
+  ImageInfo,
+  PipelineInfo,
+  ResourceInfo,
+  StageDefinitionInfo,
+  WorkspaceMode
 } from '../api/winslow-api';
 
 
@@ -30,28 +30,28 @@ export class StageExecutionSelectionComponent implements OnInit {
   rangeTypes: string[] = [this.rangeTypeRange, this.rangeTypeList];
   rangeType: string = this.rangeTypeRange;
 
-  @Input() pipelines: IPipelineInfo[];
+  @Input() pipelines: PipelineInfo[];
   @Input() pipelineSelectionDisabled = false;
 
-  @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<IPipelineInfo>();
-  @Output('selectedStage') private selectedStageEmitter = new EventEmitter<IStageDefinitionInfo>();
+  @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
+  @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageDefinitionInfo>();
   @Output('valid') private validEmitter = new EventEmitter<boolean>();
 
   defaultPipelineIdValue: string;
   executionHistoryValue: ExecutionGroupInfo[] = null;
 
-  selectedPipeline: IPipelineInfo = null;
-  selectedStage: IStageDefinitionInfo = null;
-  image = new IImageInfo({name: '', args: [], shmMegabytes: 0});
+  selectedPipeline: PipelineInfo = null;
+  selectedStage: StageDefinitionInfo = null;
+  image = new ImageInfo({name: '', args: [], shmMegabytes: 0});
 
-  resources = new IResourceInfo({cpus: 0, gpus: 0, megabytesOfRam: 100});
+  resources = new ResourceInfo({cpus: 0, gpus: 0, megabytesOfRam: 100});
 
-  workspaceConfiguration = IWorkspaceConfigurationExt.create();
+  workspaceConfiguration = WorkspaceConfigurationExt.create();
   comment = null;
   valid = false;
 
   // env cache
-  environmentVariablesValue: Map<string, IEnvVariable> = null;
+  environmentVariablesValue: Map<string, EnvVariable> = null;
   defaultEnvironmentVariablesValue = new Map<string, string>();
   requiredEnvironmentVariables: string[];
   envSubmitValue: any = null;
@@ -79,7 +79,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
-  set environmentVariables(map: Map<string, IEnvVariable>) {
+  set environmentVariables(map: Map<string, EnvVariable>) {
     this.environmentVariablesValue = map;
     this.updateValid();
   }
@@ -105,13 +105,13 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
-  set workspaceConfigurationMode(mode: IWorkspaceMode) {
+  set workspaceConfigurationMode(mode: WorkspaceMode) {
     if (mode != null) {
       let value = null;
       if (mode === 'CONTINUATION' && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
         value = this.executionHistoryValue[0].id;
       }
-      this.workspaceConfiguration = new IWorkspaceConfigurationExt({
+      this.workspaceConfiguration = new WorkspaceConfigurationExt({
           mode,
           value,
           sharedWithinGroup: this.workspaceConfiguration?.sharedWithinGroup,
@@ -120,7 +120,7 @@ export class StageExecutionSelectionComponent implements OnInit {
       );
     } else {
 
-      this.workspaceConfiguration = IWorkspaceConfigurationExt.create();
+      this.workspaceConfiguration = WorkspaceConfigurationExt.create();
     }
   }
 
@@ -151,15 +151,15 @@ export class StageExecutionSelectionComponent implements OnInit {
     return fakeMap;
   }
 
-  getImage(): IImageInfo {
+  getImage(): ImageInfo {
     return this.image;
   }
 
-  getResourceRequirements(): IResourceInfo {
+  getResourceRequirements(): ResourceInfo {
     return this.resources;
   }
 
-  getWorkspaceConfiguration(): IWorkspaceConfigurationExt {
+  getWorkspaceConfiguration(): WorkspaceConfigurationExt {
     return this.workspaceConfiguration;
   }
 
@@ -223,13 +223,13 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   setWorkspaceMode(
     update: boolean,
-    mode: IWorkspaceMode,
+    mode: WorkspaceMode,
     value: string = null,
     sharedWithinGroup: boolean = null,
     nestedWithinGroup: boolean = null
   ) {
     if (update) {
-      this.workspaceConfiguration = new IWorkspaceConfigurationExt({
+      this.workspaceConfiguration = new WorkspaceConfigurationExt({
           mode,
           value,
           sharedWithinGroup: sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup,

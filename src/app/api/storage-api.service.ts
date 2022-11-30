@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {IStorageInfo} from './winslow-api';
+import {StorageInfo} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -19,27 +19,27 @@ export class StorageApiService {
   }
 
   getAll() {
-    return this.client.get<IStorageInfo[]>(StorageApiService.getUrl());
+    return this.client.get<StorageInfo[]>(StorageApiService.getUrl());
   }
 
   getFilePathInfo(path: string) {
     return this
       .client
-      .get<IStorageInfo>(StorageApiService.getUrl(path))
+      .get<StorageInfo>(StorageApiService.getUrl(path))
       .toPromise();
   }
 
   getResourcesInfo() {
     return this
       .client
-      .get<IStorageInfo>(StorageApiService.getUrl(`resources`))
+      .get<StorageInfo>(StorageApiService.getUrl(`resources`))
       .toPromise();
   }
 
   getWorkspaceInfo(projectId: string) {
     return this
       .client
-      .get<IStorageInfo>(StorageApiService.getUrl(`workspaces/${projectId}`))
+      .get<StorageInfo>(StorageApiService.getUrl(`workspaces/${projectId}`))
       .toPromise();
   }
 }

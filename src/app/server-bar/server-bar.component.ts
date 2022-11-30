@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {INodeInfoExt, NodesApiService} from '../api/nodes-api.service';
+import {NodeInfoExt, NodesApiService} from '../api/nodes-api.service';
 
 @Component({
   selector: 'app-server-bar',
@@ -11,7 +11,7 @@ export class ServerBarComponent implements OnInit {
 
   static readonly MAX_ENTRIES = 120;
 
-  @Input('node') node: INodeInfoExt;
+  @Input('node') node: NodeInfoExt;
 
   constructor(private nodes: NodesApiService) {
   }

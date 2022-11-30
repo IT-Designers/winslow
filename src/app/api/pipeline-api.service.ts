@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {ParseError} from './project-api.service';
-import {IPipelineInfo} from './winslow-api';
+import {PipelineInfo} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -30,25 +30,25 @@ export class PipelineApiService {
 
   getPipelineDefinition(pipeline: string) {
     return this.client
-      .get<IPipelineInfo>(PipelineApiService.getUrl(`${pipeline}`))
+      .get<PipelineInfo>(PipelineApiService.getUrl(`${pipeline}`))
       .toPromise()
-      .then(info => new IPipelineInfo(info));
+      .then(info => new PipelineInfo(info));
   }
 
   getPipelineDefinitions() {
     return this
       .client
-      .get<IPipelineInfo[]>(PipelineApiService.getUrl())
+      .get<PipelineInfo[]>(PipelineApiService.getUrl())
       .toPromise()
-      .then(info => info.map(i => new IPipelineInfo(i)));
+      .then(info => info.map(i => new PipelineInfo(i)));
   }
 
   createPipelineDefinition(name: string) {
     return this
       .client
-      .post<IPipelineInfo>(PipelineApiService.getUrl(`create`), name)
+      .post<PipelineInfo>(PipelineApiService.getUrl(`create`), name)
       .toPromise()
-      .then(info => new IPipelineInfo(info));
+      .then(info => new PipelineInfo(info));
   }
 
   getLogParsers(pipeline: string, stage: string) {
@@ -66,7 +66,7 @@ export class PipelineApiService {
 // requires an Import from this module or
 // import "... pipeline-api.service.ts";
 declare module './winslow-api' {
-  interface IPipelineInfo {
+  interface PipelineInfo {
     hasActionMarker(): boolean;
     hasActionMarkerFor(pipelineName: string): boolean;
   }
@@ -74,7 +74,7 @@ declare module './winslow-api' {
 
 
 // tslint:disable-next-line:only-arrow-functions
-IPipelineInfo.prototype.hasActionMarker = function() {
+PipelineInfo.prototype.hasActionMarker = function() {
   for (const marker of this.markers) {
     const lower = marker.toLowerCase();
     if (lower.startsWith('action')) {
@@ -84,7 +84,7 @@ IPipelineInfo.prototype.hasActionMarker = function() {
   return false;
 };
 
-IPipelineInfo.prototype.hasActionMarkerFor = function(pipelineName: string) {
+PipelineInfo.prototype.hasActionMarkerFor = function(pipelineName: string) {
   const markers = this.markers.map(m => m.toLowerCase());
   return markers.indexOf('action') >= 0 || markers.indexOf('action for ' + pipelineName.toLowerCase()) >= 0;
 };

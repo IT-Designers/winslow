@@ -5,7 +5,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-create-dialog/create-pipeline-dialog.component';
 import {ParseError} from '../api/project-api.service';
-import {IPipelineInfo} from '../api/winslow-api';
+import {PipelineInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-pipelines',
@@ -13,7 +13,7 @@ import {IPipelineInfo} from '../api/winslow-api';
   styleUrls: ['./pipelines.component.css']
 })
 export class PipelinesComponent implements OnInit {
-  pipelines: IPipelineInfo[] = null;
+  pipelines: PipelineInfo[] = null;
   loadError = null;
 
   raw: Map<string, string> = new Map();

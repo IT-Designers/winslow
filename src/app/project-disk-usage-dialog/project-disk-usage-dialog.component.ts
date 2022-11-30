@@ -1,12 +1,12 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {IFileInfoExt, FilesApiService} from '../api/files-api.service';
-import {IProjectInfoExt} from '../api/project-api.service';
+import {ProjectInfoExt} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
-import {IFileInfo} from '../api/winslow-api';
+import {FileInfo} from '../api/winslow-api';
 
 export interface ProjectDiskUsageDialogData {
-  projects: IProjectInfoExt[];
+  projects: ProjectInfoExt[];
 }
 
 @Component({
@@ -34,7 +34,7 @@ export class ProjectDiskUsageDialogComponent implements OnInit {
       promises.push(this.files
         .listFiles(path, true)
         .then(r => {
-          const info = new IFileInfo({
+          const info = new FileInfo({
             name:  project.name,
             fileSize:  r.map(f => f.fileSize).reduce((s1, s2) => s1 + s2, 0),
             directory: true,

@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {SettingsApiService} from '../api/settings-api.service';
 import {DialogService} from '../dialog.service';
-import {IResourceLimitationExt} from '../api/project-api.service';
+import {ResourceLimitationExt} from '../api/project-api.service';
 
 @Component({
   selector: 'app-system-cfg-res-limit',
@@ -16,8 +16,8 @@ export class SystemCfgResLimitComponent implements OnInit {
   longLoadingExternallySet = false;
   loadError = null;
 
-  limitServer = IResourceLimitationExt.create();
-  limitUpdate = IResourceLimitationExt.create();
+  limitServer = ResourceLimitationExt.create();
+  limitUpdate = ResourceLimitationExt.create();
 
 
   constructor(private api: SettingsApiService, private dialog: DialogService) {
@@ -30,9 +30,9 @@ export class SystemCfgResLimitComponent implements OnInit {
   }
 
 
-  private updateLimit(serverLimit: IResourceLimitationExt) {
-    this.limitServer = new IResourceLimitationExt(serverLimit);
-    this.limitUpdate = new IResourceLimitationExt(serverLimit);
+  private updateLimit(serverLimit: ResourceLimitationExt) {
+    this.limitServer = new ResourceLimitationExt(serverLimit);
+    this.limitUpdate = new ResourceLimitationExt(serverLimit);
   }
 
   @Input()
@@ -43,7 +43,7 @@ export class SystemCfgResLimitComponent implements OnInit {
 
   save() {
     const prevLimit = this.limitServer;
-    this.limitServer = IResourceLimitationExt.create();
+    this.limitServer = ResourceLimitationExt.create();
     this.dialog.openLoadingIndicator(
       this.api
         .setUserResourceLimitation(this.limitUpdate)
