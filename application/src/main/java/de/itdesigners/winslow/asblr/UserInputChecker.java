@@ -84,7 +84,7 @@ public class UserInputChecker implements AssemblerStep {
                 .anyMatch(u -> u.getConfirmation() == UserInput.Confirmation.Always || (
                                   u.getConfirmation() == UserInput.Confirmation.Once && pipeline
                                           .getActiveAndPastExecutionGroups()
-                                          .noneMatch(g -> g.getStageDefinition().getName().equals(stageDefinition.getName()))
+                                          .noneMatch(g -> g.getStageDefinition().getId().equals(stageDefinition.getId()))
                           )
                 );
     }
