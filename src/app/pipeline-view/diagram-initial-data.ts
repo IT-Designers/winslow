@@ -12,7 +12,6 @@ export class DiagramInitialData {
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
     //delete pipelineInfo.id;
     delete pipelineInfo.requiredEnvVariables;
-    // @ts-ignore
     nodes['pipelineInfo'] = {
       id: 'pipelineInfo',
       typeId: "node-start",
@@ -20,6 +19,7 @@ export class DiagramInitialData {
         position: {x: 50, y: 200},
         size: {width: 200, height: 75},
       },
+      // @ts-ignore
       consumerData: pipelineInfo
     }
     for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
