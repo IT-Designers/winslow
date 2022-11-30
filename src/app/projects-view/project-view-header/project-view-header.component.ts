@@ -1,12 +1,12 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {IProjectInfoExt} from '../../api/project-api.service';
+import {ProjectInfoExt} from '../../api/project-api.service';
 import {StateIconComponent} from '../../state-icon/state-icon.component';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
 import {EditorState} from '../../pipeline-editor/pipeline-editor.component';
-import {IState} from '../../api/winslow-api';
+import {State} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-project-view-header',
@@ -15,7 +15,7 @@ import {IState} from '../../api/winslow-api';
 })
 export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
 
-  @Input() project: IProjectInfoExt;
+  @Input() project: ProjectInfoExt;
   @Input() pauseReason: string = null;
   @Input() progress: number = null;
   @Input() running = false;
@@ -28,14 +28,14 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   @ViewChild('icon')
   icon: StateIconComponent;
 
-  state: IState = null;
+  state: State = null;
   stage: string = null;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
 
   constructor(public dialog: MatDialog) { }
 
   @Input()
-  set iconState(value: IState) {
+  set iconState(value: State) {
     this.state = value;
     if (this.icon != null) {
       this.icon.state = value;
@@ -63,11 +63,11 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
     matMenuTrigger.openMenu();
   }
 
-  excludeTags(project: IProjectInfoExt) {
+  excludeTags(project: ProjectInfoExt) {
     project.tags.forEach( tag => { this.filter.addExcludedTag(tag); });
   }
 
-  includeTags(project: IProjectInfoExt) {
+  includeTags(project: ProjectInfoExt) {
     project.tags.forEach( tag => { this.filter.addIncludedTag(tag); });
   }
 

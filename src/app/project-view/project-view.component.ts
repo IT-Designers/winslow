@@ -15,12 +15,10 @@ import {
   AuthTokenInfo,
   DeletionPolicy,
   EnvVariable,
-  ExecutionGroupInfo, IExecutionGroupInfoExt,
-  ImageInfo, IProjectInfoExt, IResourceLimitationExt, IStageInfoExt, IWorkspaceConfigurationExt,
+  ExecutionGroupInfoExt,
+  ProjectInfoExt, ResourceLimitationExt, StageInfoExt, WorkspaceConfigurationExt,
   ParseError,
   ProjectApiService,
-  StageInfo,
-  StateInfo
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog} from '@angular/material/dialog';
@@ -35,13 +33,13 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {pipe, Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {
-  IImageInfo,
-  IPipelineInfo,
+  ImageInfo,
+  PipelineInfo,
   IRangedValue,
-  IResourceInfo,
-  IStageDefinitionInfo,
-  IStageInfo,
-  IState, IWorkspaceMode
+  ResourceInfo,
+  StageDefinitionInfo,
+  StageInfo,
+  State, WorkspaceMode, StateInfo, ExecutionGroupInfo
 } from '../api/winslow-api';
 
 
@@ -62,7 +60,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   @Input()
-  public set project(value: IProjectInfoExt) {
+  public set project(value: ProjectInfoExt) {
     const changed = this.projectValue?.id !== value?.id;
     this.projectValue = value;
 
@@ -99,7 +97,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   }
 
-  public get project(): IProjectInfoExt {
+  public get project(): ProjectInfoExt {
     return this.projectValue;
   }
 
@@ -116,19 +114,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   @ViewChild('tabGroup') tabs: MatTabGroup;
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
 
-  projectValue: IProjectInfoExt;
+  projectValue: ProjectInfoExt;
   probablyProjectPipelineId = null;
 
-  @Output('state') private stateEmitter = new EventEmitter<IState>();
+  @Output('state') private stateEmitter = new EventEmitter<State>();
   @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
 
   filesAdditionalRoot: string = null;
   filesNavigationTarget: string = null;
 
   stageIdToDisplayLogsFor: string = null;
-  stateValue?: IState = null;
+  stateValue?: State = null;
 
-  history: IExecutionGroupInfoExt[] = [];
+  history: ExecutionGroupInfoExt[] = [];
   subscribedProjectId: string = null;
   historySubscription: Subscription = null;
   historyEnqueued = 0;
@@ -146,16 +144,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   longLoading = new LongLoadingDetector();
 
-  pipelines: IPipelineInfo[];
+  pipelines: PipelineInfo[];
 
-  selectedPipeline: IPipelineInfo = null;
-  selectedStage: IStageDefinitionInfo = null;
+  selectedPipeline: PipelineInfo = null;
+  selectedStage: StageDefinitionInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
   //defaultEnvironmentVariables: Map<string, string> = null;
   defaultEnvironmentVariables: { [p: string]: string } = null;
   //rangedEnvironmentVariables: Map<string, RangedValue> = null;
   rangedEnvironmentVariables: { [p: string]: IRangedValue } = null;
-  workspaceConfigurationMode: IWorkspaceMode = null;
+  workspaceConfigurationMode: WorkspaceMode = null;
 
   rawPipelineDefinition: string = null;
   rawPipelineDefinitionError: string = null;
@@ -163,15 +161,15 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
-  workspaceMode: IWorkspaceMode = null;
-  resourceLimit: IResourceLimitationExt = null;
+  workspaceMode: WorkspaceMode = null;
+  resourceLimit: ResourceLimitationExt = null;
   authTokens: AuthTokenInfo[] = null;
 
   historyListHeight: any;
-  selectedHistoryEntry: IExecutionGroupInfoExt = null;
+  selectedHistoryEntry: ExecutionGroupInfoExt = null;
   selectedHistoryEntryNumber: number;
   selectedHistoryEntryIndex = 0;
-  selectedHistoryEntryStage: IStageInfo;
+  selectedHistoryEntryStage: StageInfo;
 
   // load more entries, when user is scrolling to the bottom
   // on project history list
@@ -193,20 +191,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
 
-  setHistoryEntry(entry: IExecutionGroupInfoExt, index: number) {
+  setHistoryEntry(entry: ExecutionGroupInfoExt, index: number) {
     this.selectedHistoryEntry = entry;
     this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.id, this.history.length - index);
     this.selectedHistoryEntryIndex = index;
 
-    if (entry.stages.length == 1) {
+    if (entry.stages.length === 1) {
       this.selectedHistoryEntryStage = entry.stages[0];
     } else if (entry.stages.length < 1) {
-      this.selectedHistoryEntryStage = new IStageInfoExt();
+      this.selectedHistoryEntryStage = new StageInfoExt();
     }
   }
 
 
-  setHistoryEntryStage(stage: IStageInfo) {
+  setHistoryEntryStage(stage: StageInfo) {
     this.selectedHistoryEntryStage = stage;
   }
 
@@ -334,7 +332,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       return;
     }
 
-    this.stateValue = info.getState();
+    this.stateValue = info.state;
     this.pauseReason = info.pauseReason;
     this.progress = info.stageProgress;
 
@@ -352,13 +350,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   enqueue(
-    pipeline: IPipelineInfo,
-    stageDefinitionInfo: IStageDefinitionInfo,
+    pipeline: PipelineInfo,
+    stageDefinitionInfo: StageDefinitionInfo,
     env: any,
     rangedEnv: any,
-    image: IImageInfo,
-    requiredResources?: IResourceInfo,
-    workspaceConfiguration?: IWorkspaceConfigurationExt,
+    image: ImageInfo,
+    requiredResources?: ResourceInfo,
+    workspaceConfiguration?: WorkspaceConfigurationExt,
     comment?: string,
     runSingle?: boolean,
     resume?: boolean,
@@ -392,7 +390,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  configure(pipeline: IPipelineInfo, stage: IStageDefinitionInfo, env: any, image: IImageInfo, requiredResources?: IResourceInfo) {
+  configure(pipeline: PipelineInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
@@ -412,7 +410,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  configureGroup(pipeline: IPipelineInfo, stage: IStageDefinitionInfo, env: any, image: ImageInfo) {
+  configureGroup(pipeline: PipelineInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo) {
     for (let i = 0; i < pipeline.stages.length; ++i) {
       if (stage.name === pipeline.stages[i].name) {
         return this.api.listProjects()
@@ -519,7 +517,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     return this.longLoading.isLongLoading();
   }
 
-  openFolder(project: IProjectInfoExt, group: IExecutionGroupInfoExt) {
+  openFolder(project: ProjectInfoExt, group: ExecutionGroupInfoExt) {
     if (group != null && group.stages != null && group.stages.length > 0) {
       const stage = group.stages[group.stages.length - 1];
       this.tabs.selectedIndex = Tab.Files;
@@ -528,13 +526,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  openWorkspace(project: IProjectInfoExt, stage: StageInfo) {
+  openWorkspace(project: ProjectInfoExt, stage: StageInfo) {
     this.tabs.selectedIndex = Tab.Files;
     this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
   }
 
-  openTensorboard(project: IProjectInfoExt, entry: StageInfo) {
+  openTensorboard(project: ProjectInfoExt, entry: StageInfo) {
     window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.id}/start`, '_blank');
   }
 
@@ -589,7 +587,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  useAsBlueprint(group: IExecutionGroupInfoExt, entry?: IStageInfo) {
+  useAsBlueprint(group: ExecutionGroupInfoExt, entry?: StageInfo) {
     this.executionSelection.image = group.stageDefinition.image;
     this.executionSelection.resources = group.stageDefinition.requiredResources;
     this.executionSelection.selectedStage = group.stageDefinition;
@@ -619,11 +617,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  onSelectedPipelineChanged(info: IPipelineInfo) {
+  onSelectedPipelineChanged(info: PipelineInfo) {
     this.selectedPipeline = info;
   }
 
-  onSelectedStageChanged(info: IStageDefinitionInfo) {
+  onSelectedStageChanged(info: StageDefinitionInfo) {
     this.selectedStage = info;
     if (this.selectedPipeline != null && this.selectedStage != null) {
       if (this.selectedPipeline.name === this.project.pipelineDefinition.name) {
@@ -670,7 +668,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  private setProjectPipeline(pipeline: IPipelineInfo) {
+  private setProjectPipeline(pipeline: PipelineInfo) {
     const p = this.project;
     const pid = p.pipelineDefinition.id;
     p.pipelineDefinition = ProjectViewComponent.deepClone(pipeline);
@@ -870,12 +868,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     return value.id;
   }
 
-  workspaceModes(): IWorkspaceMode[] {
-    const modes: IWorkspaceMode[] = ['STANDALONE', 'INCREMENTAL', 'CONTINUATION'];
+  workspaceModes(): WorkspaceMode[] {
+    const modes: WorkspaceMode[] = ['STANDALONE', 'INCREMENTAL', 'CONTINUATION'];
     return modes;
   }
 
-  setWorkspaceMode(value: IWorkspaceMode) {
+  setWorkspaceMode(value: WorkspaceMode) {
     this.dialog.openLoadingIndicator(
       this.api.setWorkspaceConfigurationMode(this.projectValue.id, value)
         .then(mode => {
@@ -885,7 +883,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  setResourceLimitation(limit?: IResourceLimitationExt) {
+  setResourceLimitation(limit?: ResourceLimitationExt) {
     this.dialog.openLoadingIndicator(
       this.api.setResourceLimitation(this.projectValue.id, limit)
         .then(l => {

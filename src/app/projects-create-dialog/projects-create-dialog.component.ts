@@ -2,11 +2,11 @@ import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {ProjectApiService} from '../api/project-api.service';
-import {IPipelineInfo} from '../api/winslow-api';
+import {PipelineInfo} from '../api/winslow-api';
 
 export interface CreateProjectData {
   name: string;
-  pipeline: IPipelineInfo;
+  pipeline: PipelineInfo;
   tags: string[];
 }
 
@@ -17,7 +17,7 @@ export interface CreateProjectData {
 })
 export class ProjectsCreateDialog implements OnInit {
 
-  pipelines: IPipelineInfo[];
+  pipelines: PipelineInfo[];
   cachedTags: string[];
 
   constructor(

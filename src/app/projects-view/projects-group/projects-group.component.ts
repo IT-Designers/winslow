@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MatMenuTrigger} from '@angular/material/menu';
-import {IProjectInfoExt, ProjectGroup, StateInfo} from '../../api/project-api.service';
+import {ProjectInfoExt, ProjectGroup} from '../../api/project-api.service';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FilesApiService} from '../../api/files-api.service';
@@ -8,6 +8,7 @@ import {DialogService} from '../../dialog.service';
 import {GroupActionsComponent} from '../../group-actions/group-actions.component';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
+import {StateInfo} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-projects-group',
@@ -19,7 +20,7 @@ export class ProjectsGroupComponent implements OnInit {
   @Input() projectGroup: ProjectGroup;
   @Input() filter: TagFilterComponent;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
-  @Input() selectedProject: IProjectInfoExt;
+  @Input() selectedProject: ProjectInfoExt;
   @Input() stateInfo: Map<string, StateInfo>;
 
   constructor(public route: ActivatedRoute,
@@ -33,13 +34,13 @@ export class ProjectsGroupComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  selectProject(project: IProjectInfoExt) {
+  selectProject(project: ProjectInfoExt) {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
     });
   }
 
-  thumbnailUrl(project: IProjectInfoExt) {
+  thumbnailUrl(project: ProjectInfoExt) {
     return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
   }
 

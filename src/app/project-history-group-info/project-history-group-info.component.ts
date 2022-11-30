@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfo, IExecutionGroupInfoExt, IStageInfoExt, ProjectApiService, StageInfo} from '../api/project-api.service';
-import {IStageInfo, IState} from '../api/winslow-api';
+import {ExecutionGroupInfoExt, StageInfoExt, ProjectApiService} from '../api/project-api.service';
+import {StageInfo, State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-group-info',
@@ -12,17 +12,17 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
 
 
-  @Input() executionGroup: IExecutionGroupInfoExt;
+  @Input() executionGroup: ExecutionGroupInfoExt;
   @Input() visibleStages = 10;
   @Input() selectedStageIndex: number;
   @Output() selectedStageIndexChange = new EventEmitter<number>();
-  @Output() clickKillStage = new EventEmitter<IStageInfoExt>();
-  @Output() clickUseAsBlueprint = new EventEmitter<IStageInfoExt>();
-  @Output() clickOpenWorkspace = new EventEmitter<IStageInfoExt>();
-  @Output() clickOpenLogs = new EventEmitter<IStageInfoExt>();
-  @Output() clickOpenAnalysis = new EventEmitter<IStageInfoExt>();
-  @Output() clickOpenTensorboard = new EventEmitter<IStageInfoExt>();
-  @Output() clickGetStage = new EventEmitter<IStageInfoExt>();
+  @Output() clickKillStage = new EventEmitter<StageInfoExt>();
+  @Output() clickUseAsBlueprint = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenWorkspace = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenLogs = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenAnalysis = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenTensorboard = new EventEmitter<StageInfoExt>();
+  @Output() clickGetStage = new EventEmitter<StageInfoExt>();
 
   constructor(private api: ProjectApiService) { }
 
@@ -30,7 +30,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
   }
 
-  emitStageAndSetIndex(stage: IStageInfoExt, index: number) {
+  emitStageAndSetIndex(stage: StageInfoExt, index: number) {
     this.clickGetStage.emit(stage);
     this.selectedStageIndex = index;
     this.selectedStageIndexChange.emit(index);
@@ -56,7 +56,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
     return Math.max(a, b);
   }
 
-  getRangeEnvVariableValues(stage: IStageInfo): string {
+  getRangeEnvVariableValues(stage: StageInfo): string {
     if (this.executionGroup.getGroupSize() > 1) {
       return [...this.executionGroup
         .rangedValues_keys() ]
@@ -68,7 +68,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
     }
   }
 
-  trackExecutionGroup(value: ExecutionGroupInfo): string {
+  trackExecutionGroup(value: ExecutionGroupInfoExt): string {
     return value.id;
   }
 

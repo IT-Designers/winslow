@@ -1,9 +1,9 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {IProjectInfoExt, ProjectApiService, ProjectGroup, StateInfo} from '../api/project-api.service';
+import {ProjectInfoExt, ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
-import {IPipelineInfo} from '../api/winslow-api';
+import {PipelineInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-group-actions',
@@ -12,16 +12,16 @@ import {IPipelineInfo} from '../api/winslow-api';
 })
 export class GroupActionsComponent implements OnInit {
 
-  projects: IProjectInfoExt[] = [];
-  projectsFiltered: IProjectInfoExt[] = null;
+  projects: ProjectInfoExt[] = [];
+  projectsFiltered: ProjectInfoExt[] = null;
   projectsGroups: ProjectGroup[] = [];
   stateInfo: Map<string, StateInfo> = null;
-  selectedProject: IProjectInfoExt = null;
+  selectedProject: ProjectInfoExt = null;
 
   projectsLoadError = null;
   projectsLongLoading = new LongLoadingDetector();
 
-  pipelines: IPipelineInfo[] = null;
+  pipelines: PipelineInfo[] = null;
   actionLoadError = null;
   actionLongLoading = new LongLoadingDetector();
   groupsOnTop: boolean;
