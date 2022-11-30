@@ -27,6 +27,7 @@
     "core-js": "^3.25.0",
     "dagre": "^0.8.5",
     "diagram-maker": "^2.0.1",
+    "uuid": "^8.3.2",
     "echarts": "^5.0.2",
     "echarts-gl": "^2.0.4",
     "fontsource-roboto": "^3.0.3",
