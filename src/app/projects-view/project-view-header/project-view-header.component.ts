@@ -1,10 +1,12 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {ProjectInfo, State} from '../../api/project-api.service';
+import {ProjectInfoExt} from '../../api/project-api.service';
 import {StateIconComponent} from '../../state-icon/state-icon.component';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
+import {EditorState} from '../../pipeline-editor/pipeline-editor.component';
+import {State} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-project-view-header',
@@ -13,7 +15,7 @@ import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context
 })
 export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
 
-  @Input() project: ProjectInfo;
+  @Input() project: ProjectInfoExt;
   @Input() pauseReason: string = null;
   @Input() progress: number = null;
   @Input() running = false;
@@ -61,11 +63,11 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
     matMenuTrigger.openMenu();
   }
 
-  excludeTags(project: ProjectInfo) {
+  excludeTags(project: ProjectInfoExt) {
     project.tags.forEach( tag => { this.filter.addExcludedTag(tag); });
   }
 
-  includeTags(project: ProjectInfo) {
+  includeTags(project: ProjectInfoExt) {
     project.tags.forEach( tag => { this.filter.addIncludedTag(tag); });
   }
 

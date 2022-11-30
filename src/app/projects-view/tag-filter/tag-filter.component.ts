@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
+import {ProjectGroup, ProjectInfoExt} from '../../api/project-api.service';
 import {LocalStorageService} from '../../api/local-storage.service';
 
 @Component({
@@ -10,13 +10,13 @@ import {LocalStorageService} from '../../api/local-storage.service';
 export class TagFilterComponent implements OnInit {
 
   availableTagsValue: string[];
-  projectsValue: ProjectInfo[];
-  filteredProjects: ProjectInfo[];
+  projectsValue: ProjectInfoExt[];
+  filteredProjects: ProjectInfoExt[];
   projectsGroupsValue: ProjectGroup[];
   lastPreselectedTag: string;
   SELECTED_CONTEXT = 'SELECTED_CONTEXT';
 
-  @Output('filtered') filtered = new EventEmitter<ProjectInfo[]>();
+  @Output('filtered') filtered = new EventEmitter<ProjectInfoExt[]>();
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
 
@@ -101,7 +101,7 @@ export class TagFilterComponent implements OnInit {
   }
 
   @Input('projects')
-  set projects(projects: ProjectInfo[]) {
+  set projects(projects: ProjectInfoExt[]) {
     this.projectsValue = projects;
     this.updateFilter();
   }

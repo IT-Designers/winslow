@@ -5,6 +5,7 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {AllocInfo, BuildInfo, CpuInfo, DiskInfo, GpuInfo, MemInfo, NetInfo, NodeInfo, NodeUtilization} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -25,9 +26,9 @@ export class NodesApiService {
     return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
   }
 
-  public watchNodes(listener: (update: ChangeEvent<string, NodeInfo>) => void): Subscription {
+  public watchNodes(listener: (update: ChangeEvent<string, NodeInfoExt>) => void): Subscription {
     return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
-      const events: ChangeEvent<string, NodeInfo>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, NodeInfoExt>[] = JSON.parse(message.body);
       events.forEach(event => listener(event));
     });
   }
@@ -35,9 +36,9 @@ export class NodesApiService {
   /**
    * Retrieves the `NodeInfo` for all active nodes
    */
-  public getNodes(): Promise<NodeInfo> {
+  public getNodes(): Promise<NodeInfoExt> {
     return this.client
-      .get<NodeInfo>(NodesApiService.getUrl())
+      .get<NodeInfoExt>(NodesApiService.getUrl())
       .toPromise();
   }
 
@@ -63,134 +64,19 @@ export class NodesApiService {
   }
 }
 
-export class NodeInfo {
-  name: string;
-  // The time this info was generated at (UNIX timestamp in ms)
-  time: number;
-  // The time in ms this node is up for
-  uptime: number;
-  cpuInfo: CpuInfo;
-  memInfo: MemInfo;
-  netInfo: NetInfo;
-  diskInfo: DiskInfo;
-  gpuInfo: GpuInfo[];
-  buildInfo: BuildInfo;
-  allocInfo: AllocInfo[];
-
+/**
+ *  The time this info was generated at (UNIX timestamp in ms)
+ *  time
+ *  The time in ms this node is up for
+ *  uptime
+ */
+export class NodeInfoExt extends NodeInfo {
   // local only
-  update: (node: NodeInfo) => void;
-
-  constructor(
-    name: string,
-    time: number,
-    uptime: number,
-    cpuInfo: CpuInfo,
-    memInfo: MemInfo,
-    gpus: GpuInfo[],
-    buildInfo?: BuildInfo,
-    allocInfo?: AllocInfo[]
-  ) {
-    this.name = name;
-    this.time = time;
-    this.uptime = uptime;
-    this.cpuInfo = new CpuInfo(cpuInfo.modelName, cpuInfo.utilization.length);
-    this.memInfo = new MemInfo(memInfo.memoryTotal, memInfo.swapTotal);
-    this.netInfo = new NetInfo();
-    this.diskInfo = new DiskInfo();
-    this.gpuInfo = [];
-    this.buildInfo = buildInfo == null ? new BuildInfo() : buildInfo;
-    this.allocInfo = allocInfo == null ? [] : allocInfo;
-
-    for (const gpu of gpus) {
-      this.gpuInfo.push(new GpuInfo(gpu.id, gpu.vendor, gpu.name));
-    }
-  }
-
+  update: (node: NodeInfoExt) => void;
 }
 
-export class CpuInfo {
-  modelName: string;
-  utilization: number[];
 
-  constructor(model: string, cores: number) {
-    this.modelName = model;
-    this.utilization = [];
-    for (let i = 0; i < cores; ++i) {
-      this.utilization.push(0);
-    }
-  }
 
-}
 
-export class MemInfo {
-  memoryTotal = 0;
-  memoryFree = 0;
-  systemCache = 0;
-  swapTotal = 0;
-  swapFree = 0;
 
-  constructor(memoryTotal: number, swapTotal: number) {
-    this.memoryTotal = memoryTotal;
-    this.memoryFree = memoryTotal;
-    this.swapTotal = swapTotal;
-    this.swapFree = swapTotal;
-  }
-}
 
-export class NetInfo {
-  transmitting = 0;
-  receiving = 0;
-}
-
-export class DiskInfo {
-  reading = 0;
-  writing = 0;
-  free = 0;
-  used = 0;
-}
-
-export class GpuInfo {
-  id: string;
-  vendor: string;
-  name: string;
-  computeUtilization = 0;
-  memoryUtilization = 0;
-  memoryUsedMegabytes = 0;
-  memoryTotalMegabytes = 0;
-
-  constructor(id: string, vendor: string, name: string) {
-    this.id = id;
-    this.vendor = vendor;
-    this.name = name;
-  }
-}
-
-export class BuildInfo {
-  date: string;
-  commitHashShort: string;
-  commitHashLong: string;
-}
-
-export class NodeUtilization {
-  time: number;
-  uptime: number;
-  cpuUtilization: number[];
-  memoryInfo: MemInfo;
-  netInfo: NetInfo;
-  diskInfo: DiskInfo;
-  gpuUtilization: GpuUtilization[];
-}
-
-export class GpuUtilization {
-  computeUtilization = 0;
-  memoryUtilization = 0;
-  memoryUsedMegabytes = 0;
-  memoryTotalMegabytes = 0;
-}
-
-export class AllocInfo {
-  title: string;
-  cpu: number;
-  memory: number;
-  gpu: number;
-}

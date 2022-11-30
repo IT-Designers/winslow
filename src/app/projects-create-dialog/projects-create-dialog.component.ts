@@ -1,7 +1,8 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
+import {PipelineApiService} from '../api/pipeline-api.service';
 import {ProjectApiService} from '../api/project-api.service';
+import {PipelineInfo} from '../api/winslow-api';
 
 export interface CreateProjectData {
   name: string;

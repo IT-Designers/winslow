@@ -1,5 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ResourceLimitation} from '../api/project-api.service';
+import {ResourceLimitationExt} from '../api/project-api.service';
+
 
 @Component({
   selector: 'app-resource-limitation',
@@ -9,10 +10,10 @@ import {ResourceLimitation} from '../api/project-api.service';
 export class ResourceLimitationComponent implements OnInit {
 
   @Input() title: string;
-  @Output('limit') change = new EventEmitter<ResourceLimitation>();
+  @Output('limit') change = new EventEmitter<ResourceLimitationExt>();
 
-  local?: ResourceLimitation;
-  remote?: ResourceLimitation;
+  local?: ResourceLimitationExt;
+  remote?: ResourceLimitationExt;
 
   constructor() {
   }
@@ -21,14 +22,14 @@ export class ResourceLimitationComponent implements OnInit {
   }
 
   @Input()
-  set limit(limit: ResourceLimitation) {
-    this.local = limit != null ? new ResourceLimitation(limit) : null;
+  set limit(limit: ResourceLimitationExt) {
+    this.local = limit != null ? new ResourceLimitationExt(limit) : null;
     this.remote = limit;
   }
 
   maybeInitLocal(checked: boolean) {
     if (checked) {
-      this.local = new ResourceLimitation(this.remote);
+      this.local = new ResourceLimitationExt(this.remote);
     } else {
       this.local = null;
     }
@@ -48,6 +49,6 @@ export class ResourceLimitationComponent implements OnInit {
   }
 
   localRemoteEq() {
-    return ResourceLimitation.equals(this.local, this.remote);
+    return ResourceLimitationExt.equals(this.local, this.remote);
   }
 }

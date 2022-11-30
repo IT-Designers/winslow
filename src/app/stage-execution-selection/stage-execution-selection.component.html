@@ -330,8 +330,8 @@
   <div class="action-row">
     <mat-label class="title">
       <input name="ws-config" type="radio"
-             [checked]="workspaceConfiguration?.mode == WorkspaceMode.STANDALONE"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.STANDALONE)">
+             [checked]="workspaceConfiguration?.mode == 'STANDALONE'"
+             (change)="setWorkspaceMode($event.target.checked,'STANDALONE')">
       Standalone
     </mat-label>
     <div>
@@ -342,8 +342,8 @@
   <div class="action-row">
     <mat-label class="title">
       <input name="ws-config" type="radio" value="increment"
-             [checked]="workspaceConfiguration?.mode == WorkspaceMode.INCREMENTAL"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.INCREMENTAL)"
+             [checked]="workspaceConfiguration?.mode == 'INCREMENTAL'"
+             (change)="setWorkspaceMode($event.target.checked, 'INCREMENTAL')"
       >
       Increment
     </mat-label>
@@ -356,8 +356,8 @@
     <mat-label class="title">
       <input name="ws-config" #wsContinuation type="radio" value="continuation"
              [disabled]="executionHistoryValue == null || executionHistoryValue.length == 0"
-             [checked]="workspaceConfiguration?.mode == WorkspaceMode.CONTINUATION"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.CONTINUATION, executionHistoryValue[0].id)">
+             [checked]="workspaceConfiguration?.mode == 'CONTINUATION'"
+             (change)="setWorkspaceMode($event.target.checked,'CONTINUATION', executionHistoryValue[0].id)">
       Continuation
     </mat-label>
     <div>
@@ -372,7 +372,7 @@
       <mat-select #continuationValue
                   [value]="workspaceConfiguration.value"
                   [disabled]="!wsContinuation.checked"
-                  (valueChange)="setWorkspaceMode(true, WorkspaceMode.CONTINUATION, $event)">
+                  (valueChange)="setWorkspaceMode(true, 'CONTINUATION', $event)">
         <ng-container *ngFor="let h of executionHistoryValue; let i = index">
           <mat-option *ngFor="let s of h.stages; let n = index"
                       [value]="s.id">[{{tryParseStageNumber(h.id, executionHistoryValue.length - i)}}

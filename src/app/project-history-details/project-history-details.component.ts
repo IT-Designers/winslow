@@ -1,5 +1,6 @@
 import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import {ExecutionGroupInfo, StageInfo, State} from '../api/project-api.service';
+import {ExecutionGroupInfoExt, StageInfoExt} from '../api/project-api.service';
+import {State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
@@ -8,31 +9,31 @@ import {ExecutionGroupInfo, StageInfo, State} from '../api/project-api.service';
 })
 export class ProjectHistoryDetailsComponent implements OnInit {
 
-  @Input() entry: ExecutionGroupInfo;
+  @Input() entry: ExecutionGroupInfoExt;
   @Input() entryNumber: number;
   @Input() stageNumber: number;
-  @Input() selectedStage: StageInfo;
+  @Input() selectedStage: StageInfoExt;
   @Input() projectState: State;
   @Input() firstEntry = true;
-  @Input() executionGroup: ExecutionGroupInfo;
+  @Input() executionGroup: ExecutionGroupInfoExt;
   @Input() expanded = false;
   @Input() pipelineIsPaused: boolean = null;
 
-  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickKillStage = new EventEmitter<StageInfo>();
-  @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
-  @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
-  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
-  @Output() clickOpenAnalysis = new EventEmitter<StageInfo>();
-  @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
+  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickDelete = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickKillStage = new EventEmitter<StageInfoExt>();
+  @Output() clickUseAsBlueprint = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenWorkspace = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenLogs = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenAnalysis = new EventEmitter<StageInfoExt>();
+  @Output() clickOpenTensorboard = new EventEmitter<StageInfoExt>();
 
   historyDetailsHeight: any;
   @HostListener('window:resize', ['$event'])
   getScreenSize(event?) {
-    this.setHistoryDetailsHeight(window.innerHeight)
+    this.setHistoryDetailsHeight(window.innerHeight);
   }
 
 
@@ -42,7 +43,7 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   constructor() {
     this.buttonValue = "stage-definition";
     this.showStageDefinition = true;
-    this.setHistoryDetailsHeight(window.innerHeight)
+    this.setHistoryDetailsHeight(window.innerHeight);
   }
 
   ngOnInit(): void {
@@ -58,12 +59,12 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   }
 
   getStageDefinition() {
-    this.onButtonValueChange("stage-definition")
+    this.onButtonValueChange("stage-definition");
     this.showStageDefinition = true;
   }
 
   getStageInformation() {
-    this.onButtonValueChange("stage-information")
+    this.onButtonValueChange("stage-information");
     this.showStageDefinition = false;
   }
 

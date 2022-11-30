@@ -1,14 +1,16 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {ParseError, StageDefinitionInfo} from './project-api.service';
+import {ParseError} from './project-api.service';
+import {PipelineInfo} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PipelineApiService {
 
-  constructor(private client: HttpClient) { }
+  constructor(private client: HttpClient) {
+  }
 
   private static getUrl(more?: string) {
     return `${environment.apiLocation}pipelines${more != null ? `/${more}` : ''}`;
@@ -23,7 +25,7 @@ export class PipelineApiService {
   }
 
   updatePipelineDefinition(pipeline: string, raw: string) {
-    return this.client.put<string|ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw).toPromise();
+    return this.client.put<string | ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw).toPromise();
   }
 
   getPipelineDefinition(pipeline: string) {
@@ -59,44 +61,35 @@ export class PipelineApiService {
 }
 
 
-export class PipelineInfo {
-  id: string;
-  name: string;
-  desc?: string;
-  requiredEnvVariables: string[];
-  stages: StageDefinitionInfo[];
-  markers: string[];
-
-  constructor(info: PipelineInfo) {
-    this.id = info.id;
-    this.name = info.name;
-    this.desc = info.desc;
-    this.requiredEnvVariables = info.requiredEnvVariables;
-    this.stages = info.stages;
-    this.markers = info.markers;
+// https://putridparrot.com/blog/extension-methods-in-typescript/
+// add new functions to IPipelineInfo
+// requires an Import from this module or
+// import "... pipeline-api.service.ts";
+declare module './winslow-api' {
+  interface PipelineInfo {
+    hasActionMarker(): boolean;
+    hasActionMarkerFor(pipelineName: string): boolean;
   }
+}
 
-  hasActionMarker() {
-    for (const marker of this.markers) {
-      const lower = marker.toLowerCase();
-      if (lower.startsWith('action')) {
-        return true;
-      }
+
+// tslint:disable-next-line:only-arrow-functions
+PipelineInfo.prototype.hasActionMarker = function() {
+  for (const marker of this.markers) {
+    const lower = marker.toLowerCase();
+    if (lower.startsWith('action')) {
+      return true;
     }
-    return false;
   }
+  return false;
+};
 
-  hasActionMarkerFor(pipelineName: string) {
-    const markers = this.markers.map(m => m.toLowerCase());
-    return markers.indexOf('action') >= 0 || markers.indexOf('action for ' + pipelineName.toLowerCase()) >= 0;
-  }
-}
+PipelineInfo.prototype.hasActionMarkerFor = function(pipelineName: string) {
+  const markers = this.markers.map(m => m.toLowerCase());
+  return markers.indexOf('action') >= 0 || markers.indexOf('action for ' + pipelineName.toLowerCase()) >= 0;
+};
 
-export class ResourceInfo {
-  cpus: number;
-  megabytesOfRam: number;
-  gpus?: number;
-}
+
 
 export class LogParser {
   destination: string;

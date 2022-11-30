@@ -1,18 +1,22 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {PipelineInfo, ResourceInfo} from '../api/pipeline-api.service';
-import { MatDialog } from '@angular/material/dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {
-  EnvVariable,
-  ExecutionGroupInfo,
-  ImageInfo,
-  ProjectApiService, RangedList,
+  WorkspaceConfigurationExt,
+  ProjectApiService,
+  RangedList,
   RangedValue,
-  RangeWithStepSize,
-  StageDefinitionInfo,
-  WorkspaceConfiguration,
-  WorkspaceMode
+  RangeWithStepSize
 } from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
+import {
+  EnvVariable, ExecutionGroupInfo,
+  ImageInfo,
+  PipelineInfo,
+  ResourceInfo,
+  StageDefinitionInfo,
+  WorkspaceMode
+} from '../api/winslow-api';
+
 
 @Component({
   selector: 'app-stage-execution-selection',
@@ -26,8 +30,6 @@ export class StageExecutionSelectionComponent implements OnInit {
   rangeTypes: string[] = [this.rangeTypeRange, this.rangeTypeList];
   rangeType: string = this.rangeTypeRange;
 
-  WorkspaceMode = WorkspaceMode;
-
   @Input() pipelines: PipelineInfo[];
   @Input() pipelineSelectionDisabled = false;
 
@@ -40,9 +42,11 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   selectedPipeline: PipelineInfo = null;
   selectedStage: StageDefinitionInfo = null;
-  image = new ImageInfo();
-  resources = new ResourceInfo();
-  workspaceConfiguration = new WorkspaceConfiguration();
+  image = new ImageInfo({name: '', args: [], shmMegabytes: 0});
+
+  resources = new ResourceInfo({cpus: 0, gpus: 0, megabytesOfRam: 100});
+
+  workspaceConfiguration = WorkspaceConfigurationExt.create();
   comment = null;
   valid = false;
 
@@ -104,17 +108,19 @@ export class StageExecutionSelectionComponent implements OnInit {
   set workspaceConfigurationMode(mode: WorkspaceMode) {
     if (mode != null) {
       let value = null;
-      if (mode === WorkspaceMode.CONTINUATION && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
+      if (mode === 'CONTINUATION' && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
         value = this.executionHistoryValue[0].id;
       }
-      this.workspaceConfiguration = new WorkspaceConfiguration(
-        mode,
-        value,
-        this.workspaceConfiguration?.sharedWithinGroup,
-        this.workspaceConfiguration?.nestedWithinGroup
+      this.workspaceConfiguration = new WorkspaceConfigurationExt({
+          mode,
+          value,
+          sharedWithinGroup: this.workspaceConfiguration?.sharedWithinGroup,
+          nestedWithinGroup: this.workspaceConfiguration?.nestedWithinGroup
+        }
       );
     } else {
-      this.workspaceConfiguration = new WorkspaceConfiguration();
+
+      this.workspaceConfiguration = WorkspaceConfigurationExt.create();
     }
   }
 
@@ -153,7 +159,7 @@ export class StageExecutionSelectionComponent implements OnInit {
     return this.resources;
   }
 
-  getWorkspaceConfiguration(): WorkspaceConfiguration {
+  getWorkspaceConfiguration(): WorkspaceConfigurationExt {
     return this.workspaceConfiguration;
   }
 
@@ -223,11 +229,12 @@ export class StageExecutionSelectionComponent implements OnInit {
     nestedWithinGroup: boolean = null
   ) {
     if (update) {
-      this.workspaceConfiguration = new WorkspaceConfiguration(
-        mode,
-        value,
-        sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup,
-        nestedWithinGroup ?? this.workspaceConfiguration.nestedWithinGroup
+      this.workspaceConfiguration = new WorkspaceConfigurationExt({
+          mode,
+          value,
+          sharedWithinGroup: sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup,
+          nestedWithinGroup: nestedWithinGroup ?? this.workspaceConfiguration.nestedWithinGroup
+        }
       );
     }
   }
@@ -336,4 +343,6 @@ export class StageExecutionSelectionComponent implements OnInit {
       return null;
     }
   }
+
+
 }

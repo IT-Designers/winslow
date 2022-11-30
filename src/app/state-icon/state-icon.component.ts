@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {State} from '../api/project-api.service';
+import {State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-state-icon',
@@ -18,7 +18,7 @@ export class StateIconComponent implements OnInit {
   }
 
   stateString() {
-    if (this.configured && this.state !== State.Failed) {
+    if (this.configured && this.state !== 'Failed') {
       return 'configured';
     } else {
       return this.state != null ? (this.state + '').toLowerCase() : null;

@@ -1,13 +1,15 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {Action, ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State, StatsInfo} from '../api/project-api.service';
+import {ExecutionGroupInfoExt, ProjectInfoExt, ProjectApiService, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
-import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
+import {PipelineApiService} from '../api/pipeline-api.service';
 import {pipe, Subscription} from 'rxjs';
+import {Action, PipelineInfo, StageInfo, State} from '../api/winslow-api';
+
 
 @Component({
   selector: 'app-project-overview',
@@ -16,16 +18,17 @@ import {pipe, Subscription} from 'rxjs';
 })
 export class ProjectOverviewComponent implements OnDestroy {
 
+
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
 
-  @Output() openFiles = new EventEmitter<ProjectInfo>();
-  @Output() openLogs = new EventEmitter<ProjectInfo>();
-  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo?]>();
-  @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickPause = new EventEmitter<ExecutionGroupInfo>();
+  @Output() openFiles = new EventEmitter<ProjectInfoExt>();
+  @Output() openLogs = new EventEmitter<ProjectInfoExt>();
+  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfoExt, StageInfo?]>();
+  @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickPause = new EventEmitter<ExecutionGroupInfoExt>();
 
   nodeName: string;
 
@@ -40,8 +43,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   lastSuccessfulStatsUpdate = 0;
   seriesInitialized = false;
 
-  mostRecent: ExecutionGroupInfo = null;
-  projectValue: ProjectInfo;
+  mostRecent: ExecutionGroupInfoExt = null;
+  projectValue: ProjectInfoExt;
   memory: any[] = [];
   memoryMax = 1;
   cpu: any[] = [];
@@ -49,7 +52,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   cpuLimit = 0;
   subscription: Subscription = null;
 
-  enqueued: ExecutionGroupInfo[] = [];
+  enqueued: ExecutionGroupInfoExt[] = [];
   pipelineActions: PipelineInfo[] = [];
 
   mergeOptionCpu = {};
@@ -197,8 +200,9 @@ export class ProjectOverviewComponent implements OnDestroy {
     }
   }
 
+
   @Input()
-  set project(value: ProjectInfo) {
+  set project(value: ProjectInfoExt) {
     this.projectValue = value;
     this.unsubscribe();
     this.subscribe();
@@ -214,7 +218,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   @Input()
-  set history(history: ExecutionGroupInfo[]) {
+  set history(history: ExecutionGroupInfoExt[]) {
     this.mostRecent = null;
     this.enqueued = [];
     if (history && history.length > 0) {
@@ -232,9 +236,9 @@ export class ProjectOverviewComponent implements OnDestroy {
   @Input()
   set state(state: State) {
     this.stateValue = state;
-    this.stateFinished = State.Failed === state || State.Succeeded === state;
-    this.stateRunning = State.Running === state;
-    this.statePaused = State.Paused === state || State.Enqueued === state;
+    this.stateFinished = state === 'Failed' || state === 'Succeeded';
+    this.stateRunning = state === 'Running';
+    this.statePaused = state === 'Paused' || state === 'Enqueued';
     this.cdr.detectChanges();
   }
 
@@ -389,15 +393,15 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   isConfigure(action: Action) {
-    return Action.Configure === action;
+    return action === 'Configure';
   }
 
   isEnqueued(state: State) {
-    return State.Enqueued === state;
+    return state === 'Enqueued';
   }
 
   isRunning(state: State) {
-    return State.Running === state;
+    return state === 'Running';
   }
 
   openProjectDiskUsageDialog() {

@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
+import {FileInfo} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,7 @@ export class FilesApiService {
     return this.client
       .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
       .toPromise()
-      .then(files => files.map(f => new FileInfo(f)));
+      .then(files => files.map(f => new IFileInfoExt(f)));
   }
 
   createDirectory(path: string): Promise<any> {
@@ -63,7 +64,7 @@ export class FilesApiService {
     }
 
     return this.client.get(
-      FilesApiService.getUrl(pathToFile + params), {responseType: "text"}
+      FilesApiService.getUrl(pathToFile + params), {responseType: 'text'}
     );
   }
 
@@ -121,27 +122,9 @@ export class FilesApiService {
   }
 }
 
+export class IFileInfoExt extends FileInfo {
 
-export class FileInfo {
-  name: string;
-  directory: boolean;
-  path: string;
-  fileSize?: number;
-  attributes: Map<string, unknown>;
-  // local only
   fileSizeHumanReadableCached?: string;
-
-  constructor(info: FileInfo = null) {
-    if (info != null) {
-      this.name = info.name;
-      this.directory = info.directory;
-      this.path = info.path;
-      this.fileSize = info.fileSize;
-      this.attributes = info.attributes;
-      this.fileSizeHumanReadableCached = FileInfo.toFileSizeHumanReadable(info.fileSize);
-    }
-  }
-
 
   public static toFileSizeHumanReadable(fileSize?: number): string {
     if (fileSize != null) {
@@ -174,20 +157,20 @@ export class FileInfo {
     }
   }
 
-  public getAttribute(key: string): unknown {
+  public getAttribute(key: FileInfoAttribute): unknown {
     return this.attributes != null ? this.attributes[key] : null;
   }
 
-  public hasAttribute(key: string): boolean {
+  public hasAttribute(key: FileInfoAttribute): boolean {
     return this.attributes != null && this.attributes[key] != null;
   }
 
   public isGitRepository(): boolean {
-    return this.hasAttribute(FileInfoAttribute.GIT_BRANCH);
+    return this.hasAttribute('git-branch');
   }
 
   public getGitBranch(): string {
-    const attr = this.getAttribute(FileInfoAttribute.GIT_BRANCH);
+    const attr = this.getAttribute('git-branch');
     if (typeof attr === typeof '') {
       return attr as string;
     } else {
@@ -199,17 +182,15 @@ export class FileInfo {
     if (this.attributes == null) {
       this.attributes = new Map<string, unknown>();
     }
-    this.attributes[FileInfoAttribute.GIT_BRANCH] = branch;
+    this.attributes['git-branch'] = branch;
   }
 
   public getFileSizeHumanReadable(): string {
     if (this.fileSizeHumanReadableCached == null) {
-      this.fileSizeHumanReadableCached = FileInfo.toFileSizeHumanReadable(this.fileSize);
+      this.fileSizeHumanReadableCached = IFileInfoExt.toFileSizeHumanReadable(this.fileSize);
     }
     return this.fileSizeHumanReadableCached;
   }
 }
 
-export enum FileInfoAttribute {
-  GIT_BRANCH = 'git-branch',
-}
+export type FileInfoAttribute = 'git-branch';

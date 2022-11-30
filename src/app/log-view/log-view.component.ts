@@ -1,10 +1,11 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {LogEntry, LogSource, ProjectApiService, ProjectInfo, State} from '../api/project-api.service';
+import {ProjectInfoExt, LogEntry, LogSource, ProjectApiService} from '../api/project-api.service';
 import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {RegularExpressionEditorDialogComponent} from '../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import {State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-log-view',
@@ -19,7 +20,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
   @ViewChild('scrollTopTarget') scrollTopTarget: ElementRef<HTMLElement>;
   @ViewChild('scrollBottomTarget') scrollBottomTarget: ElementRef<HTMLElement>;
 
-  selectedProject: ProjectInfo = null;
+  selectedProject: ProjectInfoExt = null;
   selectedStageId: string = null;
 
   logs?: LogEntry[] = [];
@@ -52,7 +53,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
     window.addEventListener('scroll', this.scrollCallback, true);
     this.stateSubscription = this.api.getProjectStateSubscriptionHandler().subscribe((id, info) => {
       if (id === this.selectedProject?.id && info != null) {
-        this.projectHasRunningStage = State.Running === info.getState();
+        this.projectHasRunningStage = info.state === 'Running' ;
       }
     });
   }
@@ -87,7 +88,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set project(value: ProjectInfo) {
+  set project(value: ProjectInfoExt) {
     const changed = value?.id !== this.selectedProject?.id;
     this.selectedProject = value;
 
