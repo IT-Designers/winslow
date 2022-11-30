@@ -740,7 +740,7 @@ public class ProjectsController {
 
                             if (stageDef.isPresent()) {
                                 resolver = resolver
-                                        .withStageName(stageDef.get().getName())
+                                        .withIdAndStageName(stageDef.get().getId(), stageDef.get().getName())
                                         .withInStageDefinitionDefinedVariables(stageDef.get().getEnvironment());
                             }
 
@@ -995,7 +995,7 @@ public class ProjectsController {
                 .of(base)
                 .flatMap(def -> pipeline
                         .getActiveAndPastExecutionGroups()
-                        .filter(g -> g.getStageDefinition().getName().equals(def.getName()))
+                        .filter(g -> g.getStageDefinition().getId().equals(def.getId()))
                         .map(ExecutionGroup::getStageDefinition)
                         .reduce((first, second) -> second)
                 )
