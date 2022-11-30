@@ -2,7 +2,11 @@
   <h2>Add a user</h2>
   <div class="inputs">
     <mat-form-field>
-      <input matInput placeholder="Search for name..." id="searchInput" [(ngModel)]="userSearchInput" (keyup)="onKeyUp()">
+      <input matInput
+             placeholder="Search for name..."
+             id="searchInput"
+             [(ngModel)]="userSearchInput"
+             (keyup)="onKeyUp()">
     </mat-form-field>
 
     <div id="list" class="list-container" *ngIf="showUsersToggle">
