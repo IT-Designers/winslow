@@ -9,7 +9,6 @@ public class StageDefinitionBuilder {
 
     private @Nullable StageDefinition               template;
     private @Nullable StageDefinition               base;
-    private @Nullable Optional<String>              name;
     private @Nullable Optional<String>              description;
     private @Nullable Optional<Image>               image;
     private @Nullable Optional<Requirements>        requirements;
@@ -36,12 +35,6 @@ public class StageDefinitionBuilder {
         return this;
     }
 
-    @Nonnull
-    @CheckReturnValue
-    public StageDefinitionBuilder withName(@Nullable String name) {
-        this.name = Optional.ofNullable(name);
-        return this;
-    }
 
     @Nonnull
     @CheckReturnValue
@@ -108,11 +101,8 @@ public class StageDefinitionBuilder {
 
     @Nonnull
     public StageDefinition build() {
-        var base = Optional.ofNullable(this.base).or(() -> Optional.ofNullable(this.template));
-        var name = either(this.name, base.map(StageDefinition::getName));
-        Objects.requireNonNull(name);
-
-        var env = either(this.env, base.map(StageDefinition::getEnvironment));
+        var base = Optional.ofNullable(this.base).or(() -> Optional.ofNullable(this.template)).orElseThrow();
+        var env = either(this.env, Optional.of(base.getEnvironment()));
 
         if (this.additionalEnv != null) {
             if (env != null) {
@@ -124,14 +114,15 @@ public class StageDefinitionBuilder {
         }
 
         return new StageDefinition(
-                name,
-                either(this.description, base.flatMap(StageDefinition::getDescription)),
-                either(this.image, base.flatMap(StageDefinition::getImage)),
-                either(this.requirements, base.flatMap(StageDefinition::getRequirements)),
-                either(this.userInput, base.flatMap(StageDefinition::getRequires)),
+                base.getId(),
+                base.getName(),
+                either(this.description, base.getDescription()),
+                either(this.image, base.getImage()),
+                either(this.requirements, base.getRequirements()),
+                either(this.userInput, base.getRequires()),
                 env,
-                either(this.highlight, base.flatMap(StageDefinition::getHighlight)),
-                either(this.discardable, base.map(StageDefinition::isDiscardable)),
+                either(this.highlight, base.getHighlight()),
+                either(this.discardable, Optional.of(base.isDiscardable())),
                 Optional.ofNullable(either(
                         Optional.ofNullable(this.template).map(StageDefinition::isPrivileged),
                         Optional.ofNullable(this.base).map(StageDefinition::isPrivileged)
@@ -148,7 +139,7 @@ public class StageDefinitionBuilder {
                         Optional.ofNullable(this.template).map(StageDefinition::getTags),
                         Optional.ofNullable(this.base).map(StageDefinition::getTags)
                 ),
-                either(this.result, base.map(StageDefinition::getResult)),
+                either(this.result, Optional.of(base.getResult())),
                 template.getType(),
                 Optional.ofNullable(this.template).map(StageDefinition::getNextStages).orElse(null)
         );

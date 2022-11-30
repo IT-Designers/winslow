@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,19 +44,16 @@ public class PipelineTrigger {
     public ResponseEntity<Void> triggerPipeline(
             @PathVariable String projectId,
             @RequestParam String secret,
-            @RequestParam(required = false) String stage,
+            @RequestParam(required = false) String stageDefId,
             @RequestParam(required = false, defaultValue = "false") boolean runSingle
     ) {
-        if (stage != null && stage.trim().length() == 0) {
-            stage = null;
-        }
+        Optional<UUID> stageDefIdOpt = Optional.ofNullable(stageDefId).map(UUID::fromString);
 
-        final String fStage = stage;
         var result = getProjectForTokenSecret(projectId, secret, REQUIRED_CAPABILITY_TRIGGER_PIPELINE).map(project -> {
             var controller = new ProjectsController(winslow);
             var user       = winslow.getUserManager().getUserOrCreateAuthenticated(project.getOwner()).orElseThrow();
 
-            var stageIndex      = Optional.ofNullable(fStage).flatMap(name -> getStageIndex(project, name)).orElse(0);
+            var stageIndex      = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
             var stageDefinition = project.getPipelineDefinition().getStages().get(stageIndex);
 
             // default request
@@ -86,7 +84,7 @@ public class PipelineTrigger {
             var list = controller.getProjectHistory(user, projectId).collect(Collectors.toList());
             for (int n = list.size() - 1; n >= 0; --n) {
                 var info = list.get(n);
-                if (info.stageDefinition.name.equals(stageDefinition.getName())) {
+                if (info.stageDefinition.id.equals(stageDefinition.getId())) {
                     request.env                    = Optional
                             .ofNullable(info.stageDefinition.env)
                             .orElseGet(HashMap::new);
@@ -112,10 +110,10 @@ public class PipelineTrigger {
     }
 
     @Nonnull
-    private Optional<Integer> getStageIndex(@Nonnull Project project, @Nonnull String stageName) {
+    private Optional<Integer> getStageIndex(@Nonnull Project project, @Nonnull UUID stageDefId) {
         var stages = project.getPipelineDefinition().getStages();
         for (int i = 0; i < stages.size(); ++i) {
-            if (stages.get(i).getName().equals(stageName)) {
+            if (stages.get(i).getId().equals(stageDefId)) {
                 return Optional.of(i);
             }
         }

@@ -147,6 +147,7 @@ public class ExecutionGroup {
             return Optional.of(new Pair<>(
                     this.id.generateStageId(getGroupCounter() + 1),
                     new StageDefinition(
+                            stageDefinition.getId(),
                             stageDefinition.getName(),
                             stageDefinition.getDescription().orElse(null),
                             stageDefinition.getImage().orElse(null),
