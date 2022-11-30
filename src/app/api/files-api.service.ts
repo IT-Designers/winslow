@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {IFileInfo} from './winslow-api';
+import {FileInfo} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,7 @@ export class FilesApiService {
 
   listFiles(path: string, aggregateSizeForDirectories: boolean = false) {
     return this.client
-      .options<IFileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
+      .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
       .toPromise()
       .then(files => files.map(f => new IFileInfoExt(f)));
   }
@@ -122,7 +122,7 @@ export class FilesApiService {
   }
 }
 
-export class IFileInfoExt extends IFileInfo {
+export class IFileInfoExt extends FileInfo {
 
   fileSizeHumanReadableCached?: string;
 

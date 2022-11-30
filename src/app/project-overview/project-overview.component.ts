@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {IExecutionGroupInfoExt, IProjectInfoExt, ProjectApiService, StatsInfo} from '../api/project-api.service';
+import {ExecutionGroupInfoExt, ProjectInfoExt, ProjectApiService, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {pipe, Subscription} from 'rxjs';
-import {IAction, IPipelineInfo, IStageInfo, IState} from '../api/winslow-api';
+import {Action, PipelineInfo, StageInfo, State} from '../api/winslow-api';
 
 
 @Component({
@@ -22,20 +22,20 @@ export class ProjectOverviewComponent implements OnDestroy {
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
 
-  @Output() openFiles = new EventEmitter<IProjectInfoExt>();
-  @Output() openLogs = new EventEmitter<IProjectInfoExt>();
-  @Output() clickUseAsBlueprint = new EventEmitter<[IExecutionGroupInfoExt, IStageInfo?]>();
-  @Output() clickDeleteEnqueued = new EventEmitter<IExecutionGroupInfoExt>();
-  @Output() clickResumeSingle = new EventEmitter<IExecutionGroupInfoExt>();
-  @Output() clickResume = new EventEmitter<IExecutionGroupInfoExt>();
-  @Output() clickPause = new EventEmitter<IExecutionGroupInfoExt>();
+  @Output() openFiles = new EventEmitter<ProjectInfoExt>();
+  @Output() openLogs = new EventEmitter<ProjectInfoExt>();
+  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfoExt, StageInfo?]>();
+  @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickPause = new EventEmitter<ExecutionGroupInfoExt>();
 
   nodeName: string;
 
   schemeCpu = {domain: ['#DD4444']};
   schemeMemory = {domain: ['#44DD44']};
 
-  stateValue: IState = null;
+  stateValue: State = null;
   stateFinished: boolean;
   stateRunning: boolean;
   statePaused: boolean;
@@ -43,8 +43,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   lastSuccessfulStatsUpdate = 0;
   seriesInitialized = false;
 
-  mostRecent: IExecutionGroupInfoExt = null;
-  projectValue: IProjectInfoExt;
+  mostRecent: ExecutionGroupInfoExt = null;
+  projectValue: ProjectInfoExt;
   memory: any[] = [];
   memoryMax = 1;
   cpu: any[] = [];
@@ -52,8 +52,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   cpuLimit = 0;
   subscription: Subscription = null;
 
-  enqueued: IExecutionGroupInfoExt[] = [];
-  pipelineActions: IPipelineInfo[] = [];
+  enqueued: ExecutionGroupInfoExt[] = [];
+  pipelineActions: PipelineInfo[] = [];
 
   mergeOptionCpu = {};
   chartOptionCpu = {
@@ -202,7 +202,7 @@ export class ProjectOverviewComponent implements OnDestroy {
 
 
   @Input()
-  set project(value: IProjectInfoExt) {
+  set project(value: ProjectInfoExt) {
     this.projectValue = value;
     this.unsubscribe();
     this.subscribe();
@@ -218,7 +218,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   @Input()
-  set history(history: IExecutionGroupInfoExt[]) {
+  set history(history: ExecutionGroupInfoExt[]) {
     this.mostRecent = null;
     this.enqueued = [];
     if (history && history.length > 0) {
@@ -234,7 +234,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   @Input()
-  set state(state: IState) {
+  set state(state: State) {
     this.stateValue = state;
     this.stateFinished = state === 'Failed' || state === 'Succeeded';
     this.stateRunning = state === 'Running';
@@ -392,15 +392,15 @@ export class ProjectOverviewComponent implements OnDestroy {
     }
   }
 
-  isConfigure(action: IAction) {
+  isConfigure(action: Action) {
     return action === 'Configure';
   }
 
-  isEnqueued(state: IState) {
+  isEnqueued(state: State) {
     return state === 'Enqueued';
   }
 
-  isRunning(state: IState) {
+  isRunning(state: State) {
     return state === 'Running';
   }
 

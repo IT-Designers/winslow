@@ -2,8 +2,8 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
-import {IResourceLimitation} from './winslow-api';
-import {IResourceLimitationExt} from './project-api.service';
+import {ResourceLimitation} from './winslow-api';
+import {ResourceLimitationExt} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,15 +31,15 @@ export class SettingsApiService {
       .toPromise();
   }
 
-  getUserResourceLimitation(): Promise<IResourceLimitationExt> {
-    return this.client.get<IResourceLimitationExt>(SettingsApiService.getUrl('user-res-limit'))
-      .pipe(map(response => new IResourceLimitationExt(response)))
+  getUserResourceLimitation(): Promise<ResourceLimitationExt> {
+    return this.client.get<ResourceLimitationExt>(SettingsApiService.getUrl('user-res-limit'))
+      .pipe(map(response => new ResourceLimitationExt(response)))
       .toPromise();
   }
 
-  setUserResourceLimitation(limit: IResourceLimitationExt): Promise<IResourceLimitationExt> {
-    return this.client.post<IResourceLimitationExt>(SettingsApiService.getUrl('user-res-limit'), limit)
-      .pipe(map(response => new IResourceLimitationExt(response)))
+  setUserResourceLimitation(limit: ResourceLimitationExt): Promise<ResourceLimitationExt> {
+    return this.client.post<ResourceLimitationExt>(SettingsApiService.getUrl('user-res-limit'), limit)
+      .pipe(map(response => new ResourceLimitationExt(response)))
       .toPromise();
   }
 }

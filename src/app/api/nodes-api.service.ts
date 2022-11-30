@@ -5,7 +5,7 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {IAllocInfo, IBuildInfo, ICpuInfo, IDiskInfo, IGpuInfo, IMemInfo, INetInfo, INodeInfo, INodeUtilization} from './winslow-api';
+import {AllocInfo, BuildInfo, CpuInfo, DiskInfo, GpuInfo, MemInfo, NetInfo, NodeInfo, NodeUtilization} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -26,9 +26,9 @@ export class NodesApiService {
     return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
   }
 
-  public watchNodes(listener: (update: ChangeEvent<string, INodeInfoExt>) => void): Subscription {
+  public watchNodes(listener: (update: ChangeEvent<string, NodeInfoExt>) => void): Subscription {
     return this.rxStompService.watch('/nodes').subscribe((message: Message) => {
-      const events: ChangeEvent<string, INodeInfoExt>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, NodeInfoExt>[] = JSON.parse(message.body);
       events.forEach(event => listener(event));
     });
   }
@@ -36,9 +36,9 @@ export class NodesApiService {
   /**
    * Retrieves the `NodeInfo` for all active nodes
    */
-  public getNodes(): Promise<INodeInfoExt> {
+  public getNodes(): Promise<NodeInfoExt> {
     return this.client
-      .get<INodeInfoExt>(NodesApiService.getUrl())
+      .get<NodeInfoExt>(NodesApiService.getUrl())
       .toPromise();
   }
 
@@ -50,14 +50,14 @@ export class NodesApiService {
    * @param to Unix epoch timestamp in millis from when to fetch the last report
    * @param chunkSpanMillis The duration in millis to chunk data into a single entry
    */
-  public getNodeUtilization(nodeName: string, from?: number, to?: number, chunkSpanMillis?: number): Promise<INodeUtilization[]> {
+  public getNodeUtilization(nodeName: string, from?: number, to?: number, chunkSpanMillis?: number): Promise<NodeUtilization[]> {
     const params = [['from', from], ['to', to], ['chunkSpanMillis', chunkSpanMillis]]
       .filter(p => p != null && p[1] != null)
       .map(p => p[0] + '=' + p[1])
       .join('&');
 
     return this.client
-      .get<INodeUtilization[]>(NodesApiService.getUrl(
+      .get<NodeUtilization[]>(NodesApiService.getUrl(
         nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
       ))
       .toPromise();
@@ -70,9 +70,9 @@ export class NodesApiService {
  *  The time in ms this node is up for
  *  uptime
  */
-export class INodeInfoExt extends INodeInfo {
+export class NodeInfoExt extends NodeInfo {
   // local only
-  update: (node: INodeInfoExt) => void;
+  update: (node: NodeInfoExt) => void;
 }
 
 

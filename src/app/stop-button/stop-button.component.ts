@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {IProjectInfoExt, ProjectApiService} from '../api/project-api.service';
+import {ProjectInfoExt, ProjectApiService} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 
 @Component({
@@ -9,7 +9,7 @@ import {DialogService} from '../dialog.service';
 })
 export class StopButtonComponent implements OnInit {
 
-  @Input() project: IProjectInfoExt = null;
+  @Input() project: ProjectInfoExt = null;
   @Input() disabled: boolean = false;
   @Input() showText: boolean = true;
 
