@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {GroupApiService, GroupInfo} from '../api/group-api.service';
-import { RoleApiService } from '../api/role-api.service';
+import {RoleApiService} from '../api/role-api.service';
 import {UserApiService, UserInfo} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
@@ -33,22 +33,22 @@ export class UserAndGroupManagementComponent implements OnInit {
     private userApi: UserApiService,
     private createDialog: MatDialog,
     private dialog: DialogService) {
-      this.groupApi.getGroups().then((groups) => {
-        this.allGroups = groups;
-      });
-      this.userApi.getUsers().then((users) => {
-        this.allUsers = Array.from(users);
-        /*this.displayUsers = Array.from(users);*/
-        /*this.sortDisplayUsersByName();*/
-      });
-      this.roleApi.getRoles().then((roles) => this.allRoles = roles);
-      this.userApi.getSelfUserName().then((name) => {
-        this.myName = name;
-        this.myUser = {name: this.myName, role: 'OWNER'};
-        if (this.newGroup.members.length === 0) {
-          this.newGroup.members.push(this.myUser);
-        }
-      });
+    this.groupApi.getGroups().then((groups) => {
+      this.allGroups = groups;
+    });
+    this.userApi.getUsers().then((users) => {
+      this.allUsers = Array.from(users);
+      /*this.displayUsers = Array.from(users);*/
+      /*this.sortDisplayUsersByName();*/
+    });
+    this.roleApi.getRoles().then((roles) => this.allRoles = roles);
+    this.userApi.getSelfUserName().then((name) => {
+      this.myName = name;
+      this.myUser = {name: this.myName, role: 'OWNER'};
+      if (this.newGroup.members.length === 0) {
+        this.newGroup.members.push(this.myUser);
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -59,6 +59,7 @@ export class UserAndGroupManagementComponent implements OnInit {
     // TODO: Set userTabTooltip according to user admin status
     return true;
   }
+
   /*sortDisplayUsersByName() {
     this.displayUsers.sort((a, b) => {
       if (a.name.toUpperCase() > b.name.toUpperCase()) {
@@ -85,6 +86,7 @@ export class UserAndGroupManagementComponent implements OnInit {
         'Creating Group');
     }
   }
+
   onAddUserToggle(name) {
     if (name) {
       const newUser = {
@@ -94,14 +96,13 @@ export class UserAndGroupManagementComponent implements OnInit {
         active: true,
         password: null,
       };
-      console.log('Creating new user: ' + newUser.name);
       return this.dialog.openLoadingIndicator(this.userApi.createUser(newUser)
-        .then(() => {
-          this.allUsers.push(newUser);
-          this.allUsers = this.allUsers.concat([]);
-          this.selectedUser = newUser;
-          this.showUserDetail = true;
-        }),
+          .then(() => {
+            this.allUsers.push(newUser);
+            this.allUsers = this.allUsers.concat([]);
+            this.selectedUser = newUser;
+            this.showUserDetail = true;
+          }),
         'Creating User');
       // TODO: actually create user, show progress with LoadingIndicator
     }
@@ -111,34 +112,37 @@ export class UserAndGroupManagementComponent implements OnInit {
     this.selectedGroup = group;
     this.showGroupDetail = true;
   }
+
   userClicked(user) {
     this.selectedUser = user;
     this.showUserDetail = true;
   }
 
   onEditCancel() {
-    this.selectedGroup = {name: 'No Group Selected', members: []};
+    this.selectedGroup = null;
     this.showGroupDetail = false;
     this.itemSelected = false;
   }
+
   onUserEditCancel() {
     this.selectedUser = null;
     this.showUserDetail = false;
   }
+
   onGroupDelete() {
     this.dialog.openAreYouSure(
       `Group being deleted: ${this.selectedGroup.name}`,
       () => this.groupApi.deleteGroup(this.selectedGroup.name)
-            .then(() => {
-              const delIndex = this.allGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
-              this.allGroups.splice(delIndex, 1);
-              this.allGroups = this.allGroups.concat([]);
-              this.onEditCancel();
-            })
+        .then(() => {
+          const delIndex = this.allGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
+          this.allGroups.splice(delIndex, 1);
+          this.allGroups = this.allGroups.concat([]);
+          this.onEditCancel();
+        })
     );
   }
+
   onUserDelete() {
-    console.log('User Delete Pressed');
     this.dialog.openAreYouSure(
       `User being deleted: ${this.selectedUser.name}`,
       () => this.userApi.deleteUser(this.selectedUser.name)
