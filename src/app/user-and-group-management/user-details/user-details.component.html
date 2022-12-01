@@ -10,15 +10,8 @@
                placeholder="Username"
                [defaultValue]="editableSelectedUser.name"
                [(ngModel)]="editableSelectedUser.name"
-               (keyup)="usernameHasChanged()">
+               (keyup)="somethingIsBeingChanged()">
       </mat-form-field>
-      <button mat-raised-button
-              color="primary"
-              (click)="onUpdateUsername()"
-              class="update-btn"
-              [disabled]="!canIEditUser || !hasUsernameChanged">
-        Update
-      </button>
     </div>
 
     <div class="detail-item">
@@ -28,15 +21,8 @@
                placeholder="Display Name"
                [defaultValue]="editableSelectedUser.displayName"
                [(ngModel)]="editableSelectedUser.displayName"
-               (keyup)="displayNameHasChanged()">
+               (keyup)="somethingIsBeingChanged()">
       </mat-form-field>
-      <button mat-raised-button
-              color="primary"
-              (click)="onUpdateDisplayName()"
-              class="update-btn"
-              [disabled]="!canIEditUser || !hasDisplayNameChanged">
-        Update
-      </button>
     </div>
 
     <div class="detail-item">
@@ -46,15 +32,8 @@
                placeholder="Email"
                [defaultValue]="editableSelectedUser.email"
                [(ngModel)]="editableSelectedUser.email"
-               (keyup)="emailHasChanged()">
+               (keyup)="somethingIsBeingChanged()">
       </mat-form-field>
-      <button mat-raised-button
-              color="primary"
-              (click)="onUpdateEmail()"
-              class="update-btn"
-              [disabled]="!canIEditUser || !hasEmailChanged">
-        Update
-      </button>
     </div>
 
     <!--<div class="detail-item">
@@ -77,11 +56,11 @@
 
     <div class="detail-item">
       <label class="attribute-label"> Password: </label>
-      <label class="input-width password-status-label" *ngIf="selectedUser.password != null">
+      <label class="alt-width password-status-label" *ngIf="selectedUser.password != null">
         User already has a Password
       </label>
-      <label class="input-width password-status-label" *ngIf="selectedUser.password === null">
-        User has no password
+      <label class="alt-width password-status-label" *ngIf="selectedUser.password === null">
+        User has no password and cannot log in
       </label>
       <button mat-raised-button
               color="primary"
@@ -106,17 +85,9 @@
       <div class="checkbox-container">
         <mat-checkbox [(ngModel)]="editableSelectedUser.active"
                       class="checkbox"
-                      (change)="userActiveHasChanged()">
+                      (change)="somethingIsBeingChanged()">
         </mat-checkbox>
       </div>
-
-      <button mat-raised-button
-              color="primary"
-              (click)="onUpdateActive()"
-              class="update-btn"
-              [disabled]="!canIEditUser || !hasUserActiveChanged">
-        Update
-      </button>
     </div>
 
   </div>
@@ -125,7 +96,8 @@
     <button class="mat-raised-button bottom-btn"
             (click)="onUpdate()"
             color="primary"
-            mat-raised-button="">
+            mat-raised-button=""
+            [disabled]="!canIEditUser || !hasAnythingChanged">
       Update User
     </button>
     <button class="mat-raised-button bottom-btn"
