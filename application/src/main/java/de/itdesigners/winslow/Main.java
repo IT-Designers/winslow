@@ -9,6 +9,7 @@ import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.auth.GroupManager;
 import de.itdesigners.winslow.auth.GroupRepository;
 import de.itdesigners.winslow.auth.UserManager;
+import de.itdesigners.winslow.docker.DockerBackendBuilder;
 import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
@@ -86,7 +87,7 @@ public class Main {
             LOG.info("Preparing the orchestrator");
             var repository      = new PipelineRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
-            var backendBuilder  = new NomadBackendBuilder(nodeName);
+            var backendBuilder  = getBackend(nodeName);
             var resourceMonitor = new ResourceAllocationMonitor();
 
             var node = getNode(
@@ -153,6 +154,20 @@ public class Main {
             if (webApi != null) {
                 webApi.stop();
             }
+        }
+    }
+
+    @Nonnull
+    private static BackendBuilder getBackend(@Nonnull String nodeName) {
+        if (Env.isBackendDocker()) {
+            LOG.info("Using docker backend");
+            return new DockerBackendBuilder(nodeName);
+        } else if (Env.isBackendNomad()) {
+            LOG.info("Using nomad backend (default)");
+            return new NomadBackendBuilder(nodeName);
+        } else {
+            LOG.severe("Backend not recognized");
+            throw new RuntimeException("Invalid backend configured");
         }
     }
 
