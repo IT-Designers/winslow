@@ -22,7 +22,8 @@ public class NomadBackendBuilder implements BackendBuilder {
     public NomadBackendBuilder(@Nonnull String nodeName) {
         this.nodeName     = nodeName;
         this.client       = new NomadApiClient(new NomadApiConfiguration.Builder().build());
-        this.platformInfo = tryRetrievePlatformInfoNoThrows(this.client).orElseThrow();
+        this.platformInfo = tryRetrievePlatformInfoNoThrows(this.client)
+                .orElseThrow(() -> new RuntimeException("Failed to contact nomad. Is it running?"));
     }
 
     @Nonnull
