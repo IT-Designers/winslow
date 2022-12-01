@@ -87,7 +87,7 @@ public class UserController {
             ensure(isAllowedToCreateUser(user));
 
             return UserInfoConverter.from(
-                    winslow.getUserManager().createUserWithoutGroup(
+                    winslow.getUserManager().createUserAndGroup(
                             newUser.name(),
                             newUser.displayName(),
                             newUser.email(),
