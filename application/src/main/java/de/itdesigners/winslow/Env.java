@@ -44,6 +44,10 @@ public class Env {
     public static final String AUTH_METHOD_LDAP  = "ldap";
     public static final String AUTH_METHOD_LOCAL = "local";
 
+    public static final String BACKEND        = SELF_PREFIX + "_BACKEND";
+    public static final String BACKEND_DOCKER = "docker";
+    public static final String BACKEND_NOMAD  = "nomad";
+
     private Env() {
     }
 
@@ -144,6 +148,21 @@ public class Env {
         var explicit = Objects.equals(AUTH_METHOD_LOCAL, getAuthMethod());
         var implicit = !isAuthMethodSet() && !isDevEnv();
         return explicit || implicit;
+    }
+
+    @Nullable
+    public static String getBackend() {
+        return System.getenv(BACKEND);
+    }
+
+    public static boolean isBackendNomad() {
+        var explicit = Objects.equals(BACKEND_NOMAD, getBackend());
+        var implicit = getBackend() == null;
+        return explicit || implicit;
+    }
+
+    public static boolean isBackendDocker() {
+        return Objects.equals(BACKEND_DOCKER, getBackend());
     }
 
     @Nullable
