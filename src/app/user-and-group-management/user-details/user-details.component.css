@@ -61,6 +61,11 @@
   scale: 1.03;
 }
 .input-width {
+  min-width: 87%;
+  max-width: 87%;
+  align-self: center;
+}
+.alt-width {
   min-width: 78%;
   max-width: 78%;
   align-self: center;
