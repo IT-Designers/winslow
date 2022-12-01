@@ -8,10 +8,9 @@ export class DiagramInitialData {
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
     let pipelineInfo = new PipelineInfo(Object.assign({}, project.pipelineDefinition));
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
-    //delete pipelineInfo.id;
     delete pipelineInfo.requiredEnvVariables;
-    nodes['pipelineInfo'] = {
-      id: 'pipelineInfo',
+    nodes[pipelineInfo.id] = {
+      id: pipelineInfo.id,
       typeId: "node-start",
       diagramMakerData: {
         position: {x: 50, y: 200},
@@ -21,8 +20,8 @@ export class DiagramInitialData {
       consumerData: pipelineInfo
     }
     for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
-      nodes[`n${i}`] = {
-        id: `n${i}`,
+      nodes[project.pipelineDefinition.stages[i].id] = {
+        id: project.pipelineDefinition.stages[i].id,
         typeId: "node-normal",
         diagramMakerData: {
           position: {x: 250 * (i + 2) - 200, y: 200},
@@ -33,8 +32,8 @@ export class DiagramInitialData {
       if (i < (project.pipelineDefinition.stages.length - 1)) {
         edges[`edge${i}`] = {
           id: `edge${i}`,
-          src: `n${i}`,
-          dest: `n${i + 1}`,
+          src: project.pipelineDefinition.stages[i].id,
+          dest: project.pipelineDefinition.stages[i+1].id,
           diagramMakerData: {}
         }
 
@@ -42,8 +41,8 @@ export class DiagramInitialData {
     }
     edges["edgeStart"] = {
       id: 'edgeStart',
-      src: 'pipelineInfo',
-      dest: 'n0',
+      src: pipelineInfo.id,
+      dest: project.pipelineDefinition.stages[0].id,
       diagramMakerData: {}
     }
 
