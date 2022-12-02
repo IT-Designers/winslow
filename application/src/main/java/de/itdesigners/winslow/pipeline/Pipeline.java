@@ -2,7 +2,6 @@ package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.RangedValue;
-import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;

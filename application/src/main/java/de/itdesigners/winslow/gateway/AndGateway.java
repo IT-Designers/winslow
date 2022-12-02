@@ -3,14 +3,11 @@ package de.itdesigners.winslow.gateway;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 public class AndGateway extends Gateway {

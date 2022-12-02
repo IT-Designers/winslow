@@ -4,7 +4,6 @@ import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.ImageInfo;
 import de.itdesigners.winslow.api.pipeline.ResourceInfo;
 import de.itdesigners.winslow.api.project.EnqueueRequest;
-import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.web.api.ProjectsController;
 import org.springframework.http.ResponseEntity;
@@ -61,19 +60,16 @@ public class PipelineTrigger {
                     stageDefinition.getEnvironment(),
                     null,
                     stageIndex,
-                    stageDefinition
-                            .getImage()
-                            .map(i -> new ImageInfo(i.getName(), i.getArgs(), i.getShmSizeMegabytes().orElse(null)))
-                            .orElse(null),
-                    stageDefinition
-                            .getRequirements()
-                            .map(r -> new ResourceInfo(
-                                         r.getCpu(),
-                                         r.getMegabytesOfRam(),
-                                         r.getGpu().map(Requirements.Gpu::getCount).orElse(0)
-                                 )
-                            )
-                            .orElse(null),
+                    new ImageInfo(
+                            stageDefinition.getImage().getName(),
+                            stageDefinition.getImage().getArgs(),
+                            stageDefinition.getImage().getShmSizeMegabytes()
+                    ),
+                    new ResourceInfo(
+                            stageDefinition.getRequirements().getCpu(),
+                            stageDefinition.getRequirements().getMegabytesOfRam(),
+                            stageDefinition.getRequirements().getGpu().getCount()
+                    ),
                     null,
                     "triggered",
                     runSingle,
