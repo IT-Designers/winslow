@@ -230,7 +230,32 @@ public class Submission {
         return getResult().map(SubmissionResult::getHandle);
     }
 
-    private void ensureNotSubmittedYet() throws AlreadySubmittedException {
+    @Nonnull
+    @CheckReturnValue
+    public Stage createStage() {
+        this.ensureNotSubmittedYet();
+
+        var stage = new Stage(
+                this.getId(),
+                this.getWorkspaceDirectory().orElse(null)
+        );
+        stage.getEnv().putAll(this.getStageEnvVariablesReduced());
+        stage.getEnvPipeline().putAll(this.getPipelineEnvVariables());
+        stage.getEnvSystem().putAll(this.getSystemEnvVariables());
+        stage.getEnvInternal().putAll(this.getInternalEnvVariables());
+
+        stage.getEnvPipeline().forEach((key, value) -> stage.getEnv().remove(key, value));
+        stage.getEnvSystem().forEach((key, value) -> {
+            if (!stage.getEnvPipeline().containsKey(key)) {
+                stage.getEnv().remove(key, value);
+            }
+        });
+        stage.getEnvInternal().forEach((key, value) -> stage.getEnv().remove(key, value));
+
+        return stage;
+    }
+
+    public void ensureNotSubmittedYet() throws AlreadySubmittedException {
         if (this.result != null) {
             throw new AlreadySubmittedException();
         }

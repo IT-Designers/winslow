@@ -97,12 +97,12 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                     String.valueOf(workerDefinition.requirements().getGpu().getCount())
             );
 
-            if (workerDefinition.requirements().getGpu().getCount() > 0) {
+            workerDefinition.requirements().getGpu().getVendor().ifPresent(vendor -> {
                 s.withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_GPU_VENDOR",
-                        workerDefinition.requirements().getGpu().getVendor()
+                        vendor
                 );
-            }
+            });
 
             if (context
                     .getSubmission()

@@ -38,14 +38,16 @@ public class SubmissionToNomadJobAdapter {
 
     @Nonnull
     public SubmissionResult submit(@Nonnull Submission submission) throws OrchestratorException, IOException, NomadException {
-        if (submission.getResult().isPresent()) {
-            throw new OrchestratorException("Submission already submitted");
+        try {
+            submission.ensureNotSubmittedYet();
+        } catch (Submission.AlreadySubmittedException e) {
+            throw new OrchestratorException("Submission already submitted", e);
         }
 
         var job      = createJob(submission);
         var jobId    = job.getId();
         var taskName = job.getTaskGroups().get(0).getName();
-        var stage    = createStage(submission);
+        var stage    = submission.createStage();
         var stageId  = stage.getFullyQualifiedId();
 
         if (!Objects.equals(jobId, taskName) || !Objects.equals(jobId, stageId)) {
@@ -61,28 +63,6 @@ public class SubmissionToNomadJobAdapter {
                 return new SubmissionResult(stage, new NomadStageHandle(nodeName, backend, submission.getId()));
             }
         }
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public static Stage createStage(@Nonnull Submission submission) {
-        var stage = new Stage(
-                submission.getId(),
-                submission.getWorkspaceDirectory().orElse(null)
-        );
-        stage.getEnv().putAll(submission.getStageEnvVariablesReduced());
-        stage.getEnvPipeline().putAll(submission.getPipelineEnvVariables());
-        stage.getEnvSystem().putAll(submission.getSystemEnvVariables());
-        stage.getEnvInternal().putAll(submission.getInternalEnvVariables());
-
-        stage.getEnvPipeline().forEach((key, value) -> stage.getEnv().remove(key, value));
-        stage.getEnvSystem().forEach((key, value) -> {
-            if (!stage.getEnvPipeline().containsKey(key)) {
-                stage.getEnv().remove(key, value);
-            }
-        });
-        stage.getEnvInternal().forEach((key, value) -> stage.getEnv().remove(key, value));
-        return stage;
     }
 
     @Nonnull
@@ -206,9 +186,10 @@ public class SubmissionToNomadJobAdapter {
                 gpuDevice.setName("gpu");
                 gpuDevice.setCount(BigInteger.valueOf(requirements.getGpu().getCount()));
 
-                var vendor = requirements.getGpu().getVendor().trim().isEmpty()
-                             ? NomadBackend.DEFAULT_GPU_VENDOR
-                             : requirements.getGpu().getVendor();
+                var vendor = requirements
+                        .getGpu()
+                        .getVendor()
+                        .orElse(NomadBackend.DEFAULT_GPU_VENDOR);
                 gpuDevice.setName(vendor + "/gpu");
 
                 task.getResources().addDevices(gpuDevice);

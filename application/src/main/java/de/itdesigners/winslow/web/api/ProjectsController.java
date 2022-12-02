@@ -1076,12 +1076,12 @@ public class ProjectsController {
                                     Optional
                                             .ofNullable(requirements)
                                             .map(Requirements::getGpu)
-                                            .map(g -> g.getVendor())
+                                            .flatMap(Requirements.Gpu::getVendor)
                                             .orElse(null),
                                     Optional
                                             .ofNullable(requirements)
                                             .map(Requirements::getGpu)
-                                            .map(g -> g.getSupport())
+                                            .map(Requirements.Gpu::getSupport)
                                             .orElse(null)
                             ))
                             .orElse(null),

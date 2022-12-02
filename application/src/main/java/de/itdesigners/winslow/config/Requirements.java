@@ -6,13 +6,13 @@ import java.util.*;
 
 public class Requirements {
 
-    private final          int     cpus;
-    private final @Nonnull Integer megabytesOfRam;
-    private final @Nonnull Gpu     gpu;
+    private final          int          cpus;
+    private final @Nonnull Integer      megabytesOfRam;
+    private final @Nonnull Gpu          gpu;
     private final @Nonnull List<String> tags;
 
     /**
-     * @param cpus            The cpus requirements, nullable to ensure backwards compatibility
+     * @param cpus           The cpus requirements, nullable to ensure backwards compatibility
      * @param megabytesOfRam Megabytes of RAM to list as requirement
      * @param gpu            Optionally, GPU requirements to list
      */
@@ -24,9 +24,9 @@ public class Requirements {
         this.cpus           = cpus != null ? cpus : 0;
         this.megabytesOfRam = megabytesOfRam != null ? megabytesOfRam : 100;
         this.gpu            = gpu != null ? gpu : new Gpu(null, null, null);
-        this.tags = tags != null
-                    ? Collections.unmodifiableList(tags)
-                    : Collections.emptyList();
+        this.tags           = tags != null
+                              ? Collections.unmodifiableList(tags)
+                              : Collections.emptyList();
     }
 
     public static Requirements createDefault() {
@@ -76,13 +76,13 @@ public class Requirements {
     }
 
     public static class Gpu {
-        private final int      count;
-        private final @Nonnull String   vendor;
-        private final @Nonnull String[] support;
+        private final           int      count;
+        private final @Nullable String   vendor;
+        private final @Nonnull  String[] support;
 
         public Gpu(@Nullable Integer count, @Nullable String vendor, @Nullable String[] support) {
             this.count   = count != null ? count : 0;
-            this.vendor  = vendor != null ? vendor : "";
+            this.vendor  = vendor != null && !vendor.isBlank() ? vendor : null;
             this.support = support != null ? support : new String[0];
         }
 
@@ -91,10 +91,15 @@ public class Requirements {
             return count;
         }
 
-        public String getVendor() {
-            return vendor;
+        /**
+         * @return A trimmed text ({@link String#isBlank()} never returns true) describing a required vendor.
+         */
+        @Nonnull
+        public Optional<String> getVendor() {
+            return Optional.ofNullable(vendor);
         }
 
+        @Nonnull
         public String[] getSupport() {
             return support;
         }

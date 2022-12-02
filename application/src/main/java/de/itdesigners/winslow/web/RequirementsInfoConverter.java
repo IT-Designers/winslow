@@ -12,13 +12,13 @@ public class RequirementsInfoConverter {
         return new RequirementsInfo(
                 requirements.getCpus(),
                 requirements.getMegabytesOfRam(),
-                from (requirements.getGpu()),
+                from(requirements.getGpu()),
                 requirements.getTags()
         );
     }
 
     public static RequirementsInfo.GPUInfo from(@Nonnull Requirements.Gpu gpu) {
-        return new RequirementsInfo.GPUInfo(gpu.getCount(), gpu.getVendor(), gpu.getSupport());
+        return new RequirementsInfo.GPUInfo(gpu.getCount(), gpu.getVendor().orElse(""), gpu.getSupport());
     }
 
 }

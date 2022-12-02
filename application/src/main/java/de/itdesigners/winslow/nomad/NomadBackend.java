@@ -107,31 +107,10 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
         return success;
     }
 
-    @Override
-    @Nonnull
-    public Stream<String> listStages() throws IOException {
-        try (var client = getNewClient()) {
-            return client
-                    .getJobsApi()
-                    .list()
-                    .getValue()
-                    .stream()
-                    .map(JobListStub::getName);
-        } catch (NomadException e) {
-            throw new IOException("Failed to list jobs", e);
-        }
-    }
-
     @Nonnull
     @Override
     public Optional<State> getState(@Nonnull StageId stageId) throws IOException {
-        return getState(stageId.getProjectId(), stageId.getFullyQualified());
-    }
-
-    @Nonnull
-    @Override
-    public Optional<State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        return getStateByNomadJogId(stage);
+        return getStateByNomadJogId(stageId.getFullyQualified());
     }
 
     @Nonnull
@@ -196,17 +175,15 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
 
                             var gpuVendor = workerStage
                                     .requirements()
-                                    .getGpu().getVendor();
+                                    .getGpu()
+                                    .getVendor();
 
                             Supplier<Boolean> gpuAvailable = () -> Optional
                                     .of(entry)
                                     .flatMap(e -> Optional.ofNullable(e.getValue()))
                                     .flatMap(v -> Optional.ofNullable(v.getAttributes()))
                                     .flatMap(a -> Optional.ofNullable(a.get(DRIVER_ATTRIBUTE_DOCKER_RUNTIMES)))
-                                    .filter(runtimes -> runtimes.contains(Optional
-                                                                                  .of(gpuVendor)
-                                                                                  .filter(v -> !v.trim().isEmpty())
-                                                                                  .orElse(DEFAULT_GPU_VENDOR)))
+                                    .filter(runtimes -> runtimes.contains(gpuVendor.orElse(DEFAULT_GPU_VENDOR)))
                                     .isPresent();
 
                             var result = !gpuRequired || gpuAvailable.get();
