@@ -69,7 +69,7 @@ public class UserInputChecker implements AssemblerStep {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Submission submission) {
         return Stream.concat(
-                pipelineDefinition.getRequires().getEnvironment().stream(),
+                pipelineDefinition.userInput().getEnvironment().stream(),
                 stageDefinition.userInput().getEnvironment().stream()
         ).filter(k -> submission.getEnvVariable(k).isEmpty());
     }
@@ -79,7 +79,7 @@ public class UserInputChecker implements AssemblerStep {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Pipeline pipeline) {
         return Stream
-                .of(stageDefinition.userInput(), pipelineDefinition.getRequires())
+                .of(stageDefinition.userInput(), pipelineDefinition.userInput())
                 .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
                 .anyMatch(u -> u.getConfirmation() == UserInput.Confirmation.Always || (
                                   u.getConfirmation() == UserInput.Confirmation.Once && pipeline

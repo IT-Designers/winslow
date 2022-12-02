@@ -76,7 +76,7 @@ public class AndGateway extends Gateway {
                         pipeline.enqueueSingleExecution(
                                 projectReadOnly
                                         .getPipelineDefinition()
-                                        .getStages()
+                                        .stages()
                                         .stream()
                                         .filter(stageDefinition1 -> stageDefinition1
                                                 .id()
