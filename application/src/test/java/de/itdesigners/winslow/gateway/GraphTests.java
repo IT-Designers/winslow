@@ -47,7 +47,7 @@ public class GraphTests {
                 emptyPipeline(),
                 pipelineDefinition,
                 new Node(
-                        pipelineDefinition.getStages().get(0),
+                        pipelineDefinition.stages().get(0),
                         null
                 )
         );
@@ -81,7 +81,7 @@ public class GraphTests {
                 emptyPipeline(),
                 pipelineDefinition,
                 new Node(
-                        pipelineDefinition.getStages().get(0),
+                        pipelineDefinition.stages().get(0),
                         null
                 )
         );
@@ -112,7 +112,7 @@ public class GraphTests {
                 emptyPipeline(),
                 pipelineDefinition,
                 new Node(
-                        pipelineDefinition.getStages().get(0),
+                        pipelineDefinition.stages().get(0),
                         null
                 )
         );
@@ -426,7 +426,7 @@ public class GraphTests {
 
     @Nonnull
     public static StageDefinition getStageDefinition(@Nonnull PipelineDefinition definition, @Nonnull String name) {
-        return definition.getStages().stream().filter(s -> s.name().equals(name)).findFirst().orElseThrow();
+        return definition.stages().stream().filter(s -> s.name().equals(name)).findFirst().orElseThrow();
     }
 
 

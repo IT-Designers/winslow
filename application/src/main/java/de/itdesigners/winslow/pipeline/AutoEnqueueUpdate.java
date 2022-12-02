@@ -125,7 +125,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 .stream()
                 .flatMap(id ->
                                  pipelineDefinition
-                                         .getStages()
+                                         .stages()
                                          .stream()
                                          .filter(s -> s
                                                  .id()
@@ -150,8 +150,8 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
     private static Optional<Integer> guessStageIndex(
             @Nonnull PipelineDefinition definition,
             @Nonnull UUID stageId) {
-        for (int i = 0; i < definition.getStages().size(); ++i) {
-            if (definition.getStages().get(i).id().equals(stageId)) {
+        for (int i = 0; i < definition.stages().size(); ++i) {
+            if (definition.stages().get(i).id().equals(stageId)) {
                 return Optional.of(i);
             }
         }

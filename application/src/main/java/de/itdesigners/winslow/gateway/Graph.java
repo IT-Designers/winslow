@@ -28,7 +28,7 @@ public class Graph {
             cachedExecutionGroup.put(executionGroup.getId(), executionGroup);
         });
 
-        pipelineDefinition.getStages().forEach(s -> cachedStageDefinition.put(s.id(), s));
+        pipelineDefinition.stages().forEach(s -> cachedStageDefinition.put(s.id(), s));
 
         addNode(rootNode);
         findAllDirectlyConnectedNodes();

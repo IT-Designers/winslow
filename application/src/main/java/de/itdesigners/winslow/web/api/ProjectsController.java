@@ -723,7 +723,7 @@ public class ProjectsController {
                                     .withInPipelineDefinitionDefinedVariables(
                                             project
                                                     .getPipelineDefinition()
-                                                    .getEnvironment()
+                                                    .environment()
                                     );
 
 
@@ -739,7 +739,7 @@ public class ProjectsController {
 
                             var stageDef = project
                                     .getPipelineDefinition()
-                                    .getStages()
+                                    .stages()
                                     .stream()
                                     .skip(stageIndex)
                                     .findFirst();
@@ -766,12 +766,12 @@ public class ProjectsController {
                 .flatMap(project -> Stream.concat(
                         project
                                 .getPipelineDefinition()
-                                .getRequires()
+                                .userInput()
                                 .getEnvironment().stream()
                         ,
                         project
                                 .getPipelineDefinition()
-                                .getStages()
+                                .stages()
                                 .stream()
                                 .skip(stageIndex)
                                 .findFirst()
@@ -901,11 +901,11 @@ public class ProjectsController {
                         .unsafe()
                         .flatMap(pipelineDefinition -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
-                            for (var stage : pipelineDefinition.getStages()) {
+                            for (var stage : pipelineDefinition.stages()) {
                                 pipeline.enqueueSingleExecution(
                                         new StageDefinitionBuilder()
                                                 .withTemplateBase(stage)
-                                                .withEnvironment(pipelineDefinition.getEnvironment())
+                                                .withEnvironment(pipelineDefinition.environment())
                                                 .withAdditionalEnvironment(stage.environment())
                                                 .build(),
                                         new WorkspaceConfiguration(
@@ -1175,8 +1175,8 @@ public class ProjectsController {
 
     @Nonnull
     private static Optional<StageDefinition> getStageDefinitionNoClone(@Nonnull Project project, int index) {
-        if (project.getPipelineDefinition().getStages().size() > index) {
-            return Optional.of(project.getPipelineDefinition().getStages().get(index));
+        if (project.getPipelineDefinition().stages().size() > index) {
+            return Optional.of(project.getPipelineDefinition().stages().get(index));
         }
         return Optional.empty();
     }
