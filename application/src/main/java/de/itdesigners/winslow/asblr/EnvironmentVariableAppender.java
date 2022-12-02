@@ -24,11 +24,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var pipeline = context.getPipeline();
+        var pipeline           = context.getPipeline();
         var pipelineDefinition = context.getPipelineDefinition();
-        var stageDefinition = context.getStageDefinition();
-        var timeMs = System.currentTimeMillis();
-        var timeS = timeMs / 1_000;
+        var stageDefinition    = context.getStageDefinition();
+        var timeMs             = System.currentTimeMillis();
+        var timeS              = timeMs / 1_000;
 
         var submission = context
                 .getSubmission()
@@ -37,7 +37,10 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 .withPipelineEnvVariables(pipelineDefinition.getEnvironment())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_NAME", context.getProject().getName())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_TAGS", String.join(" ", context.getProject().getTags()))
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_PROJECT_TAGS",
+                        String.join(" ", context.getProject().getTags())
+                )
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_PIPELINE_NAME",
@@ -74,27 +77,41 @@ public class EnvironmentVariableAppender implements AssemblerStep {
         });
 
 
-        stageDefinition.getRequirements().ifPresent(requirements -> {
-            var sub = context
-                    .getSubmission()
-                    .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CORES", String.valueOf(requirements.getCpu()))
-                    .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CORES_IS_DEPRECATED", String.valueOf(requirements.getCpu()))
-                    .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CPU_COUNT", String.valueOf(requirements.getCpu()))
-                    .withInternalEnvVariable(
-                            Env.SELF_PREFIX + "_RES_RAM_MB",
-                            String.valueOf(requirements.getMegabytesOfRam())
-                    )
-                    .withInternalEnvVariable(
-                            Env.SELF_PREFIX + "_RES_RAM_GB",
-                            String.valueOf(requirements.getMegabytesOfRam() / 1024)
-                    );
-            requirements.getGpu().ifPresent(gpu -> {
-                var s = sub.withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_COUNT", String.valueOf(gpu.getCount()));
-                gpu.getVendor().ifPresent(vendor -> {
-                    var ss = s.withInternalEnvVariable(Env.SELF_PREFIX + "_RES_GPU_VENDOR", vendor);
-                });
+        var sub = context
+                .getSubmission()
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_RES_CORES",
+                        String.valueOf(stageDefinition.getRequirements().getCpu())
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_RES_CORES_IS_DEPRECATED",
+                        String.valueOf(stageDefinition.getRequirements().getCpu())
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_RES_CPU_COUNT",
+                        String.valueOf(stageDefinition.getRequirements().getCpu())
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_RES_RAM_MB",
+                        String.valueOf(stageDefinition.getRequirements().getMegabytesOfRam())
+                )
+                .withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_RES_RAM_GB",
+                        String.valueOf(stageDefinition.getRequirements().getMegabytesOfRam() / 1024)
+                );
+        var s = sub.withInternalEnvVariable(
+                Env.SELF_PREFIX + "_RES_GPU_COUNT",
+                String.valueOf(stageDefinition.getRequirements().getGpu().getCount())
+        );
+
+        if (stageDefinition.getRequirements().getGpu().getCount() > 0) {
+            stageDefinition.getRequirements().getGpu().getVendor().ifPresent(vendor -> {
+                s.withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_RES_GPU_VENDOR",
+                        vendor
+                );
             });
-        });
+        }
 
         context.getExecutionGroup().getRangedValues().ifPresent(ranged -> {
             context.getSubmission()
@@ -120,7 +137,9 @@ public class EnvironmentVariableAppender implements AssemblerStep {
     }
 
     @Nonnull
-    public static String getRangedEnvironmentVariables(@Nonnull StageDefinition stageDefinition, @Nonnull Map<String, RangedValue> ranged) {
+    public static String getRangedEnvironmentVariables(
+            @Nonnull StageDefinition stageDefinition,
+            @Nonnull Map<String, RangedValue> ranged) {
         return ranged
                 .keySet()
                 .stream()

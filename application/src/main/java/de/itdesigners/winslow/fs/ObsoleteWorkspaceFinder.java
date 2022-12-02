@@ -187,7 +187,7 @@ public class ObsoleteWorkspaceFinder {
             groups
                     .stream()
                     .flatMap(Collection::stream)
-                    .filter(g -> !g.getStageDefinition().isDiscardable())
+                    .filter(g -> !g.getStageDefinition().getDiscardable())
                     .filter(g -> distance < numberToKeep)
                     .flatMap(ExecutionGroup::getStages)
                     .filter(s -> s.getWorkspace().map(w -> w.equals(workspace)).orElse(Boolean.FALSE))
@@ -289,7 +289,7 @@ public class ObsoleteWorkspaceFinder {
             for (int i = this.executionHistory.size() - 1; i >= 0; --i) {
                 var group = this.executionHistory.get(i);
 
-                if (group.getStageDefinition().isDiscardable() && hasSuccessfulExecution) {
+                if (group.getStageDefinition().getDiscardable() && hasSuccessfulExecution) {
                     group.getCompletedStages()
                          .flatMap(s -> s.getWorkspace().stream())
                          .filter(w -> !obsolete.contains(w))
@@ -372,12 +372,12 @@ public class ObsoleteWorkspaceFinder {
                                                 ww -> new WorkspaceDetail(w, distance)
                                         );
                                         details.distance = Math.min(details.distance, distance);
-                                        details.notDiscardable |= !group.getStageDefinition().isDiscardable();
+                                        details.notDiscardable |= !group.getStageDefinition().getDiscardable();
                                         details.hasSucceededAtLeastOnce |= s.getState() == State.Succeeded;
                                         details.hasExecutedAtLeastOnce |= !group.isConfigureOnly() && !group.isGateway();
                                         details.hasSucceededWithoutDiscardableAtLeastOnce |= !group
                                                 .getStageDefinition()
-                                                .isDiscardable() && s.getState() == State.Succeeded;
+                                                .getDiscardable() && s.getState() == State.Succeeded;
                                     });
                                 });
                         ;

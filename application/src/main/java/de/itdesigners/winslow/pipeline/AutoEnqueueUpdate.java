@@ -44,7 +44,10 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             ensureAllPreconditionsAreMet(orchestrator, projectId, pipelineReadOnly);
             return Optional
                     .ofNullable(pipelineReadOnly)
-                    .flatMap(p -> generateNextStageDefinition(orchestrator, p).findFirst()) //todo: check if this is correct
+                    .flatMap(p -> generateNextStageDefinition(
+                            orchestrator,
+                            p
+                    ).findFirst()) //todo: check if this is correct
                     .map(def -> new AutoEnqueueUpdate(def.getValue0(), def.getValue1(), def.getValue2()));
         } catch (PreconditionNotMetException e) {
             LOG.log(Level.FINE, "Missing precondition for pipeline update: " + e.getMessage(), e);
@@ -98,10 +101,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                                                            .reduce((first, second) -> second)
                                                            .orElseThrow() // would not have passed through any match
                                                            .getEnv());
-                                        recent
-                                                .getStageDefinition()
-                                                .getImage()
-                                                .ifPresent(builder::withImage);
+                                        builder.withImage(recent.getStageDefinition().getImage());
                                     });
 
 
@@ -186,8 +186,8 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
 
                 var requiredConfirmation = stageDefinition
                         .getRequires()
-                        .map(UserInput::getConfirmation)
-                        .orElse(UserInput.Confirmation.Never);
+                        .getConfirmation();
+
 
                 var inThisCase = UserInput.Confirmation.Once == requiredConfirmation
                         && pipeline

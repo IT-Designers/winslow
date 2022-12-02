@@ -214,10 +214,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     @Nonnull
     ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
-        return definition
-                .getRequirements()
-                .map(this::toResourceSet)
-                .orElseGet(ResourceAllocationMonitor.ResourceSet::new);
+        return toResourceSet(definition.getRequirements());
     }
 
     @Nonnull
@@ -373,15 +370,13 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 )
                 .with(
                         ResourceAllocationMonitor.StandardResources.RAM,
-                        requirements.getMegabytesOfRam() * 1024 * 1024
+                        ((long)requirements.getMegabytesOfRam()) * 1024 * 1024
                 )
                 .with(
                         ResourceAllocationMonitor.StandardResources.GPU,
-                        requirements
-                                .getGpu()
-                                .map(Requirements.Gpu::getCount)
-                                .map(Number::longValue)
-                                .orElse(0L)
+                        (long) requirements
+                               .getGpu()
+                               .getCount()
                 );
     }
 
@@ -606,7 +601,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                     executor,
                                     stageId,
                                     new Submission(stageId)
-                                            .withHardwareRequirements(stageDefinition.getRequirements().orElse(null))
+                                            .withHardwareRequirements(stageDefinition.getRequirements())
                             ));
                 } finally {
                     lock.waitForRelease();

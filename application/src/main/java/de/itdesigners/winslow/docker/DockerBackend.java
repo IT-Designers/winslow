@@ -104,8 +104,8 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
 
         var gpuVendorRequirement = stage
                 .getRequirements()
-                .flatMap(Requirements::getGpu)
-                .flatMap(Requirements.Gpu::getVendor);
+                .getGpu()
+                .getVendor();;
 
         if (gpuVendorRequirement.isPresent()) {
             if (!hasContainerRuntime(info, gpuVendorRequirement.get())) {

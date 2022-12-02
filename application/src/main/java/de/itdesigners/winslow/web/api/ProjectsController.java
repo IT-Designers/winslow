@@ -767,15 +767,15 @@ public class ProjectsController {
                         project
                                 .getPipelineDefinition()
                                 .getRequires()
-                                .stream()
-                                .flatMap(u -> u.getEnvironment().stream()),
+                                .getEnvironment().stream()
+                        ,
                         project
                                 .getPipelineDefinition()
                                 .getStages()
                                 .stream()
                                 .skip(stageIndex)
                                 .findFirst()
-                                .flatMap(StageDefinition::getRequires)
+                                .map(StageDefinition::getRequires)
                                 .stream()
                                 .flatMap(u -> u.getEnvironment().stream())
                 ));
@@ -1010,8 +1010,8 @@ public class ProjectsController {
         var resultDefinition = createStageDefinition(
                 base,
                 recentBase,
-                updatedResourceRequirement(base.getRequirements().orElse(null), requiredResources),
-                base.getRequires().map(UserInput::withoutConfirmation).orElse(null),
+                updatedResourceRequirement(base.getRequirements(), requiredResources),
+                base.getRequires().withoutConfirmation(),
                 env
         );
 
@@ -1025,9 +1025,7 @@ public class ProjectsController {
         }
          */
         maybeUpdateStageImageConfig(image, resultDefinition);
-        base.getImage()
-            .flatMap(Image::getShmSizeMegabytes)
-            .ifPresent(shm -> resultDefinition.getImage().ifPresent(ri -> ri.setShmSizeMegabytes(shm)));
+        resultDefinition.getImage().setShmSizeMegabytes(base.getImage().getShmSizeMegabytes());
 
         if (action == Action.Configure) {
             pipeline.enqueueConfiguration(resultDefinition, comment);
@@ -1068,12 +1066,12 @@ public class ProjectsController {
                                     Optional
                                             .ofNullable(requirements)
                                             .map(Requirements::getGpu)
-                                            .flatMap(g -> g.flatMap(Requirements.Gpu::getVendor))
+                                            .flatMap(Requirements.Gpu::getVendor)
                                             .orElse(null),
                                     Optional
                                             .ofNullable(requirements)
                                             .map(Requirements::getGpu)
-                                            .flatMap(g -> g.map(Requirements.Gpu::getSupport))
+                                            .map(Requirements.Gpu::getSupport)
                                             .orElse(null)
                             ))
                             .orElse(null)
@@ -1088,8 +1086,7 @@ public class ProjectsController {
                     .noneMatch(g -> g
                             .getStageDefinition()
                             .getRequires()
-                            .map(UserInput::getConfirmation)
-                            .orElse(UserInput.Confirmation.Never)
+                            .getConfirmation()
                             != UserInput.Confirmation.Never);
             if (noStageRequiresUserConfirmation) {
                 pipeline.resume(Pipeline.ResumeNotification.Confirmation);
@@ -1129,14 +1126,11 @@ public class ProjectsController {
     private static void maybeUpdateStageImageConfig(
             @Nullable ImageInfo image,
             @Nonnull StageDefinition stageDef) {
-        if (image != null) {
-            stageDef.getImage().ifPresent(def -> {
-                Optional.ofNullable(image.name).ifPresent(def::setName);
-                Optional.ofNullable(image.args).ifPresent(def::setArgs);
-                Optional.ofNullable(image.shmMegabytes).ifPresent(def::setShmSizeMegabytes);
-            });
-        }
+        Optional.ofNullable(image.name).ifPresent(stageDef.getImage()::setName);
+        Optional.ofNullable(image.args).ifPresent(stageDef.getImage()::setArgs);
+        Optional.ofNullable(image.shmMegabytes).ifPresent(stageDef.getImage()::setShmSizeMegabytes);
     }
+
 
     @DeleteMapping("projects/{projectId}")
     public ResponseEntity<String> delete(User user, @PathVariable("projectId") String projectId) {

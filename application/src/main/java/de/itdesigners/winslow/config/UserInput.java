@@ -1,24 +1,25 @@
 package de.itdesigners.winslow.config;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 public class UserInput {
-    private final Confirmation confirmation;
-    private final List<String> valueFor;
+    private final @Nonnull Confirmation confirmation;
+    private final @Nonnull List<String> environment;
 
-    public UserInput(Confirmation confirmation, List<String> environment) {
-        this.confirmation = confirmation;
-        this.valueFor     = environment;
+    public UserInput(@Nullable Confirmation confirmation, @Nullable List<String> environment) {
+        this.confirmation = confirmation != null ? confirmation : Confirmation.Never;
+        this.environment  = environment != null ? environment : Collections.emptyList();
     }
 
     @Nonnull
     public UserInput withoutConfirmation() {
         return new UserInput(
                 Confirmation.Never,
-                this.valueFor
+                this.environment
         );
     }
 
@@ -29,12 +30,12 @@ public class UserInput {
 
     @Nonnull
     public List<String> getEnvironment() {
-        return valueFor != null ? Collections.unmodifiableList(valueFor) : Collections.emptyList();
+        return environment != null ? Collections.unmodifiableList(environment) : Collections.emptyList();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{valueFor=" + this.valueFor + "}#" + this.hashCode();
+        return getClass().getSimpleName() + "@{valueFor=" + this.environment + "}#" + this.hashCode();
     }
 
     @Override
@@ -44,12 +45,12 @@ public class UserInput {
         if (o == null || getClass() != o.getClass())
             return false;
         UserInput userInput = (UserInput) o;
-        return confirmation == userInput.confirmation && Objects.equals(valueFor, userInput.valueFor);
+        return confirmation == userInput.confirmation && Objects.equals(environment, userInput.environment);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(confirmation, valueFor);
+        return Objects.hash(confirmation, environment);
     }
 
     public enum Confirmation {

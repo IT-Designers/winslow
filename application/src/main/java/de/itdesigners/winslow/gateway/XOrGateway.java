@@ -2,9 +2,8 @@ package de.itdesigners.winslow.gateway;
 
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.config.Image;
+import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
 import io.github.jamsesso.jsonlogic.JsonLogic;
@@ -12,10 +11,7 @@ import io.github.jamsesso.jsonlogic.JsonLogicException;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 
 public class XOrGateway extends Gateway {
@@ -55,38 +51,18 @@ public class XOrGateway extends Gateway {
         var rootNode = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
         var graph    = new Graph(pipelineReadOnly, projectReadOnly.getPipelineDefinition(), rootNode);
 
-        var numberOfInvocationsOfMyself  = rootNode.getExecutionGroups().size();
+        var numberOfInvocationsOfMyself = rootNode.getExecutionGroups().size();
         this.log(Level.INFO, "numberOfInvocationsOfMyself: " + numberOfInvocationsOfMyself);
 
         if (numberOfInvocationsOfMyself == 1) {
             var myInvoker = rootNode.getPreviousNodes().stream().filter(p -> !p.getExecutionGroups().isEmpty())
-                    .findFirst()
-                    .map(p -> p.getExecutionGroups().get(0))
-                    .orElseThrow();
+                                    .findFirst()
+                                    .map(p -> p.getExecutionGroups().get(0))
+                                    .orElseThrow();
 
             var result = myInvoker.getStages().findFirst().orElseThrow().getResult();
 
-            var resultIndex = stageDefinition.getImage().map(Image::getArgs).flatMap(args -> {
-                this.log(Level.INFO, "args: " + Arrays.toString(args));
-                for (int i = 0; i < args.length; i++) {
-                    this.log(Level.INFO, "index: " + i);
-                    this.log(Level.INFO, "value: " + args[i]);
-                    var logic = new JsonLogic();
-                    var data = new HashMap<String, Object>();
-                    data.putAll(stageDefinition.getEnvironment());
-                    data.putAll(result);
-                    try {
-                        boolean logic_result = (boolean) logic.apply(args[i], data);
-                        this.log(Level.INFO, "logic_result: " + logic_result);
-                        if (logic_result) {
-                            return Optional.of(i);
-                        }
-                    } catch (JsonLogicException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                return Optional.empty();
-            }).orElseThrow();
+            final var nextStageDefinitionId = findNextStageDefinitionID(thisExecutionGroup, result);
 
             this.log(Level.INFO, "In if!");
             try {
@@ -106,7 +82,7 @@ public class XOrGateway extends Gateway {
 
                     // TODO select via condition?
                     this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().getNextStages());
-                    var nextStageDefinitionName = thisExecutionGroup.get().getStageDefinition().getNextStages().get(resultIndex);
+
 
                     pipeline.enqueueSingleExecution(
                             projectReadOnly
@@ -115,7 +91,7 @@ public class XOrGateway extends Gateway {
                                     .stream()
                                     .filter(stageDefinition1 -> stageDefinition1
                                             .getId()
-                                            .equals(nextStageDefinitionName))
+                                            .equals(nextStageDefinitionId))
                                     .findFirst()
                                     .orElseThrow(() -> new IOException("Failed to load")),
                             new WorkspaceConfiguration(),
@@ -129,5 +105,33 @@ public class XOrGateway extends Gateway {
                 }
             });
         }
+    }
+
+    private UUID findNextStageDefinitionID(Optional<ExecutionGroup> thisExecutionGroup, Map<String, String> result) {
+        var  args                   = stageDefinition.getImage().getArgs();
+
+        this.log(Level.INFO, "args: " + Arrays.toString(args));
+        for (int i = 0; i < args.length; i++) {
+            this.log(Level.INFO, "index: " + i);
+            this.log(Level.INFO, "value: " + args[i]);
+            var logic = new JsonLogic();
+            var data  = new HashMap<String, Object>();
+            data.putAll(stageDefinition.getEnvironment());
+            data.putAll(result);
+            try {
+                boolean logic_result = (boolean) logic.apply(args[i], data);
+                this.log(Level.INFO, "logic_result: " + logic_result);
+                if (logic_result) {
+                    return thisExecutionGroup
+                            .get()
+                            .getStageDefinition()
+                            .getNextStages()
+                            .get(i);
+                }
+            } catch (JsonLogicException ex) {
+                ex.printStackTrace();
+            }
+        }
+            throw new RuntimeException("Could not calculate ResultIndex");
     }
 }

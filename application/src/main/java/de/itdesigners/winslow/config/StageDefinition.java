@@ -2,28 +2,31 @@ package de.itdesigners.winslow.config;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.ConstructorProperties;
 import java.util.*;
 
 public class StageDefinition {
 
-    private final @Nonnull  UUID                id;
-    private final @Nonnull  String              name;
-    private final @Nullable String              desc;
-    private final @Nullable Image               image;
-    private final @Nullable Requirements        requires;
-    private final @Nullable UserInput           userInput;
-    private final @Nullable Map<String, String> env;
-    private final @Nullable Highlight           highlight;
-    private final           boolean             discardable;
-    private final           boolean             privileged;
-    private final @Nonnull  List<LogParser>     logParsers;
-    private final           boolean             ignoreFailuresWithinExecutionGroup;
-    private final @Nullable List<String>        tags;
-    private final @Nullable Map<String, String> result;
-    private final @Nonnull  StageType           type;
-    private final @Nullable List<UUID>          nextStages;
+    private final @Nonnull UUID                id;
+    private final @Nonnull String              name;
+    private final @Nonnull String              desc;
+    private final @Nonnull Image               image;
+    private final @Nonnull Requirements        requires;
+    private final @Nonnull UserInput           userInput;
+    private final @Nonnull Map<String, String> env;
+    private final @Nonnull Highlight           highlight;
+    private final          boolean             discardable;
+    private final          boolean             privileged;
+    private final @Nonnull List<LogParser>     logParsers;
+    private final          boolean             ignoreFailuresWithinExecutionGroup;
+    private final @Nonnull List<String>        tags;
+    private final @Nonnull Map<String, String> result;
+    private final @Nonnull StageType           type;
+    private final @Nonnull List<UUID>          nextStages;
 
+    @ConstructorProperties({"id", "name", "description", "image", "requirements", "requires", "environment", "highlight", "discardable", "privileged", "logParsers", "ignoreFailuresWithinExecutionGroup", "tags", "result", "type", "nextStages"})
     public StageDefinition(
+            // null-able for backwards compatibility
             @Nullable UUID id,
             @Nonnull String name,
             @Nullable String description,
@@ -32,7 +35,6 @@ public class StageDefinition {
             @Nullable UserInput requires,
             @Nullable Map<String, String> environment,
             @Nullable Highlight highlight,
-            // null-able for backwards compatibility
             @Nullable Boolean discardable,
             @Nullable Boolean privileged,
             @Nullable List<LogParser> logParsers,
@@ -43,12 +45,16 @@ public class StageDefinition {
             @Nullable List<UUID> nextStages) {
         this.id                                 = id != null ? id : idFromName(name);
         this.name                               = name;
-        this.desc                               = description;
-        this.image                              = image;
-        this.requires                           = requirements;
-        this.userInput                          = requires;
-        this.env                                = environment;
-        this.highlight                          = highlight;
+        this.desc                               = description != null ? description : "";
+        this.image                              = image != null ? image : new Image();
+        this.requires                           = requirements != null ? requirements : new Requirements(
+                null,
+                null,
+                null
+        );
+        this.userInput                          = requires != null ? requires : new UserInput(null, null);
+        this.env                                = environment != null ? environment : Collections.emptyMap();
+        this.highlight                          = highlight != null ? highlight : new Highlight();
         this.discardable                        = discardable != null && discardable;
         this.privileged                         = privileged != null && privileged;
         this.logParsers                         = Optional
@@ -56,14 +62,16 @@ public class StageDefinition {
                 .map(Collections::unmodifiableList)
                 .orElseGet(Collections::emptyList);
         this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
-        this.tags                               = tags;
-        this.result                             = result;
+        this.tags                               = tags != null
+                                                  ? Collections.unmodifiableList(tags)
+                                                  : Collections.emptyList();
+        this.result                             = result != null ? result : Collections.emptyMap();
         this.type                               = type != null ? type : StageType.Execution;
-        this.nextStages                         = nextStages;
+        this.nextStages                         = nextStages != null ? nextStages : Collections.emptyList();
         this.check();
     }
 
-    public static UUID idFromName(String name){
+    public static UUID idFromName(String name) {
         return new UUID(name.hashCode(), name.length());
     }
 
@@ -83,47 +91,47 @@ public class StageDefinition {
     }
 
     @Nonnull
-    public Optional<String> getDescription() {
-        return Optional.ofNullable(desc);
+    public String getDescription() {
+        return desc;
     }
 
     @Nonnull
-    public Optional<Image> getImage() {
-        return Optional.ofNullable(image);
+    public Image getImage() {
+        return image;
     }
 
     @Nonnull
-    public Optional<Requirements> getRequirements() {
-        return Optional.ofNullable(requires);
+    public Requirements getRequirements() {
+        return requires;
     }
 
     @Nonnull
-    public Optional<UserInput> getRequires() {
-        return Optional.ofNullable(userInput);
+    public UserInput getRequires() {
+        return userInput;
     }
 
     @Nonnull
     public Map<String, String> getEnvironment() {
-        return env != null ? env : Collections.emptyMap();
+        return env;
     }
 
     @Nonnull
-    public Optional<Highlight> getHighlight() {
-        return Optional.ofNullable(highlight);
+    public Highlight getHightlight() {
+        return highlight;
     }
 
     /**
      * @return Whether associated resources (like the workspace) that were used when executing this
      * stage are allowed to be discarded as soon as the next stage succeeded in execution
      */
-    public boolean isDiscardable() {
+    public boolean getDiscardable() {
         return discardable;
     }
 
     /**
      * @return Whether this stages requires to be executed in a privileged environment
      */
-    public boolean isPrivileged() {
+    public boolean getPrivileged() {
         return privileged;
     }
 
@@ -138,7 +146,7 @@ public class StageDefinition {
 
     @Nonnull
     public Map<String, String> getResult() {
-        return result != null ? result : Collections.emptyMap();
+        return result;
     }
 
     @Nonnull
@@ -148,7 +156,7 @@ public class StageDefinition {
 
     @Nonnull
     public List<UUID> getNextStages() {
-        return nextStages != null ? nextStages : Collections.emptyList();
+        return nextStages;
     }
 
     @Override
@@ -160,7 +168,7 @@ public class StageDefinition {
 
     @Nonnull
     public List<String> getTags() {
-        return this.tags != null ? Collections.unmodifiableList(this.tags) : Collections.emptyList();
+        return this.tags;
     }
 
     @Override

@@ -1,41 +1,116 @@
 package de.itdesigners.winslow.config;
 
 import com.moandjiezana.toml.Toml;
+import de.itdesigners.winslow.BaseRepository;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
 public class PipelineDefinitionTests {
 
     @Test
-    public void testMostBasicPipeline() {
-        var pipeline = new Toml().read("[pipeline]\n" +
-                "name = \"Name of the pipeline\"\n" +
-                "desc = \"Description of the pipeline\"\n"
-        )
-                .getTable("pipeline")
-                .to(PipelineDefinition.class);
+    public void testMostBasicPipeline() throws IOException {
+
+        var pipelineYaml = """ 
+                name: "Name of the pipeline"
+                description: "Description of the pipeline" 
+                 """;
+
+
+        var pipeline = BaseRepository
+                .defaultReader(PipelineDefinition.class)
+                .load(new ByteArrayInputStream(pipelineYaml.getBytes()));
 
         assertEquals("Name of the pipeline", pipeline.getName());
         assertEquals("Description of the pipeline", pipeline.getDescription().get());
-        assertTrue(pipeline.getRequires().isEmpty());
+        assertTrue(pipeline.getRequires().getEnvironment().isEmpty());
         assertTrue(pipeline.getStages().isEmpty());
     }
 
     @Test
-    public void testPipelineWithUserInputForVal() {
-        var pipeline = new Toml().read("[pipeline.userInput]\n" +
-                "valueFor = [\"KEY_A\", \"KEY_B\"]\n"
-        )
-                .getTable("pipeline")
-                .to(PipelineDefinition.class);
+    public void testPipelineWithUserInputForVal() throws IOException {
 
-        assertNull(pipeline.getName());
+
+        var pipelineYaml = """ 
+                name: "Test"
+                requires:
+                    environment: ["KEY_A", "KEY_B"]
+                 """;
+
+        var pipeline = BaseRepository
+                .defaultReader(PipelineDefinition.class)
+                .load(new ByteArrayInputStream(pipelineYaml.getBytes()));
+
+        assertNotNull(pipeline.getName());
         assertTrue(pipeline.getDescription().isEmpty());
-        assertTrue(pipeline.getRequires().isPresent());
-        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getRequires().get().getEnvironment());
+
+        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getRequires().getEnvironment());
         assertTrue(pipeline.getStages().isEmpty());
+    }
+
+
+    @Test
+    public void testDefaultSerialisation() throws IOException {
+
+
+        var pipeline = new PipelineDefinition("Pipeline", null, null, null, null, null, null);
+
+        var stream = new ByteArrayOutputStream();
+        BaseRepository.defaultWriter().store(stream, pipeline);
+
+        var yaml = new String(stream.toByteArray());
+
+        assertNotNull(yaml);
+        assertNotEquals("", yaml);
+
+    }
+
+
+    @Test
+    public void testSerialisationWithAllValues() throws IOException {
+
+
+        var pipeline = new PipelineDefinition(
+                "Pipeline",
+                "description",
+                new UserInput(UserInput.Confirmation.Always, Arrays.asList("env")),
+                Arrays.asList(new StageDefinition(
+                        null,
+                        "pipeline",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                )),
+                Map.of("env1", "envValue"),
+                new DeletionPolicy(true, 10, true),
+                Arrays.asList("markers")
+        );
+
+        var stream = new ByteArrayOutputStream();
+        BaseRepository.defaultWriter().store(stream, pipeline);
+
+        var yaml = new String(stream.toByteArray());
+
+        assertNotNull(yaml);
+        assertNotEquals("", yaml);
+
     }
 }

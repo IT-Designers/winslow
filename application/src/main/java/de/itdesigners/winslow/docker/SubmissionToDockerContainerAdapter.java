@@ -19,6 +19,8 @@ public class SubmissionToDockerContainerAdapter {
 
     private static final Logger LOG = Logger.getLogger(SubmissionToDockerContainerAdapter.class.getSimpleName());
 
+    public static final @Nonnull String DEFAULT_GPU_VENDOR = "nvidia";
+
     private final @Nonnull DockerBackend backend;
 
     public SubmissionToDockerContainerAdapter(@Nonnull DockerBackend backend) {
@@ -158,19 +160,17 @@ public class SubmissionToDockerContainerAdapter {
         var config = new HostConfig()
                 .withCpuPeriod(100_000L)
                 .withCpuQuota(requirements.getCpu() > 0 ? (long) requirements.getCpu() * 100_000L : null)
-                .withMemory(requirements.getMegabytesOfRam() * 1024 * 1024);
+                .withMemory(requirements.getMegabytesOfRam() * 1024L * 1024L);
 
-        return requirements
-                .getGpu()
-                .filter(g -> g.getCount() > 0 && g.getVendor().isPresent())
-                .map(gpu -> config.withDeviceRequests(
-                             List.of(
-                                     new DeviceRequest()
-                                             .withDriver(gpu.getVendor().get())
-                                             .withCapabilities(List.of(List.of("gpu")))
-                                             .withCount(gpu.getCount())
-                             )
-                     )
-                ).orElse(config);
+        if (requirements.getGpu().getCount() > 0) {
+            return config.withDeviceRequests(List.of(
+                    new DeviceRequest()
+                            .withDriver(requirements.getGpu().getVendor().orElse(DEFAULT_GPU_VENDOR))
+                            .withCapabilities(List.of(List.of("gpu")))
+                            .withCount(requirements.getGpu().getCount())
+            ));
+        } else {
+            return config;
+        }
     }
 }

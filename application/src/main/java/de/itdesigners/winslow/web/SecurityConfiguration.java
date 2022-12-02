@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static de.itdesigners.winslow.web.webdav.WebDavController.EXPORT_NAME;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -86,7 +84,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookiePath("/");
         http.csrf().csrfTokenRepository(repo)
-            .and().csrf().ignoringAntMatchers("/" + EXPORT_NAME + "/**")
             .and().csrf().ignoringAntMatchers(Env.getWebsocketPath() + "**")
             .and().headers().frameOptions().sameOrigin();
 

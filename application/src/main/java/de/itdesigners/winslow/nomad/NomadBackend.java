@@ -7,7 +7,6 @@ import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.pipeline.StageId;
@@ -136,30 +135,24 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
                     .stream()
                     .map(NodeListStub::getDrivers)
                     .flatMap(drivers -> drivers.entrySet().stream())
+                    .filter(entry -> IMAGE_DRIVER_NAME.equalsIgnoreCase(entry.getKey()))
                     .filter(entry -> {
-                        if (stage.getImage().isPresent()) {
-                            return IMAGE_DRIVER_NAME.equalsIgnoreCase(entry.getKey());
-                        } else {
-                            return true;
-                        }
-                    })
-                    .filter(entry -> {
-                        var gpuRequired = stage.getRequirements().map(req -> req.getGpu().isPresent()).orElse(false);
+                        var gpuRequired = stage.getRequirements().getGpu().getCount() > 0;
 
                         var gpuVendor = stage
                                 .getRequirements()
-                                .flatMap(Requirements::getGpu)
-                                .flatMap(Requirements.Gpu::getVendor);
+                                .getGpu()
+                                .getVendor();
 
-                        var gpuAvailable = Optional
-                                .ofNullable(entry)
+                        Supplier<Boolean> gpuAvailable = () -> Optional
+                                .of(entry)
                                 .flatMap(e -> Optional.ofNullable(e.getValue()))
                                 .flatMap(v -> Optional.ofNullable(v.getAttributes()))
                                 .flatMap(a -> Optional.ofNullable(a.get(DRIVER_ATTRIBUTE_DOCKER_RUNTIMES)))
                                 .filter(runtimes -> runtimes.contains(gpuVendor.orElse(DEFAULT_GPU_VENDOR)))
                                 .isPresent();
 
-                        var result = !gpuRequired || gpuAvailable;
+                        var result = !gpuRequired || gpuAvailable.get();
 
                         if (!result) {
                             LOG.info("isCapableOfExecuting('" + stage.getName() + "') => false, GPU is required but none available");
