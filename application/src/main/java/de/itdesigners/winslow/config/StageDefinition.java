@@ -116,7 +116,7 @@ public class StageDefinition {
     }
 
     @Nonnull
-    public Highlight getHightlight() {
+    public Highlight getHighlight() {
         return highlight;
     }
 

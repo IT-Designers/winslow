@@ -154,7 +154,7 @@ public class ExecutionGroup {
                             stageDefinition.getRequirements(),
                             stageDefinition.getRequires(),
                             map,
-                            stageDefinition.getHightlight(),
+                            stageDefinition.getHighlight(),
                             stageDefinition.getDiscardable(),
                             stageDefinition.getPrivileged(),
                             stageDefinition.getLogParsers(),

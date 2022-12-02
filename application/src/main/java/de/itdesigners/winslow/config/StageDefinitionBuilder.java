@@ -121,7 +121,7 @@ public class StageDefinitionBuilder {
                 this.requirements.orElse(base.getRequirements()),
                 this.userInput.orElse(base.getRequires()),
                 env,
-                this.highlight.orElse(base.getHightlight()),
+                this.highlight.orElse(base.getHighlight()),
                 this.discardable.orElse(base.getDiscardable()),
                 Optional.ofNullable(either(
                         Optional.ofNullable(this.template).map(StageDefinition::getPrivileged),
