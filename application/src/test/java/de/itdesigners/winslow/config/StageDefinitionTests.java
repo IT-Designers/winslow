@@ -21,10 +21,7 @@ public class StageDefinitionTests {
                 name: "The name of the stage"
                 """;
 
-
-        var stage = BaseRepository
-                .defaultReader(StageDefinition.class)
-                .load(new ByteArrayInputStream(stageYaml.getBytes()));
+        var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -49,10 +46,7 @@ public class StageDefinitionTests {
                 """;
 
 
-        var stage = BaseRepository
-                .defaultReader(StageDefinition.class)
-                .load(new ByteArrayInputStream(stageYaml.getBytes()));
-
+        var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
         assertEquals("The name of the stage", stage.getName());
         assertEquals("The description of the stage", stage.getDescription());
@@ -75,9 +69,7 @@ public class StageDefinitionTests {
                       megabytesOfRam: 4096
                 """;
 
-        var stage = BaseRepository
-                .defaultReader(StageDefinition.class)
-                .load(new ByteArrayInputStream(stageYaml.getBytes()));
+        var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -100,9 +92,7 @@ public class StageDefinitionTests {
                        support: ["cuda", "vulkan"]
                 """;
 
-        var stage = BaseRepository
-                .defaultReader(StageDefinition.class)
-                .load(new ByteArrayInputStream(stageYaml.getBytes()));
+        var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -125,9 +115,7 @@ public class StageDefinitionTests {
                     VAR_2: "value_2"
                 """;
 
-        var stage = BaseRepository
-                .defaultReader(StageDefinition.class)
-                .load(new ByteArrayInputStream(stageYaml.getBytes()));
+        var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -145,9 +133,7 @@ public class StageDefinitionTests {
                     resources: ["res1", "RES/NUM/2"]
                 """;
 
-        var stage = BaseRepository
-                .defaultReader(StageDefinition.class)
-                .load(new ByteArrayInputStream(stageYaml.getBytes()));
+        var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
@@ -178,10 +164,7 @@ public class StageDefinitionTests {
                 null
         );
 
-        var stream = new ByteArrayOutputStream();
-        BaseRepository.defaultWriter().store(stream, stage);
-
-        var yaml = new String(stream.toByteArray());
+        var yaml = BaseRepository.writeToString(stage);
 
         assertNotNull(yaml);
         assertNotEquals("", yaml);
@@ -212,7 +195,7 @@ public class StageDefinitionTests {
         var stream = new ByteArrayOutputStream();
         BaseRepository.defaultWriter().store(stream, stage);
 
-        var yaml = new String(stream.toByteArray());
+        var yaml = BaseRepository.writeToString(stage);
 
         assertNotNull(yaml);
         assertNotEquals("", yaml);
