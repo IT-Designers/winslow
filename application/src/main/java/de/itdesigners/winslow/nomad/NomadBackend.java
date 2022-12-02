@@ -189,10 +189,10 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
                     .flatMap(drivers -> drivers.entrySet().stream())
                     .filter(entry -> IMAGE_DRIVER_NAME.equalsIgnoreCase(entry.getKey()))
                     .filter(entry -> {
-                        var gpuRequired = stage.getRequirements().getGpu().getCount() > 0;
+                        var gpuRequired = stage.requirements().getGpu().getCount() > 0;
 
                         var gpuVendor = stage
-                                .getRequirements()
+                                .requirements()
                                 .getGpu().getVendor();
 
                         Supplier<Boolean> gpuAvailable = () -> Optional
@@ -206,7 +206,7 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
                         var result = !gpuRequired || gpuAvailable.get();
 
                         if (!result) {
-                            LOG.info("isCapableOfExecuting('" + stage.getName() + "') => false, GPU is required but none available");
+                            LOG.info("isCapableOfExecuting('" + stage.name() + "') => false, GPU is required but none available");
                         }
 
                         return result;

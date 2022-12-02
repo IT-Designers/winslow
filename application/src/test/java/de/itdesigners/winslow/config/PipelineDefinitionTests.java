@@ -4,6 +4,8 @@ import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,7 +15,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class PipelineDefinitionTests {
-
+    
     @Test
     public void testMostBasicPipeline() throws IOException {
 
