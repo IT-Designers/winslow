@@ -75,7 +75,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                         .map(triplet -> {
                             var prevGroup               = triplet.getValue0();
                             var nextStageDefinitionBase = triplet.getValue1();
-                            var env                     = new TreeMap<>(nextStageDefinitionBase.getEnvironment());
+                            var env                     = new TreeMap<>(nextStageDefinitionBase.environment());
                             var builder = new StageDefinitionBuilder()
                                     .withTemplateBase(nextStageDefinitionBase)
                                     .withEnvironment(env);
@@ -87,8 +87,8 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                                     .getActiveAndPastExecutionGroups()
                                     .filter(g -> g
                                             .getStageDefinition()
-                                            .getId()
-                                            .equals(nextStageDefinitionBase.getId()))
+                                            .id()
+                                            .equals(nextStageDefinitionBase.id()))
                                     .filter(g -> g
                                             .getStages()
                                             .anyMatch(s -> s.getState() == State.Succeeded))
@@ -101,7 +101,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                                                            .reduce((first, second) -> second)
                                                            .orElseThrow() // would not have passed through any match
                                                            .getEnv());
-                                        builder.withImage(recent.getStageDefinition().getImage());
+                                        builder.withImage(recent.getStageDefinition().image());
                                     });
 
 
@@ -121,14 +121,14 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
 
         return mostRecent
                 .getStageDefinition()
-                .getNextStages()
+                .nextStages()
                 .stream()
                 .flatMap(id ->
                                  pipelineDefinition
                                          .getStages()
                                          .stream()
                                          .filter(s -> s
-                                                 .getId()
+                                                 .id()
                                                  .equals(id))
                                          .findFirst()
                                          .stream()
@@ -142,7 +142,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             @Nonnull List<UUID> stageIds) {
         return pipeline
                 .getExecutionHistory()
-                .filter(g -> stageIds.contains(g.getStageDefinition().getId()))
+                .filter(g -> stageIds.contains(g.getStageDefinition().id()))
                 .flatMap(g -> g.getStages().map(Stage::getResult));
     }
 
@@ -151,7 +151,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             @Nonnull PipelineDefinition definition,
             @Nonnull UUID stageId) {
         for (int i = 0; i < definition.getStages().size(); ++i) {
-            if (definition.getStages().get(i).getId().equals(stageId)) {
+            if (definition.getStages().get(i).id().equals(stageId)) {
                 return Optional.of(i);
             }
         }
@@ -185,14 +185,14 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                 ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
 
                 var requiredConfirmation = stageDefinition
-                        .getRequires()
+                        .userInput()
                         .getConfirmation();
 
 
                 var inThisCase = UserInput.Confirmation.Once == requiredConfirmation
                         && pipeline
                         .getExecutionHistory()
-                        .noneMatch(g -> g.getStageDefinition().getId().equals(stageDefinition.getId()));
+                        .noneMatch(g -> g.getStageDefinition().id().equals(stageDefinition.id()));
 
                 var requiresConfirmation = UserInput.Confirmation.Always == requiredConfirmation || inThisCase;
                 var hasConfirmation = pipeline

@@ -28,7 +28,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
                 .getExtension(GatewayExtension.class)
                 .orElseThrow(() -> new RuntimeException("Missing GatewayExtension"));
 
-        return switch (info.stageDefinition().getType()) {
+        return switch (info.stageDefinition().type()) {
             case AndGateway -> new GatewayStageHandle(new AndGateway(
                     pipelines,
                     projects,
@@ -41,13 +41,13 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
                     info.stageDefinition(),
                     submission.getId()
             ));
-            case Execution -> throw new IOException("Invalid StageType " + info.stageDefinition().getType());
+            case Execution -> throw new IOException("Invalid StageType " + info.stageDefinition().type());
         };
     }
 
     @Override
     public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
-        return stage.getType().isGateway();
+        return stage.type().isGateway();
     }
 
     @Override

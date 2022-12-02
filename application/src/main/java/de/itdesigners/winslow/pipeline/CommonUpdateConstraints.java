@@ -119,7 +119,7 @@ public class CommonUpdateConstraints {
                 .stream()
                 .flatMap(Pipeline::getActiveExecutionGroups)
                 .anyMatch(g -> g.hasRemainingExecutions() && (
-                        g.getStageDefinition().getIgnoreFailuresWithinExecutionGroup()
+                        g.getStageDefinition().ignoreFailuresWithinExecutionGroup()
                                 || g.getStages().noneMatch(s -> s.getState() == State.Failed)
                 ));
     }

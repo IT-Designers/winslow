@@ -103,13 +103,13 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
         var info = this.dockerClient.infoCmd().exec();
 
         var gpuVendorRequirement = stage
-                .getRequirements()
+                .requirements()
                 .getGpu()
-                .getVendor();;
+                .getVendor();
 
         if (gpuVendorRequirement.isPresent()) {
             if (!hasContainerRuntime(info, gpuVendorRequirement.get())) {
-                LOG.info("isCapableOfExecuting('" + stage.getName() + "') => false, runtime for '" + gpuVendorRequirement.get() + "' is missing");
+                LOG.info("isCapableOfExecuting('" + stage.name() + "') => false, runtime for '" + gpuVendorRequirement.get() + "' is missing");
                 return false;
             }
         }

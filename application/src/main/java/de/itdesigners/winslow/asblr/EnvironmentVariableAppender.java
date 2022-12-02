@@ -32,7 +32,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
 
         var submission = context
                 .getSubmission()
-                .withStageEnvVariables(stageDefinition.getEnvironment())
+                .withStageEnvVariables(stageDefinition.environment())
                 .withSystemEnvVariables(globalEnvironmentVariables)
                 .withPipelineEnvVariables(pipelineDefinition.getEnvironment())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
@@ -47,7 +47,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                         pipelineDefinition.getName()
                 )
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", context.getStageId().getFullyQualified())
-                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.getName())
+                .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.name())
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_SETUP_DATE_TIME",
                         new Date(timeMs).toString()
@@ -81,31 +81,31 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 .getSubmission()
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_CORES",
-                        String.valueOf(stageDefinition.getRequirements().getCpu())
+                        String.valueOf(stageDefinition.requirements().getCpu())
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_CORES_IS_DEPRECATED",
-                        String.valueOf(stageDefinition.getRequirements().getCpu())
+                        String.valueOf(stageDefinition.requirements().getCpu())
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_CPU_COUNT",
-                        String.valueOf(stageDefinition.getRequirements().getCpu())
+                        String.valueOf(stageDefinition.requirements().getCpu())
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_RAM_MB",
-                        String.valueOf(stageDefinition.getRequirements().getMegabytesOfRam())
+                        String.valueOf(stageDefinition.requirements().getMegabytesOfRam())
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_RAM_GB",
-                        String.valueOf(stageDefinition.getRequirements().getMegabytesOfRam() / 1024)
+                        String.valueOf(stageDefinition.requirements().getMegabytesOfRam() / 1024)
                 );
         var s = sub.withInternalEnvVariable(
                 Env.SELF_PREFIX + "_RES_GPU_COUNT",
-                String.valueOf(stageDefinition.getRequirements().getGpu().getCount())
+                String.valueOf(stageDefinition.requirements().getGpu().getCount())
         );
 
-        if (stageDefinition.getRequirements().getGpu().getCount() > 0) {
-            stageDefinition.getRequirements().getGpu().getVendor().ifPresent(vendor -> {
+        if (stageDefinition.requirements().getGpu().getCount() > 0) {
+            stageDefinition.requirements().getGpu().getVendor().ifPresent(vendor -> {
                 s.withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_GPU_VENDOR",
                         vendor
@@ -143,7 +143,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
         return ranged
                 .keySet()
                 .stream()
-                .map(key -> key + ":" + stageDefinition.getEnvironment().get(key))
+                .map(key -> key + ":" + stageDefinition.environment().get(key))
                 .collect(Collectors.joining(";"));
     }
 }

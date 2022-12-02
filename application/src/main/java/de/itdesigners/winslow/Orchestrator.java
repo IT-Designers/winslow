@@ -214,7 +214,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     @Nonnull
     ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
-        return toResourceSet(definition.getRequirements());
+        return toResourceSet(definition.requirements());
     }
 
     @Nonnull
@@ -370,13 +370,13 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 )
                 .with(
                         ResourceAllocationMonitor.StandardResources.RAM,
-                        ((long)requirements.getMegabytesOfRam()) * 1024 * 1024
+                        ((long) requirements.getMegabytesOfRam()) * 1024 * 1024
                 )
                 .with(
                         ResourceAllocationMonitor.StandardResources.GPU,
                         (long) requirements
-                               .getGpu()
-                               .getCount()
+                                .getGpu()
+                                .getCount()
                 );
     }
 
@@ -437,7 +437,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     if (group.isConfigureOnly() || group.isGateway()) {
                         return true;
                     }
-                    boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().getTags());
+                    boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().tags());
                     boolean backendCapable = this.backend.isCapableOfExecuting(group.getStageDefinition());
                     boolean result         = hasAllTags && backendCapable;
 
@@ -568,31 +568,38 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new EnvLogger())
                             .add(new LogParserRegisterer(getResourceManager()))
                             .add(new GatewayInfoAppender())
-                            .add(new BuildAndSubmit(this.backend, this.nodeName, result -> {
-                                result.getStage().startNow();
-                                executor.setStageHandle(result.getHandle());
-                                lock.waitForRelease();
+                            .add(new BuildAndSubmit(
+                                    // TODO make it great again!
+                                    stageDefinition.type().isGateway()
+                                    ? new GatewayBackend(this.pipelines, this.projects)
+                                    : this.backend,
+                                    this.nodeName,
+                                    result -> {
+                                        result.getStage().startNow();
+                                        executor.setStageHandle(result.getHandle());
+                                        lock.waitForRelease();
 
-                                // do not update deferred, update as soon as possible!
-                                updatePipeline(projectId, pipelineToUpdate -> {
-                                    pipelineToUpdate
-                                            .getActiveExecutionGroups()
-                                            .filter(g -> {
-                                                try {
-                                                    return g.updateStage(result.getStage());
-                                                } catch (StageIsArchivedAndNotAllowedToChangeException e) {
-                                                    LOG.log(
-                                                            Level.SEVERE,
-                                                            "Failed to update stage with assemble result",
-                                                            e
-                                                    );
-                                                    throw new RuntimeException(e); // bubble up
-                                                }
-                                            })
-                                            .findFirst()
-                                            .orElseThrow();
-                                });
-                            }))
+                                        // do not update deferred, update as soon as possible!
+                                        updatePipeline(projectId, pipelineToUpdate -> {
+                                            pipelineToUpdate
+                                                    .getActiveExecutionGroups()
+                                                    .filter(g -> {
+                                                        try {
+                                                            return g.updateStage(result.getStage());
+                                                        } catch (StageIsArchivedAndNotAllowedToChangeException e) {
+                                                            LOG.log(
+                                                                    Level.SEVERE,
+                                                                    "Failed to update stage with assemble result",
+                                                                    e
+                                                            );
+                                                            throw new RuntimeException(e); // bubble up
+                                                        }
+                                                    })
+                                                    .findFirst()
+                                                    .orElseThrow();
+                                        });
+                                    }
+                            ))
                             .assemble(new Context(
                                     project,
                                     pipeline,
@@ -601,7 +608,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                     executor,
                                     stageId,
                                     new Submission(stageId)
-                                            .withHardwareRequirements(stageDefinition.getRequirements())
+                                            .withHardwareRequirements(stageDefinition.requirements())
                             ));
                 } finally {
                     lock.waitForRelease();

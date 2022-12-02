@@ -239,7 +239,7 @@ public class Pipeline implements Cloneable {
 
     @Nonnull
     public ExecutionGroupId enqueueConfiguration(@Nonnull StageDefinition definition, @Nullable String comment) {
-        var id = incrementAndGetNextExecutionGroupId(definition.getName());
+        var id = incrementAndGetNextExecutionGroupId(definition.name());
         this.executionQueue.add(new ExecutionGroup(id, definition, comment));
         return id;
     }
@@ -250,7 +250,7 @@ public class Pipeline implements Cloneable {
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
             @Nullable String comment,
             @Nullable ExecutionGroupId parentId) {
-        var id = incrementAndGetNextExecutionGroupId(definition.getName());
+        var id = incrementAndGetNextExecutionGroupId(definition.name());
         this.executionQueue.add(new ExecutionGroup(id, definition, workspaceConfiguration, comment, parentId));
         return id;
     }
@@ -260,7 +260,7 @@ public class Pipeline implements Cloneable {
             @Nonnull StageDefinition definition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
             @Nonnull Map<String, RangedValue> rangedValues) {
-        var id = incrementAndGetNextExecutionGroupId(definition.getName());
+        var id = incrementAndGetNextExecutionGroupId(definition.name());
         this.executionQueue.add(new ExecutionGroup(id, definition, rangedValues, workspaceConfiguration));
         return id;
     }
