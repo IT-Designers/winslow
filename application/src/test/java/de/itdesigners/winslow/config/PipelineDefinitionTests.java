@@ -4,10 +4,6 @@ import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
@@ -15,7 +11,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class PipelineDefinitionTests {
-    
+
     @Test
     public void testMostBasicPipeline() throws IOException {
 
@@ -27,10 +23,10 @@ public class PipelineDefinitionTests {
 
         var pipeline = BaseRepository.readFromString(PipelineDefinition.class, pipelineYaml);
 
-        assertEquals("Name of the pipeline", pipeline.getName());
-        assertEquals("Description of the pipeline", pipeline.getDescription().get());
-        assertTrue(pipeline.getRequires().getEnvironment().isEmpty());
-        assertTrue(pipeline.getStages().isEmpty());
+        assertEquals("Name of the pipeline", pipeline.name());
+        assertEquals("Description of the pipeline", pipeline.description());
+        assertTrue(pipeline.userInput().getEnvironment().isEmpty());
+        assertTrue(pipeline.stages().isEmpty());
     }
 
     @Test
@@ -39,16 +35,16 @@ public class PipelineDefinitionTests {
 
         var pipelineYaml = """ 
                 name: "Test"
-                requires:
+                userInput:
                     environment: ["KEY_A", "KEY_B"]
                  """;
 
         var pipeline = BaseRepository.readFromString(PipelineDefinition.class, pipelineYaml);
 
-        assertNotNull(pipeline.getName());
-        assertTrue(pipeline.getDescription().isEmpty());
-        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getRequires().getEnvironment());
-        assertTrue(pipeline.getStages().isEmpty());
+        assertNotNull(pipeline.name());
+        assertTrue(pipeline.description().isEmpty());
+        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.userInput().getEnvironment());
+        assertTrue(pipeline.stages().isEmpty());
     }
 
 

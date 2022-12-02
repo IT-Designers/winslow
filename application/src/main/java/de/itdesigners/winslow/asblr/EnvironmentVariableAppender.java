@@ -34,7 +34,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 .getSubmission()
                 .withStageEnvVariables(stageDefinition.environment())
                 .withSystemEnvVariables(globalEnvironmentVariables)
-                .withPipelineEnvVariables(pipelineDefinition.getEnvironment())
+                .withPipelineEnvVariables(pipelineDefinition.environment())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_ID", pipeline.getProjectId())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PROJECT_NAME", context.getProject().getName())
                 .withInternalEnvVariable(
@@ -44,7 +44,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_PIPELINE_ID", pipeline.getProjectId())
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_PIPELINE_NAME",
-                        pipelineDefinition.getName()
+                        pipelineDefinition.name()
                 )
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_ID", context.getStageId().getFullyQualified())
                 .withInternalEnvVariable(Env.SELF_PREFIX + "_STAGE_NAME", stageDefinition.name())

@@ -53,7 +53,7 @@ public class PipelineTrigger {
             var user       = winslow.getUserManager().getUserOrCreateAuthenticated(project.getOwner()).orElseThrow();
 
             var stageIndex      = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
-            var stageDefinition = project.getPipelineDefinition().getStages().get(stageIndex);
+            var stageDefinition = project.getPipelineDefinition().stages().get(stageIndex);
 
             // default request
             var request = new EnqueueRequest(
@@ -107,7 +107,7 @@ public class PipelineTrigger {
 
     @Nonnull
     private Optional<Integer> getStageIndex(@Nonnull Project project, @Nonnull UUID stageDefId) {
-        var stages = project.getPipelineDefinition().getStages();
+        var stages = project.getPipelineDefinition().stages();
         for (int i = 0; i < stages.size(); ++i) {
             if (stages.get(i).id().equals(stageDefId)) {
                 return Optional.of(i);

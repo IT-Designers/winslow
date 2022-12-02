@@ -25,7 +25,7 @@ public class StagesController {
                 .getPipeline(pipeline)
                 .unsafe()
                 .stream()
-                .flatMap(p -> p.getStages().stream())
+                .flatMap(p -> p.stages().stream())
                 .map(StageDefinitionInfoConverter::from);
     }
 
