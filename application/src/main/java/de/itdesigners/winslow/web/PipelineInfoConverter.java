@@ -17,9 +17,7 @@ public class PipelineInfoConverter {
                 pipeline.getName(),
                 pipeline.getDescription().orElse(null),
                 pipeline
-                        .getRequires()
-                        .map(UserInput::getEnvironment)
-                        .orElseGet(Collections::emptyList),
+                        .getRequires().getEnvironment(),
                 pipeline
                         .getStages()
                         .stream()
