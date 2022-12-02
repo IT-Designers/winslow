@@ -106,31 +106,10 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
         return success;
     }
 
-    @Override
-    @Nonnull
-    public Stream<String> listStages() throws IOException {
-        try (var client = getNewClient()) {
-            return client
-                    .getJobsApi()
-                    .list()
-                    .getValue()
-                    .stream()
-                    .map(JobListStub::getName);
-        } catch (NomadException e) {
-            throw new IOException("Failed to list jobs", e);
-        }
-    }
-
     @Nonnull
     @Override
     public Optional<State> getState(@Nonnull StageId stageId) throws IOException {
-        return getState(stageId.getProjectId(), stageId.getFullyQualified());
-    }
-
-    @Nonnull
-    @Override
-    public Optional<State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        return getStateByNomadJogId(stage);
+        return getStateByNomadJogId(stageId.getFullyQualified());
     }
 
     @Nonnull

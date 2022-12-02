@@ -10,19 +10,11 @@ import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface Backend extends Closeable, AutoCloseable {
 
     @Nonnull
-    @Deprecated
-    Stream<String> listStages() throws IOException;
-
-    @Nonnull
     Optional<State> getState(@Nonnull StageId stageId) throws IOException;
-
-    @Nonnull
-    Optional<State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
 
     void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException;
 
