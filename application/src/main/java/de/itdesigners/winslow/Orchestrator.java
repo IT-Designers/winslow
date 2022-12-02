@@ -203,7 +203,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     @Nonnull
     ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
-        return toResourceSet(definition.getRequirements());
+        return toResourceSet(definition.requirements());
     }
 
     @Nonnull
@@ -433,7 +433,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     if (group.isConfigureOnly() || group.isGateway()) {
                         return true;
                     }
-                    boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().getTags());
+                    boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().tags());
                     boolean backendCapable = this.backend.isCapableOfExecuting(group.getStageDefinition());
                     boolean result         = hasAllTags && backendCapable;
 
@@ -566,7 +566,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new LogParserRegisterer(getResourceManager()))
                             .add(new BuildAndSubmit(
                                     // TODO make it great again!
-                                    stageDefinition.getType().isGateway()
+                                    stageDefinition.type().isGateway()
                                     ? new GatewayBackend(this.pipelines, this.projects)
                                     : this.backend,
                                     this.nodeName,

@@ -110,7 +110,7 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                             new ExecutionGroupId(
                                                     projectId,
                                                     executionCounter.incrementAndGet(),
-                                                    es.getDefinition().getName()
+                                                    es.getDefinition().name()
                                             ),
                                             es.getDefinition(),
                                             es.getWorkspaceConfiguration(),
@@ -125,7 +125,7 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                             new ExecutionGroupId(
                                                     projectId,
                                                     executionCounter.incrementAndGet(),
-                                                    es.getDefinition().getName()
+                                                    es.getDefinition().name()
                                             ),
                                             es.getDefinition(),
                                             es.getComment()

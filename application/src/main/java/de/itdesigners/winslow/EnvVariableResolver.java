@@ -133,7 +133,7 @@ public class EnvVariableResolver {
         if (this.executionHistory != null && this.stageName != null) {
             return this.executionHistory
                     .get()
-                    .filter(group1 -> group1.getStageDefinition().getId().equals(this.id))
+                    .filter(group1 -> group1.getStageDefinition().id().equals(this.id))
                     /*
                     .filter(group -> group.getRunningStages().count() == 0)
                     .filter(group -> group
@@ -141,7 +141,7 @@ public class EnvVariableResolver {
                             .allMatch(s -> Objects.equals(Optional.of(State.Succeeded), s.getFinishState()))
                     )*/
                     .reduce((first, second) -> second) // take the most recent one
-                    .map(group -> group.getStageDefinition().getEnvironment());
+                    .map(group -> group.getStageDefinition().environment());
         } else {
             return Optional.empty();
         }
@@ -153,9 +153,9 @@ public class EnvVariableResolver {
         if (this.enqueuedStages != null && this.stageName != null) {
             return this.enqueuedStages
                     .get()
-                    .filter(group -> group.getStageDefinition().getId().equals(this.id))
+                    .filter(group -> group.getStageDefinition().id().equals(this.id))
                     .reduce((first, second) -> second) // expect in order
-                    .map(enqueued -> enqueued.getStageDefinition().getEnvironment());
+                    .map(enqueued -> enqueued.getStageDefinition().environment());
         } else {
             return Optional.empty();
         }

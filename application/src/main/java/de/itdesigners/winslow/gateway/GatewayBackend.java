@@ -71,7 +71,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
 
     @Nonnull
     private StageHandle spawnStageHandle(@Nonnull StageDefinition stageDefinition, @Nonnull StageId stageId) throws IOException {
-        switch (stageDefinition.getType()) {
+        switch (stageDefinition.type()) {
             case AndGateway:
                 return new GatewayStageHandle(new AndGateway(pipelines, projects, stageDefinition, stageId));
             case XOrGateway:
@@ -80,12 +80,12 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
             case Execution:
                 break;
         }
-        throw new IOException("Invalid StageType " + stageDefinition.getType());
+        throw new IOException("Invalid StageType " + stageDefinition.type());
     }
 
     @Override
     public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
-        return stage.getType().isGateway();
+        return stage.type().isGateway();
     }
 
     @Override

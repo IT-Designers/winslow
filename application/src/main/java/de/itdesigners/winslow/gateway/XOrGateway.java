@@ -81,7 +81,7 @@ public class XOrGateway extends Gateway {
                     var pipeline = lockedPipelineHandle.get().orElseThrow(() -> new IOException("Failed to load"));
 
                     // TODO select via condition?
-                    this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().getNextStages());
+                    this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().nextStages());
 
 
                     pipeline.enqueueSingleExecution(
@@ -90,7 +90,7 @@ public class XOrGateway extends Gateway {
                                     .getStages()
                                     .stream()
                                     .filter(stageDefinition1 -> stageDefinition1
-                                            .getId()
+                                            .id()
                                             .equals(nextStageDefinitionId))
                                     .findFirst()
                                     .orElseThrow(() -> new IOException("Failed to load")),
@@ -108,7 +108,7 @@ public class XOrGateway extends Gateway {
     }
 
     private UUID findNextStageDefinitionID(Optional<ExecutionGroup> thisExecutionGroup, Map<String, String> result) {
-        var  args                   = stageDefinition.getImage().getArgs();
+        var  args                   = stageDefinition.image().getArgs();
 
         this.log(Level.INFO, "args: " + Arrays.toString(args));
         for (int i = 0; i < args.length; i++) {
@@ -116,7 +116,7 @@ public class XOrGateway extends Gateway {
             this.log(Level.INFO, "value: " + args[i]);
             var logic = new JsonLogic();
             var data  = new HashMap<String, Object>();
-            data.putAll(stageDefinition.getEnvironment());
+            data.putAll(stageDefinition.environment());
             data.putAll(result);
             try {
                 boolean logic_result = (boolean) logic.apply(args[i], data);
@@ -125,7 +125,7 @@ public class XOrGateway extends Gateway {
                     return thisExecutionGroup
                             .get()
                             .getStageDefinition()
-                            .getNextStages()
+                            .nextStages()
                             .get(i);
                 }
             } catch (JsonLogicException ex) {

@@ -10,12 +10,12 @@ public class StageDefinitionInfoConverter {
     @Nonnull
     public static StageDefinitionInfo from(@Nonnull StageDefinition definition) {
         return new StageDefinitionInfo(
-                definition.getId(),
-                definition.getName(),
-                ImageInfoConverter.from(definition.getImage()),
-                definition.getRequires().getEnvironment(),
-                ResourceInfoConverter.from(definition.getRequirements()),
-                definition.getEnvironment()
+                definition.id(),
+                definition.name(),
+                ImageInfoConverter.from(definition.image()),
+                definition.userInput().getEnvironment(),
+                ResourceInfoConverter.from(definition.requirements()),
+                definition.environment()
         );
     }
 }

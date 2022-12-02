@@ -57,18 +57,18 @@ public class PipelineTrigger {
 
             // default request
             var request = new EnqueueRequest(
-                    stageDefinition.getEnvironment(),
+                    stageDefinition.environment(),
                     null,
                     stageIndex,
                     new ImageInfo(
-                            stageDefinition.getImage().getName(),
-                            stageDefinition.getImage().getArgs(),
-                            stageDefinition.getImage().getShmSizeMegabytes()
+                            stageDefinition.image().getName(),
+                            stageDefinition.image().getArgs(),
+                            stageDefinition.image().getShmSizeMegabytes()
                     ),
                     new ResourceInfo(
-                            stageDefinition.getRequirements().getCpu(),
-                            stageDefinition.getRequirements().getMegabytesOfRam(),
-                            stageDefinition.getRequirements().getGpu().getCount()
+                            stageDefinition.requirements().getCpu(),
+                            stageDefinition.requirements().getMegabytesOfRam(),
+                            stageDefinition.requirements().getGpu().getCount()
                     ),
                     null,
                     "triggered",
@@ -80,7 +80,7 @@ public class PipelineTrigger {
             var list = controller.getProjectHistory(user, projectId).collect(Collectors.toList());
             for (int n = list.size() - 1; n >= 0; --n) {
                 var info = list.get(n);
-                if (info.stageDefinition.id.equals(stageDefinition.getId())) {
+                if (info.stageDefinition.id.equals(stageDefinition.id())) {
                     request.env                    = Optional
                             .ofNullable(info.stageDefinition.env)
                             .orElseGet(HashMap::new);
@@ -109,7 +109,7 @@ public class PipelineTrigger {
     private Optional<Integer> getStageIndex(@Nonnull Project project, @Nonnull UUID stageDefId) {
         var stages = project.getPipelineDefinition().getStages();
         for (int i = 0; i < stages.size(); ++i) {
-            if (stages.get(i).getId().equals(stageDefId)) {
+            if (stages.get(i).id().equals(stageDefId)) {
                 return Optional.of(i);
             }
         }

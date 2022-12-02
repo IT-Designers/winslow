@@ -71,15 +71,15 @@ public class AndGateway extends Gateway {
                 try (lockedPipelineHandle) {
                     var pipeline = lockedPipelineHandle.get().orElseThrow(() -> new IOException("Failed to load"));
 
-                    this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().getNextStages());
-                    for (var nextStageDefinitionNames : thisExecutionGroup.get().getStageDefinition().getNextStages()) {
+                    this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().nextStages());
+                    for (var nextStageDefinitionNames : thisExecutionGroup.get().getStageDefinition().nextStages()) {
                         pipeline.enqueueSingleExecution(
                                 projectReadOnly
                                         .getPipelineDefinition()
                                         .getStages()
                                         .stream()
                                         .filter(stageDefinition1 -> stageDefinition1
-                                                .getId()
+                                                .id()
                                                 .equals(nextStageDefinitionNames))
                                         .findFirst()
                                         .orElseThrow(() -> new IOException("Failed to load")),

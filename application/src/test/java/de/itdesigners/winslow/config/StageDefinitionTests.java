@@ -1,10 +1,8 @@
 package de.itdesigners.winslow.config;
 
 import de.itdesigners.winslow.BaseRepository;
-import de.itdesigners.winslow.Environment;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,14 +21,15 @@ public class StageDefinitionTests {
 
         var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
-        assertEquals("The name of the stage", stage.getName());
-        assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().getName().isEmpty());
-        assertTrue(stage.getImage().getArgs().length == 0);
-        assertTrue(stage.getRequirements().getCpu() == 0);
-        assertTrue(stage.getRequirements().getGpu().getCount() == 0);
-        assertTrue(stage.getEnvironment().isEmpty());
-        assertTrue(stage.getHighlight().getResources().length == 0);
+        assertEquals("The name of the stage", stage.name());
+        assertTrue(stage.description().isEmpty());
+        assertTrue(stage.image().getName().isEmpty());
+        assertTrue(stage.image().getArgs().length == 0);
+        assertTrue(stage.requirements().getCpu() == 0);
+        assertTrue(stage.requirements().getGpu().getCount() == 0);
+        assertTrue(stage.environment().isEmpty());
+        assertTrue(stage.highlight().getResources().length == 0);
+
     }
 
     @Test
@@ -48,10 +47,10 @@ public class StageDefinitionTests {
 
         var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
-        assertEquals("The name of the stage", stage.getName());
-        assertEquals("The description of the stage", stage.getDescription());
-        assertEquals("image-origin/image-name", stage.getImage().getName());
-        assertArrayEquals(new String[]{"arg1", "arg2"}, stage.getImage().getArgs());
+        assertEquals("The name of the stage", stage.name());
+        assertEquals("The description of the stage", stage.description());
+        assertEquals("image-origin/image-name", stage.image().getName());
+        assertArrayEquals(new String[]{"arg1", "arg2"}, stage.image().getArgs());
     }
 
     @Test
@@ -71,10 +70,10 @@ public class StageDefinitionTests {
 
         var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
-        assertEquals("The name of the stage", stage.getName());
-        assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().getName().isEmpty());
-        assertEquals(4096, stage.getRequirements().getMegabytesOfRam());
+        assertEquals("The name of the stage", stage.name());
+        assertTrue(stage.description().isEmpty());
+        assertTrue(stage.image().getName().isEmpty());
+        assertEquals(4096, stage.requirements().getMegabytesOfRam());
     }
 
     @Test
@@ -94,13 +93,13 @@ public class StageDefinitionTests {
 
         var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
-        assertEquals("The name of the stage", stage.getName());
-        assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().getName().isEmpty());
-        assertEquals(5120, stage.getRequirements().getMegabytesOfRam());
-        assertEquals(4, stage.getRequirements().getGpu().getCount());
-        assertEquals("nvidia", stage.getRequirements().getGpu().getVendor());
-        assertArrayEquals(new String[]{"cuda", "vulkan"}, stage.getRequirements().getGpu().getSupport());
+        assertEquals("The name of the stage", stage.name());
+        assertTrue(stage.description().isEmpty());
+        assertTrue(stage.image().getName().isEmpty());
+        assertEquals(5120, stage.requirements().getMegabytesOfRam());
+        assertEquals(4, stage.requirements().getGpu().getCount());
+        assertEquals("nvidia", stage.requirements().getGpu().getVendor());
+        assertArrayEquals(new String[]{"cuda", "vulkan"}, stage.requirements().getGpu().getSupport());
 
     }
 
@@ -117,10 +116,10 @@ public class StageDefinitionTests {
 
         var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
-        assertEquals("The name of the stage", stage.getName());
-        assertTrue(stage.getDescription().isEmpty());
-        assertEquals("VALUE_1", stage.getEnvironment().get("VAR_1"));
-        assertEquals("value_2", stage.getEnvironment().get("VAR_2"));
+        assertEquals("The name of the stage", stage.name());
+        assertTrue(stage.description().isEmpty());
+        assertEquals("VALUE_1", stage.environment().get("VAR_1"));
+        assertEquals("value_2", stage.environment().get("VAR_2"));
     }
 
     @Test
@@ -135,11 +134,11 @@ public class StageDefinitionTests {
 
         var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
-        assertEquals("The name of the stage", stage.getName());
-        assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().getName().isEmpty());
-        assertTrue(stage.getEnvironment().isEmpty());
-        assertArrayEquals(new String[]{"res1", "RES/NUM/2"}, stage.getHighlight().getResources());
+        assertEquals("The name of the stage", stage.name());
+        assertTrue(stage.description().isEmpty());
+        assertTrue(stage.image().getName().isEmpty());
+        assertTrue(stage.environment().isEmpty());
+        assertArrayEquals(new String[]{"res1", "RES/NUM/2"}, stage.highlight().getResources());
     }
 
     @Test

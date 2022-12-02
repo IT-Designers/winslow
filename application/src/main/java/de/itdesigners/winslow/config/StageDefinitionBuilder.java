@@ -102,7 +102,7 @@ public class StageDefinitionBuilder {
     @Nonnull
     public StageDefinition build() {
         var base = Optional.ofNullable(this.base).or(() -> Optional.ofNullable(this.template)).orElseThrow();
-        var env = either(this.env, Optional.of(base.getEnvironment()));
+        var env = either(this.env, Optional.of(base.environment()));
 
         if (this.additionalEnv != null) {
             if (env != null) {
@@ -114,34 +114,34 @@ public class StageDefinitionBuilder {
         }
 
         return new StageDefinition(
-                base.getId(),
-                base.getName(),
-                this.description.orElse(base.getDescription()),
-                this.image.orElse(base.getImage()),
-                this.requirements.orElse(base.getRequirements()),
-                this.userInput.orElse(base.getRequires()),
+                base.id(),
+                base.name(),
+                this.description.orElse(base.description()),
+                this.image.orElse(base.image()),
+                this.requirements.orElse(base.requirements()),
+                this.userInput.orElse(base.userInput()),
                 env,
-                this.highlight.orElse(base.getHighlight()),
-                this.discardable.orElse(base.getDiscardable()),
+                this.highlight.orElse(base.highlight()),
+                this.discardable.orElse(base.discardable()),
                 Optional.ofNullable(either(
-                        Optional.ofNullable(this.template).map(StageDefinition::getPrivileged),
-                        Optional.ofNullable(this.base).map(StageDefinition::getPrivileged)
+                        Optional.ofNullable(this.template).map(StageDefinition::privileged),
+                        Optional.ofNullable(this.base).map(StageDefinition::privileged)
                 )).orElse(Boolean.FALSE),
                 either(
                         this.logParsers,
-                        Optional.of(this.template.getLogParsers())
+                        Optional.of(this.template.logParsers())
                 ),
                 Optional.ofNullable(either(
-                        Optional.ofNullable(this.template).map(StageDefinition::getIgnoreFailuresWithinExecutionGroup),
-                        Optional.ofNullable(this.base).map(StageDefinition::getIgnoreFailuresWithinExecutionGroup)
+                        Optional.ofNullable(this.template).map(StageDefinition::ignoreFailuresWithinExecutionGroup),
+                        Optional.ofNullable(this.base).map(StageDefinition::ignoreFailuresWithinExecutionGroup)
                 )).orElse(Boolean.FALSE),
                 either(
-                        Optional.ofNullable(this.template).map(StageDefinition::getTags),
-                        Optional.ofNullable(this.base).map(StageDefinition::getTags)
+                        Optional.ofNullable(this.template).map(StageDefinition::tags),
+                        Optional.ofNullable(this.base).map(StageDefinition::tags)
                 ),
-                either(this.result, Optional.of(base.getResult())),
-                template.getType(),
-                Optional.ofNullable(this.template).map(StageDefinition::getNextStages).orElse(null)
+                either(this.result, Optional.of(base.result())),
+                template.type(),
+                Optional.ofNullable(this.template).map(StageDefinition::nextStages).orElse(null)
         );
     }
 

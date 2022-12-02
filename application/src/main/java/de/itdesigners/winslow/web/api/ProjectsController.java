@@ -400,7 +400,7 @@ public class ProjectsController {
                         .filter(g -> g.getRunningStages().findAny().isPresent())
                         .findFirst()
                         .map(ExecutionGroup::getStageDefinition)
-                        .map(StageDefinition::getName)
+                        .map(StageDefinition::name)
                         .orElse(null);
             } else if (expectedGroupSize > 1) {
                 mostRecentStage = String.format(
@@ -740,8 +740,8 @@ public class ProjectsController {
 
                             if (stageDef.isPresent()) {
                                 resolver = resolver
-                                        .withIdAndStageName(stageDef.get().getId(), stageDef.get().getName())
-                                        .withInStageDefinitionDefinedVariables(stageDef.get().getEnvironment());
+                                        .withIdAndStageName(stageDef.get().id(), stageDef.get().name())
+                                        .withInStageDefinitionDefinedVariables(stageDef.get().environment());
                             }
 
                             return resolver.resolve();
@@ -769,7 +769,7 @@ public class ProjectsController {
                                 .stream()
                                 .skip(stageIndex)
                                 .findFirst()
-                                .map(StageDefinition::getRequires)
+                                .map(StageDefinition::userInput)
                                 .stream()
                                 .flatMap(u -> u.getEnvironment().stream())
                 ));
@@ -900,7 +900,7 @@ public class ProjectsController {
                                         new StageDefinitionBuilder()
                                                 .withTemplateBase(stage)
                                                 .withEnvironment(pipelineDefinition.getEnvironment())
-                                                .withAdditionalEnvironment(stage.getEnvironment())
+                                                .withAdditionalEnvironment(stage.environment())
                                                 .build(),
                                         new WorkspaceConfiguration(
                                                 pipeline
@@ -995,7 +995,7 @@ public class ProjectsController {
                 .of(base)
                 .flatMap(def -> pipeline
                         .getActiveAndPastExecutionGroups()
-                        .filter(g -> g.getStageDefinition().getId().equals(def.getId()))
+                        .filter(g -> g.getStageDefinition().id().equals(def.id()))
                         .map(ExecutionGroup::getStageDefinition)
                         .reduce((first, second) -> second)
                 )
@@ -1004,8 +1004,8 @@ public class ProjectsController {
         var resultDefinition = createStageDefinition(
                 base,
                 recentBase,
-                updatedResourceRequirement(base.getRequirements(), requiredResources),
-                base.getRequires().withoutConfirmation(),
+                updatedResourceRequirement(base.requirements(), requiredResources),
+                base.userInput().withoutConfirmation(),
                 env
         );
 
@@ -1019,7 +1019,7 @@ public class ProjectsController {
         }
          */
         maybeUpdateStageImageConfig(image, resultDefinition);
-        resultDefinition.getImage().setShmSizeMegabytes(base.getImage().getShmSizeMegabytes());
+        resultDefinition.image().setShmSizeMegabytes(base.image().getShmSizeMegabytes());
 
         if (action == Action.Configure) {
             pipeline.enqueueConfiguration(resultDefinition, comment);
@@ -1079,7 +1079,7 @@ public class ProjectsController {
                     .getEnqueuedExecutions()
                     .noneMatch(g -> g
                             .getStageDefinition()
-                            .getRequires()
+                            .userInput()
                             .getConfirmation()
                             != UserInput.Confirmation.Never);
             if (noStageRequiresUserConfirmation) {
@@ -1120,9 +1120,9 @@ public class ProjectsController {
     private static void maybeUpdateStageImageConfig(
             @Nullable ImageInfo image,
             @Nonnull StageDefinition stageDef) {
-        Optional.ofNullable(image.name).ifPresent(stageDef.getImage()::setName);
-        Optional.ofNullable(image.args).ifPresent(stageDef.getImage()::setArgs);
-        Optional.ofNullable(image.shmMegabytes).ifPresent(stageDef.getImage()::setShmSizeMegabytes);
+        Optional.ofNullable(image.name).ifPresent(stageDef.image()::setName);
+        Optional.ofNullable(image.args).ifPresent(stageDef.image()::setArgs);
+        Optional.ofNullable(image.shmMegabytes).ifPresent(stageDef.image()::setShmSizeMegabytes);
     }
 
 
