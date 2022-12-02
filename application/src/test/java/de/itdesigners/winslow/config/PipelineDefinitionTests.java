@@ -1,6 +1,5 @@
 package de.itdesigners.winslow.config;
 
-import com.moandjiezana.toml.Toml;
 import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import org.junit.Test;
@@ -24,9 +23,7 @@ public class PipelineDefinitionTests {
                  """;
 
 
-        var pipeline = BaseRepository
-                .defaultReader(PipelineDefinition.class)
-                .load(new ByteArrayInputStream(pipelineYaml.getBytes()));
+        var pipeline = BaseRepository.readFromString(PipelineDefinition.class, pipelineYaml);
 
         assertEquals("Name of the pipeline", pipeline.getName());
         assertEquals("Description of the pipeline", pipeline.getDescription().get());
@@ -44,13 +41,10 @@ public class PipelineDefinitionTests {
                     environment: ["KEY_A", "KEY_B"]
                  """;
 
-        var pipeline = BaseRepository
-                .defaultReader(PipelineDefinition.class)
-                .load(new ByteArrayInputStream(pipelineYaml.getBytes()));
+        var pipeline = BaseRepository.readFromString(PipelineDefinition.class, pipelineYaml);
 
         assertNotNull(pipeline.getName());
         assertTrue(pipeline.getDescription().isEmpty());
-
         assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.getRequires().getEnvironment());
         assertTrue(pipeline.getStages().isEmpty());
     }
@@ -60,12 +54,17 @@ public class PipelineDefinitionTests {
     public void testDefaultSerialisation() throws IOException {
 
 
-        var pipeline = new PipelineDefinition("Pipeline", null, null, null, null, null, null);
+        var pipeline = new PipelineDefinition(
+                "Pipeline",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
 
-        var stream = new ByteArrayOutputStream();
-        BaseRepository.defaultWriter().store(stream, pipeline);
-
-        var yaml = new String(stream.toByteArray());
+        var yaml = BaseRepository.writeToString(pipeline);
 
         assertNotNull(yaml);
         assertNotEquals("", yaml);
@@ -104,10 +103,7 @@ public class PipelineDefinitionTests {
                 Arrays.asList("markers")
         );
 
-        var stream = new ByteArrayOutputStream();
-        BaseRepository.defaultWriter().store(stream, pipeline);
-
-        var yaml = new String(stream.toByteArray());
+        var yaml = BaseRepository.writeToString(pipeline);
 
         assertNotNull(yaml);
         assertNotEquals("", yaml);
