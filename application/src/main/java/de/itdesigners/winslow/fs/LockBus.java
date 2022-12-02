@@ -1,7 +1,8 @@
 package de.itdesigners.winslow.fs;
 
-import com.moandjiezana.toml.Toml;
-import com.moandjiezana.toml.TomlWriter;
+
+
+import de.itdesigners.winslow.BaseRepository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -318,7 +319,7 @@ public class LockBus {
                     try {
                         Files.write(
                                 path,
-                                Collections.singleton(new TomlWriter().write(event)),
+                                Collections.singleton(BaseRepository.writeToString(event)),
                                 StandardCharsets.UTF_8,
                                 StandardOpenOption.CREATE_NEW
                         );
@@ -572,7 +573,7 @@ public class LockBus {
 
     private static Event loadEvent(@Nonnull Path path) throws IOException {
         var content = Files.readString(path);
-        return new Toml().read(content).to(Event.class);
+        return BaseRepository.readFromString(Event.class, content);
     }
 
     private static void logEvent(@Nonnull Path path, @Nonnull Event event) {
