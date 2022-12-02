@@ -44,7 +44,7 @@ public class LogParserRegisterer implements AssemblerStep {
                     var parsers = context
                             .getSubmission()
                             .getStageDefinition()
-                            .getLogParsers()
+                            .logParsers()
                             .stream()
                             .flatMap(parser -> instantiateConsumer(
                                     context,

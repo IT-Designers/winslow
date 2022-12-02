@@ -7,13 +7,13 @@ import javax.annotation.Nonnull;
 public class DockerImageAppender implements AssemblerStep {
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var image = context.getSubmission().getStageDefinition().getImage();
+        var image = context.getSubmission().getStageDefinition().image();
 
         var submission = context.getSubmission().withExtension(new DockerImage(
                 image.getName(),
                 image.getArgs(),
                 image.getShmSizeMegabytes(),
-                context.getSubmission().getStageDefinition().getPrivileged()
+                context.getSubmission().getStageDefinition().privileged()
         ));
 
     }

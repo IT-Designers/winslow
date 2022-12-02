@@ -94,7 +94,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                 pipeline.getActiveExecutionGroups().forEach(active -> {
                     var hasFailed = active.getStages().anyMatch(s -> s.getState() == State.Failed);
                     var hasRemaining = active.hasRemainingExecutions();
-                    var ignoreFailures = active.getStageDefinition().getIgnoreFailuresWithinExecutionGroup();
+                    var ignoreFailures = active.getStageDefinition().ignoreFailuresWithinExecutionGroup();
 
                     if ((hasFailed && !hasRemaining) || (hasFailed && !ignoreFailures)) {
                         pipeline.requestPause(Pipeline.PauseReason.StageFailure);
