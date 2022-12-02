@@ -98,7 +98,7 @@ public class SubmissionToNomadJobAdapter {
 
         submission.getExtension(DockerImage.class).ifPresent(getDockerImageConfigurer(task));
         submission.getExtension(DockerVolumes.class).ifPresent(getDockerNfsVolumesConfigurer(task));
-        submission.getStageDefinition().getRequirements().ifPresent(getResourceRequirementsConfigurer(task));
+        getResourceRequirementsConfigurer(task);
 
 
         return new Job()
@@ -201,20 +201,18 @@ public class SubmissionToNomadJobAdapter {
     @CheckReturnValue
     private Consumer<Requirements> getResourceRequirementsConfigurer(@Nonnull Task task) {
         return requirements -> {
-            requirements.getGpu().ifPresent(gpu -> {
-                if (gpu.getCount() > 0) {
-                    var gpuDevice = new RequestedDevice();
-                    gpuDevice.setName("gpu");
-                    gpuDevice.setCount(BigInteger.valueOf(gpu.getCount()));
+            if (requirements.getGpu().getCount() > 0) {
+                var gpuDevice = new RequestedDevice();
+                gpuDevice.setName("gpu");
+                gpuDevice.setCount(BigInteger.valueOf(requirements.getGpu().getCount()));
 
-                    gpu.getVendor().ifPresent(vendor -> {
-                        gpuDevice.setName(vendor + "/gpu");
-                    });
+                var vendor = requirements.getGpu().getVendor().trim().isEmpty()
+                             ? NomadBackend.DEFAULT_GPU_VENDOR
+                             : requirements.getGpu().getVendor();
+                gpuDevice.setName(vendor + "/gpu");
 
-                    task.getResources().addDevices(gpuDevice);
-                }
-
-            });
+                task.getResources().addDevices(gpuDevice);
+            }
 
             if (requirements.getCpu() > 0) {
                 info.getCpuSingleCoreMaxFrequency()

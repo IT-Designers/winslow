@@ -4,6 +4,7 @@ import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -11,13 +12,14 @@ public class PipelineDefinition {
 
     private final @Nonnull  String                name;
     private final @Nullable String                desc;
-    private final @Nullable UserInput             userInput;
+    private final @Nonnull UserInput             userInput;
     private final @Nullable List<StageDefinition> stages;
     private final @Nullable Map<String, String>   env;
     private final @Nullable DeletionPolicy        deletionPolicy;
     private final @Nullable List<String>          markers;
 
 
+    @ConstructorProperties({"name", "description", "requires", "stages", "environment", "deletionPolicy", "markers"})
     public PipelineDefinition( // the parameter names must match the corresponding getter names!
             @Nonnull String name,
             @Nullable String description,
@@ -30,7 +32,7 @@ public class PipelineDefinition {
             @Nullable List<String> markers) {
         this.name           = name;
         this.desc           = description;
-        this.userInput      = requires;
+        this.userInput      = requires != null ? requires : new UserInput(null, null);;
         this.stages         = stages != null ? Collections.unmodifiableList(stages) : Collections.emptyList();
         this.env            = environment != null ? Collections.unmodifiableMap(environment) : Collections.emptyMap();
         this.deletionPolicy = deletionPolicy;
@@ -54,8 +56,8 @@ public class PipelineDefinition {
     }
 
     @Nonnull
-    public Optional<UserInput> getRequires() {
-        return Optional.ofNullable(userInput);
+    public UserInput getRequires() {
+        return userInput;
     }
 
     @Nonnull

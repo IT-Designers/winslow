@@ -1,130 +1,220 @@
 package de.itdesigners.winslow.config;
 
-import com.moandjiezana.toml.Toml;
+import de.itdesigners.winslow.BaseRepository;
+import de.itdesigners.winslow.Environment;
 import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
 public class StageDefinitionTests {
 
     @Test
-    public void testMostBasicPipeline() {
-        var stage = new Toml().read("[stage]\n" +
-                "name = \"The name of the stage\""
-        )
-                .getTable("stage")
-                .to(StageDefinition.class);
+    public void testMostBasicPipeline() throws IOException {
+        var stageYaml = """
+                name: "The name of the stage"
+                """;
+
+
+        var stage = BaseRepository
+                .defaultReader(StageDefinition.class)
+                .load(new ByteArrayInputStream(stageYaml.getBytes()));
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().isEmpty());
-        assertTrue(stage.getRequirements().isEmpty());
+        assertTrue(stage.getImage().getName().isEmpty());
+        assertTrue(stage.getImage().getArgs().length == 0);
+        assertTrue(stage.getRequirements().getCpu() == 0);
+        assertTrue(stage.getRequirements().getGpu().getCount() == 0);
         assertTrue(stage.getEnvironment().isEmpty());
-        assertTrue(stage.getHighlight().isEmpty());
+        assertTrue(stage.getHightlight().getResources().length == 0);
     }
 
     @Test
-    public void testWithDescAndImage() {
-        var stage = new Toml().read("[stage]\n" +
-                "name = \"The name of the stage\"\n" +
-                "desc = \"The description of the stage\"" +
-                "\n" +
-                "[stage.image]\n" +
-                "name = \"image-origin/image-name\"\n" +
-                "args = [\"arg1\", \"arg2\"]"
-        )
-                .getTable("stage")
-                .to(StageDefinition.class);
+    public void testWithDescAndImage() throws IOException {
+
+        var stageYaml = """
+                    name: "The name of the stage"
+                    description: "The description of the stage"
+                    
+                    image:
+                        name: "image-origin/image-name"
+                        args: ["arg1", "arg2"]
+                """;
+
+
+        var stage = BaseRepository
+                .defaultReader(StageDefinition.class)
+                .load(new ByteArrayInputStream(stageYaml.getBytes()));
+
 
         assertEquals("The name of the stage", stage.getName());
-        assertEquals("The description of the stage", stage.getDescription().get());
-        assertTrue(stage.getImage().isPresent());
-        assertEquals("image-origin/image-name", stage.getImage().get().getName());
-        assertArrayEquals(new String[]{"arg1", "arg2"}, stage.getImage().get().getArgs());
+        assertEquals("The description of the stage", stage.getDescription());
+        assertEquals("image-origin/image-name", stage.getImage().getName());
+        assertArrayEquals(new String[]{"arg1", "arg2"}, stage.getImage().getArgs());
     }
 
     @Test
-    public void testWithBasicRequires() {
-        var stage = new Toml().read("[stage]\n" +
-                "name = \"The name of the stage\"" +
-                "\n" +
-                "[stage.requires]\n" +
-                "ram = 4096"
-        )
-                .getTable("stage")
-                .to(StageDefinition.class);
+    public void testWithBasicRequires() throws IOException {
 
-        assertEquals("The name of the stage", stage.getName());
-        assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().isEmpty());
-        assertTrue(stage.getRequirements().isPresent());
-        assertEquals(4096, stage.getRequirements().get().getMegabytesOfRam());
-    }
+        var stageYaml = """
+                    name: "The name of the stage"
+                    
+                    requirements:
+                      cpu: 0
+                      gpu:
+                        count: 0
+                        vendor: ""
+                        support: []
+                      megabytesOfRam: 4096
+                """;
 
-    @Test
-    public void testWithGpuRequirements() {
-        var stage = new Toml().read("[stage]\n" +
-                "name = \"The name of the stage\"" +
-                "\n" +
-                "[stage.requires]\n" +
-                "ram = 5120\n" +
-                "\n" +
-                "[stage.requires.gpu]\n" +
-                "count = 4\n" +
-                "vendor = \"nvidia\"\n" +
-                "support = [\"cuda\", \"vulkan\"]"
-        )
-                .getTable("stage")
-                .to(StageDefinition.class);
+        var stage = BaseRepository
+                .defaultReader(StageDefinition.class)
+                .load(new ByteArrayInputStream(stageYaml.getBytes()));
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().isEmpty());
-        assertTrue(stage.getRequirements().isPresent());
-        assertEquals(5120, stage.getRequirements().get().getMegabytesOfRam());
-        assertTrue(stage.getRequirements().get().getGpu().isPresent());
-        assertEquals(4, stage.getRequirements().get().getGpu().get().getCount());
-        assertEquals("nvidia", stage.getRequirements().get().getGpu().get().getVendor().get());
-        assertArrayEquals(new String[]{"cuda", "vulkan"}, stage.getRequirements().get().getGpu().get().getSupport());
+        assertTrue(stage.getImage().getName().isEmpty());
+        assertEquals(4096, stage.getRequirements().getMegabytesOfRam());
     }
 
     @Test
-    public void testWithEnvironmentVariables() {
-        var stage = new Toml().read("[stage]\n" +
-                "name = \"The name of the stage\"\n" +
-                "\n" +
-                "[stage.env]\n" +
-                "VAR_1 = \"VALUE_1\"\n" +
-                "VAR_2 = \"value_2\""
-        )
-                .getTable("stage")
-                .to(StageDefinition.class);
+    public void testWithGpuRequirements() throws IOException {
+
+
+        var stageYaml = """
+                   name: "The name of the stage" 
+                    
+                   requirements:
+                     megabytesOfRam: 5120
+                     gpu:
+                       count: 4
+                       vendor: "nvidia"
+                       support: ["cuda", "vulkan"]
+                """;
+
+        var stage = BaseRepository
+                .defaultReader(StageDefinition.class)
+                .load(new ByteArrayInputStream(stageYaml.getBytes()));
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().isEmpty());
-        assertTrue(stage.getRequirements().isEmpty());
+        assertTrue(stage.getImage().getName().isEmpty());
+        assertEquals(5120, stage.getRequirements().getMegabytesOfRam());
+        assertEquals(4, stage.getRequirements().getGpu().getCount());
+        assertEquals("nvidia", stage.getRequirements().getGpu().getVendor());
+        assertArrayEquals(new String[]{"cuda", "vulkan"}, stage.getRequirements().getGpu().getSupport());
+
+    }
+
+    @Test
+    public void testWithEnvironmentVariables() throws IOException {
+
+        var stageYaml = """
+                name: "The name of the stage"
+                                
+                environment:
+                    VAR_1: "VALUE_1"
+                    VAR_2: "value_2"
+                """;
+
+        var stage = BaseRepository
+                .defaultReader(StageDefinition.class)
+                .load(new ByteArrayInputStream(stageYaml.getBytes()));
+
+        assertEquals("The name of the stage", stage.getName());
+        assertTrue(stage.getDescription().isEmpty());
         assertEquals("VALUE_1", stage.getEnvironment().get("VAR_1"));
         assertEquals("value_2", stage.getEnvironment().get("VAR_2"));
     }
 
     @Test
-    public void testWithHighlights() {
-        var stage = new Toml().read("[stage]\n" +
-                "name = \"The name of the stage\"\n" +
-                "\n" +
-                "[stage.highlight]\n" +
-                "resources = [\"res1\", \"RES/NUM/2\"]"
-        )
-                .getTable("stage")
-                .to(StageDefinition.class);
+    public void testWithHighlights() throws IOException {
+
+        var stageYaml = """
+                name: "The name of the stage"
+                                
+                highlight:
+                    resources: ["res1", "RES/NUM/2"]
+                """;
+
+        var stage = BaseRepository
+                .defaultReader(StageDefinition.class)
+                .load(new ByteArrayInputStream(stageYaml.getBytes()));
 
         assertEquals("The name of the stage", stage.getName());
         assertTrue(stage.getDescription().isEmpty());
-        assertTrue(stage.getImage().isEmpty());
-        assertTrue(stage.getRequirements().isEmpty());
+        assertTrue(stage.getImage().getName().isEmpty());
         assertTrue(stage.getEnvironment().isEmpty());
-        assertTrue(stage.getHighlight().isPresent());
-        assertArrayEquals(new String[]{"res1", "RES/NUM/2"}, stage.getHighlight().get().getResources());
+        assertArrayEquals(new String[]{"res1", "RES/NUM/2"}, stage.getHightlight().getResources());
+    }
+
+    @Test
+    public void testSerialisationWithDefaultValues() throws IOException {
+
+        var stage = new StageDefinition(
+                null,
+                "test",
+                null,
+                null,
+                new Requirements(null, null, null),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        var stream = new ByteArrayOutputStream();
+        BaseRepository.defaultWriter().store(stream, stage);
+
+        var yaml = new String(stream.toByteArray());
+
+        assertNotNull(yaml);
+        assertNotEquals("", yaml);
+    }
+
+    @Test
+    public void testSerialisationWithAllValues() throws IOException {
+
+        var stage = new StageDefinition(
+                UUID.randomUUID(),
+                "test",
+                "",
+                new Image("image", new String[]{"param"}),
+                new Requirements(4, 500, new Requirements.Gpu(4, "nvidia", new String[]{"test"})),
+                new UserInput(UserInput.Confirmation.Always, Arrays.asList("Env")),
+                Map.of("env1", "envValue"),
+                new Highlight(new String[]{"to Highlight"}),
+                true,
+                true,
+                Arrays.asList(new LogParser("matcher", "destination", "formatter", "type")),
+                true,
+                Arrays.asList("tag1", "tag2"),
+                Map.of("result", "result_value"),
+                null,
+                Arrays.asList(UUID.randomUUID())
+        );
+
+        var stream = new ByteArrayOutputStream();
+        BaseRepository.defaultWriter().store(stream, stage);
+
+        var yaml = new String(stream.toByteArray());
+
+        assertNotNull(yaml);
+        assertNotEquals("", yaml);
     }
 }

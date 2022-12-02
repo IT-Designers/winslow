@@ -12,7 +12,7 @@ public class ImageInfoConverter {
         return new ImageInfo(
                 image.getName(),
                 image.getArgs(),
-                image.getShmSizeMegabytes().orElse(null)
+                image.getShmSizeMegabytes()
         );
     }
 }

@@ -5,6 +5,8 @@ import java.util.Arrays;
 public class Highlight {
     private final String[] resources;
 
+    public Highlight(){ resources = new String[0];}
+
     public Highlight(String[] resources) {
         this.resources = resources;
     }
