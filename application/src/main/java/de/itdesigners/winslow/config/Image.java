@@ -8,12 +8,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class Image {
-    private @Nonnull  String   name;
-    private @Nullable String[] args;
-    private @Nullable Integer  shmSizeMegabytes;
+    private @Nonnull String   name;
+    private @Nonnull String[] args;
+    private @Nonnull Integer  shmSizeMegabytes;
 
     public Image(@Nonnull String name, @Nonnull String[] args) {
         this(name, args, null);
+    }
+
+    public Image() {
+        this("", new String[0]);
     }
 
     @ConstructorProperties({"name, args, shmSizeMegabytes"})
@@ -21,7 +25,7 @@ public class Image {
         Objects.requireNonNull(name, "The name of an image must be set");
         this.name             = name;
         this.args             = args;
-        this.shmSizeMegabytes = shmSizeMegabytes;
+        this.shmSizeMegabytes = shmSizeMegabytes != null ? shmSizeMegabytes : 0;
     }
 
     @Nonnull
@@ -43,8 +47,8 @@ public class Image {
     }
 
     @Nonnull
-    public Optional<Integer> getShmSizeMegabytes() {
-        return Optional.ofNullable(this.shmSizeMegabytes);
+    public Integer getShmSizeMegabytes() {
+        return this.shmSizeMegabytes;
     }
 
     public void setShmSizeMegabytes(@Nullable Integer megabytes) {

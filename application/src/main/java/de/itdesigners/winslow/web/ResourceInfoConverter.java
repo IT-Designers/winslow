@@ -12,7 +12,7 @@ public class ResourceInfoConverter {
         return new ResourceInfo(
                 req.getCpu(),
                 req.getMegabytesOfRam(),
-                req.getGpu().map(Requirements.Gpu::getCount).orElse(null)
+                req.getGpu().getCount()
         );
     }
 }

@@ -116,16 +116,16 @@ public class StageDefinitionBuilder {
         return new StageDefinition(
                 base.getId(),
                 base.getName(),
-                either(this.description, base.getDescription()),
-                either(this.image, base.getImage()),
-                either(this.requirements, base.getRequirements()),
-                either(this.userInput, base.getRequires()),
+                this.description.orElse(base.getDescription()),
+                this.image.orElse(base.getImage()),
+                this.requirements.orElse(base.getRequirements()),
+                this.userInput.orElse(base.getRequires()),
                 env,
-                either(this.highlight, base.getHighlight()),
-                either(this.discardable, Optional.of(base.isDiscardable())),
+                this.highlight.orElse(base.getHightlight()),
+                this.discardable.orElse(base.getDiscardable()),
                 Optional.ofNullable(either(
-                        Optional.ofNullable(this.template).map(StageDefinition::isPrivileged),
-                        Optional.ofNullable(this.base).map(StageDefinition::isPrivileged)
+                        Optional.ofNullable(this.template).map(StageDefinition::getPrivileged),
+                        Optional.ofNullable(this.base).map(StageDefinition::getPrivileged)
                 )).orElse(Boolean.FALSE),
                 either(
                         this.logParsers,
