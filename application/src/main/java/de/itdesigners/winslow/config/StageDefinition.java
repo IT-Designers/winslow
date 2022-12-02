@@ -3,6 +3,7 @@ package de.itdesigners.winslow.config;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -18,9 +19,9 @@ import java.util.*;
 })
 
 public interface StageDefinition {
-    UUID id();
-    String name();
-    List<UUID> nextStages();
+    @Nonnull UUID id();
+    @Nonnull String name();
+    @Nonnull List<UUID> nextStages();
 
     default void check() {
         Objects.requireNonNull(name(), "The name of a stage must be set");
