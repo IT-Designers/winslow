@@ -1,7 +1,5 @@
 package de.itdesigners.winslow.node;
 
-import com.moandjiezana.toml.Toml;
-import com.moandjiezana.toml.TomlWriter;
 import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.api.node.NodeUtilization;
@@ -164,8 +162,7 @@ public class NodeRepository extends BaseRepository {
     @Nonnull
     private Optional<NodeInfo> readNode(@Nonnull Path p) {
         try {
-            // hardcoded Toml because NodeInfoUpdate also uses hardcoded Toml...
-            return Optional.of(new Toml().read(p.toFile()).<NodeInfo>to(NodeInfo.class));
+            return Optional.of(readFromFile(NodeInfo.class, p.toFile()));
         } catch (Throwable t) {
             // if the file was not found, the FileNotFoundException is thrown encapsulated in a RuntimeException... :/
             LOG.log(Level.WARNING, "Failed to read node for path=" + p, t);
@@ -177,7 +174,8 @@ public class NodeRepository extends BaseRepository {
         var name = Path.of(node.getName()).getFileName().toString();
         var path = getRepositoryDirectory().resolve(name);
         var temp = getRepositoryDirectory().resolve(TEMP_FILE_PREFIX + name);
-        new TomlWriter().write(node, temp.toFile());
+        writeToFile(node, temp.toFile());
+
         try {
             Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } finally {
