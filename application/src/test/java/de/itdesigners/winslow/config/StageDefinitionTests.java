@@ -30,7 +30,7 @@ public class StageDefinitionTests {
         assertTrue(stage.getRequirements().getCpu() == 0);
         assertTrue(stage.getRequirements().getGpu().getCount() == 0);
         assertTrue(stage.getEnvironment().isEmpty());
-        assertTrue(stage.getHightlight().getResources().length == 0);
+        assertTrue(stage.getHighlight().getResources().length == 0);
     }
 
     @Test
@@ -139,7 +139,7 @@ public class StageDefinitionTests {
         assertTrue(stage.getDescription().isEmpty());
         assertTrue(stage.getImage().getName().isEmpty());
         assertTrue(stage.getEnvironment().isEmpty());
-        assertArrayEquals(new String[]{"res1", "RES/NUM/2"}, stage.getHightlight().getResources());
+        assertArrayEquals(new String[]{"res1", "RES/NUM/2"}, stage.getHighlight().getResources());
     }
 
     @Test
