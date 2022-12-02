@@ -32,19 +32,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
 
     @Nonnull
     @Override
-    public Stream<String> listStages() throws IOException {
-        return Stream.empty();
-    }
-
-    @Nonnull
-    @Override
     public Optional<State> getState(@Nonnull StageId stageId) throws IOException {
-        return Optional.empty();
-    }
-
-    @Nonnull
-    @Override
-    public Optional<State> getState(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
         return Optional.empty();
     }
 
@@ -67,7 +55,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
     @Override
     public SubmissionResult submit(@Nonnull Submission submission) throws IOException {
         return new SubmissionResult(
-                SubmissionToNomadJobAdapter.createStage(submission),
+                submission.createStage(),
                 spawnStageHandle(submission.getStageDefinition(), submission.getId())
         );
     }
