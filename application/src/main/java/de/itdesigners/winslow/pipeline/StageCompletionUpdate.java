@@ -125,7 +125,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                         .getProject(projectId)
                         .unsafe()
                         .map(Project::getPipelineDefinition)
-                        .flatMap(PipelineDefinition::getDeletionPolicy)
+                        .map(PipelineDefinition::deletionPolicy)
                 )
                 .orElseGet(Orchestrator::defaultDeletionPolicy);
         var history    = pipeline.getActiveAndPastExecutionGroups().collect(Collectors.toList());
