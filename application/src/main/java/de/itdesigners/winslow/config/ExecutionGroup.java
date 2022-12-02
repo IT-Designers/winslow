@@ -134,7 +134,7 @@ public class ExecutionGroup {
             return Optional.empty();
         } else if (this.rangedValues != null && !this.rangedValues.isEmpty()) {
             var counter = getGroupCounter();
-            var map     = new HashMap<>(this.stageDefinition.getEnvironment());
+            var map     = new HashMap<>(this.stageDefinition.environment());
 
             for (var entry : this.rangedValues.entrySet()) {
                 map.put(
@@ -147,22 +147,22 @@ public class ExecutionGroup {
             return Optional.of(new Pair<>(
                     this.id.generateStageId(getGroupCounter() + 1),
                     new StageDefinition(
-                            stageDefinition.getId(),
-                            stageDefinition.getName(),
-                            stageDefinition.getDescription(),
-                            stageDefinition.getImage(),
-                            stageDefinition.getRequirements(),
-                            stageDefinition.getRequires(),
+                            stageDefinition.id(),
+                            stageDefinition.name(),
+                            stageDefinition.description(),
+                            stageDefinition.image(),
+                            stageDefinition.requirements(),
+                            stageDefinition.userInput(),
                             map,
-                            stageDefinition.getHighlight(),
-                            stageDefinition.getDiscardable(),
-                            stageDefinition.getPrivileged(),
-                            stageDefinition.getLogParsers(),
-                            stageDefinition.getIgnoreFailuresWithinExecutionGroup(),
-                            stageDefinition.getTags(),
-                            stageDefinition.getResult(),
-                            stageDefinition.getType(),
-                            stageDefinition.getNextStages()
+                            stageDefinition.highlight(),
+                            stageDefinition.discardable(),
+                            stageDefinition.privileged(),
+                            stageDefinition.logParsers(),
+                            stageDefinition.ignoreFailuresWithinExecutionGroup(),
+                            stageDefinition.tags(),
+                            stageDefinition.result(),
+                            stageDefinition.type(),
+                            stageDefinition.nextStages()
                     )
             ));
         } else if (this.stages.isEmpty()) {
@@ -284,7 +284,7 @@ public class ExecutionGroup {
 
     @Transient
     public boolean isGateway() {
-        return getStageDefinition().getType().isGateway();
+        return getStageDefinition().type().isGateway();
     }
 
     @Nonnull

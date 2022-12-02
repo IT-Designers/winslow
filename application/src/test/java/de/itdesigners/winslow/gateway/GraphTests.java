@@ -260,21 +260,21 @@ public class GraphTests {
 
         testComplexGraphByDefinitions(graph);
 
-        assertEquals(List.of(exgA), graph.getNodeForStageDefinitionId(defA.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exg1), graph.getNodeForStageDefinitionId(gtw1.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgB), graph.getNodeForStageDefinitionId(defB.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgC), graph.getNodeForStageDefinitionId(defC.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exg2), graph.getNodeForStageDefinitionId(gtw2.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgD), graph.getNodeForStageDefinitionId(defD.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgE), graph.getNodeForStageDefinitionId(defE.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgF), graph.getNodeForStageDefinitionId(defF.getId()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgA), graph.getNodeForStageDefinitionId(defA.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exg1), graph.getNodeForStageDefinitionId(gtw1.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgB), graph.getNodeForStageDefinitionId(defB.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgC), graph.getNodeForStageDefinitionId(defC.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exg2), graph.getNodeForStageDefinitionId(gtw2.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgD), graph.getNodeForStageDefinitionId(defD.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgE), graph.getNodeForStageDefinitionId(defE.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgF), graph.getNodeForStageDefinitionId(defF.id()).orElseThrow().getExecutionGroups());
 
         assertContainsAll(
                 List.of(exg3E, exg3F, exg3B),
-                graph.getNodeForStageDefinitionId(gtw3.getId()).orElseThrow().getExecutionGroups()
+                graph.getNodeForStageDefinitionId(gtw3.id()).orElseThrow().getExecutionGroups()
         );
 
-        assertEquals(List.of(exgG), graph.getNodeForStageDefinitionId(defG.getId()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgG), graph.getNodeForStageDefinitionId(defG.id()).orElseThrow().getExecutionGroups());
     }
 
     @Test
@@ -337,17 +337,17 @@ public class GraphTests {
 
         testComplexGraphByDefinitions(graph);
 
-        assertEquals(List.of(exgA), graph.getNodeForStageDefinitionId(defA.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exg1), graph.getNodeForStageDefinitionId(gtw1.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgC), graph.getNodeForStageDefinitionId(defC.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exg2), graph.getNodeForStageDefinitionId(gtw2.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgD), graph.getNodeForStageDefinitionId(defD.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgE), graph.getNodeForStageDefinitionId(defE.getId()).orElseThrow().getExecutionGroups());
-        assertEquals(List.of(exgF), graph.getNodeForStageDefinitionId(defF.getId()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgA), graph.getNodeForStageDefinitionId(defA.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exg1), graph.getNodeForStageDefinitionId(gtw1.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgC), graph.getNodeForStageDefinitionId(defC.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exg2), graph.getNodeForStageDefinitionId(gtw2.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgD), graph.getNodeForStageDefinitionId(defD.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgE), graph.getNodeForStageDefinitionId(defE.id()).orElseThrow().getExecutionGroups());
+        assertEquals(List.of(exgF), graph.getNodeForStageDefinitionId(defF.id()).orElseThrow().getExecutionGroups());
 
         assertContainsAll(
                 List.of(exg3E, exg3F),
-                graph.getNodeForStageDefinitionId(gtw3.getId()).orElseThrow().getExecutionGroups()
+                graph.getNodeForStageDefinitionId(gtw3.id()).orElseThrow().getExecutionGroups()
         );
     }
 
@@ -375,7 +375,7 @@ public class GraphTests {
         );
 
         // gtw1 & EG
-        var nodeGtw1 = graph.getNodeForStageDefinitionId(gtw1.getId()).orElseThrow();
+        var nodeGtw1 = graph.getNodeForStageDefinitionId(gtw1.id()).orElseThrow();
         assertEquals(1, nodeGtw1.getExecutionGroups().size());
         assertEquals(exg1, nodeGtw1.getExecutionGroups().get(0));
         assertEquals(2, nodeGtw1.getNextNodes().size());
@@ -426,7 +426,7 @@ public class GraphTests {
 
     @Nonnull
     public static StageDefinition getStageDefinition(@Nonnull PipelineDefinition definition, @Nonnull String name) {
-        return definition.getStages().stream().filter(s -> s.getName().equals(name)).findFirst().orElseThrow();
+        return definition.getStages().stream().filter(s -> s.name().equals(name)).findFirst().orElseThrow();
     }
 
 
