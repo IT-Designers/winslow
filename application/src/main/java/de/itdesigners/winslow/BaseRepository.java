@@ -13,6 +13,7 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 
 import javax.annotation.Nonnull;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -191,9 +192,9 @@ public abstract class BaseRepository {
             // TODO remove
             if (value instanceof Pipeline) {
                 var stages = ((Pipeline) value).getActiveExecutionGroups()
-                                  .flatMap(ExecutionGroup::getStages)
-                                  .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
-                                  .collect(Collectors.toList());
+                                               .flatMap(ExecutionGroup::getStages)
+                                               .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
+                                               .collect(Collectors.toList());
                 LOG.info("Writing, AEG Stages: " + String.join(", ", stages));
             }
             if (value != null) {
@@ -221,9 +222,11 @@ public abstract class BaseRepository {
                 // TODO remove
                 if (loaded instanceof Pipeline) {
                     var stages = ((Pipeline) loaded).getActiveExecutionGroups()
-                                                   .flatMap(ExecutionGroup::getStages)
-                                                   .map(s -> s.getId().getStageNumberWithinGroup() + "-" + s.getState())
-                                                   .collect(Collectors.toList());
+                                                    .flatMap(ExecutionGroup::getStages)
+                                                    .map(s -> s
+                                                            .getId()
+                                                            .getStageNumberWithinGroup() + "-" + s.getState())
+                                                    .collect(Collectors.toList());
                     LOG.info("Reading, AEG Stages: " + String.join(", ", stages));
                 }
                 return loaded;
@@ -332,4 +335,33 @@ public abstract class BaseRepository {
             return Files.exists(path);
         }
     }
+
+
+    public static void writeToFile(@Nonnull Object value, @Nonnull File file) throws IOException {
+        try (var fos = new FileOutputStream(file)) {
+            defaultWriter().store(fos, value);
+        }
+    }
+
+    public static <T> T readFromFile(Class<T> clazz, @Nonnull File file) throws IOException {
+        try (var fis = new FileInputStream(file)) {
+            return defaultReader(clazz).load(fis);
+        }
+    }
+
+    public static <T> T readFromString(Class<T> clazz, @Nonnull String string) throws IOException {
+        try (var bis = new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8))) {
+            return BaseRepository
+                    .defaultReader(clazz)
+                    .load(bis);
+        }
+    }
+
+    public static String writeToString(@Nonnull Object value) throws IOException {
+        try (var bas = new ByteArrayOutputStream()) {
+            BaseRepository.defaultWriter().store(bas, value);
+            return new String(bas.toByteArray(), StandardCharsets.UTF_8);
+        }
+    }
+
 }
