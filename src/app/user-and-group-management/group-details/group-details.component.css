@@ -42,7 +42,7 @@
 }
 
 .delete-group-btn, .delete-user-btn {
-  width: 100%;
+  width: 20%;
   float: right;
   margin-top: 40px;
 }
