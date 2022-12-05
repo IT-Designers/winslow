@@ -3,6 +3,7 @@ package de.itdesigners.winslow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import de.itdesigners.winslow.config.ExecutionGroup;
@@ -95,7 +96,9 @@ public abstract class BaseRepository {
 
     @Nonnull
     public static ObjectMapper defaultObjectMapper() {
-        return defaultObjectMapperModules(new ObjectMapper(new YAMLFactory()));
+        var yaml = new YAMLFactory();
+        yaml.disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID);
+        return defaultObjectMapperModules(new ObjectMapper(yaml));
     }
 
     @Nonnull
