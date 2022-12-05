@@ -97,9 +97,9 @@ public abstract class BaseRepository {
 
     @Nonnull
     public static ObjectMapper defaultObjectMapper() {
-        var f = new YAMLFactory();
-        f.disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID);
-        return defaultObjectMapperModules(new ObjectMapper(f));
+        var yaml = new YAMLFactory();
+        yaml.disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID);
+        return defaultObjectMapperModules(new ObjectMapper(yaml));
     }
 
     @Nonnull
