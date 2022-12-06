@@ -40,41 +40,31 @@ public class SubmissionToDockerContainerAdapter {
                 .getExtension(DockerImage.class)
                 .orElseThrow(() -> new OrchestratorException("Missing DockerImage-Extension"));
 
-        try (var createCmd = this.backend.getDockerClient().createContainerCmd(imageExt.getImage())) {
-            createCmd
-                    .withCmd(imageExt.getArguments())
-                    .withName(containerName)
-                    .withHostConfig(
-                            (submission.getStageDefinition() instanceof StageWorkerDefinition swd
-                             ? Optional.of(swd)
-                             : Optional.<StageWorkerDefinition>empty())
-                                    .map(StageWorkerDefinition::requirements)
-                                    .map(this::hostConfigFromRequirements)
-                                    .orElseGet(HostConfig::new)
-                                    .withPrivileged(imageExt.isPrivileged())
-                                    .withShmSize(imageExt.getShmSizeMegabytes().map(Integer::longValue).orElse(null))
-                                    .withAutoRemove(true)
-                                    .withMounts(
-                                            submission
-                                                    .getExtension(DockerVolumes.class)
-                                                    .map(this::mountsFromDockerVolumes)
-                                                    .orElseGet(Collections::emptyList)
-                                    )
-                    );
+        var createCmd = this.backend
+                .getDockerClient()
+                .createContainerCmd(imageExt.getImage())
+                .withCmd(imageExt.getArguments())
+                .withName(containerName)
+                .withHostConfig(
+                        (submission.getStageDefinition() instanceof StageWorkerDefinition swd
+                         ? Optional.of(swd)
+                         : Optional.<StageWorkerDefinition>empty())
+                                .map(StageWorkerDefinition::requirements)
+                                .map(this::hostConfigFromRequirements)
+                                .orElseGet(HostConfig::new)
+                                .withPrivileged(imageExt.isPrivileged())
+                                .withShmSize(imageExt.getShmSizeMegabytes().map(Integer::longValue).orElse(null))
+                                .withAutoRemove(true)
+                                .withMounts(
+                                        submission
+                                                .getExtension(DockerVolumes.class)
+                                                .map(this::mountsFromDockerVolumes)
+                                                .orElseGet(Collections::emptyList)
+                                )
+                );
 
-            var createResult = createCmd.exec();
-            var containerId  = createResult.getId();
-            var warnings = createResult.getWarnings() != null
-                           ? Arrays.asList(createResult.getWarnings())
-                           : Collections.emptyList();
 
-            try (var startCmd = this.backend.getDockerClient().startContainerCmd(containerId)) {
-                startCmd.exec();
-            }
-
-            warnings.forEach(w -> LOG.warning("Docker-Warning(" + stageId + "): " + w));
-            return new SubmissionResult(stage, new DockerStageHandle(this.backend, containerId));
-        }
+        return new SubmissionResult(stage, new DockerStageHandle(this.backend, stageId, createCmd));
     }
 
     @Nonnull
