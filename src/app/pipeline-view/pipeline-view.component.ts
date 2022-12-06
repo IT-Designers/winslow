@@ -31,7 +31,7 @@ import {DiagramConfigHelper} from "./diagram-config-helper";
 import {DiagramInitialData} from "./diagram-initial-data";
 import {AddToolsComponent} from "./add-tools/add-tools.component";
 import {DiagramGatewayComponent} from "./diagram-gateway/diagram-gateway.component";
-import {ImageInfo, ProjectInfo, StageDefinitionInfo} from "../api/winslow-api";
+import {ImageInfo, ProjectInfo, StageDefinitionInfo, StageWorkerDefinitionInfo} from "../api/winslow-api";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -115,13 +115,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         const createAction = action as CreateNodeAction<any>;
         if (createAction.payload.typeId == "node-normal" || createAction.payload.typeId ==  "node-start"){
 
-          const stageDef = new StageDefinitionInfo({
-            id: "",
-            name: "New Stage",
-            image: new ImageInfo({}),
-            requiredEnvVariables: [],
-            env: {}
-          });
+          const stageDef = new StageWorkerDefinitionInfo({ id: createAction.payload.id, name: 'New Stage', ignoreFailuresWithinExecutionGroup: false, nextStages: []});
           //console.log(stageDef);
           this.project.pipelineDefinition.stages.push(stageDef)
           let newAction: CreateNodeAction<{}> = {
@@ -141,7 +135,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           createAction.payload.typeId == "node-all-merger" ||
           createAction.payload.typeId == "node-any-merger"
         ){
-          const stageDef = new StageDefinitionInfo({id: "", name: createAction.payload.typeId, requiredEnvVariables: []});
+          const stageDef = new StageWorkerDefinitionInfo({id: createAction.payload.id, name: "", ignoreFailuresWithinExecutionGroup: false, nextStages: [] });
           let newAction: CreateNodeAction<{}> = {
             type: DiagramMakerActions.NODE_CREATE,
             payload: {
