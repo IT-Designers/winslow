@@ -88,8 +88,6 @@ export class EditFormsComponent implements OnInit {
   addContent(entry){
     //console.log(entry.value instanceof Array);
     console.log(entry.value instanceof ImageInfo);
-    //console.log(entry);
-    //console.log(this.editForm)
     if (entry.value instanceof Array){
       //let newArray = new Array();
       let newArray : String[]  = Object.assign([], this.formObj$[entry.key]);
