@@ -6,6 +6,7 @@ import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.api.pipeline.State;
+
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.node.PlatformInfo;

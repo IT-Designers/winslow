@@ -111,16 +111,16 @@ public class XOrGateway extends Gateway {
     private UUID findNextStageDefinitionID(Optional<ExecutionGroup> thisExecutionGroup, Map<String, String> result) {
         var  conditions                   = stageDefinition.conditions();
 
-        this.log(Level.INFO, "args: " + Arrays.toString(conditions));
-        for (int i = 0; i < conditions.length; i++) {
+        this.log(Level.INFO, "args: " + conditions);
+        for (int i = 0; i < conditions.size(); i++) {
             this.log(Level.INFO, "index: " + i);
-            this.log(Level.INFO, "value: " + conditions[i]);
+            this.log(Level.INFO, "value: " + conditions.get(i));
             var logic = new JsonLogic();
             var data  = new HashMap<String, Object>();
             data.putAll(stageDefinition.environment());
             data.putAll(result);
             try {
-                boolean logic_result = (boolean) logic.apply(conditions[i], data);
+                boolean logic_result = (boolean) logic.apply(conditions.get(i), data);
                 this.log(Level.INFO, "logic_result: " + logic_result);
                 if (logic_result) {
                     return thisExecutionGroup

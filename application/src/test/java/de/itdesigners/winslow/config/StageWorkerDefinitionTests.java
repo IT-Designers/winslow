@@ -14,7 +14,8 @@ public class StageWorkerDefinitionTests {
     @Test
     public void testMostBasicPipeline() throws IOException {
         var stageYaml = """
-                name: "The name of the stage"
+                Worker:
+                    name: "The name of the stage"
                 """;
 
         var stage = BaseRepository.readFromString(StageWorkerDefinition.class, stageYaml);
@@ -34,12 +35,13 @@ public class StageWorkerDefinitionTests {
     public void testWithDescAndImage() throws IOException {
 
         var stageYaml = """
-                    name: "The name of the stage"
-                    description: "The description of the stage"
-                    
-                    image:
-                        name: "image-origin/image-name"
-                        args: ["arg1", "arg2"]
+                    Worker:
+                        name: "The name of the stage"
+                        description: "The description of the stage"
+                        
+                        image:
+                            name: "image-origin/image-name"
+                            args: ["arg1", "arg2"]
                 """;
 
 
@@ -55,15 +57,16 @@ public class StageWorkerDefinitionTests {
     public void testWithBasicRequires() throws IOException {
 
         var stageYaml = """
-                    name: "The name of the stage"
-                    
-                    requirements:
-                      cpu: 0
-                      gpu:
-                        count: 0
-                        vendor: ""
-                        support: []
-                      megabytesOfRam: 4096
+                    Worker:
+                        name: "The name of the stage"
+                        
+                        requirements:
+                          cpu: 0
+                          gpu:
+                            count: 0
+                            vendor: ""
+                            support: []
+                          megabytesOfRam: 4096
                 """;
 
         var stage = BaseRepository.readFromString(StageWorkerDefinition.class, stageYaml);
@@ -79,14 +82,15 @@ public class StageWorkerDefinitionTests {
 
 
         var stageYaml = """
-                   name: "The name of the stage" 
-                    
-                   requirements:
-                     megabytesOfRam: 5120
-                     gpu:
-                       count: 4
-                       vendor: "nvidia"
-                       support: ["cuda", "vulkan"]
+                   Worker:
+                       name: "The name of the stage" 
+                        
+                       requirements:
+                         megabytesOfRam: 5120
+                         gpu:
+                           count: 4
+                           vendor: "nvidia"
+                           support: ["cuda", "vulkan"]
                 """;
 
         var stage = BaseRepository.readFromString(StageWorkerDefinition.class, stageYaml);
@@ -105,11 +109,12 @@ public class StageWorkerDefinitionTests {
     public void testWithEnvironmentVariables() throws IOException {
 
         var stageYaml = """
-                name: "The name of the stage"
-                                
-                environment:
-                    VAR_1: "VALUE_1"
-                    VAR_2: "value_2"
+                Worker:
+                    name: "The name of the stage"
+                                    
+                    environment:
+                        VAR_1: "VALUE_1"
+                        VAR_2: "value_2"
                 """;
 
         var stage = BaseRepository.readFromString(StageWorkerDefinition.class, stageYaml);
@@ -124,10 +129,11 @@ public class StageWorkerDefinitionTests {
     public void testWithHighlights() throws IOException {
 
         var stageYaml = """
-                name: "The name of the stage"
-                                
-                highlight:
-                    resources: ["res1", "RES/NUM/2"]
+                Worker:
+                    name: "The name of the stage"
+                                    
+                    highlight:
+                        resources: ["res1", "RES/NUM/2"]
                 """;
 
         var stage = BaseRepository.readFromString(StageWorkerDefinition.class, stageYaml);
@@ -194,9 +200,6 @@ public class StageWorkerDefinitionTests {
                 true,
                 Arrays.asList(UUID.randomUUID())
         );
-
-        var stream = new ByteArrayOutputStream();
-        BaseRepository.defaultWriter().store(stream, stage);
 
         var yaml = BaseRepository.writeToString(stage);
 

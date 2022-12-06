@@ -8,6 +8,6 @@ public record StageXOrGatewayDefintionInfo(
         @Nonnull UUID id,
         @Nonnull String name,
         @Nonnull String description,
-        @Nonnull String[] conditions,
+        @Nonnull List<String> conditions,
         @Nonnull List<UUID> nextStages) implements StageDefinitionInfo {
 }
