@@ -1,19 +1,21 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {
-  WorkspaceConfigurationExt,
   ProjectApiService,
   RangedList,
   RangedValue,
-  RangeWithStepSize
+  RangeWithStepSize,
+  WorkspaceConfigurationExt
 } from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
 import {
-  EnvVariable, ExecutionGroupInfo,
+  EnvVariable,
+  ExecutionGroupInfo,
   ImageInfo,
   PipelineInfo,
   ResourceInfo,
   StageDefinitionInfo,
+  StageWorkerDefinitionInfo,
   WorkspaceMode
 } from '../api/winslow-api';
 
@@ -41,7 +43,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   executionHistoryValue: ExecutionGroupInfo[] = null;
 
   selectedPipeline: PipelineInfo = null;
-  selectedStage: StageDefinitionInfo = null;
+  selectedStage: StageWorkerDefinitionInfo = null;
   image = new ImageInfo({name: '', args: [], shmMegabytes: 0});
 
   resources = new ResourceInfo({cpus: 0, gpus: 0, megabytesOfRam: 100});
@@ -189,19 +191,21 @@ export class StageExecutionSelectionComponent implements OnInit {
   loadEnvForStageName(stageName: string) {
     if (this.selectedPipeline != null) {
       for (const stage of this.selectedPipeline.stages) {
-        if (stage.name === stageName) {
-          this.selectedStage = stage;
-          this.selectedStageEmitter.emit(stage);
-          this.image = StageExecutionSelectionComponent.deepClone(stage.image);
-          this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : null;
+        if (stage instanceof StageWorkerDefinitionInfo) {
+          if (stage.name === stageName) {
+            this.selectedStage = stage;
+            this.selectedStageEmitter.emit(stage);
+            this.image = StageExecutionSelectionComponent.deepClone(stage.image);
+            this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : null;
 
-          const requiredEnvironmentVariables = [];
-          this.selectedPipeline.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
-          this.selectedStage.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
+            const requiredEnvironmentVariables = [];
+            this.selectedPipeline.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
+            stage.userInput.environment.forEach(key => requiredEnvironmentVariables.push(key));
 
-          this.environmentVariables = new Map();
-          this.requiredEnvironmentVariables = requiredEnvironmentVariables;
-          break;
+            this.environmentVariables = new Map();
+            this.requiredEnvironmentVariables = requiredEnvironmentVariables;
+            break;
+          }
         }
       }
     }

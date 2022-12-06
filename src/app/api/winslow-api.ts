@@ -1,49 +1,49 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.0.1157 on 2022-12-06 14:17:14.
+// Generated using typescript-generator version 3.0.1157 on 2022-12-06 15:06:38.
 
-export class IBuild {
+export class Build {
 
-  constructor(data: IBuild) {
+  constructor(data: Build) {
   }
 }
 
-export class IGroupInfo {
+export class GroupInfo {
   name: string;
-  members: ILink[];
+  members: Link[];
 
-  constructor(data: IGroupInfo) {
+  constructor(data: GroupInfo) {
     this.name = data.name;
     this.members = data.members;
   }
 }
 
-export class ILink {
+export class Link {
   name: string;
-  role: IRole;
+  role: Role;
 
-  constructor(data: ILink) {
+  constructor(data: Link) {
     this.name = data.name;
     this.role = data.role;
   }
 }
 
-export class IUserInfo {
+export class UserInfo {
   name: string;
 
-  constructor(data: IUserInfo) {
+  constructor(data: UserInfo) {
     this.name = data.name;
   }
 }
 
-export class IFileInfo {
+export class FileInfo {
   name: string;
   directory: boolean;
   path: string;
   fileSize?: number;
   attributes: { [index: string]: any };
 
-  constructor(data: IFileInfo) {
+  constructor(data: FileInfo) {
     this.name = data.name;
     this.directory = data.directory;
     this.path = data.path;
@@ -52,13 +52,13 @@ export class IFileInfo {
   }
 }
 
-export class IAllocInfo {
+export class AllocInfo {
   title: string;
   cpu: number;
   memory: number;
   gpu: number;
 
-  constructor(data: IAllocInfo) {
+  constructor(data: AllocInfo) {
     this.title = data.title;
     this.cpu = data.cpu;
     this.memory = data.memory;
@@ -66,43 +66,43 @@ export class IAllocInfo {
   }
 }
 
-export class IBuildInfo {
+export class BuildInfo {
   date: string;
   commitHashShort: string;
   commitHashLong: string;
 
-  constructor(data: IBuildInfo) {
+  constructor(data: BuildInfo) {
     this.date = data.date;
     this.commitHashShort = data.commitHashShort;
     this.commitHashLong = data.commitHashLong;
   }
 }
 
-export class ICpuInfo {
+export class CpuInfo {
   modelName: string;
   utilization: number[];
 
-  constructor(data: ICpuInfo) {
+  constructor(data: CpuInfo) {
     this.modelName = data.modelName;
     this.utilization = data.utilization;
   }
 }
 
-export class ICpuUtilization {
-  cpus: IIterable<number>;
+export class CpuUtilization {
+  cpus: Iterable<number>;
 
-  constructor(data: ICpuUtilization) {
+  constructor(data: CpuUtilization) {
     this.cpus = data.cpus;
   }
 }
 
-export class IDiskInfo {
+export class DiskInfo {
   reading: number;
   writing: number;
   free: number;
   used: number;
 
-  constructor(data: IDiskInfo) {
+  constructor(data: DiskInfo) {
     this.reading = data.reading;
     this.writing = data.writing;
     this.free = data.free;
@@ -110,7 +110,7 @@ export class IDiskInfo {
   }
 }
 
-export class IGpuInfo {
+export class GpuInfo {
   id: string;
   vendor: string;
   name: string;
@@ -119,7 +119,7 @@ export class IGpuInfo {
   memoryUsedMegabytes: number;
   memoryTotalMegabytes: number;
 
-  constructor(data: IGpuInfo) {
+  constructor(data: GpuInfo) {
     this.id = data.id;
     this.vendor = data.vendor;
     this.name = data.name;
@@ -130,13 +130,13 @@ export class IGpuInfo {
   }
 }
 
-export class IGpuUtilization {
+export class GpuUtilization {
   computeUtilization: number;
   memoryUtilization: number;
   memoryUsedMegabytes: number;
   memoryTotalMegabytes: number;
 
-  constructor(data: IGpuUtilization) {
+  constructor(data: GpuUtilization) {
     this.computeUtilization = data.computeUtilization;
     this.memoryUtilization = data.memoryUtilization;
     this.memoryUsedMegabytes = data.memoryUsedMegabytes;
@@ -144,14 +144,14 @@ export class IGpuUtilization {
   }
 }
 
-export class IMemInfo {
+export class MemInfo {
   memoryTotal: number;
   memoryFree: number;
   systemCache: number;
   swapTotal: number;
   swapFree: number;
 
-  constructor(data: IMemInfo) {
+  constructor(data: MemInfo) {
     this.memoryTotal = data.memoryTotal;
     this.memoryFree = data.memoryFree;
     this.systemCache = data.systemCache;
@@ -160,29 +160,29 @@ export class IMemInfo {
   }
 }
 
-export class INetInfo {
+export class NetInfo {
   transmitting: number;
   receiving: number;
 
-  constructor(data: INetInfo) {
+  constructor(data: NetInfo) {
     this.transmitting = data.transmitting;
     this.receiving = data.receiving;
   }
 }
 
-export class INodeInfo {
+export class NodeInfo {
   name: string;
   time?: number;
   uptime?: number;
-  cpuInfo: ICpuInfo;
-  memInfo: IMemInfo;
-  netInfo: INetInfo;
-  diskInfo: IDiskInfo;
-  gpuInfo: IGpuInfo[];
-  allocInfo?: IAllocInfo[];
-  buildInfo: IBuildInfo;
+  cpuInfo: CpuInfo;
+  memInfo: MemInfo;
+  netInfo: NetInfo;
+  diskInfo: DiskInfo;
+  gpuInfo: GpuInfo[];
+  allocInfo?: AllocInfo[];
+  buildInfo: BuildInfo;
 
-  constructor(data: INodeInfo) {
+  constructor(data: NodeInfo) {
     this.name = data.name;
     this.time = data.time;
     this.uptime = data.uptime;
@@ -196,16 +196,16 @@ export class INodeInfo {
   }
 }
 
-export class INodeUtilization {
+export class NodeUtilization {
   time: number;
   uptime: number;
   cpuUtilization: number[];
-  memoryInfo: IMemInfo;
-  netInfo: INetInfo;
-  diskInfo: IDiskInfo;
-  gpuUtilization: IGpuUtilization[];
+  memoryInfo: MemInfo;
+  netInfo: NetInfo;
+  diskInfo: DiskInfo;
+  gpuUtilization: GpuUtilization[];
 
-  constructor(data: INodeUtilization) {
+  constructor(data: NodeUtilization) {
     this.time = data.time;
     this.uptime = data.uptime;
     this.cpuUtilization = data.cpuUtilization;
@@ -216,42 +216,42 @@ export class INodeUtilization {
   }
 }
 
-export class IDeletionPolicy {
+export class DeletionPolicy {
   keepWorkspaceOfFailedStage: boolean;
   numberOfWorkspacesOfSucceededStagesToKeep?: number;
   alwaysKeepMostRecentWorkspace?: boolean;
 
-  constructor(data: IDeletionPolicy) {
+  constructor(data: DeletionPolicy) {
     this.keepWorkspaceOfFailedStage = data.keepWorkspaceOfFailedStage;
     this.numberOfWorkspacesOfSucceededStagesToKeep = data.numberOfWorkspacesOfSucceededStagesToKeep;
     this.alwaysKeepMostRecentWorkspace = data.alwaysKeepMostRecentWorkspace;
   }
 }
 
-export class IEnvVariable {
+export class EnvVariable {
   key: string;
   value?: string;
   valueInherited?: string;
 
-  constructor(data: IEnvVariable) {
+  constructor(data: EnvVariable) {
     this.key = data.key;
     this.value = data.value;
     this.valueInherited = data.valueInherited;
   }
 }
 
-export class IExecutionGroupInfo {
+export class ExecutionGroupInfo {
   id: string;
   configureOnly: boolean;
-  stageDefinition: IStageDefinitionInfo;
+  stageDefinition: StageDefinitionInfo;
   rangedValues: { [index: string]: any };
-  workspaceConfiguration: IWorkspaceConfiguration;
-  stages: IStageInfo[];
+  workspaceConfiguration: WorkspaceConfiguration;
+  stages: StageInfo[];
   active: boolean;
   enqueued: boolean;
   comment?: string;
 
-  constructor(data: IExecutionGroupInfo) {
+  constructor(data: ExecutionGroupInfo) {
     this.id = data.id;
     this.configureOnly = data.configureOnly;
     this.stageDefinition = data.stageDefinition;
@@ -264,33 +264,33 @@ export class IExecutionGroupInfo {
   }
 }
 
-export class IHighlightInfo {
+export class HighlightInfo {
   resources: string[];
 
-  constructor(data: IHighlightInfo) {
+  constructor(data: HighlightInfo) {
     this.resources = data.resources;
   }
 }
 
-export class IImageInfo {
+export class ImageInfo {
   name?: string;
   args?: string[];
   shmMegabytes?: number;
 
-  constructor(data: IImageInfo) {
+  constructor(data: ImageInfo) {
     this.name = data.name;
     this.args = data.args;
     this.shmMegabytes = data.shmMegabytes;
   }
 }
 
-export class ILogEntry {
+export class LogEntry {
   time: number;
-  source: ISource;
+  source: Source;
   error: boolean;
   message: string;
 
-  constructor(data: ILogEntry) {
+  constructor(data: LogEntry) {
     this.time = data.time;
     this.source = data.source;
     this.error = data.error;
@@ -298,24 +298,24 @@ export class ILogEntry {
   }
 }
 
-export class ILogEntryInfo extends ILogEntry {
+export class LogEntryInfo extends LogEntry {
   line: number;
   stageId?: string;
 
-  constructor(data: ILogEntryInfo) {
+  constructor(data: LogEntryInfo) {
     super(data);
     this.line = data.line;
     this.stageId = data.stageId;
   }
 }
 
-export class ILogParserInfo {
+export class LogParserInfo {
   matcher: string;
   destination: string;
   formatter: string;
   type: string;
 
-  constructor(data: ILogParserInfo) {
+  constructor(data: LogParserInfo) {
     this.matcher = data.matcher;
     this.destination = data.destination;
     this.formatter = data.formatter;
@@ -323,27 +323,27 @@ export class ILogParserInfo {
   }
 }
 
-export class IParseError {
+export class ParseError {
   line: number;
   column: number;
   message: string;
 
-  constructor(data: IParseError) {
+  constructor(data: ParseError) {
     this.line = data.line;
     this.column = data.column;
     this.message = data.message;
   }
 }
 
-export class IPipelineInfo {
+export class PipelineInfo {
   id: string;
   name: string;
   desc?: string;
   requiredEnvVariables: string[];
-  stages: IStageDefinitionInfo[];
+  stages: StageDefinitionInfo[];
   markers: string[];
 
-  constructor(data: IPipelineInfo) {
+  constructor(data: PipelineInfo) {
     this.id = data.id;
     this.name = data.name;
     this.desc = data.desc;
@@ -353,51 +353,51 @@ export class IPipelineInfo {
   }
 }
 
-export class IRequirementsInfo {
-  cpu: number;
-  ram: number;
-  gpu: IGPUInfo;
+export class RequirementsInfo {
+  cpus: number;
+  megabytesOfRam: number;
+  gpu: GPUInfo;
   tags: string[];
 
-  constructor(data: IRequirementsInfo) {
-    this.cpu = data.cpu;
-    this.ram = data.ram;
+  constructor(data: RequirementsInfo) {
+    this.cpus = data.cpus;
+    this.megabytesOfRam = data.megabytesOfRam;
     this.gpu = data.gpu;
     this.tags = data.tags;
   }
 }
 
-export class IGPUInfo {
+export class GPUInfo {
   count: number;
   vendor: string;
   support: string[];
 
-  constructor(data: IGPUInfo) {
+  constructor(data: GPUInfo) {
     this.count = data.count;
     this.vendor = data.vendor;
     this.support = data.support;
   }
 }
 
-export class IResourceInfo {
+export class ResourceInfo {
   cpus: number;
   megabytesOfRam: number;
   gpus?: number;
 
-  constructor(data: IResourceInfo) {
+  constructor(data: ResourceInfo) {
     this.cpus = data.cpus;
     this.megabytesOfRam = data.megabytesOfRam;
     this.gpus = data.gpus;
   }
 }
 
-export class IStageAndGatewayDefinitionInfo implements IStageDefinitionInfo {
+export class StageAndGatewayDefinitionInfo implements StageDefinitionInfo {
   id: string;
   name: string;
   description: string;
   nextStages: string[];
 
-  constructor(data: IStageAndGatewayDefinitionInfo) {
+  constructor(data: StageAndGatewayDefinitionInfo) {
     this.id = data.id;
     this.name = data.name;
     this.description = data.description;
@@ -405,14 +405,18 @@ export class IStageAndGatewayDefinitionInfo implements IStageDefinitionInfo {
   }
 }
 
-export interface IStageDefinitionInfo {
+export interface StageDefinitionInfo {
+  id: string;
+  name: string;
+
+  nextStages: string[];
 }
 
-export class IStageInfo {
+export class StageInfo {
   id: string;
   startTime?: DateAsNumber;
   finishTime?: DateAsNumber;
-  state?: IState;
+  state?: State;
   workspace?: string;
   env: { [index: string]: string };
   envPipeline: { [index: string]: string };
@@ -420,7 +424,7 @@ export class IStageInfo {
   envInternal: { [index: string]: string };
   result: { [index: string]: string };
 
-  constructor(data: IStageInfo) {
+  constructor(data: StageInfo) {
     this.id = data.id;
     this.startTime = data.startTime;
     this.finishTime = data.finishTime;
@@ -434,22 +438,22 @@ export class IStageInfo {
   }
 }
 
-export class IStageWorkerDefinitionInfo implements IStageDefinitionInfo {
+export class StageWorkerDefinitionInfo implements StageDefinitionInfo {
   id: string;
   name: string;
   description?: string;
-  image?: IImageInfo;
-  requiredResources?: IRequirementsInfo;
-  userInput?: IUserInputInfo;
+  image?: ImageInfo;
+  requiredResources?: RequirementsInfo;
+  userInput?: UserInputInfo;
   environment?: { [index: string]: string };
-  highlight?: IHighlightInfo;
+  highlight?: HighlightInfo;
   discardable?: boolean;
   privileged?: boolean;
-  logParsers?: ILogParserInfo[];
+  logParsers?: LogParserInfo[];
   ignoreFailuresWithinExecutionGroup: boolean;
   nextStages: string[];
 
-  constructor(data: IStageWorkerDefinitionInfo) {
+  constructor(data: StageWorkerDefinitionInfo) {
     this.id = data.id;
     this.name = data.name;
     this.description = data.description;
@@ -466,14 +470,14 @@ export class IStageWorkerDefinitionInfo implements IStageDefinitionInfo {
   }
 }
 
-export class IStageXOrGatewayDefintionInfo implements IStageDefinitionInfo {
+export class StageXOrGatewayDefintionInfo implements StageDefinitionInfo {
   id: string;
   name: string;
   description: string;
   conditions: string[];
   nextStages: string[];
 
-  constructor(data: IStageXOrGatewayDefintionInfo) {
+  constructor(data: StageXOrGatewayDefintionInfo) {
     this.id = data.id;
     this.name = data.name;
     this.description = data.description;
@@ -482,14 +486,14 @@ export class IStageXOrGatewayDefintionInfo implements IStageDefinitionInfo {
   }
 }
 
-export class IStateInfo {
-  state?: IState;
+export class StateInfo {
+  state?: State;
   pauseReason?: string;
   description?: string;
   stageProgress?: number;
   hasEnqueuedStages: boolean;
 
-  constructor(data: IStateInfo) {
+  constructor(data: StateInfo) {
     this.state = data.state;
     this.pauseReason = data.pauseReason;
     this.description = data.description;
@@ -498,7 +502,7 @@ export class IStateInfo {
   }
 }
 
-export class IStats {
+export class Stats {
   stageId?: string;
   runningOnNode?: string;
   cpuUsed: number;
@@ -506,7 +510,7 @@ export class IStats {
   memoryAllocated: number;
   memoryMaximum: number;
 
-  constructor(data: IStats) {
+  constructor(data: Stats) {
     this.stageId = data.stageId;
     this.runningOnNode = data.runningOnNode;
     this.cpuUsed = data.cpuUsed;
@@ -516,23 +520,23 @@ export class IStats {
   }
 }
 
-export class IUserInputInfo {
-  confirmation: IConfirmation;
+export class UserInputInfo {
+  confirmation: Confirmation;
   environment: string[];
 
-  constructor(data: IUserInputInfo) {
+  constructor(data: UserInputInfo) {
     this.confirmation = data.confirmation;
     this.environment = data.environment;
   }
 }
 
-export class IWorkspaceConfiguration {
-  mode: IWorkspaceMode;
+export class WorkspaceConfiguration {
+  mode: WorkspaceMode;
   value?: string;
   sharedWithinGroup?: boolean;
   nestedWithinGroup?: boolean;
 
-  constructor(data: IWorkspaceConfiguration) {
+  constructor(data: WorkspaceConfiguration) {
     this.mode = data.mode;
     this.value = data.value;
     this.sharedWithinGroup = data.sharedWithinGroup;
@@ -540,13 +544,13 @@ export class IWorkspaceConfiguration {
   }
 }
 
-export class IAuthTokenInfo {
+export class AuthTokenInfo {
   id: string;
   secret?: string;
   name: string;
   capabilities: string[];
 
-  constructor(data: IAuthTokenInfo) {
+  constructor(data: AuthTokenInfo) {
     this.id = data.id;
     this.secret = data.secret;
     this.name = data.name;
@@ -554,18 +558,18 @@ export class IAuthTokenInfo {
   }
 }
 
-export class IEnqueueRequest {
+export class EnqueueRequest {
   env: { [index: string]: string };
   rangedEnv?: { [index: string]: any };
   id: string;
-  image?: IImageInfo;
-  requiredResources?: IResourceInfo;
-  workspaceConfiguration?: IWorkspaceConfiguration;
+  image?: ImageInfo;
+  requiredResources?: ResourceInfo;
+  workspaceConfiguration?: WorkspaceConfiguration;
   comment?: string;
   runSingle?: boolean;
   resume?: boolean;
 
-  constructor(data: IEnqueueRequest) {
+  constructor(data: EnqueueRequest) {
     this.env = data.env;
     this.rangedEnv = data.rangedEnv;
     this.id = data.id;
@@ -578,47 +582,47 @@ export class IEnqueueRequest {
   }
 }
 
-export class IEnqueueOnOtherRequest extends IEnqueueRequest {
+export class EnqueueOnOtherRequest extends EnqueueRequest {
   projectIds: string[];
 
-  constructor(data: IEnqueueOnOtherRequest) {
+  constructor(data: EnqueueOnOtherRequest) {
     super(data);
     this.projectIds = data.projectIds;
   }
 }
 
-export class ILogLinesRequest {
+export class LogLinesRequest {
   skipLines?: number;
   expectingStageId?: string;
 
-  constructor(data: ILogLinesRequest) {
+  constructor(data: LogLinesRequest) {
     this.skipLines = data.skipLines;
     this.expectingStageId = data.expectingStageId;
   }
 }
 
-export class IProjectCreateRequest {
+export class ProjectCreateRequest {
   name: string;
   pipeline: string;
   tags?: string[];
 
-  constructor(data: IProjectCreateRequest) {
+  constructor(data: ProjectCreateRequest) {
     this.name = data.name;
     this.pipeline = data.pipeline;
     this.tags = data.tags;
   }
 }
 
-export class IProjectInfo {
+export class ProjectInfo {
   id: string;
   owner: string;
   groups: string[];
   tags: string[];
   name: string;
   publicAccess: boolean;
-  pipelineDefinition: IPipelineInfo;
+  pipelineDefinition: PipelineInfo;
 
-  constructor(data: IProjectInfo) {
+  constructor(data: ProjectInfo) {
     this.id = data.id;
     this.owner = data.owner;
     this.groups = data.groups;
@@ -629,53 +633,53 @@ export class IProjectInfo {
   }
 }
 
-export class IUpdatePauseRequest {
+export class UpdatePauseRequest {
   paused: boolean;
   strategy?: string;
 
-  constructor(data: IUpdatePauseRequest) {
+  constructor(data: UpdatePauseRequest) {
     this.paused = data.paused;
     this.strategy = data.strategy;
   }
 }
 
-export class IResourceLimitation {
+export class ResourceLimitation {
   cpu?: number;
   mem?: number;
   gpu?: number;
 
-  constructor(data: IResourceLimitation) {
+  constructor(data: ResourceLimitation) {
     this.cpu = data.cpu;
     this.mem = data.mem;
     this.gpu = data.gpu;
   }
 }
 
-export class IStorageInfo {
+export class StorageInfo {
   name?: string;
   bytesUsed: number;
   bytesFree: number;
 
-  constructor(data: IStorageInfo) {
+  constructor(data: StorageInfo) {
     this.name = data.name;
     this.bytesUsed = data.bytesUsed;
     this.bytesFree = data.bytesFree;
   }
 }
 
-export interface IIterable<T> {
+export interface Iterable<T> {
 }
 
 export type DateAsNumber = number;
 
-export type IRole = "OWNER" | "MEMBER";
+export type Role = "OWNER" | "MEMBER";
 
-export type IAction = "Execute" | "Configure";
+export type Action = "Execute" | "Configure";
 
-export type ISource = "STANDARD_IO" | "MANAGEMENT_EVENT";
+export type Source = "STANDARD_IO" | "MANAGEMENT_EVENT";
 
-export type IState = "Running" | "Paused" | "Succeeded" | "Failed" | "Preparing" | "Enqueued" | "Skipped";
+export type State = "Running" | "Paused" | "Succeeded" | "Failed" | "Preparing" | "Enqueued" | "Skipped";
 
-export type IConfirmation = "Never" | "Once" | "Always";
+export type Confirmation = "Never" | "Once" | "Always";
 
-export type IWorkspaceMode = "STANDALONE" | "INCREMENTAL" | "CONTINUATION";
+export type WorkspaceMode = "STANDALONE" | "INCREMENTAL" | "CONTINUATION";
