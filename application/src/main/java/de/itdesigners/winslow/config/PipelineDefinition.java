@@ -8,8 +8,8 @@ import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Stream;
 
-public record PipelineDefinition(
 
+public record PipelineDefinition(
         @Nonnull String name,
         @Nonnull String description,
         @Nonnull UserInput userInput,
@@ -32,7 +32,7 @@ public record PipelineDefinition(
             @Nullable List<String> markers
     ) {
         this.name        = name;
-        this.description = description != null? description : "";
+        this.description = description != null ? description : "";
         this.userInput   = userInput != null ? userInput : new UserInput(null, null);
         ;
         this.stages         = stages != null ? Collections.unmodifiableList(stages) : Collections.emptyList();

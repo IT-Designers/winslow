@@ -5,7 +5,7 @@ import de.itdesigners.winslow.api.pipeline.RangedList;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.junit.Test;
@@ -412,7 +412,7 @@ public class ObsoleteWorkspaceFinderTest {
                         "randomish-human-readable"
                 ),
                 configureOnly,
-                new StageDefinition(
+                new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "some-definition",
                         null,
@@ -422,9 +422,6 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         discardable,
-                        null,
-                        null,
-                        null,
                         null,
                         null,
                         null,
@@ -467,7 +464,7 @@ public class ObsoleteWorkspaceFinderTest {
                         "randomish-human-readable"
                 ),
                 configureOnly,
-                new StageDefinition(
+                new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "some-definition",
                         null,
@@ -477,9 +474,6 @@ public class ObsoleteWorkspaceFinderTest {
                         null,
                         null,
                         discardable,
-                        null,
-                        null,
-                        null,
                         null,
                         null,
                         null,

@@ -2,6 +2,7 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.config.UserInput;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Submission;
@@ -68,25 +69,33 @@ public class UserInputChecker implements AssemblerStep {
             @Nonnull PipelineDefinition pipelineDefinition,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Submission submission) {
-        return Stream.concat(
-                pipelineDefinition.userInput().getEnvironment().stream(),
-                stageDefinition.userInput().getEnvironment().stream()
-        ).filter(k -> submission.getEnvVariable(k).isEmpty());
+        if (stageDefinition instanceof StageWorkerDefinition stageWorkerDefinition) {
+            return Stream.concat(
+                    pipelineDefinition.userInput().getEnvironment().stream(),
+                    stageWorkerDefinition.userInput().getEnvironment().stream()
+            ).filter(k -> submission.getEnvVariable(k).isEmpty());
+        } else {
+            return Stream.empty();
+        }
     }
 
     private static boolean isConfirmationRequiredForNextStage(
             @Nonnull PipelineDefinition pipelineDefinition,
             @Nonnull StageDefinition stageDefinition,
             @Nonnull Pipeline pipeline) {
-        return Stream
-                .of(stageDefinition.userInput(), pipelineDefinition.userInput())
-                .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
-                .anyMatch(u -> u.getConfirmation() == UserInput.Confirmation.Always || (
-                                  u.getConfirmation() == UserInput.Confirmation.Once && pipeline
-                                          .getActiveAndPastExecutionGroups()
-                                          .noneMatch(g -> g.getStageDefinition().id().equals(stageDefinition.id()))
-                          )
-                );
+        if (stageDefinition instanceof StageWorkerDefinition stageWorkerDefinition) {
+            return Stream
+                    .of(stageWorkerDefinition.userInput(), pipelineDefinition.userInput())
+                    .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
+                    .anyMatch(u -> u.getConfirmation() == UserInput.Confirmation.Always || (
+                                      u.getConfirmation() == UserInput.Confirmation.Once && pipeline
+                                              .getActiveAndPastExecutionGroups()
+                                              .noneMatch(g -> g.getStageDefinition().id().equals(stageDefinition.id()))
+                              )
+                    );
+        } else {
+            return false;
+        }
     }
 
     public static class FurtherUserInputRequiredException extends AssemblyException {

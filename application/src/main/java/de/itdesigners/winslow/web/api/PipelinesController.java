@@ -165,7 +165,7 @@ public class PipelinesController {
                                             UserInput.Confirmation.Once,
                                             List.of("SOME", "ENV_VARS", "THAT_MUST_BE_SET")
                                     ),
-                                    List.of(new StageDefinition(
+                                    List.of(new StageWorkerDefinition(
                                             UUID.randomUUID(),
                                             "Sample Modest Stage",
                                             "Automatically generated stage description",
@@ -178,11 +178,8 @@ public class PipelinesController {
                                             false,
                                             null,
                                             null,
-                                            null,
-                                            null,
-                                            null,
                                             null
-                                    ), new StageDefinition(
+                                    ), new StageWorkerDefinition(
                                             UUID.randomUUID(),
                                             "Sample Nvidia Stage",
                                             "Automatically generated stage that reqires a GPU",
@@ -190,7 +187,8 @@ public class PipelinesController {
                                             new Requirements(
                                                     0,
                                                     0,
-                                                    new Requirements.Gpu(1, "nvidia", new String[]{"cuda"})
+                                                    new Requirements.Gpu(1, "nvidia", new String[]{"cuda"}),
+                                                    null
                                             ),
                                             new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
                                             Map.of("ANOTHER", "VALUE"),
@@ -199,24 +197,18 @@ public class PipelinesController {
                                             false,
                                             null,
                                             null,
-                                            null,
-                                            null,
-                                            null,
                                             null
-                                    ), new StageDefinition(
+                                    ), new StageWorkerDefinition(
                                             UUID.randomUUID(),
                                             "Sample Stage 3",
                                             "Another example",
                                             new Image("library/hello-world", new String[]{}),
-                                            new Requirements(1, 10240, null),
+                                            new Requirements(1, 10240, null, null),
                                             new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
                                             Map.of("GIMME", "MOAR RAM"),
                                             null,
                                             null,
                                             false,
-                                            null,
-                                            null,
-                                            null,
                                             null,
                                             null,
                                             null

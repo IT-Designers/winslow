@@ -2,6 +2,7 @@ package de.itdesigners.winslow.gateway;
 
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

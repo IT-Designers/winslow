@@ -10,7 +10,7 @@ public class ExecutionGroupInfo {
 
     public final @Nonnull  String                   id;
     public final           boolean                  configureOnly;
-    public final @Nonnull  StageDefinitionInfo      stageDefinition;
+    public final @Nonnull  StageDefinitionInfo stageDefinition;
     public final @Nonnull  Map<String, RangedValue> rangedValues;
     public final @Nonnull  WorkspaceConfiguration   workspaceConfiguration;
     public final @Nonnull  List<StageInfo>          stages;

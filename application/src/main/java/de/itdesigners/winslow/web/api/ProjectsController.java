@@ -28,10 +28,7 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -738,10 +735,11 @@ public class ProjectsController {
                                     .skip(stageIndex)
                                     .findFirst();
 
-                            if (stageDef.isPresent()) {
+                            if (stageDef.isPresent() && stageDef.get() instanceof StageWorkerDefinition) {
+                                var workerStage = (StageWorkerDefinition) stageDef.get();
                                 resolver = resolver
                                         .withIdAndStageName(stageDef.get().id(), stageDef.get().name())
-                                        .withInStageDefinitionDefinedVariables(stageDef.get().environment());
+                                        .withInStageDefinitionDefinedVariables(workerStage.environment());
                             }
 
                             return resolver.resolve();
@@ -769,7 +767,9 @@ public class ProjectsController {
                                 .stream()
                                 .skip(stageIndex)
                                 .findFirst()
-                                .map(StageDefinition::userInput)
+                                .map(stage -> stage instanceof StageWorkerDefinition w
+                                              ? w.userInput()
+                                              : new UserInput(null, null))
                                 .stream()
                                 .flatMap(u -> u.getEnvironment().stream())
                 ));
@@ -825,7 +825,7 @@ public class ProjectsController {
 
                     // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
-                    return getStageDefinitionNoClone(project, body.stageIndex)
+                    return getStageDefinitionNoClone(project, UUID.fromString(body.id))
                             .map(stageDef -> {
                                 enqueueExecutionStage(
                                         pipeline,
@@ -857,7 +857,7 @@ public class ProjectsController {
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
-                    return getStageDefinitionNoClone(project, body.stageIndex);
+                    return getStageDefinitionNoClone(project,  UUID.fromString(body.id));
                 }))
                 .orElseThrow()
                 .orElseThrow();
@@ -868,6 +868,7 @@ public class ProjectsController {
                 .map(maybeProject -> maybeProject
                         .filter(project -> project.canBeAccessedBy(user))
                         .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+
                             enqueueConfigureStage(
                                     pipeline,
                                     stageDefinitionBase,
@@ -896,12 +897,17 @@ public class ProjectsController {
                         .flatMap(pipelineDefinition -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
 
                             for (var stage : pipelineDefinition.stages()) {
+
+                                var stageToEnqueue = (stage instanceof StageWorkerDefinition workerDefinition) ?
+                                                     new StageWorkerDefinitionBuilder()
+                                                             .withTemplateBase(workerDefinition)
+                                                             .withEnvironment(pipelineDefinition.environment())
+                                                             .withAdditionalEnvironment(stage.environment())
+                                                             .build()
+                                                                                                               : stage;
+
                                 pipeline.enqueueSingleExecution(
-                                        new StageDefinitionBuilder()
-                                                .withTemplateBase(stage)
-                                                .withEnvironment(pipelineDefinition.environment())
-                                                .withAdditionalEnvironment(stage.environment())
-                                                .build(),
+                                        stageToEnqueue,
                                         new WorkspaceConfiguration(
                                                 pipeline
                                                         .getWorkspaceConfigurationMode()
@@ -1001,13 +1007,15 @@ public class ProjectsController {
                 )
                 .orElse(base); // none before, so take the given as origin
 
-        var resultDefinition = createStageDefinition(
-                base,
-                recentBase,
-                updatedResourceRequirement(base.requirements(), requiredResources),
-                base.userInput().withoutConfirmation(),
-                env
-        );
+        var resultDefinition = base;
+        if (base instanceof StageWorkerDefinition stageWorkerBase) {
+            var resultWorkerDefinition = createStageWorkerDefinition(
+                    stageWorkerBase,
+                    (StageWorkerDefinition) recentBase,
+                    updatedResourceRequirement(stageWorkerBase.requirements(), requiredResources),
+                    stageWorkerBase.userInput().withoutConfirmation(),
+                    env
+            );
 
         /*
         // configurations can slip through even if paused
@@ -1018,16 +1026,19 @@ public class ProjectsController {
             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
         }
          */
-        maybeUpdateStageImageConfig(image, resultDefinition);
-        resultDefinition.image().setShmSizeMegabytes(base.image().getShmSizeMegabytes());
-
-        if (action == Action.Configure) {
-            pipeline.enqueueConfiguration(resultDefinition, comment);
-        } else if (rangedEnv == null || rangedEnv.isEmpty()) {
-            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration, comment, null);
-        } else {
-            pipeline.enqueueRangedExecution(resultDefinition, workspaceConfiguration, rangedEnv);
+            maybeUpdateStageImageConfig(image, resultWorkerDefinition);
+            resultWorkerDefinition.image().setShmSizeMegabytes(stageWorkerBase.image().getShmSizeMegabytes());
+            resultDefinition = resultWorkerDefinition;
         }
+
+        if (action == Action.Configure && resultDefinition instanceof StageWorkerDefinition workerDefinition) {
+            pipeline.enqueueConfiguration(workerDefinition, comment);
+        } else if (rangedEnv != null && !rangedEnv.isEmpty() && resultDefinition instanceof StageWorkerDefinition workerDefinition) {
+            pipeline.enqueueRangedExecution(workerDefinition, workspaceConfiguration, rangedEnv);
+        } else {
+            pipeline.enqueueSingleExecution(resultDefinition, workspaceConfiguration, comment, null);
+        }
+
         if (runSingle) {
             pipeline.clearPauseReason();
             pipeline.resume(Pipeline.ResumeNotification.RunSingleThenPause);
@@ -1051,6 +1062,9 @@ public class ProjectsController {
             // nothing to do
             return requirements;
         } else {
+
+
+
             return new Requirements(
                     update.cpus,
                     update.megabytesOfRam,
@@ -1068,7 +1082,8 @@ public class ProjectsController {
                                             .map(g -> g.getSupport())
                                             .orElse(null)
                             ))
-                            .orElse(null)
+                            .orElse(null),
+                    null
             );
         }
     }
@@ -1077,15 +1092,17 @@ public class ProjectsController {
         if (Optional.of(Pipeline.PauseReason.ConfirmationRequired).equals(pipeline.getPauseReason())) {
             var noStageRequiresUserConfirmation = pipeline
                     .getEnqueuedExecutions()
-                    .noneMatch(g -> g
-                            .getStageDefinition()
-                            .userInput()
-                            .getConfirmation()
-                            != UserInput.Confirmation.Never);
+                    .noneMatch(g -> getUserInputConfirmation(g.getStageDefinition()) != UserInput.Confirmation.Never);
             if (noStageRequiresUserConfirmation) {
                 pipeline.resume(Pipeline.ResumeNotification.Confirmation);
             }
         }
+    }
+
+    public static UserInput.Confirmation getUserInputConfirmation(StageDefinition stagedef) {
+        return stagedef instanceof StageWorkerDefinition w
+               ? w.userInput().getConfirmation()
+               : UserInput.Confirmation.Never;
     }
 
     private static void resumeIfPausedByStageFailure(@Nonnull Pipeline pipeline) {
@@ -1102,13 +1119,13 @@ public class ProjectsController {
         }
     }
 
-    private static StageDefinition createStageDefinition(
-            @Nonnull StageDefinition templateBase,
-            @Nullable StageDefinition recentBase,
+    private static StageWorkerDefinition createStageWorkerDefinition(
+            @Nonnull StageWorkerDefinition templateBase,
+            @Nullable StageWorkerDefinition recentBase,
             @Nullable Requirements requirements,
             @Nullable UserInput requires,
             @Nonnull Map<String, String> env) {
-        return new StageDefinitionBuilder()
+        return new StageWorkerDefinitionBuilder()
                 .withTemplateBase(templateBase)
                 .withRecentBase(recentBase)
                 .withRequirements(requirements)
@@ -1119,7 +1136,7 @@ public class ProjectsController {
 
     private static void maybeUpdateStageImageConfig(
             @Nullable ImageInfo image,
-            @Nonnull StageDefinition stageDef) {
+            @Nonnull StageWorkerDefinition stageDef) {
         Optional.ofNullable(image.name).ifPresent(stageDef.image()::setName);
         Optional.ofNullable(image.args).ifPresent(stageDef.image()::setArgs);
         Optional.ofNullable(image.shmMegabytes).ifPresent(stageDef.image()::setShmSizeMegabytes);
@@ -1174,6 +1191,12 @@ public class ProjectsController {
         }
         return Optional.empty();
     }
+
+    @Nonnull
+    private static Optional<StageDefinition> getStageDefinitionNoClone(@Nonnull Project project, UUID id) {
+        return project.getPipelineDefinition().stages().stream().filter(s -> s.id().equals(id)).findFirst();
+    }
+
 
     @PutMapping("projects/{projectId}/stop/{stageId}")
     public boolean stopSingleStageOrAllStagesOfActiveExecutionGroup(
