@@ -61,7 +61,6 @@
                           <file>target/javadoc.xml</file>
                       </javadocXmlFiles>-->
                     <outputFileType>implementationFile</outputFileType>
-                    <addTypeNamePrefix>I</addTypeNamePrefix>
                     <generateConstructors>true</generateConstructors>
                     <mapClasses>asClasses</mapClasses>
                     <outputKind>module</outputKind>
