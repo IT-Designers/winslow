@@ -3,12 +3,9 @@ package de.itdesigners.winslow.gateway;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.StageHandle;
-import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
-import de.itdesigners.winslow.nomad.SubmissionToNomadJobAdapter;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
@@ -17,8 +14,6 @@ import de.itdesigners.winslow.project.ProjectRepository;
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class GatewayBackend implements Backend, Closeable, AutoCloseable {
 
@@ -28,12 +23,6 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
     public GatewayBackend(@Nonnull PipelineRepository pipelines, @Nonnull ProjectRepository projects) {
         this.pipelines = pipelines;
         this.projects  = projects;
-    }
-
-    @Nonnull
-    @Override
-    public Optional<State> getState(@Nonnull StageId stageId) throws IOException {
-        return Optional.empty();
     }
 
     @Override
