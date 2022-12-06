@@ -9,7 +9,7 @@ public class ImageInfo {
     @Nullable public final String[] args;
     @Nullable public final Integer  shmMegabytes;
 
-    @ConstructorProperties({"name, args, shmMegabytes"})
+//    @ConstructorProperties({"name, args, shmMegabytes"})
     public ImageInfo(@Nullable String name, @Nullable String[] args, @Nullable Integer shmMegabytes) {
         this.name         = name;
         this.args         = args;

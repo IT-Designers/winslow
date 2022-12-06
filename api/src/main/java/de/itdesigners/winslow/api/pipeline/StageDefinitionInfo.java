@@ -8,10 +8,7 @@ import java.util.UUID;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-     //   include = JsonTypeInfo.As.WRAPPER_OBJECT
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type"
-
+        include = JsonTypeInfo.As.WRAPPER_OBJECT
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StageWorkerDefinitionInfo.class, name = "Worker"),
