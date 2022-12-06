@@ -5,12 +5,12 @@ import de.itdesigners.winslow.asblr.LogParserRegisterer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class LogParser {
-
-    private final @Nonnull String matcher;
-    private final @Nonnull String destination;
-    private final @Nonnull String formatter;
-    private final @Nonnull String type;
+public record LogParser(
+        @Nonnull String matcher,
+        @Nonnull String destination,
+        @Nonnull String formatter,
+        @Nonnull String type
+) {
 
     public LogParser(
             @Nonnull String matcher,
@@ -23,23 +23,5 @@ public class LogParser {
         this.type        = type != null ? type : LogParserRegisterer.PARSER_TYPE_REGEX_MATCHER_CSV;
     }
 
-    @Nonnull
-    public String getMatcher() {
-        return matcher;
-    }
 
-    @Nonnull
-    public String getDestination() {
-        return destination;
-    }
-
-    @Nonnull
-    public String getFormatter() {
-        return formatter;
-    }
-
-    @Nonnull
-    public String getType() {
-        return type;
-    }
 }

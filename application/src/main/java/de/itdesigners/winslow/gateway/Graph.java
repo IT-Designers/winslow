@@ -3,6 +3,7 @@ package de.itdesigners.winslow.gateway;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Pipeline;
 
@@ -14,7 +15,7 @@ public class Graph {
 
     private final @Nonnull List<Node>                            nodes;
     private final @Nonnull Map<ExecutionGroupId, ExecutionGroup> cachedExecutionGroup;
-    private final @Nonnull Map<UUID, StageDefinition>          cachedStageDefinition;
+    private final @Nonnull Map<UUID, StageDefinition>            cachedStageDefinition;
 
     public Graph(
             @Nonnull Pipeline pipelineReadOnly,

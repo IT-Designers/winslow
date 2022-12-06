@@ -3,7 +3,8 @@ package de.itdesigners.winslow.gateway;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
+import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
 import io.github.jamsesso.jsonlogic.JsonLogic;
@@ -16,15 +17,15 @@ import java.util.logging.Level;
 
 public class XOrGateway extends Gateway {
 
-    private final @Nonnull PipelineRepository pipelines;
-    private final @Nonnull ProjectRepository  projects;
-    private final @Nonnull StageDefinition    stageDefinition;
-    private                StageId            stageId;
+    private final @Nonnull PipelineRepository       pipelines;
+    private final @Nonnull ProjectRepository        projects;
+    private final @Nonnull StageXOrGatwayDefinition stageDefinition;
+    private                StageId               stageId;
 
     public XOrGateway(
             @Nonnull PipelineRepository pipelines,
             @Nonnull ProjectRepository projects,
-            @Nonnull StageDefinition stageDefinition,
+            @Nonnull StageXOrGatwayDefinition stageDefinition,
             @Nonnull StageId stageId) {
         this.pipelines       = pipelines;
         this.projects        = projects;
@@ -108,18 +109,18 @@ public class XOrGateway extends Gateway {
     }
 
     private UUID findNextStageDefinitionID(Optional<ExecutionGroup> thisExecutionGroup, Map<String, String> result) {
-        var  args                   = stageDefinition.image().getArgs();
+        var  conditions                   = stageDefinition.conditions();
 
-        this.log(Level.INFO, "args: " + Arrays.toString(args));
-        for (int i = 0; i < args.length; i++) {
+        this.log(Level.INFO, "args: " + Arrays.toString(conditions));
+        for (int i = 0; i < conditions.length; i++) {
             this.log(Level.INFO, "index: " + i);
-            this.log(Level.INFO, "value: " + args[i]);
+            this.log(Level.INFO, "value: " + conditions[i]);
             var logic = new JsonLogic();
             var data  = new HashMap<String, Object>();
             data.putAll(stageDefinition.environment());
             data.putAll(result);
             try {
-                boolean logic_result = (boolean) logic.apply(args[i], data);
+                boolean logic_result = (boolean) logic.apply(conditions[i], data);
                 this.log(Level.INFO, "logic_result: " + logic_result);
                 if (logic_result) {
                     return thisExecutionGroup

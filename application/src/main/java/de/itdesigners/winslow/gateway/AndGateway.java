@@ -2,7 +2,8 @@ package de.itdesigners.winslow.gateway;
 
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageAndGatewayDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
 
@@ -12,15 +13,15 @@ import java.util.logging.Level;
 
 public class AndGateway extends Gateway {
 
-    private final @Nonnull PipelineRepository pipelines;
-    private final @Nonnull ProjectRepository  projects;
-    private final @Nonnull StageDefinition    stageDefinition;
-    private                StageId            stageId;
+    private final @Nonnull PipelineRepository        pipelines;
+    private final @Nonnull ProjectRepository         projects;
+    private final @Nonnull StageAndGatewayDefinition stageDefinition;
+    private                StageId               stageId;
 
     public AndGateway(
             @Nonnull PipelineRepository pipelines,
             @Nonnull ProjectRepository projects,
-            @Nonnull StageDefinition stageDefinition,
+            @Nonnull StageAndGatewayDefinition stageDefinition,
             @Nonnull StageId stageId) {
         this.pipelines       = pipelines;
         this.projects        = projects;

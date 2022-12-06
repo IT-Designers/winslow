@@ -2,6 +2,7 @@ package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.StageDefinitionInfo;
+import de.itdesigners.winslow.api.pipeline.StageWorkerDefinitionInfo;
 import de.itdesigners.winslow.web.StageDefinitionInfoConverter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +28,7 @@ public class StagesController {
                 .stream()
                 .flatMap(p -> p.stages().stream())
                 .map(StageDefinitionInfoConverter::from);
+
     }
 
 }

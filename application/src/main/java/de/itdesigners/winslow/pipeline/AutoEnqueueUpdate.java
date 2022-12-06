@@ -78,40 +78,48 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                             var prevGroup               = triplet.getValue0();
                             var nextStageDefinitionBase = triplet.getValue1();
                             var env                     = new TreeMap<>(nextStageDefinitionBase.environment());
-                            var builder = new StageDefinitionBuilder()
-                                    .withTemplateBase(nextStageDefinitionBase)
-                                    .withEnvironment(env);
 
+                            if (nextStageDefinitionBase instanceof StageWorkerDefinition nextWorkerBase) {
+                                var builder = new StageWorkerDefinitionBuilder()
+                                        .withTemplateBase(nextWorkerBase)
+                                        .withEnvironment(env);
 
-                            // augment StageDefinition if there is already an
-                            // execution instance of it
-                            pipeline
-                                    .getActiveAndPastExecutionGroups()
-                                    .filter(g -> g
-                                            .getStageDefinition()
-                                            .id()
-                                            .equals(nextStageDefinitionBase.id()))
-                                    .filter(g -> g
-                                            .getStages()
-                                            .anyMatch(s -> s.getState() == State.Succeeded))
-                                    .reduce((first, second) -> second) // take the most recent
-                                    .ifPresent(recent -> {
-                                        env.clear();
-                                        env.putAll(recent
-                                                           .getStages()
-                                                           .filter(s -> s.getState() == State.Succeeded)
-                                                           .reduce((first, second) -> second)
-                                                           .orElseThrow() // would not have passed through any match
-                                                           .getEnv());
-                                        builder.withImage(recent.getStageDefinition().image());
-                                    });
+                                // augment StageDefinition if there is already an
+                                // execution instance of it
+                                pipeline
+                                        .getActiveAndPastExecutionGroups()
+                                        .filter(g -> g
+                                                .getStageDefinition()
+                                                .id()
+                                                .equals(nextStageDefinitionBase.id()))
+                                        .filter(g -> g
+                                                .getStages()
+                                                .anyMatch(s -> s.getState() == State.Succeeded))
+                                        .reduce((first, second) -> second) // take the most recent
+                                        .ifPresent(recent -> {
+                                            env.clear();
+                                            env.putAll(recent
+                                                               .getStages()
+                                                               .filter(s -> s.getState() == State.Succeeded)
+                                                               .reduce((first, second) -> second)
+                                                               .orElseThrow() // would not have passed through any match
+                                                               .getEnv());
+                                            if (recent.getStageDefinition() instanceof StageWorkerDefinition recentWorkerDefintion)
+                                                builder.withImage(recentWorkerDefintion.image());
+                                        });
 
-
-                            return new Triplet<>(
-                                    prevGroup.getWorkspaceConfiguration(),
-                                    builder.build(),
-                                    triplet.getValue2()
-                            );
+                                return new Triplet<>(
+                                        prevGroup.getWorkspaceConfiguration(),
+                                        builder.build(),
+                                        triplet.getValue2()
+                                );
+                            } else {
+                                return new Triplet<>(
+                                        prevGroup.getWorkspaceConfiguration(),
+                                        nextStageDefinitionBase,
+                                        triplet.getValue2()
+                                );
+                            }
                         }));
     }
 
@@ -187,9 +195,9 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
             try {
                 ensureAllPreconditionsAreMet(orchestrator, pipeline.getProjectId(), pipeline);
 
-                var requiredConfirmation = stageDefinition
-                        .userInput()
-                        .getConfirmation();
+                var requiredConfirmation = stageDefinition instanceof StageWorkerDefinition w ?
+                                           w.userInput().getConfirmation() :
+                                           UserInput.Confirmation.Never;
 
 
                 var inThisCase = UserInput.Confirmation.Once == requiredConfirmation

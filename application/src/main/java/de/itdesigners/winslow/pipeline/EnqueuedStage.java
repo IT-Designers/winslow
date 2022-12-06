@@ -2,7 +2,7 @@ package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.Action;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -10,14 +10,14 @@ import java.util.Optional;
 
 public class EnqueuedStage {
 
-    private final @Nonnull  StageDefinition        definition;
+    private final @Nonnull StageWorkerDefinition definition;
     private final @Nonnull  Action                 action;
     private final @Nonnull  WorkspaceConfiguration workspaceConfiguration;
     private final @Nullable String                 comment;
 
     @Deprecated
     public EnqueuedStage(
-            @Nonnull StageDefinition definition,
+            @Nonnull StageWorkerDefinition definition,
             @Nonnull Action action,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
             @Nullable String comment) {
@@ -30,7 +30,7 @@ public class EnqueuedStage {
     }
 
     @Nonnull
-    public StageDefinition getDefinition() {
+    public StageWorkerDefinition getDefinition() {
         return definition;
     }
 

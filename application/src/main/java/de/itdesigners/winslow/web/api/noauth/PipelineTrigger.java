@@ -3,8 +3,12 @@ package de.itdesigners.winslow.web.api.noauth;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.ImageInfo;
 import de.itdesigners.winslow.api.pipeline.ResourceInfo;
+import de.itdesigners.winslow.api.pipeline.StageWorkerDefinitionInfo;
 import de.itdesigners.winslow.api.project.EnqueueRequest;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.project.Project;
+import de.itdesigners.winslow.web.ImageInfoConverter;
+import de.itdesigners.winslow.web.RequirementsInfoConverter;
 import de.itdesigners.winslow.web.api.ProjectsController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,28 +52,34 @@ public class PipelineTrigger {
     ) {
         Optional<UUID> stageDefIdOpt = Optional.ofNullable(stageDefId).map(UUID::fromString);
 
+
         var result = getProjectForTokenSecret(projectId, secret, REQUIRED_CAPABILITY_TRIGGER_PIPELINE).map(project -> {
             var controller = new ProjectsController(winslow);
             var user       = winslow.getUserManager().getUserOrCreateAuthenticated(project.getOwner()).orElseThrow();
 
-            var stageIndex      = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
+            var stageIndex = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
+            var stageID    = project.getPipelineDefinition().stages().get(stageIndex).id();
+
             var stageDefinition = project.getPipelineDefinition().stages().get(stageIndex);
+
+            var imageInfo = stageDefinition instanceof StageWorkerDefinition w
+                            ? ImageInfoConverter.from(w.image())
+                            : null;
+            var resourceInfo = stageDefinition instanceof StageWorkerDefinition w
+                               ? new ResourceInfo(
+                    w.requirements().getCpu(),
+                    w.requirements().getMegabytesOfRam(),
+                    w.requirements().getGpu().getCount()
+            )
+                               : null;
 
             // default request
             var request = new EnqueueRequest(
+                    stageID.toString(),
                     stageDefinition.environment(),
                     null,
-                    stageIndex,
-                    new ImageInfo(
-                            stageDefinition.image().getName(),
-                            stageDefinition.image().getArgs(),
-                            stageDefinition.image().getShmSizeMegabytes()
-                    ),
-                    new ResourceInfo(
-                            stageDefinition.requirements().getCpu(),
-                            stageDefinition.requirements().getMegabytesOfRam(),
-                            stageDefinition.requirements().getGpu().getCount()
-                    ),
+                    imageInfo,
+                    resourceInfo,
                     null,
                     "triggered",
                     runSingle,
@@ -80,15 +90,25 @@ public class PipelineTrigger {
             var list = controller.getProjectHistory(user, projectId).collect(Collectors.toList());
             for (int n = list.size() - 1; n >= 0; --n) {
                 var info = list.get(n);
-                if (info.stageDefinition.id.equals(stageDefinition.id())) {
-                    request.env                    = Optional
-                            .ofNullable(info.stageDefinition.env)
-                            .orElseGet(HashMap::new);
+                if (info.stageDefinition.id().equals(stageDefinition.id())) {
+
+
                     request.rangedEnv              = info.rangedValues;
-                    request.image                  = info.stageDefinition.image;
-                    request.requiredResources      = info.stageDefinition.requiredResources;
+
+                    if(info.stageDefinition instanceof StageWorkerDefinitionInfo workerDefinitionInfo) {
+                        request.env               = Optional
+                                .ofNullable(workerDefinitionInfo.environment())
+                                .orElseGet(HashMap::new);
+                        request.image             = workerDefinitionInfo.image();
+                        request.requiredResources = new ResourceInfo(
+                                workerDefinitionInfo.requiredResources().cpu(),
+                                workerDefinitionInfo.requiredResources().ram(),
+                                workerDefinitionInfo.requiredResources().gpu().count()
+                        );
+                    }
                     request.workspaceConfiguration = info.workspaceConfiguration;
                     break;
+
                 }
             }
 

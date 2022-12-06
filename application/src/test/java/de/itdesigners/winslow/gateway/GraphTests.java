@@ -4,6 +4,7 @@ import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import org.javatuples.Pair;
@@ -475,7 +476,7 @@ public class GraphTests {
         var stages = new ArrayList<StageDefinition>(stageNames.length);
         List<UUID> uuids = Arrays
                 .stream(stageNames)
-                .map(StageDefinition::idFromName)
+                .map(StageWorkerDefinition::idFromName)
                 .collect(Collectors.toList());
 
         for (int i = 0; i < stageNames.length; ++i) {
@@ -498,12 +499,12 @@ public class GraphTests {
     }
 
     @Nonnull
-    public static StageDefinition newStupidStageDefinition(
+    public static StageWorkerDefinition newStupidStageDefinition(
             @Nonnull UUID id,
             @Nonnull String name,
             @Nullable List<UUID> next) {
 
-        return new StageDefinition(
+        return new StageWorkerDefinition(
                 id,
                 name,
                 null,
@@ -516,10 +517,7 @@ public class GraphTests {
                 null,
                 null,
                 null,
-                null,
-                null,
-                null,
-                next
+                null
         );
     }
 
