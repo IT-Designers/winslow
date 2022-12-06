@@ -28,7 +28,7 @@ public class Event {
         Objects.requireNonNull(this.issuer);
     }
 
-    public boolean isValid() {
+    public boolean checkValid() {
         try {
             this.check();
             return true;
@@ -37,7 +37,7 @@ public class Event {
         }
     }
 
-    public boolean isIncomplete() {
+    public boolean checkIncomplete() {
         return this.id == null
                 || this.command == null
                 || this.time == 0
