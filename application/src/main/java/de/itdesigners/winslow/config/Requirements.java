@@ -7,7 +7,7 @@ import java.util.*;
 public class Requirements {
 
     private final          int     cpus;
-    private final @Nonnull Integer ram;
+    private final @Nonnull Integer megabytesOfRam;
     private final @Nonnull Gpu     gpu;
     private final @Nonnull List<String> tags;
 
@@ -21,9 +21,9 @@ public class Requirements {
             @Nullable Integer megabytesOfRam,
             @Nullable Gpu gpu,
             @Nullable List<String> tags) {
-        this.cpus = cpus != null ? cpus : 0;
-        this.ram  = megabytesOfRam != null ? megabytesOfRam : 100;
-        this.gpu  = gpu != null ? gpu : new Gpu(null, null, null);
+        this.cpus           = cpus != null ? cpus : 0;
+        this.megabytesOfRam = megabytesOfRam != null ? megabytesOfRam : 100;
+        this.gpu            = gpu != null ? gpu : new Gpu(null, null, null);
         this.tags = tags != null
                     ? Collections.unmodifiableList(tags)
                     : Collections.emptyList();
@@ -38,7 +38,7 @@ public class Requirements {
     }
 
     public int getMegabytesOfRam() {
-        return ram;
+        return megabytesOfRam;
     }
 
     public Gpu getGpu() {
@@ -55,7 +55,7 @@ public class Requirements {
     public String toString() {
         return getClass().getSimpleName()
                 + "@{cpus=" + this.cpus
-                + ", ram=" + this.ram
+                + ", ram=" + this.megabytesOfRam
                 + ", gpu=" + this.gpu
                 + "}#" + this.hashCode();
     }
@@ -67,12 +67,12 @@ public class Requirements {
         if (o == null || getClass() != o.getClass())
             return false;
         Requirements that = (Requirements) o;
-        return ram == that.ram && Objects.equals(gpu, that.gpu);
+        return megabytesOfRam == that.megabytesOfRam && Objects.equals(gpu, that.gpu);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ram, gpu);
+        return Objects.hash(megabytesOfRam, gpu);
     }
 
     public static class Gpu {
