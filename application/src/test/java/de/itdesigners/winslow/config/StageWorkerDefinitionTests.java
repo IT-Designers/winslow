@@ -3,7 +3,6 @@ package de.itdesigners.winslow.config;
 import de.itdesigners.winslow.BaseRepository;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -24,7 +23,7 @@ public class StageWorkerDefinitionTests {
         assertTrue(stage.description().isEmpty());
         assertTrue(stage.image().getName().isEmpty());
         assertTrue(stage.image().getArgs().length == 0);
-        assertTrue(stage.requirements().getCpu() == 0);
+        assertTrue(stage.requirements().getCpus() == 0);
         assertTrue(stage.requirements().getGpu().getCount() == 0);
         assertTrue(stage.environment().isEmpty());
         assertTrue(stage.highlight().resources().size() == 0);
