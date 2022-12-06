@@ -49,7 +49,7 @@ public class ResourceLimitation {
     @Override
     public String toString() {
         return "ResourceLimitation{" +
-                "cpu=" + cpu +
+                "cpus=" + cpu +
                 ", mem=" + mem +
                 ", gpu=" + gpu +
                 "}@" + hashCode();

@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public record RequirementsInfo(
-        int cpu,
+        int cpus,
         @Nonnull Integer ram,
         @Nonnull GPUInfo gpu,
         @Nonnull List<String> tags

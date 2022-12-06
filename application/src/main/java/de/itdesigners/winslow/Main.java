@@ -180,7 +180,7 @@ public class Main {
             LOG.info("Collecting platform information from Nomad");
             var stub         = client.getNodesApi().list().getValue().get(0);
             var node         = client.getNodesApi().info(stub.getId()).getValue();
-            var cpuFrequency = node.getAttributes().get("cpu.frequency");
+            var cpuFrequency = node.getAttributes().get("cpus.frequency");
             return Optional.ofNullable(cpuFrequency).map(Integer::parseInt).map(PlatformInfo::new);
         } catch (Throwable e) {
             LOG.log(Level.WARNING, "Failed to retrieve (partial) PlatformInfo from Nomad");

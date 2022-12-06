@@ -369,7 +369,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return new ResourceAllocationMonitor.ResourceSet<Long>()
                 .with(
                         ResourceAllocationMonitor.StandardResources.CPU,
-                        (long) requirements.getCpu()
+                        (long) requirements.getCpus()
                 )
                 .with(
                         ResourceAllocationMonitor.StandardResources.RAM,

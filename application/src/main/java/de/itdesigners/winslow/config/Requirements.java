@@ -6,22 +6,22 @@ import java.util.*;
 
 public class Requirements {
 
-    private final          int     cpu;
+    private final          int     cpus;
     private final @Nonnull Integer ram;
     private final @Nonnull Gpu     gpu;
     private final @Nonnull List<String> tags;
 
     /**
-     * @param cpu            The cpu requirements, nullable to ensure backwards compatibility
+     * @param cpus            The cpus requirements, nullable to ensure backwards compatibility
      * @param megabytesOfRam Megabytes of RAM to list as requirement
      * @param gpu            Optionally, GPU requirements to list
      */
     public Requirements(
-            @Nullable Integer cpu,
+            @Nullable Integer cpus,
             @Nullable Integer megabytesOfRam,
             @Nullable Gpu gpu,
             @Nullable List<String> tags) {
-        this.cpu  = cpu != null ? cpu : 0;
+        this.cpus = cpus != null ? cpus : 0;
         this.ram  = megabytesOfRam != null ? megabytesOfRam : 100;
         this.gpu  = gpu != null ? gpu : new Gpu(null, null, null);
         this.tags = tags != null
@@ -33,8 +33,8 @@ public class Requirements {
         return new Requirements(null, null, null, null);
     }
 
-    public int getCpu() {
-        return cpu;
+    public int getCpus() {
+        return cpus;
     }
 
     public int getMegabytesOfRam() {
@@ -54,7 +54,7 @@ public class Requirements {
     @Override
     public String toString() {
         return getClass().getSimpleName()
-                + "@{cpu=" + this.cpu
+                + "@{cpus=" + this.cpus
                 + ", ram=" + this.ram
                 + ", gpu=" + this.gpu
                 + "}#" + this.hashCode();

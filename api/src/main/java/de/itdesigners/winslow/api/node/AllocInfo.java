@@ -71,7 +71,7 @@ public class AllocInfo {
     public String toString() {
         return "AllocInfo{" +
                 "title='" + title + '\'' +
-                ", cpu=" + cpu +
+                ", cpus=" + cpu +
                 ", memory=" + memory +
                 ", gpu=" + gpu +
                 "}@"+hashCode();

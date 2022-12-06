@@ -25,7 +25,7 @@ public class StageDefinitionTests {
         assertTrue(worker.description().isEmpty());
         assertTrue(worker.image().getName().isEmpty());
         assertTrue(worker.image().getArgs().length == 0);
-        assertTrue(worker.requirements().getCpu() == 0);
+        assertTrue(worker.requirements().getCpus() == 0);
         assertTrue(worker.requirements().getGpu().getCount() == 0);
         assertTrue(worker.environment().isEmpty());
         assertTrue(worker.highlight().resources().size() == 0);
