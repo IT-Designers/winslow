@@ -22,6 +22,17 @@ export class PipelinesComponent implements OnInit {
 
   longLoading = new LongLoadingDetector();
 
+  mockGroups = [
+    {
+      name: 'Group 1',
+      role: 'OWNER'
+    },
+    {
+      name: 'Group 2',
+      role: 'MEMBER'
+    }
+  ];
+
   constructor(
     private api: PipelineApiService,
     private notification: NotificationService,

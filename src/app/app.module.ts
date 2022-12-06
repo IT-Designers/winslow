@@ -101,6 +101,7 @@ import { UserAddNameDialogComponent } from './user-and-group-management/user-add
 import { UserDetailsComponent } from './user-and-group-management/user-details/user-details.component';
 import { GroupDetailsComponent } from './user-and-group-management/group-details/group-details.component';
 import { PasswordDialogComponent } from './user-and-group-management/password-dialog/password-dialog.component';
+import { GroupAssignmentComponent } from './pipelines/group-assignment/group-assignment.component';
 
 @NgModule({
     declarations: [
@@ -166,6 +167,7 @@ import { PasswordDialogComponent } from './user-and-group-management/password-di
         UserDetailsComponent,
         GroupDetailsComponent,
         PasswordDialogComponent,
+        GroupAssignmentComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
