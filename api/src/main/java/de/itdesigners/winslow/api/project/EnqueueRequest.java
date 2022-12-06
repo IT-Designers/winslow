@@ -12,7 +12,7 @@ import java.util.Map;
 public class EnqueueRequest {
     public @Nonnull  Map<String, String>      env;
     public @Nullable Map<String, RangedValue> rangedEnv;
-    public           int                      stageIndex;
+    public           String                   id;
     public @Nullable ImageInfo                image;
     public @Nullable ResourceInfo             requiredResources;
     public @Nullable WorkspaceConfiguration   workspaceConfiguration;
@@ -21,17 +21,18 @@ public class EnqueueRequest {
     public @Nullable Boolean                  resume;
 
     public EnqueueRequest(
+            @Nonnull String id,
             @Nonnull Map<String, String> env,
             @Nullable Map<String, RangedValue> rangedEnv,
-            int stageIndex,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
             @Nullable String comment,
-            @Nullable Boolean runSingle, @Nullable Boolean resume) {
+            @Nullable Boolean runSingle,
+            @Nullable Boolean resume) {
         this.env                    = env;
         this.rangedEnv              = rangedEnv;
-        this.stageIndex             = stageIndex;
+        this.id                     = id;
         this.image                  = image;
         this.requiredResources      = requiredResources;
         this.workspaceConfiguration = workspaceConfiguration;
@@ -39,7 +40,6 @@ public class EnqueueRequest {
         this.runSingle              = runSingle;
         this.resume                 = resume;
     }
-
 
 
 }

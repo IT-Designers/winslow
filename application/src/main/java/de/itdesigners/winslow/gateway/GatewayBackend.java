@@ -4,7 +4,10 @@ import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
+import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
 import de.itdesigners.winslow.nomad.SubmissionToNomadJobAdapter;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
@@ -69,24 +72,27 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
         );
     }
 
-    @Nonnull
-    private StageHandle spawnStageHandle(@Nonnull StageDefinition stageDefinition, @Nonnull StageId stageId) throws IOException {
-        switch (stageDefinition.type()) {
-            case AndGateway:
-                return new GatewayStageHandle(new AndGateway(pipelines, projects, stageDefinition, stageId));
-            case XOrGateway:
-                return new GatewayStageHandle(new XOrGateway(pipelines, projects, stageDefinition, stageId));
-
-            case Execution:
-                break;
-        }
-        throw new IOException("Invalid StageType " + stageDefinition.type());
-    }
-
     @Override
     public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
-        return stage.type().isGateway();
+        return stage instanceof StageAndGatewayDefinition || stage instanceof StageXOrGatwayDefinition;
     }
+
+    @Nonnull
+    private StageHandle spawnStageHandle(
+            @Nonnull StageDefinition stageDefinition,
+            @Nonnull StageId stageId) throws IOException {
+
+        if (stageDefinition instanceof StageAndGatewayDefinition stageAndGatewayDefinition) {
+            return new GatewayStageHandle(new AndGateway(pipelines, projects, stageAndGatewayDefinition, stageId));
+        }
+
+        if (stageDefinition instanceof StageXOrGatwayDefinition stageXOrGatwayDefinition) {
+            return new GatewayStageHandle(new XOrGateway(pipelines, projects, stageXOrGatwayDefinition, stageId));
+        }
+
+        throw new IOException("Invalid StageType " + stageDefinition.getClass().toString());
+    }
+
 
     @Override
     public void close() throws IOException {

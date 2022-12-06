@@ -38,7 +38,7 @@ public class ExecutionGroupUpgrade extends JsonDeserializer<ExecutionGroup> {
         var definition = node
                 .get("definition")
                 .traverse(p.getCodec())
-                .readValueAs(StageDefinition.class);
+                .readValueAs(StageWorkerDefinition.class);
         var action    = node.get("action").traverse(p.getCodec()).readValueAs(Action.class);
         var startTime = node.get("startTime").traverse(p.getCodec()).readValueAs(Date.class);
         var workspace = Optional

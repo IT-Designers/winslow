@@ -88,7 +88,8 @@ public class TensorBoardController {
                 .filter(s -> s.getFullyQualifiedId().equals(stageId))
                 .findFirst();
 
-        var backend      = winslow.getOrchestrator().getBackend();
+        var backends      = winslow.getOrchestrator().getBackends();
+        var backend = backends.filter(b -> b instanceof NomadBackend).findFirst().orElse(null);
         var nomadBackend = backend instanceof NomadBackend ? ((NomadBackend) backend) : null;
         var nomadApi     = backend instanceof NomadBackend ? ((NomadBackend) backend).getNewClient() : null;
 

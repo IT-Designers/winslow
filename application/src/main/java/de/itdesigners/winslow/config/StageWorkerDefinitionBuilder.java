@@ -5,11 +5,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class StageDefinitionBuilder {
+public class StageWorkerDefinitionBuilder {
 
-    private @Nullable StageDefinition               template;
-    private @Nullable StageDefinition               base;
-    private @Nullable Optional<String>              description;
+    private @Nullable StageWorkerDefinition template;
+    private @Nullable StageWorkerDefinition base;
+    private @Nullable Optional<String>      description;
     private @Nullable Optional<Image>               image;
     private @Nullable Optional<Requirements>        requirements;
     private @Nullable Optional<UserInput>           userInput;
@@ -23,14 +23,14 @@ public class StageDefinitionBuilder {
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withTemplateBase(@Nullable StageDefinition template) {
+    public StageWorkerDefinitionBuilder withTemplateBase(@Nullable StageWorkerDefinition template) {
         this.template = template;
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withRecentBase(@Nullable StageDefinition base) {
+    public StageWorkerDefinitionBuilder withRecentBase(@Nullable StageWorkerDefinition base) {
         this.base = base;
         return this;
     }
@@ -38,69 +38,69 @@ public class StageDefinitionBuilder {
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withDescription(@Nullable String desc) {
+    public StageWorkerDefinitionBuilder withDescription(@Nullable String desc) {
         this.description = Optional.ofNullable(desc);
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withImage(@Nullable Image image) {
+    public StageWorkerDefinitionBuilder withImage(@Nullable Image image) {
         this.image = Optional.ofNullable(image);
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withRequirements(@Nullable Requirements requirements) {
+    public StageWorkerDefinitionBuilder withRequirements(@Nullable Requirements requirements) {
         this.requirements = Optional.ofNullable(requirements);
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withUserInput(@Nullable UserInput userInput) {
+    public StageWorkerDefinitionBuilder withUserInput(@Nullable UserInput userInput) {
         this.userInput = Optional.ofNullable(userInput);
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withEnvironment(@Nullable Map<String, String> env) {
+    public StageWorkerDefinitionBuilder withEnvironment(@Nullable Map<String, String> env) {
         this.env = Optional.ofNullable(env);
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withAdditionalEnvironment(@Nullable Map<String, String> env) {
+    public StageWorkerDefinitionBuilder withAdditionalEnvironment(@Nullable Map<String, String> env) {
         this.additionalEnv = env;
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withLogParsers(@Nullable List<LogParser> logParsers) {
+    public StageWorkerDefinitionBuilder withLogParsers(@Nullable List<LogParser> logParsers) {
         this.logParsers = Optional.ofNullable(logParsers);
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withHighlight(@Nullable Highlight highlight) {
+    public StageWorkerDefinitionBuilder withHighlight(@Nullable Highlight highlight) {
         this.highlight = Optional.ofNullable(highlight);
         return this;
     }
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinitionBuilder withDiscardable(@Nullable Boolean discardable) {
+    public StageWorkerDefinitionBuilder withDiscardable(@Nullable Boolean discardable) {
         this.discardable = Optional.ofNullable(discardable);
         return this;
     }
 
     @Nonnull
-    public StageDefinition build() {
+    public StageWorkerDefinition build() {
         var base = Optional.ofNullable(this.base).or(() -> Optional.ofNullable(this.template)).orElseThrow();
         var env = either(this.env, Optional.of(base.environment()));
 
@@ -113,7 +113,7 @@ public class StageDefinitionBuilder {
             }
         }
 
-        return new StageDefinition(
+        return new StageWorkerDefinition(
                 base.id(),
                 base.name(),
                 this.description.orElse(base.description()),
@@ -124,24 +124,18 @@ public class StageDefinitionBuilder {
                 this.highlight.orElse(base.highlight()),
                 this.discardable.orElse(base.discardable()),
                 Optional.ofNullable(either(
-                        Optional.ofNullable(this.template).map(StageDefinition::privileged),
-                        Optional.ofNullable(this.base).map(StageDefinition::privileged)
+                        Optional.ofNullable(this.template).map(StageWorkerDefinition::privileged),
+                        Optional.ofNullable(this.base).map(StageWorkerDefinition::privileged)
                 )).orElse(Boolean.FALSE),
                 either(
                         this.logParsers,
                         Optional.of(this.template.logParsers())
                 ),
                 Optional.ofNullable(either(
-                        Optional.ofNullable(this.template).map(StageDefinition::ignoreFailuresWithinExecutionGroup),
-                        Optional.ofNullable(this.base).map(StageDefinition::ignoreFailuresWithinExecutionGroup)
+                        Optional.ofNullable(this.template).map(StageWorkerDefinition::ignoreFailuresWithinExecutionGroup),
+                        Optional.ofNullable(this.base).map(StageWorkerDefinition::ignoreFailuresWithinExecutionGroup)
                 )).orElse(Boolean.FALSE),
-                either(
-                        Optional.ofNullable(this.template).map(StageDefinition::tags),
-                        Optional.ofNullable(this.base).map(StageDefinition::tags)
-                ),
-                either(this.result, Optional.of(base.result())),
-                template.type(),
-                Optional.ofNullable(this.template).map(StageDefinition::nextStages).orElse(null)
+                Optional.ofNullable(this.template).map(StageWorkerDefinition::nextStages).orElse(null)
         );
     }
 
