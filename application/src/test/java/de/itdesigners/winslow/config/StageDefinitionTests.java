@@ -73,11 +73,10 @@ public class StageDefinitionTests {
 
 
     @Test
-    public void DefaultPipelineSerialisation() throws IOException {
+    public void DefaultStageWorkerSerialisation() throws IOException {
         var stageYaml = """
                 name: "The name of the stage"
                 """;
-
 
         var stage = new StageWorkerDefinition(
                 null,
