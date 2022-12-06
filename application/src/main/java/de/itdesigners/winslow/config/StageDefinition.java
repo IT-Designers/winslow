@@ -4,12 +4,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.*;
-
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-        //   include = JsonTypeInfo.As.WRAPPER_OBJECT
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type"
+        include = JsonTypeInfo.As.WRAPPER_OBJECT
+        //include = JsonTypeInfo.As.PROPERTY,
+        //property = "type"
 
 )
 @JsonSubTypes({
@@ -17,6 +16,7 @@ import java.util.*;
         @JsonSubTypes.Type(value = StageXOrGatwayDefinition.class, name = "XorGateway"),
         @JsonSubTypes.Type(value = StageAndGatewayDefinition.class, name = "AndGateway"),
 })
+
 public interface StageDefinition {
     UUID id();
     String name();

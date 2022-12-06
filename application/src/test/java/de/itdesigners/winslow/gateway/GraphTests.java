@@ -517,7 +517,7 @@ public class GraphTests {
                 null,
                 null,
                 null,
-                null
+                next
         );
     }
 
