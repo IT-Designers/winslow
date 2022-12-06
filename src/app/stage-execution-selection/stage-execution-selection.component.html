@@ -130,19 +130,19 @@
   <div class="action-row">
     <mat-label class="title">
       <input #requireGpus type="checkbox" [checked]="resources.gpus != null"
-             (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpus : null">
+             (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpu.count : null">
       GPUs
     </mat-label>
     <mat-form-field>
       <input #requiredGpus matInput required
-             [value]="'' +(selectedStage.requiredResources.gpus != null ? selectedStage.requiredResources.gpus : 0)"
+             [value]="'' +(selectedStage.requiredResources.gpu.count != null ? selectedStage.requiredResources.gpu.count : 0)"
              [disabled]="!requireGpus.checked"
              (change)="resources.gpus = toNumber($event.target.value); updateValid()">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"
-              [disabled]="requiredGpus.value == '' +selectedStage.requiredResources.gpus"
-              (click)="requiredGpus.value = '' +selectedStage.requiredResources.gpus; resources.gpus = selectedStage.requiredResources.gpus">
+              [disabled]="requiredGpus.value == '' +selectedStage.requiredResources.gpu.count"
+              (click)="requiredGpus.value = '' +selectedStage.requiredResources.gpu.count; resources.gpus = selectedStage.requiredResources.gpu.count">
         Reset
       </button>
     </div>

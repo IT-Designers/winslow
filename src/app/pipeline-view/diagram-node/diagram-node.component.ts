@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
-import {StageDefinitionInfo} from "../../api/winslow-api";
+import {StageDefinitionInfo, StageWorkerDefinitionInfo} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-diagram-node',
@@ -10,7 +10,7 @@ import {StageDefinitionInfo} from "../../api/winslow-api";
 export class DiagramNodeComponent implements OnInit {
 
   @Input() nodeTypeName : String;
-  node$?: DiagramMakerNode<StageDefinitionInfo>;
+  node$?: DiagramMakerNode<StageWorkerDefinitionInfo>;
   selected$?: boolean = false;
   containsNode?: boolean = false;
   isPipelineDef: boolean = false;
@@ -28,7 +28,7 @@ export class DiagramNodeComponent implements OnInit {
   }
 
   @Input()
-  set node(node: DiagramMakerNode<StageDefinitionInfo>) {
+  set node(node: DiagramMakerNode<StageWorkerDefinitionInfo>) {
     this.node$ = node;
   }
 
