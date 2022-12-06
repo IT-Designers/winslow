@@ -1,14 +1,12 @@
 package de.itdesigners.winslow.web.api.noauth;
 
 import de.itdesigners.winslow.Winslow;
-import de.itdesigners.winslow.api.pipeline.ImageInfo;
 import de.itdesigners.winslow.api.pipeline.ResourceInfo;
 import de.itdesigners.winslow.api.pipeline.StageWorkerDefinitionInfo;
 import de.itdesigners.winslow.api.project.EnqueueRequest;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.web.ImageInfoConverter;
-import de.itdesigners.winslow.web.RequirementsInfoConverter;
 import de.itdesigners.winslow.web.api.ProjectsController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,7 +65,7 @@ public class PipelineTrigger {
                             : null;
             var resourceInfo = stageDefinition instanceof StageWorkerDefinition w
                                ? new ResourceInfo(
-                    w.requirements().getCpu(),
+                    w.requirements().getCpus(),
                     w.requirements().getMegabytesOfRam(),
                     w.requirements().getGpu().getCount()
             )
@@ -101,7 +99,7 @@ public class PipelineTrigger {
                                 .orElseGet(HashMap::new);
                         request.image             = workerDefinitionInfo.image();
                         request.requiredResources = new ResourceInfo(
-                                workerDefinitionInfo.requiredResources().cpu(),
+                                workerDefinitionInfo.requiredResources().cpus(),
                                 workerDefinitionInfo.requiredResources().ram(),
                                 workerDefinitionInfo.requiredResources().gpu().count()
                         );

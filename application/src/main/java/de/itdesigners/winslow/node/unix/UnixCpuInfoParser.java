@@ -23,7 +23,7 @@ public class UnixCpuInfoParser {
 
     @Nonnull
     private Stream<String> getCpuCoreLines() {
-        return Stream.of(lines).skip(1).takeWhile(line -> line.startsWith("cpu"));
+        return Stream.of(lines).skip(1).takeWhile(line -> line.startsWith("cpus"));
     }
 
     private int parseCpuCount() {
