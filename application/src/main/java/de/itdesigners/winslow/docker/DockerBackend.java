@@ -1,8 +1,7 @@
 package de.itdesigners.winslow.docker;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.Info;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.StageHandle;
@@ -25,91 +24,19 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
     private static final Logger LOG                                  = Logger.getLogger(DockerBackend.class.getSimpleName());
     private static final String DOCKER_CONTAINER_NAME_WINSLOW_PREFIX = "winslow-stage-";
 
+    private final @Nonnull String                             nodeName;
     private final @Nonnull DockerClient                       dockerClient;
     private final @Nonnull Map<String, StageHandle>           runningStages = new HashMap<>();
     private final @Nonnull SubmissionToDockerContainerAdapter adapter;
 
-    public DockerBackend(@Nonnull DockerClient dockerClient) {
+    public DockerBackend(@Nonnull String nodeName, @Nonnull DockerClient dockerClient) {
+        this.nodeName     = nodeName;
         this.dockerClient = dockerClient;
         this.dockerClient.pingCmd().exec();
 
         this.adapter = new SubmissionToDockerContainerAdapter(this);
 
         recoverRunningStages();
-
-
-        for (var container : this.dockerClient.listContainersCmd().exec()) {
-            System.out.println(container);
-        }
-
-
-        var container = this.dockerClient
-                .createContainerCmd("ubuntu")
-                .withCmd("nvidia-smi")
-                .withHostConfig(
-                        HostConfig
-                                .newHostConfig()
-                                .withAutoRemove(true)
-                                .withCpuCount(1L)
-                                .withDeviceRequests(List.of(
-                                        new DeviceRequest()
-                                                .withDriver("nvidia")
-                                                .withCapabilities(List.of(List.of("gpu")))
-                                                .withCount(1)
-                                ))
-                                .withMounts(List.of(
-                                        new Mount()
-                                                .withTarget("/tmp/winslow")
-                                                .withVolumeOptions(
-                                                        new VolumeOptions()
-                                                                .withDriverConfig(
-                                                                        new Driver()
-                                                                                .withName("local")
-                                                                                .withOptions(
-                                                                                        Map.of(
-                                                                                                "type",
-                                                                                                "nfs",
-                                                                                                "device",
-                                                                                                ":/data/streets/winslow",
-                                                                                                "o",
-                                                                                                "addr=10.202.6.22"
-                                                                                        )
-                                                                                )
-                                                                )
-                                                )
-                                ))
-                )
-                .exec();
-        System.out.println(container.getId());
-        System.out.println(Arrays.toString(container.getWarnings()));
-
-        System.out.println(this.dockerClient.infoCmd().exec());
-
-        this.dockerClient.startContainerCmd(container.getId()).exec();
-
-        this.dockerClient
-                .logContainerCmd(container.getId())
-                .withStdOut(true)
-                .withStdErr(true)
-                .withFollowStream(true)
-                .exec(new ResultCallback.Adapter<>() {
-
-                    @Override
-                    public void onStart(Closeable stream) {
-                        System.out.println("START");
-                    }
-
-                    @Override
-                    public void onNext(Frame frame) {
-                        System.out.println("RAW: " + frame.getRawValues());
-                        System.out.println(frame);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        System.out.println("COMPLETE");
-                    }
-                });
     }
 
     private void recoverRunningStages() {
@@ -126,9 +53,14 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
                 .toList();
 
         for (var container : winslowContainers) {
-            // TODO
-            System.out.println(getContainerName(container.getId()));
+            // TODO implement docker container recovery
+            LOG.warning("Found container that could be recovered if recovery was implemented: " + container.getId());
         }
+    }
+
+    @Nonnull
+    protected String getNodeName() {
+        return nodeName;
     }
 
     @Nonnull
@@ -149,12 +81,20 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
 
     @Override
     public void stop(@Nonnull String stage) throws IOException {
-        this.dockerClient.stopContainerCmd(getContainerName(stage)).exec();
+        try {
+            this.dockerClient.stopContainerCmd(getContainerName(stage)).exec();
+        } catch (Throwable t) {
+            throw new IOException(t);
+        }
     }
 
     @Override
     public void kill(@Nonnull String stageId) throws IOException {
-        this.dockerClient.killContainerCmd(getContainerName(stageId)).exec();
+        try {
+            this.dockerClient.killContainerCmd(getContainerName(stageId)).exec();
+        } catch (Throwable t) {
+            throw new IOException(t);
+        }
     }
 
     @Nonnull
