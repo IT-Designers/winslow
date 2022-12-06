@@ -82,7 +82,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                     .getSubmission()
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_CORES",
-                            String.valueOf(workerDefinition.requirements().getCpu())
+                            String.valueOf(workerDefinition.requirements().getCpus())
                     )
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_MB",

@@ -1,8 +1,6 @@
 package de.itdesigners.winslow.web;
 
-import de.itdesigners.winslow.api.pipeline.ImageInfo;
 import de.itdesigners.winslow.api.pipeline.RequirementsInfo;
-import de.itdesigners.winslow.config.Image;
 import de.itdesigners.winslow.config.Requirements;
 
 import javax.annotation.Nonnull;
@@ -12,7 +10,7 @@ public class RequirementsInfoConverter {
     @Nonnull
     public static RequirementsInfo from(@Nonnull Requirements requirements) {
         return new RequirementsInfo(
-                requirements.getCpu(),
+                requirements.getCpus(),
                 requirements.getMegabytesOfRam(),
                 from (requirements.getGpu()),
                 requirements.getTags()

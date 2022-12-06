@@ -180,7 +180,7 @@ public class ResourceAllocationMonitor {
     }
 
     public enum StandardResources {
-        CPU("cpu"),
+        CPU("cpus"),
         RAM("ram"),
         GPU("gpu");
 
