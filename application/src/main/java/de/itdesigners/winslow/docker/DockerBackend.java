@@ -4,11 +4,8 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
-import de.itdesigners.winslow.StageHandle;
-import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
 
@@ -16,7 +13,6 @@ import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -28,7 +24,6 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
 
     private final @Nonnull String                             nodeName;
     private final @Nonnull DockerClient                       dockerClient;
-    private final @Nonnull Map<String, StageHandle>           runningStages = new HashMap<>();
     private final @Nonnull SubmissionToDockerContainerAdapter adapter;
 
     public DockerBackend(@Nonnull String nodeName, @Nonnull DockerClient dockerClient) {
@@ -68,12 +63,6 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
     @Nonnull
     protected DockerClient getDockerClient() {
         return dockerClient;
-    }
-
-    @Nonnull
-    @Override
-    public Optional<State> getState(@Nonnull StageId stageId) throws IOException {
-        return Optional.ofNullable(this.runningStages.get(stageId.getFullyQualified())).flatMap(StageHandle::getState);
     }
 
     @Override

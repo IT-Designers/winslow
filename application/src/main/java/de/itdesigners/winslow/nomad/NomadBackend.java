@@ -107,7 +107,6 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
     }
 
     @Nonnull
-    @Override
     public Optional<State> getState(@Nonnull StageId stageId) throws IOException {
         return getStateByNomadJogId(stageId.getFullyQualified());
     }
