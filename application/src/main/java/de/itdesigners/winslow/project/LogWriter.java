@@ -16,8 +16,10 @@ import java.util.stream.Stream;
 
 public class LogWriter implements Runnable {
 
-    static final String DATE_FORMAT   = "yyy-MM-dd_HH:mm:ss.SSS";
-    static final String LOG_SEPARATOR = " ";
+    static final @Nonnull String DATE_FORMAT             = "yyy-MM-dd_HH:mm:ss.SSS";
+    static final @Nonnull String LOG_SEPARATOR           = " ";
+    static final @Nonnull String TRIPLE_STANDARD_IO      = "std";
+    static final @Nonnull String TRIPLE_MANAGEMENT_EVENT = "evt";
 
     @Nonnull private final SimpleDateFormat         dateFormat;
     @Nonnull private final Stream<LogEntry>         streamSource;
@@ -45,16 +47,10 @@ public class LogWriter implements Runnable {
                 if (element != null) {
                     var stream   = element.isError() ? "err" : "out";
                     var dateTime = dateFormat.format(new Date(element.getTime()));
-                    var source   = (String)null;
-
-                    switch (element.getSource()) {
-                        case STANDARD_IO:
-                            source = "std";
-                            break;
-                        case MANAGEMENT_EVENT:
-                            source = "evt";
-                            break;
-                    }
+                    var source = switch (element.getSource()) {
+                        case STANDARD_IO -> TRIPLE_STANDARD_IO;
+                        case MANAGEMENT_EVENT -> TRIPLE_MANAGEMENT_EVENT;
+                    };
 
                     ps.println(String.join(LOG_SEPARATOR, dateTime, source + stream, element.getMessage()));
                     ps.flush();
