@@ -189,7 +189,7 @@ public class Executor {
                         .source(Stream.concat(
                                 Stream.<LogEntry>iterate(
                                         null,
-                                        p -> this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed(),
+                                        p -> p != null || (this.keepRunning() && iter.hasNext() && !lockHeart.hasFailed()),
                                         p -> {
                                             intervalInvoker.maybeInvokeAll();
                                             var next = iter.next();
