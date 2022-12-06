@@ -13,16 +13,16 @@ public class EnqueueOnOtherRequest extends EnqueueRequest {
     public @Nonnull String[] projectIds;
 
     public EnqueueOnOtherRequest(
+            @Nonnull String id,
             @Nonnull Map<String, String> env,
             @Nullable Map<String, RangedValue> rangedEnv,
-            int stageIndex,
             @Nullable ImageInfo image,
             @Nullable ResourceInfo requiredResources,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
             @Nullable String comment,
             @Nullable Boolean runSingle, @Nullable Boolean resume,
             @Nonnull String[] projectIds) {
-        super(env, rangedEnv, stageIndex, image, requiredResources, workspaceConfiguration, comment, runSingle, resume);
+        super(id, env, rangedEnv, image, requiredResources, workspaceConfiguration, comment, runSingle, resume);
         this.projectIds = projectIds;
     }
 }

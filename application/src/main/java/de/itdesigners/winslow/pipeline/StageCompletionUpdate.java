@@ -70,13 +70,20 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                         if (orchestrator
                                 .getRunInfoRepository()
                                 .hasLogRedirectionCompletedSuccessfullyHint(stage.getFullyQualifiedId())) {
-                            Optional<Map<String, String>> result = orchestrator.getRunInfoRepository().getResult(stage.getFullyQualifiedId());
+                            Optional<Map<String, String>> result = orchestrator
+                                    .getRunInfoRepository()
+                                    .getResult(stage.getFullyQualifiedId());
                             result.ifPresent(stage::setResult);
 
                             stage.finishNow(State.Succeeded);
 
-                            var remaining = pipeline.getActiveExecutionGroups().anyMatch(ExecutionGroup::hasRemainingExecutions);
-                            var singleExec = pipeline.getResumeNotification().map(n -> Pipeline.ResumeNotification.RunSingleThenPause == n).orElse(Boolean.FALSE);
+                            var remaining  = pipeline
+                                    .getActiveExecutionGroups()
+                                    .anyMatch(ExecutionGroup::hasRemainingExecutions);
+                            var singleExec = pipeline
+                                    .getResumeNotification()
+                                    .map(n -> Pipeline.ResumeNotification.RunSingleThenPause == n)
+                                    .orElse(Boolean.FALSE);
 
                             if (!remaining && singleExec) {
                                 pipeline.resetResumeNotification();
@@ -92,9 +99,10 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
 
             if (changes > 0) {
                 pipeline.getActiveExecutionGroups().forEach(active -> {
-                    var hasFailed = active.getStages().anyMatch(s -> s.getState() == State.Failed);
+                    var hasFailed    = active.getStages().anyMatch(s -> s.getState() == State.Failed);
                     var hasRemaining = active.hasRemainingExecutions();
-                    var ignoreFailures = active.getStageDefinition().ignoreFailuresWithinExecutionGroup();
+
+                    var ignoreFailures = CommonUpdateConstraints.doesIgnoreFailuresWithinExecutionGroup(active.getStageDefinition());
 
                     if ((hasFailed && !hasRemaining) || (hasFailed && !ignoreFailures)) {
                         pipeline.requestPause(Pipeline.PauseReason.StageFailure);

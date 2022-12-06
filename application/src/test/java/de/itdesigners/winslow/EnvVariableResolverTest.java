@@ -5,7 +5,7 @@ import de.itdesigners.winslow.api.pipeline.EnvVariable;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.junit.Test;
@@ -249,7 +249,7 @@ public class EnvVariableResolverTest {
                         0,
                         "randomish-human-readable"
                 ),
-                new StageDefinition(
+                new StageWorkerDefinition(
                         stageDefId,
                         stageDefName,
                         null,
@@ -257,9 +257,6 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         env,
-                        null,
-                        null,
-                        null,
                         null,
                         null,
                         null,
@@ -286,7 +283,7 @@ public class EnvVariableResolverTest {
                         "randomish-human-readable"
                 ),
                 configureOnly,
-                new StageDefinition(
+                new StageWorkerDefinition(
                         stageDefId,
                         stageDefName,
                         null,
@@ -294,9 +291,6 @@ public class EnvVariableResolverTest {
                         null,
                         null,
                         env,
-                        null,
-                        null,
-                        null,
                         null,
                         null,
                         null,

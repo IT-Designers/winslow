@@ -2,6 +2,7 @@ package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;

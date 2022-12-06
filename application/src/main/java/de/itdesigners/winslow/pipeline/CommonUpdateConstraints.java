@@ -3,6 +3,8 @@ package de.itdesigners.winslow.pipeline;
 import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
+import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,7 +59,8 @@ public class CommonUpdateConstraints {
                 .findAny()
                 .isEmpty();
         if (!empty) {
-            throw new PreconditionNotMetException("The pipeline is currently not executing a group with no active stages");
+            throw new PreconditionNotMetException(
+                    "The pipeline is currently not executing a group with no active stages");
         }
     }
 
@@ -116,10 +119,14 @@ public class CommonUpdateConstraints {
                 .stream()
                 .flatMap(Pipeline::getActiveExecutionGroups)
                 .map(g -> g.hasRemainingExecutions()
-                        && (g.getStageDefinition().ignoreFailuresWithinExecutionGroup()
-                            || g.getStages().noneMatch(s -> s.getState() == State.Failed)))
+                        && (doesIgnoreFailuresWithinExecutionGroup(g.getStageDefinition())
+                        || g.getStages().noneMatch(s -> s.getState() == State.Failed)))
                 .findFirst()
                 .orElse(Boolean.FALSE);
+    }
+
+    public static boolean doesIgnoreFailuresWithinExecutionGroup(@Nonnull StageDefinition def) {
+        return def instanceof StageWorkerDefinition w ? w.ignoreFailuresWithinExecutionGroup() : false;
     }
 
     public static Boolean isActiveExecutionGroupStillRelevant(@Nonnull ExecutionGroup executionGroup) {

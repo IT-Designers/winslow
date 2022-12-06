@@ -5,6 +5,7 @@ import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration.WorkspaceMode;
 import de.itdesigners.winslow.config.ExecutionGroup;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
 
@@ -142,10 +143,14 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Nonnull
     private String getNestedWorkspaceName(@Nonnull Context context) {
-        return EnvironmentVariableAppender.getRangedEnvironmentVariables(
-                context.getSubmission().getStageDefinition(),
-                context.getExecutionGroup().getRangedValues().orElseGet(Collections::emptyMap)
-        );
+        if(context.getSubmission().getStageDefinition() instanceof StageWorkerDefinition stageWorkerDefinition) {
+            return EnvironmentVariableAppender.getRangedEnvironmentVariables(
+                    stageWorkerDefinition,
+                    context.getExecutionGroup().getRangedValues().orElseGet(Collections::emptyMap)
+            );
+        } else {
+            return "";
+        }
     }
 
     private void upgradePipelineDirectory(

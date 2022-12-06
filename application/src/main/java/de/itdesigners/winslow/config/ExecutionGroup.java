@@ -20,7 +20,7 @@ public class ExecutionGroup {
 
     private final @Nonnull  ExecutionGroupId             id;
     private final           boolean                      configureOnly;
-    private final @Nonnull  StageDefinition              stageDefinition;
+    private final @Nonnull  StageDefinition        stageDefinition;
     /**
      * Some kind of ordered Map is important here so that the {@link #groupCounter} retrieves the entries
      * in a reliable order
@@ -125,7 +125,7 @@ public class ExecutionGroup {
     }
 
     /**
-     * @return A {@link StageDefinition} to create a stage for or {@link Optional#empty()} if no further stages need to be executed
+     * @return A {@link StageWorkerDefinition} to create a stage for or {@link Optional#empty()} if no further stages need to be executed
      */
     @Nonnull
     @Transient
@@ -144,26 +144,29 @@ public class ExecutionGroup {
                 counter /= entry.getValue().getStepCount();
             }
 
+            var stageDefinitionCopy = stageDefinition;
+            if(stageDefinition instanceof StageWorkerDefinition worker){
+                stageDefinitionCopy = new StageWorkerDefinition(
+                        worker.id(),
+                        worker.name(),
+                        worker.description(),
+                        worker.image(),
+                        worker.requirements(),
+                        worker.userInput(),
+                        map,
+                        worker.highlight(),
+                        worker.discardable(),
+                        worker.privileged(),
+                        worker.logParsers(),
+                        worker.ignoreFailuresWithinExecutionGroup(),
+                        worker.nextStages()
+                );
+            }
+
+
             return Optional.of(new Pair<>(
                     this.id.generateStageId(getGroupCounter() + 1),
-                    new StageDefinition(
-                            stageDefinition.id(),
-                            stageDefinition.name(),
-                            stageDefinition.description(),
-                            stageDefinition.image(),
-                            stageDefinition.requirements(),
-                            stageDefinition.userInput(),
-                            map,
-                            stageDefinition.highlight(),
-                            stageDefinition.discardable(),
-                            stageDefinition.privileged(),
-                            stageDefinition.logParsers(),
-                            stageDefinition.ignoreFailuresWithinExecutionGroup(),
-                            stageDefinition.tags(),
-                            stageDefinition.result(),
-                            stageDefinition.type(),
-                            stageDefinition.nextStages()
-                    )
+                    stageDefinitionCopy
             ));
         } else if (this.stages.isEmpty()) {
             return Optional.of(new Pair<>(this.id.generateStageId(null), this.stageDefinition));
@@ -284,7 +287,7 @@ public class ExecutionGroup {
 
     @Transient
     public boolean isGateway() {
-        return getStageDefinition().type().isGateway();
+        return getStageDefinition() instanceof StageAndGatewayDefinition || getStageDefinition() instanceof StageXOrGatwayDefinition;
     }
 
     @Nonnull

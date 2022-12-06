@@ -2,7 +2,9 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.config.LogParser;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.resource.ResourceManager;
+import org.apache.juli.logging.Log;
 import org.apache.logging.log4j.util.TriConsumer;
 
 import javax.annotation.Nonnull;
@@ -41,10 +43,12 @@ public class LogParserRegisterer implements AssemblerStep {
                 .map(Path::of)
                 .flatMap(resourceManager::getWorkspace)
                 .ifPresent(workDir -> {
-                    var parsers = context
-                            .getSubmission()
-                            .getStageDefinition()
-                            .logParsers()
+
+                    var logParsers = context.getSubmission().getStageDefinition() instanceof StageWorkerDefinition w
+                                     ? w.logParsers()
+                                     : Collections.<LogParser>emptyList();
+
+                    var parsers = logParsers
                             .stream()
                             .flatMap(parser -> instantiateConsumer(
                                     context,
@@ -67,7 +71,7 @@ public class LogParserRegisterer implements AssemblerStep {
             @Nonnull Context context,
             @Nonnull Path path,
             @Nonnull LogParser parser) {
-        if (!PARSER_TYPE_REGEX_MATCHER_CSV.equals(parser.getType()) && !parser.getType().startsWith(
+        if (!PARSER_TYPE_REGEX_MATCHER_CSV.equals(parser.type()) && !parser.type().startsWith(
                 PARSER_TYPE_REGEX_MATCHER_CSV + ":")) {
             context.log(
                     Level.SEVERE,
@@ -78,28 +82,28 @@ public class LogParserRegisterer implements AssemblerStep {
 
         final Parameters parameters;
 
-        if (parser.getType().startsWith(PARSER_TYPE_REGEX_MATCHER_CSV + ":")) {
-            parameters = parseParameters(parser.getType().substring(PARSER_TYPE_REGEX_MATCHER_CSV.length() + 1));
+        if (parser.type().startsWith(PARSER_TYPE_REGEX_MATCHER_CSV + ":")) {
+            parameters = parseParameters(parser.type().substring(PARSER_TYPE_REGEX_MATCHER_CSV.length() + 1));
         } else {
             parameters = new Parameters();
         }
 
-        var parserDestination = path.resolve(parser.getDestination());
+        var parserDestination = path.resolve(parser.destination());
         if (parserDestination.startsWith(path)) {
             try {
-                var pattern = Pattern.compile(parser.getMatcher());
+                var pattern = Pattern.compile(parser.matcher());
                 var formatter = new Formatter(
-                        parser.getFormatter(),
+                        parser.formatter(),
                         context.getSubmission()::getEnvVariable
                 );
 
-                boolean dynamicDestination = parser.getDestination().contains("$");
+                boolean dynamicDestination = parser.destination().contains("$");
 
                 final BiFunction<LogEntry, Matcher, Optional<Path>> destinationResolver;
 
                 if (dynamicDestination) {
                     var destinationFormatter = new Formatter(
-                            parser.getDestination(),
+                            parser.destination(),
                             context.getSubmission()::getEnvVariable
                     );
                     destinationResolver = (entry, matcher) -> {

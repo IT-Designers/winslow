@@ -1,27 +1,19 @@
 package de.itdesigners.winslow.config;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-public class Highlight {
-    private final String[] resources;
+public record Highlight(@Nonnull List<String> resources) {
 
-    public Highlight(){ resources = new String[0];}
-
-    public Highlight(String[] resources) {
-        this.resources = resources;
-    }
-
-    public String[] getResources() {
-        return resources != null ? resources : new String[0];
+    public Highlight(List<String> resources) {
+        this.resources = resources != null? resources : Collections.emptyList();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{resources=" + Arrays.toString(this.resources) + "}#" + this.hashCode();
+        return getClass().getSimpleName() + "@{resources=" + (this.resources()) + "}#" + this.hashCode();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Highlight && Arrays.deepEquals(((Highlight) obj).resources, resources);
-    }
 }

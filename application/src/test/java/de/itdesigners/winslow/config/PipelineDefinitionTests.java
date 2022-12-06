@@ -78,12 +78,9 @@ public class PipelineDefinitionTests {
                 "Pipeline",
                 "description",
                 new UserInput(UserInput.Confirmation.Always, Arrays.asList("env")),
-                Arrays.asList(new StageDefinition(
+                Arrays.asList(new StageWorkerDefinition(
                         null,
                         "pipeline",
-                        null,
-                        null,
-                        null,
                         null,
                         null,
                         null,

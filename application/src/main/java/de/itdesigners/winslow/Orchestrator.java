@@ -51,9 +51,10 @@ public class Orchestrator implements Closeable, AutoCloseable {
     public static final  Pattern PROGRESS_HINT_PATTERN = Pattern.compile("(([\\d]+[.])?[\\d]+)[ ]*%");
     public static final  Pattern RESULT_PATTERN        = Pattern.compile("WINSLOW_RESULT:[ ]+(.*)=(.*)");
 
-    private final @Nonnull LockBus            lockBus;
-    private final @Nonnull Environment        environment;
-    private final @Nonnull Backend            backend;
+    private final @Nonnull LockBus       lockBus;
+    private final @Nonnull Environment   environment;
+    private final @Nonnull List<Backend> backends;
+
     private final @Nonnull ProjectRepository  projects;
     private final @Nonnull PipelineRepository pipelines;
     private final @Nonnull RunInfoRepository  hints;
@@ -91,7 +92,6 @@ public class Orchestrator implements Closeable, AutoCloseable {
             boolean executeStages) {
         this.lockBus       = lockBus;
         this.environment   = environment;
-        this.backend       = backend;
         this.projects      = projects;
         this.pipelines     = pipelines;
         this.hints         = hints;
@@ -104,6 +104,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         this.executeStages = executeStages;
 
         this.electionManager = new ElectionManager(lockBus);
+        this.backends        = List.of(backend, new GatewayBackend(pipelines, projects));
 
         this.stageExecutionTags.add("winslow:node:" + this.nodeName);
         this.stageExecutionTags.add("winslow:server:" + this.nodeName);
@@ -124,8 +125,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    public Backend getBackend() {
-        return backend;
+    public Stream<Backend> getBackends() {
+        return backends.stream();
     }
 
     @Nonnull
@@ -203,7 +204,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     @Nonnull
     ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
-        return toResourceSet(definition.requirements());
+        return definition instanceof StageWorkerDefinition w
+               ? toResourceSet(w.requirements())
+               : new ResourceAllocationMonitor.ResourceSet<>();
     }
 
     @Nonnull
@@ -260,7 +263,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
         if (null != executor) {
             try {
                 executor.logErr("Received STOP signal");
-                this.backend.stop(event.getSubject());
+                for (var backend : this.backends) {
+                    backend.stop(event.getSubject());
+                }
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, "Failed to request the backend to stop stage " + event.getSubject(), e);
             }
@@ -322,7 +327,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     public void killLocally(@Nonnull String fullyQualifiedStageId) throws IOException {
-        this.backend.kill(fullyQualifiedStageId);
+        for (var backend : backends) {
+            backend.kill(fullyQualifiedStageId);
+        }
     }
 
     private void pollPipelineForUpdate(@Nonnull String id) {
@@ -366,13 +373,13 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 )
                 .with(
                         ResourceAllocationMonitor.StandardResources.RAM,
-                        ((long)requirements.getMegabytesOfRam()) * 1024 * 1024
+                        ((long) requirements.getMegabytesOfRam()) * 1024 * 1024
                 )
                 .with(
                         ResourceAllocationMonitor.StandardResources.GPU,
                         (long) requirements
-                               .getGpu()
-                               .getCount()
+                                .getGpu()
+                                .getCount()
                 );
     }
 
@@ -385,41 +392,46 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .map(group -> {
                     if (group.isConfigureOnly() || group.isGateway()) {
                         return true;
-                    }
-
-                    var resources = getRequiredResources(group.getStageDefinition());
-                    var wouldExceedLimit = getProjectUnsafe(pipeline.getProjectId()).map(project -> {
-                        var allocView = new DistributedAllocationView(project.getOwner(), pipeline.getProjectId());
-
-                        var settingsLimit = settings.getUserResourceLimitations().unsafe();
-                        var userLimit     = users.getUser(project.getOwner()).flatMap(User::getResourceLimitation);
+                    } else if (group.getStageDefinition() instanceof StageWorkerDefinition stageWorkerDefinition) {
 
 
-                        if (settingsLimit.isPresent() && userLimit.isPresent()) {
-                            allocView.setUserLimit(settingsLimit.get().min(userLimit.get()));
-                        } else {
-                            settingsLimit.or(() -> userLimit).ifPresent(allocView::setUserLimit);
+                        var resources = getRequiredResources(stageWorkerDefinition);
+                        var wouldExceedLimit = getProjectUnsafe(pipeline.getProjectId()).map(project -> {
+                            var allocView = new DistributedAllocationView(project.getOwner(), pipeline.getProjectId());
+
+                            var settingsLimit = settings.getUserResourceLimitations().unsafe();
+                            var userLimit     = users.getUser(project.getOwner()).flatMap(User::getResourceLimitation);
+
+
+                            if (settingsLimit.isPresent() && userLimit.isPresent()) {
+                                allocView.setUserLimit(settingsLimit.get().min(userLimit.get()));
+                            } else {
+                                settingsLimit.or(() -> userLimit).ifPresent(allocView::setUserLimit);
+                            }
+
+                            allocView.loadAllocInfo(
+                                    nodes.loadActiveNodes().flatMap(info -> info.getAllocInfo().stream()),
+                                    new CachedFunction<>(this::getProjectUnsafe)
+                            );
+                            return allocView.wouldResourcesExceedLimit(resources);
+                        }).orElse(Boolean.FALSE);
+
+                        boolean couldReserve = this.monitor.couldReserveConsideringReservations(resources);
+                        boolean result       = !wouldExceedLimit && couldReserve;
+
+                        if (!result) {
+                            LOG.info(
+                                    "hasResourcesToExecuteNextStage('" + pipeline.getProjectId() + "') => false"
+                                            + ", wouldExceedLimit=" + wouldExceedLimit
+                                            + ", couldReserveConsideringReservations=" + couldReserve
+                            );
                         }
 
-                        allocView.loadAllocInfo(
-                                nodes.loadActiveNodes().flatMap(info -> info.getAllocInfo().stream()),
-                                new CachedFunction<>(this::getProjectUnsafe)
-                        );
-                        return allocView.wouldResourcesExceedLimit(resources);
-                    }).orElse(Boolean.FALSE);
-
-                    boolean couldReserve = this.monitor.couldReserveConsideringReservations(resources);
-                    boolean result       = !wouldExceedLimit && couldReserve;
-
-                    if (!result) {
-                        LOG.info(
-                                "hasResourcesToExecuteNextStage('" + pipeline.getProjectId() + "') => false"
-                                        + ", wouldExceedLimit=" + wouldExceedLimit
-                                        + ", couldReserveConsideringReservations=" + couldReserve
-                        );
+                        return result;
+                    } else {
+                        throw new RuntimeException(
+                                "Expected a StageWorkerDefinition. Is there a new StageWorkerType to be checked?");
                     }
-
-                    return result;
                 });
     }
 
@@ -433,9 +445,13 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     if (group.isConfigureOnly() || group.isGateway()) {
                         return true;
                     }
-                    boolean hasAllTags     = this.stageExecutionTags.containsAll(group.getStageDefinition().tags());
-                    boolean backendCapable = this.backend.isCapableOfExecuting(group.getStageDefinition());
-                    boolean result         = hasAllTags && backendCapable;
+                    boolean hasAllTags = group.getStageDefinition() instanceof StageWorkerDefinition workerDef
+                                         ? this.stageExecutionTags.containsAll(workerDef.requirements().getTags())
+                                         : true;
+                    boolean backendCapable = this.backends
+                            .stream()
+                            .anyMatch(b -> b.isCapableOfExecuting(group.getStageDefinition()));
+                    boolean result = hasAllTags && backendCapable;
 
                     if (!result) {
                         LOG.info(
@@ -500,7 +516,6 @@ public class Orchestrator implements Closeable, AutoCloseable {
                 .filter(g -> g.getNextStageDefinition().isPresent())
                 .findFirst();
         var nextStageDefinition = executionGroup.flatMap(ExecutionGroup::getNextStageDefinition);
-
         if (nextStageDefinition.isEmpty()) {
             LOG.warning("Got commanded to start next stage but there is none!");
             return Optional.empty();
@@ -510,6 +525,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
         var       stageDefinition = nextStageDefinition.get().getValue1();
         var       executor        = (Executor) null;
         final var stage           = new Stage(stageId, null);
+
+        var backend = this.backends.stream().filter(b -> b.isCapableOfExecuting(stageDefinition)).findFirst();
+        if (backend.isEmpty()) {
+            LOG.warning("Could not find a capable backend for " + stageDefinition.name());
+            return Optional.empty();
+        }
 
         try {
             final var env = settings.getGlobalEnvironmentVariables();
@@ -525,7 +546,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     stageId,
                     executor,
                     env,
-                    project
+                    project,
+                    backend.get()
             );
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
@@ -548,7 +570,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull StageId stageId,
             @Nonnull Executor executor,
             @Nonnull Map<String, String> globalEnvironmentVariables,
-            @Nonnull Project project) {
+            @Nonnull Project project, Backend backend) {
         var thread = new Thread(() -> {
             var projectId = pipeline.getProjectId();
             var assembler = new StageAssembler();
@@ -565,10 +587,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new EnvLogger())
                             .add(new LogParserRegisterer(getResourceManager()))
                             .add(new BuildAndSubmit(
-                                    // TODO make it great again!
-                                    stageDefinition.type().isGateway()
-                                    ? new GatewayBackend(this.pipelines, this.projects)
-                                    : this.backend,
+                                    backend,
                                     this.nodeName,
                                     result -> {
                                         result.getStage().startNow();
@@ -668,7 +687,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
             executor.stop();
         }
         try {
-            this.backend.delete(projectId, stageId);
+            for (var b : this.backends) {
+                b.delete(projectId, stageId);
+            }
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Force purging on the Backend failed", ex);
         }
@@ -1095,6 +1116,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        this.backend.close();
+        for (var b : this.backends) {
+            b.close();
+        }
     }
 }

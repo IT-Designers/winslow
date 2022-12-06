@@ -5,6 +5,7 @@ import de.itdesigners.winslow.api.pipeline.RangedValue;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -236,7 +237,7 @@ public class Pipeline implements Cloneable {
     }
 
     @Nonnull
-    public ExecutionGroupId enqueueConfiguration(@Nonnull StageDefinition definition, @Nullable String comment) {
+    public ExecutionGroupId enqueueConfiguration(@Nonnull StageWorkerDefinition definition, @Nullable String comment) {
         var id = incrementAndGetNextExecutionGroupId(definition.name());
         this.executionQueue.add(new ExecutionGroup(id, definition, comment));
         return id;
@@ -255,7 +256,7 @@ public class Pipeline implements Cloneable {
 
     @Nonnull
     public ExecutionGroupId enqueueRangedExecution(
-            @Nonnull StageDefinition definition,
+            @Nonnull StageWorkerDefinition definition,
             @Nonnull WorkspaceConfiguration workspaceConfiguration,
             @Nonnull Map<String, RangedValue> rangedValues) {
         var id = incrementAndGetNextExecutionGroupId(definition.name());

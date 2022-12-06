@@ -2,7 +2,7 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.api.pipeline.RangedValue;
-import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.StageWorkerDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -77,43 +77,49 @@ public class EnvironmentVariableAppender implements AssemblerStep {
         });
 
 
-        var sub = context
-                .getSubmission()
-                .withInternalEnvVariable(
-                        Env.SELF_PREFIX + "_RES_CORES",
-                        String.valueOf(stageDefinition.requirements().getCpu())
-                )
-                .withInternalEnvVariable(
-                        Env.SELF_PREFIX + "_RES_RAM_MB",
-                        String.valueOf(stageDefinition.requirements().getMegabytesOfRam())
-                )
-                .withInternalEnvVariable(
-                        Env.SELF_PREFIX + "_RES_RAM_GB",
-                        String.valueOf(stageDefinition.requirements().getMegabytesOfRam() / 1024)
-                );
-        var s = sub.withInternalEnvVariable(
-                Env.SELF_PREFIX + "_RES_GPU_COUNT",
-                String.valueOf(stageDefinition.requirements().getGpu().getCount())
-        );
-
-        if (stageDefinition.requirements().getGpu().getCount() > 0) {
-            s.withInternalEnvVariable(
-                    Env.SELF_PREFIX + "_RES_GPU_VENDOR",
-                    stageDefinition.requirements().getGpu().getVendor()
+        if (stageDefinition instanceof StageWorkerDefinition workerDefinition) {
+            var sub = context
+                    .getSubmission()
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_CORES",
+                            String.valueOf(workerDefinition.requirements().getCpu())
+                    )
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_RAM_MB",
+                            String.valueOf(workerDefinition.requirements().getMegabytesOfRam())
+                    )
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_RAM_GB",
+                            String.valueOf(workerDefinition.requirements().getMegabytesOfRam() / 1024)
+                    );
+            var s = sub.withInternalEnvVariable(
+                    Env.SELF_PREFIX + "_RES_GPU_COUNT",
+                    String.valueOf(workerDefinition.requirements().getGpu().getCount())
             );
-        }
 
-        context.getExecutionGroup().getRangedValues().ifPresent(ranged -> {
-            context.getSubmission()
-                   .withInternalEnvVariable(
-                           Env.SELF_PREFIX + "_RANGED_ENV_VARIABLE_NAMES",
-                           String.join(";", ranged.keySet())
-                   )
-                   .withInternalEnvVariable(
-                           Env.SELF_PREFIX + "_RANGED_ENV_VARIABLES",
-                           getRangedEnvironmentVariables(context.getSubmission().getStageDefinition(), ranged)
-                   );
-        });
+            if (workerDefinition.requirements().getGpu().getCount() > 0) {
+                s.withInternalEnvVariable(
+                        Env.SELF_PREFIX + "_RES_GPU_VENDOR",
+                        workerDefinition.requirements().getGpu().getVendor()
+                );
+            }
+
+            if (context
+                    .getSubmission()
+                    .getStageDefinition() instanceof StageWorkerDefinition submissionStageWorkerDefinition) {
+                context.getExecutionGroup().getRangedValues().ifPresent(ranged -> {
+                    context.getSubmission()
+                           .withInternalEnvVariable(
+                                   Env.SELF_PREFIX + "_RANGED_ENV_VARIABLE_NAMES",
+                                   String.join(";", ranged.keySet())
+                           )
+                           .withInternalEnvVariable(
+                                   Env.SELF_PREFIX + "_RANGED_ENV_VARIABLES",
+                                   getRangedEnvironmentVariables(submissionStageWorkerDefinition, ranged)
+                           );
+                });
+            }
+        }
 
         context
                 .getExecutionGroup()
@@ -128,7 +134,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
 
     @Nonnull
     public static String getRangedEnvironmentVariables(
-            @Nonnull StageDefinition stageDefinition,
+            @Nonnull StageWorkerDefinition stageDefinition,
             @Nonnull Map<String, RangedValue> ranged) {
         return ranged
                 .keySet()
