@@ -86,7 +86,7 @@ public class SubmissionToDockerContainerAdapter {
     private Mount createNfsMount(@Nonnull DockerVolume volume) {
         return new Mount()
                 .withTarget(volume.getContainerPath())
-                .withReadOnly(volume.isReadonly())
+                // .withReadOnly(volume.isReadonly())
                 .withVolumeOptions(
                         new VolumeOptions()
                                 .withDriverConfig(
@@ -97,6 +97,7 @@ public class SubmissionToDockerContainerAdapter {
                                                                 "type", "nfs",
                                                                 "device", volume.getHostPath(),
                                                                 "o", volume.getOptions()
+                                                                        + (volume.isReadonly() ? ",ro" : "")
                                                         )
                                                 )
                                 )
