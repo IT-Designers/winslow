@@ -102,10 +102,16 @@ public class DockerStageHandle implements StageHandle {
                 public void onNext(PullResponseItem object) {
                     if (object.getProgressDetail() != null) {
                         logOut(
-                                object.getStatus() + ", "
-                                        + object.getProgressDetail().getCurrent()
-                                        + " of "
-                                        + object.getProgressDetail().getTotal()
+                                object.getStatus() + (
+                                        object.getProgressDetail().getCurrent() != null && object
+                                                .getProgressDetail()
+                                                .getTotal() != null
+                                        ? (", "
+                                                + object.getProgressDetail().getCurrent()
+                                                + " of "
+                                                + object.getProgressDetail().getTotal())
+                                        : ""
+                                )
                         );
                     } else if (object.getStatus() != null) {
                         logOut(object.getStatus());
@@ -265,32 +271,44 @@ public class DockerStageHandle implements StageHandle {
 
                         @Override
                         public void onNext(Statistics stats) {
+                            // https://github.com/moby/moby/blob/801230ce315ef51425da53cc5712eb6063deee95/api/types/stats.go#L23
                             var totalCpuUsage = Optional
                                     .ofNullable(stats.getCpuStats())
                                     .map(CpuStatsConfig::getCpuUsage)
-                                    .map(CpuUsageConfig::getTotalUsage);
+                                    .map(CpuUsageConfig::getTotalUsage)
+                                    .orElse(0L);
 
-                            var percentCpuUsage = Optional
-                                    .ofNullable(stats.getCpuStats())
+                            var preCpuUsage = Optional
+                                    .ofNullable(stats.getPreCpuStats())
                                     .map(CpuStatsConfig::getCpuUsage)
-                                    .map(CpuUsageConfig::getPercpuUsage);
+                                    .map(CpuUsageConfig::getTotalUsage)
+                                    .orElse(0L);
+
+                            var cpuUsageDelta            = totalCpuUsage - preCpuUsage;
+                            var cpuUsagePercentPerSecond = (double) cpuUsageDelta / 1_000_000_000.0;
+
+                            var cpuMaxFreq = DockerStageHandle.this.backend
+                                    .getPlatformInfo()
+                                    .getCpuSingleCoreMaxFrequency()
+                                    .map(freq -> freq.doubleValue() / 1_000)
+                                    .orElse(1_000.0) // TODO assume something ...
+                                    .doubleValue();
 
                             DockerStageHandle.this.stats = new Stats(
                                     DockerStageHandle.this.stageId,
                                     DockerStageHandle.this.backend.getNodeName(),
-                                    totalCpuUsage.orElse(0L).floatValue(),
-                                    (float) percentCpuUsage
-                                            .stream()
-                                            .flatMap(List::stream)
-                                            .filter(percent -> percent != null && percent > 0L)
-                                            .mapToDouble(percent -> totalCpuUsage
-                                                    .orElse(0L)
-                                                    .doubleValue() / (percent.doubleValue() / 100.0f))
-                                            .max()
-                                            .orElse(0.0),
+                                    (float) (cpuMaxFreq * cpuUsagePercentPerSecond),
+                                    (float) cpuMaxFreq,
                                     Optional
                                             .ofNullable(stats.getMemoryStats())
-                                            .map(MemoryStatsConfig::getUsage)
+                                            .map(c -> Optional
+                                                    .ofNullable(c.getUsage())
+                                                    .orElse(0L)
+                                                    - Optional
+                                                    .ofNullable(c.getStats())
+                                                    .map(StatsConfig::getCache)
+                                                    .orElse(0L)
+                                            )
                                             .orElse(0L),
                                     Optional
                                             .ofNullable(stats.getMemoryStats())
