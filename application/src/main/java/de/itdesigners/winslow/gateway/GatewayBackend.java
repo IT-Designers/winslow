@@ -25,21 +25,6 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
         this.projects  = projects;
     }
 
-    @Override
-    public void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-
-    }
-
-    @Override
-    public void stop(@Nonnull String stage) throws IOException {
-
-    }
-
-    @Override
-    public void kill(@Nonnull String stage) throws IOException {
-
-    }
-
     @Nonnull
     @Override
     public SubmissionResult submit(@Nonnull Submission submission) throws IOException {

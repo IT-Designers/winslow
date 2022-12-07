@@ -28,10 +28,6 @@ public class BuildAndSubmit implements AssemblerStep {
         try {
             var result = context.getSubmission().submit(backend);
             context.log(Level.INFO, "Stage scheduled on node " + this.nodeName);
-            if (context.hasAssemblyBeenAborted()) {
-                backend.kill(result.getStage().getFullyQualifiedId());
-                context.ensureAssemblyHasNotBeenAborted();
-            }
             this.stageConsumer.accept(result);
         } catch (IOException e) {
             throw new AssemblyException("Failed to submit", e);

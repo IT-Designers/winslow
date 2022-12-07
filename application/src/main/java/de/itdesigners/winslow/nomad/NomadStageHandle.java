@@ -225,9 +225,22 @@ public class NomadStageHandle implements StageHandle {
     }
 
     @Override
+    public void stop() throws IOException {
+        try (var client = this.backend.getNewClient()) {
+            var allocation = this.backend.getAllocation(getFullyQualifiedStageId());
+            if (allocation.isPresent()) {
+                client.getAllocationsApi().signal(allocation.get().getId(), "SIGTERM", null);
+            }
+        } catch (NomadException e) {
+            throw new IOException("Failed to signal allocation for " + this.stageId, e);
+        }
+    }
+
+    @Override
     public void close() throws IOException {
         LOG.info("Closing stage[" + this.stageId + "]");
         this.killSilently();
+        this.deleteSilently();
     }
 
     public void kill() throws IOException {
@@ -239,7 +252,19 @@ public class NomadStageHandle implements StageHandle {
         if (this.killTime == null) {
             this.killTime = System.currentTimeMillis();
         }
-        this.backend.kill(getFullyQualifiedStageId());
+        try (var client = this.backend.getNewClient()) {
+            client.getJobsApi().deregister(getFullyQualifiedStageId()).getValue();
+        } catch (NomadException e) {
+            throw new IOException("Failed to deregister job for " + getFullyQualifiedStageId(), e);
+        }
+    }
+
+    private void deleteSilently() throws IOException {
+        try (var client = this.backend.getNewClient()) {
+            client.getJobsApi().deregister(getFullyQualifiedStageId()).getValue();
+        } catch (NomadException e) {
+            throw new IOException("Failed to deregister job for " + getFullyQualifiedStageId(), e);
+        }
     }
 
     @Nonnull

@@ -108,6 +108,23 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
         this.stageExecutionTags.add("winslow:node:" + this.nodeName);
         this.stageExecutionTags.add("winslow:server:" + this.nodeName);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (var executor : this.executors.values()) {
+                try (executor) {
+                    LOG.warning("Aborting execution " + executor.getPipeline() + "/" + executor.getStage());
+                    executor.abort();
+                } catch (IOException e) {
+                    LOG.log(
+                            Level.SEVERE,
+                            "Failed to abort execution " + executor.getPipeline() + "/" + executor.getStage(),
+                            e
+                    );
+                }
+                System.out.flush();
+                System.err.flush();
+            }
+        }));
     }
 
     public void start() {
@@ -263,9 +280,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         if (null != executor) {
             try {
                 executor.logErr("Received STOP signal");
-                for (var backend : this.backends) {
-                    backend.stop(event.getSubject());
-                }
+                executor.stop();
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, "Failed to request the backend to stop stage " + event.getSubject(), e);
             }
@@ -324,12 +339,6 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     public void kill(@Nonnull String fullyQualifiedStageId) throws LockException {
         this.lockBus.publishCommand(Event.Command.KILL, fullyQualifiedStageId);
-    }
-
-    public void killLocally(@Nonnull String fullyQualifiedStageId) throws IOException {
-        for (var backend : backends) {
-            backend.kill(fullyQualifiedStageId);
-        }
     }
 
     private void pollPipelineForUpdate(@Nonnull String id) {
@@ -523,7 +532,6 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
         var       stageId         = nextStageDefinition.get().getValue0();
         var       stageDefinition = nextStageDefinition.get().getValue1();
-        var       executor        = (Executor) null;
         final var stage           = new Stage(stageId, null);
 
         var backend = this.backends.stream().filter(b -> b.isCapableOfExecuting(stageDefinition)).findFirst();
@@ -532,32 +540,32 @@ public class Orchestrator implements Closeable, AutoCloseable {
             return Optional.empty();
         }
 
+        final Executor            executor;
+        final Map<String, String> env;
+
         try {
-            final var env = settings.getGlobalEnvironmentVariables();
-
+            env      = settings.getGlobalEnvironmentVariables();
             executor = startExecutor(stageId);
-
-            startStageAssembler(
-                    lock,
-                    definition,
-                    pipeline,
-                    executionGroup.get(),
-                    stageDefinition,
-                    stageId,
-                    executor,
-                    env,
-                    project,
-                    backend.get()
-            );
         } catch (LockException | IOException e) {
             LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + pipeline.getProjectId(), e);
-            cleanupOnAssembleError(pipeline.getProjectId(), stageId.getFullyQualified(), executor);
             return Optional.empty();
         }
 
+        startStageAssembler(
+                lock,
+                definition,
+                pipeline,
+                executionGroup.get(),
+                stageDefinition,
+                stageId,
+                executor,
+                env,
+                project,
+                backend.get()
+        );
+
         // this code cannot fail anymore
         executionGroup.get().addStage(stage);
-
         return Optional.of(new Triplet<>(executionGroup.get(), stage, executor));
     }
 
@@ -606,6 +614,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                                                     "Failed to update stage with assemble result",
                                                                     e
                                                             );
+                                                            executor.abortNoThrows();
                                                             throw new RuntimeException(e); // bubble up
                                                         }
                                                     })
@@ -632,12 +641,10 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     lock.waitForRelease();
                 }
             } catch (UserInputChecker.MissingUserInputException e) {
-                cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
                 enqueuePipelineUpdate(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.FurtherInputRequired);
                 });
             } catch (UserInputChecker.MissingUserConfirmationException e) {
-                cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
                 enqueuePipelineUpdate(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 });
@@ -671,29 +678,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
                         LOG.log(Level.SEVERE, "Failed to retrieve the active ExecutionGroup for " + projectId);
                     }
                 });
-                cleanupOnAssembleError(projectId, stageId.getFullyQualified(), executor);
             }
         });
         thread.setName(stageId.getFullyQualified());
         thread.start();
     }
 
-    private void cleanupOnAssembleError(
-            @Nonnull String projectId,
-            @Nonnull String stageId,
-            @Nullable Executor executor) {
-        if (executor != null) {
-            executor.logErr("Assembly failed");
-            executor.stop();
-        }
-        try {
-            for (var b : this.backends) {
-                b.delete(projectId, stageId);
-            }
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Force purging on the Backend failed", ex);
-        }
-    }
 
     @Nonnull
     private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String stageId) {
@@ -1049,7 +1039,16 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull
     private Executor startExecutor(@Nonnull StageId stageId) throws LockException, FileNotFoundException {
         var executor = new Executor(stageId.getProjectId(), stageId.getFullyQualified(), this);
-        executor.addShutdownListener(() -> this.executors.remove(stageId.getFullyQualified()));
+        executor.addShutdownListener(() -> {
+            try {
+                var ex = this.executors.remove(stageId.getFullyQualified());
+                if (ex != null) {
+                    ex.close();
+                }
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, "Failed to close executor", e);
+            }
+        });
         executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(stageId.getProjectId()));
         executor.addLogEntryConsumer(getProgressHintMatcher(stageId.getFullyQualified()));
         executor.addLogEntryConsumer(getResultMatcher(stageId.getFullyQualified()));

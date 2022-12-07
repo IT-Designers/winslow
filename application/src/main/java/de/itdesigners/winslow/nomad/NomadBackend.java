@@ -117,36 +117,6 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
         return getTaskState(nomadStageId).map(NomadBackend::toRunningStageState);
     }
 
-    @Override
-    public void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        try (var client = getNewClient()) {
-            client.getJobsApi().deregister(stage).getValue();
-        } catch (NomadException e) {
-            throw new IOException("Failed to deregister job for " + pipeline + "/" + stage, e);
-        }
-    }
-
-    @Override
-    public void stop(@Nonnull String stage) throws IOException {
-        try (var client = getNewClient()) {
-            var allocation = getAllocation(stage);
-            if (allocation.isPresent()) {
-                client.getAllocationsApi().signal(allocation.get().getId(), "SIGTERM", null);
-            }
-        } catch (NomadException e) {
-            throw new IOException("Failed to signal allocation for " + stage, e);
-        }
-    }
-
-    @Override
-    public void kill(@Nonnull String stage) throws IOException {
-        try (var client = getNewClient()) {
-            client.getJobsApi().deregister(stage).getValue();
-        } catch (NomadException e) {
-            throw new IOException("Failed to deregister job for " + stage, e);
-        }
-    }
-
     @Nonnull
     @Override
     public SubmissionResult submit(@Nonnull Submission submission) throws IOException {

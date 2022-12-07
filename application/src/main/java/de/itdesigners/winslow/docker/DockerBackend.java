@@ -25,6 +25,8 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
     private final @Nonnull DockerClient                       dockerClient;
     private final @Nonnull SubmissionToDockerContainerAdapter adapter;
 
+    private final @Nonnull Map<String, String>                stageHandles = new HashMap<>();
+
     public DockerBackend(@Nonnull String nodeName, @Nonnull DockerClient dockerClient) {
         this.nodeName     = nodeName;
         this.dockerClient = dockerClient;
@@ -62,29 +64,6 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
     @Nonnull
     protected DockerClient getDockerClient() {
         return dockerClient;
-    }
-
-    @Override
-    public void delete(@Nonnull String pipeline, @Nonnull String stage) throws IOException {
-        LOG.info(getContainerName(stage));
-    }
-
-    @Override
-    public void stop(@Nonnull String stage) throws IOException {
-        try {
-            this.dockerClient.stopContainerCmd(getContainerName(stage)).exec();
-        } catch (Throwable t) {
-            throw new IOException(t);
-        }
-    }
-
-    @Override
-    public void kill(@Nonnull String stageId) throws IOException {
-        try {
-            this.dockerClient.killContainerCmd(getContainerName(stageId)).exec();
-        } catch (Throwable t) {
-            throw new IOException(t);
-        }
     }
 
     @Nonnull

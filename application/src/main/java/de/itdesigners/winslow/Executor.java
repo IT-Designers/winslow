@@ -8,6 +8,7 @@ import de.itdesigners.winslow.project.LogWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
@@ -19,7 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public class Executor {
+public class Executor implements Closeable, AutoCloseable {
 
     public static final String PREFIX      = "[winslow] ";
     public static final Logger LOG         = Logger.getLogger(Executor.class.getSimpleName());
@@ -54,9 +55,9 @@ public class Executor {
         this.lockHeart    = new LockHeart(logOutput.getLock(), () -> {
             try {
                 logErr("LockHeart stopped unexpectedly");
-                this.killNoLog();
+                this.kill();
             } catch (IOException e) {
-                logErr("Failed to cleanup orchestrator: " + e);
+                logErr("Failed to kill stage execution: " + e);
             } finally {
                 this.fail();
             }
@@ -70,24 +71,22 @@ public class Executor {
         thread.start();
     }
 
-    public void kill() throws IOException {
+    private void killNoThrows() {
         try {
-            logErr("Received KILL signal");
-            killNoLog();
-        } finally {
-            this.killed = true;
+            this.kill();
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to kill stage execution", e);
         }
     }
 
-    private void killNoLog() throws IOException {
-        orchestrator.killLocally(stage);
-    }
-
-    private void sendSilentKillRequest() {
+    public void kill() throws IOException {
         try {
-            orchestrator.killLocally(stage);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Failed to silently kill stage=" + stage, e);
+            logErr("Received KILL signal");
+            if (this.stageHandle != null) {
+                this.stageHandle.kill();
+            }
+        } finally {
+            this.killed = true;
         }
     }
 
@@ -221,9 +220,8 @@ public class Executor {
                 }
             } catch (Throwable e) {
                 LOG.log(Level.SEVERE, "Log writer failed", e);
+                this.killNoThrows();
             } finally {
-                // ensure the backend process has stopped!
-                this.sendSilentKillRequest();
                 this.logBuffer = null;
                 this.notifyShutdownListeners();
                 this.logOutput.getLock().release();
@@ -263,8 +261,11 @@ public class Executor {
         return this.keepRunning || !this.logBuffer.isEmpty();
     }
 
-    public synchronized void stop() {
+    public synchronized void stop() throws IOException {
         this.keepRunning = false;
+        if (this.stageHandle != null) {
+            this.stageHandle.stop();
+        }
     }
 
     public synchronized void fail() {
@@ -341,5 +342,40 @@ public class Executor {
 
     public boolean isRunning() {
         return this.logBuffer != null;
+    }
+
+    /**
+     * Kills the execution of this {@link Executor} and closes it ({@link #kill()} followed by {@link #close()}).
+     * Logs {@link IOException}s thrown by {@link #abort()}.
+     */
+    public void abortNoThrows() {
+        try {
+            this.abort();
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to abort execution of " + stage, e);
+        }
+    }
+
+    /**
+     * Kills the execution of this {@link Executor} and closes it ({@link #kill()} followed by {@link #close()}).
+     *
+     * @throws IOException If killing or closing failed
+     */
+    public void abort() throws IOException {
+        try (this) {
+            this.kill();
+        } finally {
+            this.fail();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (this.stageHandle != null) {
+            if (this.stageHandle.isRunning()) {
+                LOG.warning("Closing Executor on running StageHandle " + this.stage);
+            }
+            this.stageHandle.close();
+        }
     }
 }

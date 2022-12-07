@@ -55,6 +55,18 @@ public interface StageHandle extends AutoCloseable {
     @Nonnull
     Optional<Stats> getStats() throws IOException;
 
+    /**
+     * Issues a request to stop the execution of this {@link StageHandle}.
+     * @throws IOException If the request could not be processed.
+     */
+    void stop() throws IOException;
+
+    /**
+     * Issues a request to stop the execution of this {@link StageHandle} immediately.
+     * @throws IOException If the request could not be processed.
+     */
+    void kill() throws IOException;
+
     @Override
     void close() throws IOException;
 }
