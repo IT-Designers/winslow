@@ -35,10 +35,11 @@ public class DockerStageHandle implements StageHandle {
     private final @Nonnull Deque<LogEntry> logs      = new ConcurrentLinkedDeque<>();
     private final @Nonnull Set<Closeable>  closeable = new HashSet<>();
 
-    private           boolean started = false;
-    private           boolean gone    = false;
-    private @Nullable State   state   = State.Preparing;
-    private @Nullable Stats   stats   = null;
+    private           boolean started     = false;
+    private           boolean gone        = false;
+    private @Nullable State   state       = State.Preparing;
+    private @Nullable Stats   stats       = null;
+    private @Nullable String  containerId = null;
 
     public DockerStageHandle(
             @Nonnull DockerBackend backend,
@@ -49,7 +50,7 @@ public class DockerStageHandle implements StageHandle {
 
         runAndCatchRuntimeExceptionsInNewThread(() -> {
             pullImageAndThenStartContainer(createContainerCmd.getImage());
-            var containerId = createContainer(createContainerCmd);
+            containerId = createContainer(createContainerCmd);
             setupStatsListener(containerId);
             startContainer(containerId);
             setupLogListener(containerId);
@@ -419,6 +420,37 @@ public class DockerStageHandle implements StageHandle {
     public Optional<Stats> getStats() {
         return Optional.ofNullable(this.stats);
     }
+
+    @Override
+    public void stop() throws IOException {
+        if (!isGone() && !hasFinished()) {
+            if (containerId == null) {
+                throw new IOException("Container cannot be stopped, not started yet");
+            } else {
+                runAndCatchRuntimeExceptions(() -> {
+                    try (var cmd = this.backend.getDockerClient().stopContainerCmd(this.containerId)) {
+                        cmd.exec();
+                    }
+                });
+            }
+        }
+    }
+
+    @Override
+    public void kill() throws IOException {
+        if (!isGone() && !hasFinished()) {
+            if (containerId == null) {
+                throw new IOException("Container cannot be stopped, not started yet");
+            } else {
+                runAndCatchRuntimeExceptions(() -> {
+                    try (var cmd = this.backend.getDockerClient().killContainerCmd(this.containerId)) {
+                        cmd.exec();
+                    }
+                });
+            }
+        }
+    }
+
 
     @Override
     public void close() throws IOException {
