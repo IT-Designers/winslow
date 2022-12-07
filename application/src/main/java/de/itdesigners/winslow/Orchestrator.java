@@ -23,7 +23,6 @@ import org.javatuples.Pair;
 import org.javatuples.Triplet;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -109,12 +108,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             for (var executor : this.executors.values()) {
                 try (executor) {
-                    LOG.warning("Aborting execution " + executor.getPipeline() + "/" + executor.getStage());
+                    LOG.warning("Aborting execution " + executor.getStageIdFullyQualified());
                     executor.abort();
                 } catch (IOException e) {
                     LOG.log(
                             Level.SEVERE,
-                            "Failed to abort execution " + executor.getPipeline() + "/" + executor.getStage(),
+                            "Failed to abort execution " + executor.getStageIdFullyQualified(),
                             e
                     );
                 }
@@ -519,7 +518,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             env      = settings.getGlobalEnvironmentVariables();
             executor = startExecutor(
                     pipeline.getProjectId(),
-                    stageId.getFullyQualified(),
+                    stageId,
                     getProgressHintMatcher(stageId.getFullyQualified())
             );
         } catch (LockException | IOException e) {
@@ -982,12 +981,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull
     private Executor startExecutor(
             @Nonnull String projectId,
-            @Nonnull String stageId,
+            @Nonnull StageId stageId,
             @Nonnull Consumer<LogEntry> consumer) throws LockException, FileNotFoundException {
         var executor = new Executor(projectId, stageId, this);
         executor.addShutdownListener(() -> {
             try {
-                var ex = this.executors.remove(stageId);
+                var ex = this.executors.remove(stageId.getFullyQualified());
                 if (ex != null) {
                     ex.close();
                 }
@@ -997,7 +996,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         });
         executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(projectId));
         executor.addLogEntryConsumer(consumer);
-        this.executors.put(stageId, executor);
+        this.executors.put(stageId.getFullyQualified(), executor);
         return executor;
     }
 
