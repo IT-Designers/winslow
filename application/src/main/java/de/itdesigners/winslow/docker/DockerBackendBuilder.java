@@ -10,6 +10,8 @@ import de.itdesigners.winslow.node.PlatformInfo;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public class DockerBackendBuilder implements BackendBuilder {
@@ -38,12 +40,25 @@ public class DockerBackendBuilder implements BackendBuilder {
     @Nonnull
     @Override
     public Optional<PlatformInfo> tryRetrievePlatformInfoNoThrows() {
-        return Optional.of(new PlatformInfo());
+        return Optional.of(retrievePlatformInfoNoThrows());
+    }
+
+    @Nonnull
+    protected PlatformInfo retrievePlatformInfoNoThrows() {
+        Integer maxFreq = null;
+        try {
+            maxFreq = Integer.parseInt(Files.readString(Path.of(
+                    "/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq"
+            )).trim());
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return new PlatformInfo(maxFreq);
     }
 
     @Nonnull
     @Override
     public Backend create() throws IOException {
-        return new DockerBackend(nodeName, dockerClient);
+        return new DockerBackend(nodeName, dockerClient, retrievePlatformInfoNoThrows());
     }
 }

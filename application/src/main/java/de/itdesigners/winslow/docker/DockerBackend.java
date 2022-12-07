@@ -6,6 +6,7 @@ import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
@@ -23,14 +24,19 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
 
     private final @Nonnull String                             nodeName;
     private final @Nonnull DockerClient                       dockerClient;
+    private final @Nonnull PlatformInfo                       platformInfo;
     private final @Nonnull SubmissionToDockerContainerAdapter adapter;
 
-    private final @Nonnull Map<String, String>                stageHandles = new HashMap<>();
+    private final @Nonnull Map<String, String> stageHandles = new HashMap<>();
 
-    public DockerBackend(@Nonnull String nodeName, @Nonnull DockerClient dockerClient) {
+    public DockerBackend(
+            @Nonnull String nodeName,
+            @Nonnull DockerClient dockerClient,
+            @Nonnull PlatformInfo platformInfo) {
         this.nodeName     = nodeName;
         this.dockerClient = dockerClient;
         this.dockerClient.pingCmd().exec();
+        this.platformInfo = platformInfo;
 
         this.adapter = new SubmissionToDockerContainerAdapter(this);
 
@@ -64,6 +70,11 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
     @Nonnull
     protected DockerClient getDockerClient() {
         return dockerClient;
+    }
+
+    @Nonnull
+    protected PlatformInfo getPlatformInfo() {
+        return platformInfo;
     }
 
     @Nonnull
