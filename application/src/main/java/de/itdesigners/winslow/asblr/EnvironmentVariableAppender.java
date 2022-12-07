@@ -78,6 +78,8 @@ public class EnvironmentVariableAppender implements AssemblerStep {
             var sub = context
                     .getSubmission()
                     .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CORES", String.valueOf(requirements.getCpu()))
+                    .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CORES_IS_DEPRECATED", String.valueOf(requirements.getCpu()))
+                    .withInternalEnvVariable(Env.SELF_PREFIX + "_RES_CPU_COUNT", String.valueOf(requirements.getCpu()))
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_MB",
                             String.valueOf(requirements.getMegabytesOfRam())
