@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 public class Submission {
 
-    private final @Nonnull StageId                 id;
+    private final @Nonnull StageId                id;
     private final          boolean                configureOnly;
     private final @Nonnull StageDefinition        stageDefinition;
     private final @Nonnull WorkspaceConfiguration workspaceConfiguration;

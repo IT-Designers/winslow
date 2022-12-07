@@ -153,6 +153,10 @@ public class Context {
     }
 
     public void ensureAssemblyHasNotBeenAborted() throws AssemblyException {
+        this.throwIfAssemblyHasBeenAborted();
+    }
+
+    public void throwIfAssemblyHasBeenAborted() throws AssemblyException {
         if (this.hasAssemblyBeenAborted()) {
             throw new AssemblyException("Stage assembly has been aborted");
         }

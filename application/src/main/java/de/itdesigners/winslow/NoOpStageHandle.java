@@ -88,6 +88,16 @@ public class NoOpStageHandle implements StageHandle {
     }
 
     @Override
+    public void stop() throws IOException {
+
+    }
+
+    @Override
+    public void kill() throws IOException {
+
+    }
+
+    @Override
     public void close() throws IOException {
 
     }
