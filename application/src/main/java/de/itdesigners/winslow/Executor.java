@@ -4,6 +4,7 @@ import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.LockedOutputStream;
+import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.LogWriter;
 
 import javax.annotation.Nonnull;
@@ -27,7 +28,7 @@ public class Executor implements Closeable, AutoCloseable {
     public static final int    INTERVAL_MS = 1000;
 
     @Nonnull private final String             pipeline;
-    @Nonnull private final String             stage;
+    @Nonnull private final StageId            stageId;
     @Nonnull private final Orchestrator       orchestrator;
     @Nonnull private final LockedOutputStream logOutput;
     @Nonnull private final LockHeart          lockHeart;
@@ -46,12 +47,12 @@ public class Executor implements Closeable, AutoCloseable {
 
     public Executor(
             @Nonnull String pipeline,
-            @Nonnull String stage,
+            @Nonnull StageId stageId,
             @Nonnull Orchestrator orchestrator) throws LockException, FileNotFoundException {
         this.pipeline     = pipeline;
-        this.stage        = stage;
+        this.stageId      = stageId;
         this.orchestrator = orchestrator;
-        this.logOutput    = orchestrator.getLogRepository().getRawOutputStream(pipeline, stage);
+        this.logOutput    = orchestrator.getLogRepository().getRawOutputStream(pipeline, stageId.getFullyQualified());
         this.lockHeart    = new LockHeart(logOutput.getLock(), () -> {
             try {
                 logErr("LockHeart stopped unexpectedly");
@@ -66,7 +67,7 @@ public class Executor implements Closeable, AutoCloseable {
         this.intervalInvoker.addListener(this::statsUpdater);
 
         var thread = new Thread(this::run);
-        thread.setName(pipeline + "." + stage + ".exctr");
+        thread.setName(pipeline + "." + stageId.getFullyQualified() + ".exctr");
         thread.setDaemon(false);
         thread.start();
     }
@@ -98,9 +99,13 @@ public class Executor implements Closeable, AutoCloseable {
         var handle = this.stageHandle;
         if (handle != null) {
             try {
-                handle.getStats().ifPresent(value -> orchestrator.getRunInfoRepository().setStats(stage, value));
+                handle.getStats().ifPresent(
+                        value -> orchestrator
+                                .getRunInfoRepository()
+                                .setStats(getStageIdFullyQualified(), value)
+                );
             } catch (IOException e) {
-                LOG.log(Level.WARNING, "Failed to update stats for " + stage, e);
+                LOG.log(Level.WARNING, "Failed to update stats for " + getStageIdFullyQualified(), e);
             }
         }
     }
@@ -216,7 +221,9 @@ public class Executor implements Closeable, AutoCloseable {
 
                 logOutput.flush();
                 if (executionFinishedSuccessfully()) {
-                    orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(stage);
+                    orchestrator.getRunInfoRepository().setLogRedirectionCompletedSuccessfullyHint(
+                            getStageIdFullyQualified()
+                    );
                 }
             } catch (Throwable e) {
                 LOG.log(Level.SEVERE, "Log writer failed", e);
@@ -253,8 +260,13 @@ public class Executor implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    public String getStage() {
-        return stage;
+    public StageId getStageId() {
+        return stageId;
+    }
+
+    @Nonnull
+    public String getStageIdFullyQualified() {
+        return getStageId().getFullyQualified();
     }
 
     private synchronized boolean keepRunning() {
@@ -352,7 +364,7 @@ public class Executor implements Closeable, AutoCloseable {
         try {
             this.abort();
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to abort execution of " + stage, e);
+            LOG.log(Level.SEVERE, "Failed to abort execution of " + getStageIdFullyQualified(), e);
         }
     }
 
@@ -373,7 +385,7 @@ public class Executor implements Closeable, AutoCloseable {
     public void close() throws IOException {
         if (this.stageHandle != null) {
             if (this.stageHandle.isRunning()) {
-                LOG.warning("Closing Executor on running StageHandle " + this.stage);
+                LOG.warning("Closing Executor on running StageHandle " + this.getStageIdFullyQualified());
             }
             this.stageHandle.close();
         }
