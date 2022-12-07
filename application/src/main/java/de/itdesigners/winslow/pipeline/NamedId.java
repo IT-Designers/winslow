@@ -6,13 +6,13 @@ import java.util.regex.Pattern;
 
 public class NamedId {
 
-    private static final Pattern INVALID_NOMAD_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
-    private static final Pattern MULTI_UNDERSCORE        = Pattern.compile("_[_]+");
+    private static final Pattern INVALID_BACKEND_CHARACTER = Pattern.compile("[^a-zA-Z0-9\\-_]");
+    private static final Pattern MULTI_UNDERSCORE          = Pattern.compile("_[_]+");
 
 
     private static String replaceInvalidCharactersInName(@Nonnull String name) {
         return MULTI_UNDERSCORE
-                .matcher(INVALID_NOMAD_CHARACTER.matcher(name.toLowerCase()).replaceAll("_"))
+                .matcher(INVALID_BACKEND_CHARACTER.matcher(name.toLowerCase()).replaceAll("_"))
                 .replaceAll("_");
     }
 
