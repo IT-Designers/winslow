@@ -16,6 +16,14 @@ export class ServerGroupsListComponent implements OnInit {
 
   @Input() assignedGroups: AssignedGroupInfo[] = null;
 
+  mockCpuCores = 16;
+  assignedCpuCores = '0';
+  mockGpus = 3;
+  assignedGpus = '0';
+  mockMaxMemory = 32768;
+  assignedMemory = '0';
+  assignedMemoryNumber = 0;
+
   groupSearchInput = '';
   displayGroups: AssignedGroupInfo[] = null;
   roles = ['OWNER', 'MEMBER'];
@@ -96,6 +104,32 @@ export class ServerGroupsListComponent implements OnInit {
     } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
+  }
+
+
+  cpuHasChanged(event) {
+    this.assignedCpuCores = event.value;
+  }
+
+  gpuHasChanged(event) {
+    this.assignedGpus = event.value;
+  }
+
+  memorySliderHasChanged(event) {
+    if (event.value >= 1024) {
+      this.assignedMemory = (event.value / 1024).toFixed(2) + ' GiB';
+    } else {
+      this.assignedMemory = event.value + ' MiB';
+    }
+    this.assignedMemoryNumber = event.value;
+  }
+  memoryInputHasChanged(event) {
+    if (event.target.value >= 1024) {
+      this.assignedMemory = (event.target.value / 1024).toFixed(2) + ' GiB';
+    } else {
+      this.assignedMemory = event.target.value + ' MiB';
+    }
+    this.assignedMemoryNumber = event.target.value;
   }
 
 }

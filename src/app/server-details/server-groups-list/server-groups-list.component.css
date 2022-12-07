@@ -19,7 +19,8 @@ app-groups-add-member-dialog {
   position: relative;
   padding-bottom: 5px;
   background-color: #f6f6f6;
-  min-width: 100%;
+  width: 100%;
+  min-width: 1000px;
   max-width: 100%;
   max-height: 440px;
   border: 1px solid #ddd;
@@ -55,8 +56,8 @@ app-groups-add-member-dialog {
 }
 .username-label {
   padding-left: 20px;
-  min-width: calc(13% - 20px);
-  max-width: calc(13% - 20px);
+  min-width: calc(16% - 20px);
+  max-width: calc(16% - 20px);
 }
 .role-dropdown {
   display: flex;
@@ -64,8 +65,9 @@ app-groups-add-member-dialog {
   justify-content: center;
   margin-top: 17px;
   height: 45px;
-  min-width: 18%;
-  max-width: 18%;
+  width: 15%;
+  min-width: 205px;
+  max-width: 15%;
 }
 .accordion {
   min-width: 18%;
@@ -78,7 +80,7 @@ app-groups-add-member-dialog {
   max-width: calc(9% - 20px);
 }
 .remove-member-button {
-
+  float: right;
 }
 .remove-member-button:enabled {
   cursor: pointer;
@@ -111,5 +113,26 @@ app-groups-add-member-dialog {
 .add-member-button-container {
   text-align: center;
   margin-top: 4px;
+}
+
+.mat-slider-thumb-label {
+  width: 50px !important;
+  height: 50px !important;
+  top: -62px !important;
+  right: -25px !important;
+}
+
+.resource-title-value {
+  font-size: 12px;
+  font-style: italic;
+  color: grey;
+}
+
+.slider {
+  width: 100%;
+}
+
+.input-width {
+  width: 100%;
 }
 

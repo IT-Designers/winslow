@@ -117,3 +117,22 @@ mat-grid-tile {
   height: 32px;
   align-items: center;
 }
+
+.selected-server-groups {
+  border: 1px solid darkgrey;
+  background-color: white;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  padding: 10px;
+}
+
+.attribute-label {
+  font-weight: bold;
+  min-width: 15%;
+  max-width: 15%;
+}
+.attribute-value-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
