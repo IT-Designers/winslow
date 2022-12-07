@@ -114,5 +114,11 @@
     </mat-grid-list>
   </div>
 
-  <app-ressources-group-assignment></app-ressources-group-assignment>
+  <div class="selected-server-groups">
+    <label class="attribute-label">Server Administration: </label>
+    <div class="attribute-value-container">
+      <app-server-groups-list [assignedGroups]="mockGroups" [ngStyle]="{'width':'100%'}"></app-server-groups-list>
+    </div>
+  </div>
+
 </div>
