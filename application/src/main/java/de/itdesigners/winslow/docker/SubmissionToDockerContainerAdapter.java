@@ -117,9 +117,12 @@ public class SubmissionToDockerContainerAdapter {
     @Nonnull
     @CheckReturnValue
     public HostConfig hostConfigFromRequirements(@Nonnull Requirements requirements) {
+        // https://www.kernel.org/doc/Documentation/scheduler/sched-bwc.txt
+        // https://github.com/moby/moby/issues/42356#issuecomment-833451641
         var config = new HostConfig()
-                .withCpuCount(requirements.getCpus() > 0 ? (long) requirements.getCpus() : null)
-                .withMemory((long) requirements.getMegabytesOfRam());
+                .withCpuPeriod(100_000L)
+                .withCpuQuota(requirements.getCpus() > 0 ? (long) requirements.getCpus() * 100_000L : null)
+                .withMemory((long) requirements.getMegabytesOfRam() * 1024 * 1024);
 
         if (requirements.getGpu().getCount() > 0) {
             return config.withDeviceRequests(
