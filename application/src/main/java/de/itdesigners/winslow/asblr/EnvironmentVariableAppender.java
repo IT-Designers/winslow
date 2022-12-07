@@ -24,11 +24,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var pipeline           = context.getPipeline();
+        var pipeline = context.getPipeline();
         var pipelineDefinition = context.getPipelineDefinition();
-        var stageDefinition    = context.getSubmission().getStageDefinition();
-        var timeMs             = System.currentTimeMillis();
-        var timeS              = timeMs / 1_000;
+        var stageDefinition = context.getSubmission().getStageDefinition();
+        var timeMs = System.currentTimeMillis();
+        var timeS = timeMs / 1_000;
 
         var submission = context
                 .getSubmission()
@@ -82,6 +82,14 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                     .getSubmission()
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_CORES",
+                            String.valueOf(workerDefinition.requirements().getCpus())
+                    )
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_CORES_IS_DEPRECATED",
+                            String.valueOf(workerDefinition.requirements().getCpus())
+                    )
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_CPU_COUNT",
                             String.valueOf(workerDefinition.requirements().getCpus())
                     )
                     .withInternalEnvVariable(
