@@ -47,13 +47,13 @@ public class DockerStageHandle implements StageHandle {
         this.backend = backend;
         this.stageId = stageId;
 
-        new Thread(() -> runAndCatchRuntimeExceptions(() -> {
+        runAndCatchRuntimeExceptionsInNewThread(() -> {
             pullImageAndThenStartContainer(createContainerCmd.getImage());
             var containerId = createContainer(createContainerCmd);
             setupStatsListener(containerId);
             startContainer(containerId);
             setupLogListener(containerId);
-        })).start();
+        });
     }
 
     private void onListenerFailed() {
@@ -61,12 +61,19 @@ public class DockerStageHandle implements StageHandle {
         this.state = State.Failed;
     }
 
+    private void runAndCatchRuntimeExceptionsInNewThread(@Nonnull Runnable fn) {
+        var thread = new Thread(() -> runAndCatchRuntimeExceptions(fn));
+        thread.setName(getClass().getSimpleName() + "-" + this.stageId);
+        thread.start();
+    }
+
     private void runAndCatchRuntimeExceptions(@Nonnull Runnable fn) {
         try {
             fn.run();
         } catch (RuntimeException e) {
-            logErr(e.getMessage());
+            logErr((e.getCause() != null ? e.getCause() : e).getClass().getSimpleName() + ": " + e.getMessage());
             this.state = State.Failed;
+            LOG.log(Level.WARNING, "Execution encountered unexpected error", e);
         }
     }
 
@@ -174,7 +181,7 @@ public class DockerStageHandle implements StageHandle {
                         public void onComplete() {
                             super.onComplete();
                             DockerStageHandle.this.closeable.remove(this);
-                            runAndCatchRuntimeExceptions(() -> {
+                            runAndCatchRuntimeExceptionsInNewThread(() -> {
                                 try (var cmd = DockerStageHandle.this.backend
                                         .getDockerClient()
                                         .waitContainerCmd(containerId)) {
@@ -182,7 +189,8 @@ public class DockerStageHandle implements StageHandle {
                                             .exec(new Adapter<>() {
                                                 @Override
                                                 public void onStart(Closeable stream) {
-                                                    DockerStageHandle.this.closeable.add(stream);
+                                                    super.onStart(stream);
+                                                    DockerStageHandle.this.closeable.add(this);
                                                 }
 
                                                 @Override
@@ -192,14 +200,27 @@ public class DockerStageHandle implements StageHandle {
                                                     } else {
                                                         DockerStageHandle.this.state = State.Failed;
                                                         DockerStageHandle.this.gone  = object.getStatusCode() == null;
+                                                        logErr("Non successful exit code: " + object.getStatusCode());
                                                     }
                                                 }
-                                            });
-                                } catch (RuntimeException e) {
+
+                                                @Override
+                                                public void onComplete() {
+                                                    super.onComplete();
+                                                    DockerStageHandle.this.closeable.remove(this);
+                                                }
+                                            })
+                                            .awaitCompletion();
+                                } catch (InterruptedException | RuntimeException e) {
+                                    logErr("Exit code could not be retrieved, container cleaned up too fast");
                                     LOG.log(Level.WARNING, "Failed to wait for container result", e);
                                     DockerStageHandle.this.state = State.Failed;
                                     DockerStageHandle.this.gone  = true;
-                                    throw e;
+                                    if (e instanceof RuntimeException re) {
+                                        throw re;
+                                    } else {
+                                        throw new RuntimeException(e.getMessage(), e);
+                                    }
                                 }
                             });
                         }
