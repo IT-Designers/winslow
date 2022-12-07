@@ -16,7 +16,7 @@ export class GroupAssignmentComponent implements OnInit {
 
   @Input() currentlyAssignedGroups: AssignedGroupInfo[] = null;
 
-  @Output() groupAssignmendRemovedEmitter = new EventEmitter();
+  @Output() groupAssignmentRemovedEmitter = new EventEmitter();
 
   showGroupList = false;
   groupListBtnText = 'Expand';
@@ -33,7 +33,7 @@ export class GroupAssignmentComponent implements OnInit {
   }
 
   remove(group) {
-    this.groupAssignmendRemovedEmitter.emit(group);
+    this.groupAssignmentRemovedEmitter.emit(group);
   }
 
   onRemoveItemClick(item) {
