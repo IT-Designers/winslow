@@ -24,7 +24,6 @@ import org.javatuples.Pair;
 import org.javatuples.Triplet;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -112,12 +111,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             for (var executor : this.executors.values()) {
                 try (executor) {
-                    LOG.warning("Aborting execution " + executor.getPipeline() + "/" + executor.getStage());
+                    LOG.warning("Aborting execution " + executor.getStageIdFullyQualified());
                     executor.abort();
                 } catch (IOException e) {
                     LOG.log(
                             Level.SEVERE,
-                            "Failed to abort execution " + executor.getPipeline() + "/" + executor.getStage(),
+                            "Failed to abort execution " + executor.getStageIdFullyQualified(),
                             e
                     );
                 }
@@ -1038,7 +1037,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     @Nonnull
     private Executor startExecutor(@Nonnull StageId stageId) throws LockException, FileNotFoundException {
-        var executor = new Executor(stageId.getProjectId(), stageId.getFullyQualified(), this);
+        var executor = new Executor(stageId.getProjectId(), stageId, this);
         executor.addShutdownListener(() -> {
             try {
                 var ex = this.executors.remove(stageId.getFullyQualified());
