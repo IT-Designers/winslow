@@ -651,17 +651,6 @@ export class LogEntry {
 }
 
 
-export class StateInfoExt extends StateInfo {
-  isRunning(): boolean {
-    return this.getState() === 'Running';
-  }
-
-  getState(): State {
-    return this.state;
-  }
-}
-
-
 export class ParseError {
   line: number;
   column: number;
