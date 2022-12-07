@@ -102,6 +102,9 @@ import { UserDetailsComponent } from './user-and-group-management/user-details/u
 import { GroupDetailsComponent } from './user-and-group-management/group-details/group-details.component';
 import { PasswordDialogComponent } from './user-and-group-management/password-dialog/password-dialog.component';
 import { GroupAssignmentComponent } from './pipelines/group-assignment/group-assignment.component';
+import { RessourcesGroupAssignmentComponent } from './server-details/ressources-group-assignment/ressources-group-assignment.component';
+import {MatSliderModule} from '@angular/material/slider';
+import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
 
 @NgModule({
     declarations: [
@@ -168,93 +171,96 @@ import { GroupAssignmentComponent } from './pipelines/group-assignment/group-ass
         GroupDetailsComponent,
         PasswordDialogComponent,
         GroupAssignmentComponent,
+        RessourcesGroupAssignmentComponent,
+        ServerGroupsListComponent,
     ],
-    imports: [
-        SweetAlert2Module.forRoot(),
-        MonacoEditorModule.forRoot(),
-        HttpClientModule,
-        HttpClientXsrfModule.withOptions({
-            cookieName: 'XSRF-TOKEN',
-            headerName: 'X-XSRF-TOKEN'
-        }),
+  imports: [
+    SweetAlert2Module.forRoot(),
+    MonacoEditorModule.forRoot(),
+    HttpClientModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'XSRF-TOKEN',
+      headerName: 'X-XSRF-TOKEN'
+    }),
 
-        RouterModule.forRoot([
-            {path: '', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'actions', component: GroupActionsComponent},
+    RouterModule.forRoot([
+      {path: '', redirectTo: 'projects/', pathMatch: 'full'},
+      {path: 'actions', component: GroupActionsComponent},
 
-            {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
-            {
-                path: 'projects',
-                children: [{
-                    path: ':id',
-                    component: ProjectsComponent,
-                    children: [{
-                        path: ':tab',
-                        component: ProjectViewComponent,
-                    }]
-                }]
-            },
+      {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
+      {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
+      {
+        path: 'projects',
+        children: [{
+          path: ':id',
+          component: ProjectsComponent,
+          children: [{
+            path: ':tab',
+            component: ProjectViewComponent,
+          }]
+        }]
+      },
 
-            {path: 'pipelines', component: PipelinesComponent},
-            {path: 'files', component: FilesComponent},
-            {path: 'servers', component: ServersComponent},
-            {path: 'about', component: AboutComponent},
-            {path: 'groups', component: UserAndGroupManagementComponent},
-            {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
-            {
-              path: 'system',
-              children: [{
-                path: ':cfg',
-                component: SystemViewComponent
-              }]
-            },
-        ]),
+      {path: 'pipelines', component: PipelinesComponent},
+      {path: 'files', component: FilesComponent},
+      {path: 'servers', component: ServersComponent},
+      {path: 'about', component: AboutComponent},
+      {path: 'groups', component: UserAndGroupManagementComponent},
+      {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
+      {
+        path: 'system',
+        children: [{
+          path: ':cfg',
+          component: SystemViewComponent
+        }]
+      },
+    ]),
 
-        BrowserModule,
-        BrowserAnimationsModule,
+    BrowserModule,
+    BrowserAnimationsModule,
 
-        FormsModule,
-        ReactiveFormsModule,
+    FormsModule,
+    ReactiveFormsModule,
 
 
-        MatDialogModule,
-        MatInputModule,
-        MatButtonModule,
-        MatListModule,
-        MatProgressBarModule,
-        MatButtonToggleModule,
-        MatExpansionModule,
-        MatStepperModule,
-        MatSelectModule,
-        MatTableModule,
-        MatGridListModule,
-        MatSnackBarModule,
-        MatIconModule,
-        MatProgressSpinnerModule,
-        MatTooltipModule,
-        MatSlideToggleModule,
-        MatTabsModule,
-        MatCheckboxModule,
+    MatDialogModule,
+    MatInputModule,
+    MatButtonModule,
+    MatListModule,
+    MatProgressBarModule,
+    MatButtonToggleModule,
+    MatExpansionModule,
+    MatStepperModule,
+    MatSelectModule,
+    MatTableModule,
+    MatGridListModule,
+    MatSnackBarModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    MatSlideToggleModule,
+    MatTabsModule,
+    MatCheckboxModule,
 
-        MatToolbarModule,
-        MatSidenavModule,
-        MatListModule,
-        MatButtonModule,
-        MatIconModule,
+    MatToolbarModule,
+    MatSidenavModule,
+    MatListModule,
+    MatButtonModule,
+    MatIconModule,
 
-        NgxChartsModule,
-        MatCardModule,
-        ScrollingModule,
-        MatAutocompleteModule,
-        MatChipsModule,
-        MatMenuModule,
-        MatRadioModule,
-        NgxEchartsModule.forRoot({
-          echarts: { init: echarts.init }
-        }),
+    NgxChartsModule,
+    MatCardModule,
+    ScrollingModule,
+    MatAutocompleteModule,
+    MatChipsModule,
+    MatMenuModule,
+    MatRadioModule,
+    NgxEchartsModule.forRoot({
+      echarts: {init: echarts.init}
+    }),
+    MatSliderModule,
 
-    ],
+  ],
   providers: [
     {
       provide: MatDialogRef,

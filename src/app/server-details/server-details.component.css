@@ -35,8 +35,8 @@ mat-grid-tile {
 }
 
 .selected-server-footer {
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  /*border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;*/
   border: 1px solid darkgrey;
   background-color: white;
   z-index: 999;
