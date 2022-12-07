@@ -122,32 +122,32 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         ServerDetailsComponent,
         ProjectHistoryDetailsComponent,
     ],
-    imports: [
-        SweetAlert2Module.forRoot(),
-        MonacoEditorModule.forRoot(),
-        HttpClientModule,
-        HttpClientXsrfModule.withOptions({
-            cookieName: 'XSRF-TOKEN',
-            headerName: 'X-XSRF-TOKEN'
-        }),
+  imports: [
+    SweetAlert2Module.forRoot(),
+    MonacoEditorModule.forRoot(),
+    HttpClientModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'XSRF-TOKEN',
+      headerName: 'X-XSRF-TOKEN'
+    }),
 
-        RouterModule.forRoot([
-            {path: '', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'actions', component: GroupActionsComponent},
+    RouterModule.forRoot([
+      {path: '', redirectTo: 'projects/', pathMatch: 'full'},
+      {path: 'actions', component: GroupActionsComponent},
 
-            {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
-            {
-                path: 'projects',
-                children: [{
-                    path: ':id',
-                    component: ProjectsComponent,
-                    children: [{
-                        path: ':tab',
-                        component: ProjectViewComponent,
-                    }]
-                }]
-            },
+      {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
+      {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
+      {
+        path: 'projects',
+        children: [{
+          path: ':id',
+          component: ProjectsComponent,
+          children: [{
+            path: ':tab',
+            component: ProjectViewComponent,
+          }]
+        }]
+      },
 
             {path: 'pipelines', component: PipelinesComponent},
             {path: 'files', component: FilesComponent},
@@ -164,37 +164,37 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
             },
         ]),
 
-        BrowserModule,
-        BrowserAnimationsModule,
+    BrowserModule,
+    BrowserAnimationsModule,
 
-        FormsModule,
-        ReactiveFormsModule,
+    FormsModule,
+    ReactiveFormsModule,
 
 
-        MatDialogModule,
-        MatInputModule,
-        MatButtonModule,
-        MatListModule,
-        MatProgressBarModule,
-        MatButtonToggleModule,
-        MatExpansionModule,
-        MatStepperModule,
-        MatSelectModule,
-        MatTableModule,
-        MatGridListModule,
-        MatSnackBarModule,
-        MatIconModule,
-        MatProgressSpinnerModule,
-        MatTooltipModule,
-        MatSlideToggleModule,
-        MatTabsModule,
-        MatCheckboxModule,
+    MatDialogModule,
+    MatInputModule,
+    MatButtonModule,
+    MatListModule,
+    MatProgressBarModule,
+    MatButtonToggleModule,
+    MatExpansionModule,
+    MatStepperModule,
+    MatSelectModule,
+    MatTableModule,
+    MatGridListModule,
+    MatSnackBarModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    MatSlideToggleModule,
+    MatTabsModule,
+    MatCheckboxModule,
 
-        MatToolbarModule,
-        MatSidenavModule,
-        MatListModule,
-        MatButtonModule,
-        MatIconModule,
+    MatToolbarModule,
+    MatSidenavModule,
+    MatListModule,
+    MatButtonModule,
+    MatIconModule,
 
         NgxChartsModule,
         MatCardModule,
@@ -207,7 +207,7 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
             echarts: {init: echarts.init}
         }),
 
-    ],
+  ],
   providers: [
     {
       provide: MatDialogRef,
