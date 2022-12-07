@@ -3,7 +3,6 @@ package de.itdesigners.winslow.pipeline;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.Transient;
-import java.util.Objects;
 import java.util.Optional;
 
 public class StageId {
@@ -13,8 +12,8 @@ public class StageId {
     private final @Nullable String  humanReadableGroupHint;
     private final @Nullable Integer stageNumberWithinGroup;
 
-    private @Nullable String idFullyQualified;
-    private @Nullable String idProjectRelative;
+    private final @Nonnull String idFullyQualified;
+    private final @Nonnull String idProjectRelative;
 
     public StageId(
             @Nonnull String projectId,
@@ -25,33 +24,31 @@ public class StageId {
         this.groupNumberWithinProject = groupNumberWithinProject;
         this.humanReadableGroupHint   = humanReadableGroupHint;
         this.stageNumberWithinGroup   = stageNumberWithinGroup;
+
+        this.idFullyQualified = NamedId.buildStageId(
+                projectId,
+                groupNumberWithinProject,
+                humanReadableGroupHint,
+                stageNumberWithinGroup
+        );
+
+        this.idProjectRelative = NamedId.buildStageId(
+                null,
+                groupNumberWithinProject,
+                humanReadableGroupHint,
+                stageNumberWithinGroup
+        );
     }
 
     @Nonnull
     @Transient
     public String getFullyQualified() {
-        if (this.idFullyQualified == null) {
-            this.idFullyQualified = NamedId.buildStageId(
-                    projectId,
-                    groupNumberWithinProject,
-                    humanReadableGroupHint,
-                    stageNumberWithinGroup
-            );
-        }
-        return this.idFullyQualified;
+        return idFullyQualified;
     }
 
     @Nonnull
     @Transient
     public String getProjectRelative() {
-        if (this.idProjectRelative == null) {
-            this.idProjectRelative = NamedId.buildStageId(
-                    null,
-                    groupNumberWithinProject,
-                    humanReadableGroupHint,
-                    stageNumberWithinGroup
-            );
-        }
         return idProjectRelative;
     }
 
@@ -78,38 +75,5 @@ public class StageId {
     @Nonnull
     public Optional<String> getHumanReadableGroupHint() {
         return Optional.ofNullable(humanReadableGroupHint);
-    }
-
-    @Override
-    public String toString() {
-        return "StageId{" +
-                "projectId='" + projectId + '\'' +
-                ", groupNumberWithinProject=" + groupNumberWithinProject +
-                ", humanReadableGroupHint='" + humanReadableGroupHint + '\'' +
-                ", stageNumberWithinGroup=" + stageNumberWithinGroup +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        StageId stageId = (StageId) o;
-        return getGroupNumberWithinProject() == stageId.getGroupNumberWithinProject() &&
-                getProjectId().equals(stageId.getProjectId()) &&
-                Objects.equals(getHumanReadableGroupHint(), stageId.getHumanReadableGroupHint()) &&
-                Objects.equals(getStageNumberWithinGroup(), stageId.getStageNumberWithinGroup());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                getProjectId(),
-                getGroupNumberWithinProject(),
-                getHumanReadableGroupHint(),
-                getStageNumberWithinGroup()
-        );
     }
 }
