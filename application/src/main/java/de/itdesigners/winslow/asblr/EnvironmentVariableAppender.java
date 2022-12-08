@@ -65,11 +65,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_WORKSPACE_SHARED_WITHIN_GROUP",
-                        String.valueOf(submission.getWorkspaceConfiguration().isSharedWithinGroup())
+                        String.valueOf(context.getExecutionGroup().getWorkspaceConfiguration().isSharedWithinGroup())
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_WORKSPACE_NESTED_WITHIN_GROUP",
-                        String.valueOf(submission.getWorkspaceConfiguration().isNestedWithinGroup())
+                        String.valueOf(context.getExecutionGroup().getWorkspaceConfiguration().isNestedWithinGroup())
                 );
 
         submission.getId().getStageNumberWithinGroup().ifPresent(number -> {
