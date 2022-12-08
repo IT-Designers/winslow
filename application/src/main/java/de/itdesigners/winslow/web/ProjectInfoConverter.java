@@ -16,7 +16,7 @@ public class ProjectInfoConverter {
                 project.getTags(),
                 project.getName(),
                 project.isPublic(),
-                PipelineInfoConverter.from(
+                PipelineDefinitionInfoConverter.from(
                         project.getId(),
                         project.getPipelineDefinition()
                 )
