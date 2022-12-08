@@ -21,7 +21,7 @@ public class UserInputTests {
 
         var userInput = BaseRepository.readFromString(UserInput.class, userInputYaml);
 
-        assertTrue(userInput.getEnvironment().isEmpty());
+        assertTrue(userInput.getRequiredEnvVariables().isEmpty());
         assertEquals(UserInput.Confirmation.Never, userInput.getConfirmation());
     }
 
@@ -36,7 +36,7 @@ public class UserInputTests {
 
         var userInput = BaseRepository.readFromString(UserInput.class, userInputYaml);
 
-        assertTrue(userInput.getEnvironment().isEmpty());
+        assertTrue(userInput.getRequiredEnvVariables().isEmpty());
         assertEquals(UserInput.Confirmation.Always, userInput.getConfirmation());
     }
 }

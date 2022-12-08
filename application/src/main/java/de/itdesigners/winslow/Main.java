@@ -73,7 +73,7 @@ public class Main {
             LOG.info("Loading configuration for work-directory");
             WorkDirectoryConfiguration config = getWorkDirectoryConfiguration(workDirectory, storageType);
 
-            LOG.info("Preparing environment");
+            LOG.info("Preparing requiredEnvVariables");
             var lockBus         = new LockBus(nodeName, config.getEventsDirectory());
             var resourceManager = new ResourceManager(config.getPath(), new PathConfiguration());
             var environment     = new Environment(config, resourceManager);

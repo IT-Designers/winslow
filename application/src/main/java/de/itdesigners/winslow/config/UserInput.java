@@ -8,18 +8,18 @@ import java.util.Objects;
 
 public class UserInput {
     private final @Nonnull Confirmation confirmation;
-    private final @Nonnull List<String> environment;
+    private final @Nonnull List<String> requiredEnvVariables;
 
-    public UserInput(@Nullable Confirmation confirmation, @Nullable List<String> environment) {
-        this.confirmation = confirmation != null ? confirmation : Confirmation.Never;
-        this.environment  = environment != null ? environment : Collections.emptyList();
+    public UserInput(@Nullable Confirmation confirmation, @Nullable List<String> requiredEnvVariables) {
+        this.confirmation         = confirmation != null ? confirmation : Confirmation.Never;
+        this.requiredEnvVariables = requiredEnvVariables != null ? requiredEnvVariables : Collections.emptyList();
     }
 
     @Nonnull
     public UserInput withoutConfirmation() {
         return new UserInput(
                 Confirmation.Never,
-                this.environment
+                this.requiredEnvVariables
         );
     }
 
@@ -29,13 +29,13 @@ public class UserInput {
     }
 
     @Nonnull
-    public List<String> getEnvironment() {
-        return environment != null ? Collections.unmodifiableList(environment) : Collections.emptyList();
+    public List<String> getRequiredEnvVariables() {
+        return requiredEnvVariables != null ? Collections.unmodifiableList(requiredEnvVariables) : Collections.emptyList();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@{valueFor=" + this.environment + "}#" + this.hashCode();
+        return getClass().getSimpleName() + "@{valueFor=" + this.requiredEnvVariables + "}#" + this.hashCode();
     }
 
     @Override
@@ -45,12 +45,12 @@ public class UserInput {
         if (o == null || getClass() != o.getClass())
             return false;
         UserInput userInput = (UserInput) o;
-        return confirmation == userInput.confirmation && Objects.equals(environment, userInput.environment);
+        return confirmation == userInput.confirmation && Objects.equals(requiredEnvVariables, userInput.requiredEnvVariables);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(confirmation, environment);
+        return Objects.hash(confirmation, requiredEnvVariables);
     }
 
     public enum Confirmation {

@@ -25,7 +25,7 @@ public class PipelineDefinitionTests {
 
         assertEquals("Name of the pipeline", pipeline.name());
         assertEquals("Description of the pipeline", pipeline.description());
-        assertTrue(pipeline.userInput().getEnvironment().isEmpty());
+        assertTrue(pipeline.userInput().getRequiredEnvVariables().isEmpty());
         assertTrue(pipeline.stages().isEmpty());
     }
 
@@ -36,14 +36,14 @@ public class PipelineDefinitionTests {
         var pipelineYaml = """ 
                 name: "Test"
                 userInput:
-                    environment: ["KEY_A", "KEY_B"]
+                    requiredEnvVariables: ["KEY_A", "KEY_B"]
                  """;
 
         var pipeline = BaseRepository.readFromString(PipelineDefinition.class, pipelineYaml);
 
         assertNotNull(pipeline.name());
         assertTrue(pipeline.description().isEmpty());
-        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.userInput().getEnvironment());
+        assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.userInput().getRequiredEnvVariables());
         assertTrue(pipeline.stages().isEmpty());
     }
 

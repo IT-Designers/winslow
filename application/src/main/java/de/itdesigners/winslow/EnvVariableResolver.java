@@ -13,8 +13,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * This class resolves for a given environment, the most recent
- * values of applicable environment variables with proper inheritance
+ * This class resolves for a given requiredEnvVariables, the most recent
+ * values of applicable requiredEnvVariables variables with proper inheritance
  * relation (see {@link EnvVariable}).
  */
 public class EnvVariableResolver {
@@ -77,22 +77,22 @@ public class EnvVariableResolver {
     public Map<String, EnvVariable> resolve() {
         var result = new TreeMap<String, EnvVariable>();
 
-        // apply all the global environment variables first, so they can get overwritten
+        // apply all the global requiredEnvVariables variables first, so they can get overwritten
         // by any further appearing entry. Mark as inherited because their origin is outside
         // of the stage definition
         if (this.globalVariables != null) {
             pushInherited(result, this.globalVariables);
         }
 
-        // apply all the pipeline environment variables next, they are similar to global
-        // environment variables but have a tighter scope and therefore overwrite the more
-        // general global environment variables. Mark as inherited because their origin is
+        // apply all the pipeline requiredEnvVariables variables next, they are similar to global
+        // requiredEnvVariables variables but have a tighter scope and therefore overwrite the more
+        // general global requiredEnvVariables variables. Mark as inherited because their origin is
         // still outside of the stage definition
         if (this.pipelineDefinitionVariables != null) {
             pushInherited(result, this.pipelineDefinitionVariables);
         }
 
-        // the environment variables defined for the stage have the tightest scope
+        // the requiredEnvVariables variables defined for the stage have the tightest scope
         // and therefore can overwrite all the others
         pushValue(result, retrieveStageEnvironmentVariables());
 

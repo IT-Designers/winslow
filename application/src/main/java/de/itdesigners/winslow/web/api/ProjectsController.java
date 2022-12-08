@@ -725,7 +725,7 @@ public class ProjectsController {
                                                 .getGlobalEnvironmentVariables()
                                 );
                             } catch (IOException e) {
-                                LOG.log(Level.WARNING, "Failed to load system environment variables", e);
+                                LOG.log(Level.WARNING, "Failed to load system requiredEnvVariables variables", e);
                             }
 
                             var stageDef = project
@@ -759,7 +759,7 @@ public class ProjectsController {
                         project
                                 .getPipelineDefinition()
                                 .userInput()
-                                .getEnvironment().stream()
+                                .getRequiredEnvVariables().stream()
                         ,
                         project
                                 .getPipelineDefinition()
@@ -771,7 +771,7 @@ public class ProjectsController {
                                               ? w.userInput()
                                               : new UserInput(null, null))
                                 .stream()
-                                .flatMap(u -> u.getEnvironment().stream())
+                                .flatMap(u -> u.getRequiredEnvVariables().stream())
                 ));
     }
 

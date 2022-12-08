@@ -19,7 +19,7 @@ public record PipelineDefinition(
         @Nonnull List<String> markers) {
 
 
-    @ConstructorProperties({"name", "description", "requires", "stages", "environment", "deletionPolicy", "markers"})
+    @ConstructorProperties({"name", "description", "requires", "stages", "requiredEnvVariables", "deletionPolicy", "markers"})
     public PipelineDefinition( // the parameter names must match the corresponding getter names!
             @Nonnull String name,
             @Nullable String description,
