@@ -199,8 +199,8 @@ export class StageExecutionSelectionComponent implements OnInit {
             this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : null;
 
             const requiredEnvironmentVariables = [];
-            this.selectedPipeline.userInput.environment.forEach(key => requiredEnvironmentVariables.push(key));
-            stage.userInput.environment.forEach(key => requiredEnvironmentVariables.push(key));
+            this.selectedPipeline.userInput.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
+            stage.userInput.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
 
             this.environmentVariables = new Map();
             this.requiredEnvironmentVariables = requiredEnvironmentVariables;
