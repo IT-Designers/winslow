@@ -8,7 +8,7 @@ export class DiagramInitialData {
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
     let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, project.pipelineDefinition));
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
-    delete pipelineInfo.userInput.environment;
+    delete pipelineInfo.userInput.requiredEnvVariables;
     nodes[pipelineInfo.id] = {
       id: pipelineInfo.id,
       typeId: "node-start",
