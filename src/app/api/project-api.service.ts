@@ -9,7 +9,7 @@ import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
 import {
   ExecutionGroupInfo, ImageInfo,
-  PipelineInfo,
+  PipelineDefinitionInfo,
   ProjectInfo, ResourceInfo, ResourceLimitation, StageDefinitionInfo,
   StageInfo,
   State,
@@ -137,7 +137,7 @@ export class ProjectApiService {
     return this.projectStateSubscriptionHandler;
   }
 
-  createProject(name: string, pipeline: PipelineInfo, tags?: string[]): Promise<ProjectInfoExt> {
+  createProject(name: string, pipeline: PipelineDefinitionInfo, tags?: string[]): Promise<ProjectInfoExt> {
     return this.client
       .post<ProjectInfoExt>(
         ProjectApiService.getUrl(null),
@@ -153,9 +153,9 @@ export class ProjectApiService {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
-  getProjectPipelineDefinition(projectId: string): Promise<PipelineInfo> {
+  getProjectPipelineDefinition(projectId: string): Promise<PipelineDefinitionInfo> {
     return this.client
-      .get<PipelineInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
+      .get<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
       .toPromise();
   }
 
@@ -442,7 +442,7 @@ export class ProjectApiService {
     return alt;
   }
 
-  findProjectPipeline(project: ProjectInfoExt, pipelines: PipelineInfo[]) {
+  findProjectPipeline(project: ProjectInfoExt, pipelines: PipelineDefinitionInfo[]) {
     for (const pipeline of pipelines) {
       if (pipeline.name === project.pipelineDefinition.name) {
         return pipeline.id;
