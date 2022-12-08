@@ -12,7 +12,7 @@ build:
     NODE_OPTIONS: "--openssl-legacy-provider"
   script:
 #    - npm install -g -ng
-    - (npm install || (echo "===== eresolve-report.txt =====" || cat /root/.npm/eresolve-report.txt || echo "===== .log =====" || cat /root/.npm/_logs/* || exit 1))
+    - (npm install || (echo "===== eresolve-report.txt =====" && cat /root/.npm/eresolve-report.txt && echo "===== .log =====" && cat /root/.npm/_logs/* && exit 1))
     - npm run build -- --prod --configuration=production --baseHref=/ --deployUrl=/
 #    - npm run build -- --prod --configuration=production --baseHref=./
     - mv dist/winslow-ui-ng winslow-ui-ng
