@@ -335,23 +335,27 @@ export class ParseError {
   }
 }
 
-export class PipelineInfo {
+
+export class PipelineDefinitionInfo {
   id: string;
   name: string;
-  desc?: string;
-  requiredEnvVariables: string[];
+  description?: string;
+  userInput: UserInputInfo;
   stages: StageDefinitionInfo[];
+  deletionPolicy: DeletionPolicy;
   markers: string[];
 
-  constructor(data: PipelineInfo) {
+  constructor(data: PipelineDefinitionInfo) {
     this.id = data.id;
     this.name = data.name;
-    this.desc = data.desc;
-    this.requiredEnvVariables = data.requiredEnvVariables;
+    this.description = data.description;
+    this.userInput = data.userInput;
     this.stages = data.stages;
+    this.deletionPolicy = data.deletionPolicy;
     this.markers = data.markers;
   }
 }
+
 
 export class RequirementsInfo {
   cpus: number;
@@ -620,7 +624,7 @@ export class ProjectInfo {
   tags: string[];
   name: string;
   publicAccess: boolean;
-  pipelineDefinition: PipelineInfo;
+  pipelineDefinition: PipelineDefinitionInfo;
 
   constructor(data: ProjectInfo) {
     this.id = data.id;

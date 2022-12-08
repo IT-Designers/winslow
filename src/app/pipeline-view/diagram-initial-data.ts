@@ -1,14 +1,14 @@
 import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "diagram-maker";
-import {PipelineInfo, StageDefinitionInfo} from "../api/winslow-api";
+import {PipelineDefinitionInfo, StageDefinitionInfo} from "../api/winslow-api";
 
 export class DiagramInitialData {
 
   getInitData(project) {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-    let pipelineInfo = new PipelineInfo(Object.assign({}, project.pipelineDefinition));
+    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, project.pipelineDefinition));
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
-    delete pipelineInfo.requiredEnvVariables;
+    delete pipelineInfo.userInput.environment;
     nodes[pipelineInfo.id] = {
       id: pipelineInfo.id,
       typeId: "node-start",
@@ -18,7 +18,7 @@ export class DiagramInitialData {
       },
       // @ts-ignore
       consumerData: pipelineInfo
-    }
+    };
     for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
       nodes[project.pipelineDefinition.stages[i].id] = {
         id: project.pipelineDefinition.stages[i].id,
@@ -28,7 +28,7 @@ export class DiagramInitialData {
           size: {width: 200, height: 75},
         },
         consumerData: project.pipelineDefinition.stages[i]
-      }
+      };
       if (i < (project.pipelineDefinition.stages.length - 1)) {
         edges[`edge${i}`] = {
           id: `edge${i}`,

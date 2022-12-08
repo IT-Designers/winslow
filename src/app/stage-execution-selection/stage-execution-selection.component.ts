@@ -12,7 +12,7 @@ import {
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
-  PipelineInfo,
+  PipelineDefinitionInfo,
   ResourceInfo,
   StageDefinitionInfo,
   StageWorkerDefinitionInfo,
@@ -32,17 +32,17 @@ export class StageExecutionSelectionComponent implements OnInit {
   rangeTypes: string[] = [this.rangeTypeRange, this.rangeTypeList];
   rangeType: string = this.rangeTypeRange;
 
-  @Input() pipelines: PipelineInfo[];
+  @Input() pipelines: PipelineDefinitionInfo[];
   @Input() pipelineSelectionDisabled = false;
 
-  @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineInfo>();
+  @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineDefinitionInfo>();
   @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageDefinitionInfo>();
   @Output('valid') private validEmitter = new EventEmitter<boolean>();
 
   defaultPipelineIdValue: string;
   executionHistoryValue: ExecutionGroupInfo[] = null;
 
-  selectedPipeline: PipelineInfo = null;
+  selectedPipeline: PipelineDefinitionInfo = null;
   selectedStage: StageWorkerDefinitionInfo = null;
   image = new ImageInfo({name: '', args: [], shmMegabytes: 0});
 
@@ -199,7 +199,7 @@ export class StageExecutionSelectionComponent implements OnInit {
             this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : null;
 
             const requiredEnvironmentVariables = [];
-            this.selectedPipeline.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
+            this.selectedPipeline.userInput.environment.forEach(key => requiredEnvironmentVariables.push(key));
             stage.userInput.environment.forEach(key => requiredEnvironmentVariables.push(key));
 
             this.environmentVariables = new Map();

@@ -34,7 +34,7 @@ import {pipe, Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {
   ImageInfo,
-  PipelineInfo,
+  PipelineDefinitionInfo,
   IRangedValue,
   ResourceInfo,
   StageDefinitionInfo,
@@ -144,9 +144,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   longLoading = new LongLoadingDetector();
 
-  pipelines: PipelineInfo[];
+  pipelines: PipelineDefinitionInfo[];
 
-  selectedPipeline: PipelineInfo = null;
+  selectedPipeline: PipelineDefinitionInfo = null;
   selectedStage: StageDefinitionInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
   //defaultEnvironmentVariables: Map<string, string> = null;
@@ -350,7 +350,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   enqueue(
-    pipeline: PipelineInfo,
+    pipeline: PipelineDefinitionInfo,
     stageDefinitionInfo: StageDefinitionInfo,
     env: any,
     rangedEnv: any,
@@ -390,7 +390,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  configure(pipeline: PipelineInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
+  configure(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
@@ -410,7 +410,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  configureGroup(pipeline: PipelineInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo) {
+  configureGroup(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo) {
     for (let i = 0; i < pipeline.stages.length; ++i) {
       if (stage.name === pipeline.stages[i].name) {
         return this.api.listProjects()
@@ -619,7 +619,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  onSelectedPipelineChanged(info: PipelineInfo) {
+  onSelectedPipelineChanged(info: PipelineDefinitionInfo) {
     this.selectedPipeline = info;
   }
 
@@ -670,7 +670,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  private setProjectPipeline(pipeline: PipelineInfo) {
+  private setProjectPipeline(pipeline: PipelineDefinitionInfo) {
     const p = this.project;
     const pid = p.pipelineDefinition.id;
     p.pipelineDefinition = ProjectViewComponent.deepClone(pipeline);
