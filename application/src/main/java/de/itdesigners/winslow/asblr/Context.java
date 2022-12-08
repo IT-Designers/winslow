@@ -11,7 +11,6 @@ import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.project.Project;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -23,13 +22,13 @@ import java.util.logging.Level;
 
 public class Context {
 
-    private final @Nonnull  Project            project;
-    private final @Nonnull  Pipeline           pipeline;
-    private final @Nonnull  PipelineDefinition pipelineDefinition;
-    private final @Nonnull  ExecutionGroup     executionGroup;
-    private final @Nullable Executor           executor;
-    private final @Nonnull  StageId            stageId;
-    private final @Nonnull  Submission         submission;
+    private final @Nonnull Project            project;
+    private final @Nonnull Pipeline           pipeline;
+    private final @Nonnull PipelineDefinition pipelineDefinition;
+    private final @Nonnull ExecutionGroup     executionGroup;
+    private final @Nonnull StageId            stageId;
+    private final @Nonnull Submission         submission;
+    private final @Nonnull Executor           executor;
 
     private final @Nonnull Map<Class<?>, Object> intermediateResults = new HashMap<>();
 
@@ -38,7 +37,7 @@ public class Context {
             @Nonnull Pipeline pipeline,
             @Nonnull PipelineDefinition definition,
             @Nonnull ExecutionGroup executionGroup,
-            @Nullable Executor executor,
+            @Nonnull Executor executor,
             @Nonnull StageId stageId,
             @Nonnull Submission submission) {
         this.project            = project;
@@ -85,7 +84,6 @@ public class Context {
         return executionGroup.getStageDefinition();
     }
 
-    @Nonnull
     public boolean isConfigureOnly() {
         return executionGroup.isConfigureOnly();
     }
@@ -140,12 +138,10 @@ public class Context {
      * @param message Message to log
      */
     public void log(@Nonnull Level level, @Nonnull String message) {
-        if (this.executor != null) {
-            if (level.intValue() == Level.INFO.intValue()) {
-                this.executor.logInf(message);
-            } else if (level.intValue() > Level.INFO.intValue()) {
-                this.executor.logErr(message);
-            }
+        if (level.intValue() == Level.INFO.intValue()) {
+            this.executor.logInf(message);
+        } else if (level.intValue() > Level.INFO.intValue()) {
+            this.executor.logErr(message);
         }
     }
 
@@ -153,19 +149,15 @@ public class Context {
      * @see Executor#addLogEntryConsumer(Consumer)
      */
     public void addLogListener(@Nonnull Consumer<LogEntry> listener) {
-        if (this.executor != null) {
-            this.executor.addLogEntryConsumer(listener);
-        }
+        this.executor.addLogEntryConsumer(listener);
     }
 
     public void removeLogListener(@Nonnull Consumer<LogEntry> listener) {
-        if (this.executor != null) {
-            this.executor.removeLogEntryConsumer(listener);
-        }
+        this.executor.removeLogEntryConsumer(listener);
     }
 
     public boolean hasAssemblyBeenAborted() {
-        return this.executor != null && this.executor.hasBeenKilled();
+        return this.executor.hasBeenKilled();
     }
 
     public void ensureAssemblyHasNotBeenAborted() throws AssemblyException {
