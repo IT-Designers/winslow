@@ -60,7 +60,7 @@ public class StageWorkerDefinitionTests {
                         name: "The name of the stage"
                         
                         requirements:
-                          cpu: 0
+                          cpus: 0
                           gpu:
                             count: 0
                             vendor: ""
