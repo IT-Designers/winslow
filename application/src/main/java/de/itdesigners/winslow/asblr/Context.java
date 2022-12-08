@@ -85,6 +85,11 @@ public class Context {
         return executionGroup.getStageDefinition();
     }
 
+    @Nonnull
+    public boolean isConfigureOnly() {
+        return executionGroup.isConfigureOnly();
+    }
+
     public <T> void store(@Nonnull T value) {
         this.intermediateResults.put(value.getClass(), value);
     }
