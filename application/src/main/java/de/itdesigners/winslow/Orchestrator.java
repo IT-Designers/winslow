@@ -588,6 +588,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             .add(new WorkspaceMount(environment.getWorkDirectoryConfiguration()))
                             .add(new EnvLogger())
                             .add(new LogParserRegisterer(getResourceManager()))
+                            .add(new GatewayExtensionAppender())
                             .add(new BuildAndSubmit(
                                     backend,
                                     this.nodeName,
@@ -627,7 +628,9 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                     new Submission(
                                             stageId,
                                             executionGroup.isConfigureOnly(),
-                                            stageDefinition,
+                                            stageDefinition instanceof StageWorkerDefinition stageWorkerDefinition
+                                            ? stageWorkerDefinition.requirements()
+                                            : null,
                                             executionGroup.getWorkspaceConfiguration()
                                     )
                             ));

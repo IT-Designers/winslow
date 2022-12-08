@@ -43,19 +43,16 @@ public class LogParserRegisterer implements AssemblerStep {
                 .map(Path::of)
                 .flatMap(resourceManager::getWorkspace)
                 .ifPresent(workDir -> {
-
-                    var logParsers = context.getSubmission().getStageDefinition() instanceof StageWorkerDefinition w
-                                     ? w.logParsers()
-                                     : Collections.<LogParser>emptyList();
-
-                    var parsers = logParsers
-                            .stream()
+                    var parsers = (context.getStageDefinition() instanceof StageWorkerDefinition w
+                                   ? w.logParsers().stream()
+                                   : Stream.<LogParser>empty())
                             .flatMap(parser -> instantiateConsumer(
                                     context,
                                     workDir.resolve(LOG_PARSER_OUTPUT_DIRECTORY),
                                     parser
                             ))
-                            .collect(Collectors.toList());
+                            .toList();
+
                     parsers.forEach(context::addLogListener);
                     context.store(new LogParsers(parsers));
                 });
