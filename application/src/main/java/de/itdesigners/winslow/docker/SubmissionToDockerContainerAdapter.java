@@ -54,6 +54,9 @@ public class SubmissionToDockerContainerAdapter {
                                 .orElseGet(HostConfig::new)
                                 .withPrivileged(imageExt.isPrivileged())
                                 .withShmSize(imageExt.getShmSizeMegabytes().map(Integer::longValue).orElse(null))
+                                .withUlimits(imageExt.getShmSizeMegabytes().map(m -> new Ulimit[]{
+                                        new Ulimit("memlock", -1L, -1L)
+                                }).orElse(null))
                                 .withAutoRemove(true)
                                 .withMounts(
                                         submission
