@@ -143,7 +143,7 @@ public class WorkspaceCreator implements AssemblerStep {
     @Nonnull
     private String getNestedWorkspaceName(@Nonnull Context context) {
         return EnvironmentVariableAppender.getRangedEnvironmentVariables(
-                context.getSubmission().getStageDefinition(),
+                context.getStageDefinition(),
                 context.getExecutionGroup().getRangedValues().orElseGet(Collections::emptyMap)
         );
     }
@@ -203,7 +203,10 @@ public class WorkspaceCreator implements AssemblerStep {
 
 
     @Nonnull
-    public static Path getWorkspacePathOf(@Nonnull StageId stageId, boolean sharedWithinGroup, @Nullable String nestedWorkspaceName) {
+    public static Path getWorkspacePathOf(
+            @Nonnull StageId stageId,
+            boolean sharedWithinGroup,
+            @Nullable String nestedWorkspaceName) {
         var base = getProjectWorkspacesDirectory(stageId.getProjectId());
         if (sharedWithinGroup) {
             return base.resolve(stageId.getExecutionGroupId().getProjectRelative());

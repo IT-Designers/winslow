@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.config.StageDefinition;
+import de.itdesigners.winslow.config.Requirements;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -12,9 +12,8 @@ import java.util.stream.Stream;
 
 public class Submission {
 
-    private final @Nonnull StageId         id;
-    private final          boolean         configureOnly;
-    private final @Nonnull StageDefinition stageDefinition;
+    private final @Nonnull StageId id;
+    private final          boolean configureOnly;
 
     private final @Nonnull Map<String, String>    envVarsStage    = new HashMap<>();
     private final @Nonnull Map<String, String>    envVarsPipeline = new HashMap<>();
@@ -24,16 +23,17 @@ public class Submission {
 
     private final @Nonnull Map<Class<? extends Extension>, Extension> extensions = new HashMap<>();
 
-    private @Nullable String workspaceDirectory;
+    private @Nullable Requirements hardwareRequirements;
+    private @Nullable String       workspaceDirectory;
 
     public Submission(
             @Nonnull StageId id,
             boolean configureOnly,
-            @Nonnull StageDefinition stageDefinition,
+            @Nullable Requirements hardwareRequirements,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
         this.id                     = Objects.requireNonNull(id);
         this.configureOnly          = configureOnly;
-        this.stageDefinition        = Objects.requireNonNull(stageDefinition);
+        this.hardwareRequirements   = hardwareRequirements;
         this.workspaceConfiguration = workspaceConfiguration;
     }
 
@@ -50,8 +50,15 @@ public class Submission {
 
     @Nonnull
     @CheckReturnValue
-    public StageDefinition getStageDefinition() {
-        return stageDefinition;
+    public Submission withHardwareRequirements(@Nonnull Requirements hardwareRequirements) {
+        this.hardwareRequirements = hardwareRequirements;
+        return this;
+    }
+
+    @Nonnull
+    @CheckReturnValue
+    public Optional<Requirements> getHardwareRequirements() {
+        return Optional.ofNullable(hardwareRequirements);
     }
 
     @Nonnull

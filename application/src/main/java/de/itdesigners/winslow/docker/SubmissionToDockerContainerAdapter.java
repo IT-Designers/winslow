@@ -49,8 +49,7 @@ public class SubmissionToDockerContainerAdapter {
                 )
                 .withHostConfig(
                         submission
-                                .getStageDefinition()
-                                .getRequirements()
+                                .getHardwareRequirements()
                                 .map(this::hostConfigFromRequirements)
                                 .orElseGet(HostConfig::new)
                                 .withPrivileged(imageExt.isPrivileged())

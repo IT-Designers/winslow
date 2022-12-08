@@ -42,7 +42,6 @@ public class LogParserRegisterer implements AssemblerStep {
                 .flatMap(resourceManager::getWorkspace)
                 .ifPresent(workDir -> {
                     var parsers = context
-                            .getSubmission()
                             .getStageDefinition()
                             .getLogParsers()
                             .stream()

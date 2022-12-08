@@ -597,7 +597,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                     new Submission(
                                             stageId,
                                             executionGroup.isConfigureOnly(),
-                                            stageDefinition,
+                                            stageDefinition.getRequirements().orElse(null),
                                             executionGroup.getWorkspaceConfiguration()
                                     )
                             ));
