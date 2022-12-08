@@ -9,11 +9,11 @@ import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException
 import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.ParseError;
-import de.itdesigners.winslow.api.pipeline.PipelineInfo;
+import de.itdesigners.winslow.api.pipeline.PipelineDefinitionInfo;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.project.ProjectRepository;
-import de.itdesigners.winslow.web.PipelineInfoConverter;
+import de.itdesigners.winslow.web.PipelineDefinitionInfoConverter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +34,7 @@ public class PipelinesController {
     }
 
     @GetMapping("pipelines")
-    public Stream<PipelineInfo> getAllPipelines() {
+    public Stream<PipelineDefinitionInfo> getAllPipelines() {
         return winslow
                 .getPipelineRepository()
                 .getPipelineIdentifiers()
@@ -43,16 +43,16 @@ public class PipelinesController {
                         .getPipeline(identifier)
                         .unsafe()
                         .stream()
-                        .map(p -> PipelineInfoConverter.from(identifier, p)));
+                        .map(p -> PipelineDefinitionInfoConverter.from(identifier, p)));
     }
 
     @GetMapping("pipelines/{pipeline}")
-    public Optional<PipelineInfo> getPipeline(@PathVariable("pipeline") String pipeline) {
+    public Optional<PipelineDefinitionInfo> getPipeline(@PathVariable("pipeline") String pipeline) {
         return winslow
                 .getPipelineRepository()
                 .getPipeline(pipeline)
                 .unsafe()
-                .map(p -> PipelineInfoConverter.from(pipeline, p));
+                .map(p -> PipelineDefinitionInfoConverter.from(pipeline, p));
     }
 
     @GetMapping("pipelines/{pipeline}/raw")
@@ -149,7 +149,7 @@ public class PipelinesController {
     }
 
     @PostMapping("pipelines/create")
-    public Optional<PipelineInfo> createPipeline(@RequestBody String name) {
+    public Optional<PipelineDefinitionInfo> createPipeline(@RequestBody String name) {
         var id = PipelineDefinitionRepository.derivePipelineIdFromName(name);
         return this.winslow
                 .getPipelineRepository()
@@ -218,7 +218,7 @@ public class PipelinesController {
                                     null
                             );
                             container.update(def);
-                            return Optional.of(PipelineInfoConverter.from(id, def));
+                            return Optional.of(PipelineDefinitionInfoConverter.from(id, def));
                         } else {
                             return Optional.empty();
                         }

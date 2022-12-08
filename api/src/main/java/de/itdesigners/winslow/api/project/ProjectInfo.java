@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.api.project;
 
-import de.itdesigners.winslow.api.pipeline.PipelineInfo;
+import de.itdesigners.winslow.api.pipeline.PipelineDefinitionInfo;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -13,7 +13,7 @@ public class ProjectInfo {
     public final @Nonnull List<String> tags;
     public final @Nonnull String       name;
     public final          boolean      publicAccess;
-    public final @Nonnull PipelineInfo pipelineDefinition;
+    public final @Nonnull PipelineDefinitionInfo pipelineDefinition;
 
     public ProjectInfo(
             @Nonnull String id,
@@ -22,7 +22,7 @@ public class ProjectInfo {
             @Nonnull List<String> tags,
             @Nonnull String name,
             boolean publicAccess,
-            @Nonnull PipelineInfo pipelineDefinition) {
+            @Nonnull PipelineDefinitionInfo pipelineDefinition) {
         this.id                 = id;
         this.owner              = owner;
         this.groups             = groups;
