@@ -39,7 +39,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Override
     public boolean applicable(@Nonnull Context context) {
-        return !context.getSubmission().isConfigureOnly();
+        return !context.isConfigureOnly();
     }
 
     @Override
@@ -129,7 +129,7 @@ public class WorkspaceCreator implements AssemblerStep {
                     pipelineOutputAbsolute
             ));
 
-            if (!context.getSubmission().isConfigureOnly()
+            if (!context.isConfigureOnly()
                     && workspaceMode == WorkspaceMode.INCREMENTAL
                     && (!workspaceConfiguration.isSharedWithinGroup() || !workspaceExistedBefore)) {
                 copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
