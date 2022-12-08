@@ -44,7 +44,7 @@ public class SubmissionToDockerContainerAdapter {
                                 .getEffectiveEnvVariables()
                                 .entrySet()
                                 .stream()
-                                .flatMap(e -> Stream.of(e.getKey(), e.getValue()))
+                                .map(e -> e.getKey() + "=" + e.getValue())
                                 .toList()
                 )
                 .withHostConfig(
