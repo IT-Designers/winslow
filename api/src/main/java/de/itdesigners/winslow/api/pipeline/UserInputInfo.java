@@ -5,7 +5,7 @@ import java.util.List;
 
 public record UserInputInfo(
         @Nonnull Confirmation confirmation,
-        @Nonnull List<String> environment) {
+        @Nonnull List<String> requiredEnvVariables) {
 
     public enum Confirmation {
         Never, Once, Always
