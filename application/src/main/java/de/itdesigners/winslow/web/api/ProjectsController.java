@@ -14,7 +14,7 @@ import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.web.AuthTokenInfoConverter;
 import de.itdesigners.winslow.web.ExecutionGroupInfoConverter;
-import de.itdesigners.winslow.web.PipelineInfoConverter;
+import de.itdesigners.winslow.web.PipelineDefinitionInfoConverter;
 import de.itdesigners.winslow.web.ProjectInfoConverter;
 import de.itdesigners.winslow.web.api.noauth.PipelineTrigger;
 import org.springframework.core.io.InputStreamResource;
@@ -287,12 +287,12 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects/{projectId}/pipeline-definition")
-    public Optional<PipelineInfo> getProjectPipelineDefinition(
+    public Optional<PipelineDefinitionInfo> getProjectPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .map(Project::getPipelineDefinition)
-                .map(definition -> PipelineInfoConverter.from(projectId, definition));
+                .map(definition -> PipelineDefinitionInfoConverter.from(projectId, definition));
     }
 
     @GetMapping("/projects/{projectId}/state")

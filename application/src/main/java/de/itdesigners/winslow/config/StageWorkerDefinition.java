@@ -64,7 +64,7 @@ public record StageWorkerDefinition(
     public String toString() {
 
         return getClass()
-                .getSimpleName() + "@{name='" + this.name + "',desc='" + this.description + "',image=" + this.image + ",userInput=" + this.userInput + ",type='" + this.getClass().getSimpleName() + "'}#" + this
+                .getSimpleName() + "@{name='" + this.name + "',description='" + this.description + "',image=" + this.image + ",userInput=" + this.userInput + ",type='" + this.getClass().getSimpleName() + "'}#" + this
                 .hashCode();
     }
 }
