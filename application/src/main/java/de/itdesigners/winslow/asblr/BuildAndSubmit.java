@@ -36,7 +36,7 @@ public class BuildAndSubmit implements AssemblerStep {
             var submission = context.getSubmission();
             var result = new SubmissionResult(
                     createStage(submission),
-                    submission.isConfigureOnly() ? new NoOpStageHandle() : backend.submit(submission)
+                    context.isConfigureOnly() ? new NoOpStageHandle() : backend.submit(submission)
             );
 
             context.log(Level.INFO, "Stage scheduled on node " + this.nodeName);
