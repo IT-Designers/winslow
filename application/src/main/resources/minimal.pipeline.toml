@@ -1,6 +1,6 @@
 [pipelineDefinition]
 name = "minimal"
-desc = "Testing a minimal set of functionality"
+description = "Testing a minimal set of functionality"
 
 [pipelineDefinition.userInput]
 #default values!

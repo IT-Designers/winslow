@@ -1,6 +1,6 @@
 [pipelineDefinition]
 name = "vehicle-tracking"
-desc = "Detects all vehicles in a video and tracks them through the video"
+description = "Detects all vehicles in a video and tracks them through the video"
 
 [pipelineDefinition.userInput]
 valueFor = [
@@ -12,7 +12,7 @@ valueFor = [
 
 [[stageDefinition]]
 name = "car-detection"
-desc = "Detecting all vehicles on each single frame through an AI"
+description = "Detecting all vehicles on each single frame through an AI"
 
 [stageDefinition.image]
 name = "mecview.itd-services.de/detector" # ENTRYPOINT python3 detector.py
