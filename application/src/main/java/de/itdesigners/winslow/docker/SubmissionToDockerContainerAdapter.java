@@ -2,6 +2,7 @@ package de.itdesigners.winslow.docker;
 
 import com.github.dockerjava.api.model.*;
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.pipeline.*;
 
@@ -25,15 +26,8 @@ public class SubmissionToDockerContainerAdapter {
     }
 
     @Nonnull
-    public SubmissionResult submit(@Nonnull Submission submission) throws OrchestratorException, IOException {
-        try {
-            submission.ensureNotSubmittedYet();
-        } catch (Submission.AlreadySubmittedException e) {
-            throw new OrchestratorException("Submission already submitted", e);
-        }
-
-        var stage         = submission.createStage();
-        var stageId       = stage.getFullyQualifiedId();
+    public StageHandle submit(@Nonnull Submission submission) throws OrchestratorException, IOException {
+        var stageId       = submission.getId().getFullyQualified();
         var containerName = backend.getContainerName(stageId);
 
         var imageExt = submission
@@ -45,6 +39,14 @@ public class SubmissionToDockerContainerAdapter {
                 .createContainerCmd(imageExt.getImage())
                 .withCmd(imageExt.getArguments())
                 .withName(containerName)
+                .withEnv(
+                        submission
+                                .getEffectiveEnvVariables()
+                                .entrySet()
+                                .stream()
+                                .flatMap(e -> Stream.of(e.getKey(), e.getValue()))
+                                .toList()
+                )
                 .withHostConfig(
                         submission
                                 .getStageDefinition()
@@ -63,7 +65,7 @@ public class SubmissionToDockerContainerAdapter {
                 );
 
 
-        return new SubmissionResult(stage, new DockerStageHandle(this.backend, stageId, createCmd));
+        return new DockerStageHandle(this.backend, stageId, createCmd);
     }
 
     @Nonnull

@@ -4,6 +4,7 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.node.PlatformInfo;
@@ -90,7 +91,7 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
 
     @Nonnull
     @Override
-    public SubmissionResult submit(@Nonnull Submission submission) throws IOException {
+    public StageHandle submit(@Nonnull Submission submission) throws IOException {
         try {
             return this.adapter.submit(submission);
         } catch (OrchestratorException e) {

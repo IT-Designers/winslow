@@ -2,12 +2,14 @@ package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.*;
 import com.hashicorp.nomad.javasdk.NomadException;
-import de.itdesigners.winslow.NoOpStageHandle;
 import de.itdesigners.winslow.OrchestratorException;
-import de.itdesigners.winslow.api.pipeline.State;
+import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.node.PlatformInfo;
-import de.itdesigners.winslow.pipeline.*;
+import de.itdesigners.winslow.pipeline.DockerImage;
+import de.itdesigners.winslow.pipeline.DockerVolume;
+import de.itdesigners.winslow.pipeline.DockerVolumes;
+import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -37,31 +39,19 @@ public class SubmissionToNomadJobAdapter {
     }
 
     @Nonnull
-    public SubmissionResult submit(@Nonnull Submission submission) throws OrchestratorException, IOException, NomadException {
-        try {
-            submission.ensureNotSubmittedYet();
-        } catch (Submission.AlreadySubmittedException e) {
-            throw new OrchestratorException("Submission already submitted", e);
-        }
-
+    public StageHandle submit(@Nonnull Submission submission) throws OrchestratorException, IOException, NomadException {
         var job      = createJob(submission);
         var jobId    = job.getId();
         var taskName = job.getTaskGroups().get(0).getName();
-        var stage    = submission.createStage();
-        var stageId  = stage.getFullyQualifiedId();
+        var stageId  = submission.getId().getFullyQualified();
 
         if (!Objects.equals(jobId, taskName) || !Objects.equals(jobId, stageId)) {
             throw new OrchestratorException("Invalid configuration, jobId must match taskName, but doesn't: " + jobId + " != " + taskName);
         }
 
-        if (submission.isConfigureOnly()) {
-            stage.finishNow(State.Succeeded);
-            return new SubmissionResult(stage, new NoOpStageHandle());
-        } else {
-            try (var client = backend.getNewClient()) {
-                client.getJobsApi().register(job);
-                return new SubmissionResult(stage, new NomadStageHandle(nodeName, backend, submission.getId()));
-            }
+        try (var client = backend.getNewClient()) {
+            client.getJobsApi().register(job);
+            return new NomadStageHandle(nodeName, backend, submission.getId());
         }
     }
 
@@ -70,7 +60,7 @@ public class SubmissionToNomadJobAdapter {
 
         var task = new Task()
                 .setName(submission.getId().getFullyQualified())
-                .setEnv(getVisibleEnvironmentVariables(submission))
+                .setEnv(submission.getEffectiveEnvVariables())
                 .setConfig(new HashMap<>())
                 .setResources(new Resources())
                 .setRestartPolicy(new RestartPolicy().setAttempts(0));
@@ -92,16 +82,6 @@ public class SubmissionToNomadJobAdapter {
                                 .setRestartPolicy(new RestartPolicy().setAttempts(0))
                                 .addTasks(task)
                 );
-    }
-
-    @Nonnull
-    private HashMap<String, String> getVisibleEnvironmentVariables(@Nonnull Submission submission) {
-        var env = new HashMap<String, String>();
-
-        submission
-                .getEnvVariableKeys()
-                .forEach(key -> submission.getEnvVariable(key).ifPresent(value -> env.put(key, value)));
-        return env;
     }
 
     @Nonnull

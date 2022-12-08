@@ -5,13 +5,13 @@ import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
-import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -118,7 +118,7 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
 
     @Nonnull
     @Override
-    public SubmissionResult submit(@Nonnull Submission submission) throws IOException {
+    public StageHandle submit(@Nonnull Submission submission) throws IOException {
         try {
             return submissionToNomadJobAdapter.submit(submission);
         } catch (OrchestratorException | NomadException e) {
