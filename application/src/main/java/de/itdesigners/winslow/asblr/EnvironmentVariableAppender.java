@@ -24,11 +24,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var pipeline = context.getPipeline();
+        var pipeline           = context.getPipeline();
         var pipelineDefinition = context.getPipelineDefinition();
-        var stageDefinition = context.getSubmission().getStageDefinition();
-        var timeMs = System.currentTimeMillis();
-        var timeS = timeMs / 1_000;
+        var stageDefinition    = context.getStageDefinition();
+        var timeMs             = System.currentTimeMillis();
+        var timeS              = timeMs / 1_000;
 
         var submission = context
                 .getSubmission()
@@ -112,9 +112,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 );
             });
 
-            if (context
-                    .getSubmission()
-                    .getStageDefinition() instanceof StageWorkerDefinition submissionStageWorkerDefinition) {
+            if (context.getStageDefinition() instanceof StageWorkerDefinition stageWorkerDefinition) {
                 context.getExecutionGroup().getRangedValues().ifPresent(ranged -> {
                     context.getSubmission()
                            .withInternalEnvVariable(
@@ -123,7 +121,7 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                            )
                            .withInternalEnvVariable(
                                    Env.SELF_PREFIX + "_RANGED_ENV_VARIABLES",
-                                   getRangedEnvironmentVariables(submissionStageWorkerDefinition, ranged)
+                                   getRangedEnvironmentVariables(stageWorkerDefinition, ranged)
                            );
                 });
             }

@@ -4,6 +4,7 @@ import de.itdesigners.winslow.Executor;
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
+import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
@@ -22,8 +23,8 @@ import java.util.logging.Level;
 
 public class Context {
 
-    private final @Nonnull Project project;
-    private final @Nonnull Pipeline pipeline;
+    private final @Nonnull  Project            project;
+    private final @Nonnull  Pipeline           pipeline;
     private final @Nonnull  PipelineDefinition pipelineDefinition;
     private final @Nonnull  ExecutionGroup     executionGroup;
     private final @Nullable Executor           executor;
@@ -79,12 +80,22 @@ public class Context {
         return this.submission;
     }
 
+    @Nonnull
+    public StageDefinition getStageDefinition() {
+        return executionGroup.getStageDefinition();
+    }
+
     public <T> void store(@Nonnull T value) {
         this.intermediateResults.put(value.getClass(), value);
     }
 
     public <T> void store(@Nonnull Class<T> type, @Nonnull T value) {
         this.intermediateResults.put(type, value);
+    }
+
+    @Nonnull
+    public <T> Optional<T> delete(@Nonnull Class<T> type) {
+        return Optional.ofNullable(type.cast(this.intermediateResults.remove(type)));
     }
 
     @Nonnull

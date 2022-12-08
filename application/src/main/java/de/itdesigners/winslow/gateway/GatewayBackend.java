@@ -8,7 +8,6 @@ import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
-import de.itdesigners.winslow.pipeline.SubmissionResult;
 import de.itdesigners.winslow.project.ProjectRepository;
 
 import javax.annotation.Nonnull;
@@ -27,10 +26,13 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
 
     @Nonnull
     @Override
-    public SubmissionResult submit(@Nonnull Submission submission) throws IOException {
-        return new SubmissionResult(
-                submission.createStage(),
-                spawnStageHandle(submission.getStageDefinition(), submission.getId())
+    public StageHandle submit(@Nonnull Submission submission) throws IOException {
+        return spawnStageHandle(
+                submission
+                        .getExtension(GatewayExtension.class)
+                        .orElseThrow(() -> new IOException("Missing GatewayExtension"))
+                        .stageDefinition(),
+                submission.getId()
         );
     }
 
@@ -43,16 +45,13 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
     private StageHandle spawnStageHandle(
             @Nonnull StageDefinition stageDefinition,
             @Nonnull StageId stageId) throws IOException {
-
         if (stageDefinition instanceof StageAndGatewayDefinition stageAndGatewayDefinition) {
             return new GatewayStageHandle(new AndGateway(pipelines, projects, stageAndGatewayDefinition, stageId));
-        }
-
-        if (stageDefinition instanceof StageXOrGatwayDefinition stageXOrGatwayDefinition) {
+        } else if (stageDefinition instanceof StageXOrGatwayDefinition stageXOrGatwayDefinition) {
             return new GatewayStageHandle(new XOrGateway(pipelines, projects, stageXOrGatwayDefinition, stageId));
+        } else {
+            throw new IOException("Invalid StageType " + stageDefinition.getClass().toString());
         }
-
-        throw new IOException("Invalid StageType " + stageDefinition.getClass().toString());
     }
 
 

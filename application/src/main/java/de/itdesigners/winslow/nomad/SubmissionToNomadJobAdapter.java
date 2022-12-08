@@ -68,7 +68,7 @@ public class SubmissionToNomadJobAdapter {
 
         submission.getExtension(DockerImage.class).ifPresent(getDockerImageConfigurer(task));
         submission.getExtension(DockerVolumes.class).ifPresent(getDockerNfsVolumesConfigurer(task));
-        getResourceRequirementsConfigurer(task);
+        submission.getHardwareRequirements().ifPresent(getResourceRequirementsConfigurer(task));
 
 
         return new Job()

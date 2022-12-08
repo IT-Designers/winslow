@@ -22,7 +22,7 @@ public class UserInputChecker implements AssemblerStep {
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var pipeline           = context.getPipeline();
         var pipelineDefinition = context.getPipelineDefinition();
-        var stageDefinition    = context.getSubmission().getStageDefinition();
+        var stageDefinition    = context.getStageDefinition();
 
         var requiresConfirmation = isConfirmationRequiredForNextStage(pipelineDefinition, stageDefinition, pipeline);
         var missingUserInput = hasMissingUserInput(
