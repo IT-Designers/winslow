@@ -52,8 +52,6 @@
                         <class>de.itdesigners.winslow.api.pipeline.RangedValue</class>
                     </excludeClasses>
 
-
-
                     <!--
                       todo: currently not working:
                       https://github.com/vojtechhabarta/typescript-generator/issues/534
@@ -68,7 +66,6 @@
                     <optionalAnnotations>
                         <annotation>javax.annotation.Nullable</annotation>
                     </optionalAnnotations>
-
                     <mapDate>asNumber</mapDate>
                 </configuration>
             </plugin>
