@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 public class Submission {
 
     private final @Nonnull StageId id;
-    private final          boolean configureOnly;
 
     private final @Nonnull Map<String, String>    envVarsStage    = new HashMap<>();
     private final @Nonnull Map<String, String>    envVarsPipeline = new HashMap<>();
@@ -28,11 +27,9 @@ public class Submission {
 
     public Submission(
             @Nonnull StageId id,
-            boolean configureOnly,
             @Nullable Requirements hardwareRequirements,
             @Nonnull WorkspaceConfiguration workspaceConfiguration) {
         this.id                     = Objects.requireNonNull(id);
-        this.configureOnly          = configureOnly;
         this.hardwareRequirements   = hardwareRequirements;
         this.workspaceConfiguration = workspaceConfiguration;
     }
@@ -41,11 +38,6 @@ public class Submission {
     @CheckReturnValue
     public StageId getId() {
         return id;
-    }
-
-    @CheckReturnValue
-    public boolean isConfigureOnly() {
-        return this.configureOnly;
     }
 
     @Nonnull
