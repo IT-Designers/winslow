@@ -87,14 +87,9 @@ public class Main {
             LOG.info("Preparing the orchestrator");
             var repository      = new PipelineRepository(lockBus, config);
             var attributes      = new RunInfoRepository(lockBus, config);
-            var backendBuilder  = getBackend(nodeName);
             var resourceMonitor = new ResourceAllocationMonitor();
-
-            var node = getNode(
-                    nodeName,
-                    backendBuilder.tryRetrievePlatformInfoNoThrows().orElse(null),
-                    resourceMonitor
-            );
+            var node            = getNode(nodeName, resourceMonitor);
+            var backendBuilder  = getBackend(nodeName, node.getPlatformInfo());
 
             var backend = backendBuilder.create();
             var updater = NodeInfoUpdater.spawn(nodes, node);
@@ -158,13 +153,13 @@ public class Main {
     }
 
     @Nonnull
-    private static BackendBuilder getBackend(@Nonnull String nodeName) {
+    private static BackendBuilder getBackend(@Nonnull String nodeName, @Nonnull PlatformInfo platformInfo) {
         if (Env.isBackendDocker()) {
             LOG.info("Using docker backend");
-            return new DockerBackendBuilder(nodeName);
+            return new DockerBackendBuilder(nodeName, platformInfo);
         } else if (Env.isBackendNomad()) {
             LOG.info("Using nomad backend (default)");
-            return new NomadBackendBuilder(nodeName);
+            return new NomadBackendBuilder(nodeName, platformInfo);
         } else {
             LOG.severe("Backend not recognized");
             throw new RuntimeException("Invalid backend configured");
@@ -192,10 +187,9 @@ public class Main {
     @Nonnull
     private static Node getNode(
             @Nonnull String nodeName,
-            @Nullable PlatformInfo partialPlatformInfo,
             @Nonnull ResourceAllocationMonitor monitor) throws IOException {
-        // TODO
-        return new UnixNode(nodeName, partialPlatformInfo, monitor);
+        // TODO proper OS detection required
+        return new UnixNode(nodeName, monitor);
     }
 
     @Nonnull
