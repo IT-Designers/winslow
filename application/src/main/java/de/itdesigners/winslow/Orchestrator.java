@@ -594,10 +594,8 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                     executionGroup,
                                     executor,
                                     stageId,
-                                    new Submission(
-                                            stageId,
-                                            stageDefinition.getRequirements().orElse(null)
-                                    )
+                                    new Submission(stageId)
+                                            .withHardwareRequirements(stageDefinition.getRequirements().orElse(null))
                             ));
                 } finally {
                     lock.waitForRelease();

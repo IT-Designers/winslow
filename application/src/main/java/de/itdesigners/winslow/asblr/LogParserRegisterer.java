@@ -2,6 +2,7 @@ package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.config.LogParser;
+import de.itdesigners.winslow.pipeline.StageAssignedWorkspace;
 import de.itdesigners.winslow.resource.ResourceManager;
 import org.apache.logging.log4j.util.TriConsumer;
 
@@ -36,8 +37,8 @@ public class LogParserRegisterer implements AssemblerStep {
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
         context
-                .getSubmission()
-                .getWorkspaceDirectory()
+                .load(StageAssignedWorkspace.class)
+                .map(StageAssignedWorkspace::absolutePath)
                 .map(Path::of)
                 .flatMap(resourceManager::getWorkspace)
                 .ifPresent(workDir -> {
