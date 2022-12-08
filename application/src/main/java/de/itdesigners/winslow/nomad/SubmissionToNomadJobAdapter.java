@@ -176,7 +176,7 @@ public class SubmissionToNomadJobAdapter {
             }
 
             if (requirements.getCpus() > 0) {
-                info.getCpuSingleCoreMaxFrequency()
+                info.getCpuSingleCoreMaxFrequencyMhz()
                     .ifPresent(max -> {
                         // TODO magic number, I dont know why, but somehow this is necessary
                         var compute = ((requirements.getCpus() * max) - NOMAD_SYSTEM_RESERVED_CPU) / 3.5f;
