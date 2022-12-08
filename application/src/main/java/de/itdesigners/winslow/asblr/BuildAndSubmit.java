@@ -3,11 +3,13 @@ package de.itdesigners.winslow.asblr;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.NoOpStageHandle;
 import de.itdesigners.winslow.pipeline.Stage;
+import de.itdesigners.winslow.pipeline.StageAssignedWorkspace;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -33,10 +35,17 @@ public class BuildAndSubmit implements AssemblerStep {
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
         try {
-            var submission = context.getSubmission();
             var result = new SubmissionResult(
-                    createStage(submission),
-                    context.isConfigureOnly() ? new NoOpStageHandle() : backend.submit(submission)
+                    createStage(
+                            context.getSubmission(),
+                            context
+                                    .load(StageAssignedWorkspace.class)
+                                    .map(StageAssignedWorkspace::absolutePath)
+                                    .orElse(null)
+                    ),
+                    context.isConfigureOnly()
+                    ? new NoOpStageHandle()
+                    : backend.submit(context.getSubmission())
             );
 
             context.log(Level.INFO, "Stage scheduled on node " + this.nodeName);
@@ -49,11 +58,9 @@ public class BuildAndSubmit implements AssemblerStep {
 
 
     @Nonnull
-    private Stage createStage(@Nonnull Submission submission) {
-        var stage = new Stage(
-                submission.getId(),
-                submission.getWorkspaceDirectory().orElse(null)
-        );
+    private Stage createStage(@Nonnull Submission submission, @Nullable String workspaceDirectory) {
+        var stage = new Stage(submission.getId(), workspaceDirectory);
+
         stage.getEnv().putAll(submission.getStageEnvVariablesReduced());
         stage.getEnvPipeline().putAll(submission.getPipelineEnvVariables());
         stage.getEnvSystem().putAll(submission.getSystemEnvVariables());
