@@ -1,8 +1,6 @@
 package de.itdesigners.winslow.pipeline;
 
-import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.Requirements;
-import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -22,14 +20,10 @@ public class Submission {
 
     private final @Nonnull Map<Class<? extends Extension>, Extension> extensions = new HashMap<>();
 
-    private @Nullable Requirements hardwareRequirements;
-    private @Nullable String       workspaceDirectory;
+    private @Nullable Requirements hardwareRequirements = null;
 
-    public Submission(
-            @Nonnull StageId id,
-            @Nullable Requirements hardwareRequirements) {
-        this.id                   = Objects.requireNonNull(id);
-        this.hardwareRequirements = hardwareRequirements;
+    public Submission(@Nonnull StageId id) {
+        this.id = Objects.requireNonNull(id);
     }
 
     @Nonnull
@@ -40,7 +34,7 @@ public class Submission {
 
     @Nonnull
     @CheckReturnValue
-    public Submission withHardwareRequirements(@Nonnull Requirements hardwareRequirements) {
+    public Submission withHardwareRequirements(@Nullable Requirements hardwareRequirements) {
         this.hardwareRequirements = hardwareRequirements;
         return this;
     }
@@ -51,18 +45,6 @@ public class Submission {
         return Optional.ofNullable(hardwareRequirements);
     }
 
-    @Nonnull
-    @CheckReturnValue
-    public Submission withWorkspaceDirectory(@Nonnull String workspaceDirectory) {
-        this.workspaceDirectory = workspaceDirectory;
-        return this;
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public Optional<String> getWorkspaceDirectory() {
-        return Optional.ofNullable(workspaceDirectory);
-    }
 
     @Nonnull
     @CheckReturnValue

@@ -4,6 +4,7 @@ import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 import de.itdesigners.winslow.pipeline.DockerVolume;
 import de.itdesigners.winslow.pipeline.DockerVolumes;
+import de.itdesigners.winslow.pipeline.StageAssignedWorkspace;
 import de.itdesigners.winslow.pipeline.Submission;
 
 import javax.annotation.CheckReturnValue;
@@ -37,47 +38,50 @@ public class WorkspaceMount implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var config  = context.loadOrThrow(WorkspaceConfiguration.class);
-        var stageId = context.getStageId();
-        var submission = context
-                .getSubmission()
-                .withWorkspaceDirectory(config.getWorkspaceDirectory().toString())
-                .withInternalEnvVariable(ENV_DIR_WORKSPACE, TARGET_PATH_PIPELINE_WORKSPACE);
 
-        submission = submission.withExtension(new DockerVolumes(List.of(
-                volume(
-                        submission,
-                        stageId.getFullyQualified(),
-                        ENV_DIR_RESOURCES,
-                        config.getResourcesDirectoryAbsolute(),
-                        TARGET_PATH_RESOURCES,
-                        true
-                ),
-                volume(
-                        submission,
-                        stageId.getFullyQualified(),
-                        ENV_DIR_PIPELINE_INPUT,
-                        config.getPipelineInputDirectoryAbsolute(),
-                        TARGET_PATH_PIPELINE_INPUT,
-                        false
-                ),
-                volume(
-                        submission,
-                        stageId.getFullyQualified(),
-                        ENV_DIR_PIPELINE_WORKSPACE,
-                        config.getWorkspaceDirectoryAbsolute(),
-                        TARGET_PATH_PIPELINE_WORKSPACE,
-                        false
-                ),
-                volume(
-                        submission,
-                        stageId.getFullyQualified(),
-                        ENV_DIR_PIPELINE_OUTPUT,
-                        config.getPipelineOutputDirectoryAbsolute(),
-                        TARGET_PATH_PIPELINE_OUTPUT,
-                        false
-                )
-        )));
+        var submission = context.getSubmission();
+        var stageId    = context.getStageId();
+
+        context.store(new StageAssignedWorkspace(
+                context.loadOrThrow(WorkspaceConfiguration.class).getWorkspaceDirectory().toString()
+        ));
+
+        submission = submission
+                .withInternalEnvVariable(ENV_DIR_WORKSPACE, TARGET_PATH_PIPELINE_WORKSPACE)
+                .withExtension(new DockerVolumes(List.of(
+                        volume(
+                                submission,
+                                stageId.getFullyQualified(),
+                                ENV_DIR_RESOURCES,
+                                context.loadOrThrow(WorkspaceConfiguration.class).getResourcesDirectoryAbsolute(),
+                                TARGET_PATH_RESOURCES,
+                                true
+                        ),
+                        volume(
+                                submission,
+                                stageId.getFullyQualified(),
+                                ENV_DIR_PIPELINE_INPUT,
+                                context.loadOrThrow(WorkspaceConfiguration.class).getPipelineInputDirectoryAbsolute(),
+                                TARGET_PATH_PIPELINE_INPUT,
+                                false
+                        ),
+                        volume(
+                                submission,
+                                stageId.getFullyQualified(),
+                                ENV_DIR_PIPELINE_WORKSPACE,
+                                context.loadOrThrow(WorkspaceConfiguration.class).getWorkspaceDirectoryAbsolute(),
+                                TARGET_PATH_PIPELINE_WORKSPACE,
+                                false
+                        ),
+                        volume(
+                                submission,
+                                stageId.getFullyQualified(),
+                                ENV_DIR_PIPELINE_OUTPUT,
+                                context.loadOrThrow(WorkspaceConfiguration.class).getPipelineOutputDirectoryAbsolute(),
+                                TARGET_PATH_PIPELINE_OUTPUT,
+                                false
+                        )
+                )));
     }
 
     @Nonnull
