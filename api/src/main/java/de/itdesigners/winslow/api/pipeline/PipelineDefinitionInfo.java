@@ -4,27 +4,31 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public record PipelineInfo(
+public record PipelineDefinitionInfo(
 
         @Nonnull String id,
         @Nonnull String name,
-        @Nullable String desc,
-        @Nonnull List<String> requiredEnvVariables,
+        @Nullable String description,
+        @Nonnull UserInputInfo userInput,
         @Nonnull List<StageDefinitionInfo> stages,
+
+        @Nonnull DeletionPolicy deletionPolicy,
         @Nonnull List<String> markers) {
 
-    public PipelineInfo(
+    public PipelineDefinitionInfo(
             @Nonnull String id,
             @Nonnull String name,
-            @Nullable String desc,
-            @Nonnull List<String> requiredEnvVariables,
-            @Nonnull List<StageDefinitionInfo> stages,
-            @Nonnull List<String> markers) {
-        this.id                   = id;
-        this.name                 = name;
-        this.desc                 = desc;
-        this.requiredEnvVariables = requiredEnvVariables;
-        this.stages               = stages;
-        this.markers              = markers;
+            @Nullable String description,
+            @Nullable UserInputInfo userInput,
+            @Nullable  List<StageDefinitionInfo> stages,
+            @Nonnull DeletionPolicy deletionPolicy,
+            @Nullable List<String> markers) {
+        this.id             = id;
+        this.name           = name;
+        this.description    = description;
+        this.userInput      = userInput;
+        this.stages         = stages;
+        this.deletionPolicy = deletionPolicy;
+        this.markers        = markers;
     }
 }

@@ -52,7 +52,7 @@ public record PipelineDefinition(
     public String toString() {
         return getClass().getSimpleName()
                 + "@{name='" + this.name
-                + "',desc='" + this.description
+                + "',description='" + this.description
                 + "',userInput=" + this.userInput
                 + ",stages=" + this.stages
                 + ",env=" + this.environment

@@ -22,51 +22,6 @@ public class StagesController {
         this.winslow = winslow;
     }
 
-    @GetMapping("/stages/default/worker")
-    public StageDefinitionInfo getDefaultWorker() {
-
-        return StageDefinitionInfoConverter.from(new StageWorkerDefinition(
-                null,
-                "worker",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        ));
-
-    }
-
-    @GetMapping("/stages/default/andGateway")
-    public StageDefinitionInfo getDefaultAndGateway() {
-
-        return StageDefinitionInfoConverter.from(new StageAndGatewayDefinition(
-                null,
-                "worker",
-                null,
-                null
-        ));
-
-    }
-
-    @GetMapping("/stages/default/xorGateway")
-    public StageDefinitionInfo getDefaultXOrGateway() {
-
-        return StageDefinitionInfoConverter.from(new StageXOrGatwayDefinition(
-                null,
-                "worker",
-                null,
-                null,
-                null
-        ));
-
-    }
 
     @GetMapping("/stages/{pipeline}")
     public Stream<StageDefinitionInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
