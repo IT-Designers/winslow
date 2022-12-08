@@ -32,7 +32,7 @@ public class WorkspaceMount implements AssemblerStep {
 
     @Override
     public boolean applicable(@Nonnull Context context) {
-        return !context.getSubmission().isConfigureOnly();
+        return !context.isConfigureOnly();
     }
 
     @Override
