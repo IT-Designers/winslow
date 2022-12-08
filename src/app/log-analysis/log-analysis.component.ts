@@ -8,7 +8,7 @@ import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {getColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
-import {ExecutionGroupInfo, PipelineInfo, StageInfo} from '../api/winslow-api';
+import {ExecutionGroupInfo, PipelineDefinitionInfo, StageInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-log-analysis',
@@ -240,7 +240,7 @@ export class LogAnalysisComponent implements OnInit {
     });
   }
 
-  private findProjectPipeline(pipelines: PipelineInfo[]) {
+  private findProjectPipeline(pipelines: PipelineDefinitionInfo[]) {
     const project = this.projectInfo;
     this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines);
   }
