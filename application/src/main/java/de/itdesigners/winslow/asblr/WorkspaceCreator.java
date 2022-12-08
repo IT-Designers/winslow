@@ -45,7 +45,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
-        var workspaceConfiguration = context.getSubmission().getWorkspaceConfiguration();
+        var workspaceConfiguration = context.getExecutionGroup().getWorkspaceConfiguration();
         var workspaceMode          = workspaceConfiguration.getMode();
         context.log(Level.INFO, "WorkspaceConfiguration.WorkspaceMode=" + workspaceMode);
 
