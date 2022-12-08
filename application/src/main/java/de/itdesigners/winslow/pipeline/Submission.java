@@ -33,7 +33,6 @@ public class Submission {
     }
 
     @Nonnull
-    @CheckReturnValue
     public Submission withHardwareRequirements(@Nullable Requirements hardwareRequirements) {
         this.hardwareRequirements = hardwareRequirements;
         return this;
@@ -158,7 +157,6 @@ public class Submission {
 
 
     @Nonnull
-    @CheckReturnValue
     public Submission withExtension(@Nonnull Extension extension) throws ExtensionAlreadyRegisteredException {
         if (this.extensions.containsKey(extension.getClass())) {
             throw new ExtensionAlreadyRegisteredException(extension);
