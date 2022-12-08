@@ -71,8 +71,8 @@ public class UserInputChecker implements AssemblerStep {
             @Nonnull Submission submission) {
         if (stageDefinition instanceof StageWorkerDefinition stageWorkerDefinition) {
             return Stream.concat(
-                    pipelineDefinition.userInput().getEnvironment().stream(),
-                    stageWorkerDefinition.userInput().getEnvironment().stream()
+                    pipelineDefinition.userInput().getRequiredEnvVariables().stream(),
+                    stageWorkerDefinition.userInput().getRequiredEnvVariables().stream()
             ).filter(k -> submission.getEnvVariable(k).isEmpty());
         } else {
             return Stream.empty();
