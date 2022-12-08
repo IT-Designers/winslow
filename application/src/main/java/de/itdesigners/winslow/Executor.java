@@ -27,23 +27,23 @@ public class Executor implements Closeable, AutoCloseable {
     public static final Logger LOG         = Logger.getLogger(Executor.class.getSimpleName());
     public static final int    INTERVAL_MS = 1000;
 
-    @Nonnull private final String             pipeline;
-    @Nonnull private final StageId            stageId;
-    @Nonnull private final Orchestrator       orchestrator;
-    @Nonnull private final LockedOutputStream logOutput;
-    @Nonnull private final LockHeart          lockHeart;
+    private final @Nonnull String             pipeline;
+    private final @Nonnull StageId            stageId;
+    private final @Nonnull Orchestrator       orchestrator;
+    private final @Nonnull LockedOutputStream logOutput;
+    private final @Nonnull LockHeart          lockHeart;
 
-    @Nonnull private final List<Consumer<LogEntry>> logConsumer                = new ArrayList<>();
-    @Nonnull private final List<Runnable>           shutdownListeners          = new ArrayList<>();
-    @Nonnull private final List<Runnable>           shutdownCompletedListeners = new ArrayList<>();
-    @Nonnull private final IntervalInvoker          intervalInvoker            = new IntervalInvoker(INTERVAL_MS);
+    private final @Nonnull List<Consumer<LogEntry>> logConsumer                = new ArrayList<>();
+    private final @Nonnull List<Runnable>           shutdownListeners          = new ArrayList<>();
+    private final @Nonnull List<Runnable>           shutdownCompletedListeners = new ArrayList<>();
+    private final @Nonnull IntervalInvoker          intervalInvoker            = new IntervalInvoker(INTERVAL_MS);
 
-    @Nullable private StageHandle stageHandle;
+    private @Nullable StageHandle             stageHandle;
+    private @Nullable BlockingDeque<LogEntry> logBuffer = new LinkedBlockingDeque<>();
 
-    private BlockingDeque<LogEntry> logBuffer   = new LinkedBlockingDeque<>();
-    private boolean                 keepRunning = true;
-    private boolean                 failed      = false;
-    private boolean                 killed      = false;
+    private boolean keepRunning = true;
+    private boolean failed      = false;
+    private boolean killed      = false;
 
     public Executor(
             @Nonnull String pipeline,
@@ -166,16 +166,19 @@ public class Executor implements Closeable, AutoCloseable {
             @Override
             public boolean hasNext() {
                 retrieveLogs();
-                return !Executor.this.logBuffer.isEmpty()
+                return (Executor.this.logBuffer!= null && !Executor.this.logBuffer.isEmpty())
                         || (logs != null ? logs.hasNext() : Executor.this.keepRunning());
             }
 
             @Override
             public LogEntry next() {
                 retrieveLogs();
-                var next = logBuffer.poll();
-                if (next == null && logs != null && logs.hasNext()) {
-                    next = logs.next();
+                LogEntry next = null;
+                if (logBuffer != null) {
+                    next = logBuffer.poll();
+                    if (next == null && logs != null && logs.hasNext()) {
+                        next = logs.next();
+                    }
                 }
                 return next;
             }
@@ -263,7 +266,7 @@ public class Executor implements Closeable, AutoCloseable {
     }
 
     private synchronized boolean keepRunning() {
-        return this.keepRunning || !this.logBuffer.isEmpty();
+        return this.keepRunning || (this.logBuffer!= null && !this.logBuffer.isEmpty());
     }
 
     public synchronized void stop() throws IOException {
