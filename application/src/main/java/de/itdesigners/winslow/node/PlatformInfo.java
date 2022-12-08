@@ -13,7 +13,7 @@ public class PlatformInfo {
     }
 
     @Nonnull
-    public Optional<Integer> getCpuSingleCoreMaxFrequency() {
+    public Optional<Integer> getCpuSingleCoreMaxFrequencyMhz() {
         return Optional.ofNullable(maxFrequencyCpu);
     }
 }
