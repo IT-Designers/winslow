@@ -526,14 +526,13 @@ export class Stats {
 
 export class UserInputInfo {
   confirmation: Confirmation;
-  environment: string[];
+  requiredEnvVariables: string[];
 
   constructor(data: UserInputInfo) {
     this.confirmation = data.confirmation;
-    this.environment = data.environment;
+    this.requiredEnvVariables = data.requiredEnvVariables;
   }
 }
-
 export class WorkspaceConfiguration {
   mode: WorkspaceMode;
   value?: string;
