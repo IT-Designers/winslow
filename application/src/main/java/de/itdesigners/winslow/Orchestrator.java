@@ -629,8 +629,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                             stageId,
                                             stageDefinition instanceof StageWorkerDefinition stageWorkerDefinition
                                             ? stageWorkerDefinition.requirements()
-                                            : null,
-                                            executionGroup.getWorkspaceConfiguration()
+                                            : null
                                     )
                             ));
                 } finally {

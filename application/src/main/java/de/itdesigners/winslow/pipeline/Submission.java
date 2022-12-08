@@ -2,6 +2,7 @@ package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.Requirements;
+import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -14,11 +15,10 @@ public class Submission {
 
     private final @Nonnull StageId id;
 
-    private final @Nonnull Map<String, String>    envVarsStage    = new HashMap<>();
-    private final @Nonnull Map<String, String>    envVarsPipeline = new HashMap<>();
-    private final @Nonnull Map<String, String>    envVarsSystem   = new HashMap<>();
-    private final @Nonnull Map<String, String>    envVarsInternal = new HashMap<>();
-    private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
+    private final @Nonnull Map<String, String> envVarsStage    = new HashMap<>();
+    private final @Nonnull Map<String, String> envVarsPipeline = new HashMap<>();
+    private final @Nonnull Map<String, String> envVarsSystem   = new HashMap<>();
+    private final @Nonnull Map<String, String> envVarsInternal = new HashMap<>();
 
     private final @Nonnull Map<Class<? extends Extension>, Extension> extensions = new HashMap<>();
 
@@ -27,11 +27,9 @@ public class Submission {
 
     public Submission(
             @Nonnull StageId id,
-            @Nullable Requirements hardwareRequirements,
-            @Nonnull WorkspaceConfiguration workspaceConfiguration) {
-        this.id                     = Objects.requireNonNull(id);
-        this.hardwareRequirements   = hardwareRequirements;
-        this.workspaceConfiguration = workspaceConfiguration;
+            @Nullable Requirements hardwareRequirements) {
+        this.id                   = Objects.requireNonNull(id);
+        this.hardwareRequirements = hardwareRequirements;
     }
 
     @Nonnull
@@ -64,12 +62,6 @@ public class Submission {
     @CheckReturnValue
     public Optional<String> getWorkspaceDirectory() {
         return Optional.ofNullable(workspaceDirectory);
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public WorkspaceConfiguration getWorkspaceConfiguration() {
-        return workspaceConfiguration;
     }
 
     @Nonnull
