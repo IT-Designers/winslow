@@ -41,15 +41,13 @@ public class UnixNode implements Node {
 
     public UnixNode(
             @Nonnull String name,
-            @Nullable PlatformInfo partialPlatformInfo,
-            @Nonnull ResourceAllocationMonitor monitor
-    ) throws IOException {
+            @Nonnull ResourceAllocationMonitor monitor) throws IOException {
         this.uptime                    = System.currentTimeMillis();
         this.name                      = name;
         this.prevCpuTimes              = getCpuTimes(resolveStat());
         this.prevNetBytes              = getInterfaceInfo(resolveNetDev());
         this.prevDiskInfo              = getDiskInfo(resolveDiskstats());
-        this.platformInfo              = loadPlatformInfo(partialPlatformInfo);
+        this.platformInfo              = loadPlatformInfo();
         this.resourceAllocationMonitor = monitor;
     }
 
@@ -102,17 +100,9 @@ public class UnixNode implements Node {
     }
 
     @Nonnull
-    private PlatformInfo loadPlatformInfo(@Nullable PlatformInfo partialInfo) throws IOException {
-        var cpuMaxFreq = tryLoadCpuMaxFreqMhz().orElse(null);
-
-        if (cpuMaxFreq != null && partialInfo != null && partialInfo.maxFrequencyCpu != null && !cpuMaxFreq.equals(
-                partialInfo.maxFrequencyCpu)) {
-            LOG.warning("Partial PlatformInfo differs, partial.maxFrequencyCpu(" + partialInfo.maxFrequencyCpu + ") != " + cpuMaxFreq);
-        }
+    private PlatformInfo loadPlatformInfo() throws IOException {
         return new PlatformInfo(
-                partialInfo != null && partialInfo.maxFrequencyCpu != null
-                ? partialInfo.maxFrequencyCpu
-                : cpuMaxFreq
+                tryLoadCpuMaxFreqMhz().orElse(null)
         );
     }
 

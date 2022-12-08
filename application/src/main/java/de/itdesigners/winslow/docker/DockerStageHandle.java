@@ -287,12 +287,11 @@ public class DockerStageHandle implements StageHandle {
                             var cpuUsageDelta            = totalCpuUsage - preCpuUsage;
                             var cpuUsagePercentPerSecond = (double) cpuUsageDelta / 1_000_000_000.0;
 
-                            var cpuMaxFreq = DockerStageHandle.this.backend
+                            var cpuMaxFreq = (double) DockerStageHandle.this.backend
                                     .getPlatformInfo()
-                                    .getCpuSingleCoreMaxFrequency()
-                                    .map(freq -> freq.doubleValue() / 1_000)
-                                    .orElse(1_000.0) // TODO assume something ...
-                                    .doubleValue();
+                                    .getCpuSingleCoreMaxFrequencyMhz()
+                                    .map(Integer::doubleValue)
+                                    .orElse(1_000.0); // TODO assume something ...
 
                             DockerStageHandle.this.stats = new Stats(
                                     DockerStageHandle.this.stageId,
