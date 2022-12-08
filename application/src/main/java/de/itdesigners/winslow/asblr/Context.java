@@ -30,7 +30,7 @@ public class Context {
     private final @Nonnull  StageId            stageId;
     private final @Nonnull  Submission         submission;
 
-    @Nonnull private final Map<Class<?>, Object> intermediateResults = new HashMap<>();
+    private final @Nonnull Map<Class<?>, Object> intermediateResults = new HashMap<>();
 
     public Context(
             @Nonnull Project project,

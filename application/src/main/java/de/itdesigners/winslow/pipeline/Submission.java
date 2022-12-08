@@ -1,34 +1,30 @@
 package de.itdesigners.winslow.pipeline;
 
-import de.itdesigners.winslow.Backend;
-import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageDefinition;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Submission {
 
-    private final @Nonnull StageId                id;
-    private final          boolean                configureOnly;
-    private final @Nonnull StageDefinition        stageDefinition;
-    private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
+    private final @Nonnull StageId         id;
+    private final          boolean         configureOnly;
+    private final @Nonnull StageDefinition stageDefinition;
 
-    private final @Nonnull Map<String, String> envVarsStage    = new HashMap<>();
-    private final @Nonnull Map<String, String> envVarsPipeline = new HashMap<>();
-    private final @Nonnull Map<String, String> envVarsSystem   = new HashMap<>();
-    private final @Nonnull Map<String, String> envVarsInternal = new HashMap<>();
+    private final @Nonnull Map<String, String>    envVarsStage    = new HashMap<>();
+    private final @Nonnull Map<String, String>    envVarsPipeline = new HashMap<>();
+    private final @Nonnull Map<String, String>    envVarsSystem   = new HashMap<>();
+    private final @Nonnull Map<String, String>    envVarsInternal = new HashMap<>();
+    private final @Nonnull WorkspaceConfiguration workspaceConfiguration;
 
     private final @Nonnull Map<Class<? extends Extension>, Extension> extensions = new HashMap<>();
 
-    private @Nullable SubmissionResult result;
-    private @Nullable String           workspaceDirectory;
+    private @Nullable String workspaceDirectory;
 
     public Submission(
             @Nonnull StageId id,
@@ -61,7 +57,6 @@ public class Submission {
     @Nonnull
     @CheckReturnValue
     public Submission withWorkspaceDirectory(@Nonnull String workspaceDirectory) {
-        this.ensureNotSubmittedYet();
         this.workspaceDirectory = workspaceDirectory;
         return this;
     }
@@ -112,7 +107,6 @@ public class Submission {
 
     @Nonnull
     public Submission withInternalEnvVariable(@Nonnull String key, @Nonnull String value) {
-        this.ensureNotSubmittedYet();
         this.envVarsInternal.put(key, value);
         return this;
     }
@@ -125,7 +119,6 @@ public class Submission {
 
     @Nonnull
     public Submission withPipelineEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
-        this.ensureNotSubmittedYet();
         this.envVarsPipeline.putAll(variables);
         return this;
     }
@@ -138,7 +131,6 @@ public class Submission {
 
     @Nonnull
     public Submission withSystemEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
-        this.ensureNotSubmittedYet();
         this.envVarsSystem.putAll(variables);
         return this;
     }
@@ -151,7 +143,6 @@ public class Submission {
 
     @Nonnull
     public Submission withStageEnvVariables(@Nonnull Map<? extends String, ? extends String> variables) {
-        this.ensureNotSubmittedYet();
         this.envVarsStage.putAll(variables);
         return this;
     }
@@ -180,11 +171,22 @@ public class Submission {
         return envVars;
     }
 
+    @Nonnull
+    @CheckReturnValue
+    public Map<String, String> getEffectiveEnvVariables() {
+        var map = new HashMap<String, String>();
+
+        for (var key : getEnvVariableKeys()) {
+            getEnvVariable(key).ifPresent(value -> map.put(key, value));
+        }
+
+        return map;
+    }
+
 
     @Nonnull
     @CheckReturnValue
     public Submission withExtension(@Nonnull Extension extension) throws ExtensionAlreadyRegisteredException {
-        this.ensureNotSubmittedYet();
         if (this.extensions.containsKey(extension.getClass())) {
             throw new ExtensionAlreadyRegisteredException(extension);
         } else {
@@ -203,62 +205,6 @@ public class Submission {
     @CheckReturnValue
     public Stream<? extends Extension> getExtensions() {
         return this.extensions.values().stream();
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public SubmissionResult submit(@Nonnull Backend backend) throws AlreadySubmittedException, IOException {
-        this.ensureNotSubmittedYet();
-        return this.result = backend.submit(this);
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public Optional<SubmissionResult> getResult() {
-        return Optional.ofNullable(this.result);
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public Optional<Stage> getResultStage() {
-        return getResult().map(SubmissionResult::getStage);
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public Optional<StageHandle> getResultStageHandle() {
-        return getResult().map(SubmissionResult::getHandle);
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    public Stage createStage() {
-        this.ensureNotSubmittedYet();
-
-        var stage = new Stage(
-                this.getId(),
-                this.getWorkspaceDirectory().orElse(null)
-        );
-        stage.getEnv().putAll(this.getStageEnvVariablesReduced());
-        stage.getEnvPipeline().putAll(this.getPipelineEnvVariables());
-        stage.getEnvSystem().putAll(this.getSystemEnvVariables());
-        stage.getEnvInternal().putAll(this.getInternalEnvVariables());
-
-        stage.getEnvPipeline().forEach((key, value) -> stage.getEnv().remove(key, value));
-        stage.getEnvSystem().forEach((key, value) -> {
-            if (!stage.getEnvPipeline().containsKey(key)) {
-                stage.getEnv().remove(key, value);
-            }
-        });
-        stage.getEnvInternal().forEach((key, value) -> stage.getEnv().remove(key, value));
-
-        return stage;
-    }
-
-    public void ensureNotSubmittedYet() throws AlreadySubmittedException {
-        if (this.result != null) {
-            throw new AlreadySubmittedException();
-        }
     }
 
     public static class ExtensionAlreadyRegisteredException extends RuntimeException {
