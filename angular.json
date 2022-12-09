@@ -30,8 +30,7 @@
             ],
             "styles": [
               "node_modules/diagram-maker/dist/diagramMaker.css",
-              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": [],
             "allowedCommonJsDependencies": [
