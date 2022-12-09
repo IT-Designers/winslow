@@ -6,10 +6,7 @@ import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.node.PlatformInfo;
-import de.itdesigners.winslow.pipeline.DockerImage;
-import de.itdesigners.winslow.pipeline.DockerVolume;
-import de.itdesigners.winslow.pipeline.DockerVolumes;
-import de.itdesigners.winslow.pipeline.Submission;
+import de.itdesigners.winslow.pipeline.*;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -66,9 +63,12 @@ public class SubmissionToNomadJobAdapter {
                 .setRestartPolicy(new RestartPolicy().setAttempts(0));
 
 
-        submission.getExtension(DockerImage.class).ifPresent(getDockerImageConfigurer(task));
-        submission.getExtension(DockerVolumes.class).ifPresent(getDockerNfsVolumesConfigurer(task));
         submission.getHardwareRequirements().ifPresent(getResourceRequirementsConfigurer(task));
+        submission.getExtension(DockerImage.class).ifPresent(getDockerImageConfigurer(task));
+        submission.getExtension(DockerVolumes.class).ifPresent(getDockerVolumesConfigurer(task));
+        submission.getExtension(DockerContainerNetworkLinkage.class).ifPresent(
+                getDockerNetworkContainerLinkageConfigurer(task)
+        );
 
 
         return new Job()
@@ -83,6 +83,7 @@ public class SubmissionToNomadJobAdapter {
                                 .addTasks(task)
                 );
     }
+
 
     @Nonnull
     @CheckReturnValue
@@ -104,7 +105,7 @@ public class SubmissionToNomadJobAdapter {
 
     @Nonnull
     @CheckReturnValue
-    public static Consumer<DockerVolumes> getDockerNfsVolumesConfigurer(Task task) {
+    public static Consumer<DockerVolumes> getDockerVolumesConfigurer(Task task) {
         return list -> {
             var configList = (List<Map<String, Object>>) task.getConfig().computeIfAbsent(
                     "mounts",
@@ -114,6 +115,17 @@ public class SubmissionToNomadJobAdapter {
                 configList.add(getMount(volume).orElseThrow());
             }
         };
+    }
+    
+    @Nonnull
+    @CheckReturnValue
+    public static Consumer<DockerContainerNetworkLinkage>  getDockerNetworkContainerLinkageConfigurer(@Nonnull Task task) {
+        return linkage -> task
+                .getConfig()
+                .put(
+                        "network_mode",
+                        "container:" + linkage.containerTarget()
+                );
     }
 
     @Nonnull
