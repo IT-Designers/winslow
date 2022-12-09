@@ -12,5 +12,7 @@ public interface Backend extends Closeable, AutoCloseable {
     @Nonnull
     StageHandle submit(@Nonnull Submission submission) throws IOException;
 
-    boolean isCapableOfExecuting(@Nonnull StageDefinition stage);
+    boolean isCapableOfExecuting(@Nonnull StageDefinition stageDefinition);
+
+    boolean isCapableOfExecuting(@Nonnull Submission submission);
 }
