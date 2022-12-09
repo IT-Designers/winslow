@@ -156,13 +156,13 @@ public class Env {
     }
 
     public static boolean isBackendNomad() {
-        var explicit = Objects.equals(BACKEND_NOMAD, getBackend());
-        var implicit = getBackend() == null;
-        return explicit || implicit;
+        return Objects.equals(BACKEND_NOMAD, getBackend());
     }
 
     public static boolean isBackendDocker() {
-        return Objects.equals(BACKEND_DOCKER, getBackend());
+        var explicit = Objects.equals(BACKEND_DOCKER, getBackend());
+        var implicit = getBackend() == null;
+        return explicit || implicit;
     }
 
     @Nullable
