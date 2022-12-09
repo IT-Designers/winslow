@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriUtils;
 
 import javax.annotation.Nonnull;
@@ -18,11 +19,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RestController
@@ -86,39 +88,44 @@ public class ProxyRouting {
                 .getParameterMap()
                 .entrySet()
                 .stream()
-                .flatMap(entry -> List.of(entry.getValue())
-                                      .stream()
-                                      .map(v -> UriUtils.encodeQueryParam(
-                                              entry.getKey(),
-                                              StandardCharsets.UTF_8
-                                      ) + "=" + UriUtils.encodeQueryParam(
-                                              v,
-                                              StandardCharsets.UTF_8
-                                      )))
+                .flatMap(entry -> Stream
+                        .of(entry.getValue())
+                        .map(v -> UriUtils.encodeQueryParam(
+                                entry.getKey(),
+                                StandardCharsets.UTF_8
+                        ) + "=" + UriUtils.encodeQueryParam(
+                                v,
+                                StandardCharsets.UTF_8
+                        )))
                 .collect(Collectors.joining("&"));
-
 
         var mappedProxy = proxy.uri(uri).body(body);
 
-
-        switch (method) {
-            case GET:
-                return mappedProxy.get();
-            case HEAD:
-                return mappedProxy.head();
-            case POST:
-                return mappedProxy.post();
-            case PUT:
-                return mappedProxy.put();
-            case PATCH:
-                return mappedProxy.patch();
-            case DELETE:
-                return mappedProxy.delete();
-            case OPTIONS:
-                return mappedProxy.options();
-            default:
-            case TRACE:
-                return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            return switch (method) {
+                case GET -> mappedProxy.get();
+                case HEAD -> mappedProxy.head();
+                case POST -> mappedProxy.post();
+                case PUT -> mappedProxy.put();
+                case PATCH -> mappedProxy.patch();
+                case DELETE -> mappedProxy.delete();
+                case OPTIONS -> mappedProxy.options();
+                default -> new ResponseEntity<>(HttpStatus.OK);
+            };
+        } catch (ResourceAccessException rae) {
+            LOG.log(Level.FINE, "Unable to retrieve data from proxy destination", rae);
+            return new ResponseEntity<>(
+                    """
+                            <html>
+                                <body>
+                                    <h2>Not Ready Yet?</h2>
+                                    <i>Will try again in a moment ...</i>
+                                    <meta http-equiv="refresh" content="1">
+                               </body>
+                           </html>
+                        """,
+                    HttpStatus.TOO_EARLY
+            );
         }
     }
 
