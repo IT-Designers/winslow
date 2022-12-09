@@ -9,7 +9,6 @@ import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.pipeline.Submission;
-import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
