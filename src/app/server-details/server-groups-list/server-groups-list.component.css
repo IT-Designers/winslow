@@ -18,7 +18,7 @@ app-groups-add-member-dialog {
 .list-content {
   position: relative;
   padding-bottom: 5px;
-  background-color: #f6f6f6;
+  background-color: aliceblue;
   width: 100%;
   min-width: 1000px;
   max-width: 100%;
@@ -73,6 +73,10 @@ app-groups-add-member-dialog {
   min-width: 18%;
   max-width: 18%;
   padding: 0 1%;
+}
+.big-accordion {
+  min-width: 60%;
+  max-width: 60%;
 }
 .btn-container {
   padding-right: 20px;
@@ -134,5 +138,27 @@ app-groups-add-member-dialog {
 
 .input-width {
   width: 100%;
+}
+
+.expansion-content-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.single-resource-container {
+  min-width: 32%;
+  max-width: 32%;
+  padding: 0 1%;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+.update-btn {
+  float: right;
 }
 
