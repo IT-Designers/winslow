@@ -1,21 +1,25 @@
 package de.itdesigners.winslow.docker;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Info;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
+import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.pipeline.Submission;
-import de.itdesigners.winslow.pipeline.SubmissionResult;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DockerBackend implements Backend, Closeable, AutoCloseable {
@@ -98,26 +102,41 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
     }
 
     @Override
-    public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
-        var info = this.dockerClient.infoCmd().exec();
+    public boolean isCapableOfExecuting(@Nonnull StageDefinition stageDefinition) {
+        return stageDefinition instanceof StageWorkerDefinition w
+                && canFulfillHardwareRequirements(w.name(), w.requirements());
+    }
 
-        var gpuVendorRequirement = (stage instanceof StageWorkerDefinition swd
-                                    ? Optional.of(swd)
-                                    : Optional.<StageWorkerDefinition>empty())
-                .map(StageWorkerDefinition::requirements)
-                .map(Requirements::getGpu)
-                .flatMap(Requirements.Gpu::getVendor);
+    @Override
+    public boolean isCapableOfExecuting(@Nonnull Submission submission) {
+        return submission
+                .getHardwareRequirements()
+                .filter(requirements -> canFulfillHardwareRequirements(
+                        submission.getId().getFullyQualified(),
+                        requirements
+                ))
+                .isPresent();
+    }
 
-        return gpuVendorRequirement
-                .map(vendor -> {
-                    if (!hasContainerRuntime(info, vendor)) {
-                        LOG.info("isCapableOfExecuting('" + stage.name() + "') => false, runtime for '" + vendor + "' is missing");
-                        return false;
-                    } else {
-                        return true;
-                    }
-                })
-                .orElse(Boolean.TRUE);
+    private boolean canFulfillHardwareRequirements(@Nonnull String desc, @Nonnull Requirements requirements) {
+        try {
+            var info = this.dockerClient.infoCmd().exec();
+            return requirements
+                    .getGpu()
+                    .getVendor()
+                    .filter(vendor -> {
+                        if (!hasContainerRuntime(info, vendor)) {
+                            LOG.info("isCapableOfExecuting('" + desc + "') => false, runtime for '" + vendor + "' is missing");
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    })
+                    .isPresent();
+        } catch (DockerException e) {
+            LOG.log(Level.SEVERE, "Failed to retrieve docker info", e);
+            return false;
+        }
     }
 
     private boolean hasContainerRuntime(@Nonnull Info info, @Nonnull String runtime) {

@@ -1,16 +1,13 @@
 package de.itdesigners.winslow.web.api;
 
-import com.hashicorp.nomad.apimodel.*;
-import com.hashicorp.nomad.javasdk.NomadException;
+import de.itdesigners.winslow.Backoff;
 import de.itdesigners.winslow.Env;
+import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.Winslow;
-import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.nomad.NomadBackend;
-import de.itdesigners.winslow.nomad.SubmissionToNomadJobAdapter;
-import de.itdesigners.winslow.pipeline.DockerVolume;
-import de.itdesigners.winslow.pipeline.DockerVolumes;
+import de.itdesigners.winslow.config.Requirements;
+import de.itdesigners.winslow.pipeline.*;
 import de.itdesigners.winslow.web.ProxyRouting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,8 +40,20 @@ public class TensorBoardController {
     @Autowired
     private Winslow winslow;
 
-    private Map<String, ActiveBoard> activeBoards = new HashMap<>();
-    private int                      nextPort     = 50_100;
+    private final @Nonnull Map<String, ActiveBoard> activeBoards = new HashMap<>();
+    private                int                      nextPort     = 50_100;
+
+    public TensorBoardController() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (var board : activeBoards.values()) {
+                try (board.handle) {
+                    board.handle.kill();
+                } catch (IOException ioe) {
+                    LOG.log(Level.SEVERE, "Unable to clean up active boards", ioe);
+                }
+            }
+        }));
+    }
 
     @GetMapping("/tensorboard/{projectId}/{stageId}/start")
     public ModelAndView start(
@@ -88,63 +97,81 @@ public class TensorBoardController {
                 .filter(s -> s.getFullyQualifiedId().equals(stageId))
                 .findFirst();
 
-        var backends      = winslow.getOrchestrator().getBackends();
-        var backend = backends.filter(b -> b instanceof NomadBackend).findFirst().orElse(null);
-        var nomadBackend = backend instanceof NomadBackend ? ((NomadBackend) backend) : null;
-        var nomadApi     = backend instanceof NomadBackend ? ((NomadBackend) backend).getNewClient() : null;
-
-        if (nomadApi != null) {
-            try (nomadApi) {
-                if (stage.isPresent()) {
-                    var nomadId = toNomadJobId(projectId);
-
-                    if (activeBoards.containsKey(projectId)) {
-                        var board  = activeBoards.get(projectId);
-                        var state  = nomadBackend.getStateByNomadJogId(nomadId).orElse(State.Failed);
-                        var failed = nomadBackend.hasAllocationFailed(nomadId).orElse(Boolean.TRUE);
-                        if (failed || (State.Running != state && State.Preparing != state)) {
-                            try {
-                                LOG.warning("Previous TensorBoard instance has failed");
-                                activeBoards.remove(projectId);
-                                nomadApi.getJobsApi().deregister(toNomadJobId(projectId));
-                            } catch (IOException | NomadException e) {
-                                e.printStackTrace();
-                            }
-                        } else if (board.stageId.equals(stageId)) {
-                            try {
-                                return probeAvailableOrRetry(
-                                        request,
-                                        board.port,
-                                        board.destinationIp,
-                                        board.publicUrl
-                                );
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                                return null;
-                            }
-                        } else {
-                            try {
-                                LOG.info("Project has running TensorBoard but for wrong stageId, " + stageId + " != " + board.stageId);
-                                nomadApi.getJobsApi().deregister(toNomadJobId(projectId));
-                            } catch (IOException | NomadException e) {
-                                e.printStackTrace();
-                            }
-                        }
+        if (stage.isPresent()) {
+            if (activeBoards.containsKey(projectId)) {
+                var board = activeBoards.get(projectId);
+                if (board.handle.hasFailed() || board.handle.hasFinished()) {
+                    try (board.handle) {
+                        LOG.warning("Previous TensorBoard instance has failed");
+                        activeBoards.remove(projectId);
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Failed to close handle", e);
                     }
+                } else if (board.stageId.equals(stageId)) {
+                    try {
+                        return probeAvailableOrRetry(
+                                request,
+                                board.port,
+                                board.destinationIp,
+                                board.publicUrl
+                        );
+                    } catch (InterruptedException e) {
+                        LOG.log(Level.WARNING, "Unable to retrieve requested data from remote", e);
+                        return null;
+                    }
+                } else {
+                    try (board.handle) {
+                        LOG.info("Project has running TensorBoard but for wrong stageId, " + stageId + " != " + board.stageId);
+                        activeBoards.remove(projectId);
+                        board.handle.stop();
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Failed to stop running TensorBoard", e);
+                    }
+                }
+            }
 
 
-                    var task          = new Task();
-                    var port          = getNextPort();
-                    var routePath     = Path.of("tensorboard", projectId);
-                    var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
+            var port          = getNextPort();
+            var routePath     = Path.of("tensorboard", projectId);
+            var routeLocation = ProxyRouting.getPublicLocation(routePath.toString());
 
-                    task.setName("tensorboard");
-                    task.setDriver("docker");
-                    task.setConfig(new HashMap<>());
-                    task.getConfig().put("image", "tensorflow/tensorflow:latest-gpu-py3");
-                    task.getConfig().put(
-                            "args",
-                            List.of(
+            var volume = workDirConf
+                    .getDockerVolumeConfiguration(workspaces.resolve(stage.get().getWorkspace().orElseThrow()))
+                    .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"));
+
+            var submission = new Submission(
+                    new StageId(
+                            projectId,
+                            0,
+                            "tensorboard",
+                            port
+                    )
+            )
+                    .withHardwareRequirements(new Requirements(
+                            null,
+                            1024,
+                            null,
+                            null
+                    ))
+                    .withExtension(new DockerVolumes(List.of(new DockerVolume(
+                            "tensorboard-" + projectId + "-" + stageId + "-" + port,
+                            volume.getType(),
+                            "/data/",
+                            volume.getTargetPath(),
+                            volume.getOptions().orElse(""),
+                            true
+                    ))));
+
+
+            var routeDestinationIp = prepareRoutingDestinationIp(submission, port);
+
+            submission
+                    .withExtension(new DockerPortMappings(
+                            new DockerPortMappings.Entry(routeDestinationIp, port, port)
+                    ))
+                    .withExtension(new DockerImage(
+                            "tensorflow/tensorflow:latest-gpu-py3",
+                            new String[]{
                                     "tensorboard",
                                     "--logdir",
                                     "/data/",
@@ -153,100 +180,91 @@ public class TensorBoardController {
                                     String.valueOf(port),
                                     "--host",
                                     "0.0.0.0"
-                            )
-                    );
-                    task.setResources(new Resources().setMemoryMb(1024));
-                    String routeDestinationIp = prepareRoutingDestinationIp(task, port);
+                            },
+                            null,
+                            false
+                    ));
 
-                    var volume = workDirConf
-                            .getDockerVolumeConfiguration(workspaces.resolve(stage.get().getWorkspace().orElseThrow()))
-                            .orElseThrow(() -> new RuntimeException("Failed to retrieve exported path"));
+            var publicUrl = this.routing.addRoute(
+                    routePath,
+                    new ProxyRouting.Route(
+                            "http://" + routeDestinationIp + ":" + port + routeLocation,
+                            project::canBeAccessedBy
+                    )
+            );
 
+            try {
+                LOG.info("Starting new TensorBoard at " + routePath + ", internal port " + port + ", project " + projectId);
+                var handle = winslow
+                        .getOrchestrator()
+                        .getBackends()
+                        .filter(b -> b.isCapableOfExecuting(submission))
+                        .findFirst()
+                        .orElseThrow(() -> new IOException("No capable backend found"))
+                        .submit(submission);
 
-                    SubmissionToNomadJobAdapter
-                            .getDockerNfsVolumesConfigurer(task)
-                            .accept(new DockerVolumes(List.of(new DockerVolume(
-                                    "tensorboard-" + projectId + "-" + stageId + "-" + port,
-                                    volume.getType(),
-                                    "/data/",
-                                    volume.getTargetPath(),
-                                    volume.getOptions().orElse(""),
-                                    true
-                            ))));
+                this.activeBoards.put(projectId, new ActiveBoard(
+                        projectId,
+                        stageId,
+                        port,
+                        publicUrl,
+                        routeDestinationIp,
+                        handle
+                ));
 
-                    var job = new Job()
-                            .setId(nomadId)
-                            .addDatacenters("local")
-                            .setType("batch")
-                            .addTaskGroups(
-                                    new TaskGroup()
-                                            .setName("group-" + nomadId)
-                                            .setReschedulePolicy(new ReschedulePolicy().setAttempts(0))
-                                            .setRestartPolicy(new RestartPolicy().setAttempts(0))
-                                            .addTasks(task)
-                            );
-
+                var thread = new Thread(() -> {
                     try {
-                        LOG.info("Starting new TensorBoard at " + routePath + ", internal port " + port + ", id " + nomadId);
-                        nomadApi.getJobsApi().register(job);
-                        var publicUrl = this.routing.addRoute(
-                                routePath,
-                                new ProxyRouting.Route(
-                                        "http://" + routeDestinationIp + ":" + port + routeLocation,
-                                        project::canBeAccessedBy
-                                )
-                        );
-
-                        this.activeBoards.put(projectId, new ActiveBoard(
-                                projectId,
-                                stageId,
-                                port,
-                                publicUrl,
-                                routeDestinationIp
-                        ));
-
-                        return probeAvailableOrRetry(request, port, routeDestinationIp, publicUrl);
-
-                    } catch (IOException | NomadException | InterruptedException e) {
-                        e.printStackTrace();
-                        try {
-                            nomadApi.getJobsApi().deregister(nomadId);
-                        } catch (IOException | NomadException ioException) {
-                            ioException.printStackTrace();
+                        var backoff  = new Backoff(250, 950, 2f);
+                        var iterator = handle.getLogs();
+                        while (iterator.hasNext()) {
+                            var entry = iterator.next();
+                            if (entry == null) {
+                                backoff.sleep();
+                                backoff.grow();
+                                continue;
+                            } else {
+                                backoff.reset();
+                            }
+                            LOG.log(
+                                    entry.isError() ? Level.WARNING : Level.INFO,
+                                    projectId + ", " + entry.getSource() + ": " + entry.getMessage()
+                            );
                         }
+                    } catch (IOException ioe) {
+                        LOG.log(Level.SEVERE, "Failed to retrieve tensorboard logs", ioe);
                     }
-                }
+                });
+                thread.setName(projectId);
+                thread.start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            try {
+                return probeAvailableOrRetry(request, port, routeDestinationIp, publicUrl);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                LOG.log(Level.WARNING, "Tensorboard is not reachable? Project " + projectId);
+            }
         }
+
         return null;
     }
 
-    private String prepareRoutingDestinationIp(Task task, int port) {
+    private String prepareRoutingDestinationIp(@Nonnull Submission submission, int port) {
         // On the DEV-ENV Winslow runs on the host and has no container to which the
         // tensorboard can attach. In production mode, tensorboard can attach to winslow
         // and winslow can then access tensorboard by localhost. In host mode, the tensorboard
         // port must be exposed first
         return Optional
                 .ofNullable(Env.getDevEnvIp())
-                .map(ip -> {
-                    // 2020-04-29, soon-ish https://github.com/hashicorp/nomad/issues/646#issuecomment-596690053
-                    task.setResources(new Resources());
-                    task.getResources().addNetworks(
-                            new NetworkResource().addReservedPorts(new Port().setValue(port))
-                    );
-                    return ip;
-                })
                 .orElseGet(() -> {
-                    task
-                            .getConfig()
-                            .put(
-                                    "network_mode",
-                                    "container:" + Optional
+                    submission
+                            .withExtension(new DockerContainerNetworkLinkage(
+                                    Optional
                                             .ofNullable(System.getenv("HOSTNAME"))
                                             .orElse("winslow")
-                            );
+                            ));
                     return "127.0.0.1";
                 });
     }
@@ -273,7 +291,7 @@ public class TensorBoardController {
                     }
                 }
             } catch (IOException e) {
-                Thread.sleep(1_000);
+                Thread.sleep(20);
             }
         }
         return false;
@@ -292,29 +310,12 @@ public class TensorBoardController {
         throw new RuntimeException("Unable  to find a free port to start tensorboard on");
     }
 
-    @Nonnull
-    private static String toNomadJobId(@Nonnull String projectId) {
-        return "tensorboard-" + projectId;
-    }
-
-    private static class ActiveBoard {
-        public final String projectId;
-        public final String stageId;
-        public final int    port;
-        public final String publicUrl;
-        public final String destinationIp;
-
-        private ActiveBoard(
-                String projectId,
-                String stageId,
-                int port,
-                String publicUrl,
-                String destinationIp) {
-            this.projectId     = projectId;
-            this.stageId       = stageId;
-            this.port          = port;
-            this.publicUrl     = publicUrl;
-            this.destinationIp = destinationIp;
-        }
+    private record ActiveBoard(
+            @Nonnull String projectId,
+            @Nonnull String stageId,
+            int port,
+            @Nonnull String publicUrl,
+            @Nonnull String destinationIp,
+            @Nonnull StageHandle handle) {
     }
 }
