@@ -106,10 +106,21 @@ public class DockerStageHandle implements StageHandle {
                                         object.getProgressDetail().getCurrent() != null && object
                                                 .getProgressDetail()
                                                 .getTotal() != null
-                                        ? (", "
+                                        ? (String.format(
+                                                "%6.1f %%, ",
+                                                (object
+                                                        .getProgressDetail()
+                                                        .getCurrent()
+                                                        .doubleValue() / object
+                                                        .getProgressDetail()
+                                                        .getTotal()
+                                                        .doubleValue()) * 100.0
+                                        )
                                                 + object.getProgressDetail().getCurrent()
                                                 + " of "
-                                                + object.getProgressDetail().getTotal())
+                                                + object.getProgressDetail().getTotal()
+
+                                        )
                                         : ""
                                 )
                         );
