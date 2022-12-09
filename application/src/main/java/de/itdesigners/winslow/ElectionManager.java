@@ -61,7 +61,8 @@ public class ElectionManager {
 
     public boolean maybeStartElection(@Nonnull String projectId, long duration) throws LockException, IOException {
         checkForOutdatedElection(projectId);
-        if (!this.elections.containsKey(projectId)) {
+        if (this.elections.isEmpty()) {
+        //if (!this.elections.containsKey(projectId)) {
             var properties = new Properties();
             properties.setProperty(PROPERTY_PROJECT, projectId);
             this.lockBus.publishCommand(Event.Command.ELECTION_START, toSubjectLine(properties), duration);
