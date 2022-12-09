@@ -580,11 +580,10 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull Project project, Backend backend) {
         var thread = new Thread(() -> {
             var projectId = pipeline.getProjectId();
-            var assembler = new StageAssembler();
 
             try {
                 try {
-                    assembler
+                    new StageAssembler()
                             .add(new EnvironmentVariableAppender(globalEnvironmentVariables))
                             .add(new DockerImageAppender())
                             .add(new EnvLogger())

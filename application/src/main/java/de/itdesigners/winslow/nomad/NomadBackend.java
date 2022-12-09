@@ -7,7 +7,7 @@ import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.State;
-
+import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.node.PlatformInfo;
@@ -128,47 +128,55 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
     }
 
     @Override
-    public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
-        if (stage instanceof StageWorkerDefinition workerStage) {
-            try (var client = getNewClient()) {
-                return client
-                        .getNodesApi()
-                        .list()
-                        .getValue()
-                        .stream()
-                        .map(NodeListStub::getDrivers)
-                        .flatMap(drivers -> drivers.entrySet().stream())
-                        .filter(entry -> IMAGE_DRIVER_NAME.equalsIgnoreCase(entry.getKey()))
-                        .filter(entry -> {
-                            var gpuRequired = workerStage.requirements().getGpu().getCount() > 0;
+    public boolean isCapableOfExecuting(@Nonnull StageDefinition stageDefinition) {
+        return stageDefinition instanceof StageWorkerDefinition w
+                && canFulfillHardwareRequirements(w.name(), w.requirements());
+    }
 
-                            var gpuVendor = workerStage
-                                    .requirements()
-                                    .getGpu()
-                                    .getVendor();
+    @Override
+    public boolean isCapableOfExecuting(@Nonnull Submission submission) {
+        return submission
+                .getHardwareRequirements()
+                .filter(requirements -> canFulfillHardwareRequirements(
+                        submission.getId().getFullyQualified(),
+                        requirements
+                ))
+                .isPresent();
+    }
 
-                            Supplier<Boolean> gpuAvailable = () -> Optional
-                                    .of(entry)
-                                    .flatMap(e -> Optional.ofNullable(e.getValue()))
-                                    .flatMap(v -> Optional.ofNullable(v.getAttributes()))
-                                    .flatMap(a -> Optional.ofNullable(a.get(DRIVER_ATTRIBUTE_DOCKER_RUNTIMES)))
-                                    .filter(runtimes -> runtimes.contains(gpuVendor.orElse(DEFAULT_GPU_VENDOR)))
-                                    .isPresent();
+    private boolean canFulfillHardwareRequirements(@Nonnull String desc, @Nonnull Requirements requirements) {
+        try (var client = getNewClient()) {
+            return client
+                    .getNodesApi()
+                    .list()
+                    .getValue()
+                    .stream()
+                    .map(NodeListStub::getDrivers)
+                    .flatMap(drivers -> drivers.entrySet().stream())
+                    .filter(entry -> IMAGE_DRIVER_NAME.equalsIgnoreCase(entry.getKey()))
+                    .filter(entry -> {
+                        var gpuRequired = requirements.getGpu().getCount() > 0;
+                        var gpuVendor   = requirements.getGpu().getVendor();
 
-                            var result = !gpuRequired || gpuAvailable.get();
+                        Supplier<Boolean> gpuAvailable = () -> Optional
+                                .of(entry)
+                                .flatMap(e -> Optional.ofNullable(e.getValue()))
+                                .flatMap(v -> Optional.ofNullable(v.getAttributes()))
+                                .flatMap(a -> Optional.ofNullable(a.get(DRIVER_ATTRIBUTE_DOCKER_RUNTIMES)))
+                                .filter(runtimes -> runtimes.contains(gpuVendor.orElse(DEFAULT_GPU_VENDOR)))
+                                .isPresent();
 
-                            if (!result) {
-                                LOG.info("isCapableOfExecuting('" + workerStage.name() + "') => false, GPU is required but none available");
-                            }
+                        var result = !gpuRequired || gpuAvailable.get();
 
-                            return result;
-                        })
-                        .anyMatch(entry -> isHealthyDriverDetected(entry.getValue()));
-            } catch (IOException | NomadException e) {
-                e.printStackTrace();
-                return false;
-            }
-        } else {
+                        if (!result) {
+                            LOG.info("isCapableOfExecuting('" + desc + "') => false, GPU is required but none available");
+                        }
+
+                        return result;
+                    })
+                    .anyMatch(entry -> isHealthyDriverDetected(entry.getValue()));
+        } catch (IOException | NomadException e) {
+            e.printStackTrace();
             return false;
         }
     }

@@ -37,8 +37,21 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
     }
 
     @Override
-    public boolean isCapableOfExecuting(@Nonnull StageDefinition stage) {
-        return stage instanceof StageAndGatewayDefinition || stage instanceof StageXOrGatwayDefinition;
+    public boolean isCapableOfExecuting(@Nonnull StageDefinition stageDefinition) {
+        return isCompatibleGatewayType(stageDefinition);
+    }
+
+    @Override
+    public boolean isCapableOfExecuting(@Nonnull Submission submission) {
+        return submission
+                .getExtension(GatewayExtension.class)
+                .map(GatewayExtension::stageDefinition)
+                .filter(GatewayBackend::isCompatibleGatewayType)
+                .isPresent();
+    }
+
+    private static boolean isCompatibleGatewayType(@Nonnull StageDefinition stageDefinition) {
+        return stageDefinition instanceof StageAndGatewayDefinition || stageDefinition instanceof StageXOrGatwayDefinition;
     }
 
     @Nonnull
