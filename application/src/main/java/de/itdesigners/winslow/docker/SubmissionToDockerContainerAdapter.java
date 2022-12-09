@@ -27,7 +27,7 @@ public class SubmissionToDockerContainerAdapter {
 
     @Nonnull
     public StageHandle submit(@Nonnull Submission submission) throws OrchestratorException, IOException {
-        var stageId       = submission.getId().getFullyQualified();
+        var stageId = submission.getId().getFullyQualified();
         var containerName = backend.getContainerName(stageId);
 
         var imageExt = submission
@@ -47,6 +47,12 @@ public class SubmissionToDockerContainerAdapter {
                                 .map(e -> e.getKey() + "=" + e.getValue())
                                 .toList()
                 )
+                .withExposedPorts(
+                        submission
+                                .getExtension(DockerPortMappings.class)
+                                .map(this::exposedPortsFromDockerMappings)
+                                .orElseGet(Collections::emptyList)
+                )
                 .withHostConfig(
                         submission
                                 .getHardwareRequirements()
@@ -62,6 +68,12 @@ public class SubmissionToDockerContainerAdapter {
                                         submission
                                                 .getExtension(DockerVolumes.class)
                                                 .map(this::mountsFromDockerVolumes)
+                                                .orElseGet(Collections::emptyList)
+                                )
+                                .withPortBindings(
+                                        submission
+                                                .getExtension(DockerPortMappings.class)
+                                                .map(this::portBindingsFromDockerMappings)
                                                 .orElseGet(Collections::emptyList)
                                 )
                 );
@@ -83,6 +95,27 @@ public class SubmissionToDockerContainerAdapter {
                         yield Stream.empty();
                     }
                 })
+                .toList();
+    }
+
+    @Nonnull
+    private List<ExposedPort> exposedPortsFromDockerMappings(@Nonnull DockerPortMappings dockerPortMappings) {
+        return dockerPortMappings
+                .mappings()
+                .stream()
+                .map(mapping -> new ExposedPort(mapping.containerPort()))
+                .toList();
+    }
+
+    @Nonnull
+    private List<PortBinding> portBindingsFromDockerMappings(@Nonnull DockerPortMappings dockerPortMappings) {
+        return dockerPortMappings
+                .mappings()
+                .stream()
+                .map(mapping -> new PortBinding(
+                        new Ports.Binding(mapping.hostInterfaceIp(), String.valueOf(mapping.hostPort())),
+                        new ExposedPort(mapping.containerPort())
+                ))
                 .toList();
     }
 
