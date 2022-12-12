@@ -156,7 +156,7 @@ public class PipelinesController {
                 .getPipeline(id)
                 .exclusive()
                 .flatMap(container -> {
-                    try {
+                    try (container) {
                         if (container.get().isEmpty()) {
                             var def = new PipelineDefinition(
                                     name,
