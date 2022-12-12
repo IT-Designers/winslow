@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 
@@ -12,7 +12,7 @@ export interface AssignedGroupInfo {
   templateUrl: './group-assignment.component.html',
   styleUrls: ['./group-assignment.component.css']
 })
-export class GroupAssignmentComponent implements OnInit, OnChanges {
+export class GroupAssignmentComponent implements OnInit {
 
   @Input() currentlyAssignedGroups: AssignedGroupInfo[] = null;
 
@@ -23,7 +23,6 @@ export class GroupAssignmentComponent implements OnInit, OnChanges {
   groupListBtnIcon = 'expand_more';
 
   groupSearchInput = '';
-  chipGroups: AssignedGroupInfo[] = null;
   displayGroups: AssignedGroupInfo[] = null;
   roles = ['OWNER', 'MEMBER'];
 
@@ -33,10 +32,6 @@ export class GroupAssignmentComponent implements OnInit, OnChanges {
     this.displayGroups = Array.from(this.currentlyAssignedGroups);
   }
 
-  ngOnChanges() {
-    this.chipGroups = Array.from(this.currentlyAssignedGroups);
-    this.chipGroups.length = 10;
-  }
   remove(group) {
     this.groupAssignmentRemovedEmitter.emit(group);
   }
@@ -46,8 +41,6 @@ export class GroupAssignmentComponent implements OnInit, OnChanges {
     this.currentlyAssignedGroups.splice(delIndex, 1);
     const delIndex2 = this.displayGroups.findIndex((group) => group.name === item.name);
     this.displayGroups.splice(delIndex2, 1);
-    const delIndex3 = this.chipGroups.findIndex((group) => group.name = item.name);
-    this.chipGroups.splice(delIndex3, 1);
     console.log('Remove ' + item.name + ' from list');
     /*return this.dialog.openLoadingIndicator(
       this.projectApi.removeGroup(this.project.id, item.name),
