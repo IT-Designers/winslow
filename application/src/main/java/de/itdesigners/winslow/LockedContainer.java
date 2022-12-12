@@ -11,13 +11,15 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LockedContainer<T> implements Closeable {
+public class LockedContainer<T> implements AutoCloseable, Closeable {
 
     private static final Logger LOG = Logger.getLogger(LockedContainer.class.getSimpleName());
 
-    @Nonnull private final Lock      lock;
-    @Nonnull private final Reader<T> reader;
-    @Nonnull private final Writer<T> writer;
+    private final @Nonnull ProperlyClosedDebugHelper helper = new ProperlyClosedDebugHelper();
+
+    private final @Nonnull Lock      lock;
+    private final @Nonnull Reader<T> reader;
+    private final @Nonnull Writer<T> writer;
 
     private T value;
 
@@ -25,6 +27,7 @@ public class LockedContainer<T> implements Closeable {
             @Nonnull Lock lock,
             @Nonnull Reader<T> reader,
             @Nonnull Writer<T> writer) {
+
         this.lock   = lock;
         this.reader = reader;
         this.writer = writer;
@@ -35,6 +38,7 @@ public class LockedContainer<T> implements Closeable {
             this.value = null;
             LOG.log(Level.WARNING, "Failed to load initial value", t);
         }
+
     }
 
     @Nonnull
@@ -86,6 +90,7 @@ public class LockedContainer<T> implements Closeable {
 
     @Override
     public void close() {
+        this.helper.close();
         this.lock.close();
     }
 

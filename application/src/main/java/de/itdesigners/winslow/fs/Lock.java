@@ -1,31 +1,35 @@
 package de.itdesigners.winslow.fs;
 
 import de.itdesigners.winslow.Env;
+import de.itdesigners.winslow.ProperlyClosedDebugHelper;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Lock implements Closeable {
+public class Lock implements AutoCloseable, Closeable {
 
     public static final int    DEFAULT_LOCK_DURATION_MS = Env.lockDurationMs();
     public static final Logger LOG                      = Logger.getLogger(Lock.class.getSimpleName());
 
-    private final LockBus lockBus;
-    private final long    durationMs;
+    private final @Nonnull ProperlyClosedDebugHelper helper = new ProperlyClosedDebugHelper();
 
-    private Token   token;
-    private boolean released = false;
+    private final @Nonnull LockBus lockBus;
+    private final          long    durationMs;
 
-    public Lock(LockBus lockBus, String subject) throws LockException {
+    private @Nonnull Token   token;
+    private          boolean released = false;
+
+    public Lock(@Nonnull LockBus lockBus, @Nonnull String subject) throws LockException {
         this(lockBus, subject, DEFAULT_LOCK_DURATION_MS);
     }
 
-    public Lock(LockBus lockBus, String subject, long durationMs) throws LockException {
+    public Lock(@Nonnull LockBus lockBus, @Nonnull String subject, long durationMs) throws LockException {
         this(lockBus, lockBus.lock(subject, durationMs), durationMs);
     }
 
-    public Lock(LockBus lockBus, Token token, long durationMs) {
+    public Lock(@Nonnull LockBus lockBus, @Nonnull Token token, long durationMs) {
         this.lockBus    = lockBus;
         this.token      = token;
         this.durationMs = durationMs;
@@ -43,11 +47,10 @@ public class Lock implements Closeable {
         return durationMs / 2 - (System.currentTimeMillis() - this.token.getTime());
     }
 
-    public synchronized boolean heartbeatIfNotReleased() throws LockException {
-        if (!this.isReleased()) {
+    public synchronized void heartbeatIfNotReleased() throws LockException {
+        if (this.isAlive()) {
             this.heartbeat();
         }
-        return this.isReleased();
     }
 
     public synchronized void heartbeat() throws LockException {
@@ -84,12 +87,13 @@ public class Lock implements Closeable {
         }
     }
 
-    public boolean isReleased() {
-        return this.released;
+    public boolean isAlive() {
+        return !this.released;
     }
 
     @Override
     public void close() {
+        this.helper.close();
         this.release();
     }
 
