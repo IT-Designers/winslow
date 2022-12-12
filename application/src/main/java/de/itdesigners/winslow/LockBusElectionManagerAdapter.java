@@ -123,9 +123,9 @@ public class LockBusElectionManagerAdapter {
 
                     exclusiveOpt.ifPresentOrElse(
                             container -> {
-                                try (var lock = container.getLock()) {
-                                    var pipeline   = container.get().get();
-                                    var project    = projectOpt.get();
+                                try (var lock = container.getLock(); container) {
+                                    var pipeline = container.get().get();
+                                    var project  = projectOpt.get();
                                     var definition = definitionOpt.get();
                                     if (orchestrator.startPipeline(lock, project, definition, pipeline)) {
                                         LOG.info("Updating pipeline...");
