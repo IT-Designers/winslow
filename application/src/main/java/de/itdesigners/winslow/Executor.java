@@ -386,11 +386,15 @@ public class Executor implements Closeable, AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        if (this.stageHandle != null) {
-            if (this.stageHandle.isRunning()) {
-                LOG.warning("Closing Executor on running StageHandle " + this.getStageIdFullyQualified());
+        try {
+            if (this.stageHandle != null) {
+                if (this.stageHandle.isRunning()) {
+                    LOG.warning("Closing Executor on running StageHandle " + this.getStageIdFullyQualified());
+                }
+                this.stageHandle.close();
             }
-            this.stageHandle.close();
+        } finally {
+            this.lockHeart.close();
         }
     }
 }
