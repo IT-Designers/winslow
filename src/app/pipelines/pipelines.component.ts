@@ -24,13 +24,53 @@ export class PipelinesComponent implements OnInit {
 
   mockGroups = [
     {
-      name: 'Group 1',
+      name: 'MMMMMMMMMMMMMMMMMMM1',
       role: 'OWNER'
     },
     {
-      name: 'Group 2',
+      name: 'MMMMMMMMMMMMMMMMMMM2',
       role: 'MEMBER'
-    }
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMMM3',
+      role: 'OWNER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMMM4',
+      role: 'MEMBER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMMM5',
+      role: 'OWNER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMMM6',
+      role: 'OWNER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMMM7',
+      role: 'OWNER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMMM8',
+      role: 'MEMBER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMMM9',
+      role: 'MEMBER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMM10',
+      role: 'MEMBER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMM11',
+      role: 'MEMBER'
+    },
+    {
+      name: 'MMMMMMMMMMMMMMMMMM12',
+      role: 'MEMBER'
+    },
   ];
 
   constructor(
