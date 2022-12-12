@@ -78,12 +78,6 @@ public class Lock implements AutoCloseable, Closeable {
         if (!this.released) {
             this.released = this.lockBus.release(this.token);
             this.notifyAll();
-        } else {
-            LOG.log(
-                    Level.WARNING,
-                    "Tried to release an already released lock",
-                    new RuntimeException("See the the stack trace")
-            );
         }
     }
 
