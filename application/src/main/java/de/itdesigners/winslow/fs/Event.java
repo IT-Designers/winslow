@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.fs;
 
+import java.beans.Transient;
 import java.util.Objects;
 
 public class Event {
@@ -28,6 +29,7 @@ public class Event {
         Objects.requireNonNull(this.issuer);
     }
 
+    @Transient
     public boolean isValid() {
         try {
             this.check();
@@ -37,6 +39,7 @@ public class Event {
         }
     }
 
+    @Transient
     public boolean isIncomplete() {
         return this.id == null
                 || this.command == null
