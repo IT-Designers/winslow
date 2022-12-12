@@ -241,14 +241,13 @@ public abstract class BaseRepository {
     }
 
     @Nonnull
-    protected Lock getLockForPath(Path path) throws LockException {
-        return getLockForPath(path, Lock.DEFAULT_LOCK_DURATION_MS);
+    protected Lock getLockForPath(@Nonnull Path path) throws LockException {
+        return new Lock(lockBus, getLockSubjectForPath(path));
     }
 
     @Nonnull
-    protected Lock getLockForPath(Path path, int durationMs) throws LockException {
-        String subject = getLockSubjectForPath(path);
-        return new Lock(lockBus, subject, durationMs);
+    protected Lock getLockForPath(@Nonnull Path path, int durationMs) throws LockException {
+        return new Lock(lockBus, getLockSubjectForPath(path), durationMs);
     }
 
     @Nonnull
