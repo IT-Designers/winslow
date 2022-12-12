@@ -37,7 +37,7 @@ public class LockHeart implements AutoCloseable {
     private void beatIt() {
         try {
             synchronized (sleepSync) {
-                while (this.keepBeating && !lock.isReleased()) {
+                while (this.keepBeating && lock.isAlive()) {
                     var sleepTimeMs = lock.getTimeUntilRenewalOnHeartbeat();
                     if (sleepTimeMs > 0) {
                         try {
