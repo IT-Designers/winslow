@@ -5,8 +5,8 @@
     <mat-panel-title class="expansion-title">
       Group Access
     </mat-panel-title>
-    <mat-chip-list *ngIf="currentlyAssignedGroups.length > 0">
-      <mat-chip *ngFor="let group of chipGroups"
+    <mat-chip-list *ngIf="currentlyAssignedGroups.length > 0" class="group-chip-list">
+      <mat-chip *ngFor="let group of displayGroups"
                 [style.background-color]="getChipColor(group)"
                 [matTooltip]="getTooltip(group)"
                 matTooltipShowDelay="250"

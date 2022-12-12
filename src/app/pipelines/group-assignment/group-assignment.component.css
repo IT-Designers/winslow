@@ -1,6 +1,5 @@
 .expansion-header {
-  padding-top: 20px;
-  padding-bottom: 20px;
+  height: auto;
 }
 .expansion-title {
   min-width: 150px;
@@ -8,7 +7,9 @@
   display: flex;
   align-items: center;
 }
-
+.group-chip-list {
+  margin: 10px;
+}
 
 /* ---------- Overall Container Styling ---------- */
 .group-assignment-container {
