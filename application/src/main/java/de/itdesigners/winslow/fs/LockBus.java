@@ -456,7 +456,7 @@ public class LockBus {
                 path  = this.nextEventPath();
                 event = loadEvent(path);
 
-                if (event.checkIncomplete() && !Files.exists(nextEventPath(this.eventCounter + 1))) {
+                if (event.isIncomplete() && !Files.exists(nextEventPath(this.eventCounter + 1))) {
                     if (i > LOCK_RETRY_READ_MAX_TRIALS / 20) {
                         LOG.warning("Event " + path + " still seems incomplete, attempt " + i);
                     }
