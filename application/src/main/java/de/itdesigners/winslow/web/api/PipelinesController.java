@@ -186,7 +186,7 @@ public class PipelinesController {
                                             UUID.randomUUID(),
                                             "Sample Nvidia Stage",
                                             "Automatically generated stage that reqires a GPU",
-                                            new Image("nvidia/cuda", new String[]{"nvidia-smi"}),
+                                            new Image("nvidia/cuda:11.8.0-base-ubuntu22.04", new String[]{"nvidia-smi"}),
                                             new Requirements(
                                                     0,
                                                     0,
