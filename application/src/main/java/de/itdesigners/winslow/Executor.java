@@ -395,6 +395,7 @@ public class Executor implements Closeable, AutoCloseable {
             }
         } finally {
             this.lockHeart.close();
+            this.logOutput.close();
         }
     }
 }

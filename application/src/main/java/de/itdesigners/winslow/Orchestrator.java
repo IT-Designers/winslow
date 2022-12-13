@@ -614,15 +614,18 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     lock.waitForRelease();
                 }
             } catch (UserInputChecker.MissingUserInputException e) {
+                executor.abortNoThrows();
                 enqueuePipelineUpdate(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.FurtherInputRequired);
                 });
             } catch (UserInputChecker.MissingUserConfirmationException e) {
+                executor.abortNoThrows();
                 enqueuePipelineUpdate(projectId, toUpdate -> {
                     toUpdate.requestPause(Pipeline.PauseReason.ConfirmationRequired);
                 });
             } catch (Throwable t) {
                 LOG.log(Level.SEVERE, "Failed to start next stage of pipeline " + projectId, t);
+                executor.abortNoThrows();
                 enqueuePipelineUpdate(projectId, pipelineToUpdate -> {
                     pipelineToUpdate.requestPause(Pipeline.PauseReason.StageFailure);
                     var noUpdateApplied = pipelineToUpdate
