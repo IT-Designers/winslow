@@ -13,7 +13,8 @@
           <div class="username-label">
             <mat-chip [style.background-color]="getChipColor(group)"
                       [matTooltip]="getTooltip(group)"
-                      matTooltipShowDelay="250">
+                      matTooltipShowDelay="250"
+                      class="username-chip">
               {{group.name}}
             </mat-chip>
           </div>
@@ -25,7 +26,7 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-accordion class="accordion"><!--CPU Ressource-->
+          <!--<mat-accordion class="accordion">&lt;!&ndash;CPU Ressource&ndash;&gt;
             <mat-expansion-panel hideToggle>
               <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -50,8 +51,8 @@
                 <input>
               </mat-slider>
             </mat-expansion-panel>
-          </mat-accordion><!--CPU Ressource-->
-          <mat-accordion class="accordion"><!--GPU Ressource-->
+          </mat-accordion>&lt;!&ndash;CPU Ressource&ndash;&gt;
+          <mat-accordion class="accordion">&lt;!&ndash;GPU Ressource&ndash;&gt;
             <mat-expansion-panel hideToggle>
               <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -76,8 +77,8 @@
                 <input>
               </mat-slider>
             </mat-expansion-panel>
-          </mat-accordion><!--GPU Ressource-->
-          <mat-accordion class="accordion"><!--Memory Ressource-->
+          </mat-accordion>&lt;!&ndash;GPU Ressource&ndash;&gt;
+          <mat-accordion class="accordion">&lt;!&ndash;Memory Ressource&ndash;&gt;
             <mat-expansion-panel hideToggle>
               <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -103,9 +104,9 @@
                 <input>
               </mat-slider>
             </mat-expansion-panel>
-          </mat-accordion><!--Memory Ressource-->
+          </mat-accordion>--><!--Memory Ressource-->
 
-          <!--<mat-accordion class="big-accordion">
+          <mat-accordion class="big-accordion">
             <mat-expansion-panel>
               <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -179,7 +180,7 @@
               </div>
               <button mat-raised-button class="update-btn" color="primary">Update</button>
             </mat-expansion-panel>
-          </mat-accordion>-->
+          </mat-accordion>
 
           <div class="btn-container">
             <button mat-raised-button
