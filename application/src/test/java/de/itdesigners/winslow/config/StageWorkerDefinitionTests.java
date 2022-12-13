@@ -99,7 +99,7 @@ public class StageWorkerDefinitionTests {
         assertTrue(stage.image().getName().isEmpty());
         assertEquals(5120, stage.requirements().getMegabytesOfRam());
         assertEquals(4, stage.requirements().getGpu().getCount());
-        assertEquals("nvidia", stage.requirements().getGpu().getVendor());
+        assertEquals("nvidia", stage.requirements().getGpu().getVendor().orElse(null));
         assertArrayEquals(new String[]{"cuda", "vulkan"}, stage.requirements().getGpu().getSupport());
 
     }
