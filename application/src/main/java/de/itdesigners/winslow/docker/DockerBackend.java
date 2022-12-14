@@ -121,7 +121,10 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
     private boolean canFulfillHardwareRequirements(@Nonnull String desc, @Nonnull Requirements requirements) {
         try {
             var info = this.dockerClient.infoCmd().exec();
-            return requirements
+            var noGpuRequired = requirements
+                    .getGpu()
+                    .getCount() == 0;
+            var requiredGpuVendorPresent = requirements
                     .getGpu()
                     .getVendor()
                     .filter(vendor -> {
@@ -133,6 +136,8 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
                         }
                     })
                     .isPresent();
+
+            return noGpuRequired || requiredGpuVendorPresent;
         } catch (DockerException e) {
             LOG.log(Level.SEVERE, "Failed to retrieve docker info", e);
             return false;
