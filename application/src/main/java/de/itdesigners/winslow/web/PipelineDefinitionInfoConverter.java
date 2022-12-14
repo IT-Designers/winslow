@@ -4,7 +4,6 @@ import de.itdesigners.winslow.api.pipeline.PipelineDefinitionInfo;
 import de.itdesigners.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
-import java.util.stream.Collectors;
 
 public class PipelineDefinitionInfoConverter {
 
@@ -19,7 +18,7 @@ public class PipelineDefinitionInfoConverter {
                         .stages()
                         .stream()
                         .map(StageDefinitionInfoConverter::from)
-                        .collect(Collectors.toUnmodifiableList()),
+                        .toList(),
                 pipeline.deletionPolicy(),
                 pipeline.markers()
         );
