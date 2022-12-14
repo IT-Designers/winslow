@@ -10,14 +10,13 @@ import {ChangeEvent} from './api.service';
 import {
   ExecutionGroupInfo, ImageInfo,
   PipelineDefinitionInfo,
-  ProjectInfo, ResourceInfo, ResourceLimitation, StageDefinitionInfo,
-  StageInfo,
+  ProjectInfo, ResourceInfo, ResourceLimitation, StageAndGatewayDefinitionInfo,
+  StageInfo, StageWorkerDefinitionInfo, StageXOrGatewayDefintionInfo,
   State,
   StateInfo,
   WorkspaceConfiguration,
   WorkspaceMode
 } from './winslow-api';
-import {supportsColor} from '@angular/cli/utilities/color';
 
 
 @Injectable({
@@ -52,10 +51,17 @@ export class ProjectApiService {
 
 
   constructor(private client: HttpClient, private rxStompService: RxStompService) {
-    this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfoExt>(rxStompService, '/projects');
+    this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
+      rxStompService,
+      '/projects',
+      p => new ProjectInfoExt(p)
+    );
+
     this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
-      rxStompService, '/projects/states',
-      s => new StateInfo(s));
+      rxStompService,
+      '/projects/states',
+      s => new StateInfo(s)
+    );
 
     this.projectSubscriptionHandler.subscribe((id, value) => {
       if (value != null) {
@@ -129,7 +135,7 @@ export class ProjectApiService {
     });
   }
 
-  public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfoExt> {
+  public getProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
     return this.projectSubscriptionHandler;
   }
 
@@ -137,19 +143,20 @@ export class ProjectApiService {
     return this.projectStateSubscriptionHandler;
   }
 
-  createProject(name: string, pipeline: PipelineDefinitionInfo, tags?: string[]): Promise<ProjectInfoExt> {
+  createProject(name: string, pipeline: PipelineDefinitionInfo, tags?: string[]): Promise<ProjectInfo> {
     return this.client
-      .post<ProjectInfoExt>(
+      .post<ProjectInfo>(
         ProjectApiService.getUrl(null),
         {
           name,
           pipeline: pipeline.id,
           tags
         })
-      .toPromise();
+      .toPromise()
+      .then(result => result ?? new ProjectInfoExt(result));
   }
 
-  listProjects(): Promise<ProjectInfoExt[]> {
+  listProjects(): Promise<ProjectInfo[]> {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
@@ -196,7 +203,7 @@ export class ProjectApiService {
 
   enqueue(
     projectId: string,
-    nextStageIndex: number,
+    nextStageId: string,
     env: any,
     rangedEnv?: Map<string, RangeWithStepSize>,
     image: ImageInfo = null,
@@ -209,9 +216,9 @@ export class ProjectApiService {
     return this.client.post<void>(
       ProjectApiService.getUrl(`${projectId}/enqueued`),
       {
+        id: nextStageId,
         env,
         rangedEnv,
-        stageIndex: nextStageIndex,
         image,
         requiredResources,
         workspaceConfiguration,
@@ -442,7 +449,7 @@ export class ProjectApiService {
     return alt;
   }
 
-  findProjectPipeline(project: ProjectInfoExt, pipelines: PipelineDefinitionInfo[]) {
+  findProjectPipeline(project: ProjectInfo, pipelines: PipelineDefinitionInfo[]) {
     for (const pipeline of pipelines) {
       if (pipeline.name === project.pipelineDefinition.name) {
         return pipeline.id;
@@ -453,9 +460,10 @@ export class ProjectApiService {
 }
 
 export class ProjectInfoExt extends ProjectInfo {
-  version: number;
-  environment: Map<string, string>;
-  userInput: string[];
+  constructor(data: ProjectInfo) {
+    data.pipelineDefinition = new PipelineDefinitionInfoExt(data.pipelineDefinition);
+    super(data);
+  }
 }
 
 
@@ -633,6 +641,26 @@ export class StageInfoExt extends StageInfo {
     }
   }
 
+}
+
+export class PipelineDefinitionInfoExt extends PipelineDefinitionInfo {
+  constructor(origin: PipelineDefinitionInfo) {
+    origin.stages = origin.stages.map(stage => {
+      const type = stage['@type'];
+      if (type === 'Worker') {
+        return new StageWorkerDefinitionInfo(stage as StageWorkerDefinitionInfo);
+      } else if (type === 'XorGateway') {
+        return new StageXOrGatewayDefintionInfo(stage as StageXOrGatewayDefintionInfo);
+      } else if (type === 'AndGateway') {
+        return new StageAndGatewayDefinitionInfo(stage as StageAndGatewayDefinitionInfo);
+      } else {
+        // TODO
+        console.error(`Unexpected StageDefinitionInfo type ${type}`);
+        return stage;
+      }
+    });
+    super(origin);
+  }
 }
 
 
