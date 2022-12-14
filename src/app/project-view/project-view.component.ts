@@ -362,29 +362,20 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     resume?: boolean,
   ) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
-      let index = null;
-      for (let i = 0; i < pipeline.stages.length; ++i) {
-        if (pipeline.stages[i].name === stageDefinitionInfo.name) {
-          index = i;
-          break;
-        }
-      }
-      if (index !== null) {
-        this.dialog.openLoadingIndicator(
-          this.api.enqueue(
-            this.project.id,
-            index,
-            env,
-            rangedEnv,
-            image,
-            requiredResources,
-            workspaceConfiguration,
-            comment,
-            runSingle,
-            resume),
-          `Submitting selections`
-        );
-      }
+      this.dialog.openLoadingIndicator(
+        this.api.enqueue(
+          this.project.id,
+          stageDefinitionInfo.id,
+          env,
+          rangedEnv,
+          image,
+          requiredResources,
+          workspaceConfiguration,
+          comment,
+          runSingle,
+          resume),
+        `Submitting selections`
+      );
     } else {
       this.dialog.error('Changing the Pipeline is not yet supported!');
     }

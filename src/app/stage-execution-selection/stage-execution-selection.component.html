@@ -16,8 +16,8 @@
   <mat-form-field>
     <mat-select
       (selectionChange)="loadEnvForStageName($event.value)"
-      [value]="selectedStage?.name"> <!-- get triggered when the pipeline changes -->
-      <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.name">{{stage.name}}</mat-option>
+      [value]="selectedStage?.id"> <!-- get triggered when the pipeline changes -->
+      <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.id">{{stage.name}}</mat-option>
     </mat-select>
   </mat-form-field>
   <div class="controls"></div>
