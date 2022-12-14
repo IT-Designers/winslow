@@ -188,11 +188,11 @@ export class StageExecutionSelectionComponent implements OnInit {
     }
   }
 
-  loadEnvForStageName(stageName: string) {
+  loadEnvForStageName(stageId: string) {
     if (this.selectedPipeline != null) {
       for (const stage of this.selectedPipeline.stages) {
         if (stage instanceof StageWorkerDefinitionInfo) {
-          if (stage.name === stageName) {
+          if (stage.id === stageId) {
             this.selectedStage = stage;
             this.selectedStageEmitter.emit(stage);
             this.image = StageExecutionSelectionComponent.deepClone(stage.image);
