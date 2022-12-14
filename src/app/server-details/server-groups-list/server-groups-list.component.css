@@ -7,14 +7,6 @@
   display: flex;
   flex-direction: row;
 }
-app-groups-add-member-dialog {
-  overflow: clip;
-}
-
-/*.list-container {
-  display:flex;
-  flex-direction: row;
-}*/
 .list-content {
   position: relative;
   padding-bottom: 5px;
@@ -30,6 +22,25 @@ app-groups-add-member-dialog {
   flex-direction: column;
   align-items: center;
 }
+/*Alternative for mat input*/
+/*.text-input {
+  width: 97%;
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}*/
+.mat-input-container {
+  width: 97%;
+  font-size: 14px;
+}
+.text-input-mat {
+  width: 100%;
+}
 .scrollable {
   width: 95%;
   overflow-y: scroll;
@@ -41,8 +52,8 @@ app-groups-add-member-dialog {
   width: 100%;
   padding: 10px;
 }
+
 /* ---------- List Item Styling ---------- */
-/* ----- Version with seperate remove button ------ */
 .list-item {
   cursor: default;
   padding: 3px;
@@ -64,6 +75,7 @@ app-groups-add-member-dialog {
   max-width: 200px;
   overflow: clip;
 }
+/*Dropdown for role selection*/
 .role-dropdown {
   display: flex;
   align-items: center;
@@ -74,6 +86,7 @@ app-groups-add-member-dialog {
   min-width: 205px;
   max-width: 15%;
 }
+/*Resource Expansion Panel*/
 .accordion {
   min-width: 18%;
   max-width: 18%;
@@ -83,10 +96,50 @@ app-groups-add-member-dialog {
   min-width: 60%;
   max-width: 60%;
 }
+  /*All Resources Container*/
+  .expansion-content-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+    /*Single Resource*/
+    .single-resource-container {
+      min-width: 32%;
+      max-width: 32%;
+      padding: 0 1%;
+      display: flex;
+      flex-direction: column;
+    }
+    .resource-label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .resource-title-value {
+      font-size: 12px;
+      font-style: italic;
+      color: grey;
+    }
+    .input-width {
+      width: 100%;
+    }
+    .slider {
+      width: 100%;
+    }
+    .mat-slider-thumb-label {
+      width: 50px !important;
+      height: 50px !important;
+      top: -62px !important;
+      right: -25px !important;
+    }
+
+/*Remove Member Button*/
 .btn-container {
   padding-right: 20px;
   min-width: calc(9% - 20px);
   max-width: calc(9% - 20px);
+}
+.update-btn {
+  float: right;
 }
 .remove-member-button {
   float: right;
@@ -107,63 +160,16 @@ app-groups-add-member-dialog {
   margin-left: 3px;
   margin-top: 2px;
 }
-.text-input {
-  width: 97%;
-  padding: 2px;
-  padding-left: 5px;
-  border: 1px solid lightgrey;
-  border-bottom: 1px solid grey;
-  border-radius: 3px;
-  font-size: 15px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
 
 .add-member-button-container {
   text-align: center;
-  margin-top: 4px;
+  margin-top: 10px;
 }
 
-.mat-slider-thumb-label {
-  width: 50px !important;
-  height: 50px !important;
-  top: -62px !important;
-  right: -25px !important;
-}
 
-.resource-title-value {
-  font-size: 12px;
-  font-style: italic;
-  color: grey;
-}
 
-.slider {
-  width: 100%;
-}
 
-.input-width {
-  width: 100%;
-}
 
-.expansion-content-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
 
-.single-resource-container {
-  min-width: 32%;
-  max-width: 32%;
-  padding: 0 1%;
-  display: flex;
-  flex-direction: column;
-}
 
-.resource-label {
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-.update-btn {
-  float: right;
-}
 
