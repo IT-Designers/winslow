@@ -22,13 +22,20 @@
   </mat-expansion-panel-header>
   <div class="list-and-label-container">
     <div class="list-content" id="list-content">
-      <input type="text"
+      <mat-form-field class="mat-input-container">
+        <input matInput
+               type="text"
+               class="text-input-mat"
+               [(ngModel)]="groupSearchInput"
+               placeholder="Search.."
+               (keyup)="filterFunction()">
+      </mat-form-field>
+      <!--<input type="text"
              class="text-input"
              [(ngModel)]="groupSearchInput"
              placeholder="Search.."
-             (keyup)="filterFunction()">
+             (keyup)="filterFunction()">-->
       <div class="scrollable">
-        <!-- ---------- Version with seperate remove button ---------- -->
         <div *ngIf="displayGroups.length > 0">
           <div class="list-item" *ngFor="let group of displayGroups">
             <div class="username-label">
