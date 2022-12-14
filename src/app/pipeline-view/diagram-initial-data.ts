@@ -1,12 +1,13 @@
 import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "diagram-maker";
 import {PipelineDefinitionInfo, StageDefinitionInfo} from "../api/winslow-api";
+import {PipelineDefinitionInfoExt} from '../api/project-api.service';
 
 export class DiagramInitialData {
 
   getInitData(project) {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, project.pipelineDefinition));
+    let pipelineInfo = new PipelineDefinitionInfoExt(Object.assign({}, project.pipelineDefinition));
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
     delete pipelineInfo.userInput.requiredEnvVariables;
     nodes[pipelineInfo.id] = {
