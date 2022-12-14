@@ -34,15 +34,8 @@ export class ProjectApiService {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
-  private static fixExecutionGroupInfo(origin: ExecutionGroupInfoExt): ExecutionGroupInfoExt {
-    origin.stages = origin.stages.map(stage => new StageInfo(stage));
-    return new ExecutionGroupInfoExt(origin);
-  }
-
   private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfoExt[]): ExecutionGroupInfoExt[] {
-    return groups.map(origin => {
-      return ProjectApiService.fixExecutionGroupInfo(origin);
-    });
+    return groups.map(origin => new ExecutionGroupInfoExt(origin));
   }
 
   static toMap(entry) {
@@ -176,18 +169,6 @@ export class ProjectApiService {
     return this.client.get<ExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
-  }
-
-  getProjectEnqueued(projectId: string): Promise<ExecutionGroupInfoExt[]> {
-    return this.client.get<ExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/enqueued`))
-      .pipe(map(enqueued => {
-        const fixed = ProjectApiService.fixExecutionGroupInfoArray(enqueued);
-        for (let i = 0; i < fixed.length; ++i) {
-          fixed[i].enqueueIndex = i;
-        }
-        return fixed;
-      }))
-      .toPromise();
   }
 
   deleteEnqueued(projectId: string, groupId: string): Promise<boolean> {
@@ -551,6 +532,11 @@ export class AuthTokenInfo {
 export class ExecutionGroupInfoExt extends ExecutionGroupInfo {
   enqueueIndex?: number;
 
+  constructor(origin: ExecutionGroupInfo) {
+    origin.stages = origin.stages.map(stage => new StageInfoExt(stage));
+    super(origin);
+  }
+
 
   public rangedValues_keys() {
     return Object.keys(this.rangedValues);
@@ -578,7 +564,9 @@ export class ExecutionGroupInfoExt extends ExecutionGroupInfo {
 
   public getMostRecentStartOrFinishTime(): number {
     const stage = this.getMostRecentStage();
-    if (stage.startTime != null) {
+    if (stage == null) {
+      return null;
+    } else if (stage.startTime != null) {
       return stage.startTime;
     } else if (stage?.finishTime != null) {
       return stage.finishTime;
