@@ -114,6 +114,14 @@ app-groups-add-member-dialog {
   margin-bottom: 5px;
 }
 
+.mat-input-container {
+  width: 97%;
+  font-size: 14px;
+}
+.text-input-mat {
+  width: 100%;
+}
+
 .add-member-button-container {
   text-align: center;
   margin-top: 4px;
