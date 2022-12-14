@@ -13,13 +13,15 @@ public class StageDefinitionInfoConverter {
 
 
     public static StageDefinitionInfo from(@Nonnull StageDefinition definition) {
-        if (definition instanceof StageWorkerDefinition w)
+        if (definition instanceof StageWorkerDefinition w) {
             return from(w);
-        if (definition instanceof StageXOrGatwayDefinition x)
+        } else if (definition instanceof StageXOrGatwayDefinition x) {
             return from(x);
-        if (definition instanceof StageAndGatewayDefinition a)
+        } else if (definition instanceof StageAndGatewayDefinition a) {
             return from(a);
-        throw new RuntimeException("Unsupported StageDefinition " + definition.getClass().getSimpleName());
+        } else {
+            throw new RuntimeException("Unsupported StageDefinition " + definition.getClass().getSimpleName());
+        }
     }
 
     @Nonnull
