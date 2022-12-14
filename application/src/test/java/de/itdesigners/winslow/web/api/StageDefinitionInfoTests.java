@@ -22,21 +22,20 @@ public class StageDefinitionInfoTests {
 
         var json = """
                 {
-                  "Worker" : {
-                    "id" : null,
-                    "name" : "test",
-                    "description" : null,
-                    "image" : null,
-                    "requiredResources" : null,
-                    "userInput" : null,
-                    "environment" : null,
-                    "highlight" : null,
-                    "discardable" : null,
-                    "privileged" : null,
-                    "logParsers" : null,
-                    "ignoreFailuresWithinExecutionGroup" : null,
-                    "nextStages" : null
-                  }
+                  "@type": "Worker",
+                  "id" : null,
+                  "name" : "test",
+                  "description" : null,
+                  "image" : null,
+                  "requiredResources" : null,
+                  "userInput" : null,
+                  "environment" : null,
+                  "highlight" : null,
+                  "discardable" : null,
+                  "privileged" : null,
+                  "logParsers" : null,
+                  "ignoreFailuresWithinExecutionGroup" : null,
+                  "nextStages" : null
                 }
                 """;
 
