@@ -3,11 +3,20 @@
 <div class="list-and-label-container">
   <label for="list-content" class="list-label">Members:</label>
   <div class="list-content" id="list-content">
-    <input type="text"
+    <mat-form-field class="mat-input-container">
+      <mat-label>Search...</mat-label>
+      <input matInput
+             type="text"
+             class="text-input-mat"
+             [(ngModel)]="userSearchInput"
+             (keyup)="filterFunction()">
+    </mat-form-field>
+    <!--<input matInput
+           type="text"
            class="text-input"
            [(ngModel)]="userSearchInput"
            placeholder="Search.."
-           (keyup)="filterFunction()">
+           (keyup)="filterFunction()">-->
     <div class="scrollable">
       <div class="list-item" *ngFor="let user of displayMembers">
         <label class="username-label">{{user.name}}</label>
