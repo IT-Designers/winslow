@@ -10,9 +10,10 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 public class EnqueueRequest {
+
+    public @Nonnull  String                   id;
     public @Nonnull  Map<String, String>      env;
     public @Nullable Map<String, RangedValue> rangedEnv;
-    public           String                   id;
     public @Nullable ImageInfo                image;
     public @Nullable ResourceInfo             requiredResources;
     public @Nullable WorkspaceConfiguration   workspaceConfiguration;
