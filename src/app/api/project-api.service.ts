@@ -190,7 +190,7 @@ export class ProjectApiService {
     rangedEnv?: Map<string, RangeWithStepSize>,
     image: ImageInfo = null,
     requiredResources: ResourceInfo = null,
-    workspaceConfiguration: WorkspaceConfigurationExt = null,
+    workspaceConfiguration: WorkspaceConfiguration = null,
     comment: string = null,
     runSingle: boolean = false,
     resume?: boolean,
@@ -714,7 +714,7 @@ export function createWorkspaceConfiguration(
   mode: WorkspaceMode = 'INCREMENTAL',
   value: string = null,
   sharedWithinGroup: boolean = false,
-  nestedWithinGroup: boolean = true) {
+  nestedWithinGroup: boolean = true): WorkspaceConfiguration {
   return new WorkspaceConfiguration({
     mode, value, sharedWithinGroup, nestedWithinGroup
   });
