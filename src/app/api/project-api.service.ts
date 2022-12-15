@@ -17,6 +17,7 @@ import {
   WorkspaceConfiguration,
   WorkspaceMode
 } from './winslow-api';
+import {loadPipelineDefinition} from './pipeline-api.service';
 
 
 @Injectable({
@@ -442,7 +443,7 @@ export class ProjectApiService {
 
 export class ProjectInfoExt extends ProjectInfo {
   constructor(data: ProjectInfo) {
-    data.pipelineDefinition = new PipelineDefinitionInfoExt(data.pipelineDefinition);
+    data.pipelineDefinition = loadPipelineDefinition(data.pipelineDefinition);
     super(data);
   }
 }
@@ -533,7 +534,7 @@ class ExecutionGroupInfoExt extends ExecutionGroupInfo {
     super({
       ...origin,
       stages: origin.stages.map(stage => new StageInfoExt(stage)),
-      stageDefinition: loadStageDefinitionInstance(origin.stageDefinition)
+      stageDefinition: loadStageDefinition(origin.stageDefinition)
     });
   }
 }
