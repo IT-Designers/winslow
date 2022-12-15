@@ -15,7 +15,7 @@ import {
   PipelineDefinitionInfo,
   ResourceInfo,
   StageDefinitionInfo,
-  StageWorkerDefinitionInfo,
+  StageWorkerDefinitionInfo, WorkspaceConfiguration,
   WorkspaceMode
 } from '../api/winslow-api';
 
@@ -48,7 +48,7 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   resources = new ResourceInfo({cpus: 0, gpus: 0, megabytesOfRam: 100});
 
-  workspaceConfiguration = WorkspaceConfigurationExt.create();
+  workspaceConfiguration = createWorkspaceConfiguration();
   comment = null;
   valid = false;
 
@@ -160,7 +160,7 @@ export class StageExecutionSelectionComponent implements OnInit {
     return this.resources;
   }
 
-  getWorkspaceConfiguration(): WorkspaceConfigurationExt {
+  getWorkspaceConfiguration(): WorkspaceConfiguration {
     return this.workspaceConfiguration;
   }
 
@@ -232,12 +232,11 @@ export class StageExecutionSelectionComponent implements OnInit {
     nestedWithinGroup: boolean = null
   ) {
     if (update) {
-      this.workspaceConfiguration = new WorkspaceConfigurationExt({
-          mode,
-          value,
-          sharedWithinGroup: sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup,
-          nestedWithinGroup: nestedWithinGroup ?? this.workspaceConfiguration.nestedWithinGroup
-        }
+      this.workspaceConfiguration = createWorkspaceConfiguration(
+        mode,
+        value,
+        sharedWithinGroup ?? this.workspaceConfiguration.sharedWithinGroup,
+        nestedWithinGroup ?? this.workspaceConfiguration.nestedWithinGroup
       );
     }
   }
