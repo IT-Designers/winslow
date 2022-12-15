@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ProjectInfoExt, ProjectApiService} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
+import {ProjectInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-stop-button',
@@ -9,7 +10,7 @@ import {DialogService} from '../dialog.service';
 })
 export class StopButtonComponent implements OnInit {
 
-  @Input() project: ProjectInfoExt = null;
+  @Input() project: ProjectInfo = null;
   @Input() disabled: boolean = false;
   @Input() showText: boolean = true;
 

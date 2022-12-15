@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ProjectInfoExt, ProjectApiService} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import {FilesApiService, IFileInfoExt} from '../api/files-api.service';
@@ -8,7 +8,7 @@ import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {getColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
-import {ExecutionGroupInfo, PipelineDefinitionInfo, StageInfo} from '../api/winslow-api';
+import {ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-log-analysis',
@@ -30,7 +30,7 @@ export class LogAnalysisComponent implements OnInit {
   stageToDisplay: StageInfo;
   stagesToCompare: StageInfo[] = [];
 
-  private projectInfo: ProjectInfoExt;
+  private projectInfo: ProjectInfo;
 
   constructor(
     private dialog: MatDialog,
@@ -43,7 +43,7 @@ export class LogAnalysisComponent implements OnInit {
 
   @Input() selectedStage: string;
 
-  @Input() set project(project: ProjectInfoExt) {
+  @Input() set project(project: ProjectInfo) {
     this.isLongLoading = true;
     this.projectInfo = project;
     this.resetStagesAndCharts();
