@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {ParseError, PipelineDefinitionInfoExt} from './project-api.service';
+import {loadStageDefinition, ParseError} from './project-api.service';
 import {PipelineDefinitionInfo} from './winslow-api';
 
 @Injectable({
@@ -32,7 +32,7 @@ export class PipelineApiService {
     return this.client
       .get<PipelineDefinitionInfo>(PipelineApiService.getUrl(`${pipeline}`))
       .toPromise()
-      .then(info => new PipelineDefinitionInfoExt(info));
+      .then(info => loadPipelineDefinition(info));
   }
 
   getPipelineDefinitions() {
@@ -40,7 +40,7 @@ export class PipelineApiService {
       .client
       .get<PipelineDefinitionInfo[]>(PipelineApiService.getUrl())
       .toPromise()
-      .then(info => info.map(i => new PipelineDefinitionInfoExt(i)));
+      .then(info => info.map(i => loadPipelineDefinition(i)));
   }
 
   createPipelineDefinition(name: string) {
@@ -48,7 +48,7 @@ export class PipelineApiService {
       .client
       .post<PipelineDefinitionInfo>(PipelineApiService.getUrl(`create`), name)
       .toPromise()
-      .then(info => new PipelineDefinitionInfoExt(info));
+      .then(info => loadPipelineDefinition(info));
   }
 
   getLogParsers(pipeline: string, stage: string) {
@@ -60,6 +60,12 @@ export class PipelineApiService {
   }
 }
 
+export function loadPipelineDefinition(origin: PipelineDefinitionInfo): PipelineDefinitionInfo {
+  return new PipelineDefinitionInfo({
+    ...origin,
+    stages: origin.stages.map(stage => loadStageDefinition(stage))
+  });
+}
 
 // https://putridparrot.com/blog/extension-methods-in-typescript/
 // add new functions to IPipelineInfo
