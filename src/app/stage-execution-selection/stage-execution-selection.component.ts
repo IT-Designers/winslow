@@ -1,11 +1,11 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {
+  createWorkspaceConfiguration,
   ProjectApiService,
   RangedList,
   RangedValue,
-  RangeWithStepSize,
-  WorkspaceConfigurationExt
+  RangeWithStepSize
 } from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
 import {
@@ -113,16 +113,15 @@ export class StageExecutionSelectionComponent implements OnInit {
       if (mode === 'CONTINUATION' && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
         value = this.executionHistoryValue[0].id;
       }
-      this.workspaceConfiguration = new WorkspaceConfigurationExt({
-          mode,
-          value,
-          sharedWithinGroup: this.workspaceConfiguration?.sharedWithinGroup,
-          nestedWithinGroup: this.workspaceConfiguration?.nestedWithinGroup
-        }
+      this.workspaceConfiguration = createWorkspaceConfiguration(
+        mode,
+        value,
+        this.workspaceConfiguration?.sharedWithinGroup,
+        this.workspaceConfiguration?.nestedWithinGroup
       );
     } else {
 
-      this.workspaceConfiguration = WorkspaceConfigurationExt.create();
+      this.workspaceConfiguration = createWorkspaceConfiguration();
     }
   }
 
