@@ -10,7 +10,8 @@
                placeholder="Username"
                [defaultValue]="editableSelectedUser.name"
                [(ngModel)]="editableSelectedUser.name"
-               (keyup)="somethingIsBeingChanged()">
+               (keyup)="somethingIsBeingChanged()"
+               [disabled]="!canIEditUser">
       </mat-form-field>
     </div>
 
@@ -21,7 +22,8 @@
                placeholder="Display Name"
                [defaultValue]="editableSelectedUser.displayName"
                [(ngModel)]="editableSelectedUser.displayName"
-               (keyup)="somethingIsBeingChanged()">
+               (keyup)="somethingIsBeingChanged()"
+               [disabled]="!canIEditUser">
       </mat-form-field>
     </div>
 
@@ -32,27 +34,10 @@
                placeholder="Email"
                [defaultValue]="editableSelectedUser.email"
                [(ngModel)]="editableSelectedUser.email"
-               (keyup)="somethingIsBeingChanged()">
+               (keyup)="somethingIsBeingChanged()"
+               [disabled]="!canIEditUser">
       </mat-form-field>
     </div>
-
-    <!--<div class="detail-item">
-      <label class="attribute-label"> Password: </label>
-      <mat-form-field class="input-width">
-        <input matInput
-               placeholder="Password"
-               [(ngModel)]="newPassword"
-               (keyup)="setPasswordHintColor()">
-        <mat-hint align="end" [class]="passwordHintColor">{{newPassword.length}} / 8</mat-hint>
-      </mat-form-field>
-      <button mat-raised-button
-              color="primary"
-              (click)="changePasswordBtnClicked()"
-              class="update-btn"
-              [disabled]="!canIEditUser || !(newPassword.length >= 8)">
-        Update
-      </button>
-    </div>-->
 
     <div class="detail-item">
       <label class="attribute-label"> Password: </label>
@@ -85,7 +70,8 @@
       <div class="checkbox-container">
         <mat-checkbox [(ngModel)]="editableSelectedUser.active"
                       class="checkbox"
-                      (change)="somethingIsBeingChanged()">
+                      (change)="somethingIsBeingChanged()"
+                      [disabled]="!canIEditUser">
         </mat-checkbox>
       </div>
     </div>
@@ -103,7 +89,8 @@
     <button class="mat-raised-button bottom-btn"
             (click)="onUserDelete()"
             color="warn"
-            mat-raised-button="">
+            mat-raised-button=""
+            [disabled]="!canIEditUser">
       Delete
     </button>
   </div>
