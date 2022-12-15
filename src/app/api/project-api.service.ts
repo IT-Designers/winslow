@@ -634,7 +634,7 @@ ExecutionGroupInfo.prototype.getGroupSize = function(): number {
 };
 
 
-export class StageInfoExt extends StageInfo {
+class StageInfoExt extends StageInfo {
   constructor(origin: StageInfo = null) {
     super(origin);
   }

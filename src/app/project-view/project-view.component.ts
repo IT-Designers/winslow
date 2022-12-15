@@ -17,7 +17,6 @@ import {
   EnvVariable,
   ProjectInfoExt,
   ResourceLimitationExt,
-  StageInfoExt,
   WorkspaceConfigurationExt,
   ParseError,
   ProjectApiService,
@@ -203,7 +202,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     if (entry.stages.length === 1) {
       this.selectedHistoryEntryStage = entry.stages[0];
     } else if (entry.stages.length < 1) {
-      this.selectedHistoryEntryStage = new StageInfoExt();
+      this.selectedHistoryEntryStage = new StageInfo({
+        env: {},
+        envInternal: {},
+        envPipeline: {},
+        envSystem: {},
+        id: '',
+        result: {}
+      });
     }
   }
 

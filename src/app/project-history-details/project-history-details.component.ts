@@ -1,6 +1,5 @@
 import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
-import {StageInfoExt} from '../api/project-api.service';
-import {ExecutionGroupInfo, State} from '../api/winslow-api';
+import {ExecutionGroupInfo, StageInfo, State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
@@ -12,7 +11,7 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   @Input() entry: ExecutionGroupInfo;
   @Input() entryNumber: number;
   @Input() stageNumber: number;
-  @Input() selectedStage: StageInfoExt;
+  @Input() selectedStage: StageInfo;
   @Input() projectState: State;
   @Input() firstEntry = true;
   @Input() executionGroup: ExecutionGroupInfo;
@@ -23,12 +22,12 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickKillStage = new EventEmitter<StageInfoExt>();
-  @Output() clickUseAsBlueprint = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenWorkspace = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenLogs = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenAnalysis = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenTensorboard = new EventEmitter<StageInfoExt>();
+  @Output() clickKillStage = new EventEmitter<StageInfo>();
+  @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
+  @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
+  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
+  @Output() clickOpenAnalysis = new EventEmitter<StageInfo>();
+  @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
 
   historyDetailsHeight: any;
   buttonValue: string;
