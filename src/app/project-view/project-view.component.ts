@@ -16,7 +16,6 @@ import {
   DeletionPolicy,
   EnvVariable,
   ProjectInfoExt,
-  ResourceLimitationExt,
   ParseError,
   ProjectApiService,
 } from '../api/project-api.service';
@@ -43,7 +42,7 @@ import {
   WorkspaceMode,
   StateInfo,
   ExecutionGroupInfo,
-  StageWorkerDefinitionInfo, WorkspaceConfiguration
+  StageWorkerDefinitionInfo, ResourceLimitation, WorkspaceConfiguration
 } from '../api/winslow-api';
 
 
@@ -164,7 +163,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
   workspaceMode: WorkspaceMode = null;
-  resourceLimit: ResourceLimitationExt = null;
+  resourceLimit: ResourceLimitation = null;
   authTokens: AuthTokenInfo[] = null;
 
   historyListHeight: any;
@@ -887,7 +886,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  setResourceLimitation(limit?: ResourceLimitationExt) {
+  setResourceLimitation(limit?: ResourceLimitation) {
     this.dialog.openLoadingIndicator(
       this.api.setResourceLimitation(this.projectValue.id, limit)
         .then(l => {
