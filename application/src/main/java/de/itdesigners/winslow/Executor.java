@@ -40,6 +40,7 @@ public class Executor implements Closeable, AutoCloseable {
 
     private @Nullable StageHandle             stageHandle;
     private @Nullable BlockingDeque<LogEntry> logBuffer = new LinkedBlockingDeque<>();
+    private @Nullable Thread                  thread    = null;
 
     private boolean keepRunning = true;
     private boolean failed      = false;
@@ -66,10 +67,19 @@ public class Executor implements Closeable, AutoCloseable {
 
         this.intervalInvoker.addListener(this::statsUpdater);
 
-        var thread = new Thread(this::run);
-        thread.setName(pipeline + "." + stageId.getFullyQualified() + ".exctr");
-        thread.setDaemon(false);
-        thread.start();
+
+
+
+
+    }
+
+    public synchronized void start() {
+        if (this.thread == null) {
+            this.thread = new Thread(this::run);
+            this.thread.setName(pipeline + "." + stageId.getFullyQualified() + ".exctr");
+            this.thread.setDaemon(false);
+            this.thread.start();
+        }
     }
 
     private void killNoThrows() {
@@ -166,7 +176,7 @@ public class Executor implements Closeable, AutoCloseable {
             @Override
             public boolean hasNext() {
                 retrieveLogs();
-                return (Executor.this.logBuffer!= null && !Executor.this.logBuffer.isEmpty())
+                return (Executor.this.logBuffer != null && !Executor.this.logBuffer.isEmpty())
                         || (logs != null ? logs.hasNext() : Executor.this.keepRunning());
             }
 
@@ -212,9 +222,9 @@ public class Executor implements Closeable, AutoCloseable {
                                 Stream
                                         .of((Supplier<LogEntry>) () -> {
                                             var stageHandle = this.stageHandle;
-                                            var failed  = stageHandle != null && stageHandle.hasFailed();
-                                            var gone    = stageHandle != null && stageHandle.isGone();
-                                            var message = failed ? "Failed" : (gone ? "Gone" : "Done");
+                                            var failed      = stageHandle != null && stageHandle.hasFailed();
+                                            var gone        = stageHandle != null && stageHandle.isGone();
+                                            var message     = failed ? "Failed" : (gone ? "Gone" : "Done");
                                             return createLogEntry(failed || gone, message);
                                         })
                                         .map(Supplier::get)
@@ -273,7 +283,7 @@ public class Executor implements Closeable, AutoCloseable {
     }
 
     private synchronized boolean keepRunning() {
-        return this.keepRunning || (this.logBuffer!= null && !this.logBuffer.isEmpty());
+        return this.keepRunning || (this.logBuffer != null && !this.logBuffer.isEmpty());
     }
 
     public synchronized void stop() throws IOException {
