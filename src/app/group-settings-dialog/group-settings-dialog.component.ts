@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {ProjectInfoExt} from '../api/project-api.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import {ProjectInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-group-action-dialog',
@@ -10,8 +10,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 export class GroupSettingsDialogComponent implements OnInit {
 
   availableTags: string[];
-  projects: ProjectInfoExt[];
-  filtered: ProjectInfoExt[];
+  projects: ProjectInfo[];
+  filtered: ProjectInfo[];
 
   constructor(
     public dialogRef: MatDialogRef<GroupSettingsDialogComponent>,
@@ -33,6 +33,6 @@ export class GroupSettingsDialogComponent implements OnInit {
 }
 
 export class GroupSettingsDialogData {
-  projects: ProjectInfoExt[];
+  projects: ProjectInfo[];
   availableTags: string[];
 }

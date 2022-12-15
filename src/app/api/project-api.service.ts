@@ -8,10 +8,17 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
 import {
-  ExecutionGroupInfo, ImageInfo,
+  ExecutionGroupInfo,
+  ImageInfo,
   PipelineDefinitionInfo,
-  ProjectInfo, ResourceInfo, ResourceLimitation, StageAndGatewayDefinitionInfo, StageDefinitionInfo,
-  StageInfo, StageWorkerDefinitionInfo, StageXOrGatewayDefintionInfo,
+  ProjectInfo,
+  ResourceInfo,
+  ResourceLimitation,
+  StageAndGatewayDefinitionInfo,
+  StageDefinitionInfo,
+  StageInfo,
+  StageWorkerDefinitionInfo,
+  StageXOrGatewayDefintionInfo,
   State,
   StateInfo,
   WorkspaceConfiguration,
@@ -28,7 +35,7 @@ export class ProjectApiService {
   static LOGS_LATEST = 'latest';
 
   public cachedTags: string[] = [];
-  private projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfoExt>;
+  private projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
   private projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
 
   private static getUrl(more?: string) {
@@ -48,7 +55,7 @@ export class ProjectApiService {
     this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
       rxStompService,
       '/projects',
-      p => new ProjectInfoExt(p)
+      p => new ProjectInfo(p)
     );
 
     this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
@@ -147,7 +154,7 @@ export class ProjectApiService {
           tags
         })
       .toPromise()
-      .then(result => result ?? new ProjectInfoExt(result));
+      .then(result => result ?? new ProjectInfo(result));
   }
 
   listProjects(): Promise<ProjectInfo[]> {
@@ -441,17 +448,17 @@ export class ProjectApiService {
   }
 }
 
-export class ProjectInfoExt extends ProjectInfo {
-  constructor(data: ProjectInfo) {
-    data.pipelineDefinition = loadPipelineDefinition(data.pipelineDefinition);
-    super(data);
-  }
+export function loadProjectInfo(origin: ProjectInfo): ProjectInfo {
+  return new ProjectInfo({
+    ...origin,
+    pipelineDefinition: loadPipelineDefinition(origin.pipelineDefinition)
+  });
 }
 
 
 export class ProjectGroup {
   name: string;
-  projects: ProjectInfoExt[];
+  projects: ProjectInfo[];
 }
 
 declare module './winslow-api' {

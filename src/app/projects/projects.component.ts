@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
-import {ProjectInfoExt, ProjectApiService, ProjectGroup} from '../api/project-api.service';
+import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
@@ -15,7 +15,7 @@ import {UserApiService} from '../api/user-api.service';
 import {FilesApiService} from '../api/files-api.service';
 import {GroupActionsComponent} from '../group-actions/group-actions.component';
 import {LocalStorageService} from '../api/local-storage.service';
-import {StateInfo} from '../api/winslow-api';
+import {ProjectInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-projects',
@@ -26,12 +26,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
 
-  projects: ProjectInfoExt[] = [];
-  projectsFiltered: ProjectInfoExt[] = null;
+  projects: ProjectInfo[] = [];
+  projectsFiltered: ProjectInfo[] = null;
   projectsGroups: ProjectGroup[] = [];
   stateInfo: Map<string, StateInfo> = null;
   interval;
-  selectedProject: ProjectInfoExt = null;
+  selectedProject: ProjectInfo = null;
   selectedProjectId: string = null;
 
   paramsSubscription: Subscription = null;
@@ -156,7 +156,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
   }
 
-  stopLoading(project: ProjectInfoExt) {
+  stopLoading(project: ProjectInfo) {
     if (project != null) {
       this.views.forEach(view => {
         if (view.project.id === project.id) {
@@ -166,7 +166,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  startLoading(project: ProjectInfoExt) {
+  startLoading(project: ProjectInfo) {
     if (project != null) {
       this.views.forEach(view => {
         if (view.project.id === project.id) {
@@ -180,7 +180,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDeleted(project: ProjectInfoExt) {
+  onDeleted(project: ProjectInfo) {
     for (let i = 0; i < this.projects.length; ++i) {
       if (this.projects[i].id === project.id) {
         this.projects.splice(i, 1);
@@ -200,7 +200,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectProject(project: ProjectInfoExt) {
+  selectProject(project: ProjectInfo) {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
     });

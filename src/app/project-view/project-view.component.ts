@@ -15,7 +15,6 @@ import {
   AuthTokenInfo,
   DeletionPolicy,
   EnvVariable,
-  ProjectInfoExt,
   ParseError,
   ProjectApiService,
 } from '../api/project-api.service';
@@ -42,7 +41,7 @@ import {
   WorkspaceMode,
   StateInfo,
   ExecutionGroupInfo,
-  StageWorkerDefinitionInfo, ResourceLimitation, WorkspaceConfiguration
+  StageWorkerDefinitionInfo, ResourceLimitation, WorkspaceConfiguration, ProjectInfo
 } from '../api/winslow-api';
 
 
@@ -63,7 +62,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   @Input()
-  public set project(value: ProjectInfoExt) {
+  public set project(value: ProjectInfo) {
     const changed = this.projectValue?.id !== value?.id;
     this.projectValue = value;
 
@@ -100,7 +99,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   }
 
-  public get project(): ProjectInfoExt {
+  public get project(): ProjectInfo {
     return this.projectValue;
   }
 
@@ -117,7 +116,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   @ViewChild('tabGroup') tabs: MatTabGroup;
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
 
-  projectValue: ProjectInfoExt;
+  projectValue: ProjectInfo;
   probablyProjectPipelineId = null;
 
   @Output('state') private stateEmitter = new EventEmitter<State>();
@@ -516,7 +515,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     return this.longLoading.isLongLoading();
   }
 
-  openFolder(project: ProjectInfoExt, group: ExecutionGroupInfo) {
+  openFolder(project: ProjectInfo, group: ExecutionGroupInfo) {
     if (group != null && group.stages != null && group.stages.length > 0) {
       const stage = group.stages[group.stages.length - 1];
       this.tabs.selectedIndex = Tab.Files;
@@ -525,13 +524,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-  openWorkspace(project: ProjectInfoExt, stage: StageInfo) {
+  openWorkspace(project: ProjectInfo, stage: StageInfo) {
     this.tabs.selectedIndex = Tab.Files;
     this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
   }
 
-  openTensorboard(project: ProjectInfoExt, entry: StageInfo) {
+  openTensorboard(project: ProjectInfo, entry: StageInfo) {
     window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.id}/start`, '_blank');
   }
 

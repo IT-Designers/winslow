@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {ProjectInfoExt, ProjectApiService, StatsInfo} from '../api/project-api.service';
+import {ProjectApiService, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {pipe, Subscription} from 'rxjs';
-import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, StageInfo, State} from '../api/winslow-api';
+import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo, State} from '../api/winslow-api';
 
 
 @Component({
@@ -22,8 +22,8 @@ export class ProjectOverviewComponent implements OnDestroy {
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
 
-  @Output() openFiles = new EventEmitter<ProjectInfoExt>();
-  @Output() openLogs = new EventEmitter<ProjectInfoExt>();
+  @Output() openFiles = new EventEmitter<ProjectInfo>();
+  @Output() openLogs = new EventEmitter<ProjectInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo?]>();
   @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfo>();
@@ -44,7 +44,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   seriesInitialized = false;
 
   mostRecent: ExecutionGroupInfo = null;
-  projectValue: ProjectInfoExt;
+  projectValue: ProjectInfo;
   memory: any[] = [];
   memoryMax = 1;
   cpu: any[] = [];
@@ -202,7 +202,7 @@ export class ProjectOverviewComponent implements OnDestroy {
 
 
   @Input()
-  set project(value: ProjectInfoExt) {
+  set project(value: ProjectInfo) {
     this.projectValue = value;
     this.unsubscribe();
     this.subscribe();

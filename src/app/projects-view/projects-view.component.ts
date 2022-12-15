@@ -1,10 +1,10 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectInfoExt, ProjectGroup} from '../api/project-api.service';
+import {ProjectGroup} from '../api/project-api.service';
 import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FilesApiService} from '../api/files-api.service';
 import {DialogService} from '../dialog.service';
-import {StateInfo} from '../api/winslow-api';
+import {ProjectInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-projects-view',
@@ -13,10 +13,10 @@ import {StateInfo} from '../api/winslow-api';
 })
 export class ProjectsViewComponent implements OnInit {
 
-  @Input() projects: ProjectInfoExt[];
-  @Input() projectsFiltered: ProjectInfoExt[];
+  @Input() projects: ProjectInfo[];
+  @Input() projectsFiltered: ProjectInfo[];
   @Input() projectsGroups: ProjectGroup[];
-  @Input() selectedProject: ProjectInfoExt;
+  @Input() selectedProject: ProjectInfo;
   @Input() stateInfo: Map<string, StateInfo>;
   @Input() filter: TagFilterComponent;
   @Input() groupsOnTop: boolean;
@@ -34,13 +34,13 @@ export class ProjectsViewComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  selectProject(project: ProjectInfoExt) {
+  selectProject(project: ProjectInfo) {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
     });
   }
 
-  thumbnailUrl(project: ProjectInfoExt) {
+  thumbnailUrl(project: ProjectInfo) {
     return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
   }
 
