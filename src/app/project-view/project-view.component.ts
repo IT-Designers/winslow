@@ -17,7 +17,6 @@ import {
   EnvVariable,
   ProjectInfoExt,
   ResourceLimitationExt,
-  WorkspaceConfigurationExt,
   ParseError,
   ProjectApiService,
 } from '../api/project-api.service';
@@ -44,7 +43,7 @@ import {
   WorkspaceMode,
   StateInfo,
   ExecutionGroupInfo,
-  StageWorkerDefinitionInfo
+  StageWorkerDefinitionInfo, WorkspaceConfiguration
 } from '../api/winslow-api';
 
 
@@ -366,7 +365,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     rangedEnv: any,
     image: ImageInfo,
     requiredResources?: ResourceInfo,
-    workspaceConfiguration?: WorkspaceConfigurationExt,
+    workspaceConfiguration?: WorkspaceConfiguration,
     comment?: string,
     runSingle?: boolean,
     resume?: boolean,
