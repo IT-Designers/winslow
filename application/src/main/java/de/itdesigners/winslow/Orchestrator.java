@@ -1038,6 +1038,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull
     private Executor startExecutor(@Nonnull StageId stageId) throws LockException, FileNotFoundException {
         var executor = new Executor(stageId.getProjectId(), stageId, this);
+        this.executors.put(stageId.getFullyQualified(), executor);
         executor.addShutdownListener(() -> {
             try {
                 var ex = this.executors.remove(stageId.getFullyQualified());
@@ -1051,7 +1052,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         executor.addShutdownCompletedListener(() -> this.pollPipelineForUpdate(stageId.getProjectId()));
         executor.addLogEntryConsumer(getProgressHintMatcher(stageId.getFullyQualified()));
         executor.addLogEntryConsumer(getResultMatcher(stageId.getFullyQualified()));
-        this.executors.put(stageId.getFullyQualified(), executor);
+        executor.start();
         return executor;
     }
 
