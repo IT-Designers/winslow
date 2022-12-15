@@ -529,7 +529,7 @@ export class AuthTokenInfo {
   capabilities: string[];
 }
 
-export function loadExecutionGroupInfo(origin: ExecutionGroupInfo) {
+export function loadExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {
   return new ExecutionGroupInfo({
     ...origin,
     stages: origin.stages.map(stage => loadStageInfo(stage)),
