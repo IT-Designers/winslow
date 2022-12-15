@@ -15,8 +15,10 @@ import {
   AuthTokenInfo,
   DeletionPolicy,
   EnvVariable,
-  ExecutionGroupInfoExt,
-  ProjectInfoExt, ResourceLimitationExt, StageInfoExt, WorkspaceConfigurationExt,
+  ProjectInfoExt,
+  ResourceLimitationExt,
+  StageInfoExt,
+  WorkspaceConfigurationExt,
   ParseError,
   ProjectApiService,
 } from '../api/project-api.service';
@@ -39,7 +41,11 @@ import {
   ResourceInfo,
   StageDefinitionInfo,
   StageInfo,
-  State, WorkspaceMode, StateInfo, ExecutionGroupInfo, StageWorkerDefinitionInfo
+  State,
+  WorkspaceMode,
+  StateInfo,
+  ExecutionGroupInfo,
+  StageWorkerDefinitionInfo
 } from '../api/winslow-api';
 
 
@@ -126,7 +132,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   stageIdToDisplayLogsFor: string = null;
   stateValue?: State = null;
 
-  history: ExecutionGroupInfoExt[] = [];
+  history: ExecutionGroupInfo[] = [];
   subscribedProjectId: string = null;
   historySubscription: Subscription = null;
   historyEnqueued = 0;
@@ -149,10 +155,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   selectedPipeline: PipelineDefinitionInfo = null;
   selectedStage: StageDefinitionInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
-  //defaultEnvironmentVariables: Map<string, string> = null;
-  defaultEnvironmentVariables: { [p: string]: string } = null;
-  //rangedEnvironmentVariables: Map<string, RangedValue> = null;
-  rangedEnvironmentVariables: { [p: string]: IRangedValue } = null;
+  defaultEnvironmentVariables: { [index: string]: string } = null;
+  rangedEnvironmentVariables: { [index: string]: IRangedValue } = null;
   workspaceConfigurationMode: WorkspaceMode = null;
 
   rawPipelineDefinition: string = null;
@@ -166,7 +170,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   authTokens: AuthTokenInfo[] = null;
 
   historyListHeight: any;
-  selectedHistoryEntry: ExecutionGroupInfoExt = null;
+  selectedHistoryEntry: ExecutionGroupInfo = null;
   selectedHistoryEntryNumber: number;
   selectedHistoryEntryIndex = 0;
   selectedHistoryEntryStage: StageInfo;
@@ -191,7 +195,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
 
-  setHistoryEntry(entry: ExecutionGroupInfoExt, index: number) {
+  setHistoryEntry(entry: ExecutionGroupInfo, index: number) {
     this.selectedHistoryEntry = entry;
     this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.id, this.history.length - index);
     this.selectedHistoryEntryIndex = index;
@@ -508,7 +512,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     return this.longLoading.isLongLoading();
   }
 
-  openFolder(project: ProjectInfoExt, group: ExecutionGroupInfoExt) {
+  openFolder(project: ProjectInfoExt, group: ExecutionGroupInfo) {
     if (group != null && group.stages != null && group.stages.length > 0) {
       const stage = group.stages[group.stages.length - 1];
       this.tabs.selectedIndex = Tab.Files;
@@ -578,16 +582,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  useAsBlueprint(group: ExecutionGroupInfoExt, entry?: StageInfo) {
+  useAsBlueprint(group: ExecutionGroupInfo, entry?: StageInfo) {
     console.log('useAsBlueprint ' + (group.stageDefinition instanceof StageWorkerDefinitionInfo));
     if (group.stageDefinition instanceof StageWorkerDefinitionInfo) {
       this.executionSelection.image = group.stageDefinition.image;
-      // TODO this.executionSelection.resources = group.stageDefinition.requiredResources;
+      this.executionSelection.resources = group.stageDefinition.requiredResources;
       this.executionSelection.selectedStage = group.stageDefinition;
       this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
       this.executionSelection.comment = group.comment;
       this.environmentVariables = new Map();
-      // TODO this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.env;
+      this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.environment;
       this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
       this.rangedEnvironmentVariables = this.rangedEnvironmentVariables ?? {};
       this.tabs.selectedIndex = Tab.Control;

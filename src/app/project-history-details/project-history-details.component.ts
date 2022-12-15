@@ -1,6 +1,6 @@
-import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import {ExecutionGroupInfoExt, StageInfoExt} from '../api/project-api.service';
-import {State} from '../api/winslow-api';
+import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
+import {StageInfoExt} from '../api/project-api.service';
+import {ExecutionGroupInfo, State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
@@ -9,20 +9,20 @@ import {State} from '../api/winslow-api';
 })
 export class ProjectHistoryDetailsComponent implements OnInit {
 
-  @Input() entry: ExecutionGroupInfoExt;
+  @Input() entry: ExecutionGroupInfo;
   @Input() entryNumber: number;
   @Input() stageNumber: number;
   @Input() selectedStage: StageInfoExt;
   @Input() projectState: State;
   @Input() firstEntry = true;
-  @Input() executionGroup: ExecutionGroupInfoExt;
+  @Input() executionGroup: ExecutionGroupInfo;
   @Input() expanded = false;
   @Input() pipelineIsPaused: boolean = null;
 
-  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickDelete = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickKillStage = new EventEmitter<StageInfoExt>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfoExt>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfoExt>();
@@ -31,18 +31,17 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   @Output() clickOpenTensorboard = new EventEmitter<StageInfoExt>();
 
   historyDetailsHeight: any;
-  @HostListener('window:resize', ['$event'])
-  getScreenSize(event?) {
-    this.setHistoryDetailsHeight(window.innerHeight);
-  }
-
-
   buttonValue: string;
   showStageDefinition: boolean;
 
   constructor() {
-    this.buttonValue = "stage-definition";
+    this.buttonValue = 'stage-definition';
     this.showStageDefinition = true;
+    this.setHistoryDetailsHeight(window.innerHeight);
+  }
+
+  @HostListener('window:resize', ['$event'])
+  getScreenSize(event?) {
     this.setHistoryDetailsHeight(window.innerHeight);
   }
 
@@ -59,12 +58,12 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   }
 
   getStageDefinition() {
-    this.onButtonValueChange("stage-definition");
+    this.onButtonValueChange('stage-definition');
     this.showStageDefinition = true;
   }
 
   getStageInformation() {
-    this.onButtonValueChange("stage-information");
+    this.onButtonValueChange('stage-information');
     this.showStageDefinition = false;
   }
 
@@ -79,5 +78,4 @@ export class ProjectHistoryDetailsComponent implements OnInit {
       return '';
     }
   }
-
 }
