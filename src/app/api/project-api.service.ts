@@ -10,7 +10,7 @@ import {ChangeEvent} from './api.service';
 import {
   ExecutionGroupInfo, ImageInfo,
   PipelineDefinitionInfo,
-  ProjectInfo, ResourceInfo, ResourceLimitation, StageAndGatewayDefinitionInfo,
+  ProjectInfo, ResourceInfo, ResourceLimitation, StageAndGatewayDefinitionInfo, StageDefinitionInfo,
   StageInfo, StageWorkerDefinitionInfo, StageXOrGatewayDefintionInfo,
   State,
   StateInfo,
@@ -534,6 +534,7 @@ export class ExecutionGroupInfoExt extends ExecutionGroupInfo {
 
   constructor(origin: ExecutionGroupInfo) {
     origin.stages = origin.stages.map(stage => new StageInfoExt(stage));
+    origin.stageDefinition = loadStageDefinitionInstance(origin.stageDefinition);
     super(origin);
   }
 
@@ -633,21 +634,23 @@ export class StageInfoExt extends StageInfo {
 
 export class PipelineDefinitionInfoExt extends PipelineDefinitionInfo {
   constructor(origin: PipelineDefinitionInfo) {
-    origin.stages = origin.stages.map(stage => {
-      const type = stage['@type'];
-      if (type === 'Worker') {
-        return new StageWorkerDefinitionInfo(stage as StageWorkerDefinitionInfo);
-      } else if (type === 'XorGateway') {
-        return new StageXOrGatewayDefintionInfo(stage as StageXOrGatewayDefintionInfo);
-      } else if (type === 'AndGateway') {
-        return new StageAndGatewayDefinitionInfo(stage as StageAndGatewayDefinitionInfo);
-      } else {
-        // TODO
-        console.error(`Unexpected StageDefinitionInfo type ${type}`);
-        return stage;
-      }
-    });
+    origin.stages = origin.stages.map(stage => loadStageDefinitionInstance(stage));
     super(origin);
+  }
+}
+
+function loadStageDefinitionInstance(stage: StageDefinitionInfo): StageDefinitionInfo {
+  const type = stage['@type'];
+  if (type === 'Worker') {
+    return new StageWorkerDefinitionInfo(stage as StageWorkerDefinitionInfo);
+  } else if (type === 'XorGateway') {
+    return new StageXOrGatewayDefintionInfo(stage as StageXOrGatewayDefintionInfo);
+  } else if (type === 'AndGateway') {
+    return new StageAndGatewayDefinitionInfo(stage as StageAndGatewayDefinitionInfo);
+  } else {
+    // TODO
+    console.error(`Unexpected StageDefinitionInfo type ${type}`);
+    return stage;
   }
 }
 
