@@ -533,7 +533,7 @@ class ExecutionGroupInfoExt extends ExecutionGroupInfo {
   constructor(origin: ExecutionGroupInfo) {
     super({
       ...origin,
-      stages: origin.stages.map(stage => new StageInfoExt(stage)),
+      stages: origin.stages.map(stage => loadStageInfo(stage)),
       stageDefinition: loadStageDefinition(origin.stageDefinition)
     });
   }
@@ -635,10 +635,8 @@ ExecutionGroupInfo.prototype.getGroupSize = function(): number {
 };
 
 
-class StageInfoExt extends StageInfo {
-  constructor(origin: StageInfo = null) {
-    super(origin);
-  }
+export function loadStageInfo(stage: StageInfo) {
+  return new StageInfo(stage);
 }
 
 export function loadStageDefinition(stage: StageDefinitionInfo): StageDefinitionInfo {
