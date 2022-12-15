@@ -10,7 +10,7 @@ import {ChangeEvent} from './api.service';
 import {
   ExecutionGroupInfo, ImageInfo,
   PipelineDefinitionInfo,
-  ProjectInfo, ResourceInfo, ResourceLimitation, StageAndGatewayDefinitionInfo,
+  ProjectInfo, ResourceInfo, ResourceLimitation, StageAndGatewayDefinitionInfo, StageDefinitionInfo,
   StageInfo, StageWorkerDefinitionInfo, StageXOrGatewayDefintionInfo,
   State,
   StateInfo,
@@ -534,6 +534,7 @@ export class ExecutionGroupInfoExt extends ExecutionGroupInfo {
 
   constructor(origin: ExecutionGroupInfo) {
     origin.stages = origin.stages.map(stage => new StageInfoExt(stage));
+    origin.stageDefinition = loadStageDefinitionInstance(origin.stageDefinition);
     super(origin);
   }
 

@@ -579,16 +579,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   useAsBlueprint(group: ExecutionGroupInfoExt, entry?: StageInfo) {
-    if (group.stageDefinition instanceof StageWorkerDefinitionInfo){
-    this.executionSelection.image = group.stageDefinition.image;
-    //TODO  this.executionSelection.resources = group.stageDefinition.requiredResources;
-    this.executionSelection.selectedStage = group.stageDefinition;
-    this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
-    this.executionSelection.comment = group.comment;
-    this.environmentVariables = new Map();
-    //TODO this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.env;
-    this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
-    this.tabs.selectedIndex = Tab.Control;
+    console.log('useAsBlueprint ' + (group.stageDefinition instanceof StageWorkerDefinitionInfo));
+    if (group.stageDefinition instanceof StageWorkerDefinitionInfo) {
+      this.executionSelection.image = group.stageDefinition.image;
+      // TODO this.executionSelection.resources = group.stageDefinition.requiredResources;
+      this.executionSelection.selectedStage = group.stageDefinition;
+      this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
+      this.executionSelection.comment = group.comment;
+      this.environmentVariables = new Map();
+      // TODO this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.env;
+      this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
+      this.rangedEnvironmentVariables = this.rangedEnvironmentVariables ?? {};
+      this.tabs.selectedIndex = Tab.Control;
     }
   }
 
