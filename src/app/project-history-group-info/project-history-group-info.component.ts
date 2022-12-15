@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {StageInfoExt, ProjectApiService} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 import {ExecutionGroupInfo, StageInfo} from '../api/winslow-api';
 
 @Component({
@@ -16,13 +16,13 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   @Input() visibleStages = 10;
   @Input() selectedStageIndex: number;
   @Output() selectedStageIndexChange = new EventEmitter<number>();
-  @Output() clickKillStage = new EventEmitter<StageInfoExt>();
-  @Output() clickUseAsBlueprint = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenWorkspace = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenLogs = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenAnalysis = new EventEmitter<StageInfoExt>();
-  @Output() clickOpenTensorboard = new EventEmitter<StageInfoExt>();
-  @Output() clickGetStage = new EventEmitter<StageInfoExt>();
+  @Output() clickKillStage = new EventEmitter<StageInfo>();
+  @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
+  @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
+  @Output() clickOpenLogs = new EventEmitter<StageInfo>();
+  @Output() clickOpenAnalysis = new EventEmitter<StageInfo>();
+  @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
+  @Output() clickGetStage = new EventEmitter<StageInfo>();
 
   constructor(private api: ProjectApiService) { }
 
@@ -30,7 +30,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
   }
 
-  emitStageAndSetIndex(stage: StageInfoExt, index: number) {
+  emitStageAndSetIndex(stage: StageInfo, index: number) {
     this.clickGetStage.emit(stage);
     this.selectedStageIndex = index;
     this.selectedStageIndexChange.emit(index);
