@@ -36,7 +36,7 @@ export class ProjectApiService {
   }
 
   private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
-    return groups.map(origin => new ExecutionGroupInfoExt(origin));
+    return groups.map(origin => loadExecutionGroupInfo(origin));
   }
 
   static toMap(entry) {
@@ -529,14 +529,12 @@ export class AuthTokenInfo {
   capabilities: string[];
 }
 
-class ExecutionGroupInfoExt extends ExecutionGroupInfo {
-  constructor(origin: ExecutionGroupInfo) {
-    super({
-      ...origin,
-      stages: origin.stages.map(stage => loadStageInfo(stage)),
-      stageDefinition: loadStageDefinition(origin.stageDefinition)
-    });
-  }
+export function loadExecutionGroupInfo(origin: ExecutionGroupInfo) {
+  return new ExecutionGroupInfo({
+    ...origin,
+    stages: origin.stages.map(stage => loadStageInfo(stage)),
+    stageDefinition: loadStageDefinition(origin.stageDefinition)
+  });
 }
 
 declare module './winslow-api' {
