@@ -540,13 +540,21 @@ export function loadExecutionGroupInfo(origin: ExecutionGroupInfo) {
 declare module './winslow-api' {
   interface ExecutionGroupInfo {
     enqueueIndex?: number;
+
     rangedValuesKeys(): string[];
+
     hasStagesState(state: State): boolean;
+
     getMostRecentStage(): StageInfo;
+
     getMostRecentStartOrFinishTime(): number;
+
     getMostRelevantState(projectState: State): State;
+
     isMostRecentStateRunning(): boolean;
+
     hasRunningStages(): boolean;
+
     getGroupSize(): number;
   }
 }
@@ -702,20 +710,14 @@ export class StatsInfo {
   memoryMaximum = 0;
 }
 
-
-export class WorkspaceConfigurationExt extends WorkspaceConfiguration {
-
-
-  // @ts-ignore
-  static create(mode: WorkspaceMode = 'INCREMENTAL',
-                value: string = null,
-                sharedWithinGroup: boolean = false,
-                nestedWithinGroup: boolean = true) {
-    return new WorkspaceConfigurationExt({
-      mode, value, sharedWithinGroup, nestedWithinGroup
-    });
-  }
-
+export function createWorkspaceConfiguration(
+  mode: WorkspaceMode = 'INCREMENTAL',
+  value: string = null,
+  sharedWithinGroup: boolean = false,
+  nestedWithinGroup: boolean = true) {
+  return new WorkspaceConfiguration({
+    mode, value, sharedWithinGroup, nestedWithinGroup
+  });
 }
 
 export class ResourceLimitationExt extends ResourceLimitation {
