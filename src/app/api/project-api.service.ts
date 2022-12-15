@@ -533,7 +533,7 @@ class ExecutionGroupInfoExt extends ExecutionGroupInfo {
   constructor(origin: ExecutionGroupInfo) {
     super({
       ...origin,
-      stages: origin.stages.map(stage => new StageInfoExt(stage)),
+      stages: origin.stages.map(stage => loadStageInfo(stage)),
       stageDefinition: loadStageDefinition(origin.stageDefinition)
     });
   }
