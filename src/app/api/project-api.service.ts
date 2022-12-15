@@ -17,6 +17,7 @@ import {
   WorkspaceConfiguration,
   WorkspaceMode
 } from './winslow-api';
+import {loadPipelineDefinition} from './pipeline-api.service';
 
 
 @Injectable({
@@ -442,7 +443,7 @@ export class ProjectApiService {
 
 export class ProjectInfoExt extends ProjectInfo {
   constructor(data: ProjectInfo) {
-    data.pipelineDefinition = new PipelineDefinitionInfoExt(data.pipelineDefinition);
+    data.pipelineDefinition = loadPipelineDefinition(data.pipelineDefinition);
     super(data);
   }
 }
@@ -533,7 +534,7 @@ class ExecutionGroupInfoExt extends ExecutionGroupInfo {
     super({
       ...origin,
       stages: origin.stages.map(stage => new StageInfoExt(stage)),
-      stageDefinition: loadStageDefinitionInstance(origin.stageDefinition)
+      stageDefinition: loadStageDefinition(origin.stageDefinition)
     });
   }
 }
@@ -638,17 +639,9 @@ class StageInfoExt extends StageInfo {
   constructor(origin: StageInfo = null) {
     super(origin);
   }
-
 }
 
-export class PipelineDefinitionInfoExt extends PipelineDefinitionInfo {
-  constructor(origin: PipelineDefinitionInfo) {
-    origin.stages = origin.stages.map(stage => loadStageDefinitionInstance(stage));
-    super(origin);
-  }
-}
-
-function loadStageDefinitionInstance(stage: StageDefinitionInfo): StageDefinitionInfo {
+export function loadStageDefinition(stage: StageDefinitionInfo): StageDefinitionInfo {
   const type = stage['@type'];
   if (type === 'Worker') {
     return new StageWorkerDefinitionInfo(stage as StageWorkerDefinitionInfo);
