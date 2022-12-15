@@ -369,17 +369,17 @@ export class ProjectApiService {
   }
 
 
-  getResourceLimitation(projectId: string): Promise<ResourceLimitationExt> {
+  getResourceLimitation(projectId: string): Promise<ResourceLimitation> {
     return this
       .client
-      .get<ResourceLimitationExt>(ProjectApiService.getUrl(`${projectId}/resource-limitation`))
+      .get<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`))
       .toPromise();
   }
 
-  setResourceLimitation(projectId: string, limit: ResourceLimitationExt): Promise<ResourceLimitationExt> {
+  setResourceLimitation(projectId: string, limit: ResourceLimitation): Promise<ResourceLimitation> {
     return this
       .client
-      .put<ResourceLimitationExt>(ProjectApiService.getUrl(`${projectId}/resource-limitation`), limit)
+      .put<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`), limit)
       .toPromise();
   }
 
@@ -720,18 +720,21 @@ export function createWorkspaceConfiguration(
   });
 }
 
-export class ResourceLimitationExt extends ResourceLimitation {
 
-  static create(cpu: number = null, mem: number = null, gpu: number = null) {
-    return new ResourceLimitationExt({cpu, mem, gpu});
-  }
-
-  static equals(a?: ResourceLimitation, b?: ResourceLimitation) {
-    if (a != null && b != null) {
-      return a.cpu === b.cpu && a.mem === b.mem && a.gpu === b.gpu;
-    } else {
-      return a == null && b == null;
-    }
-  }
+export function loadResourceLimitation(origin: ResourceLimitation): ResourceLimitation {
+  return new ResourceLimitation({
+    ...origin
+  });
 }
 
+export function createResourceLimitation(cpu: number = null, mem: number = null, gpu: number = null): ResourceLimitation {
+  return new ResourceLimitation({cpu, mem, gpu});
+}
+
+export function similarResourceLimitation(a?: ResourceLimitation, b?: ResourceLimitation) {
+  if (a != null && b != null) {
+    return a.cpu === b.cpu && a.mem === b.mem && a.gpu === b.gpu;
+  } else {
+    return a == null && b == null;
+  }
+}

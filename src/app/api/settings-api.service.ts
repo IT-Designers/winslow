@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
 import {ResourceLimitation} from './winslow-api';
-import {ResourceLimitationExt} from './project-api.service';
+import {loadResourceLimitation} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,17 +31,15 @@ export class SettingsApiService {
       .toPromise();
   }
 
-  getUserResourceLimitation(): Promise<ResourceLimitationExt> {
-    return this.client.get<ResourceLimitationExt>(SettingsApiService.getUrl('user-res-limit'))
-      .pipe(map(response => new ResourceLimitationExt(response)))
+  getUserResourceLimitation(): Promise<ResourceLimitation> {
+    return this.client.get<ResourceLimitation>(SettingsApiService.getUrl('user-res-limit'))
+      .pipe(map(response => loadResourceLimitation(response)))
       .toPromise();
   }
 
-  setUserResourceLimitation(limit: ResourceLimitationExt): Promise<ResourceLimitationExt> {
-    return this.client.post<ResourceLimitationExt>(SettingsApiService.getUrl('user-res-limit'), limit)
-      .pipe(map(response => new ResourceLimitationExt(response)))
+  setUserResourceLimitation(limit: ResourceLimitation): Promise<ResourceLimitation> {
+    return this.client.post<ResourceLimitation>(SettingsApiService.getUrl('user-res-limit'), limit)
+      .pipe(map(response => loadResourceLimitation(response)))
       .toPromise();
   }
 }
-
-
