@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfoExt, StageInfoExt, ProjectApiService} from '../api/project-api.service';
-import {StageInfo, State} from '../api/winslow-api';
+import {StageInfoExt, ProjectApiService} from '../api/project-api.service';
+import {ExecutionGroupInfo, StageInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-group-info',
@@ -12,7 +12,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
 
 
 
-  @Input() executionGroup: ExecutionGroupInfoExt;
+  @Input() executionGroup: ExecutionGroupInfo;
   @Input() visibleStages = 10;
   @Input() selectedStageIndex: number;
   @Output() selectedStageIndexChange = new EventEmitter<number>();
@@ -59,7 +59,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   getRangeEnvVariableValues(stage: StageInfo): string {
     if (this.executionGroup.getGroupSize() > 1) {
       return [...this.executionGroup
-        .rangedValues_keys() ]
+        .rangedValuesKeys() ]
         .sort()
         .map(e => e + '=' + stage.env[e])
         .join(', ');
@@ -68,7 +68,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
     }
   }
 
-  trackExecutionGroup(value: ExecutionGroupInfoExt): string {
+  trackExecutionGroup(value: ExecutionGroupInfo): string {
     return value.id;
   }
 

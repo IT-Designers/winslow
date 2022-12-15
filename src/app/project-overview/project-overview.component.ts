@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {ExecutionGroupInfoExt, ProjectInfoExt, ProjectApiService, StatsInfo} from '../api/project-api.service';
+import {ProjectInfoExt, ProjectApiService, StatsInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {pipe, Subscription} from 'rxjs';
-import {Action, PipelineDefinitionInfo, StageInfo, State} from '../api/winslow-api';
+import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, StageInfo, State} from '../api/winslow-api';
 
 
 @Component({
@@ -24,11 +24,11 @@ export class ProjectOverviewComponent implements OnDestroy {
 
   @Output() openFiles = new EventEmitter<ProjectInfoExt>();
   @Output() openLogs = new EventEmitter<ProjectInfoExt>();
-  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfoExt, StageInfo?]>();
-  @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickPause = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo?]>();
+  @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickPause = new EventEmitter<ExecutionGroupInfo>();
 
   nodeName: string;
 
@@ -43,7 +43,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   lastSuccessfulStatsUpdate = 0;
   seriesInitialized = false;
 
-  mostRecent: ExecutionGroupInfoExt = null;
+  mostRecent: ExecutionGroupInfo = null;
   projectValue: ProjectInfoExt;
   memory: any[] = [];
   memoryMax = 1;
@@ -52,7 +52,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   cpuLimit = 0;
   subscription: Subscription = null;
 
-  enqueued: ExecutionGroupInfoExt[] = [];
+  enqueued: ExecutionGroupInfo[] = [];
   pipelineActions: PipelineDefinitionInfo[] = [];
 
   mergeOptionCpu = {};
@@ -218,7 +218,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   @Input()
-  set history(history: ExecutionGroupInfoExt[]) {
+  set history(history: ExecutionGroupInfo[]) {
     this.mostRecent = null;
     this.enqueued = [];
     if (history && history.length > 0) {

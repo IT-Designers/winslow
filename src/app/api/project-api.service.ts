@@ -34,7 +34,7 @@ export class ProjectApiService {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
-  private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfoExt[]): ExecutionGroupInfoExt[] {
+  private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
     return groups.map(origin => new ExecutionGroupInfoExt(origin));
   }
 
@@ -87,9 +87,9 @@ export class ProjectApiService {
   private watchProjectExecutionGroupInfo(
     projectId: string,
     specialization: string,
-    listener: (update: ExecutionGroupInfoExt[]) => void): Subscription {
+    listener: (update: ExecutionGroupInfo[]) => void): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/${specialization}`).subscribe((message: Message) => {
-      const events: ChangeEvent<string, ExecutionGroupInfoExt[]>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, ExecutionGroupInfo[]>[] = JSON.parse(message.body);
       events.forEach(event => {
         if (event.identifier === projectId) {
           listener(event.value ? ProjectApiService.fixExecutionGroupInfoArray(event.value) : []);
@@ -98,15 +98,15 @@ export class ProjectApiService {
     });
   }
 
-  public watchProjectHistory(projectId: string, listener: (update: ExecutionGroupInfoExt[]) => void): Subscription {
+  public watchProjectHistory(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'history', listener);
   }
 
-  public watchProjectExecutions(projectId: string, listener: (update: ExecutionGroupInfoExt[]) => void): Subscription {
+  public watchProjectExecutions(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'executing', listener);
   }
 
-  public watchProjectEnqueued(projectId: string, listener: (update: ExecutionGroupInfoExt[]) => void): Subscription {
+  public watchProjectEnqueued(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'enqueued', groups => {
       if (groups != null) {
         for (let i = 0; i < groups.length; ++i) {
@@ -159,14 +159,14 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfoExt[]> {
-    return this.client.get<ExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
+  getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
-  getProjectHistory(projectId: string): Promise<ExecutionGroupInfoExt[]> {
-    return this.client.get<ExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/history`))
+  getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history`))
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
@@ -345,10 +345,10 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  pruneHistory(projectId: string): Promise<ExecutionGroupInfoExt[]> {
+  pruneHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
     return this
       .client
-      .post<ExecutionGroupInfoExt[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
+      .post<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
       .toPromise()
       .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
@@ -528,106 +528,115 @@ export class AuthTokenInfo {
   capabilities: string[];
 }
 
-
-export class ExecutionGroupInfoExt extends ExecutionGroupInfo {
-  enqueueIndex?: number;
-
+class ExecutionGroupInfoExt extends ExecutionGroupInfo {
   constructor(origin: ExecutionGroupInfo) {
-    origin.stages = origin.stages.map(stage => new StageInfoExt(stage));
-    origin.stageDefinition = loadStageDefinitionInstance(origin.stageDefinition);
-    super(origin);
-  }
-
-
-  public rangedValues_keys() {
-    return Object.keys(this.rangedValues);
-  }
-
-  hasStagesState(state: State): boolean {
-    for (const stage of this.stages) {
-      if (stage.state === state) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public getMostRecentStage(): StageInfo {
-    for (const stage of [...this.stages].reverse()) {
-      if (stage.finishTime != null) {
-        return stage;
-      } else if (stage.startTime != null) {
-        return stage;
-      }
-    }
-    return null;
-  }
-
-  public getMostRecentStartOrFinishTime(): number {
-    const stage = this.getMostRecentStage();
-    if (stage == null) {
-      return null;
-    } else if (stage.startTime != null) {
-      return stage.startTime;
-    } else if (stage?.finishTime != null) {
-      return stage.finishTime;
-    } else {
-      return null;
-    }
-  }
-
-  public getMostRelevantState(projectState: State = null): State {
-    const states: Array<State> = ['Running', 'Preparing', 'Failed'];
-    for (const state of states) {
-      if (this.hasStagesState(state)) {
-        return state;
-      }
-    }
-    if (this.enqueued) {
-      return 'Enqueued';
-    } else if (this.active) {
-      const alternative = projectState === 'Paused' ? 'Paused' : 'Preparing';
-      return this.getMostRecentStage()?.state ?? alternative;
-    } else {
-      return this.getMostRecentStage()?.state ?? 'Skipped';
-    }
-  }
-
-  public isMostRecentStateRunning() {
-    return this.getMostRelevantState() === 'Running';
-  }
-
-  public hasRunningStages(): boolean {
-    for (const stage of this.stages) {
-      if (stage.state === 'Running') {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public getGroupSize(): number {
-    const rvKeys = Object.keys(this.rangedValues);
-
-    if (rvKeys.length > 0) {
-      let size = 0;
-      for (const entry of Object.entries(this.rangedValues)) {
-
-        size += entry[1].getStageCount();
-      }
-      return size;
-    } else {
-      return 1;
-    }
+    super({
+      ...origin,
+      stages: origin.stages.map(stage => new StageInfoExt(stage)),
+      stageDefinition: loadStageDefinitionInstance(origin.stageDefinition)
+    });
   }
 }
+
+declare module './winslow-api' {
+  interface ExecutionGroupInfo {
+    enqueueIndex?: number;
+    rangedValuesKeys(): string[];
+    hasStagesState(state: State): boolean;
+    getMostRecentStage(): StageInfo;
+    getMostRecentStartOrFinishTime(): number;
+    getMostRelevantState(projectState: State): State;
+    isMostRecentStateRunning(): boolean;
+    hasRunningStages(): boolean;
+    getGroupSize(): number;
+  }
+}
+
+ExecutionGroupInfo.prototype.rangedValuesKeys = function(): string[] {
+  return Object.keys(this.rangedValues);
+};
+
+ExecutionGroupInfo.prototype.hasStagesState = function(state: State): boolean {
+  for (const stage of this.stages) {
+    if (stage.state === state) {
+      return true;
+    }
+  }
+  return false;
+};
+
+ExecutionGroupInfo.prototype.getMostRecentStage = function(): StageInfo {
+  for (const stage of [...this.stages].reverse()) {
+    if (stage.finishTime != null) {
+      return stage;
+    } else if (stage.startTime != null) {
+      return stage;
+    }
+  }
+  return null;
+};
+
+ExecutionGroupInfo.prototype.getMostRecentStartOrFinishTime = function(): number {
+  const stage = this.getMostRecentStage();
+  if (stage == null) {
+    return null;
+  } else if (stage.startTime != null) {
+    return stage.startTime;
+  } else if (stage?.finishTime != null) {
+    return stage.finishTime;
+  } else {
+    return null;
+  }
+};
+
+ExecutionGroupInfo.prototype.getMostRelevantState = function(projectState: State = null): State {
+  const states: Array<State> = ['Running', 'Preparing', 'Failed'];
+  for (const state of states) {
+    if (this.hasStagesState(state)) {
+      return state;
+    }
+  }
+  if (this.enqueued) {
+    return 'Enqueued';
+  } else if (this.active) {
+    const alternative = projectState === 'Paused' ? 'Paused' : 'Preparing';
+    return this.getMostRecentStage()?.state ?? alternative;
+  } else {
+    return this.getMostRecentStage()?.state ?? 'Skipped';
+  }
+};
+
+ExecutionGroupInfo.prototype.isMostRecentStateRunning = function(): boolean {
+  return this.getMostRelevantState() === 'Running';
+};
+
+ExecutionGroupInfo.prototype.hasRunningStages = function(): boolean {
+  for (const stage of this.stages) {
+    if (stage.state === 'Running') {
+      return true;
+    }
+  }
+  return false;
+};
+
+ExecutionGroupInfo.prototype.getGroupSize = function(): number {
+  const rvKeys = Object.keys(this.rangedValues);
+
+  if (rvKeys.length > 0) {
+    let size = 0;
+    for (const entry of Object.entries(this.rangedValues)) {
+      size += (entry[1] as RangedValue).getStageCount();
+    }
+    return size;
+  } else {
+    return 1;
+  }
+};
 
 
 export class StageInfoExt extends StageInfo {
   constructor(origin: StageInfo = null) {
-    if (origin != null) {
-      super(origin);
-    }
+    super(origin);
   }
 
 }

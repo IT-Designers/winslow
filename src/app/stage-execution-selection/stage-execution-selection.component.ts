@@ -87,16 +87,16 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
-  set rangedEnvironmentVariables(map: Map<string, RangedValue>) {
-    this.rangedEnvironmentVariablesValue = map;
+  set rangedEnvironmentVariables(value: { [index: string]: any }) {
+    this.rangedEnvironmentVariablesValue = new Map(Object.entries(value));
     this.rangedEnvironmentVariablesUpdated = new Map();
     this.updateValid();
   }
 
 
   @Input()
-  set defaultEnvironmentVariables(map: Map<string, string>) {
-    this.defaultEnvironmentVariablesValue = map;
+  set defaultEnvironmentVariables(value: { [index: string]: string }) {
+    this.defaultEnvironmentVariablesValue = new Map(Object.entries(value));
     this.updateValid();
   }
 

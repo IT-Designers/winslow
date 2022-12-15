@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfoExt, ProjectApiService} from '../api/project-api.service';
-import {StageInfo, State} from '../api/winslow-api';
+import {ProjectApiService} from '../api/project-api.service';
+import {ExecutionGroupInfo, StageInfo, State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history',
@@ -14,16 +14,16 @@ export class ProjectHistoryComponent implements OnInit {
 
   @Input() firstEntry = true;
   @Input() entryNumber = 0;
-  @Input() executionGroup: ExecutionGroupInfoExt;
+  @Input() executionGroup: ExecutionGroupInfo;
   @Input() expanded = false;
   @Input() pipelineIsPaused: boolean = null;
   @Input() active = false;
   @Input() projectState: State;
 
-  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickDelete = new EventEmitter<ExecutionGroupInfoExt>();
-  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfoExt>();
+  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
@@ -50,7 +50,7 @@ export class ProjectHistoryComponent implements OnInit {
   getRangeEnvVariableValues(stage: StageInfo): string {
     if (this.executionGroup.getGroupSize() > 1) {
       return [...this.executionGroup
-        .rangedValues_keys()]
+        .rangedValuesKeys()]
         .sort()
         .map(e => e + '=' + stage.env[e])
         .join(', ');
