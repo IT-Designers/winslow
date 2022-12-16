@@ -47,6 +47,8 @@ export class ServerGroupsListComponent implements OnInit {
   displayGroups: AssignedGroupInfo[] = null;
   roles = ['OWNER', 'MEMBER'];
 
+  isServerFFA = false;
+
   constructor(private createDialog: MatDialog) {
   }
 
