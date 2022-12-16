@@ -1,10 +1,19 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
+import {ErrorStateMatcher} from '@angular/material/core';
+import {FormControl, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 
 export interface AssignedGroupInfo {
   name: string;
   role: string;
+}
+
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    const isSubmitted = form && form.submitted;
+    return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
+  }
 }
 
 @Component({
@@ -17,10 +26,20 @@ export class ServerGroupsListComponent implements OnInit {
   @Input() assignedGroups: AssignedGroupInfo[] = null;
 
   mockCpuCores = 16;
+  matcher = new MyErrorStateMatcher();
+  cpuFormControl = new FormControl('', [
+    Validators.max(this.mockCpuCores),
+  ]);
   assignedCpuCores = '0';
   mockGpus = 3;
+  gpuFormControl = new FormControl('', [
+    Validators.max(this.mockGpus),
+  ]);
   assignedGpus = '0';
   mockMaxMemory = 32768;
+  memoryFormControl = new FormControl('', [
+    Validators.max(this.mockMaxMemory),
+  ]);
   assignedMemory = '0';
   assignedMemoryNumber = 0;
 
