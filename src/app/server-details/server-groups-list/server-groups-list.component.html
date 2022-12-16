@@ -151,4 +151,105 @@
       </button>
     </div>
   </div>
+  <div class="ffa-container">
+    <div class="label-and-checkbox-container">
+      <label class="ffa-label">Free For All Server: </label>
+      <mat-checkbox [(ngModel)]="isServerFFA">
+
+      </mat-checkbox>
+    </div>
+    <div class="ffa-accordion-container">
+      <mat-accordion class="ffa-accordion">
+        <mat-expansion-panel [disabled]="!isServerFFA" [expanded]="isServerFFA">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Max. Resources per User:
+            </mat-panel-title>
+            <label class="resource-title-value">
+              {{assignedCpuCores}}/{{mockCpuCores}} CPU Cores &nbsp;
+              {{assignedGpus}}/{{mockGpus}} GPUs &nbsp;
+              {{assignedMemory}}/{{(mockMaxMemory/1024).toFixed()}} GiB &nbsp;
+            </label>
+          </mat-expansion-panel-header>
+          <div class="expansion-content-container">
+            <div class="single-resource-container">
+              <label class="resource-label">CPU Cores: </label>
+              <mat-form-field class="input-width">
+                <input type="number"
+                       matInput
+                       min="0"
+                       max="{{mockCpuCores}}"
+                       placeholder="CPU Cores"
+                       [(ngModel)]="assignedCpuCores"
+                       [formControl]="cpuFormControl"
+                       [errorStateMatcher]="matcher">
+                <mat-error *ngIf="cpuFormControl.hasError('max')">
+                  There are only {{mockCpuCores}} cores available
+                </mat-error>
+              </mat-form-field>
+              <mat-slider class="slider"
+                          min="0"
+                          max="{{mockCpuCores}}"
+                          step="1"
+                          (input)="cpuHasChanged($event)"
+                          [(ngModel)]="assignedCpuCores">
+                <input>
+              </mat-slider>
+            </div>
+            <div class="single-resource-container" [ngStyle]="{'border-left':'1px solid darkgrey', 'border-right':'1px solid darkgrey'}">
+              <label class="resource-label">GPUs: </label>
+              <mat-form-field class="input-width">
+                <input type="number"
+                       matInput
+                       min="0"
+                       max="{{mockGpus}}"
+                       placeholder="GPUs"
+                       [(ngModel)]="assignedGpus"
+                       [formControl]="gpuFormControl"
+                       [errorStateMatcher]="matcher">
+                <mat-error>
+                  There are only {{mockGpus}} GPUs available
+                </mat-error>
+              </mat-form-field>
+              <mat-slider class="slider"
+                          min="0"
+                          max="{{mockGpus}}"
+                          step="1"
+                          (input)="gpuHasChanged($event)"
+                          [(ngModel)]="assignedGpus">
+                <input>
+              </mat-slider>
+            </div>
+            <div class="single-resource-container">
+              <label class="resource-label">Memory: </label>
+              <mat-form-field class="input-width">
+                <input type="number"
+                       matInput
+                       min="0"
+                       max="{{mockMaxMemory}}"
+                       placeholder="Memory (MiB)"
+                       [ngModel]="assignedMemoryNumber"
+                       (change)="memoryInputHasChanged($event)"
+                       [formControl]="memoryFormControl"
+                       [errorStateMatcher]="matcher">
+                <mat-error>
+                  There are only {{mockMaxMemory / 1024}} GiB of Memory available
+                </mat-error>
+              </mat-form-field>
+              <mat-slider class="slider"
+                          min="0"
+                          max="{{mockMaxMemory}}"
+                          step="256"
+                          (input)="memorySliderHasChanged($event)"
+                          [(ngModel)]="assignedMemoryNumber">
+                <input>
+              </mat-slider>
+            </div>
+          </div>
+          <button mat-raised-button class="update-btn" color="primary">Update</button>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </div>
+
+  </div>
 </div>
