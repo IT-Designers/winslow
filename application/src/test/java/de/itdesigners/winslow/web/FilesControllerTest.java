@@ -1063,16 +1063,16 @@ public class FilesControllerTest {
         );
         assertNotNull(listing);
         var lookup = new HashMap<String, FileInfo>();
-        listing.forEach(fi -> lookup.put(fi.path, fi));
+        listing.forEach(fi -> lookup.put(fi.path(), fi));
 
         {
             var info = lookup.remove("/workspaces/my-project-id/stage1/some.file");
             assertNotNull(info);
-            assertEquals("some.file", info.name);
-            assertFalse(info.directory);
+            assertEquals("some.file", info.name());
+            assertFalse(info.directory());
             assertEquals(
                     (Long) (long) (SOME_FILE.getBytes(StandardCharsets.UTF_8).length),
-                    info.fileSize
+                    info.fileSize()
             );
         }
 
@@ -1124,24 +1124,24 @@ public class FilesControllerTest {
         );
         assertNotNull(listing);
         var lookup = new HashMap<String, FileInfo>();
-        listing.forEach(fi -> lookup.put(fi.path, fi));
+        listing.forEach(fi -> lookup.put(fi.path(), fi));
 
         {
             var info = lookup.remove("/resources/sub");
             assertNotNull(info);
-            assertEquals("sub", info.name);
-            assertTrue(info.directory);
-            assertNull(info.fileSize);
+            assertEquals("sub", info.name());
+            assertTrue(info.directory());
+            assertNull(info.fileSize());
         }
 
         {
             var info = lookup.remove("/resources/abc.txt");
             assertNotNull(info);
-            assertEquals("abc.txt", info.name);
-            assertFalse(info.directory);
+            assertEquals("abc.txt", info.name());
+            assertFalse(info.directory());
             assertEquals(
                     (Long) (long) (ABC_TXT.getBytes(StandardCharsets.UTF_8).length),
-                    info.fileSize
+                    info.fileSize()
             );
         }
 
