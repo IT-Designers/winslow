@@ -2,13 +2,13 @@ import {Component, Input, OnInit} from '@angular/core';
 import {ProjectApiService} from '../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import {FilesApiService, IFileInfoExt} from '../api/files-api.service';
+import {FilesApiService} from '../api/files-api.service';
 import {LogChart, LogChartDefinition} from './log-chart-definition';
 import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {getColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
-import {ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../api/winslow-api';
+import {ExecutionGroupInfo, FileInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-log-analysis',
@@ -213,7 +213,7 @@ export class LogAnalysisComponent implements OnInit {
       });
   }
 
-  private loadChart = (file: IFileInfoExt) => {
+  private loadChart = (file: FileInfo) => {
     console.log(`Loading chart ${file.name}`);
     return this.filesApi.getFile(file.path).toPromise().then(text => {
       const definition = new LogChartDefinition();
