@@ -4,8 +4,7 @@ import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.RangedList;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.StageWorkerDefinition;
+import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Stage;
 import org.junit.Test;
@@ -415,16 +414,16 @@ public class ObsoleteWorkspaceFinderTest {
                 new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "some-definition",
+                        (String) null,
+                        new Image("hello-world"),
+                        new Requirements(),
+                        new UserInput(),
                         null,
                         null,
+                        discardable != null ? discardable : false,
+                        false,
                         null,
-                        null,
-                        null,
-                        null,
-                        discardable,
-                        null,
-                        null,
-                        null,
+                        false,
                         null
                 ),
                 null,
@@ -467,16 +466,16 @@ public class ObsoleteWorkspaceFinderTest {
                 new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "some-definition",
+                        (String) null,
+                        new Image("hello-world"),
+                        new Requirements(),
+                        new UserInput(),
                         null,
                         null,
+                        discardable != null ? discardable : false,
+                        false,
                         null,
-                        null,
-                        null,
-                        null,
-                        discardable,
-                        null,
-                        null,
-                        null,
+                        false,
                         null
                 ),
                 Map.of("a", new RangedList(new String[]{"b", "c"})),

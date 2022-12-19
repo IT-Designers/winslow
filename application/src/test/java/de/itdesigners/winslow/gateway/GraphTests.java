@@ -1,10 +1,7 @@
 package de.itdesigners.winslow.gateway;
 
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
-import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.PipelineDefinition;
-import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.config.StageWorkerDefinition;
+import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
 import de.itdesigners.winslow.pipeline.Pipeline;
 import org.javatuples.Pair;
@@ -12,10 +9,7 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -74,7 +68,7 @@ public class GraphTests {
                 List.of(
                         newStupidStageDefinition(DEF_A,"stage-A", List.of(DEF_C)),
                         newStupidStageDefinition(DEF_B,"stage-B", List.of(DEF_C)),
-                        newStupidStageDefinition(DEF_C,"stage-C", null)
+                        newStupidStageDefinition(DEF_C,"stage-C", Collections.emptyList())
                 )
         );
 
@@ -484,7 +478,7 @@ public class GraphTests {
             stages.add(newStupidStageDefinition(
                     uuids.get(i),
                     stageNames[i],
-                    i + 1 < stageNames.length ? List.of(uuids.get(i + 1)) : null
+                    i + 1 < stageNames.length ? List.of(uuids.get(i + 1)) : Collections.emptyList()
             ));
         }
 
@@ -502,21 +496,20 @@ public class GraphTests {
     public static StageWorkerDefinition newStupidStageDefinition(
             @Nonnull UUID id,
             @Nonnull String name,
-            @Nullable List<UUID> next) {
-
+            @Nonnull List<UUID> next) {
         return new StageWorkerDefinition(
                 id,
                 name,
+                (String) null,
+                new Image("hello-world"),
+                new Requirements(null, null, null, null),
+                new UserInput(null, null),
                 null,
                 null,
+                false,
+                false,
                 null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
+                false,
                 next
         );
     }

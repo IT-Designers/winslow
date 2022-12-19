@@ -94,11 +94,11 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                     )
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_MB",
-                            String.valueOf(workerDefinition.requirements().getMegabytesOfRam())
+                            String.valueOf(workerDefinition.requirements().getMegabytesOfRam().orElse(0L))
                     )
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_GB",
-                            String.valueOf(workerDefinition.requirements().getMegabytesOfRam() / 1024)
+                            String.valueOf(workerDefinition.requirements().getMegabytesOfRam().orElse(0L) / 1024)
                     );
             var s = sub.withInternalEnvVariable(
                     Env.SELF_PREFIX + "_RES_GPU_COUNT",

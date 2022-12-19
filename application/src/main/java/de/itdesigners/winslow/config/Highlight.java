@@ -1,14 +1,14 @@
 package de.itdesigners.winslow.config;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
 public record Highlight(@Nonnull List<String> resources) {
 
-    public Highlight(List<String> resources) {
-        this.resources = resources != null? resources : Collections.emptyList();
+    public Highlight(@Nullable List<String> resources) {
+        this.resources = resources != null ? resources : Collections.emptyList();
     }
 
     @Override

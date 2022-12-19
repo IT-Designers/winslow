@@ -7,64 +7,93 @@ import java.util.*;
 public record StageWorkerDefinition(
         @Nonnull UUID id,
         @Nonnull String name,
-        @Nonnull String description,
+        @Nonnull Optional<String> description,
         @Nonnull Image image,
         @Nonnull Requirements requirements,
         @Nonnull UserInput userInput,
         @Nonnull Map<String, String> environment,
-        @Nonnull Highlight highlight,
-        @Nonnull Boolean discardable,
-        @Nonnull Boolean privileged,
+        @Nonnull Optional<Highlight> highlight,
+        boolean discardable,
+        boolean privileged,
         @Nonnull List<LogParser> logParsers,
-        @Nonnull Boolean ignoreFailuresWithinExecutionGroup,
+        boolean ignoreFailuresWithinExecutionGroup,
         @Nonnull List<UUID> nextStages) implements StageDefinition {
 
-
     public StageWorkerDefinition(
-            // null-able for backwards compatibility
-            @Nullable UUID id,
+            @Nonnull UUID id,
             @Nonnull String name,
-            @Nullable String description,
-            @Nullable Image image,
+            @Nullable Optional<String> description,
+            @Nonnull Image image,
             @Nullable Requirements requirements,
             @Nullable UserInput userInput,
             @Nullable Map<String, String> environment,
-            @Nullable Highlight highlight,
-            @Nullable Boolean discardable,
-            @Nullable Boolean privileged,
+            @Nullable Optional<Highlight> highlight,
+            boolean discardable,
+            boolean privileged,
             @Nullable List<LogParser> logParsers,
-            @Nullable Boolean ignoreFailuresWithinExecutionGroup,
+            boolean ignoreFailuresWithinExecutionGroup,
             @Nullable List<UUID> nextStages) {
-        this.id                                 = id != null ? id : idFromName(name);
+        this.id                                 = id;
         this.name                               = name;
-        this.description                        = description != null ? description : "";
-        this.image                              = image != null ? image : new Image();
-        this.requirements                       = requirements != null ? requirements : Requirements.createDefault();
-        this.userInput                          = userInput != null ? userInput : new UserInput(null, null);
+        this.description                        = description != null ? description : Optional.empty();
+        this.image                              = image;
+        this.requirements                       = requirements != null ? requirements : new Requirements();
+        this.userInput                          = userInput != null ? userInput : new UserInput();
         this.environment                        = environment != null ? environment : Collections.emptyMap();
-        this.highlight                          = highlight != null ? highlight : new Highlight(null);
-        this.discardable                        = discardable != null && discardable;
-        this.privileged                         = privileged != null && privileged;
-        this.logParsers                         = Optional
-                .ofNullable(logParsers)
-                .map(Collections::unmodifiableList)
-                .orElseGet(Collections::emptyList);
-        this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup != null && ignoreFailuresWithinExecutionGroup;
-
+        this.highlight                          = highlight != null ? highlight : Optional.empty();
+        this.discardable                        = discardable;
+        this.privileged                         = privileged;
+        this.logParsers                         = logParsers != null ? logParsers : Collections.emptyList();
+        this.ignoreFailuresWithinExecutionGroup = ignoreFailuresWithinExecutionGroup;
         this.nextStages                         = nextStages != null ? nextStages : Collections.emptyList();
         this.check();
     }
 
+    public StageWorkerDefinition(
+            @Nonnull UUID id,
+            @Nonnull String name,
+            @Nullable String description,
+            @Nonnull Image image,
+            @Nullable Requirements requirements,
+            @Nullable UserInput userInput,
+            @Nullable Map<String, String> environment,
+            @Nullable Highlight highlight,
+            boolean discardable,
+            boolean privileged,
+            @Nullable List<LogParser> logParsers,
+            boolean ignoreFailuresWithinExecutionGroup,
+            @Nullable List<UUID> nextStages) {
+        this(
+                id,
+                name.trim(),
+                Optional.ofNullable(description).filter(s -> !s.isBlank()),
+                image,
+                requirements != null ? requirements : new Requirements(),
+                userInput != null ? userInput : new UserInput(),
+                environment != null ? environment : Collections.emptyMap(),
+                Optional.ofNullable(highlight),
+                discardable,
+                privileged,
+                logParsers != null ? logParsers : Collections.emptyList(),
+                ignoreFailuresWithinExecutionGroup,
+                nextStages != null ? nextStages : Collections.emptyList()
+        );
+    }
+
+    @Override
+    public void check() throws RuntimeException {
+        StageDefinition.super.check();
+        Objects.requireNonNull(this.image(), "The image of a stage must be set");
+
+    }
 
     public static UUID idFromName(String name) {
         return new UUID(name.hashCode(), name.length());
     }
 
     @Override
-    public String toString() {
-
-        return getClass()
-                .getSimpleName() + "@{name='" + this.name + "',description='" + this.description + "',image=" + this.image + ",userInput=" + this.userInput + ",type='" + this.getClass().getSimpleName() + "'}#" + this
-                .hashCode();
+    @Nonnull
+    public Map<String, String> environment() {
+        return environment;
     }
 }

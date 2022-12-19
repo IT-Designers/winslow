@@ -12,6 +12,9 @@ public interface Backend extends Closeable, AutoCloseable {
     @Nonnull
     StageHandle submit(@Nonnull Submission submission) throws IOException;
 
+    @Nonnull
+    ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition);
+
     boolean isCapableOfExecuting(@Nonnull StageDefinition stageDefinition);
 
     boolean isCapableOfExecuting(@Nonnull Submission submission);

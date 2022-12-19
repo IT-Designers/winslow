@@ -222,8 +222,16 @@ public class ResourceAllocationMonitor {
         @Nonnull
         @CheckReturnValue
         public ResourceSet<T> with(@Nonnull String resource, T value) {
-            this.entries.put(resource, value);
+            this.set(resource, value);
             return this;
+        }
+
+        public void set(@Nonnull StandardResources resource, T value) {
+            this.set(resource.name, value);
+        }
+
+        public void set(@Nonnull String resource, T value) {
+            this.entries.put(resource, value);
         }
 
         @Override

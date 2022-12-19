@@ -8,6 +8,7 @@ import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
+import java.util.Optional;
 
 public class StageDefinitionInfoConverter {
 
@@ -29,12 +30,12 @@ public class StageDefinitionInfoConverter {
         return new StageWorkerDefinitionInfo(
                 definition.id(),
                 definition.name(),
-                definition.description(),
+                definition.description().orElse(""),
                 ImageInfoConverter.from(definition.image()),
                 RequirementsInfoConverter.from(definition.requirements()),
                 UserInputInfoConverter.from(definition.userInput()),
                 definition.environment(),
-                HighlightInfoConverter.from(definition.highlight()),
+                definition.highlight().map(HighlightInfoConverter::from).orElseGet(HighlightInfo::new),
                 definition.discardable(),
                 definition.privileged(),
                 Collections.emptyList(),
