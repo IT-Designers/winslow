@@ -15,7 +15,7 @@ import {
   ResourceInfo,
   ResourceLimitation,
   StageAndGatewayDefinitionInfo,
-  StageDefinitionInfo,
+  StageDefinitionInfoUnion,
   StageInfo,
   StageWorkerDefinitionInfo,
   StageXOrGatewayDefintionInfo,
@@ -154,7 +154,7 @@ export class ProjectApiService {
           tags
         })
       .toPromise()
-      .then(result => result ?? new ProjectInfo(result));
+      .then(result => result ?? loadProjectInfo(result));
   }
 
   listProjects(): Promise<ProjectInfo[]> {
@@ -652,7 +652,7 @@ export function loadStageInfo(stage: StageInfo): StageInfo {
   return new StageInfo(stage);
 }
 
-export function loadStageDefinition(stage: StageDefinitionInfo): StageDefinitionInfo {
+export function loadStageDefinition(stage: StageDefinitionInfoUnion): StageDefinitionInfoUnion {
   const type = stage['@type'];
   if (type === 'Worker') {
     return new StageWorkerDefinitionInfo(stage as StageWorkerDefinitionInfo);

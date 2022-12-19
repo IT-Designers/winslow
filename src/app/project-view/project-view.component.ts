@@ -33,7 +33,6 @@ import {environment} from '../../environments/environment';
 import {
   ImageInfo,
   PipelineDefinitionInfo,
-  IRangedValue,
   ResourceInfo,
   StageDefinitionInfo,
   StageInfo,
@@ -41,7 +40,11 @@ import {
   WorkspaceMode,
   StateInfo,
   ExecutionGroupInfo,
-  StageWorkerDefinitionInfo, ResourceLimitation, WorkspaceConfiguration, ProjectInfo
+  StageWorkerDefinitionInfo,
+  ResourceLimitation,
+  WorkspaceConfiguration,
+  ProjectInfo,
+  RangedValue
 } from '../api/winslow-api';
 
 
@@ -151,8 +154,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   selectedPipeline: PipelineDefinitionInfo = null;
   selectedStage: StageDefinitionInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
-  defaultEnvironmentVariables: { [index: string]: string } = null;
-  rangedEnvironmentVariables: { [index: string]: IRangedValue } = null;
+  defaultEnvironmentVariables: Record<string, string> = null;
+  rangedEnvironmentVariables: Record<string, RangedValue> = null;
   workspaceConfigurationMode: WorkspaceMode = null;
 
   rawPipelineDefinition: string = null;
@@ -589,7 +592,11 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     console.log('useAsBlueprint ' + (group.stageDefinition instanceof StageWorkerDefinitionInfo));
     if (group.stageDefinition instanceof StageWorkerDefinitionInfo) {
       this.executionSelection.image = group.stageDefinition.image;
-      this.executionSelection.resources = group.stageDefinition.requiredResources;
+      this.executionSelection.resources = new ResourceInfo({
+        cpus: group.stageDefinition.requiredResources.cpus,
+        gpus: group.stageDefinition.requiredResources.gpu.count,
+        megabytesOfRam: group.stageDefinition.requiredResources.megabytesOfRam
+      });
       this.executionSelection.selectedStage = group.stageDefinition;
       this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
       this.executionSelection.comment = group.comment;
