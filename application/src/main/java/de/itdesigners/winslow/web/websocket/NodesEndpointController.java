@@ -39,7 +39,7 @@ public class NodesEndpointController {
         return winslow
                 .getNodeRepository()
                 .loadActiveNodes()
-                .map(node -> new ChangeEvent<>(ChangeEvent.ChangeType.CREATE, node.getName(), node));
+                .map(node -> new ChangeEvent<>(ChangeEvent.ChangeType.CREATE, node.name(), node));
     }
 
 }

@@ -171,7 +171,7 @@ public class NodeRepository extends BaseRepository {
     }
 
     public synchronized void updateNodeInfo(@Nonnull NodeInfo node) throws IOException {
-        var name = Path.of(node.getName()).getFileName().toString();
+        var name = Path.of(node.name()).getFileName().toString();
         var path = getRepositoryDirectory().resolve(name);
         var temp = getRepositoryDirectory().resolve(TEMP_FILE_PREFIX + name);
         writeToFile(node, temp.toFile());
@@ -192,7 +192,7 @@ public class NodeRepository extends BaseRepository {
     }
 
     public void updateUtilizationLog(@Nonnull NodeInfo info) throws IOException {
-        updateUtilizationLog(info.getName(), NodeUtilization.from(info));
+        updateUtilizationLog(info.name(), NodeUtilization.from(info));
     }
 
     public synchronized void updateUtilizationLog(
@@ -212,7 +212,7 @@ public class NodeRepository extends BaseRepository {
                     return false;
                 })
                 .orElseGet(() -> {
-                    var p = getUtilizationLogPath(nodeName, utilization.time);
+                    var p = getUtilizationLogPath(nodeName, utilization.time());
                     try {
                         Files.createDirectories(p.getParent());
                     } catch (IOException e) {
@@ -294,22 +294,22 @@ public class NodeRepository extends BaseRepository {
                 })
                 .map(NodeUtilization::fromCsvLineNoThrows)
                 .flatMap(Optional::stream)
-                .filter(u -> u.time >= timeStart && u.time <= timeEnd)
-                .sorted(Comparator.comparingLong(a -> a.time));
+                .filter(u -> u.time() >= timeStart && u.time() <= timeEnd)
+                .sorted(Comparator.comparingLong(NodeUtilization::time));
         if (chunkSpanMillis > 1) {
             var raw     = stream.collect(Collectors.toUnmodifiableList());
             var chunked = new ArrayList<List<NodeUtilization>>();
 
             if (!raw.isEmpty()) {
-                long chunkStart = raw.get(0).time;
+                long chunkStart = raw.get(0).time();
                 var  chunkList  = new ArrayList<NodeUtilization>();
                 chunked.add(chunkList);
 
                 for (var value : raw) {
-                    if (value.time < chunkStart + chunkSpanMillis) {
+                    if (value.time() < chunkStart + chunkSpanMillis) {
                         chunkList.add(value);
                     } else {
-                        chunkStart = value.time;
+                        chunkStart = value.time();
                         chunkList  = new ArrayList<>();
                         chunkList.add(value);
                         chunked.add(chunkList);
@@ -323,7 +323,7 @@ public class NodeRepository extends BaseRepository {
                     .map(list -> {
                         var first = list.get(0);
                         var last = list.get(list.size() - 1);
-                        return NodeUtilization.average(first.time, last.uptime, list);
+                        return NodeUtilization.average(first.time(), last.uptime(), list);
                     });
         } else {
             return stream;

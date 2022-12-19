@@ -8,20 +8,19 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class NodeInfo {
+public record NodeInfo(
+        @Nonnull String name,
+        long time,
+        long uptime,
+        @Nonnull CpuInfo cpuInfo,
+        @Nonnull MemInfo memInfo,
+        @Nonnull NetInfo netInfo,
+        @Nonnull DiskInfo diskInfo,
+        @Nonnull List<GpuInfo> gpuInfo,
+        @Nonnull BuildInfo buildInfo,
+        @Nonnull List<AllocInfo> allocInfo) {
 
     private static final Logger LOG = Logger.getLogger(NodeInfo.class.getSimpleName());
-
-    private final @Nonnull String          name;
-    private final          long            time;
-    private final          long            uptime;
-    private final @Nonnull CpuInfo         cpuInfo;
-    private final @Nonnull MemInfo         memInfo;
-    private final @Nonnull NetInfo         netInfo;
-    private final @Nonnull DiskInfo        diskInfo;
-    private final @Nonnull List<GpuInfo>   gpuInfo;
-    private final @Nonnull BuildInfo       buildInfo;
-    private final @Nonnull List<AllocInfo> allocInfo;
 
     @ConstructorProperties({
             "name",
@@ -44,69 +43,23 @@ public class NodeInfo {
             @Nonnull DiskInfo diskInfo,
             @Nonnull List<GpuInfo> gpuInfo,
             @Nullable List<AllocInfo> allocInfo) {
-        this.name      = name;
-        this.uptime    = uptime != null ? uptime : 0;
-        this.time      = time != null ? time : 0;
-        this.cpuInfo   = cpuInfo;
-        this.memInfo   = memInfo;
-        this.netInfo   = netInfo;
-        this.diskInfo  = diskInfo;
-        this.gpuInfo   = Collections.unmodifiableList(gpuInfo);
-        this.buildInfo = new BuildInfo();
-        this.allocInfo = allocInfo != null ? Collections.unmodifiableList(allocInfo) : Collections.emptyList();
+        this(
+                name,
+                uptime != null ? uptime : 0,
+                time != null ? time : 0,
+                cpuInfo,
+                memInfo,
+                netInfo,
+                diskInfo,
+                Collections.unmodifiableList(gpuInfo),
+                new BuildInfo(),
+                allocInfo != null ? Collections.unmodifiableList(allocInfo) : Collections.emptyList()
+        );
     }
 
     @Nonnull
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @return The time this info was generated at in ms
-     */
-    public long getTime() {
-        return time;
-    }
-
-    /**
-     * @return The time in ms this node is up for
-     */
-    public long getUptime() {
-        return this.uptime;
-    }
-
-    @Nonnull
-    public CpuInfo getCpuInfo() {
-        return cpuInfo;
-    }
-
-    @Nonnull
-    public MemInfo getMemInfo() {
-        return memInfo;
-    }
-
-    @Nonnull
-    public NetInfo getNetInfo() {
-        return netInfo;
-    }
-
-    @Nonnull
-    public DiskInfo getDiskInfo() {
-        return diskInfo;
-    }
-
-    @Nonnull
-    public List<GpuInfo> getGpuInfo() {
-        return gpuInfo;
-    }
-
-    @Nonnull
-    public BuildInfo getBuildInfo() {
-        return buildInfo;
-    }
-
-    @Nonnull
-    public List<AllocInfo> getAllocInfo() {
+    @Override
+    public List<AllocInfo> allocInfo() {
         // debugging spurious NPEs
         if (this.allocInfo == null) {
             LOG.warning("allocInfo is null");
