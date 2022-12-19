@@ -1,12 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.0.1157 on 2022-12-06 15:06:38.
-
-export class Build {
-
-  constructor(data: Build) {
-  }
-}
+// Generated using typescript-generator version 3.0.1157 on 2022-12-19 17:48:32.
 
 export class GroupInfo {
   name: string;
@@ -30,9 +24,17 @@ export class Link {
 
 export class UserInfo {
   name: string;
+  displayName?: string;
+  email?: string;
+  active: boolean;
+  password?: string[];
 
   constructor(data: UserInfo) {
     this.name = data.name;
+    this.displayName = data.displayName;
+    this.email = data.email;
+    this.active = data.active;
+    this.password = data.password;
   }
 }
 
@@ -41,7 +43,7 @@ export class FileInfo {
   directory: boolean;
   path: string;
   fileSize?: number;
-  attributes: { [index: string]: any };
+  attributes: Record<string, any>;
 
   constructor(data: FileInfo) {
     this.name = data.name;
@@ -243,8 +245,8 @@ export class EnvVariable {
 export class ExecutionGroupInfo {
   id: string;
   configureOnly: boolean;
-  stageDefinition: StageDefinitionInfo;
-  rangedValues: { [index: string]: any };
+  stageDefinition: StageDefinitionInfoUnion;
+  rangedValues: Record<string, RangedValue>;
   workspaceConfiguration: WorkspaceConfiguration;
   stages: StageInfo[];
   active: boolean;
@@ -264,6 +266,18 @@ export class ExecutionGroupInfo {
   }
 }
 
+export class GpuRequirementsInfo {
+  count: number;
+  vendor: string;
+  support: string[];
+
+  constructor(data: GpuRequirementsInfo) {
+    this.count = data.count;
+    this.vendor = data.vendor;
+    this.support = data.support;
+  }
+}
+
 export class HighlightInfo {
   resources: string[];
 
@@ -273,9 +287,9 @@ export class HighlightInfo {
 }
 
 export class ImageInfo {
-  name?: string;
-  args?: string[];
-  shmMegabytes?: number;
+  name: string;
+  args: string[];
+  shmMegabytes: number;
 
   constructor(data: ImageInfo) {
     this.name = data.name;
@@ -335,13 +349,12 @@ export class ParseError {
   }
 }
 
-
 export class PipelineDefinitionInfo {
   id: string;
   name: string;
   description?: string;
   userInput: UserInputInfo;
-  stages: StageDefinitionInfo[];
+  stages: StageDefinitionInfoUnion[];
   deletionPolicy: DeletionPolicy;
   markers: string[];
 
@@ -356,11 +369,38 @@ export class PipelineDefinitionInfo {
   }
 }
 
+export class RangeWithStepSize implements RangedValue {
+  stepCount: number;
+  min: number;
+  max: number;
+  stepSize: number;
+
+  constructor(data: RangeWithStepSize) {
+    this.stepCount = data.stepCount;
+    this.min = data.min;
+    this.max = data.max;
+    this.stepSize = data.stepSize;
+  }
+}
+
+export class RangedList implements RangedValue {
+  stepCount: number;
+  values: string[];
+
+  constructor(data: RangedList) {
+    this.stepCount = data.stepCount;
+    this.values = data.values;
+  }
+}
+
+export interface RangedValue {
+  stepCount: number;
+}
 
 export class RequirementsInfo {
   cpus: number;
   megabytesOfRam: number;
-  gpu: GPUInfo;
+  gpu: GpuRequirementsInfo;
   tags: string[];
 
   constructor(data: RequirementsInfo) {
@@ -371,22 +411,10 @@ export class RequirementsInfo {
   }
 }
 
-export class GPUInfo {
-  count: number;
-  vendor: string;
-  support: string[];
-
-  constructor(data: GPUInfo) {
-    this.count = data.count;
-    this.vendor = data.vendor;
-    this.support = data.support;
-  }
-}
-
 export class ResourceInfo {
   cpus: number;
   megabytesOfRam: number;
-  gpus?: number;
+  gpus: number;
 
   constructor(data: ResourceInfo) {
     this.cpus = data.cpus;
@@ -396,23 +424,25 @@ export class ResourceInfo {
 }
 
 export class StageAndGatewayDefinitionInfo implements StageDefinitionInfo {
-  id: string;
   name: string;
-  description: string;
+  id: string;
   nextStages: string[];
+  '@type': 'AndGateway';
+  description: string;
 
   constructor(data: StageAndGatewayDefinitionInfo) {
-    this.id = data.id;
     this.name = data.name;
-    this.description = data.description;
+    this.id = data.id;
     this.nextStages = data.nextStages;
+    this['@type'] = data['@type'];
+    this.description = data.description;
   }
 }
 
 export interface StageDefinitionInfo {
-  id: string;
+  '@type': 'AndGateway' | 'Worker' | 'XorGateway';
   name: string;
-
+  id: string;
   nextStages: string[];
 }
 
@@ -422,11 +452,11 @@ export class StageInfo {
   finishTime?: DateAsNumber;
   state?: State;
   workspace?: string;
-  env: { [index: string]: string };
-  envPipeline: { [index: string]: string };
-  envSystem: { [index: string]: string };
-  envInternal: { [index: string]: string };
-  result: { [index: string]: string };
+  env: Record<string, string>;
+  envPipeline: Record<string, string>;
+  envSystem: Record<string, string>;
+  envInternal: Record<string, string>;
+  result: Record<string, string>;
 
   constructor(data: StageInfo) {
     this.id = data.id;
@@ -443,23 +473,26 @@ export class StageInfo {
 }
 
 export class StageWorkerDefinitionInfo implements StageDefinitionInfo {
-  id: string;
   name: string;
-  description?: string;
-  image?: ImageInfo;
-  requiredResources?: RequirementsInfo;
-  userInput?: UserInputInfo;
-  environment?: { [index: string]: string };
-  highlight?: HighlightInfo;
-  discardable?: boolean;
-  privileged?: boolean;
-  logParsers?: LogParserInfo[];
-  ignoreFailuresWithinExecutionGroup: boolean;
+  id: string;
   nextStages: string[];
+  '@type': 'Worker';
+  description: string;
+  image: ImageInfo;
+  requiredResources: RequirementsInfo;
+  userInput: UserInputInfo;
+  environment: Record<string, string>;
+  highlight: HighlightInfo;
+  discardable: boolean;
+  privileged: boolean;
+  logParsers: LogParserInfo[];
+  ignoreFailuresWithinExecutionGroup: boolean;
 
   constructor(data: StageWorkerDefinitionInfo) {
-    this.id = data.id;
     this.name = data.name;
+    this.id = data.id;
+    this.nextStages = data.nextStages;
+    this['@type'] = data['@type'];
     this.description = data.description;
     this.image = data.image;
     this.requiredResources = data.requiredResources;
@@ -470,23 +503,24 @@ export class StageWorkerDefinitionInfo implements StageDefinitionInfo {
     this.privileged = data.privileged;
     this.logParsers = data.logParsers;
     this.ignoreFailuresWithinExecutionGroup = data.ignoreFailuresWithinExecutionGroup;
-    this.nextStages = data.nextStages;
   }
 }
 
 export class StageXOrGatewayDefintionInfo implements StageDefinitionInfo {
-  id: string;
   name: string;
+  id: string;
+  nextStages: string[];
+  '@type': 'XorGateway';
   description: string;
   conditions: string[];
-  nextStages: string[];
 
   constructor(data: StageXOrGatewayDefintionInfo) {
-    this.id = data.id;
     this.name = data.name;
+    this.id = data.id;
+    this.nextStages = data.nextStages;
+    this['@type'] = data['@type'];
     this.description = data.description;
     this.conditions = data.conditions;
-    this.nextStages = data.nextStages;
   }
 }
 
@@ -533,6 +567,7 @@ export class UserInputInfo {
     this.requiredEnvVariables = data.requiredEnvVariables;
   }
 }
+
 export class WorkspaceConfiguration {
   mode: WorkspaceMode;
   value?: string;
@@ -562,9 +597,9 @@ export class AuthTokenInfo {
 }
 
 export class EnqueueRequest {
-  env: { [index: string]: string };
-  rangedEnv?: { [index: string]: any };
   id: string;
+  env: Record<string, string>;
+  rangedEnv?: Record<string, RangedValue>;
   image?: ImageInfo;
   requiredResources?: ResourceInfo;
   workspaceConfiguration?: WorkspaceConfiguration;
@@ -573,9 +608,9 @@ export class EnqueueRequest {
   resume?: boolean;
 
   constructor(data: EnqueueRequest) {
+    this.id = data.id;
     this.env = data.env;
     this.rangedEnv = data.rangedEnv;
-    this.id = data.id;
     this.image = data.image;
     this.requiredResources = data.requiredResources;
     this.workspaceConfiguration = data.workspaceConfiguration;
@@ -619,7 +654,7 @@ export class ProjectCreateRequest {
 export class ProjectInfo {
   id: string;
   owner: string;
-  groups: string[];
+  groups: Link[];
   tags: string[];
   name: string;
   publicAccess: boolean;
@@ -675,14 +710,16 @@ export interface Iterable<T> {
 
 export type DateAsNumber = number;
 
-export type Role = "OWNER" | "MEMBER";
+export type Role = 'OWNER' | 'MEMBER';
 
-export type Action = "Execute" | "Configure";
+export type Action = 'Execute' | 'Configure';
 
-export type Source = "STANDARD_IO" | "MANAGEMENT_EVENT";
+export type Source = 'STANDARD_IO' | 'MANAGEMENT_EVENT';
 
-export type State = "Running" | "Paused" | "Succeeded" | "Failed" | "Preparing" | "Enqueued" | "Skipped";
+export type State = 'Running' | 'Paused' | 'Succeeded' | 'Failed' | 'Preparing' | 'Enqueued' | 'Skipped';
 
-export type Confirmation = "Never" | "Once" | "Always";
+export type Confirmation = 'NEVER' | 'ONCE' | 'ALWAYS';
 
-export type WorkspaceMode = "STANDALONE" | "INCREMENTAL" | "CONTINUATION";
+export type WorkspaceMode = 'STANDALONE' | 'INCREMENTAL' | 'CONTINUATION';
+
+export type StageDefinitionInfoUnion = StageWorkerDefinitionInfo | StageXOrGatewayDefintionInfo | StageAndGatewayDefinitionInfo;

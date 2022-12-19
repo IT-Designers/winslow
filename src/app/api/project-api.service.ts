@@ -15,7 +15,7 @@ import {
   ResourceInfo,
   ResourceLimitation,
   StageAndGatewayDefinitionInfo,
-  StageDefinitionInfo,
+  StageDefinitionInfoUnion,
   StageInfo,
   StageWorkerDefinitionInfo,
   StageXOrGatewayDefintionInfo,
@@ -154,7 +154,7 @@ export class ProjectApiService {
           tags
         })
       .toPromise()
-      .then(result => result ?? new ProjectInfo(result));
+      .then(result => result ?? loadProjectInfo(result));
   }
 
   listProjects(): Promise<ProjectInfo[]> {

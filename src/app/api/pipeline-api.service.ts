@@ -2,7 +2,14 @@ import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {loadStageDefinition, ParseError} from './project-api.service';
-import {PipelineDefinitionInfo} from './winslow-api';
+import {
+  GpuRequirementsInfo,
+  ImageInfo,
+  PipelineDefinitionInfo,
+  RequirementsInfo,
+  StageWorkerDefinitionInfo,
+  UserInputInfo
+} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -95,6 +102,40 @@ PipelineDefinitionInfo.prototype.hasActionMarkerFor = function(pipelineName: str
   return markers.indexOf('action') >= 0 || markers.indexOf('action for ' + pipelineName.toLowerCase()) >= 0;
 };
 
+export function createStageWorkerDefinitionInfo(id: string, name: string): StageWorkerDefinitionInfo {
+  return new StageWorkerDefinitionInfo({
+    '@type': 'Worker',
+    id,
+    name,
+    description: '',
+    discardable: false,
+    environment: {},
+    highlight: null,
+    ignoreFailuresWithinExecutionGroup: false,
+    image: new ImageInfo({
+      name: 'hello-world',
+      args: [],
+      shmMegabytes: 0
+    }),
+    logParsers: [],
+    nextStages: [],
+    privileged: false,
+    requiredResources: new RequirementsInfo({
+      cpus: 0,
+      gpu: new GpuRequirementsInfo({
+        count: 0,
+        vendor: '',
+        support: []
+      }),
+      megabytesOfRam: 0,
+      tags: []
+    }),
+    userInput: new UserInputInfo({
+      confirmation: 'NEVER',
+      requiredEnvVariables: []
+    })
+  });
+}
 
 
 export class LogParser {

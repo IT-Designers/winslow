@@ -1,11 +1,12 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {HttpEventType} from '@angular/common/http';
-import {IFileInfoExt, FilesApiService} from '../api/files-api.service';
+import {FilesApiService, humanReadableFileSize} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService, InputDefinition} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
 import Swal from 'sweetalert2';
 import {StorageApiService} from '../api/storage-api.service';
+import {FileInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-files',
@@ -14,7 +15,7 @@ import {StorageApiService} from '../api/storage-api.service';
 })
 export class FilesComponent implements OnInit {
 
-  files: Map<string, IFileInfoExt[]> = null;
+  files: Map<string, FileInfo[]> = null;
   longLoading = new LongLoadingDetector();
   loadError = null;
 
@@ -41,7 +42,7 @@ export class FilesComponent implements OnInit {
     const directory = true;
     const name = 'resources';
     const path = '/resources';
-    const info = new IFileInfoExt({name, path, directory, fileSize: 0, attributes: {}});
+    const info = new FileInfo({name, path, directory, fileSize: 0, attributes: {}} as FileInfo);
     root.push(info);
     this.files = new Map();
     this.files.set('/', root);
@@ -66,11 +67,10 @@ export class FilesComponent implements OnInit {
 
   @Input()
   public set additionalRoot(value: string) {
-
     const directory = true;
     const name = value.split(';')[0];
     const path = `/${value.split(';')[1]}`;
-    const additional = new IFileInfoExt({name, directory, path, fileSize: 0, attributes: {}});
+    const additional = new FileInfo({name, directory, path, fileSize: 0, attributes: {}} as FileInfo);
     this.files.get('/').splice(1);
     this.files.get('/').push(additional);
     this.files.set(additional.path, []);
@@ -108,7 +108,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  private insertListResourceResult(path: string, res: IFileInfoExt[]) {
+  private insertListResourceResult(path: string, res: FileInfo[]) {
     this.files.set(
       path,
       res
@@ -128,12 +128,12 @@ export class FilesComponent implements OnInit {
   private updateViewHint(): Promise<void> {
     return this.storage.getFilePathInfo(this.latestPath).then(info => {
       if (info != null) {
-        this.viewHint = IFileInfoExt.toFileSizeHumanReadable(info.bytesFree) + ' free';
+        this.viewHint = humanReadableFileSize(info.bytesFree) + ' free';
       }
     });
   }
 
-  currentDirectory(): IFileInfoExt[] {
+  currentDirectory(): FileInfo[] {
     return this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [];
   }
 
@@ -341,22 +341,22 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  downloadFile(file: IFileInfoExt) {
+  downloadFile(file: FileInfo) {
     this.api.downloadFile(file.path);
   }
 
-  downloadUrl(file: IFileInfoExt): string {
+  downloadUrl(file: FileInfo): string {
     return this.api.downloadUrl(file.path);
   }
 
-  delete(file: IFileInfoExt) {
+  delete(file: FileInfo) {
     this.dialog.openAreYouSure(
       `Deleting ${file.directory ? 'directory' : 'file'} ${file.name}`,
       () => this.api.delete(file.path).then(r => this.loadDirectory(this.latestPath))
     );
   }
 
-  onItemSelected(file: IFileInfoExt) {
+  onItemSelected(file: FileInfo) {
     this.selectedPath.emit(file.path);
   }
 
@@ -369,7 +369,7 @@ export class FilesComponent implements OnInit {
     );
   }
 
-  rename(file: IFileInfoExt) {
+  rename(file: FileInfo) {
     this.dialog.renameAThing(
       file.name,
       'New name',
@@ -420,7 +420,7 @@ export class FilesComponent implements OnInit {
       });
   }
 
-  getCachedFileInfo(path: string): IFileInfoExt {
+  getCachedFileInfo(path: string): FileInfo {
     if (path.endsWith('/')) {
       path = path.substr(0, path.length - 1);
     }
@@ -444,7 +444,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  formatGitBranch(file: IFileInfoExt) {
+  formatGitBranch(file: FileInfo) {
     if (file.isGitRepository()) {
       return ` (${file.getGitBranch()})`;
     } else {
@@ -453,7 +453,7 @@ export class FilesComponent implements OnInit {
   }
 
   getSpeed(bytesPerSecond: number): string {
-    return IFileInfoExt.toFileSizeHumanReadable(bytesPerSecond) + '/s';
+    return humanReadableFileSize(bytesPerSecond) + '/s';
   }
 
   getRemaining(bytesPerSecond: number, current: number, total: number): string {
