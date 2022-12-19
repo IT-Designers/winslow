@@ -91,7 +91,7 @@ export class CpuInfo {
 }
 
 export class CpuUtilization {
-  cpus: Iterable<number>;
+  cpus: number[];
 
   constructor(data: CpuUtilization) {
     this.cpus = data.cpus;
@@ -163,8 +163,8 @@ export class MemInfo {
 }
 
 export class NetInfo {
-  transmitting: number;
   receiving: number;
+  transmitting: number;
 
   constructor(data: NetInfo) {
     this.transmitting = data.transmitting;
