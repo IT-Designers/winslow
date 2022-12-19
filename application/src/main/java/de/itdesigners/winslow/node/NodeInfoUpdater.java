@@ -41,7 +41,7 @@ public class NodeInfoUpdater implements Runnable {
 
     public void update() throws IOException {
         var info = node.loadInfo();
-        waitUntil = info.getTime() + SLEEP_TIME_MS;
+        waitUntil = info.time() + SLEEP_TIME_MS;
         repository.updateNodeInfo(info);
 
         summedInfo.add(info);
@@ -49,13 +49,13 @@ public class NodeInfoUpdater implements Runnable {
         var firstEntry = summedInfo.get(0);
         var recentEntry= summedInfo.get(summedInfo.size() -1);
 
-        if (firstEntry.getTime() < (System.currentTimeMillis() - SUM_DURATION.toMillis())) {
+        if (firstEntry.time() < (System.currentTimeMillis() - SUM_DURATION.toMillis())) {
             var util = NodeUtilization.average(
-                    firstEntry.getTime(),
-                    recentEntry.getUptime(),
+                    firstEntry.time(),
+                    recentEntry.uptime(),
                     summedInfo.stream().map(NodeUtilization::from).collect(Collectors.toList())
             );
-            repository.updateUtilizationLog(info.getName(), util);
+            repository.updateUtilizationLog(info.name(), util);
             summedInfo.clear();
         }
 

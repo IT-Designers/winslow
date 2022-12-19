@@ -5,36 +5,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class NodeUtilization {
+public record NodeUtilization(
+        long time,
+        long uptime,
+        @Nonnull List<Float> cpuUtilization,
+        @Nonnull MemInfo memoryInfo,
+        @Nonnull NetInfo netInfo,
+        @Nonnull DiskInfo diskInfo,
+        @Nonnull List<GpuUtilization> gpuUtilization) {
 
     public static final String CSV_TOP_LEVEL_SEPARATOR = ";";
     public static final String CSV_LEVEL_2_SEPARATOR   = ",";
-
-    public final          long                 time;
-    public final          long                 uptime;
-    public final @Nonnull List<Float>          cpuUtilization;
-    public final @Nonnull MemInfo              memoryInfo;
-    public final @Nonnull NetInfo              netInfo;
-    public final @Nonnull DiskInfo             diskInfo;
-    public final @Nonnull List<GpuUtilization> gpuUtilization;
-
-    private NodeUtilization(
-            long time,
-            long uptime,
-            @Nonnull List<Float> cpuUtilization,
-            @Nonnull MemInfo memoryInfo,
-            @Nonnull NetInfo netInfo,
-            @Nonnull DiskInfo diskInfo,
-            @Nonnull List<GpuUtilization> gpuUtilization
-    ) {
-        this.time           = time;
-        this.uptime         = uptime;
-        this.cpuUtilization = cpuUtilization;
-        this.memoryInfo     = memoryInfo;
-        this.netInfo        = netInfo;
-        this.diskInfo       = diskInfo;
-        this.gpuUtilization = gpuUtilization;
-    }
 
     @Nonnull
     public static NodeUtilization average(long time, long uptime, @Nonnull List<NodeUtilization> nodes) {
@@ -43,44 +24,48 @@ public class NodeUtilization {
                 uptime,
                 transposedFloatAverage(nodes.stream().map(n -> n.cpuUtilization)),
                 new MemInfo(
-                        nodes.stream().mapToLong(n -> n.memoryInfo.getMemoryTotal()).max().orElse(0),
-                        (long) nodes.stream().mapToLong(n -> n.memoryInfo.getMemoryFree()).average().orElse(0),
-                        nodes.stream().mapToLong(n -> n.memoryInfo.getSystemCache()).max().orElse(0),
-                        nodes.stream().mapToLong(n -> n.memoryInfo.getSwapTotal()).max().orElse(0),
-                        (long) nodes.stream().mapToLong(n -> n.memoryInfo.getSwapFree()).average().orElse(0)
+                        nodes.stream().mapToLong(n -> n.memoryInfo.memoryTotal()).max().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.memoryInfo.memoryFree()).average().orElse(0),
+                        nodes.stream().mapToLong(n -> n.memoryInfo.systemCache()).max().orElse(0),
+                        nodes.stream().mapToLong(n -> n.memoryInfo.swapTotal()).max().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.memoryInfo.swapFree()).average().orElse(0)
                 ),
                 new NetInfo(
-                        (long) nodes.stream().mapToLong(n -> n.netInfo.getReceiving()).average().orElse(0),
-                        (long) nodes.stream().mapToLong(n -> n.netInfo.getTransmitting()).average().orElse(0)
+                        (long) nodes.stream().mapToLong(n -> n.netInfo.receiving()).average().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.netInfo.transmitting()).average().orElse(0)
                 ),
                 new DiskInfo(
-                        (long) nodes.stream().mapToLong(n -> n.diskInfo.getReading()).average().orElse(0),
-                        (long) nodes.stream().mapToLong(n -> n.diskInfo.getWriting()).average().orElse(0),
-                        nodes.stream().mapToLong(n -> n.diskInfo.getFree()).min().orElse(0),
-                        nodes.stream().mapToLong(n -> n.diskInfo.getUsed()).max().orElse(0)
+                        (long) nodes.stream().mapToLong(n -> n.diskInfo.reading()).average().orElse(0),
+                        (long) nodes.stream().mapToLong(n -> n.diskInfo.writing()).average().orElse(0),
+                        nodes.stream().mapToLong(n -> n.diskInfo.free()).min().orElse(0),
+                        nodes.stream().mapToLong(n -> n.diskInfo.used()).max().orElse(0)
                 ),
                 transposedStream(nodes.stream().map(n -> n.gpuUtilization))
                         .map(gpuUtils -> new GpuUtilization(
                                 (float) gpuUtils
                                         .stream()
-                                        .mapToDouble(g -> g.computeUtilization)
+                                        .mapToDouble(GpuUtilization::computeUtilization)
                                         .average()
                                         .orElse(0),
-                                (float) gpuUtils.stream().mapToDouble(g -> g.memoryUtilization).average().orElse(0),
+                                (float) gpuUtils
+                                        .stream()
+                                        .mapToDouble(GpuUtilization::memoryUtilization)
+                                        .average()
+                                        .orElse(0),
                                 (long) gpuUtils
                                         .stream()
-                                        .mapToDouble(g -> g.memoryUsedMegabytes)
+                                        .mapToDouble(GpuUtilization::memoryUsedMegabytes)
                                         .average()
                                         .orElse(0),
-                                gpuUtils.stream().mapToLong(g -> g.memoryTotalMegabytes).max().orElse(0)
+                                gpuUtils.stream().mapToLong(GpuUtilization::memoryTotalMegabytes).max().orElse(0)
                         ))
-                        .collect(Collectors.toUnmodifiableList())
+                        .toList()
         );
     }
 
     @Nonnull
     private static <T> Stream<List<T>> transposedStream(@Nonnull Stream<List<T>> stream) {
-        var raw = stream.collect(Collectors.toUnmodifiableList());
+        var raw = stream.toList();
         if (raw.isEmpty()) {
             return Stream.empty();
         }
@@ -100,8 +85,8 @@ public class NodeUtilization {
     }
 
     private static List<Float> transposedFloatAverage(Stream<List<Float>> stream) {
-        var raw    = stream.collect(Collectors.toUnmodifiableList());
-        var result = new ArrayList<Float>();
+        var raw     = stream.toList();
+        var result  = new ArrayList<Float>();
         var counter = new ArrayList<Float>();
 
         // sum transposed
@@ -129,21 +114,24 @@ public class NodeUtilization {
     @Nonnull
     public static NodeUtilization from(@Nonnull NodeInfo info) {
         return new NodeUtilization(
-                info.getTime(),
-                info.getUptime(),
-                info.getCpuInfo().getUtilization().stream().collect(Collectors.toUnmodifiableList()),
-                info.getMemInfo(),
-                info.getNetInfo(),
-                info.getDiskInfo(),
-                info.getGpuInfo()
+                info.time(),
+                info.uptime(),
+                info.cpuInfo()
+                    .utilization()
+                    .stream()
+                    .toList(),
+                info.memInfo(),
+                info.netInfo(),
+                info.diskInfo(),
+                info.gpuInfo()
                     .stream()
                     .map(gpu -> new GpuUtilization(
-                            gpu.getComputeUtilization(),
-                            gpu.getMemoryUtilization(),
-                            gpu.getMemoryUsedMegabytes(),
-                            gpu.getMemoryTotalMegabytes()
+                            gpu.computeUtilization(),
+                            gpu.memoryUtilization(),
+                            gpu.memoryUsedMegabytes(),
+                            gpu.memoryTotalMegabytes()
                     ))
-                    .collect(Collectors.toUnmodifiableList())
+                    .toList()
         );
     }
 
@@ -156,42 +144,42 @@ public class NodeUtilization {
                 this.cpuUtilization.stream().map(String::valueOf).collect(Collectors.joining(CSV_LEVEL_2_SEPARATOR)),
                 String.join(
                         CSV_LEVEL_2_SEPARATOR,
-                        String.valueOf(this.memoryInfo.getMemoryTotal()),
-                        String.valueOf(this.memoryInfo.getMemoryFree()),
-                        String.valueOf(this.memoryInfo.getSystemCache()),
-                        String.valueOf(this.memoryInfo.getSwapTotal()),
-                        String.valueOf(this.memoryInfo.getSwapFree())
+                        String.valueOf(this.memoryInfo.memoryTotal()),
+                        String.valueOf(this.memoryInfo.memoryFree()),
+                        String.valueOf(this.memoryInfo.systemCache()),
+                        String.valueOf(this.memoryInfo.swapTotal()),
+                        String.valueOf(this.memoryInfo.swapFree())
                 ),
                 String.join(
                         CSV_LEVEL_2_SEPARATOR,
-                        String.valueOf(this.netInfo.getReceiving()),
-                        String.valueOf(this.netInfo.getTransmitting())
+                        String.valueOf(this.netInfo.receiving()),
+                        String.valueOf(this.netInfo.transmitting())
                 ),
                 String.join(
                         CSV_LEVEL_2_SEPARATOR,
-                        String.valueOf(this.diskInfo.getReading()),
-                        String.valueOf(this.diskInfo.getWriting()),
-                        String.valueOf(this.diskInfo.getFree()),
-                        String.valueOf(this.diskInfo.getUsed())
+                        String.valueOf(this.diskInfo.reading()),
+                        String.valueOf(this.diskInfo.writing()),
+                        String.valueOf(this.diskInfo.free()),
+                        String.valueOf(this.diskInfo.used())
                 ),
                 this.gpuUtilization
                         .stream()
-                        .map(util -> util.computeUtilization)
+                        .map(GpuUtilization::computeUtilization)
                         .map(String::valueOf)
                         .collect(Collectors.joining(CSV_LEVEL_2_SEPARATOR)),
                 this.gpuUtilization
                         .stream()
-                        .map(util -> util.memoryUtilization)
+                        .map(GpuUtilization::memoryUtilization)
                         .map(String::valueOf)
                         .collect(Collectors.joining(CSV_LEVEL_2_SEPARATOR)),
                 this.gpuUtilization
                         .stream()
-                        .map(util -> util.memoryUsedMegabytes)
+                        .map(GpuUtilization::memoryUsedMegabytes)
                         .map(String::valueOf)
                         .collect(Collectors.joining(CSV_LEVEL_2_SEPARATOR)),
                 this.gpuUtilization
                         .stream()
-                        .map(util -> util.memoryTotalMegabytes)
+                        .map(GpuUtilization::memoryTotalMegabytes)
                         .map(String::valueOf)
                         .collect(Collectors.joining(CSV_LEVEL_2_SEPARATOR))
         );
@@ -215,7 +203,7 @@ public class NodeUtilization {
                 Arrays
                         .stream(split.next().split(CSV_LEVEL_2_SEPARATOR))
                         .map(Float::parseFloat)
-                        .collect(Collectors.toUnmodifiableList()),
+                        .toList(),
                 Optional
                         .ofNullable(split.next())
                         .map(memoryInfo -> {
@@ -283,43 +271,5 @@ public class NodeUtilization {
         }
 
         return list;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        NodeUtilization that = (NodeUtilization) o;
-        return time == that.time && uptime == that.uptime && cpuUtilization.equals(that.cpuUtilization) && memoryInfo.equals(
-                that.memoryInfo) && netInfo.equals(that.netInfo) && diskInfo.equals(that.diskInfo)
-                && gpuUtilization.equals(that.gpuUtilization);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                time,
-                uptime,
-                cpuUtilization,
-                memoryInfo,
-                netInfo,
-                diskInfo,
-                gpuUtilization
-        );
-    }
-
-    @Override
-    public String toString() {
-        return "NodeUtilization{" +
-                "time=" + time +
-                ", uptime=" + uptime +
-                ", cpuUtilization=" + cpuUtilization +
-                ", memoryInfo=" + memoryInfo +
-                ", netInfo=" + netInfo +
-                ", diskInfo=" + diskInfo +
-                ", gpuUtilization=" + gpuUtilization +
-                "}@" + hashCode();
     }
 }
