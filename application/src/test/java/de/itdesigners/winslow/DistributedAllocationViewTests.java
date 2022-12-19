@@ -170,12 +170,12 @@ public class DistributedAllocationViewTests {
     public void testExceedProjectLimit() {
         var view = new DistributedAllocationView(USER_ID, PROJECT_ID);
         view.loadAllocInfo(getAllocations(), projectId -> {
-            if (ALLOCATIONS[0].getTitle().equals(projectId)) {
+            if (ALLOCATIONS[0].title().equals(projectId)) {
                 return Optional.of(getBasicProject(USER_ID, projectId, new ResourceLimitation(
                         // the only associated AllocInfo should be the one with the exact id-match
-                        ALLOCATIONS[0].getCpu() + 2L,
-                        ALLOCATIONS[0].getMemory() + 3L,
-                        ALLOCATIONS[0].getGpu() + 4L
+                        ALLOCATIONS[0].cpu() + 2L,
+                        ALLOCATIONS[0].memory() + 3L,
+                        ALLOCATIONS[0].gpu() + 4L
                 )));
             } else {
                 return Optional.empty();
@@ -240,9 +240,9 @@ public class DistributedAllocationViewTests {
 
         view.setUserLimit(new ResourceLimitation(
                 // the only associated AllocInfo should be the one with the exact id-match
-                ALLOCATIONS[0].getCpu() + 2L,
-                ALLOCATIONS[0].getMemory() + 3L,
-                ALLOCATIONS[0].getGpu() + 4L
+                ALLOCATIONS[0].cpu() + 2L,
+                ALLOCATIONS[0].memory() + 3L,
+                ALLOCATIONS[0].gpu() + 4L
         ));
 
         assertFalse(view.wouldResourcesExceedLimit(

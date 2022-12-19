@@ -52,15 +52,15 @@ public class DistributedAllocationView {
             @Nonnull Stream<AllocInfo> allocated,
             @Nonnull Function<String, Optional<Project>> projects) {
         allocated.forEach(a -> {
-            if (Objects.equals(a.getTitle(), projectAllocation.getTitle())) {
+            if (Objects.equals(a.title(), projectAllocation.title())) {
                 this.projectAllocation = this.projectAllocation.add(a);
             }
 
-            projects.apply(a.getTitle()).ifPresent(project -> {
-                if (Objects.equals(a.getTitle(), projectAllocation.getTitle())) {
+            projects.apply(a.title()).ifPresent(project -> {
+                if (Objects.equals(a.title(), projectAllocation.title())) {
                     this.projectLimit = project.getResourceLimitation().orElse(null);
                 }
-                if (Objects.equals(project.getOwner(), userAllocation.getTitle())) {
+                if (Objects.equals(project.getOwner(), userAllocation.title())) {
                     this.userAllocation = this.userAllocation.add(a);
                 }
             });
@@ -77,9 +77,9 @@ public class DistributedAllocationView {
             @Nonnull AllocInfo allocation,
             @Nonnull ResourceAllocationMonitor.ResourceSet<Long> resources) {
         if (limit != null) {
-            var maxUserAllocCpu = (limit.cpu != null ? limit.cpu - allocation.getCpu() : Long.MAX_VALUE);
-            var maxUserAllocMem = (limit.mem != null ? limit.mem - allocation.getMemory() : Long.MAX_VALUE);
-            var maxUserAllocGpu = (limit.gpu != null ? limit.gpu - allocation.getGpu() : Long.MAX_VALUE);
+            var maxUserAllocCpu = (limit.cpu != null ? limit.cpu - allocation.cpu() : Long.MAX_VALUE);
+            var maxUserAllocMem = (limit.mem != null ? limit.mem - allocation.memory() : Long.MAX_VALUE);
+            var maxUserAllocGpu = (limit.gpu != null ? limit.gpu - allocation.gpu() : Long.MAX_VALUE);
 
             return resources.getOrDefault(ResourceAllocationMonitor.StandardResources.CPU, 0L) > maxUserAllocCpu
                     || resources.getOrDefault(ResourceAllocationMonitor.StandardResources.RAM, 0L) > maxUserAllocMem

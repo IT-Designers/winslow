@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
@@ -195,9 +194,9 @@ public class Main {
     @Nonnull
     private static ResourceAllocationMonitor.ResourceSet<Long> toResourceSet(@Nonnull NodeInfo info) {
         return new ResourceAllocationMonitor.ResourceSet<Long>()
-                .with(ResourceAllocationMonitor.StandardResources.CPU, (long) info.getCpuInfo().getUtilization().size())
-                .with(ResourceAllocationMonitor.StandardResources.RAM, info.getMemInfo().getMemoryTotal())
-                .with(ResourceAllocationMonitor.StandardResources.GPU, (long) info.getGpuInfo().size());
+                .with(ResourceAllocationMonitor.StandardResources.CPU, (long) info.cpuInfo().utilization().size())
+                .with(ResourceAllocationMonitor.StandardResources.RAM, info.memInfo().memoryTotal())
+                .with(ResourceAllocationMonitor.StandardResources.GPU, (long) info.gpuInfo().size());
     }
 
     private static void tryFixMissingPipelinesOfProjects(

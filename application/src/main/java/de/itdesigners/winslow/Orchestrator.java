@@ -402,7 +402,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                             }
 
                             allocView.loadAllocInfo(
-                                    nodes.loadActiveNodes().flatMap(info -> info.getAllocInfo().stream()),
+                                    nodes.loadActiveNodes().flatMap(info -> info.allocInfo().stream()),
                                     new CachedFunction<>(this::getProjectUnsafe)
                             );
                             return allocView.wouldResourcesExceedLimit(resources);
