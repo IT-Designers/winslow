@@ -8,24 +8,24 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class Image {
-    private @Nonnull String   name;
-    private @Nonnull String[] args;
-    private @Nonnull Integer  shmSizeMegabytes;
+    private @Nonnull  String   name;
+    private @Nonnull  String[] args;
+    private @Nullable Long     shmSizeMegabytes;
 
-    public Image(@Nonnull String name, @Nonnull String[] args) {
-        this(name, args, null);
+    public Image(@Nonnull String name) {
+        this(name, new String[0]);
     }
 
-    public Image() {
-        this("", new String[0]);
+    public Image(@Nonnull String name, @Nonnull String[] args) {
+        this(name, args, 0L);
     }
 
     @ConstructorProperties({"name, args, shmSizeMegabytes"})
-    public Image(@Nonnull String name, @Nonnull String[] args, @Nullable Integer shmSizeMegabytes) {
+    public Image(@Nonnull String name, @Nullable String[] args, @Nullable Long shmSizeMegabytes) {
         Objects.requireNonNull(name, "The name of an image must be set");
-        this.name             = name;
-        this.args             = args;
-        this.shmSizeMegabytes = shmSizeMegabytes != null ? shmSizeMegabytes : 0;
+        this.name = name;
+        this.args = args != null ? args : new String[0];
+        this.setShmSizeMegabytes(shmSizeMegabytes);
     }
 
     @Nonnull
@@ -39,20 +39,28 @@ public class Image {
 
     @Nonnull
     public String[] getArgs() {
-        return args != null ? args : new String[0];
+        return args;
     }
 
-    public void setArgs(@Nullable String[] args) {
+    public void setArgs(@Nonnull String[] args) {
         this.args = args;
     }
 
+
+    /**
+     * If shared memory is required, the value will be greater than zero.
+     */
     @Nonnull
-    public Integer getShmSizeMegabytes() {
-        return this.shmSizeMegabytes;
+    public Optional<Long> getShmSizeMegabytes() {
+        return Optional.ofNullable(this.shmSizeMegabytes);
     }
 
-    public void setShmSizeMegabytes(@Nullable Integer megabytes) {
-        this.shmSizeMegabytes = megabytes;
+
+    /**
+     * @param megabytes If shared memory is required, the value shall be greater than zero.
+     */
+    public void setShmSizeMegabytes(@Nullable Long megabytes) {
+        this.shmSizeMegabytes = megabytes != null && megabytes > 0 ? megabytes : null;
     }
 
     @Override

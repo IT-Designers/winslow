@@ -67,6 +67,11 @@
                         <annotation>javax.annotation.Nullable</annotation>
                     </optionalAnnotations>
                     <mapDate>asNumber</mapDate>
+                    <stringQuotes>singleQuotes</stringQuotes>
+                    <mapMap>asRecord</mapMap>
+                    <excludeClasses>
+                        de.itdesigners.winslow.api.Build
+                    </excludeClasses>
                 </configuration>
             </plugin>
         </plugins>

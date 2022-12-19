@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -79,18 +80,18 @@ public class PipelineDefinitionTests {
                 "description",
                 new UserInput(UserInput.Confirmation.Always, Arrays.asList("env")),
                 Arrays.asList(new StageWorkerDefinition(
-                        null,
+                        UUID.randomUUID(),
                         "pipeline",
+                        (String) null,
+                        new Image("hello-world"),
+                        new Requirements(),
+                        new UserInput(),
                         null,
                         null,
+                        false,
+                        false,
                         null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
+                        false,
                         null
                 )),
                 Map.of("env1", "envValue"),

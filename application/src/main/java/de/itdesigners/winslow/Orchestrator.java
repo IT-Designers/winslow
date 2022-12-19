@@ -215,9 +215,12 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     @Nonnull
     ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
-        return definition instanceof StageWorkerDefinition w
-               ? toResourceSet(w.requirements())
-               : new ResourceAllocationMonitor.ResourceSet<>();
+        return this.backends
+                .stream()
+                .filter(b -> b.isCapableOfExecuting(definition))
+                .map(b -> b.getRequiredResources(definition))
+                .findFirst()
+                .orElseGet(ResourceAllocationMonitor.ResourceSet::new);
     }
 
     @Nonnull
@@ -365,25 +368,6 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     public void addProjectThatNeedsToBeReEvaluatedOnceMoreResourcesAreAvailable(@Nonnull String projectId) {
         this.missingResources.add(projectId);
-    }
-
-    @Nonnull
-    private ResourceAllocationMonitor.ResourceSet<Long> toResourceSet(@Nonnull Requirements requirements) {
-        return new ResourceAllocationMonitor.ResourceSet<Long>()
-                .with(
-                        ResourceAllocationMonitor.StandardResources.CPU,
-                        (long) requirements.getCpus()
-                )
-                .with(
-                        ResourceAllocationMonitor.StandardResources.RAM,
-                        ((long) requirements.getMegabytesOfRam()) * 1024 * 1024
-                )
-                .with(
-                        ResourceAllocationMonitor.StandardResources.GPU,
-                        (long) requirements
-                                .getGpu()
-                                .getCount()
-                );
     }
 
     @Nonnull

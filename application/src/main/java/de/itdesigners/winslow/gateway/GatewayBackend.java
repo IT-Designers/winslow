@@ -2,6 +2,7 @@ package de.itdesigners.winslow.gateway;
 
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.PipelineRepository;
+import de.itdesigners.winslow.ResourceAllocationMonitor;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
@@ -34,6 +35,12 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
                         .stageDefinition(),
                 submission.getId()
         );
+    }
+
+    @Nonnull
+    @Override
+    public ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
+        return new ResourceAllocationMonitor.ResourceSet<>();
     }
 
     @Override
