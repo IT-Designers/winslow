@@ -10,8 +10,12 @@ public class UserInput {
     private final @Nonnull Confirmation confirmation;
     private final @Nonnull List<String> requiredEnvVariables;
 
+    public UserInput() {
+        this(null, null);
+    }
+
     public UserInput(@Nullable Confirmation confirmation, @Nullable List<String> requiredEnvVariables) {
-        this.confirmation         = confirmation != null ? confirmation : Confirmation.Never;
+        this.confirmation = confirmation != null ? confirmation : Confirmation.Never;
         this.requiredEnvVariables = requiredEnvVariables != null ? requiredEnvVariables : Collections.emptyList();
     }
 
@@ -30,7 +34,9 @@ public class UserInput {
 
     @Nonnull
     public List<String> getRequiredEnvVariables() {
-        return requiredEnvVariables != null ? Collections.unmodifiableList(requiredEnvVariables) : Collections.emptyList();
+        return requiredEnvVariables != null
+               ? Collections.unmodifiableList(requiredEnvVariables)
+               : Collections.emptyList();
     }
 
     @Override
@@ -45,7 +51,10 @@ public class UserInput {
         if (o == null || getClass() != o.getClass())
             return false;
         UserInput userInput = (UserInput) o;
-        return confirmation == userInput.confirmation && Objects.equals(requiredEnvVariables, userInput.requiredEnvVariables);
+        return confirmation == userInput.confirmation && Objects.equals(
+                requiredEnvVariables,
+                userInput.requiredEnvVariables
+        );
     }
 
     @Override

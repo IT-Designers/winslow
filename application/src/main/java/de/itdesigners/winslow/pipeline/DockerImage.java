@@ -9,13 +9,13 @@ public class DockerImage implements Extension {
 
     private final @Nonnull  String   image;
     private final @Nonnull  String[] arguments;
-    private final @Nullable Integer  shmSizeMegabytes;
+    private final @Nullable Long     shmSizeMegabytes;
     private final           boolean  privileged;
 
     public DockerImage(
             @Nonnull String image,
             @Nonnull String[] arguments,
-            @Nullable Integer shmSizeMegabytes,
+            @Nullable Long shmSizeMegabytes,
             boolean privileged) {
         this.image            = image;
         this.arguments        = arguments;
@@ -35,9 +35,8 @@ public class DockerImage implements Extension {
         return arguments;
     }
 
-    @Nonnull
     @CheckReturnValue
-    public Optional<Integer> getShmSizeMegabytes() {
+    public Optional<Long> getShmSizeMegabytes() {
         return Optional.ofNullable(shmSizeMegabytes);
     }
 

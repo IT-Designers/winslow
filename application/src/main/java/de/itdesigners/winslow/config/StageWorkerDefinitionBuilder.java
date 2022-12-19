@@ -116,12 +116,12 @@ public class StageWorkerDefinitionBuilder {
         return new StageWorkerDefinition(
                 base.id(),
                 base.name(),
-                either(this.description, Optional.of(base.description())),
+                either(this.description, base.description()),
                 either(this.image, Optional.of(base.image())),
                 either(this.requirements, Optional.of(base.requirements())),
                 either(this.userInput, Optional.of(base.userInput())),
                 env,
-                either(this.highlight, Optional.of(base.highlight())),
+                either(this.highlight, base.highlight()),
                 either(this.discardable, Optional.of(base.discardable())),
                 Optional.ofNullable(either(
                         Optional.ofNullable(this.template).map(StageWorkerDefinition::privileged),

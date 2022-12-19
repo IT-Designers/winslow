@@ -95,11 +95,10 @@ public class SubmissionToNomadJobAdapter {
             task.getConfig().put("privileged", docker.isPrivileged());
             task.getConfig().put("image_pull_timeout", "1h");
 
-            docker.getShmSizeMegabytes().ifPresent(shm -> {
-                task.getConfig().put("shm_size", shm * 1024L * 1024L);
+            docker.getShmSizeMegabytes().filter(m -> m > 0).ifPresent(m -> {
+                task.getConfig().put("shm_size", m * 1024L * 1024L);
                 task.getConfig().put("ulimit", List.of(Map.of("memlock", -1)));
             });
-
         };
     }
 
@@ -116,10 +115,10 @@ public class SubmissionToNomadJobAdapter {
             }
         };
     }
-    
+
     @Nonnull
     @CheckReturnValue
-    public static Consumer<DockerContainerNetworkLinkage>  getDockerNetworkContainerLinkageConfigurer(@Nonnull Task task) {
+    public static Consumer<DockerContainerNetworkLinkage> getDockerNetworkContainerLinkageConfigurer(@Nonnull Task task) {
         return linkage -> task
                 .getConfig()
                 .put(
@@ -187,18 +186,23 @@ public class SubmissionToNomadJobAdapter {
                 task.getResources().addDevices(gpuDevice);
             }
 
-            if (requirements.getCpus() > 0) {
+            requirements.getCpus().ifPresent(cpus -> {
                 info.getCpuSingleCoreMaxFrequencyMhz()
                     .ifPresent(max -> {
                         // TODO magic number, I dont know why, but somehow this is necessary
-                        var compute = ((requirements.getCpus() * max) - NOMAD_SYSTEM_RESERVED_CPU) / 3.5f;
+                        var compute = ((cpus * max) - NOMAD_SYSTEM_RESERVED_CPU) / 3.5f;
                         if (compute > NOMAD_MIN_RESERVABLE_CPU) {
                             task.getResources().setCpu((int) compute);
                         }
                     });
-            }
+            });
 
-            task.getResources().setMemoryMb((int) requirements.getMegabytesOfRam());
+            task.getResources().setMemoryMb(
+                    requirements
+                            .getMegabytesOfRam()
+                            .map(Long::intValue)
+                            .orElse(NomadBackend.MIN_MEGABYTES_OF_RAM)
+            );
         };
     }
 }

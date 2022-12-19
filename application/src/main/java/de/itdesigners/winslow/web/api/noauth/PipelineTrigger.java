@@ -65,8 +65,8 @@ public class PipelineTrigger {
                             : null;
             var resourceInfo = stageDefinition instanceof StageWorkerDefinition w
                                ? new ResourceInfo(
-                    w.requirements().getCpus(),
-                    w.requirements().getMegabytesOfRam(),
+                    w.requirements().getCpus().orElse(0),
+                    w.requirements().getMegabytesOfRam().orElse(0L),
                     w.requirements().getGpu().getCount()
             )
                                : null;
@@ -85,26 +85,24 @@ public class PipelineTrigger {
             );
 
             // try to update the request
-            var list = controller.getProjectHistory(user, projectId).collect(Collectors.toList());
+            var list = controller.getProjectHistory(user, projectId).toList();
             for (int n = list.size() - 1; n >= 0; --n) {
                 var info = list.get(n);
-                if (info.stageDefinition.id().equals(stageDefinition.id())) {
+                if (info.stageDefinition().id().equals(stageDefinition.id())) {
 
 
-                    request.rangedEnv              = info.rangedValues;
+                    request.rangedEnv = info.rangedValues();
 
-                    if(info.stageDefinition instanceof StageWorkerDefinitionInfo workerDefinitionInfo) {
-                        request.env               = Optional
-                                .ofNullable(workerDefinitionInfo.environment())
-                                .orElseGet(HashMap::new);
+                    if (info.stageDefinition() instanceof StageWorkerDefinitionInfo workerDefinitionInfo) {
+                        request.env               = workerDefinitionInfo.environment();
                         request.image             = workerDefinitionInfo.image();
                         request.requiredResources = new ResourceInfo(
                                 workerDefinitionInfo.requiredResources().cpus(),
-                                workerDefinitionInfo.requiredResources().ram(),
+                                workerDefinitionInfo.requiredResources().megabytesOfRam(),
                                 workerDefinitionInfo.requiredResources().gpu().count()
                         );
                     }
-                    request.workspaceConfiguration = info.workspaceConfiguration;
+                    request.workspaceConfiguration = info.workspaceConfiguration();
                     break;
 
                 }

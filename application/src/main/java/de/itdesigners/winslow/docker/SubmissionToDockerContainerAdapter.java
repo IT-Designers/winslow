@@ -27,7 +27,7 @@ public class SubmissionToDockerContainerAdapter {
 
     @Nonnull
     public StageHandle submit(@Nonnull Submission submission) throws OrchestratorException, IOException {
-        var stageId = submission.getId().getFullyQualified();
+        var stageId       = submission.getId().getFullyQualified();
         var containerName = backend.getContainerName(stageId);
 
         var imageExt = submission
@@ -59,8 +59,8 @@ public class SubmissionToDockerContainerAdapter {
                                 .map(this::hostConfigFromRequirements)
                                 .orElseGet(HostConfig::new)
                                 .withPrivileged(imageExt.isPrivileged())
-                                .withShmSize(imageExt.getShmSizeMegabytes().map(Integer::longValue).orElse(null))
-                                .withUlimits(imageExt.getShmSizeMegabytes().map(m -> new Ulimit[]{
+                                .withShmSize(imageExt.getShmSizeMegabytes().filter(m -> m > 0).orElse(null))
+                                .withUlimits(imageExt.getShmSizeMegabytes().filter(m -> m > 0).map(m -> new Ulimit[]{
                                         new Ulimit("memlock", -1L, -1L)
                                 }).orElse(null))
                                 .withAutoRemove(true)
@@ -155,10 +155,21 @@ public class SubmissionToDockerContainerAdapter {
     public HostConfig hostConfigFromRequirements(@Nonnull Requirements requirements) {
         // https://www.kernel.org/doc/Documentation/scheduler/sched-bwc.txt
         // https://github.com/moby/moby/issues/42356#issuecomment-833451641
-        var config = new HostConfig()
-                .withCpuPeriod(100_000L)
-                .withCpuQuota(requirements.getCpus() > 0 ? (long) requirements.getCpus() * 100_000L : null)
-                .withMemory((long) requirements.getMegabytesOfRam() * 1024 * 1024);
+        var config = new HostConfig();
+
+        requirements.getCpus().filter(cpus -> cpus > 0).ifPresent(cpus -> {
+            config
+                    .withCpuPeriod(100_000L)
+                    .withCpuQuota(cpus * 100_000L);
+        });
+
+        config.withMemory(
+                requirements
+                        .getMegabytesOfRam()
+                        .filter(mb -> mb < DockerBackend.DOCKER_MINIMUM_MEGABYTES_RAM)
+                        .orElse(DockerBackend.DOCKER_MINIMUM_MEGABYTES_RAM)
+                        * 1024 * 1024
+        );
 
         if (requirements.getGpu().getCount() > 0) {
             return config.withDeviceRequests(

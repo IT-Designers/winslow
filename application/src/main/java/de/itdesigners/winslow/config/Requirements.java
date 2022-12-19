@@ -6,10 +6,14 @@ import java.util.*;
 
 public class Requirements {
 
-    private final          int          cpus;
-    private final @Nonnull Integer      megabytesOfRam;
-    private final @Nonnull Gpu          gpu;
-    private final @Nonnull List<String> tags;
+    private final @Nullable Integer      cpus;
+    private final @Nullable Long         megabytesOfRam;
+    private final @Nonnull  Gpu          gpu;
+    private final @Nonnull  List<String> tags;
+
+    public Requirements() {
+        this(null, null, null, null);
+    }
 
     /**
      * @param cpus           The cpus requirements, nullable to ensure backwards compatibility
@@ -18,29 +22,28 @@ public class Requirements {
      */
     public Requirements(
             @Nullable Integer cpus,
-            @Nullable Integer megabytesOfRam,
+            @Nullable Long megabytesOfRam,
             @Nullable Gpu gpu,
             @Nullable List<String> tags) {
-        this.cpus           = cpus != null ? cpus : 0;
-        this.megabytesOfRam = megabytesOfRam != null ? megabytesOfRam : 100;
+        this.cpus           = cpus != null && cpus > 0 ? cpus : null;
+        this.megabytesOfRam = megabytesOfRam != null && megabytesOfRam > 0L ? megabytesOfRam : null;
         this.gpu            = gpu != null ? gpu : new Gpu(null, null, null);
         this.tags           = tags != null
                               ? Collections.unmodifiableList(tags)
                               : Collections.emptyList();
     }
 
-    public static Requirements createDefault() {
-        return new Requirements(null, null, null, null);
+    @Nonnull
+    public Optional<Integer> getCpus() {
+        return Optional.ofNullable(cpus);
     }
 
-    public int getCpus() {
-        return cpus;
+    @Nonnull
+    public Optional<Long> getMegabytesOfRam() {
+        return Optional.ofNullable(megabytesOfRam);
     }
 
-    public int getMegabytesOfRam() {
-        return megabytesOfRam;
-    }
-
+    @Nonnull
     public Gpu getGpu() {
         return gpu;
     }

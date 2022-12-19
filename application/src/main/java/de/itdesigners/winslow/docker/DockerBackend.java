@@ -5,6 +5,7 @@ import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Info;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.ResourceAllocationMonitor;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.Requirements;
 import de.itdesigners.winslow.config.StageDefinition;
@@ -24,8 +25,9 @@ import java.util.logging.Logger;
 
 public class DockerBackend implements Backend, Closeable, AutoCloseable {
 
-    private static final Logger LOG                                  = Logger.getLogger(DockerBackend.class.getSimpleName());
-    private static final String DOCKER_CONTAINER_NAME_WINSLOW_PREFIX = "winslow-stage-";
+    private static final   Logger LOG                                  = Logger.getLogger(DockerBackend.class.getSimpleName());
+    private static final   String DOCKER_CONTAINER_NAME_WINSLOW_PREFIX = "winslow-stage-";
+    protected static final long   DOCKER_MINIMUM_MEGABYTES_RAM         = 10;
 
     private final @Nonnull String                             nodeName;
     private final @Nonnull DockerClient                       dockerClient;
@@ -98,6 +100,40 @@ public class DockerBackend implements Backend, Closeable, AutoCloseable {
             return this.adapter.submit(submission);
         } catch (OrchestratorException e) {
             throw new IOException(e);
+        }
+    }
+
+    @Nonnull
+    @Override
+    public ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
+        if (definition instanceof StageWorkerDefinition workerDefinition) {
+            return new ResourceAllocationMonitor.ResourceSet<Long>()
+                    .with(
+                            ResourceAllocationMonitor.StandardResources.CPU,
+                            (long) workerDefinition
+                                    .requirements()
+                                    .getCpus()
+                                    .filter(cpus -> cpus > 0)
+                                    .orElse(0)
+                    )
+                    .with(
+                            ResourceAllocationMonitor.StandardResources.RAM,
+                            workerDefinition
+                                    .requirements()
+                                    .getMegabytesOfRam()
+                                    .filter(mb -> mb < DOCKER_MINIMUM_MEGABYTES_RAM)
+                                    .orElse(DOCKER_MINIMUM_MEGABYTES_RAM)
+                                    * 1024 * 1024
+
+                    )
+                    .with(
+                            ResourceAllocationMonitor.StandardResources.GPU,
+                            (long) workerDefinition.requirements().getGpu().getCount()
+
+                    );
+
+        } else {
+            return new ResourceAllocationMonitor.ResourceSet<>();
         }
     }
 

@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.api.pipeline;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -16,7 +17,12 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = StageAndGatewayDefinitionInfo.class, name = "AndGateway"),
 })
 public interface StageDefinitionInfo {
+    @JsonProperty
     @Nonnull UUID id();
+
+    @JsonProperty
     @Nonnull String name();
+
+    @JsonProperty
     @Nonnull List<UUID> nextStages();
 }

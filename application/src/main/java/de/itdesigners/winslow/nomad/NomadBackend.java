@@ -5,6 +5,7 @@ import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.OrchestratorException;
+import de.itdesigners.winslow.ResourceAllocationMonitor;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.Requirements;
@@ -34,6 +35,7 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
     public static final  String DRIVER_ATTRIBUTE_DOCKER_RUNTIMES = "driver.docker.runtimes";
     public static final  String DEFAULT_GPU_VENDOR               = "nvidia";
     public static final  String IMAGE_DRIVER_NAME                = "docker";
+    public static final  int    MIN_MEGABYTES_OF_RAM             = 100;
 
     private final @Nonnull NomadApiClient              client;
     private final @Nonnull SubmissionToNomadJobAdapter submissionToNomadJobAdapter;
@@ -124,6 +126,36 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
             return submissionToNomadJobAdapter.submit(submission);
         } catch (OrchestratorException | NomadException e) {
             throw new IOException(e);
+        }
+    }
+
+    @Nonnull
+    @Override
+    public ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources(@Nonnull StageDefinition definition) {
+        if (definition instanceof StageWorkerDefinition workerDefinition) {
+            return new ResourceAllocationMonitor.ResourceSet<Long>()
+                    .with(
+                            ResourceAllocationMonitor.StandardResources.CPU,
+                            (long) workerDefinition.requirements().getCpus().orElse(0)
+                    )
+                    .with(
+                            ResourceAllocationMonitor.StandardResources.RAM,
+                            workerDefinition
+                                    .requirements()
+                                    .getMegabytesOfRam()
+                                    .filter(m -> m > MIN_MEGABYTES_OF_RAM)
+                                    .orElse((long) MIN_MEGABYTES_OF_RAM)
+                                    * 1024 * 1024
+                    )
+                    .with(
+                            ResourceAllocationMonitor.StandardResources.GPU,
+                            (long) workerDefinition
+                                    .requirements()
+                                    .getGpu()
+                                    .getCount()
+                    );
+        } else {
+            return new ResourceAllocationMonitor.ResourceSet<>();
         }
     }
 

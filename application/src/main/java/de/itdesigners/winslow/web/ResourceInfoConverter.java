@@ -10,8 +10,8 @@ public class ResourceInfoConverter {
     @Nonnull
     public static ResourceInfo from(@Nonnull Requirements req) {
         return new ResourceInfo(
-                req.getCpus(),
-                req.getMegabytesOfRam(),
+                req.getCpus().orElse(0),
+                req.getMegabytesOfRam().orElse(0L),
                 req.getGpu().getCount()
         );
     }
