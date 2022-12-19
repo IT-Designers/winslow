@@ -23,8 +23,12 @@ public interface StageDefinition {
     @Nonnull String name();
     @Nonnull List<UUID> nextStages();
 
-    default void check() {
+    default void check() throws RuntimeException {
+        Objects.requireNonNull(id(), "The id of a stage must be set");
         Objects.requireNonNull(name(), "The name of a stage must be set");
+        if (name().isBlank()) {
+            throw new IllegalArgumentException("The name of a stage must not be blank");
+        }
     }
 
     default Map<String, String> environment() {

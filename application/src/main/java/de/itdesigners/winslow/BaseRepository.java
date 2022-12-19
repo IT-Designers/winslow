@@ -68,7 +68,7 @@ public abstract class BaseRepository {
     @Nonnull
     protected static Stream<Path> listAllInDirectory(Path directory) {
         try (var files = Files.list(directory)) {
-            return files.collect(Collectors.toUnmodifiableList()).stream();
+            return files.toList().stream();
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to list all entries in directory: " + directory, e);
             return Stream.empty();

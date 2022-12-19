@@ -8,6 +8,6 @@ public record UserInputInfo(
         @Nonnull List<String> requiredEnvVariables) {
 
     public enum Confirmation {
-        Never, Once, Always
+        NEVER, ONCE, ALWAYS
     }
 }

@@ -987,8 +987,8 @@ public class ProjectsController {
             @Nonnull StageDefinition base,
             @Nonnull Map<String, String> env,
             @Nullable Map<String, RangedValue> rangedEnv,
-            @Nullable ImageInfo image,
-            @Nullable ResourceInfo requiredResources,
+            @Nonnull ImageInfo image,
+            @Nonnull ResourceInfo requiredResources,
             @Nonnull Action action,
             @Nullable WorkspaceConfiguration workspaceConfiguration,
             @Nullable String comment,
@@ -1029,7 +1029,7 @@ public class ProjectsController {
         }
          */
             maybeUpdateStageImageConfig(image, resultWorkerDefinition);
-            resultWorkerDefinition.image().setShmSizeMegabytes(stageWorkerBase.image().getShmSizeMegabytes());
+            resultWorkerDefinition.image().setShmSizeMegabytes(stageWorkerBase.image().getShmSizeMegabytes().orElse(null));
             resultDefinition = resultWorkerDefinition;
         }
 
@@ -1068,9 +1068,10 @@ public class ProjectsController {
 
 
             return new Requirements(
-                    update.cpus,
-                    update.megabytesOfRam,
-                    Optional.ofNullable(update.gpus)
+                    update.cpus(),
+                    update.megabytesOfRam(),
+                    Optional.of(update.gpus())
+                            .filter(count -> count > 0)
                             .map(gpus -> new Requirements.Gpu(
                                     gpus,
                                     Optional
@@ -1137,11 +1138,11 @@ public class ProjectsController {
     }
 
     private static void maybeUpdateStageImageConfig(
-            @Nullable ImageInfo image,
+            @Nonnull ImageInfo image,
             @Nonnull StageWorkerDefinition stageDef) {
-        Optional.ofNullable(image.name).ifPresent(stageDef.image()::setName);
-        Optional.ofNullable(image.args).ifPresent(stageDef.image()::setArgs);
-        Optional.ofNullable(image.shmMegabytes).ifPresent(stageDef.image()::setShmSizeMegabytes);
+        stageDef.image().setName(image.name());
+        stageDef.image().setArgs(image.args());
+        stageDef.image().setShmSizeMegabytes(image.shmMegabytes());
     }
 
 

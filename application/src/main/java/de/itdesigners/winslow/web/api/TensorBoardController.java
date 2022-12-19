@@ -149,7 +149,7 @@ public class TensorBoardController {
             )
                     .withHardwareRequirements(new Requirements(
                             null,
-                            1024,
+                            1024L,
                             null,
                             null
                     ))

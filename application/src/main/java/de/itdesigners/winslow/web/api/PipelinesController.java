@@ -130,7 +130,7 @@ public class PipelinesController {
                         )
                 );
             } else if (e instanceof MismatchedInputException) {
-                var cause = (MismatchedInputException) e;
+                var cause    = (MismatchedInputException) e;
                 var location = cause.getLocation();
                 throw new ParseErrorException(e, new ParseError(
                         location.getLineNr(),
@@ -158,6 +158,10 @@ public class PipelinesController {
                 .flatMap(container -> {
                     try (container) {
                         if (container.get().isEmpty()) {
+                            var id0 = UUID.randomUUID();
+                            var id1 = UUID.randomUUID();
+                            var id2 = UUID.randomUUID();
+
                             var def = new PipelineDefinition(
                                     name,
                                     "Automatically generated description for '" + name + "'",
@@ -166,27 +170,30 @@ public class PipelinesController {
                                             List.of("SOME", "ENV_VARS", "THAT_MUST_BE_SET")
                                     ),
                                     List.of(new StageWorkerDefinition(
-                                            UUID.randomUUID(),
+                                            id0,
                                             "Sample Modest Stage",
                                             "Automatically generated stage description",
                                             new Image("library/hello-world", new String[0]),
-                                            null,
+                                            new Requirements(null, null, null, Collections.emptyList()),
                                             new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
                                             Map.of("SOME", "VALUE"),
                                             null,
                                             false,
                                             false,
-                                            null,
-                                            null,
-                                            null
+                                            Collections.emptyList(),
+                                            false,
+                                            List.of(id1)
                                     ), new StageWorkerDefinition(
-                                            UUID.randomUUID(),
+                                            id1,
                                             "Sample Nvidia Stage",
                                             "Automatically generated stage that reqires a GPU",
-                                            new Image("nvidia/cuda:11.8.0-base-ubuntu22.04", new String[]{"nvidia-smi"}),
+                                            new Image(
+                                                    "nvidia/cuda:11.8.0-base-ubuntu22.04",
+                                                    new String[]{"nvidia-smi"}
+                                            ),
                                             new Requirements(
                                                     0,
-                                                    0,
+                                                    null,
                                                     new Requirements.Gpu(1, "nvidia", new String[]{"cuda"}),
                                                     null
                                             ),
@@ -195,23 +202,23 @@ public class PipelinesController {
                                             null,
                                             true,
                                             false,
-                                            null,
-                                            null,
-                                            null
+                                            Collections.emptyList(),
+                                            false,
+                                            List.of(id2)
                                     ), new StageWorkerDefinition(
-                                            UUID.randomUUID(),
+                                            id2,
                                             "Sample Stage 3",
                                             "Another example",
                                             new Image("library/hello-world", new String[]{}),
-                                            new Requirements(1, 10240, null, null),
+                                            new Requirements(1, 10240L, null, null),
                                             new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
                                             Map.of("GIMME", "MOAR RAM"),
                                             null,
-                                            null,
                                             false,
-                                            null,
-                                            null,
-                                            null
+                                            false,
+                                            Collections.emptyList(),
+                                            false,
+                                            Collections.emptyList()
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
                                     null,
