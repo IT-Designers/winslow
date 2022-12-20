@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.0.1157 on 2022-12-19 17:48:32.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 10:43:20.
 
 export class GroupInfo {
   name: string;
@@ -167,8 +167,8 @@ export class NetInfo {
   transmitting: number;
 
   constructor(data: NetInfo) {
-    this.transmitting = data.transmitting;
     this.receiving = data.receiving;
+    this.transmitting = data.transmitting;
   }
 }
 
@@ -703,9 +703,6 @@ export class StorageInfo {
     this.bytesUsed = data.bytesUsed;
     this.bytesFree = data.bytesFree;
   }
-}
-
-export interface Iterable<T> {
 }
 
 export type DateAsNumber = number;
