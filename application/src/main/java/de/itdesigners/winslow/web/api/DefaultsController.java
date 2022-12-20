@@ -80,18 +80,9 @@ public class DefaultsController {
 
     @GetMapping("/default/pipeline/{name}")
     public PipelineDefinitionInfo getDefaultPipeline(@PathVariable(name = "pipeline") String pipelineName) {
-
         return PipelineDefinitionInfoConverter.from(
                 pipelineName + "_" + UUID.randomUUID(),
-                new PipelineDefinition(
-                        pipelineName,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                )
+                new PipelineDefinition(pipelineName)
         );
     }
 }

@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.gateway;
 
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.pipeline.ExecutionGroupId;
@@ -27,7 +28,7 @@ public class GraphTests {
     static UUID DEF_G = UUID.randomUUID();
     static UUID GTW_1 = UUID.randomUUID();
     static UUID GTW_2 = UUID.randomUUID();
-    static UUID GTW_3  = UUID.randomUUID();
+    static UUID GTW_3 = UUID.randomUUID();
 
 
     @Test
@@ -36,7 +37,7 @@ public class GraphTests {
         var pair = getDirectPipelineDefinition("stage-1", "stage-2", "stage-3");
 
         var pipelineDefinition = pair.getValue0();
-        var uuids = pair.getValue1();
+        var uuids              = pair.getValue1();
 
         var graph = new Graph(
                 emptyPipeline(),
@@ -66,9 +67,9 @@ public class GraphTests {
         var pipelineDefinition = newStupidPipelineDefinition(
                 "<JoinOf1And2Into3>",
                 List.of(
-                        newStupidStageDefinition(DEF_A,"stage-A", List.of(DEF_C)),
-                        newStupidStageDefinition(DEF_B,"stage-B", List.of(DEF_C)),
-                        newStupidStageDefinition(DEF_C,"stage-C", Collections.emptyList())
+                        newStupidStageDefinition(DEF_A, "stage-A", List.of(DEF_C)),
+                        newStupidStageDefinition(DEF_B, "stage-B", List.of(DEF_C)),
+                        newStupidStageDefinition(DEF_C, "stage-C", Collections.emptyList())
                 )
         );
 
@@ -442,26 +443,26 @@ public class GraphTests {
 
         return newStupidPipelineDefinition("complex-pipeline", List.of(
 
-                newStupidStageDefinition(DEF_A,"def-a", List.of(GTW_1)),
+                newStupidStageDefinition(DEF_A, "def-a", List.of(GTW_1)),
                 newStupidStageDefinition(GTW_1, "gtw-1", List.of(DEF_B, DEF_C)),
 
                 // path gtw-1 upper / path def-c
-                newStupidStageDefinition(DEF_C,"def-c", List.of(GTW_2)),
+                newStupidStageDefinition(DEF_C, "def-c", List.of(GTW_2)),
 
                 // path gtw-2 upper
                 newStupidStageDefinition(GTW_2, "gtw-2", List.of(DEF_D, DEF_E)),
-                newStupidStageDefinition(DEF_E,"def-e", List.of(GTW_3)),
+                newStupidStageDefinition(DEF_E, "def-e", List.of(GTW_3)),
 
                 // path gtw-2 lower
-                newStupidStageDefinition(DEF_D,"def-d", List.of(DEF_F)),
-                newStupidStageDefinition(DEF_F,"def-f", List.of(GTW_3)),
+                newStupidStageDefinition(DEF_D, "def-d", List.of(DEF_F)),
+                newStupidStageDefinition(DEF_F, "def-f", List.of(GTW_3)),
 
                 // path gtw-1 lower
-                newStupidStageDefinition(DEF_B,"def-b", List.of(GTW_3)),
+                newStupidStageDefinition(DEF_B, "def-b", List.of(GTW_3)),
 
 
                 newStupidStageDefinition(GTW_3, "gtw-3", List.of(DEF_G)),
-                newStupidStageDefinition(DEF_G,"def-g", List.of())
+                newStupidStageDefinition(DEF_G, "def-g", List.of())
         ));
     }
 
@@ -489,7 +490,15 @@ public class GraphTests {
     public static PipelineDefinition newStupidPipelineDefinition(
             @Nonnull String name,
             @Nonnull List<StageDefinition> stages) {
-        return new PipelineDefinition(name, null, null, stages, null, null, null);
+        return new PipelineDefinition(
+                name,
+                null,
+                new UserInput(),
+                stages,
+                Collections.emptyMap(),
+                new DeletionPolicy(),
+                Collections.emptyList()
+        );
     }
 
     @Nonnull
