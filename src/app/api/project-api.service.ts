@@ -21,6 +21,7 @@ import {
   StageXOrGatewayDefintionInfo,
   State,
   StateInfo,
+  StatsInfo,
   WorkspaceConfiguration,
   WorkspaceMode
 } from './winslow-api';
@@ -85,8 +86,8 @@ export class ProjectApiService {
     return this.rxStompService.watch(`/projects/${projectId}/stats`).subscribe((message: Message) => {
       const events: ChangeEvent<string, StatsInfo>[] = JSON.parse(message.body);
       events.forEach(event => {
-        if (event.identifier === projectId) {
-          listener(event.value ? event.value : new StatsInfo());
+        if (event.identifier === projectId && event.value) {
+          listener(new StatsInfo(event.value));
         }
       });
     });
@@ -706,15 +707,6 @@ export class DeletionPolicy {
   keepWorkspaceOfFailedStage: boolean;
   numberOfWorkspacesOfSucceededStagesToKeep?: number;
   alwaysKeepMostRecentWorkspace?: boolean;
-}
-
-export class StatsInfo {
-  stageId?: string;
-  runningOnNode?: string;
-  cpuUsed = 0;
-  cpuMaximum = 0;
-  memoryAllocated = 0;
-  memoryMaximum = 0;
 }
 
 export function createWorkspaceConfiguration(

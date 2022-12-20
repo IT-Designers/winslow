@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 14:48:38.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 14:56:20.
 
 export class GroupInfo {
   name: string;
@@ -540,17 +540,17 @@ export class StateInfo {
   }
 }
 
-export class Stats {
-  stageId?: string;
-  runningOnNode?: string;
+export class StatsInfo {
+  stageId: string;
+  nodeName: string;
   cpuUsed: number;
   cpuMaximum: number;
   memoryAllocated: number;
   memoryMaximum: number;
 
-  constructor(data: Stats) {
+  constructor(data: StatsInfo) {
     this.stageId = data.stageId;
-    this.runningOnNode = data.runningOnNode;
+    this.nodeName = data.nodeName;
     this.cpuUsed = data.cpuUsed;
     this.cpuMaximum = data.cpuMaximum;
     this.memoryAllocated = data.memoryAllocated;

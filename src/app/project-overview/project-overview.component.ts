@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {ProjectApiService, StatsInfo} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {pipe, Subscription} from 'rxjs';
-import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo, State} from '../api/winslow-api';
+import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../api/winslow-api';
 
 
 @Component({
@@ -280,7 +280,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   onStatsUpdate(stats: StatsInfo) {
     this.updateCpu(stats);
     this.updateMemory(stats);
-    this.nodeName = stats.runningOnNode;
+    this.nodeName = stats.nodeName;
   }
 
   private updateCpu(stats: StatsInfo) {
