@@ -1092,15 +1092,10 @@ public class Orchestrator implements Closeable, AutoCloseable {
         }
     }
 
-    @Nonnull
-    public static DeletionPolicy defaultDeletionPolicy() {
-        return new DeletionPolicy(false, null);
-    }
-
     @Override
     public void close() throws IOException {
-        for (var b : this.backends) {
-            b.close();
+        for (var backend : this.backends) {
+            backend.close();
         }
     }
 }

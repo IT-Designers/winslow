@@ -1,23 +1,19 @@
 package de.itdesigners.winslow.api.pipeline;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.ConstructorProperties;
+import java.beans.Transient;
 import java.util.Optional;
 
-public class DeletionPolicy {
+public record DeletionPolicy(
+        boolean keepWorkspaceOfFailedStage,
+        boolean alwaysKeepMostRecentWorkspace,
+        @Nullable Integer numberOfWorkspacesOfSucceededStagesToKeep) {
 
-    private           boolean keepWorkspaceOfFailedStage;
-    private @Nullable Integer numberOfWorkspacesOfSucceededStagesToKeep;
-    private           boolean alwaysKeepMostRecentWorkspace;
 
     public DeletionPolicy() {
-        this(true, null);
-    }
-
-    public DeletionPolicy(
-            boolean keepWorkspaceOfFailedStage,
-            @Nullable Integer numberOfWorkspacesOfSucceededStagesToKeep) {
-        this(keepWorkspaceOfFailedStage, numberOfWorkspacesOfSucceededStagesToKeep, null);
+        this(true, true, null);
     }
 
     @ConstructorProperties({
@@ -25,38 +21,13 @@ public class DeletionPolicy {
             "numberOfWorkspacesOfSucceededStagesToKeep",
             "alwaysKeepMostRecentWorkspace"
     })
-    public DeletionPolicy(
-            boolean keepWorkspaceOfFailedStage,
-            @Nullable Integer numberOfWorkspacesOfSucceededStagesToKeep,
-            @Nullable Boolean alwaysKeepMostRecentWorkspace) {
-        this.keepWorkspaceOfFailedStage                = keepWorkspaceOfFailedStage;
-        this.numberOfWorkspacesOfSucceededStagesToKeep = numberOfWorkspacesOfSucceededStagesToKeep;
-        this.alwaysKeepMostRecentWorkspace             = alwaysKeepMostRecentWorkspace != null
-                                                         ? alwaysKeepMostRecentWorkspace
-                                                         : true;
+    public DeletionPolicy {
     }
 
-    public boolean getKeepWorkspaceOfFailedStage() {
-        return keepWorkspaceOfFailedStage;
-    }
-
-    public void setKeepWorkspaceOfFailedStage(boolean keepWorkspaceOfFailedStage) {
-        this.keepWorkspaceOfFailedStage = keepWorkspaceOfFailedStage;
-    }
-
-    public Optional<Integer> getNumberOfWorkspacesOfSucceededStagesToKeep() {
+    @Nonnull
+    @Transient
+    public Optional<Integer> optNumberOfWorkspacesOfSucceededStagesToKeep() {
         return Optional.ofNullable(this.numberOfWorkspacesOfSucceededStagesToKeep);
     }
 
-    public void setNumberOfWorkspacesOfSucceededStagesToKeep(@Nullable Integer numberOfWorkspacesOfSucceededStagesToKeep) {
-        this.numberOfWorkspacesOfSucceededStagesToKeep = numberOfWorkspacesOfSucceededStagesToKeep;
-    }
-
-    public boolean getAlwaysKeepMostRecentWorkspace() {
-        return this.alwaysKeepMostRecentWorkspace;
-    }
-
-    public void setAlwaysKeepMostRecentWorkspace(boolean alwaysKeep) {
-        this.alwaysKeepMostRecentWorkspace = alwaysKeep;
-    }
 }
