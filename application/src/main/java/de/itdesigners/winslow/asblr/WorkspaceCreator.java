@@ -46,12 +46,12 @@ public class WorkspaceCreator implements AssemblerStep {
     @Override
     public void assemble(@Nonnull Context context) throws AssemblyException {
         var workspaceConfiguration = context.getExecutionGroup().getWorkspaceConfiguration();
-        var workspaceMode          = workspaceConfiguration.getMode();
+        var workspaceMode          = workspaceConfiguration.mode();
         context.log(Level.INFO, "WorkspaceConfiguration.WorkspaceMode=" + workspaceMode);
 
         var workspaceContinuation = Optional.<Path>empty();
         if (workspaceMode == WorkspaceMode.CONTINUATION) {
-            var stageId = workspaceConfiguration.getValue().orElse(null);
+            var stageId = workspaceConfiguration.optValue().orElse(null);
             var baseWorkspace = context
                     .getPipeline()
                     .getActiveAndPastExecutionGroups()
@@ -69,8 +69,8 @@ public class WorkspaceCreator implements AssemblerStep {
 
         var pathOfWorkspace = workspaceContinuation.orElseGet(() -> getWorkspacePathOf(
                 context.getStageId(),
-                workspaceConfiguration.isSharedWithinGroup(),
-                workspaceConfiguration.isNestedWithinGroup() ? getNestedWorkspaceName(context).orElse(null) : null
+                workspaceConfiguration.sharedWithinGroup(),
+                workspaceConfiguration.nestedWithinGroupExclusive() ? getNestedWorkspaceName(context).orElse(null) : null
         ));
         var pathOfPipelineInput  = getPipelineInputPathOf(context.getPipeline());
         var pathOfPipelineOutput = getPipelineOutputPathOf(context.getPipeline());
@@ -88,7 +88,7 @@ public class WorkspaceCreator implements AssemblerStep {
         var resources              = environment.getResourceManager().getResourceDirectory();
         var workspace = environment.getResourceManager().createWorkspace(
                 pathOfWorkspace,
-                workspaceMode != WorkspaceMode.CONTINUATION && !workspaceConfiguration.isSharedWithinGroup()
+                workspaceMode != WorkspaceMode.CONTINUATION && !workspaceConfiguration.sharedWithinGroup()
         );
         var pipelineInput  = environment.getResourceManager().createWorkspace(pathOfPipelineInput, false);
         var pipelineOutput = environment.getResourceManager().createWorkspace(pathOfPipelineOutput, false);
@@ -132,7 +132,7 @@ public class WorkspaceCreator implements AssemblerStep {
 
             if (!context.isConfigureOnly()
                     && workspaceMode == WorkspaceMode.INCREMENTAL
-                    && (!workspaceConfiguration.isSharedWithinGroup() || !workspaceExistedBefore)) {
+                    && (!workspaceConfiguration.sharedWithinGroup() || !workspaceExistedBefore)) {
                 copyContentOfMostRecentlyAndSuccessfullyExecutedStageTo(
                         context,
                         workspace.get()

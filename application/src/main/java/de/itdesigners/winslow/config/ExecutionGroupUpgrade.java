@@ -51,17 +51,14 @@ public class ExecutionGroupUpgrade extends JsonDeserializer<ExecutionGroup> {
         var envPipeline = readNullable(node, p.getCodec(), "envPipeline", Map.class);
         var envSystem   = readNullable(node, p.getCodec(), "envSystem", Map.class);
         var envInternal = readNullable(node, p.getCodec(), "envInternal", Map.class);
-        var workspaceConfiguration = Optional.ofNullable(readNullable(
-                node,
-                p.getCodec(),
-                "workspaceConfiguration",
-                WorkspaceConfiguration.class
-        )).orElseGet(() -> new WorkspaceConfiguration(
-                WorkspaceConfiguration.WorkspaceMode.INCREMENTAL,
-                null,
-                null,
-                null
-        ));
+        var workspaceConfiguration = Optional
+                .ofNullable(readNullable(
+                        node,
+                        p.getCodec(),
+                        "workspaceConfiguration",
+                        WorkspaceConfiguration.class
+                ))
+                .orElseGet(() -> new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL));
 
         return new ExecutionGroup(
                 id,

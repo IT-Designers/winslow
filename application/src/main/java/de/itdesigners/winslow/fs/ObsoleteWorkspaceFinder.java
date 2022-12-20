@@ -215,7 +215,7 @@ public class ObsoleteWorkspaceFinder {
                 .stream()
                 .flatMap(Collection::stream)
                 .flatMap(eg -> {
-                    if (eg.getWorkspaceConfiguration().isNestedWithinGroup() && eg.hasRangedValues()) {
+                    if (eg.getWorkspaceConfiguration().nestedWithinGroupExclusive() && eg.hasRangedValues()) {
                         var paths = eg
                                 .getStages()
                                 .flatMap(s -> s.getWorkspace().stream())
@@ -368,7 +368,7 @@ public class ObsoleteWorkspaceFinder {
 
                                     if (group
                                             .getWorkspaceConfiguration()
-                                            .isNestedWithinGroup() && group.hasRangedValues()) {
+                                            .nestedWithinGroupExclusive() && group.hasRangedValues()) {
                                         workspace = s.getWorkspace()
                                                      .map(Path::of)
                                                      .flatMap(p -> Optional.ofNullable(p.getParent()))
@@ -392,11 +392,11 @@ public class ObsoleteWorkspaceFinder {
 
                         if (group
                                 .getWorkspaceConfiguration()
-                                .getMode() == WorkspaceConfiguration.WorkspaceMode.CONTINUATION) {
+                                .mode() == WorkspaceConfiguration.WorkspaceMode.CONTINUATION) {
                             groups.addAll(workspaceLookup.getOrDefault(
                                     group
                                             .getWorkspaceConfiguration()
-                                            .getValue()
+                                            .optValue()
                                             .orElse(null), Collections.emptySet())
                             );
                         }

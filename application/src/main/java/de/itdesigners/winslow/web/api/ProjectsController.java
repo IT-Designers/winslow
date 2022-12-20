@@ -917,10 +917,7 @@ public class ProjectsController {
                                                 pipeline
                                                         .getWorkspaceConfigurationMode()
                                                         .filter(m -> m == WorkspaceConfiguration.WorkspaceMode.STANDALONE || m == WorkspaceConfiguration.WorkspaceMode.INCREMENTAL)
-                                                        .orElse(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
-                                                null,
-                                                null,
-                                                null
+                                                        .orElse(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL)
                                         ),
                                         null,
                                         null
