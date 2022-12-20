@@ -71,15 +71,15 @@ public class ProjectsController {
     public Optional<ProjectInfo> createProject(User user, @RequestBody ProjectCreateRequest body) {
         return winslow
                 .getPipelineRepository()
-                .getPipeline(body.pipeline)
+                .getPipeline(body.pipeline())
                 .unsafe()
                 .flatMap(pipelineDefinition -> winslow
                         .getProjectRepository()
                         .createProject(user, pipelineDefinition, project -> {
-                            project.setName(body.name);
-                            if (body.tags != null && body.tags.size() > 0) {
-                                project.setTags(body.tags.toArray(new String[0]));
-                            }
+                            project.setName(body.name());
+                            body.optTags().ifPresent(tags -> {
+                                project.setTags(tags.toArray(new String[0]));
+                            });
                         })
                         .filter(project -> {
                             try {
