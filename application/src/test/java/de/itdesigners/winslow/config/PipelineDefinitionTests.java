@@ -69,17 +69,7 @@ public class PipelineDefinitionTests {
                 List.of(new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "pipeline",
-                        (String) null,
-                        new Image("hello-world"),
-                        new Requirements(),
-                        new UserInput(),
-                        null,
-                        null,
-                        false,
-                        false,
-                        null,
-                        false,
-                        null
+                        new Image("hello-world")
                 )),
                 Map.of("env1", "envValue"),
                 new DeletionPolicy(true, 10, true),

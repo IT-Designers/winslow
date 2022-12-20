@@ -75,7 +75,7 @@ public class EnvVariableResolverTest {
         var resolver = new EnvVariableResolver()
                 .withInPipelineDefinitionDefinedVariables(Map.of("variable", "pipeline"))
                 .withInStageDefinitionDefinedVariables(Map.of("variable", "stage")) // this is expected to 'disappear'
-                .withIdAndStageName(uuid,"some-stage-name")
+                .withIdAndStageName(uuid, "some-stage-name")
                 .withExecutionHistory(() -> Stream
                         .of(constructFinishedExecutionStage(
                                 uuid,
@@ -115,7 +115,7 @@ public class EnvVariableResolverTest {
                 .withGlobalVariables(Map.of("global", "global"))
                 .withInPipelineDefinitionDefinedVariables(Map.of("pipeline", "pipeline"))
                 .withInStageDefinitionDefinedVariables(Map.of("stage", "stage"))
-                .withIdAndStageName(uuid,"some-stage-name")
+                .withIdAndStageName(uuid, "some-stage-name")
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
                         uuid,
                         "some-stage-name",
@@ -137,7 +137,7 @@ public class EnvVariableResolverTest {
     public void testConfigureStageOverwritesExecutedStageWithRemovedVariables() {
         var uuid = UUID.randomUUID();
         var resolved = new EnvVariableResolver()
-                .withIdAndStageName(uuid,"some-stage-name")
+                .withIdAndStageName(uuid, "some-stage-name")
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
                         uuid,
                         "some-stage-name",
@@ -161,7 +161,7 @@ public class EnvVariableResolverTest {
     public void testEnqueuedStageOverwritesExecutedStageWithRemovedVariables() {
         var uuid = UUID.randomUUID();
         var resolved = new EnvVariableResolver()
-                .withIdAndStageName(uuid,"some-stage-name")
+                .withIdAndStageName(uuid, "some-stage-name")
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
                         uuid,
                         "some-stage-name",
@@ -182,7 +182,7 @@ public class EnvVariableResolverTest {
     }
 
     private static void assertEnvVariable(
-            EnvVariable variable,
+            @Nonnull EnvVariable variable,
             String key,
             String value,
             String inherited) {
@@ -251,17 +251,17 @@ public class EnvVariableResolverTest {
                 new StageWorkerDefinition(
                         stageDefId,
                         stageDefName,
-                        (String) null,
+                        null,
+                        null,
                         new Image("hello-world"),
-                        new Requirements(),
-                        new UserInput(),
+                        null,
+                        null,
                         env,
                         null,
-                        false,
-                        false,
                         null,
                         false,
-                        null
+                        false,
+                        false
                 ),
                 null
         );
@@ -285,17 +285,17 @@ public class EnvVariableResolverTest {
                 new StageWorkerDefinition(
                         stageDefId,
                         stageDefName,
-                        (String) null,
+                        null,
+                        null,
                         new Image("hello-world"),
-                        new Requirements(),
-                        new UserInput(),
+                        null,
+                        null,
                         env,
                         null,
-                        false,
-                        false,
                         null,
                         false,
-                        null
+                        false,
+                        false
                 ),
                 null,
                 new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
