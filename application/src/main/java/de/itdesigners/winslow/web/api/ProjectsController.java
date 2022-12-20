@@ -1422,8 +1422,10 @@ public class ProjectsController {
                         }
                     });
                 })
-                .map(tokenAndSecret -> AuthTokenInfoConverter.convert(tokenAndSecret.getValue0())
-                                                             .withSecret(tokenAndSecret.getValue1()));
+                .map(tokenAndSecret -> AuthTokenInfoConverter
+                        .convert(tokenAndSecret.getValue0())
+                        .withSecret(tokenAndSecret.getValue1())
+                );
     }
 
     @DeleteMapping("projects/{projectId}/auth-tokens/{tokenId}")
