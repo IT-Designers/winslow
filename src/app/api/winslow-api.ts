@@ -694,7 +694,7 @@ export class ResourceLimitation {
 }
 
 export class StorageInfo {
-  name?: string;
+  name: string;
   bytesUsed: number;
   bytesFree: number;
 
