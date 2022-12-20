@@ -69,9 +69,9 @@ public class SettingsController {
                 .flatMap(u -> {
                     try {
                         winslow.getSettingsRepository().updateUserResourceLimitations(new ResourceLimitation(
-                                Optional.ofNullable(limit.cpu).map(l -> Math.max(1, l)).orElse(null),
-                                Optional.ofNullable(limit.mem).map(l -> Math.max(100, l)).orElse(null),
-                                Optional.ofNullable(limit.gpu).map(l -> Math.max(1, l)).orElse(null)
+                                Optional.ofNullable(limit.cpu()).map(l -> Math.max(1, l)).orElse(null),
+                                Optional.ofNullable(limit.mem()).map(l -> Math.max(100, l)).orElse(null),
+                                Optional.ofNullable(limit.gpu()).map(l -> Math.max(1, l)).orElse(null)
                         ));
                         return getUserResourceLimitation(u);
                     } catch (IOException e) {
