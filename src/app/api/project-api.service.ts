@@ -7,6 +7,7 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
 import {
+  AuthTokenInfo,
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
@@ -403,14 +404,16 @@ export class ProjectApiService {
     return this
       .client
       .get<AuthTokenInfo[]>(ProjectApiService.getUrl(`${projectId}/auth-tokens`))
-      .toPromise();
+      .toPromise()
+      .then(e => e.map(o => new AuthTokenInfo(o)));
   }
 
   createAuthToken(projectId: string, name: string): Promise<AuthTokenInfo> {
     return this
       .client
       .post<AuthTokenInfo>(ProjectApiService.getUrl(`${projectId}/auth-tokens?name=${name}`), new FormData())
-      .toPromise();
+      .toPromise()
+      .then(e => new AuthTokenInfo(e));
   }
 
   deleteAuthToken(projectId: string, id: string): Promise<boolean> {
@@ -536,13 +539,6 @@ export class RangeWithStepSize {
     const dist = (max - min);
     return Math.ceil(dist / stp) + 1;
   }
-}
-
-export class AuthTokenInfo {
-  id: string;
-  secret?: string;
-  name: string;
-  capabilities: string[];
 }
 
 export function loadExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {

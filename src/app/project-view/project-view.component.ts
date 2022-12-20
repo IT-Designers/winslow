@@ -11,11 +11,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {
-  AuthTokenInfo,
-  DeletionPolicy,
-  ProjectApiService,
-} from '../api/project-api.service';
+import {DeletionPolicy, ProjectApiService,} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTabGroup} from '@angular/material/tabs';
@@ -29,21 +25,22 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {pipe, Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {
+  AuthTokenInfo,
+  EnvVariable,
+  ExecutionGroupInfo,
   ImageInfo,
   PipelineDefinitionInfo,
-  ResourceInfo,
-  StageDefinitionInfo,
-  StageInfo,
-  State,
-  WorkspaceMode,
-  StateInfo,
-  ExecutionGroupInfo,
-  StageWorkerDefinitionInfo,
-  ResourceLimitation,
-  WorkspaceConfiguration,
   ProjectInfo,
   RangedValue,
-  EnvVariable
+  ResourceInfo,
+  ResourceLimitation,
+  StageDefinitionInfo,
+  StageInfo,
+  StageWorkerDefinitionInfo,
+  State,
+  StateInfo,
+  WorkspaceConfiguration,
+  WorkspaceMode
 } from '../api/winslow-api';
 
 
