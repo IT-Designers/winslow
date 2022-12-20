@@ -38,15 +38,7 @@ public class FileAccessCheckerTest {
                         null,
                         "project-name",
                         publicProject,
-                        new PipelineDefinition(
-                                "pipeline-definition",
-                                null,
-                                null,
-                                Collections.emptyList(),
-                                null,
-                                null,
-                                null
-                        ),
+                        new PipelineDefinition("pipeline-definition"),
                         null
                 ))
         );

@@ -12,7 +12,7 @@ public class PipelineDefinitionInfoConverter {
         return new PipelineDefinitionInfo(
                 id,
                 pipeline.name(),
-                pipeline.description(),
+                pipeline.optDescription().orElse(""),
                 UserInputInfoConverter.from(pipeline.userInput()),
                 pipeline
                         .stages()
