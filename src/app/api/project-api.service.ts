@@ -15,6 +15,9 @@ import {
   ParseError,
   PipelineDefinitionInfo,
   ProjectInfo,
+  RangedList,
+  RangedValue,
+  RangeWithStepSize,
   ResourceInfo,
   ResourceLimitation,
   StageAndGatewayDefinitionInfo,
@@ -39,8 +42,8 @@ export class ProjectApiService {
   static LOGS_LATEST = 'latest';
 
   public cachedTags: string[] = [];
-  private projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
-  private projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
+  private readonly projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
+  private readonly projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
 
   private static getUrl(more?: string) {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
@@ -129,7 +132,10 @@ export class ProjectApiService {
     });
   }
 
-  public watchLogs(projectId: string, listener: (logs: LogEntryInfo[]) => void, stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
+  public watchLogs(
+    projectId: string,
+    listener: (logs: LogEntryInfo[]) => void,
+    stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/logs/${stageId}`).subscribe(message => {
       const events: ChangeEvent<string, LogEntryInfo[]>[] = JSON.parse(message.body);
       events.forEach(event => {
@@ -474,72 +480,24 @@ export class ProjectGroup {
   projects: ProjectInfo[];
 }
 
-declare module './winslow-api' {
-  interface IRangedValue {
-    getStageCount(): number;
-  }
+export function createRangeWithStepSize(min: number, max: number, stepSize: number): RangeWithStepSize {
+  const stp = Math.abs(stepSize);
+  const dist = (max - min);
+  return new RangeWithStepSize({
+    '@type': 'DiscreteSteps',
+    min,
+    max,
+    stepCount: Math.ceil(dist / stp) + 1,
+    stepSize
+  });
 }
 
-
-export class RangedValue {
-  DiscreteSteps?: RangeWithStepSize;
-  List?: RangedList;
-
-  constructor(origin?: RangedValue) {
-    if (origin != null) {
-      if (origin.DiscreteSteps != null) {
-        this.DiscreteSteps = new RangeWithStepSize(origin.DiscreteSteps);
-      } else if (origin.List != null) {
-        this.List = new RangedList(origin.List);
-      }
-    }
-  }
-
-  getStageCount(): number {
-    if (this.DiscreteSteps != null) {
-      return this.DiscreteSteps.getStageCount();
-    } else if (this.List != null) {
-      return this.List.getStageCount();
-    } else {
-      return 0;
-    }
-  }
-}
-
-export class RangedList {
-  values: string[];
-
-  constructor(origin?: RangedList) {
-    if (origin != null) {
-      this.values = origin.values ?? [];
-    }
-  }
-
-  getStageCount(): number {
-    return this.values.length;
-  }
-}
-
-export class RangeWithStepSize {
-  min: number;
-  max: number;
-  stepSize: number;
-
-  constructor(origin?: RangeWithStepSize) {
-    if (origin != null) {
-      this.min = origin.min;
-      this.max = origin.max;
-      this.stepSize = origin.stepSize;
-    }
-  }
-
-  getStageCount(): number {
-    const min = Math.min(this.min, this.max);
-    const max = Math.max(this.min, this.max);
-    const stp = Math.abs(this.stepSize);
-    const dist = (max - min);
-    return Math.ceil(dist / stp) + 1;
-  }
+export function createRangedList(values: string[]): RangedList {
+  return new RangedList({
+    '@type': 'List',
+    stepCount: values.length,
+    values
+  });
 }
 
 export function loadExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {
@@ -645,7 +603,7 @@ ExecutionGroupInfo.prototype.getGroupSize = function(): number {
   if (rvKeys.length > 0) {
     let size = 0;
     for (const entry of Object.entries(this.rangedValues)) {
-      size += (entry[1] as RangedValue).getStageCount();
+      size += (entry[1] as RangedValue).stepCount;
     }
     return size;
   } else {
