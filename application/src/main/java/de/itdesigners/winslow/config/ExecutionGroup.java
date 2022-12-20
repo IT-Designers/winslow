@@ -150,16 +150,16 @@ public class ExecutionGroup {
                         worker.id(),
                         worker.name(),
                         worker.description(),
+                        worker.nextStages(),
                         worker.image(),
                         worker.requirements(),
                         worker.userInput(),
                         map,
                         worker.highlight(),
+                        worker.logParsers(),
                         worker.discardable(),
                         worker.privileged(),
-                        worker.logParsers(),
-                        worker.ignoreFailuresWithinExecutionGroup(),
-                        worker.nextStages()
+                        worker.ignoreFailuresWithinExecutionGroup()
                 );
             }
 

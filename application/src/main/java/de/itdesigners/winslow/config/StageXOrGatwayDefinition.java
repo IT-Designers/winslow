@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static de.itdesigners.winslow.config.StageWorkerDefinition.idFromName;
-
 public record StageXOrGatwayDefinition(
         @Nonnull UUID id,
         @Nonnull String name,
@@ -21,7 +19,7 @@ public record StageXOrGatwayDefinition(
             @Nullable String description,
             @Nullable List<String> conditions,
             @Nullable List<UUID> nextStages) {
-        this.id          = id != null ? id : idFromName(name);
+        this.id          = id != null ? id : StageDefinition.idFromName(name);
         this.name        = name;
         this.description = description != null ? description : "";
         this.conditions  = conditions != null ? conditions : Collections.emptyList();

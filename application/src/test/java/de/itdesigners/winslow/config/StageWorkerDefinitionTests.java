@@ -30,7 +30,7 @@ public class StageWorkerDefinitionTests {
         assertEquals(Optional.empty(), stage.requirements().getCpus());
         assertEquals(0, stage.requirements().getGpu().getCount());
         assertTrue(stage.environment().isEmpty());
-        assertEquals(Optional.empty(), stage.highlight());
+        assertTrue(stage.highlight().resources().isEmpty());
 
     }
 
@@ -51,7 +51,7 @@ public class StageWorkerDefinitionTests {
 
         assertEquals(UUID.fromString("2b6bbc37-c538-46c2-a139-2ecc65508f23"), stage.id());
         assertEquals("The name of the stage", stage.name());
-        assertEquals("The description of the stage", stage.description().orElseThrow());
+        assertEquals("The description of the stage", stage.description());
         assertEquals("image-origin/image-name", stage.image().getName());
         assertArrayEquals(new String[]{"arg1", "arg2"}, stage.image().getArgs());
     }
@@ -156,31 +156,16 @@ public class StageWorkerDefinitionTests {
 
         var refList = List.of("res1", "RES/NUM/2");
 
-        assertTrue(stage.highlight().map(h -> refList.containsAll(h.resources())).orElse(Boolean.FALSE));
-        assertTrue(stage.highlight().map(h -> h.resources().containsAll(refList)).orElse(Boolean.FALSE));
+        assertTrue(refList.containsAll(stage.highlight().resources()));
+        assertTrue(stage.highlight().resources().containsAll(refList));
 
 
     }
 
     @Test
     public void testSerialisationWithDefaultValues() throws IOException {
-        var stage = new StageWorkerDefinition(
-                UUID.randomUUID(),
-                "test",
-                (String) null,
-                new Image("hello-world"),
-                new Requirements(),
-                new UserInput(),
-                null,
-                null,
-                false,
-                false,
-                null,
-                false,
-                null
-        );
-
-        var yaml = BaseRepository.writeToString(stage);
+        var stage = new StageWorkerDefinition(UUID.randomUUID(), "test", new Image("hello-world"));
+        var yaml  = BaseRepository.writeToString(stage);
 
         assertNotNull(yaml);
         assertNotEquals("", yaml);
@@ -188,11 +173,11 @@ public class StageWorkerDefinitionTests {
 
     @Test
     public void testSerialisationWithAllValues() throws IOException {
-
         var stage = new StageWorkerDefinition(
                 UUID.randomUUID(),
                 "test",
-                "",
+                "some description",
+                List.of(UUID.randomUUID()),
                 new Image("image", new String[]{"param"}),
                 new Requirements(
                         4,
@@ -203,11 +188,10 @@ public class StageWorkerDefinitionTests {
                 new UserInput(UserInput.Confirmation.ALWAYS, List.of("Env")),
                 Map.of("env1", "envValue"),
                 new Highlight(List.of("to Highlight")),
-                true,
-                true,
                 List.of(new LogParser("matcher", "destination", "formatter", "type")),
                 true,
-                List.of(UUID.randomUUID())
+                true,
+                true
         );
 
         var yaml = BaseRepository.writeToString(stage);

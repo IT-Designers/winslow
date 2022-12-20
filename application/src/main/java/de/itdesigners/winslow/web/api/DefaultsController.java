@@ -1,9 +1,7 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
-import de.itdesigners.winslow.api.pipeline.ImageInfo;
 import de.itdesigners.winslow.api.pipeline.PipelineDefinitionInfo;
-import de.itdesigners.winslow.api.pipeline.RequirementsInfo;
 import de.itdesigners.winslow.api.pipeline.StageDefinitionInfo;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.web.PipelineDefinitionInfoConverter;
@@ -12,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.UUID;
 
 @RestController
@@ -26,38 +23,20 @@ public class DefaultsController {
 
     @GetMapping("/default/worker")
     public StageDefinitionInfo getDefaultWorker() {
+        var time = System.currentTimeMillis();
         return StageDefinitionInfoConverter.from(new StageWorkerDefinition(
                 UUID.randomUUID(),
-                "Worker-" + System.currentTimeMillis(),
-                "A new worker was born",
-                new Image(
-                        "hello-world",
-                        new String[0],
-                        0L
-                ),
-                new Requirements(
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                new UserInput(null, null),
-                Collections.emptyMap(),
-                null,
-                false,
-                false,
-                Collections.emptyList(),
-                false,
-                Collections.emptyList()
+                "Worker-" + time,
+                new Image("hello-world")
         ));
 
     }
 
     @GetMapping("/and-gateway")
     public StageDefinitionInfo getDefaultAndGateway() {
-
+        var time = System.currentTimeMillis();
         return StageDefinitionInfoConverter.from(new StageAndGatewayDefinition(
-                null,
+                UUID.randomUUID(),
                 "worker",
                 null,
                 null

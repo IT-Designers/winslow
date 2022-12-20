@@ -7,9 +7,9 @@ import java.util.*;
 
 public class StageWorkerDefinitionBuilder {
 
-    private @Nullable StageWorkerDefinition template;
-    private @Nullable StageWorkerDefinition base;
-    private @Nullable Optional<String>      description;
+    private @Nullable StageWorkerDefinition         template;
+    private @Nullable StageWorkerDefinition         base;
+    private @Nullable Optional<String>              description;
     private @Nullable Optional<Image>               image;
     private @Nullable Optional<Requirements>        requirements;
     private @Nullable Optional<UserInput>           userInput;
@@ -102,7 +102,7 @@ public class StageWorkerDefinitionBuilder {
     @Nonnull
     public StageWorkerDefinition build() {
         var base = Optional.ofNullable(this.base).or(() -> Optional.ofNullable(this.template)).orElseThrow();
-        var env = either(this.env, Optional.of(base.environment()));
+        var env  = either(this.env, Optional.of(base.environment()));
 
         if (this.additionalEnv != null) {
             if (env != null) {
@@ -116,26 +116,28 @@ public class StageWorkerDefinitionBuilder {
         return new StageWorkerDefinition(
                 base.id(),
                 base.name(),
-                either(this.description, base.description()),
+                either(this.description, Optional.of(base.description())),
+                Optional.ofNullable(this.template).map(StageWorkerDefinition::nextStages).orElse(null),
                 either(this.image, Optional.of(base.image())),
                 either(this.requirements, Optional.of(base.requirements())),
                 either(this.userInput, Optional.of(base.userInput())),
                 env,
-                either(this.highlight, base.highlight()),
+                either(this.highlight, Optional.of(base.highlight())),
+                either(
+                        this.logParsers,
+                        Optional.of(this.template.logParsers())
+                ),
                 either(this.discardable, Optional.of(base.discardable())),
                 Optional.ofNullable(either(
                         Optional.ofNullable(this.template).map(StageWorkerDefinition::privileged),
                         Optional.ofNullable(this.base).map(StageWorkerDefinition::privileged)
                 )).orElse(Boolean.FALSE),
-                either(
-                        this.logParsers,
-                        Optional.of(this.template.logParsers())
-                ),
                 Optional.ofNullable(either(
-                        Optional.ofNullable(this.template).map(StageWorkerDefinition::ignoreFailuresWithinExecutionGroup),
+                        Optional
+                                .ofNullable(this.template)
+                                .map(StageWorkerDefinition::ignoreFailuresWithinExecutionGroup),
                         Optional.ofNullable(this.base).map(StageWorkerDefinition::ignoreFailuresWithinExecutionGroup)
-                )).orElse(Boolean.FALSE),
-                Optional.ofNullable(this.template).map(StageWorkerDefinition::nextStages).orElse(null)
+                )).orElse(Boolean.FALSE)
         );
     }
 

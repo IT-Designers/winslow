@@ -174,26 +174,27 @@ public class PipelinesController {
                                             id0,
                                             "Sample Modest Stage",
                                             "Automatically generated stage description",
-                                            new Image("library/hello-world", new String[0]),
-                                            new Requirements(null, null, null, Collections.emptyList()),
-                                            new UserInput(UserInput.Confirmation.NEVER, Collections.emptyList()),
+                                            List.of(id1),
+                                            new Image("library/hello-world"),
+                                            new Requirements(),
+                                            new UserInput(),
                                             Map.of("SOME", "VALUE"),
+                                            null,
                                             null,
                                             false,
                                             false,
-                                            Collections.emptyList(),
-                                            false,
-                                            List.of(id1)
+                                            false
                                     ), new StageWorkerDefinition(
                                             id1,
                                             "Sample Nvidia Stage",
                                             "Automatically generated stage that reqires a GPU",
+                                            List.of(id2),
                                             new Image(
                                                     "nvidia/cuda:11.8.0-base-ubuntu22.04",
                                                     new String[]{"nvidia-smi"}
                                             ),
                                             new Requirements(
-                                                    0,
+                                                    null,
                                                     null,
                                                     new Requirements.Gpu(1, "nvidia", new String[]{"cuda"}),
                                                     null
@@ -201,25 +202,24 @@ public class PipelinesController {
                                             new UserInput(UserInput.Confirmation.NEVER, Collections.emptyList()),
                                             Map.of("ANOTHER", "VALUE"),
                                             null,
+                                            null,
                                             true,
                                             false,
-                                            Collections.emptyList(),
-                                            false,
-                                            List.of(id2)
+                                            false
                                     ), new StageWorkerDefinition(
                                             id2,
                                             "Sample Stage 3",
                                             "Another example",
+                                            null,
                                             new Image("library/hello-world", new String[]{}),
                                             new Requirements(1, 10240L, null, null),
                                             new UserInput(UserInput.Confirmation.ALWAYS, Collections.emptyList()),
                                             Map.of("GIMME", "MOAR RAM"),
                                             null,
+                                            null,
                                             false,
                                             false,
-                                            Collections.emptyList(),
-                                            false,
-                                            Collections.emptyList()
+                                            false
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
                                     new DeletionPolicy(),

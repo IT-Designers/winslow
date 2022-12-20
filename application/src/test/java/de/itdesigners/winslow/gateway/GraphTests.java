@@ -471,11 +471,10 @@ public class GraphTests {
         var stages = new ArrayList<StageDefinition>(stageNames.length);
         List<UUID> uuids = Arrays
                 .stream(stageNames)
-                .map(StageWorkerDefinition::idFromName)
+                .map(StageDefinition::idFromName)
                 .collect(Collectors.toList());
 
         for (int i = 0; i < stageNames.length; ++i) {
-
             stages.add(newStupidStageDefinition(
                     uuids.get(i),
                     stageNames[i],
@@ -509,17 +508,8 @@ public class GraphTests {
         return new StageWorkerDefinition(
                 id,
                 name,
-                (String) null,
-                new Image("hello-world"),
-                new Requirements(null, null, null, null),
-                new UserInput(null, null),
-                null,
-                null,
-                false,
-                false,
-                null,
-                false,
-                next
+                next,
+                new Image("hello-world")
         );
     }
 

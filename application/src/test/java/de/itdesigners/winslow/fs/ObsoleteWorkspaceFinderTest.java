@@ -36,11 +36,16 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testConsiderContinuedWorkspaces() {
         var history = List.of(
-                constructFinishedStage("workspace1", State.Succeeded), // cannot because first successful normal (counter)
-                constructFinishedStage("workspace2", State.Failed), // cannot be deleted because of below
-                constructFinishedStage("workspace2", State.Failed), // cannot be deleted because of below
-                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded), // cannot be discarded because first successful one (ignores counter)
-                constructFinishedStage("workspace3", State.Failed) // cannot be deleted because missing follow-up
+                constructFinishedStage("workspace1", State.Succeeded),
+                // cannot because first successful normal (counter)
+                constructFinishedStage("workspace2", State.Failed),
+                // cannot be deleted because of below
+                constructFinishedStage("workspace2", State.Failed),
+                // cannot be deleted because of below
+                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded),
+                // cannot be discarded because first successful one (ignores counter)
+                constructFinishedStage("workspace3", State.Failed)
+                // cannot be deleted because missing follow-up
         );
 
         var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
@@ -133,13 +138,20 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testConsiderContinuedWorkspacesComplex2() {
         var history = List.of(
-                constructFinishedStage("workspace1", State.Succeeded), // keep: second non-discardable successful
-                constructFinishedStage("workspace2", State.Failed), // delete: because of below
-                constructFinishedStage("workspace2", State.Failed), // delete: because of below
-                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded), // delete: discardable with succcessful follow-up
-                constructFinishedStage("workspace3", State.Succeeded), // keep:  first successful
-                constructFinishedStage("workspace3", State.Failed), // keep: because of above
-                constructFinishedStage("workspace4", State.Failed) // keep: most recent without successful follow-up
+                constructFinishedStage("workspace1", State.Succeeded),
+                // keep: second non-discardable successful
+                constructFinishedStage("workspace2", State.Failed),
+                // delete: because of below
+                constructFinishedStage("workspace2", State.Failed),
+                // delete: because of below
+                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded),
+                // delete: discardable with succcessful follow-up
+                constructFinishedStage("workspace3", State.Succeeded),
+                // keep:  first successful
+                constructFinishedStage("workspace3", State.Failed),
+                // keep: because of above
+                constructFinishedStage("workspace4", State.Failed)
+                // keep: most recent without successful follow-up
         );
 
         var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))
@@ -156,13 +168,20 @@ public class ObsoleteWorkspaceFinderTest {
     @Test
     public void testConsiderContinuedWorkspacesComplex2NoAlwaysKeep() {
         var history = List.of(
-                constructFinishedStage("workspace1", State.Succeeded), // keep: second non-discardable successful
-                constructFinishedStage("workspace2", State.Failed), // delete: because of below
-                constructFinishedStage("workspace2", State.Failed), // delete: because of below
-                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded), // delete: discardable with succcessful follow-up
-                constructFinishedStage("workspace3", State.Succeeded), // keep:  first successful
-                constructFinishedStage("workspace3", State.Failed), // keep: because of above
-                constructFinishedStage("workspace4", State.Failed) // delete: because no keep of most recent
+                constructFinishedStage("workspace1", State.Succeeded),
+                // keep: second non-discardable successful
+                constructFinishedStage("workspace2", State.Failed),
+                // delete: because of below
+                constructFinishedStage("workspace2", State.Failed),
+                // delete: because of below
+                constructFinishedDiscardableStage(false, "workspace2", State.Succeeded),
+                // delete: discardable with succcessful follow-up
+                constructFinishedStage("workspace3", State.Succeeded),
+                // keep:  first successful
+                constructFinishedStage("workspace3", State.Failed),
+                // keep: because of above
+                constructFinishedStage("workspace4", State.Failed)
+                // delete: because no keep of most recent
         );
 
         var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2, false))
@@ -329,9 +348,31 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
                 constructFinishedStage(false, true, "w-broken/s1", State.Succeeded),
                 // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w2" must not be substituted to its parent
-                constructFinishedStage(false, true, "w2", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(
+                        false,
+                        true,
+                        "w2",
+                        State.Succeeded,
+                        new WorkspaceConfiguration(
+                                WorkspaceConfiguration.WorkspaceMode.STANDALONE,
+                                null,
+                                false,
+                                true
+                        )
+                ),
                 // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w3/test" must not be substituted to its parent
-                constructFinishedStage(false, true, "w3/test", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(
+                        false,
+                        true,
+                        "w3/test",
+                        State.Succeeded,
+                        new WorkspaceConfiguration(
+                                WorkspaceConfiguration.WorkspaceMode.STANDALONE,
+                                null,
+                                false,
+                                true
+                        )
+                ),
                 constructFinishedStage(false, true, "w4", State.Succeeded),
                 constructFinishedStageWithNestedWorkspaces(false, true, List.of("w5/s1", "w5/s2"), State.Failed)
         );
@@ -350,9 +391,31 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedStageWithNestedWorkspaces(false, true, List.of("w1/s1", "w1/s2"), State.Succeeded),
                 constructFinishedStage(false, false, "w-broken/s1", State.Succeeded),
                 // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w2" must not be substituted to its parent
-                constructFinishedStage(false, false, "w2", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(
+                        false,
+                        false,
+                        "w2",
+                        State.Succeeded,
+                        new WorkspaceConfiguration(
+                                WorkspaceConfiguration.WorkspaceMode.STANDALONE,
+                                null,
+                                false,
+                                true
+                        )
+                ),
                 // this one has set nested to true, but has no RangedEnvironmentVariables, the path "w3/test" must not be substituted to its parent
-                constructFinishedStage(false, false, "w3/test", State.Succeeded, new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.STANDALONE, null, false, true)),
+                constructFinishedStage(
+                        false,
+                        false,
+                        "w3/test",
+                        State.Succeeded,
+                        new WorkspaceConfiguration(
+                                WorkspaceConfiguration.WorkspaceMode.STANDALONE,
+                                null,
+                                false,
+                                true
+                        )
+                ),
                 constructFinishedStage(false, false, "w4", State.Succeeded),
                 constructFinishedStageWithNestedWorkspaces(false, true, List.of("w5/s1", "w5/s2"), State.Failed)
         );
@@ -414,23 +477,23 @@ public class ObsoleteWorkspaceFinderTest {
                 new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "some-definition",
-                        (String) null,
+                        null,
+                        null,
                         new Image("hello-world"),
-                        new Requirements(),
-                        new UserInput(),
+                        null,
+                        null,
+                        null,
                         null,
                         null,
                         discardable != null ? discardable : false,
                         false,
-                        null,
-                        false,
-                        null
+                        false
                 ),
                 null,
                 workspaceConfiguration != null
-                    ? workspaceConfiguration
-                    : new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
-                new ArrayList<>(),
+                ? workspaceConfiguration
+                : new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
+                Collections.emptyList(),
                 0,
                 null,
                 null
@@ -466,17 +529,17 @@ public class ObsoleteWorkspaceFinderTest {
                 new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "some-definition",
-                        (String) null,
+                        null,
+                        null,
                         new Image("hello-world"),
-                        new Requirements(),
-                        new UserInput(),
+                        null,
+                        null,
+                        null,
                         null,
                         null,
                         discardable != null ? discardable : false,
                         false,
-                        null,
-                        false,
-                        null
+                        false
                 ),
                 Map.of("a", new RangedList(new String[]{"b", "c"})),
                 new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL)
