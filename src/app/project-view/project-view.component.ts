@@ -342,17 +342,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     this.pauseReason = info.pauseReason;
     this.progress = info.stageProgress;
 
-    this.paused = this.stateValue === 'Paused' || this.pauseReason != null;
+    this.paused = this.stateValue === 'PAUSED' || this.pauseReason != null;
 
     this.stateEmitter.emit(this.stateValue);
   }
 
   isEnqueued(state = this.stateValue): boolean {
-    return state === 'Enqueued';
+    return state === 'ENQUEUED';
   }
 
   isRunning(state = this.stateValue): boolean {
-    return state === 'Running';
+    return state === 'RUNNING';
   }
 
   enqueue(
@@ -455,7 +455,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         .resume(this.project.id, pause, singleStageOnly)
         .then(result => {
           if (!this.paused) {
-            this.stateEmitter.emit(this.stateValue = 'Running');
+            this.stateEmitter.emit(this.stateValue = 'RUNNING');
             this.pauseReason = null;
           }
         })
