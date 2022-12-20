@@ -62,7 +62,7 @@ public class ExecutionGroupUpgrade extends JsonDeserializer<ExecutionGroup> {
 
         return new ExecutionGroup(
                 id,
-                Action.Configure == action,
+                Action.CONFIGURE == action,
                 definition,
                 null,
                 workspaceConfiguration,

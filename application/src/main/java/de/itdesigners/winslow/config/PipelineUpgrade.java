@@ -105,7 +105,7 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                         .flatMap(Collection::stream)
                         .map(es -> {
                             switch (es.getAction()) {
-                                case Execute:
+                                case EXECUTE:
                                     return new ExecutionGroup(
                                             new ExecutionGroupId(
                                                     projectId,
@@ -120,7 +120,7 @@ public class PipelineUpgrade extends JsonDeserializer<Pipeline> {
                                               .orElse(null),
                                             null
                                     );
-                                case Configure:
+                                case CONFIGURE:
                                     return new ExecutionGroup(
                                             new ExecutionGroupId(
                                                     projectId,
