@@ -1,6 +1,6 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogSource;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.LockedOutputStream;
@@ -153,7 +153,7 @@ public class Executor implements Closeable, AutoCloseable {
     private LogEntry createLogEntry(boolean error, @Nonnull String message) {
         return new LogEntry(
                 System.currentTimeMillis(),
-                LogEntry.Source.MANAGEMENT_EVENT,
+                LogSource.MANAGEMENT_EVENT,
                 error,
                 PREFIX + message
         );
@@ -299,14 +299,14 @@ public class Executor implements Closeable, AutoCloseable {
     }
 
     private synchronized void notifyLogConsumerIfStdout(@Nonnull LogEntry entry) {
-        if (LogEntry.Source.STANDARD_IO == entry.getSource()) {
+        if (LogSource.STANDARD_IO == entry.source()) {
             this.logConsumer.forEach(consumer -> consumer.accept(entry));
         }
     }
 
     /**
      * Adds the given consumer to the list of consumers to be notified on <b>STDIO</b> logs.
-     * Internal logs (like {@link de.itdesigners.winslow.api.pipeline.LogEntry.Source#MANAGEMENT_EVENT})
+     * Internal logs (like {@link LogSource#MANAGEMENT_EVENT})
      * are not passed to the given consumer.
      *
      * @param consumer {@link Consumer} to add

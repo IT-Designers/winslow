@@ -13,10 +13,7 @@ import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.project.AuthTokens;
 import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
-import de.itdesigners.winslow.web.AuthTokenInfoConverter;
-import de.itdesigners.winslow.web.ExecutionGroupInfoConverter;
-import de.itdesigners.winslow.web.PipelineDefinitionInfoConverter;
-import de.itdesigners.winslow.web.ProjectInfoConverter;
+import de.itdesigners.winslow.web.*;
 import de.itdesigners.winslow.web.api.noauth.PipelineTrigger;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -524,24 +521,22 @@ public class ProjectsController {
                                             )  // do not stream in parallel!
                                             .sequential()
                                             .skip(skip)
-                                            .map(entry -> new LogEntryInfo(
+                                            .map(entry -> LogEntryInfoConverter.from(
+                                                    entry,
                                                     line.incrementAndGet(),
-                                                    stage.getFullyQualifiedId(),
-                                                    entry
+                                                    stage.getFullyQualifiedId()
                                             )),
                                     Stream
                                             .of(0L)
                                             .flatMap(dummy -> {
                                                 if (line.get() == 0L) {
                                                     return Stream.of(new LogEntryInfo(
+                                                            System.currentTimeMillis(),
+                                                            LogSource.MANAGEMENT_EVENT,
+                                                            false,
+                                                            "Loading...",
                                                             1L,
-                                                            stage.getFullyQualifiedId() + "_temp",
-                                                            new LogEntry(
-                                                                    System.currentTimeMillis(),
-                                                                    LogEntry.Source.MANAGEMENT_EVENT,
-                                                                    false,
-                                                                    "Loading..."
-                                                            )
+                                                            stage.getFullyQualifiedId() + "_temp"
                                                     ));
                                                 } else {
                                                     return Stream.empty();
