@@ -831,19 +831,19 @@ public class ProjectsController {
 
                     // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
-                    return getStageDefinitionNoClone(project, UUID.fromString(body.id))
+                    return getStageDefinitionNoClone(project, UUID.fromString(body.id()))
                             .map(stageDef -> {
                                 enqueueExecutionStage(
                                         pipeline,
                                         stageDef,
-                                        body.env,
-                                        body.rangedEnv,
-                                        body.image,
-                                        body.requiredResources,
-                                        body.workspaceConfiguration,
-                                        body.comment,
-                                        body.runSingle != null && body.runSingle,
-                                        body.resume != null && body.resume
+                                        body.env(),
+                                        body.rangedEnv(),
+                                        body.image(),
+                                        body.requiredResources(),
+                                        body.workspaceConfiguration(),
+                                        body.comment(),
+                                        body.optRunSingle().orElse(Boolean.FALSE),
+                                        body.optResume().orElse(Boolean.FALSE)
                                 );
                                 return Boolean.TRUE;
                             })
@@ -863,27 +863,26 @@ public class ProjectsController {
                 .flatMap(project -> winslow.getOrchestrator().getPipeline(project).map(pipeline -> {
                     // not cloning it is fine, because opened in unsafe-mode and only in this temporary scope
                     // so changes will not be written back
-                    return getStageDefinitionNoClone(project,  UUID.fromString(body.id));
+                    return getStageDefinitionNoClone(project, UUID.fromString(body.id()));
                 }))
                 .orElseThrow()
                 .orElseThrow();
 
-        return Stream
-                .of(body.projectIds)
+        return body
+                .streamProjectIds()
                 .map(id -> winslow.getProjectRepository().getProject(id).unsafe())
                 .map(maybeProject -> maybeProject
                         .filter(project -> project.canBeAccessedBy(user))
                         .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-
                             enqueueConfigureStage(
                                     pipeline,
                                     stageDefinitionBase,
-                                    body.env,
-                                    body.image,
-                                    body.requiredResources,
-                                    body.comment,
-                                    body.runSingle != null && body.runSingle,
-                                    body.resume != null && body.resume
+                                    body.env(),
+                                    body.image(),
+                                    body.requiredResources(),
+                                    body.comment(),
+                                    body.optRunSingle().orElse(Boolean.FALSE),
+                                    body.optResume().orElse(Boolean.FALSE)
                             );
                             return Boolean.TRUE;
                         }))
@@ -1033,7 +1032,10 @@ public class ProjectsController {
         }
          */
             maybeUpdateStageImageConfig(image, resultWorkerDefinition);
-            resultWorkerDefinition.image().setShmSizeMegabytes(stageWorkerBase.image().getShmSizeMegabytes().orElse(null));
+            resultWorkerDefinition.image().setShmSizeMegabytes(stageWorkerBase
+                                                                       .image()
+                                                                       .getShmSizeMegabytes()
+                                                                       .orElse(null));
             resultDefinition = resultWorkerDefinition;
         }
 
@@ -1068,7 +1070,6 @@ public class ProjectsController {
             // nothing to do
             return requirements;
         } else {
-
 
 
             return new Requirements(
