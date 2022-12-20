@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import {EnvVariable} from '../api/project-api.service';
+import {MatDialog} from '@angular/material/dialog';
+import {EnvVariable} from '../api/winslow-api';
 
 @Component({
   selector: 'app-env-variables',
@@ -180,17 +180,24 @@ export class EnvVariablesComponent implements OnInit {
     }
     let current = this.environmentVariables.get(key);
     if (current == null) {
-      current = new EnvVariable();
+      current = new EnvVariable({
+        key,
+        value,
+        valueInherited: null
+      });
       this.environmentVariables.set(key, current);
+    } else {
+      current.value = value;
     }
-    current.value = value;
     if (!this.keys.has(key)) {
       this.keys.add(key);
     }
   }
 
   delete(key: string) {
-    if (this.environmentVariables != null && this.environmentVariables.has(key) && this.environmentVariables.get(key).valueInherited != null) {
+    if (this.environmentVariables != null
+      && this.environmentVariables.has(key)
+      && this.environmentVariables.get(key).valueInherited != null) {
       this.formGroupEnv.get(key).setValue(null);
     } else {
       this.formGroupEnv.removeControl(key);
