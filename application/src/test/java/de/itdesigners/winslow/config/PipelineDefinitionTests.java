@@ -72,7 +72,7 @@ public class PipelineDefinitionTests {
                         new Image("hello-world")
                 )),
                 Map.of("env1", "envValue"),
-                new DeletionPolicy(true, 10, true),
+                new DeletionPolicy(true, true, 10),
                 List.of("markers")
         );
 
