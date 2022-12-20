@@ -95,7 +95,7 @@ public class ProjectsEndpointController {
                             .stream()
                             .anyMatch(pipeline -> pipeline
                                     .getActiveExecutionGroups()
-                                    .anyMatch(g -> g.getStages().anyMatch(stage -> stage.getState() == State.Running))
+                                    .anyMatch(g -> g.getStages().anyMatch(stage -> stage.getState() == State.RUNNING))
                             )
                     )
                     .forEach(project -> createOrStopProjectPublisher(project.getId(), project, true));
@@ -215,7 +215,7 @@ public class ProjectsEndpointController {
         } else {
             this.winslow.getProjectRepository().getProject(projectId).unsafe().ifPresent(project -> {
                 var info = projects.getStateInfo(pipeline);
-                createOrStopProjectPublisher(projectId, project, State.Running == info.state());
+                createOrStopProjectPublisher(projectId, project, State.RUNNING == info.state());
                 publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, info, project);
                 publishProjectUpdateCachedDelta(
                         String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId),

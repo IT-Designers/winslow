@@ -69,9 +69,9 @@ public class NoOpStageHandle implements StageHandle {
     @Override
     public Optional<State> getState() {
         if (hasSucceeded()) {
-            return Optional.of(State.Succeeded);
+            return Optional.of(State.SUCCEEDED);
         } else {
-            return Optional.of(State.Failed);
+            return Optional.of(State.FAILED);
         }
     }
 

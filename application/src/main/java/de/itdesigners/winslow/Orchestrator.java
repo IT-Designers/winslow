@@ -1,6 +1,5 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
@@ -309,7 +308,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                                      group.updateStage(
                                                              event.getSubject(),
                                                              stage -> {
-                                                                 stage.finishNow(State.Failed);
+                                                                 stage.finishNow(State.FAILED);
                                                                  return Optional.of(stage);
                                                              }
                                                      );
@@ -643,7 +642,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                             return group.updateStage(
                                                     stageId.getFullyQualified(),
                                                     stage -> {
-                                                        stage.finishNow(State.Failed);
+                                                        stage.finishNow(State.FAILED);
                                                         return Optional.of(stage);
                                                     }
                                             );
@@ -1057,7 +1056,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
                     var prunable = pipe
                             .getActiveAndPastExecutionGroups()
                             .flatMap(g -> g.getStages().map(s -> new Pair<>(g, s)))
-                            .filter(s -> s.getValue1().getState() == State.Failed)
+                            .filter(s -> s.getValue1().getState() == State.FAILED)
                             .toList();
 
 

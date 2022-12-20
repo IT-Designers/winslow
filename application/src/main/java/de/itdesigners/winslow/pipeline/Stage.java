@@ -6,7 +6,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.ConstructorProperties;
 import java.beans.Transient;
-import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,9 +106,9 @@ public class Stage implements Cloneable {
     public State getState() {
         return getFinishState().orElseGet(() -> {
             if (startTime == null) {
-                return State.Preparing;
+                return State.PREPARING;
             } else {
-                return State.Running;
+                return State.RUNNING;
             }
         });
     }

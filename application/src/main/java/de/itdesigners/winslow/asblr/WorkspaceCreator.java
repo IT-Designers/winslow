@@ -244,7 +244,7 @@ public class WorkspaceCreator implements AssemblerStep {
         var workspaces = pipeline
                 .getExecutionHistory()
                 .filter(group -> !group.isConfigureOnly() && !group.isGateway())
-                .filter(group -> group.getStages().allMatch(stage -> stage.getState() == State.Succeeded))
+                .filter(group -> group.getStages().allMatch(stage -> stage.getState() == State.SUCCEEDED))
                 .flatMap(group -> group.getStages().flatMap(s -> s.getWorkspace().stream()))
                 .collect(Collectors.toList());
 

@@ -312,7 +312,7 @@ public class ProjectsController {
                 .map(ExecutionGroup::getRunningStages)
                 .flatMap(s -> {
                     if (s.findAny().isPresent()) {
-                        return Stream.of(State.Running);
+                        return Stream.of(State.RUNNING);
                     } else {
                         return Stream.empty();
                     }
@@ -324,7 +324,7 @@ public class ProjectsController {
                             .map(g -> !g.isConfigureOnly() && g.getStages().findAny().isEmpty())
                             .findFirst()
                             .orElse(Boolean.FALSE)) {
-                        return Optional.of(State.Preparing);
+                        return Optional.of(State.PREPARING);
                     } else {
                         return Optional.empty();
                     }
@@ -338,11 +338,11 @@ public class ProjectsController {
                             .map(Stage::getState);
 
                     if (mostRecent.isEmpty() && pipeline.isPauseRequested()) {
-                        return Optional.of(State.Paused);
+                        return Optional.of(State.PAUSED);
                     } else {
                         return mostRecent.map(state -> {
-                            if (State.Succeeded == state && pipeline.isPauseRequested()) {
-                                return State.Paused;
+                            if (State.SUCCEEDED == state && pipeline.isPauseRequested()) {
+                                return State.PAUSED;
                             } else {
                                 return state;
                             }
@@ -351,7 +351,7 @@ public class ProjectsController {
                 })
                 .or(() -> {
                     if (!pipeline.isPauseRequested() && pipeline.hasEnqueuedStages()) {
-                        return Optional.of(State.Preparing);
+                        return Optional.of(State.PREPARING);
                     } else {
                         return Optional.empty();
                     }
@@ -411,7 +411,7 @@ public class ProjectsController {
             }
         }
 
-        if (State.Preparing == state) {
+        if (State.PREPARING == state) {
             mostRecentStage = "Searching a fitting execution node...";
         }
 
@@ -496,7 +496,7 @@ public class ProjectsController {
                         .flatMap(ExecutionGroup::getStages)
                         .filter(stage -> {
                             if ("latest".equals(stageId)) {
-                                return stage.getState() == State.Running;
+                                return stage.getState() == State.RUNNING;
                             } else {
                                 return stageId.equals(stage.getFullyQualifiedId());
                             }

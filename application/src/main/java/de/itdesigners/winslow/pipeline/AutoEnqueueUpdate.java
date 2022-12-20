@@ -68,7 +68,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                         .getPreviousExecutionGroup()
                         .filter(g -> g
                                 .getStages()
-                                .allMatch(s -> s.getFinishState().equals(Optional.of(State.Succeeded))))
+                                .allMatch(s -> s.getFinishState().equals(Optional.of(State.SUCCEEDED))))
                         .stream()
                         .flatMap(mostRecent -> getNextStageDefinition(
                                 project,
@@ -94,13 +94,13 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                                                 .equals(nextStageDefinitionBase.id()))
                                         .filter(g -> g
                                                 .getStages()
-                                                .anyMatch(s -> s.getState() == State.Succeeded))
+                                                .anyMatch(s -> s.getState() == State.SUCCEEDED))
                                         .reduce((first, second) -> second) // take the most recent
                                         .ifPresent(recent -> {
                                             env.clear();
                                             env.putAll(recent
                                                                .getStages()
-                                                               .filter(s -> s.getState() == State.Succeeded)
+                                                               .filter(s -> s.getState() == State.SUCCEEDED)
                                                                .reduce((first, second) -> second)
                                                                .orElseThrow() // would not have passed through any match
                                                                .getEnv());

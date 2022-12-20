@@ -68,7 +68,7 @@ public class StageElectionUpdate implements PipelineUpdater.NoAccessUpdater, Pip
                 .ofNullable(pipelineReadOnly)
                 .stream()
                 .flatMap(Pipeline::getActiveExecutionGroups)
-                .map(g -> g.getStages().anyMatch(s -> s.getState() == State.Preparing))
+                .map(g -> g.getStages().anyMatch(s -> s.getState() == State.PREPARING))
                 .findFirst()
                 .orElse(Boolean.FALSE);
         if (hasPreparingStage) {

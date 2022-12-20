@@ -32,16 +32,16 @@ public class GatewayStageHandle implements StageHandle {
     }
 
     /**
-     * Extends the {@link State#Running} if there are logs that need to be collected first
+     * Extends the {@link State#RUNNING} if there are logs that need to be collected first
      * @return The extended {@link State} of the {@link Gateway}
      */
     @Nonnull
     private State getGatewayState() {
         if (!this.gateway.logs.isEmpty()) {
-            if (this.gateway.state == State.Preparing) {
-                return State.Preparing;
+            if (this.gateway.state == State.PREPARING) {
+                return State.PREPARING;
             } else {
-                return State.Running;
+                return State.RUNNING;
             }
         } else {
             return this.gateway.state;
@@ -50,12 +50,12 @@ public class GatewayStageHandle implements StageHandle {
 
     @Override
     public boolean isRunning() {
-        return getGatewayState() == State.Running;
+        return getGatewayState() == State.RUNNING;
     }
 
     @Override
     public boolean hasStarted() {
-        return getGatewayState() != State.Preparing;
+        return getGatewayState() != State.PREPARING;
     }
 
     @Override
@@ -65,12 +65,12 @@ public class GatewayStageHandle implements StageHandle {
 
     @Override
     public boolean hasFailed() {
-        return getGatewayState() == State.Failed;
+        return getGatewayState() == State.FAILED;
     }
 
     @Override
     public boolean hasSucceeded() {
-        return getGatewayState() == State.Succeeded;
+        return getGatewayState() == State.SUCCEEDED;
     }
 
     @Override

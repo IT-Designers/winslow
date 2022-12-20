@@ -309,11 +309,11 @@ public class NomadBackend implements Backend, Closeable, AutoCloseable {
 
 
         if (failed) {
-            return State.Failed;
+            return State.FAILED;
         } else if (started && finished) {
-            return State.Succeeded;
+            return State.SUCCEEDED;
         } else {
-            return State.Running;
+            return State.RUNNING;
         }
     }
 
