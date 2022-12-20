@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 14:30:03.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 14:48:38.
 
 export class GroupInfo {
   name: string;
@@ -571,8 +571,8 @@ export class UserInputInfo {
 export class WorkspaceConfiguration {
   mode: WorkspaceMode;
   value?: string;
-  sharedWithinGroup?: boolean;
-  nestedWithinGroup?: boolean;
+  sharedWithinGroup: boolean;
+  nestedWithinGroup: boolean;
 
   constructor(data: WorkspaceConfiguration) {
     this.mode = data.mode;
