@@ -1,6 +1,6 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.StatsInfo;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 
@@ -162,17 +162,17 @@ public class RunInfoRepository extends BaseRepository {
     }
 
     @Nonnull
-    public Optional<Stats> getStats(@Nonnull String stageId) {
+    public Optional<StatsInfo> getStats(@Nonnull String stageId) {
         return getStatsIfNotOlderThan(stageId, Long.MAX_VALUE);
     }
 
     @Nonnull
-    public Optional<Stats> getStatsIfStillRelevant(@Nonnull String stageId) {
+    public Optional<StatsInfo> getStatsIfStillRelevant(@Nonnull String stageId) {
         return getStatsIfNotOlderThan(stageId, 5_000);
     }
 
     @Nonnull
-    public Optional<Stats> getStatsIfNotOlderThan(@Nonnull String stageId, long duration) {
+    public Optional<StatsInfo> getStatsIfNotOlderThan(@Nonnull String stageId, long duration) {
         var path         = getPropertyPathIfStageExists(stageId, PROPERTY_FILE_STATS);
         var file         = path.map(Path::toFile);
         var lastModified = file.map(File::lastModified);
@@ -180,7 +180,7 @@ public class RunInfoRepository extends BaseRepository {
 
         if (timeDiff.isPresent() && timeDiff.get() < duration) {
             try (var fis = new FileInputStream(file.get())) {
-                return Optional.ofNullable(defaultReader(Stats.class).load(fis));
+                return Optional.ofNullable(defaultReader(StatsInfo.class).load(fis));
             } catch (FileNotFoundException e) {
                 LOG.log(Level.WARNING, "Failed to find promised property file for " + stageId, e);
                 return Optional.empty();
@@ -193,7 +193,7 @@ public class RunInfoRepository extends BaseRepository {
         }
     }
 
-    public void setStats(@Nonnull String stageId, @Nonnull Stats stats) {
+    public void setStats(@Nonnull String stageId, @Nonnull StatsInfo stats) {
         try {
             var path = getPropertyPath(stageId, PROPERTY_FILE_STATS);
             AtomicWriteByUsingTempFile.write(path, os -> defaultWriter().store(os, stats));

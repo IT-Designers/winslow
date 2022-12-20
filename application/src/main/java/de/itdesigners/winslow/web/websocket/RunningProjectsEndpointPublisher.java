@@ -3,7 +3,7 @@ package de.itdesigners.winslow.web.websocket;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.pipeline.LogEntryInfo;
 import de.itdesigners.winslow.api.pipeline.StateInfo;
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.StatsInfo;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
@@ -50,7 +50,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
         this.sender.publishProjectUpdate(winslow, topic, project.getId(), value, project);
     }
 
-    private void publishUpdate(@Nullable Stats stats) {
+    private void publishUpdate(@Nullable StatsInfo stats) {
         this.publishProjectUpdate(String.format(TOPIC_PROJECT_SPECIFIC_STATS, project.getId()), stats);
     }
 
@@ -232,7 +232,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
 
     @Override
     public void close() {
-        this.publishUpdate((Stats) null);
+        this.publishUpdate((StatsInfo) null);
     }
 
     private static class LogFileInfo {

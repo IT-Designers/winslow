@@ -7,7 +7,7 @@ import com.github.dockerjava.api.model.*;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.StatsInfo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,9 +37,9 @@ public class DockerStageHandle implements StageHandle {
 
     private           boolean started     = false;
     private           boolean gone        = false;
-    private @Nullable State   state       = State.Preparing;
-    private @Nullable Stats   stats       = null;
-    private @Nullable String  containerId = null;
+    private @Nullable State     state       = State.Preparing;
+    private @Nullable StatsInfo stats       = null;
+    private @Nullable String    containerId = null;
 
     public DockerStageHandle(
             @Nonnull DockerBackend backend,
@@ -304,7 +304,7 @@ public class DockerStageHandle implements StageHandle {
                                     .map(Integer::doubleValue)
                                     .orElse(1_000.0); // TODO assume something ...
 
-                            DockerStageHandle.this.stats = new Stats(
+                            DockerStageHandle.this.stats = new StatsInfo(
                                     DockerStageHandle.this.stageId,
                                     DockerStageHandle.this.backend.getNodeName(),
                                     (float) (cpuMaxFreq * cpuUsagePercentPerSecond),
@@ -445,7 +445,7 @@ public class DockerStageHandle implements StageHandle {
 
     @Nonnull
     @Override
-    public Optional<Stats> getStats() {
+    public Optional<StatsInfo> getStats() {
         return Optional.ofNullable(this.stats);
     }
 

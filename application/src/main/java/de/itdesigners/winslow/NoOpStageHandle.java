@@ -2,7 +2,7 @@ package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.StatsInfo;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -83,7 +83,7 @@ public class NoOpStageHandle implements StageHandle {
 
     @Nonnull
     @Override
-    public Optional<Stats> getStats() throws IOException {
+    public Optional<StatsInfo> getStats() throws IOException {
         return Optional.empty();
     }
 
