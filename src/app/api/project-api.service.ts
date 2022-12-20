@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {map} from 'rxjs/operators';
 import {RxStompService} from '@stomp/ng2-stompjs';
 import {SubscriptionHandler} from './subscription-handler';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
 import {
+  EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
   ParseError,
@@ -278,8 +278,14 @@ export class ProjectApiService {
   getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
     return this.client
       .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
-      .pipe(map(response => new Map(Object.entries(response))))
-      .toPromise();
+      .toPromise()
+      .then(response => {
+        const map = new Map();
+        for (const [key, value] of Object.entries(response)) {
+          map.set(key, new EnvVariable(value));
+        }
+        return map;
+      });
   }
 
   setName(projectId: string, name: string): Promise<void> {
@@ -683,12 +689,6 @@ export class LogEntry {
   error: boolean;
   message: string;
   stageId?: string; // ProjectsController.LogEntryInfo
-}
-
-export class EnvVariable {
-  key: string;
-  value?: string;
-  valueInherited?: null;
 }
 
 export class DeletionPolicy {
