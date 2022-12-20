@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 10:43:20.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 14:30:03.
 
 export class GroupInfo {
   name: string;
@@ -596,6 +596,32 @@ export class AuthTokenInfo {
   }
 }
 
+export class EnqueueOnOtherRequest {
+  id: string;
+  env: Record<string, string>;
+  rangedEnv?: Record<string, RangedValue>;
+  image?: ImageInfo;
+  requiredResources?: ResourceInfo;
+  workspaceConfiguration?: WorkspaceConfiguration;
+  comment?: string;
+  runSingle?: boolean;
+  resume?: boolean;
+  projectIds: string[];
+
+  constructor(data: EnqueueOnOtherRequest) {
+    this.id = data.id;
+    this.env = data.env;
+    this.rangedEnv = data.rangedEnv;
+    this.image = data.image;
+    this.requiredResources = data.requiredResources;
+    this.workspaceConfiguration = data.workspaceConfiguration;
+    this.comment = data.comment;
+    this.runSingle = data.runSingle;
+    this.resume = data.resume;
+    this.projectIds = data.projectIds;
+  }
+}
+
 export class EnqueueRequest {
   id: string;
   env: Record<string, string>;
@@ -617,15 +643,6 @@ export class EnqueueRequest {
     this.comment = data.comment;
     this.runSingle = data.runSingle;
     this.resume = data.resume;
-  }
-}
-
-export class EnqueueOnOtherRequest extends EnqueueRequest {
-  projectIds: string[];
-
-  constructor(data: EnqueueOnOtherRequest) {
-    super(data);
-    this.projectIds = data.projectIds;
   }
 }
 
