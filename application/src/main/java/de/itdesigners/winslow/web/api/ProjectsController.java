@@ -1312,7 +1312,7 @@ public class ProjectsController {
 
     @Deprecated(forRemoval = true)
     @GetMapping("projects/{projectId}/stats")
-    public Stream<Stats> getStats(User user, @PathVariable("projectId") String projectId) {
+    public Stream<StatsInfo> getStats(User user, @PathVariable("projectId") String projectId) {
         LOG.warning("Someone accessed the deprecated /stats api");
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
