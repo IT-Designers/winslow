@@ -2,7 +2,7 @@ package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.StatsInfo;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -53,7 +53,7 @@ public interface StageHandle extends AutoCloseable {
     Iterator<LogEntry> getLogs() throws IOException;
 
     @Nonnull
-    Optional<Stats> getStats() throws IOException;
+    Optional<StatsInfo> getStats() throws IOException;
 
     /**
      * Issues a request to stop the execution of this {@link StageHandle}.

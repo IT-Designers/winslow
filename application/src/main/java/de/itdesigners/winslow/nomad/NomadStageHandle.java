@@ -7,7 +7,7 @@ import de.itdesigners.winslow.CombinedIterator;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.StatsInfo;
 import de.itdesigners.winslow.pipeline.StageId;
 
 import javax.annotation.Nonnull;
@@ -182,7 +182,7 @@ public class NomadStageHandle implements StageHandle {
 
     @Nonnull
     @Override
-    public Optional<Stats> getStats() throws IOException {
+    public Optional<StatsInfo> getStats() throws IOException {
         var stageAllocation = this.backend.getAllocation(getFullyQualifiedStageId());
         if (stageAllocation.isPresent()) {
             var alloc   = stageAllocation.get();
@@ -201,7 +201,7 @@ public class NomadStageHandle implements StageHandle {
                 var memory = stats.getResourceUsage().getMemoryStats();
 
 
-                return Optional.of(new Stats(
+                return Optional.of(new StatsInfo(
                         this.stageId.getFullyQualified(),
                         this.nodeName,
                         (float) cpu.getTotalTicks(),

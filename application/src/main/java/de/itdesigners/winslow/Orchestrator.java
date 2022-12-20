@@ -3,7 +3,7 @@ package de.itdesigners.winslow;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
-import de.itdesigners.winslow.api.pipeline.Stats;
+import de.itdesigners.winslow.api.pipeline.StatsInfo;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.auth.UserManager;
@@ -224,7 +224,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
     }
 
     @Nonnull
-    public Stream<Stats> getRunningStageStats(@Nonnull Project project) {
+    public Stream<StatsInfo> getRunningStageStats(@Nonnull Project project) {
         return getPipelineUnsafe(project.getId())
                 .stream()
                 .flatMap(Pipeline::getActiveExecutionGroups)
