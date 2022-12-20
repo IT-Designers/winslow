@@ -1,21 +1,17 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {
-  createWorkspaceConfiguration,
-  ProjectApiService,
-  RangedList,
-  RangedValue,
-  RangeWithStepSize
-} from '../api/project-api.service';
+import {createRangedList, createRangeWithStepSize, createWorkspaceConfiguration, ProjectApiService,} from '../api/project-api.service';
 import {parseArgsStringToArgv} from 'string-argv';
 import {
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
   PipelineDefinitionInfo,
+  RangedValueUnion,
   ResourceInfo,
   StageDefinitionInfo,
-  StageWorkerDefinitionInfo, WorkspaceConfiguration,
+  StageWorkerDefinitionInfo,
+  WorkspaceConfiguration,
   WorkspaceMode
 } from '../api/winslow-api';
 
@@ -58,8 +54,8 @@ export class StageExecutionSelectionComponent implements OnInit {
   requiredEnvironmentVariables: string[];
   envSubmitValue: any = null;
   envValid = false;
-  rangedEnvironmentVariablesValue: Map<string, RangedValue> = null;
-  rangedEnvironmentVariablesUpdated: Map<string, RangedValue> = null;
+  rangedEnvironmentVariablesValue: Map<string, RangedValueUnion> = null;
+  rangedEnvironmentVariablesUpdated: Map<string, RangedValueUnion> = null;
 
 
   static deepClone(image: object) {
@@ -278,22 +274,20 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   setRangedWithStepSize(key: string, min: string, max: string, stepSize: string) {
-    const value = new RangedValue();
-    value.DiscreteSteps = new RangeWithStepSize();
-    value.DiscreteSteps.min = Number(min);
-    value.DiscreteSteps.max = Number(max);
-    value.DiscreteSteps.stepSize = Number(stepSize);
-    this.setRangedValue(key, value);
+    this.setRangedValue(key, createRangeWithStepSize(
+      Number(min),
+      Number(max),
+      Number(stepSize)
+    ));
   }
 
   setRangedList(key: string, listStringToParse: string) {
-    const value = new RangedValue();
-    value.List = new RangedList();
-    value.List.values = listStringToParse.split(',').map(v => v.trim());
-    this.setRangedValue(key, value);
+    this.setRangedValue(key, createRangedList(
+      listStringToParse.split(',').map(v => v.trim())
+    ));
   }
 
-  setRangedValue(key: string, value: RangedValue) {
+  setRangedValue(key: string, value: RangedValueUnion) {
     if (this.rangedEnvironmentVariablesUpdated == null) {
       this.rangedEnvironmentVariablesUpdated = new Map();
     }
@@ -309,13 +303,13 @@ export class StageExecutionSelectionComponent implements OnInit {
     let counter = 1;
     if (this.rangedEnvironmentVariablesUpdated != null) {
       for (const value of this.rangedEnvironmentVariablesUpdated.values()) {
-        counter *= value.getStageCount();
+        counter *= value.stepCount;
       }
     }
     if (this.rangedEnvironmentVariablesValue != null) {
       for (const entry of this.rangedEnvironmentVariablesValue.entries()) {
         if (this.rangedEnvironmentVariablesUpdated == null || !this.rangedEnvironmentVariablesUpdated.has(entry[0])) {
-          counter *= entry[1].getStageCount();
+          counter *= entry[1].stepCount;
         }
       }
     }

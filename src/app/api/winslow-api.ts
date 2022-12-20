@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 17:54:59.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 19:32:52.
 
 export class GroupInfo {
   name: string;
@@ -246,7 +246,7 @@ export class ExecutionGroupInfo {
   id: string;
   configureOnly: boolean;
   stageDefinition: StageDefinitionInfoUnion;
-  rangedValues: Record<string, RangedValue>;
+  rangedValues: Record<string, RangedValueUnion>;
   workspaceConfiguration: WorkspaceConfiguration;
   stages: StageInfo[];
   active: boolean;
@@ -371,12 +371,14 @@ export class PipelineDefinitionInfo {
 
 export class RangeWithStepSize implements RangedValue {
   stepCount: number;
+  '@type': 'DiscreteSteps';
   min: number;
   max: number;
   stepSize: number;
 
   constructor(data: RangeWithStepSize) {
     this.stepCount = data.stepCount;
+    this['@type'] = data['@type'];
     this.min = data.min;
     this.max = data.max;
     this.stepSize = data.stepSize;
@@ -385,15 +387,18 @@ export class RangeWithStepSize implements RangedValue {
 
 export class RangedList implements RangedValue {
   stepCount: number;
+  '@type': 'List';
   values: string[];
 
   constructor(data: RangedList) {
     this.stepCount = data.stepCount;
+    this['@type'] = data['@type'];
     this.values = data.values;
   }
 }
 
 export interface RangedValue {
+  '@type': 'DiscreteSteps' | 'List';
   stepCount: number;
 }
 
@@ -599,7 +604,7 @@ export class AuthTokenInfo {
 export class EnqueueOnOtherRequest {
   id: string;
   env: Record<string, string>;
-  rangedEnv?: Record<string, RangedValue>;
+  rangedEnv?: Record<string, RangedValueUnion>;
   image?: ImageInfo;
   requiredResources?: ResourceInfo;
   workspaceConfiguration?: WorkspaceConfiguration;
@@ -625,7 +630,7 @@ export class EnqueueOnOtherRequest {
 export class EnqueueRequest {
   id: string;
   env: Record<string, string>;
-  rangedEnv?: Record<string, RangedValue>;
+  rangedEnv?: Record<string, RangedValueUnion>;
   image?: ImageInfo;
   requiredResources?: ResourceInfo;
   workspaceConfiguration?: WorkspaceConfiguration;
@@ -735,5 +740,7 @@ export type State = 'Running' | 'Paused' | 'Succeeded' | 'Failed' | 'Preparing' 
 export type Confirmation = 'NEVER' | 'ONCE' | 'ALWAYS';
 
 export type WorkspaceMode = 'STANDALONE' | 'INCREMENTAL' | 'CONTINUATION';
+
+export type RangedValueUnion = RangeWithStepSize | RangedList;
 
 export type StageDefinitionInfoUnion = StageWorkerDefinitionInfo | StageXOrGatewayDefintionInfo | StageAndGatewayDefinitionInfo;
