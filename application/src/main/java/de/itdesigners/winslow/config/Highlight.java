@@ -7,6 +7,10 @@ import java.util.List;
 
 public record Highlight(@Nonnull List<String> resources) {
 
+    public Highlight() {
+        this(null);
+    }
+
     public Highlight(@Nullable List<String> resources) {
         this.resources = resources != null ? resources : Collections.emptyList();
     }
