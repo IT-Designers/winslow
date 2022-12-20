@@ -194,7 +194,7 @@ public class ObsoleteWorkspaceFinder {
                     .filter(g -> distance < numberToKeep)
                     .flatMap(ExecutionGroup::getStages)
                     .filter(s -> s.getWorkspace().map(w -> w.equals(workspace)).orElse(Boolean.FALSE))
-                    .filter(g -> g.getState() == State.Succeeded)
+                    .filter(g -> g.getState() == State.SUCCEEDED)
                     .findFirst()
                     .ifPresent(w -> obsolete.remove(index));
         }
@@ -263,7 +263,7 @@ public class ObsoleteWorkspaceFinder {
             this.executionHistory
                     .stream()
                     .flatMap(ExecutionGroup::getStages)
-                    .filter(stage -> stage.getFinishState().orElse(State.Running) == State.Failed)
+                    .filter(stage -> stage.getFinishState().orElse(State.RUNNING) == State.FAILED)
                     .flatMap(stage -> stage.getWorkspace().stream())
                     .forEach(obsolete::add);
         }
@@ -276,7 +276,7 @@ public class ObsoleteWorkspaceFinder {
                     .stream()
                     .filter(group -> group
                             .getStages()
-                            .anyMatch(s -> s.getFinishState().orElse(State.Running) == State.Succeeded))
+                            .anyMatch(s -> s.getFinishState().orElse(State.RUNNING) == State.SUCCEEDED))
                     .collect(Collectors.toList());
 
             for (int i = 0; i < successfulGroups.size(); ++i) {
@@ -306,7 +306,7 @@ public class ObsoleteWorkspaceFinder {
                 hasSuccessfulExecution |= group.getCompletedStages().anyMatch(
                         s -> s
                                 .getFinishState()
-                                .orElse(State.Running) == State.Succeeded
+                                .orElse(State.RUNNING) == State.SUCCEEDED
                 )
                         && !group.isConfigureOnly()
                         && !group.isGateway();
@@ -382,10 +382,10 @@ public class ObsoleteWorkspaceFinder {
                                         );
                                         details.distance = Math.min(details.distance, distance);
                                         details.notDiscardable |= !isDiscardable(group.getStageDefinition());
-                                        details.hasSucceededAtLeastOnce |= s.getState() == State.Succeeded;
+                                        details.hasSucceededAtLeastOnce |= s.getState() == State.SUCCEEDED;
                                         details.hasExecutedAtLeastOnce |= !group.isConfigureOnly() && !group.isGateway();
                                         details.hasSucceededWithoutDiscardableAtLeastOnce |=
-                                                !isDiscardable(group.getStageDefinition()) && s.getState() == State.Succeeded;
+                                                !isDiscardable(group.getStageDefinition()) && s.getState() == State.SUCCEEDED;
                                     });
                                 });
                         ;

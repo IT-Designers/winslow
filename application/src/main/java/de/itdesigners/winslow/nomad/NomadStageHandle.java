@@ -118,7 +118,7 @@ public class NomadStageHandle implements StageHandle {
 
     @Override
     public boolean isRunning() {
-        return !isGone() && State.Running == this.state;
+        return !isGone() && State.RUNNING == this.state;
     }
 
     @Override
@@ -138,14 +138,14 @@ public class NomadStageHandle implements StageHandle {
     @Override
     public boolean hasFailed() {
         var gone    = isGone();
-        var failed  = State.Failed == this.state;
+        var failed  = State.FAILED == this.state;
         var counter = partialErrorCounter >= PARTIAL_FAILURE_IS_STAGE_FAILURE;
         return gone || failed || counter;
     }
 
     @Override
     public boolean hasSucceeded() {
-        return State.Succeeded == this.state;
+        return State.SUCCEEDED == this.state;
     }
 
     @Override

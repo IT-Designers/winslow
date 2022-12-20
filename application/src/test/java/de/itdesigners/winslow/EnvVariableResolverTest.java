@@ -52,17 +52,17 @@ public class EnvVariableResolverTest {
                         .of(constructFinishedExecutionStage(
                                 uuid,
                                 "some-stage-name",
-                                State.Succeeded,
+                                State.SUCCEEDED,
                                 Map.of("variable", "history")
                         ), constructFinishedExecutionStage(
                                 UUID.randomUUID(),
                                 "some-other-stage-name",
-                                State.Succeeded,
+                                State.SUCCEEDED,
                                 Map.of("variable", "history-entry-with-wrong-name")
                         ), constructFinishedExecutionStage(
                                 uuid,
                                 "some-stage-name",
-                                State.Failed,
+                                State.FAILED,
                                 Map.of("variable", "history-entry-which-failed")
                         )));
 
@@ -80,7 +80,7 @@ public class EnvVariableResolverTest {
                         .of(constructFinishedExecutionStage(
                                 uuid,
                                 "some-stage-name",
-                                State.Succeeded,
+                                State.SUCCEEDED,
                                 Map.of("variable", "history")
                         )));
 
@@ -119,7 +119,7 @@ public class EnvVariableResolverTest {
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
                         uuid,
                         "some-stage-name",
-                        State.Succeeded,
+                        State.SUCCEEDED,
                         Map.of("history", "history")
                 )))
                 .resolve();
@@ -141,12 +141,12 @@ public class EnvVariableResolverTest {
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
                         uuid,
                         "some-stage-name",
-                        State.Succeeded,
+                        State.SUCCEEDED,
                         Map.of("executed", "executed")
                 ), constructFinishedStageWithAction(
                         uuid,
                         "some-stage-name",
-                        State.Succeeded,
+                        State.SUCCEEDED,
                         Map.of("configure", "configure"),
                         Action.CONFIGURE
                 )))
@@ -165,7 +165,7 @@ public class EnvVariableResolverTest {
                 .withExecutionHistory(() -> Stream.of(constructFinishedExecutionStage(
                         uuid,
                         "some-stage-name",
-                        State.Succeeded,
+                        State.SUCCEEDED,
                         Map.of("executed", "executed")
                 )))
                 .withEnqueuedStages(() -> Stream.of(constructEnqueuedSingleExecutionStage(

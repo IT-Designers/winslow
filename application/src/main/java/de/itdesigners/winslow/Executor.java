@@ -264,7 +264,7 @@ public class Executor implements Closeable, AutoCloseable {
                 .flatMap(StageHandle::getState)
                 // try a second time
                 .or(() -> Optional.ofNullable(stageHandle).flatMap(StageHandle::getState))
-                .orElse(State.Failed) == State.Succeeded;
+                .orElse(State.FAILED) == State.SUCCEEDED;
     }
 
     @Nonnull
