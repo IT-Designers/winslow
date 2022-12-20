@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.gateway;
 
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 
 import javax.annotation.Nonnull;

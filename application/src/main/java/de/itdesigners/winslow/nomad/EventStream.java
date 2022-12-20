@@ -2,7 +2,8 @@ package de.itdesigners.winslow.nomad;
 
 import com.hashicorp.nomad.apimodel.TaskEvent;
 import com.hashicorp.nomad.apimodel.TaskState;
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogSource;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -30,9 +31,9 @@ public class EventStream implements Iterator<LogEntry> {
                    .forEach(line -> {
                        line = MESSAGE_PREFIX + line;
                        if (logs.isEmpty()
-                               || !(line.equals(logs.peekLast().getMessage())
-                               && time == logs.peekLast().getTime())) {
-                           logs.add(new LogEntry(time, LogEntry.Source.MANAGEMENT_EVENT, err, line));
+                               || !(line.equals(logs.peekLast().message())
+                               && time == logs.peekLast().time())) {
+                           logs.add(new LogEntry(time, LogSource.MANAGEMENT_EVENT, err, line));
                        }
                    });
         }

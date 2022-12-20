@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.asblr;
 
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.config.LogParser;
 import de.itdesigners.winslow.pipeline.StageAssignedWorkspace;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class LogParserRegisterer implements AssemblerStep {
@@ -123,7 +122,7 @@ public class LogParserRegisterer implements AssemblerStep {
                     while (lineBuffer.size() >= lineAmount) {
                         lineBuffer.removeFirst();
                     }
-                    lineBuffer.add(entry.getMessage());
+                    lineBuffer.add(entry.message());
 
                     var message = String.join(System.lineSeparator(), lineBuffer);
                     var matcher = pattern.matcher(message);
@@ -209,9 +208,9 @@ public class LogParserRegisterer implements AssemblerStep {
         public static final          char                                                       MARKER        = '$';
         public static final          int                                                        MARKER_LENGTH = 1;
         public static final @Nonnull Map<String, TriConsumer<StringBuilder, LogEntry, Matcher>> GLOBAL_BLOCKS = Map.of(
-                "TIMESTAMP", (builder, e, matcher) -> builder.append(escapeGlobalVariable(String.valueOf(e.getTime()))),
-                "SOURCE", (builder, e, matcher) -> builder.append(escapeGlobalVariable(String.valueOf(e.getSource()))),
-                "ERROR", (builder, e, matcher) -> builder.append(escapeGlobalVariable(e.isError() ? "1" : "0"))
+                "TIMESTAMP", (builder, e, matcher) -> builder.append(escapeGlobalVariable(String.valueOf(e.time()))),
+                "SOURCE", (builder, e, matcher) -> builder.append(escapeGlobalVariable(String.valueOf(e.source()))),
+                "ERROR", (builder, e, matcher) -> builder.append(escapeGlobalVariable(e.error() ? "1" : "0"))
         );
 
         private final @Nonnull List<TriConsumer<StringBuilder, LogEntry, Matcher>> block = new ArrayList<>();

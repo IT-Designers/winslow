@@ -8,6 +8,7 @@ import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.Project;
+import de.itdesigners.winslow.web.LogEntryInfoConverter;
 import de.itdesigners.winslow.web.api.ProjectsController;
 
 import javax.annotation.Nonnull;
@@ -109,7 +110,7 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                                 .getOrchestrator()
                                 .getLogs(project, stage.getId(), previousSize)
                                 .sequential()
-                                .map(e -> new LogEntryInfo(info.lines++, stageId, e))
+                                .map(e -> LogEntryInfoConverter.from(e, info.lines++, stageId))
                                 .collect(Collectors.toList())
                     )
                     .filter(l -> !l.isEmpty());
@@ -198,11 +199,8 @@ public class RunningProjectsEndpointPublisher implements Pollable {
                 .getLogs(projectId, stage.getFullyQualifiedId())
                 .sequential()
                 .limit(limit)
-                .map(e -> new LogEntryInfo(
-                        line.getAndIncrement(),
-                        stage.getFullyQualifiedId(),
-                        e
-                ));
+                .map(e -> LogEntryInfoConverter.from(e, line.getAndIncrement(), stage.getFullyQualifiedId()));
+
         if (maxEntries == null || maxEntries == 0) {
             return stream.collect(Collectors.toList());
         } else {
