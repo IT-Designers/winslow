@@ -393,7 +393,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   isConfigure(action: Action) {
-    return action === 'Configure';
+    return action === 'CONFIGURE';
   }
 
   isEnqueued(state: State) {
