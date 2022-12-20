@@ -77,9 +77,9 @@ public class DistributedAllocationView {
             @Nonnull AllocInfo allocation,
             @Nonnull ResourceAllocationMonitor.ResourceSet<Long> resources) {
         if (limit != null) {
-            var maxUserAllocCpu = (limit.cpu != null ? limit.cpu - allocation.cpu() : Long.MAX_VALUE);
-            var maxUserAllocMem = (limit.mem != null ? limit.mem - allocation.memory() : Long.MAX_VALUE);
-            var maxUserAllocGpu = (limit.gpu != null ? limit.gpu - allocation.gpu() : Long.MAX_VALUE);
+            var maxUserAllocCpu = (limit.cpu() != null ? limit.cpu() - allocation.cpu() : Long.MAX_VALUE);
+            var maxUserAllocMem = (limit.mem() != null ? limit.mem() - allocation.memory() : Long.MAX_VALUE);
+            var maxUserAllocGpu = (limit.gpu() != null ? limit.gpu() - allocation.gpu() : Long.MAX_VALUE);
 
             return resources.getOrDefault(ResourceAllocationMonitor.StandardResources.CPU, 0L) > maxUserAllocCpu
                     || resources.getOrDefault(ResourceAllocationMonitor.StandardResources.RAM, 0L) > maxUserAllocMem
