@@ -1,8 +1,10 @@
 package de.itdesigners.winslow.web.api.noauth;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.pipeline.RangedValue;
 import de.itdesigners.winslow.api.pipeline.ResourceInfo;
 import de.itdesigners.winslow.api.pipeline.StageWorkerDefinitionInfo;
+import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.api.project.EnqueueRequest;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.project.Project;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -72,44 +75,46 @@ public class PipelineTrigger {
                                : null;
 
             // default request
-            var request = new EnqueueRequest(
-                    stageID.toString(),
-                    stageDefinition.environment(),
-                    null,
-                    imageInfo,
-                    resourceInfo,
-                    null,
-                    "triggered",
-                    runSingle,
-                    true
-            );
+            var rangedEnv              = (Map<String, RangedValue>) null;
+            var env                    = stageDefinition.environment();
+            var image                  = imageInfo;
+            var requiredResources      = resourceInfo;
+            var workspaceConfiguration = (WorkspaceConfiguration) null;
 
             // try to update the request
             var list = controller.getProjectHistory(user, projectId).toList();
             for (int n = list.size() - 1; n >= 0; --n) {
                 var info = list.get(n);
                 if (info.stageDefinition().id().equals(stageDefinition.id())) {
-
-
-                    request.rangedEnv = info.rangedValues();
+                    rangedEnv              = info.rangedValues();
+                    workspaceConfiguration = info.workspaceConfiguration();
 
                     if (info.stageDefinition() instanceof StageWorkerDefinitionInfo workerDefinitionInfo) {
-                        request.env               = workerDefinitionInfo.environment();
-                        request.image             = workerDefinitionInfo.image();
-                        request.requiredResources = new ResourceInfo(
+                        env               = workerDefinitionInfo.environment();
+                        image             = workerDefinitionInfo.image();
+                        requiredResources = new ResourceInfo(
                                 workerDefinitionInfo.requiredResources().cpus(),
                                 workerDefinitionInfo.requiredResources().megabytesOfRam(),
                                 workerDefinitionInfo.requiredResources().gpu().count()
                         );
                     }
-                    request.workspaceConfiguration = info.workspaceConfiguration();
                     break;
 
                 }
             }
 
 
-            controller.enqueueStageToExecute(user, projectId, request);
+            controller.enqueueStageToExecute(user, projectId, new EnqueueRequest(
+                    stageID.toString(),
+                    env,
+                    rangedEnv,
+                    image,
+                    requiredResources,
+                    workspaceConfiguration,
+                    "triggered",
+                    runSingle,
+                    true
+            ));
             return project;
         });
 

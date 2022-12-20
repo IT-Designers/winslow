@@ -7,22 +7,69 @@ import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.Transient;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
-public class EnqueueOnOtherRequest extends EnqueueRequest {
-    public @Nonnull String[] projectIds;
+public record EnqueueOnOtherRequest(
+        @Nonnull String id,
+        @Nonnull Map<String, String> env,
+        @Nullable Map<String, RangedValue> rangedEnv,
+        @Nullable ImageInfo image,
+        @Nullable ResourceInfo requiredResources,
+        @Nullable WorkspaceConfiguration workspaceConfiguration,
+        @Nullable String comment,
+        @Nullable Boolean runSingle,
+        @Nullable Boolean resume,
+        @Nonnull String[] projectIds
+) {
 
-    public EnqueueOnOtherRequest(
-            @Nonnull String id,
-            @Nonnull Map<String, String> env,
-            @Nullable Map<String, RangedValue> rangedEnv,
-            @Nullable ImageInfo image,
-            @Nullable ResourceInfo requiredResources,
-            @Nullable WorkspaceConfiguration workspaceConfiguration,
-            @Nullable String comment,
-            @Nullable Boolean runSingle, @Nullable Boolean resume,
-            @Nonnull String[] projectIds) {
-        super(id, env, rangedEnv, image, requiredResources, workspaceConfiguration, comment, runSingle, resume);
-        this.projectIds = projectIds;
+    @Nonnull
+    @Transient
+    public Optional<Map<String, RangedValue>> optRangedEnv() {
+        return Optional.ofNullable(rangedEnv);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<ImageInfo> optImage() {
+        return Optional.ofNullable(image);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<ResourceInfo> optRequiredResources() {
+        return Optional.ofNullable(requiredResources);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<WorkspaceConfiguration> optWorkspaceConfiguration() {
+        return Optional.ofNullable(workspaceConfiguration);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<String> optComment() {
+        return Optional.ofNullable(comment);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<Boolean> optRunSingle() {
+        return Optional.ofNullable(runSingle);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<Boolean> optResume() {
+        return Optional.ofNullable(resume);
+    }
+
+    @Nonnull
+    @Transient
+    public Stream<String> streamProjectIds() {
+        return projectIds != null ? Stream.of(projectIds) : Stream.empty();
     }
 }
