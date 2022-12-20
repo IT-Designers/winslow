@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 19:32:52.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 20:01:44.
 
 export class GroupInfo {
   name: string;
@@ -731,7 +731,7 @@ export type DateAsNumber = number;
 
 export type Role = 'OWNER' | 'MEMBER';
 
-export type Action = 'Execute' | 'Configure';
+export type Action = 'EXECUTE' | 'CONFIGURE';
 
 export type Source = 'STANDARD_IO' | 'MANAGEMENT_EVENT';
 
