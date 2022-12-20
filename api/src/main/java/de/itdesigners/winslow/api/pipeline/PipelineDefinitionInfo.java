@@ -5,24 +5,22 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public record PipelineDefinitionInfo(
-
         @Nonnull String id,
         @Nonnull String name,
-        @Nullable String description,
+        @Nonnull String description,
         @Nonnull UserInputInfo userInput,
         @Nonnull List<StageDefinitionInfo> stages,
-
         @Nonnull DeletionPolicy deletionPolicy,
         @Nonnull List<String> markers) {
 
     public PipelineDefinitionInfo(
             @Nonnull String id,
             @Nonnull String name,
-            @Nullable String description,
-            @Nullable UserInputInfo userInput,
-            @Nullable  List<StageDefinitionInfo> stages,
+            @Nonnull String description,
+            @Nonnull UserInputInfo userInput,
+            @Nonnull List<StageDefinitionInfo> stages,
             @Nonnull DeletionPolicy deletionPolicy,
-            @Nullable List<String> markers) {
+            @Nonnull List<String> markers) {
         this.id             = id;
         this.name           = name;
         this.description    = description;

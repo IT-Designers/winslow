@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ public class PipelineDefinitionTests {
 
         var pipelineYaml = """ 
                 name: "Name of the pipeline"
-                description: "Description of the pipeline" 
+                description: "Description of the pipeline"
                  """;
 
 
@@ -43,7 +44,7 @@ public class PipelineDefinitionTests {
         var pipeline = BaseRepository.readFromString(PipelineDefinition.class, pipelineYaml);
 
         assertNotNull(pipeline.name());
-        assertTrue(pipeline.description().isEmpty());
+        assertTrue(pipeline.optDescription().isEmpty());
         assertEquals(Arrays.asList("KEY_A", "KEY_B"), pipeline.userInput().getRequiredEnvVariables());
         assertTrue(pipeline.stages().isEmpty());
     }
@@ -82,7 +83,7 @@ public class PipelineDefinitionTests {
                 )),
                 Map.of("env1", "envValue"),
                 new DeletionPolicy(true, 10, true),
-                Arrays.asList("markers")
+                List.of("markers")
         );
 
         var yaml = BaseRepository.writeToString(pipeline);

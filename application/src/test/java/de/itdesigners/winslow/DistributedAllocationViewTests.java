@@ -302,15 +302,7 @@ public class DistributedAllocationViewTests {
                 null,
                 "name-of-" + projectId,
                 null,
-                new PipelineDefinition(
-                        "pipeline-definition-of-" + projectId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
+                new PipelineDefinition("pipeline-definition-of-" + projectId),
                 resourceLimitation
         );
     }

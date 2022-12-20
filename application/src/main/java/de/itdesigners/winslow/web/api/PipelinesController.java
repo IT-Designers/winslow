@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException;
 import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.ParseError;
 import de.itdesigners.winslow.api.pipeline.PipelineDefinitionInfo;
 import de.itdesigners.winslow.config.*;
@@ -221,8 +222,8 @@ public class PipelinesController {
                                             Collections.emptyList()
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
-                                    null,
-                                    null
+                                    new DeletionPolicy(),
+                                    Collections.emptyList()
                             );
                             container.update(def);
                             return Optional.of(PipelineDefinitionInfoConverter.from(id, def));
