@@ -947,7 +947,7 @@ public class ProjectsController {
                 null,
                 image,
                 requiredResources,
-                Action.Configure,
+                Action.CONFIGURE,
                 null,
                 comment,
                 runSingle,
@@ -974,7 +974,7 @@ public class ProjectsController {
                 rangedEnv,
                 image,
                 requiredResources,
-                Action.Execute,
+                Action.EXECUTE,
                 workspaceConfiguration,
                 comment,
                 runSingle,
@@ -1036,7 +1036,7 @@ public class ProjectsController {
             resultDefinition = resultWorkerDefinition;
         }
 
-        if (action == Action.Configure && resultDefinition instanceof StageWorkerDefinition workerDefinition) {
+        if (action == Action.CONFIGURE && resultDefinition instanceof StageWorkerDefinition workerDefinition) {
             pipeline.enqueueConfiguration(workerDefinition, comment);
         } else if (rangedEnv != null && !rangedEnv.isEmpty() && resultDefinition instanceof StageWorkerDefinition workerDefinition) {
             pipeline.enqueueRangedExecution(workerDefinition, workspaceConfiguration, rangedEnv);
