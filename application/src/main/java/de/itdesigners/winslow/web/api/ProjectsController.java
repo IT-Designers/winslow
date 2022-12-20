@@ -504,10 +504,14 @@ public class ProjectsController {
                         .reduce((first, second) -> second)
                         .stream()
                         .flatMap(stage -> {
-                            var skip = body.skipLines != null ? body.skipLines : 0;
-                            if (body.expectingStageId != null && !body.expectingStageId.equals(stage.getFullyQualifiedId())) {
-                                skip = 0;
-                            }
+                            long skip = body
+                                    .optSkipLines()
+                                    .filter(line -> body
+                                            .optExpectingStageId()
+                                            .map(id -> Objects.equals(id, stage.getFullyQualifiedId()))
+                                            .orElse(Boolean.TRUE)
+                                    )
+                                    .orElse(0L);
 
                             var line = new AtomicLong(skip);
 
