@@ -177,7 +177,13 @@ public class EnvVariableResolver {
             @Nonnull Map<String, EnvVariable> target,
             @NonNull Map<String, String> source,
             @NonNull BiFunction<String, String, EnvVariable> creator) {
-        source.forEach((key, value) -> target.computeIfAbsent(key, kl -> creator.apply(key, value)).pushValue(value));
+        source.forEach((key, value) -> target.compute(
+                key,
+                (k, v) -> Optional
+                        .ofNullable(v)
+                        .orElseGet(() -> creator.apply(key, value))
+                        .pushValue(value)
+        ));
     }
 
 }
