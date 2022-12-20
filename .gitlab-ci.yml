@@ -34,6 +34,8 @@ build:
     - awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
     - mvn -pl .,api package
     - cp api/target/winslow*.jar .
+    - (cd api; mvn typescript-generator:generate)
+    - cp api/target/typescript-generator/winslow-api.ts .
     - ls -lah
     #- cp target/winslow*.jar .
     - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then mvn -s settings.xml -pl .,api deploy; fi
@@ -43,6 +45,7 @@ build:
     paths:
      - winslow*.jar
      - coverage-report
+     - winslow-api.ts
 
 deploy:
   stage: deploy
