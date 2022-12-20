@@ -11,6 +11,7 @@ import {
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
+  LogEntryInfo,
   ParseError,
   PipelineDefinitionInfo,
   ProjectInfo,
@@ -128,12 +129,12 @@ export class ProjectApiService {
     });
   }
 
-  public watchLogs(projectId: string, listener: (logs: LogEntry[]) => void, stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
+  public watchLogs(projectId: string, listener: (logs: LogEntryInfo[]) => void, stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/logs/${stageId}`).subscribe(message => {
-      const events: ChangeEvent<string, LogEntry[]>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, LogEntryInfo[]>[] = JSON.parse(message.body);
       events.forEach(event => {
         if (event.value) {
-          listener(event.value);
+          listener(event.value.map(e => new LogEntryInfo(e)));
         }
       });
     });
@@ -670,21 +671,6 @@ export function loadStageDefinition(stage: StageDefinitionInfoUnion): StageDefin
     console.error(`Unexpected StageDefinitionInfo type ${type}`);
     return stage;
   }
-}
-
-
-export enum LogSource {
-  STANDARD_IO = 'STANDARD_IO',
-  MANAGEMENT_EVENT = 'MANAGEMENT_EVENT'
-}
-
-export class LogEntry {
-  line: number;
-  time: number;
-  source: LogSource;
-  error: boolean;
-  message: string;
-  stageId?: string; // ProjectsController.LogEntryInfo
 }
 
 export class DeletionPolicy {
