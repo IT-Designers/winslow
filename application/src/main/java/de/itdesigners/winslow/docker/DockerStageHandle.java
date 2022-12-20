@@ -37,7 +37,7 @@ public class DockerStageHandle implements StageHandle {
 
     private           boolean started     = false;
     private           boolean gone        = false;
-    private @Nullable State     state       = State.Preparing;
+    private @Nullable State     state       = State.PREPARING;
     private @Nullable StatsInfo stats       = null;
     private @Nullable String    containerId = null;
 
@@ -59,7 +59,7 @@ public class DockerStageHandle implements StageHandle {
 
     private void onListenerFailed() {
         this.gone  = true;
-        this.state = State.Failed;
+        this.state = State.FAILED;
     }
 
     private void runAndCatchRuntimeExceptionsInNewThread(@Nonnull Runnable fn) {
@@ -73,7 +73,7 @@ public class DockerStageHandle implements StageHandle {
             fn.run();
         } catch (RuntimeException e) {
             logErr((e.getCause() != null ? e.getCause() : e).getClass().getSimpleName() + ": " + e.getMessage());
-            this.state = State.Failed;
+            this.state = State.FAILED;
             LOG.log(Level.WARNING, "Execution encountered unexpected error", e);
         }
     }
@@ -168,7 +168,7 @@ public class DockerStageHandle implements StageHandle {
                             super.onStart(stream);
                             DockerStageHandle.this.closeable.add(this);
                             DockerStageHandle.this.started = true;
-                            DockerStageHandle.this.state   = State.Running;
+                            DockerStageHandle.this.state   = State.RUNNING;
                         }
 
                         @Override
@@ -214,9 +214,9 @@ public class DockerStageHandle implements StageHandle {
                                                 @Override
                                                 public void onNext(WaitResponse object) {
                                                     if (object.getStatusCode() == 0) {
-                                                        DockerStageHandle.this.state = State.Succeeded;
+                                                        DockerStageHandle.this.state = State.SUCCEEDED;
                                                     } else {
-                                                        DockerStageHandle.this.state = State.Failed;
+                                                        DockerStageHandle.this.state = State.FAILED;
                                                         DockerStageHandle.this.gone  = object.getStatusCode() == null;
                                                         logErr("Non successful exit code: " + object.getStatusCode());
                                                     }
@@ -232,7 +232,7 @@ public class DockerStageHandle implements StageHandle {
                                 } catch (InterruptedException | RuntimeException e) {
                                     logErr("Exit code could not be retrieved, container cleaned up too fast");
                                     LOG.log(Level.WARNING, "Failed to wait for container result", e);
-                                    DockerStageHandle.this.state = State.Failed;
+                                    DockerStageHandle.this.state = State.FAILED;
                                     DockerStageHandle.this.gone  = true;
                                     if (e instanceof RuntimeException re) {
                                         throw re;
@@ -404,12 +404,12 @@ public class DockerStageHandle implements StageHandle {
 
     @Override
     public boolean hasFailed() {
-        return this.logs.isEmpty() && getState().stream().anyMatch(s -> State.Failed == s);
+        return this.logs.isEmpty() && getState().stream().anyMatch(s -> State.FAILED == s);
     }
 
     @Override
     public boolean hasSucceeded() {
-        return this.logs.isEmpty() && getState().stream().anyMatch(s -> State.Succeeded == s);
+        return this.logs.isEmpty() && getState().stream().anyMatch(s -> State.SUCCEEDED == s);
     }
 
     @Override

@@ -1,5 +1,11 @@
 package de.itdesigners.winslow.api.pipeline;
 
 public enum State {
-    Running, Paused, Succeeded, Failed, Preparing, Enqueued, Skipped
+    RUNNING,
+    PAUSED,
+    SUCCEEDED,
+    FAILED,
+    PREPARING,
+    ENQUEUED,
+    SKIPPED
 }
