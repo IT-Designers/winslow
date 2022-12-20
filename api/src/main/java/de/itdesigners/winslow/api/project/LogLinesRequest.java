@@ -1,13 +1,23 @@
 package de.itdesigners.winslow.api.project;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.Transient;
+import java.util.Optional;
 
-public class LogLinesRequest {
-    public @Nullable Long   skipLines;
-    public @Nullable String expectingStageId;
+public record LogLinesRequest(
+        @Nullable Long skipLines,
+        @Nullable String expectingStageId) {
 
-    public LogLinesRequest(@Nullable Long skipLines, @Nullable String expectingStageId) {
-        this.skipLines        = skipLines;
-        this.expectingStageId = expectingStageId;
+    @Nonnull
+    @Transient
+    public Optional<Long> optSkipLines() {
+        return Optional.ofNullable(skipLines);
+    }
+
+    @Nonnull
+    @Transient
+    public Optional<String> optExpectingStageId() {
+        return Optional.ofNullable(expectingStageId);
     }
 }
