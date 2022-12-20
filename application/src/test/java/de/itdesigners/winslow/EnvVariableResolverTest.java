@@ -152,7 +152,7 @@ public class EnvVariableResolverTest {
                 )))
                 .resolve();
 
-        assertEquals("configure", resolved.remove("configure").value);
+        assertEquals("configure", resolved.remove("configure").value());
         assertNull(resolved.remove("executed"));
         assertTrue(resolved.isEmpty());
     }
@@ -176,7 +176,7 @@ public class EnvVariableResolverTest {
                 )))
                 .resolve();
 
-        assertEquals("enqueued", resolved.remove("enqueued").value);
+        assertEquals("enqueued", resolved.remove("enqueued").value());
         assertNull(resolved.remove("executed"));
         assertTrue(resolved.isEmpty());
     }
@@ -187,9 +187,9 @@ public class EnvVariableResolverTest {
             String value,
             String inherited) {
         assertNotNull(variable);
-        assertEquals(key, variable.key);
-        assertEquals(value, variable.value);
-        assertEquals(inherited, variable.valueInherited);
+        assertEquals(key, variable.key());
+        assertEquals(value, variable.value());
+        assertEquals(inherited, variable.valueInherited());
     }
 
     @NonNull
