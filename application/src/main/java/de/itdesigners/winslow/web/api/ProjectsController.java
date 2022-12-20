@@ -453,11 +453,11 @@ public class ProjectsController {
             @RequestBody UpdatePauseRequest body) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-                    if (body.paused) {
+                    if (body.paused()) {
                         pipeline.requestPause();
                         return Boolean.TRUE;
                     } else {
-                        if ("once".equalsIgnoreCase(body.strategy)) {
+                        if ("once".equalsIgnoreCase(body.strategy().orElse(null))) {
                             pipeline.resume(Pipeline.ResumeNotification.RunSingleThenPause);
                         } else {
                             pipeline.resume(Pipeline.ResumeNotification.Confirmation);
