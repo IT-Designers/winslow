@@ -1097,7 +1097,7 @@ public class ProjectsController {
         if (Optional.of(Pipeline.PauseReason.ConfirmationRequired).equals(pipeline.getPauseReason())) {
             var noStageRequiresUserConfirmation = pipeline
                     .getEnqueuedExecutions()
-                    .noneMatch(g -> getUserInputConfirmation(g.getStageDefinition()) != UserInput.Confirmation.Never);
+                    .noneMatch(g -> getUserInputConfirmation(g.getStageDefinition()) != UserInput.Confirmation.NEVER);
             if (noStageRequiresUserConfirmation) {
                 pipeline.resume(Pipeline.ResumeNotification.Confirmation);
             }
@@ -1107,7 +1107,7 @@ public class ProjectsController {
     public static UserInput.Confirmation getUserInputConfirmation(StageDefinition stagedef) {
         return stagedef instanceof StageWorkerDefinition w
                ? w.userInput().getConfirmation()
-               : UserInput.Confirmation.Never;
+               : UserInput.Confirmation.NEVER;
     }
 
     private static void resumeIfPausedByStageFailure(@Nonnull Pipeline pipeline) {

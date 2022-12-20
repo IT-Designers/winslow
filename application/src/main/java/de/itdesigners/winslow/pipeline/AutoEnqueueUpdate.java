@@ -197,15 +197,15 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
 
                 var requiredConfirmation = stageDefinition instanceof StageWorkerDefinition w ?
                                            w.userInput().getConfirmation() :
-                                           UserInput.Confirmation.Never;
+                                           UserInput.Confirmation.NEVER;
 
 
-                var inThisCase = UserInput.Confirmation.Once == requiredConfirmation
+                var inThisCase = UserInput.Confirmation.ONCE == requiredConfirmation
                         && pipeline
                         .getExecutionHistory()
                         .noneMatch(g -> g.getStageDefinition().id().equals(stageDefinition.id()));
 
-                var requiresConfirmation = UserInput.Confirmation.Always == requiredConfirmation || inThisCase;
+                var requiresConfirmation = UserInput.Confirmation.ALWAYS == requiredConfirmation || inThisCase;
                 var hasConfirmation = pipeline
                         .getResumeNotification()
                         .orElse(null) == Pipeline.ResumeNotification.Confirmation;
