@@ -9,8 +9,8 @@
         [isConfigure]="entry?.configureOnly"
         [showResumeOnlyThisStage]="false"
         [enqueued]="false"
-        [running]="selectedStage?.state == 'Running'"
-        [paused]="selectedStage?.state == 'Paused'"
+        [running]="selectedStage?.state == 'RUNNING'"
+        [paused]="selectedStage?.state == 'PAUSED'"
 
 
         (clickKillCurrentStage)="clickKillStage.emit(selectedStage)"

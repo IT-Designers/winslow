@@ -18,7 +18,7 @@ export class ProjectListComponent implements OnInit {
   }
 
   isRunning(project: ProjectInfo) {
-    return this.stateInfoCheck(false, project, state => state.state === 'Running');
+    return this.stateInfoCheck(false, project, state => state.state === 'RUNNING');
   }
 
   getProgress(project: ProjectInfo) {

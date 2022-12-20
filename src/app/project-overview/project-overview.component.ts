@@ -236,9 +236,9 @@ export class ProjectOverviewComponent implements OnDestroy {
   @Input()
   set state(state: State) {
     this.stateValue = state;
-    this.stateFinished = state === 'Failed' || state === 'Succeeded';
-    this.stateRunning = state === 'Running';
-    this.statePaused = state === 'Paused' || state === 'Enqueued';
+    this.stateFinished = state === 'FAILED' || state === 'SUCCEEDED';
+    this.stateRunning = state === 'RUNNING';
+    this.statePaused = state === 'PAUSED' || state === 'ENQUEUED';
     this.cdr.detectChanges();
   }
 
@@ -397,11 +397,11 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   isEnqueued(state: State) {
-    return state === 'Enqueued';
+    return state === 'ENQUEUED';
   }
 
   isRunning(state: State) {
-    return state === 'Running';
+    return state === 'RUNNING';
   }
 
   openProjectDiskUsageDialog() {

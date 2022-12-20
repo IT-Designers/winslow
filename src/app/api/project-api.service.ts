@@ -520,7 +520,7 @@ declare module './winslow-api' {
 
     getMostRecentStartOrFinishTime(): number;
 
-    getMostRelevantState(projectState: State): State;
+    getMostRelevantState(projectState?: State): State;
 
     isMostRecentStateRunning(): boolean;
 
@@ -568,29 +568,29 @@ ExecutionGroupInfo.prototype.getMostRecentStartOrFinishTime = function(): number
 };
 
 ExecutionGroupInfo.prototype.getMostRelevantState = function(projectState: State = null): State {
-  const states: Array<State> = ['Running', 'Preparing', 'Failed'];
+  const states: Array<State> = ['RUNNING', 'PREPARING', 'FAILED'];
   for (const state of states) {
     if (this.hasStagesState(state)) {
       return state;
     }
   }
   if (this.enqueued) {
-    return 'Enqueued';
+    return 'ENQUEUED';
   } else if (this.active) {
-    const alternative = projectState === 'Paused' ? 'Paused' : 'Preparing';
+    const alternative = projectState === 'PAUSED' ? 'PAUSED' : 'PREPARING';
     return this.getMostRecentStage()?.state ?? alternative;
   } else {
-    return this.getMostRecentStage()?.state ?? 'Skipped';
+    return this.getMostRecentStage()?.state ?? 'SKIPPED';
   }
 };
 
 ExecutionGroupInfo.prototype.isMostRecentStateRunning = function(): boolean {
-  return this.getMostRelevantState() === 'Running';
+  return this.getMostRelevantState() === 'RUNNING';
 };
 
 ExecutionGroupInfo.prototype.hasRunningStages = function(): boolean {
   for (const stage of this.stages) {
-    if (stage.state === 'Running') {
+    if (stage.state === 'RUNNING') {
       return true;
     }
   }
