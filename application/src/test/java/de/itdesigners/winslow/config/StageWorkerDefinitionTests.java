@@ -200,7 +200,7 @@ public class StageWorkerDefinitionTests {
                         new Requirements.Gpu(4, "nvidia", new String[]{"test"}),
                         Arrays.asList("tag1", "tag2")
                 ),
-                new UserInput(UserInput.Confirmation.Always, List.of("Env")),
+                new UserInput(UserInput.Confirmation.ALWAYS, List.of("Env")),
                 Map.of("env1", "envValue"),
                 new Highlight(List.of("to Highlight")),
                 true,

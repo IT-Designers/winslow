@@ -86,9 +86,9 @@ public class UserInputChecker implements AssemblerStep {
         if (stageDefinition instanceof StageWorkerDefinition stageWorkerDefinition) {
             return Stream
                     .of(stageWorkerDefinition.userInput(), pipelineDefinition.userInput())
-                    .filter(u -> u.getConfirmation() != UserInput.Confirmation.Never)
-                    .anyMatch(u -> u.getConfirmation() == UserInput.Confirmation.Always || (
-                                      u.getConfirmation() == UserInput.Confirmation.Once && pipeline
+                    .filter(u -> u.getConfirmation() != UserInput.Confirmation.NEVER)
+                    .anyMatch(u -> u.getConfirmation() == UserInput.Confirmation.ALWAYS || (
+                                      u.getConfirmation() == UserInput.Confirmation.ONCE && pipeline
                                               .getActiveAndPastExecutionGroups()
                                               .noneMatch(g -> g.getStageDefinition().id().equals(stageDefinition.id()))
                               )
