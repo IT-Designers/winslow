@@ -53,7 +53,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
     window.addEventListener('scroll', this.scrollCallback, true);
     this.stateSubscription = this.api.getProjectStateSubscriptionHandler().subscribe((id, info) => {
       if (id === this.selectedProject?.id && info != null) {
-        this.projectHasRunningStage = info.state === 'Running' ;
+        this.projectHasRunningStage = info.state === 'RUNNING' ;
       }
     });
   }

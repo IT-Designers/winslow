@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 20:01:44.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 20:07:56.
 
 export class GroupInfo {
   name: string;
@@ -735,7 +735,7 @@ export type Action = 'EXECUTE' | 'CONFIGURE';
 
 export type Source = 'STANDARD_IO' | 'MANAGEMENT_EVENT';
 
-export type State = 'Running' | 'Paused' | 'Succeeded' | 'Failed' | 'Preparing' | 'Enqueued' | 'Skipped';
+export type State = 'RUNNING' | 'PAUSED' | 'SUCCEEDED' | 'FAILED' | 'PREPARING' | 'ENQUEUED' | 'SKIPPED';
 
 export type Confirmation = 'NEVER' | 'ONCE' | 'ALWAYS';
 

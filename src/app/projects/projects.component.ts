@@ -248,21 +248,21 @@ class Effects {
 
   update(state: StateInfo) {
     try {
-      if (state.state === 'Running' && (this.prev == null || this.prev.state !== 'Running')) {
+      if (state.state === 'RUNNING' && (this.prev == null || this.prev.state !== 'RUNNING')) {
         if (this.audio != null) {
           this.audio.pause();
         }
         this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/running.mp3`));
         this.audio.loop = true;
         this.audio.play();
-      } else if (this.prev != null && this.prev.state !== 'Failed' && state.state === 'Failed') {
+      } else if (this.prev != null && this.prev.state !== 'FAILED' && state.state === 'FAILED') {
         if (this.audio != null) {
           this.audio.pause();
         }
         this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/failed.mp3`));
         this.audio.loop = false;
         this.audio.play();
-      } else if (this.prev != null && this.prev.state === 'Running' && state.state !== 'Running') {
+      } else if (this.prev != null && this.prev.state === 'RUNNING' && state.state !== 'RUNNING') {
         if (this.audio != null) {
           this.audio.pause();
         }

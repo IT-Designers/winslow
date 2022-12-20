@@ -18,7 +18,7 @@ export class StateIconComponent implements OnInit {
   }
 
   stateString() {
-    if (this.configured && this.state !== 'Failed') {
+    if (this.configured && this.state !== 'FAILED') {
       return 'configured';
     } else {
       return this.state != null ? (this.state + '').toLowerCase() : null;
