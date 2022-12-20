@@ -21,7 +21,6 @@ public record RangedList(@Nonnull String[] values) implements RangedValue {
     }
 
     @Override
-    @Transient
     public int getStepCount() {
         return values.length;
     }
