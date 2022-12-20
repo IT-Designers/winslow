@@ -57,7 +57,7 @@ public class ObsoleteWorkspaceFinder {
 
     private int getNumberOfWorkspacesToKeep() {
         return policy
-                .getNumberOfWorkspacesOfSucceededStagesToKeep()
+                .optNumberOfWorkspacesOfSucceededStagesToKeep()
                 .orElse(Integer.MAX_VALUE);
     }
 
@@ -65,7 +65,7 @@ public class ObsoleteWorkspaceFinder {
             @Nonnull List<String> obsolete,
             @Nonnull WorkspaceView view
     ) {
-        if (policy.getKeepWorkspaceOfFailedStage()) {
+        if (policy.keepWorkspaceOfFailedStage()) {
             for (int i = 0; i < view.distanceToWorkspaces.size() && i < getNumberToKeep(); ++i) {
                 var details = view.distanceToWorkspaces.get(i);
                 details
@@ -112,7 +112,7 @@ public class ObsoleteWorkspaceFinder {
             @Nonnull WorkspaceView view) {
 
         // dont keep failed and dont keep most recent? -> nothing to do
-        if (!policy.getKeepWorkspaceOfFailedStage() && !policy.getAlwaysKeepMostRecentWorkspace()) {
+        if (!policy.keepWorkspaceOfFailedStage() && !policy.alwaysKeepMostRecentWorkspace()) {
             return;
         }
 
@@ -140,7 +140,7 @@ public class ObsoleteWorkspaceFinder {
                         .stream()
                         .anyMatch(d -> d.hasSucceededAtLeastOnce);
 
-                if (foundAtLeastOnceSuccessfulExecution && !policy.getKeepWorkspaceOfFailedStage()) {
+                if (foundAtLeastOnceSuccessfulExecution && !policy.keepWorkspaceOfFailedStage()) {
                     break;
                 }
 
@@ -205,7 +205,7 @@ public class ObsoleteWorkspaceFinder {
     }
 
     private Integer getNumberToKeep() {
-        return policy.getNumberOfWorkspacesOfSucceededStagesToKeep().orElse(Integer.MAX_VALUE);
+        return policy.optNumberOfWorkspacesOfSucceededStagesToKeep().orElse(Integer.MAX_VALUE);
     }
 
     @Nonnull
@@ -259,7 +259,7 @@ public class ObsoleteWorkspaceFinder {
 
 
     private void appendWorkspaceOfFailedStagesIfApplicable(@NonNull List<String> obsolete) {
-        if (!policy.getKeepWorkspaceOfFailedStage() && this.executionHistory != null) {
+        if (!policy.keepWorkspaceOfFailedStage() && this.executionHistory != null) {
             this.executionHistory
                     .stream()
                     .flatMap(ExecutionGroup::getStages)
@@ -270,8 +270,8 @@ public class ObsoleteWorkspaceFinder {
     }
 
     private void appendWorkspacesOfSuccessfulStagesThatExceedTheLimit(@NonNull List<String> obsolete) {
-        if (policy.getNumberOfWorkspacesOfSucceededStagesToKeep().isPresent() && this.executionHistory != null) {
-            int numberToKeep = policy.getNumberOfWorkspacesOfSucceededStagesToKeep().get();
+        if (policy.optNumberOfWorkspacesOfSucceededStagesToKeep().isPresent() && this.executionHistory != null) {
+            int numberToKeep = policy.optNumberOfWorkspacesOfSucceededStagesToKeep().get();
             var successfulGroups = this.executionHistory
                     .stream()
                     .filter(group -> group

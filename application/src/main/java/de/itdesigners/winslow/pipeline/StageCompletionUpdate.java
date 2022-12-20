@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.pipeline;
 
 import de.itdesigners.winslow.Orchestrator;
+import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
@@ -135,7 +136,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                         .map(Project::getPipelineDefinition)
                         .map(PipelineDefinition::deletionPolicy)
                 )
-                .orElseGet(Orchestrator::defaultDeletionPolicy);
+                .orElseGet(DeletionPolicy::new);
         var history    = pipeline.getActiveAndPastExecutionGroups().collect(Collectors.toList());
         var finder     = new ObsoleteWorkspaceFinder(policy).withExecutionHistory(history);
         var obsolete   = finder.collectObsoleteWorkspaces();

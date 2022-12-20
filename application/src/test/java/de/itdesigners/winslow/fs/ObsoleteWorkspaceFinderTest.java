@@ -48,7 +48,7 @@ public class ObsoleteWorkspaceFinderTest {
                 // cannot be deleted because missing follow-up
         );
 
-        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 1))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -69,7 +69,7 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedStage("workspace1", State.Succeeded) // keep: within range
         );
 
-        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 2))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -92,7 +92,7 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedStage("workspace1", State.Succeeded) // keep: within range
         );
 
-        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 1))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -124,7 +124,7 @@ public class ObsoleteWorkspaceFinderTest {
                 // keep: most recent without successful follow-up
         );
 
-        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 2))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -154,7 +154,7 @@ public class ObsoleteWorkspaceFinderTest {
                 // keep: most recent without successful follow-up
         );
 
-        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2))
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 2))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -184,7 +184,7 @@ public class ObsoleteWorkspaceFinderTest {
                 // delete: because no keep of most recent
         );
 
-        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 2, false))
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, false, 2))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -222,12 +222,12 @@ public class ObsoleteWorkspaceFinderTest {
 
         assertEquals(
                 Collections.emptyList(),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+                new ObsoleteWorkspaceFinder(new DeletionPolicy())
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );
 
-        var list = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, null))
+        var list = new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, null))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -254,12 +254,12 @@ public class ObsoleteWorkspaceFinderTest {
 
         assertEquals(
                 Collections.emptyList(),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+                new ObsoleteWorkspaceFinder(new DeletionPolicy())
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );
 
-        var list = new ObsoleteWorkspaceFinder(new DeletionPolicy(true, 1))
+        var list = new ObsoleteWorkspaceFinder(new DeletionPolicy(true, true, 1))
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -287,7 +287,7 @@ public class ObsoleteWorkspaceFinderTest {
 
         assertEquals(
                 Collections.emptyList(),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 1))
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );
@@ -302,7 +302,7 @@ public class ObsoleteWorkspaceFinderTest {
                 constructFinishedDiscardableStage(false, "workspace4", State.Succeeded)
         );
 
-        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+        var obsolete = new ObsoleteWorkspaceFinder(new DeletionPolicy())
                 .withExecutionHistory(history)
                 .collectObsoleteWorkspaces();
 
@@ -321,7 +321,7 @@ public class ObsoleteWorkspaceFinderTest {
 
         assertEquals(
                 Collections.emptyList(),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+                new ObsoleteWorkspaceFinder(new DeletionPolicy())
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );
@@ -336,7 +336,7 @@ public class ObsoleteWorkspaceFinderTest {
 
         assertEquals(
                 Collections.emptyList(),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(true, null))
+                new ObsoleteWorkspaceFinder(new DeletionPolicy())
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );
@@ -379,7 +379,7 @@ public class ObsoleteWorkspaceFinderTest {
 
         assertEquals(
                 List.of("w1", "w-broken/s1", "w2", "w3/test"),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 1))
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 1))
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );
@@ -422,7 +422,7 @@ public class ObsoleteWorkspaceFinderTest {
 
         assertEquals(
                 List.of("w1"),
-                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, 4))
+                new ObsoleteWorkspaceFinder(new DeletionPolicy(false, true, 4))
                         .withExecutionHistory(history)
                         .collectObsoleteWorkspaces()
         );

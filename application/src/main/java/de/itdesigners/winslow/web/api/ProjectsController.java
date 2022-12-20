@@ -645,7 +645,7 @@ public class ProjectsController {
 
     @GetMapping("projects/{projectId}/deletion-policy/default")
     public DeletionPolicy getDeletionPolicyDefault(User user, @PathVariable("projectId") String projectId) {
-        return Orchestrator.defaultDeletionPolicy();
+        return new DeletionPolicy();
     }
 
     @DeleteMapping("projects/{projectId}/deletion-policy")
