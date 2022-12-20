@@ -9,33 +9,33 @@ public class RangeWithStepSizeTest {
     @Test
     public void testMinMaxReOrderInConstructor0and1() {
         var range = new RangeWithStepSize(0, 1, 1);
-        assertEquals(0, range.getMin(), 0.0f);
-        assertEquals(1, range.getMax(), 0.0f);
-        assertEquals(1, range.getStepSize(), 0.0f);
+        assertEquals(0, range.min(), 0.0f);
+        assertEquals(1, range.max(), 0.0f);
+        assertEquals(1, range.stepSize(), 0.0f);
     }
 
     @Test
     public void testMinMaxReOrderInConstructor1and0() {
         var range = new RangeWithStepSize(1, 0, 1);
-        assertEquals(0, range.getMin(), 0.0f);
-        assertEquals(1, range.getMax(), 0.0f);
-        assertEquals(1, range.getStepSize(), 0.0f);
+        assertEquals(0, range.min(), 0.0f);
+        assertEquals(1, range.max(), 0.0f);
+        assertEquals(1, range.stepSize(), 0.0f);
     }
 
     @Test
     public void testMinMaxReOrderInConstructor11andNeg2() {
         var range = new RangeWithStepSize(11, -2, -1);
-        assertEquals(-2, range.getMin(), 0.0f);
-        assertEquals(11, range.getMax(), 0.0f);
-        assertEquals(1, range.getStepSize(), 0.0f);
+        assertEquals(-2, range.min(), 0.0f);
+        assertEquals(11, range.max(), 0.0f);
+        assertEquals(1, range.stepSize(), 0.0f);
     }
 
     @Test
     public void testMinMaxReOrderInConstructorNeg1and0() {
         var range = new RangeWithStepSize(-1, 0, -1);
-        assertEquals(-1, range.getMin(), 0.0f);
-        assertEquals(0, range.getMax(), 0.0f);
-        assertEquals(1, range.getStepSize(), 0.0f);
+        assertEquals(-1, range.min(), 0.0f);
+        assertEquals(0, range.max(), 0.0f);
+        assertEquals(1, range.stepSize(), 0.0f);
     }
 
     @Test
