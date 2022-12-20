@@ -5,7 +5,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {RegularExpressionEditorDialogComponent} from '../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
-import {LogEntryInfo, ProjectInfo, Source} from '../api/winslow-api';
+import {LogEntryInfo, LogSource, ProjectInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-log-view',
@@ -202,7 +202,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
     return log?.stageId + log?.line;
   }
 
-  sourceIsManagement(source: Source) {
+  sourceIsManagement(source: LogSource) {
     return source === 'MANAGEMENT_EVENT';
   }
 
