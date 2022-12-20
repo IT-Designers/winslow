@@ -11,6 +11,7 @@ import {
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
+  LogEntryInfo,
   ParseError,
   PipelineDefinitionInfo,
   ProjectInfo,
@@ -128,12 +129,12 @@ export class ProjectApiService {
     });
   }
 
-  public watchLogs(projectId: string, listener: (logs: LogEntry[]) => void, stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
+  public watchLogs(projectId: string, listener: (logs: LogEntryInfo[]) => void, stageId: string = ProjectApiService.LOGS_LATEST): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/logs/${stageId}`).subscribe(message => {
-      const events: ChangeEvent<string, LogEntry[]>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, LogEntryInfo[]>[] = JSON.parse(message.body);
       events.forEach(event => {
         if (event.value) {
-          listener(event.value);
+          listener(event.value.map(e => new LogEntryInfo(e)));
         }
       });
     });
