@@ -215,7 +215,7 @@ public class ProjectsEndpointController {
         } else {
             this.winslow.getProjectRepository().getProject(projectId).unsafe().ifPresent(project -> {
                 var info = projects.getStateInfo(pipeline);
-                createOrStopProjectPublisher(projectId, project, State.Running == info.state);
+                createOrStopProjectPublisher(projectId, project, State.Running == info.state());
                 publishProjectUpdate(TOPIC_PROJECT_STATES, projectId, info, project);
                 publishProjectUpdateCachedDelta(
                         String.format(TOPIC_PROJECT_SPECIFIC_HISTORY, projectId),
