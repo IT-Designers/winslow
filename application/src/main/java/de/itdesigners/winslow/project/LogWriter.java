@@ -1,6 +1,6 @@
 package de.itdesigners.winslow.project;
 
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.fs.LockedOutputStream;
 
 import javax.annotation.Nonnull;
@@ -45,14 +45,14 @@ public class LogWriter implements Runnable {
         try (PrintStream ps = new PrintStream(outputStream)) {
             this.streamSource.forEach(element -> {
                 if (element != null) {
-                    var stream   = element.isError() ? "err" : "out";
-                    var dateTime = dateFormat.format(new Date(element.getTime()));
-                    var source = switch (element.getSource()) {
+                    var stream   = element.error() ? "err" : "out";
+                    var dateTime = dateFormat.format(new Date(element.time()));
+                    var source = switch (element.source()) {
                         case STANDARD_IO -> TRIPLE_STANDARD_IO;
                         case MANAGEMENT_EVENT -> TRIPLE_MANAGEMENT_EVENT;
                     };
 
-                    ps.println(String.join(LOG_SEPARATOR, dateTime, source + stream, element.getMessage()));
+                    ps.println(String.join(LOG_SEPARATOR, dateTime, source + stream, element.message()));
                     ps.flush();
                     notifyConsumers(element);
                 }

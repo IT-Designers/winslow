@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.project;
 
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogSource;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
@@ -46,8 +47,8 @@ public class LogReader implements Iterator<LogEntry> {
             var entry = new LogEntry(
                     dateFormat.parse(split[0]).getTime(),
                     split[1].contains("std")
-                    ? LogEntry.Source.STANDARD_IO
-                    : LogEntry.Source.MANAGEMENT_EVENT,
+                    ? LogSource.STANDARD_IO
+                    : LogSource.MANAGEMENT_EVENT,
                     split[1].contains("err"),
                     split[2]
             );

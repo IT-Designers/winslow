@@ -1,7 +1,7 @@
 package de.itdesigners.winslow.asblr;
 
 import de.itdesigners.winslow.Executor;
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
