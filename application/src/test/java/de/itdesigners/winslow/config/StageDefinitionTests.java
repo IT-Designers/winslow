@@ -34,8 +34,6 @@ public class StageDefinitionTests {
         assertEquals(Optional.empty(), worker.requirements().getCpus());
         assertEquals(0, worker.requirements().getGpu().getCount());
         assertTrue(worker.environment().isEmpty());
-        assertTrue(worker.highlight().isEmpty());
-
     }
 
 
@@ -83,17 +81,7 @@ public class StageDefinitionTests {
         var stage = new StageWorkerDefinition(
                 UUID.randomUUID(),
                 "The name of the stage",
-                (String) null,
-                new Image("hello-world"),
-                new Requirements(),
-                new UserInput(),
-                null,
-                null,
-                false,
-                false,
-                null,
-                false,
-                null
+                new Image("hello-world")
         );
 
         var yaml = BaseRepository.writeToString(stage);
