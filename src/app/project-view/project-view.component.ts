@@ -14,7 +14,6 @@ import {
 import {
   AuthTokenInfo,
   DeletionPolicy,
-  EnvVariable,
   ProjectApiService,
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
@@ -43,7 +42,8 @@ import {
   ResourceLimitation,
   WorkspaceConfiguration,
   ProjectInfo,
-  RangedValue
+  RangedValue,
+  EnvVariable
 } from '../api/winslow-api';
 
 
