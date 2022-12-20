@@ -4,18 +4,10 @@ import javax.annotation.Nonnull;
 import java.beans.ConstructorProperties;
 import java.beans.Transient;
 
-public class RangedList implements RangedValue {
-
-    private final @Nonnull String[] values;
+public record RangedList(@Nonnull String[] values) implements RangedValue {
 
     @ConstructorProperties({"values"})
-    public RangedList(@Nonnull String[] values) {
-        this.values = values;
-    }
-
-    @Nonnull
-    public String[] getValues() {
-        return values;
+    public RangedList {
     }
 
     @Override
