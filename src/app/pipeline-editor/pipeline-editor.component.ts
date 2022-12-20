@@ -1,6 +1,5 @@
 import {Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {ParseError} from '../api/project-api.service';
-
+import {ParseError} from '../api/winslow-api';
 
 @Component({
   selector: 'app-pipeline-editor',
