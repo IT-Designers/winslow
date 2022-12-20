@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 20:07:56.
+// Generated using typescript-generator version 3.1.1185 on 2022-12-20 20:41:33.
 
 export class GroupInfo {
   name: string;
@@ -298,26 +298,19 @@ export class ImageInfo {
   }
 }
 
-export class LogEntry {
+export class LogEntryInfo {
   time: number;
-  source: Source;
+  source: LogSource;
   error: boolean;
   message: string;
+  line: number;
+  stageId: string;
 
-  constructor(data: LogEntry) {
+  constructor(data: LogEntryInfo) {
     this.time = data.time;
     this.source = data.source;
     this.error = data.error;
     this.message = data.message;
-  }
-}
-
-export class LogEntryInfo extends LogEntry {
-  line: number;
-  stageId?: string;
-
-  constructor(data: LogEntryInfo) {
-    super(data);
     this.line = data.line;
     this.stageId = data.stageId;
   }
@@ -733,7 +726,7 @@ export type Role = 'OWNER' | 'MEMBER';
 
 export type Action = 'EXECUTE' | 'CONFIGURE';
 
-export type Source = 'STANDARD_IO' | 'MANAGEMENT_EVENT';
+export type LogSource = 'STANDARD_IO' | 'MANAGEMENT_EVENT';
 
 export type State = 'RUNNING' | 'PAUSED' | 'SUCCEEDED' | 'FAILED' | 'PREPARING' | 'ENQUEUED' | 'SKIPPED';
 
