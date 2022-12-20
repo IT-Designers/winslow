@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {AuthTokenInfo} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
+import {AuthTokenInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-auth-tokens',
