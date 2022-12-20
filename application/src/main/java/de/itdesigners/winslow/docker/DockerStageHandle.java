@@ -4,8 +4,9 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.*;
+import de.itdesigners.winslow.api.pipeline.LogSource;
 import de.itdesigners.winslow.StageHandle;
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
 
@@ -186,7 +187,7 @@ public class DockerStageHandle implements StageHandle {
                             if (frame.getStreamType() == StreamType.STDERR || frame.getStreamType() == StreamType.STDOUT) {
                                 log(
                                         time,
-                                        LogEntry.Source.STANDARD_IO,
+                                        LogSource.STANDARD_IO,
                                         frame.getStreamType() == StreamType.STDERR,
                                         message
                                 );
@@ -362,13 +363,13 @@ public class DockerStageHandle implements StageHandle {
     private void log(@Nonnull String message, boolean error) {
         log(
                 System.currentTimeMillis(),
-                LogEntry.Source.MANAGEMENT_EVENT,
+                LogSource.MANAGEMENT_EVENT,
                 error,
                 "[docker] " + message
         );
     }
 
-    private void log(long time, @Nonnull LogEntry.Source source, boolean error, @Nonnull String message) {
+    private void log(long time, @Nonnull LogSource source, boolean error, @Nonnull String message) {
         this.logs.add(new LogEntry(
                 time,
                 source,

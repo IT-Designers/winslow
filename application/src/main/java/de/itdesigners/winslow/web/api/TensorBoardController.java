@@ -226,8 +226,8 @@ public class TensorBoardController {
                                 backoff.reset();
                             }
                             LOG.log(
-                                    entry.isError() ? Level.WARNING : Level.INFO,
-                                    projectId + ", " + entry.getSource() + ": " + entry.getMessage()
+                                    entry.error() ? Level.WARNING : Level.INFO,
+                                    projectId + ", " + entry.source() + ": " + entry.message()
                             );
                         }
                     } catch (IOException ioe) {

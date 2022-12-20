@@ -1,7 +1,8 @@
 package de.itdesigners.winslow.nomad;
 
 import de.itdesigners.winslow.Executor;
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
+import de.itdesigners.winslow.api.pipeline.LogSource;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -67,7 +68,7 @@ public class EvaluationLogger implements Iterator<LogEntry> {
         } finally {
             return new LogEntry(
                     System.currentTimeMillis(),
-                    LogEntry.Source.MANAGEMENT_EVENT,
+                    LogSource.MANAGEMENT_EVENT,
                     true,
                     Executor.PREFIX + message
             );

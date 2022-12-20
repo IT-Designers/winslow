@@ -1,6 +1,5 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
 

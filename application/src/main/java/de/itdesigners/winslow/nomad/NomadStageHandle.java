@@ -5,7 +5,7 @@ import com.hashicorp.nomad.apimodel.TaskState;
 import com.hashicorp.nomad.javasdk.NomadException;
 import de.itdesigners.winslow.CombinedIterator;
 import de.itdesigners.winslow.StageHandle;
-import de.itdesigners.winslow.api.pipeline.LogEntry;
+import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
 import de.itdesigners.winslow.pipeline.StageId;

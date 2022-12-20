@@ -1,6 +1,5 @@
 package de.itdesigners.winslow;
 
-import de.itdesigners.winslow.api.pipeline.LogEntry;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
 import de.itdesigners.winslow.asblr.*;
@@ -665,7 +664,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull
     private Consumer<LogEntry> getProgressHintMatcher(@Nonnull String stageId) {
         return entry -> {
-            var matcher = PROGRESS_HINT_PATTERN.matcher(entry.getMessage());
+            var matcher = PROGRESS_HINT_PATTERN.matcher(entry.message());
             if (matcher.find()) {
                 this.hints.setProgressHint(stageId, Math.round(Float.parseFloat(matcher.group(1))));
                 LOG.finest(() -> "ProgressHint match: " + matcher.group(1));
@@ -675,7 +674,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
     private Consumer<LogEntry> getResultMatcher(@Nonnull String stageId) {
         return entry -> {
-            var matcher = RESULT_PATTERN.matcher(entry.getMessage());
+            var matcher = RESULT_PATTERN.matcher(entry.message());
             if (matcher.find()) {
                 this.hints.setResult(stageId, matcher.group(1), matcher.group(2));
                 LOG.finest(() -> "Result match: " + matcher.group(1));
