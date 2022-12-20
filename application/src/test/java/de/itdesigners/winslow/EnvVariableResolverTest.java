@@ -148,7 +148,7 @@ public class EnvVariableResolverTest {
                         "some-stage-name",
                         State.Succeeded,
                         Map.of("configure", "configure"),
-                        Action.Configure
+                        Action.CONFIGURE
                 )))
                 .resolve();
 
@@ -198,7 +198,7 @@ public class EnvVariableResolverTest {
             @NonNull String name,
             @NonNull State finishState,
             @Nullable Map<String, String> env) {
-        return constructFinishedStageWithAction(id, name, finishState, env, Action.Execute);
+        return constructFinishedStageWithAction(id, name, finishState, env, Action.EXECUTE);
     }
 
     @NonNull
