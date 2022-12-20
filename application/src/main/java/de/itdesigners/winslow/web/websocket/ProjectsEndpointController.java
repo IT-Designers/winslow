@@ -297,7 +297,7 @@ public class ProjectsEndpointController {
         return getUser(principal)
                 .stream()
                 .flatMap(projects::listProjects)
-                .map(p -> new ChangeEvent<>(ChangeType.CREATE, p.id, p));
+                .map(p -> new ChangeEvent<>(ChangeType.CREATE, p.id(), p));
     }
 
     @SubscribeMapping("/projects/states")
@@ -307,9 +307,9 @@ public class ProjectsEndpointController {
                         .listProjects(user)
                         .flatMap(project -> winslow
                                 .getOrchestrator()
-                                .getPipeline(project.id)
+                                .getPipeline(project.id())
                                 .map(projects::getStateInfo)
-                                .map(state -> new ChangeEvent<>(ChangeType.CREATE, project.id, state))
+                                .map(state -> new ChangeEvent<>(ChangeType.CREATE, project.id(), state))
                                 .stream()
                         ))
                 .orElse(Stream.empty());
