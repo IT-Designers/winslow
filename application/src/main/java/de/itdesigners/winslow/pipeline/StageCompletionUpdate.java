@@ -76,7 +76,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                                     .getResult(stage.getFullyQualifiedId());
                             result.ifPresent(stage::setResult);
 
-                            stage.finishNow(State.Succeeded);
+                            stage.finishNow(State.SUCCEEDED);
 
                             var remaining  = pipeline
                                     .getActiveExecutionGroups()
@@ -91,7 +91,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                                 pipeline.requestPause();
                             }
                         } else {
-                            stage.finishNow(State.Failed);
+                            stage.finishNow(State.FAILED);
                         }
                         cleanupAfterStageExecution(orchestrator, stage.getFullyQualifiedId());
                         discardObsoleteWorkspaces(orchestrator, projectId, pipeline);
@@ -100,7 +100,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
 
             if (changes > 0) {
                 pipeline.getActiveExecutionGroups().forEach(active -> {
-                    var hasFailed    = active.getStages().anyMatch(s -> s.getState() == State.Failed);
+                    var hasFailed    = active.getStages().anyMatch(s -> s.getState() == State.FAILED);
                     var hasRemaining = active.hasRemainingExecutions();
 
                     var ignoreFailures = CommonUpdateConstraints.doesIgnoreFailuresWithinExecutionGroup(active.getStageDefinition());

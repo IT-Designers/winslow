@@ -190,7 +190,7 @@ public class ExecutionGroup {
     }
 
     /**
-     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are currently {@link State#Running}
+     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are currently {@link State#RUNNING}
      */
     @Nonnull
     @Transient
@@ -199,7 +199,7 @@ public class ExecutionGroup {
     }
 
     /**
-     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are hav ecompleted ({@link State#Failed} or {@link State#Succeeded})
+     * @return In comparision to {@link ExecutionGroup#getStages()}, this returns only {@link Stage}s that are hav ecompleted ({@link State#FAILED} or {@link State#SUCCEEDED})
      */
     @Nonnull
     @Transient

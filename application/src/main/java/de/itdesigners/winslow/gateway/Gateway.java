@@ -14,20 +14,20 @@ import java.util.logging.Level;
 public abstract class Gateway implements Runnable {
 
     protected @Nonnull final Queue<LogEntry> logs  = new ConcurrentLinkedQueue<>();
-    protected @Nonnull       State           state = State.Preparing;
+    protected @Nonnull       State           state = State.PREPARING;
 
     @Override
     public final void run() {
-        this.state = State.Running;
+        this.state = State.RUNNING;
         try {
             execute();
             // TODO only for debugging
             while (!logs.isEmpty()) {
                 Thread.sleep(1_000L);
             }
-            this.state = State.Succeeded;
+            this.state = State.SUCCEEDED;
         } catch (Throwable t) {
-            this.state = State.Failed;
+            this.state = State.FAILED;
             log(Level.SEVERE, "Gateway failed to execute", t);
         }
     }
