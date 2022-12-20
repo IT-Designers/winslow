@@ -15,21 +15,21 @@ public class UserInput {
     }
 
     public UserInput(@Nullable Confirmation confirmation, @Nullable List<String> requiredEnvVariables) {
-        this.confirmation = confirmation != null ? confirmation : Confirmation.Never;
+        this.confirmation = confirmation != null ? confirmation : Confirmation.NEVER;
         this.requiredEnvVariables = requiredEnvVariables != null ? requiredEnvVariables : Collections.emptyList();
     }
 
     @Nonnull
     public UserInput withoutConfirmation() {
         return new UserInput(
-                Confirmation.Never,
+                Confirmation.NEVER,
                 this.requiredEnvVariables
         );
     }
 
     @Nonnull
     public Confirmation getConfirmation() {
-        return confirmation != null ? confirmation : Confirmation.Never;
+        return confirmation != null ? confirmation : Confirmation.NEVER;
     }
 
     @Nonnull
@@ -63,6 +63,6 @@ public class UserInput {
     }
 
     public enum Confirmation {
-        Never, Once, Always
+        NEVER, ONCE, ALWAYS
     }
 }
