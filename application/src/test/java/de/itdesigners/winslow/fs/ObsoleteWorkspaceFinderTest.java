@@ -429,7 +429,7 @@ public class ObsoleteWorkspaceFinderTest {
                 null,
                 workspaceConfiguration != null
                     ? workspaceConfiguration
-                    : new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, null),
+                    : new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL),
                 new ArrayList<>(),
                 0,
                 null,
@@ -479,7 +479,8 @@ public class ObsoleteWorkspaceFinderTest {
                         null
                 ),
                 Map.of("a", new RangedList(new String[]{"b", "c"})),
-                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL, null, null, true),
+                new WorkspaceConfiguration(WorkspaceConfiguration.WorkspaceMode.INCREMENTAL)
+                        .withNestedWithinGroupExclusively(),
                 new ArrayList<>(),
                 0,
                 null,
