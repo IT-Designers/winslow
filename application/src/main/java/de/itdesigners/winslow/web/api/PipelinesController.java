@@ -166,7 +166,7 @@ public class PipelinesController {
                                     name,
                                     "Automatically generated description for '" + name + "'",
                                     new UserInput(
-                                            UserInput.Confirmation.Once,
+                                            UserInput.Confirmation.ONCE,
                                             List.of("SOME", "ENV_VARS", "THAT_MUST_BE_SET")
                                     ),
                                     List.of(new StageWorkerDefinition(
@@ -175,7 +175,7 @@ public class PipelinesController {
                                             "Automatically generated stage description",
                                             new Image("library/hello-world", new String[0]),
                                             new Requirements(null, null, null, Collections.emptyList()),
-                                            new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
+                                            new UserInput(UserInput.Confirmation.NEVER, Collections.emptyList()),
                                             Map.of("SOME", "VALUE"),
                                             null,
                                             false,
@@ -197,7 +197,7 @@ public class PipelinesController {
                                                     new Requirements.Gpu(1, "nvidia", new String[]{"cuda"}),
                                                     null
                                             ),
-                                            new UserInput(UserInput.Confirmation.Never, Collections.emptyList()),
+                                            new UserInput(UserInput.Confirmation.NEVER, Collections.emptyList()),
                                             Map.of("ANOTHER", "VALUE"),
                                             null,
                                             true,
@@ -211,7 +211,7 @@ public class PipelinesController {
                                             "Another example",
                                             new Image("library/hello-world", new String[]{}),
                                             new Requirements(1, 10240L, null, null),
-                                            new UserInput(UserInput.Confirmation.Always, Collections.emptyList()),
+                                            new UserInput(UserInput.Confirmation.ALWAYS, Collections.emptyList()),
                                             Map.of("GIMME", "MOAR RAM"),
                                             null,
                                             false,

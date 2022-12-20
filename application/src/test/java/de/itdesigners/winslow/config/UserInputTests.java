@@ -15,14 +15,14 @@ public class UserInputTests {
     public void testConfirmationMappingNever() throws IOException {
 
         var userInputYaml = """ 
-                confirmation: "Never" 
+                confirmation: "NEVER"
                  """;
 
 
         var userInput = BaseRepository.readFromString(UserInput.class, userInputYaml);
 
         assertTrue(userInput.getRequiredEnvVariables().isEmpty());
-        assertEquals(UserInput.Confirmation.Never, userInput.getConfirmation());
+        assertEquals(UserInput.Confirmation.NEVER, userInput.getConfirmation());
     }
 
 
@@ -31,12 +31,12 @@ public class UserInputTests {
 
 
         var userInputYaml = """ 
-                confirmation: "Always" 
+                confirmation: "ALWAYS" 
                  """;
 
         var userInput = BaseRepository.readFromString(UserInput.class, userInputYaml);
 
         assertTrue(userInput.getRequiredEnvVariables().isEmpty());
-        assertEquals(UserInput.Confirmation.Always, userInput.getConfirmation());
+        assertEquals(UserInput.Confirmation.ALWAYS, userInput.getConfirmation());
     }
 }

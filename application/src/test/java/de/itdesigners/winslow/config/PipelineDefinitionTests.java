@@ -51,35 +51,21 @@ public class PipelineDefinitionTests {
 
     @Test
     public void testDefaultSerialisation() throws IOException {
-
-
-        var pipeline = new PipelineDefinition(
-                "Pipeline",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-
-        var yaml = BaseRepository.writeToString(pipeline);
+        var pipeline = new PipelineDefinition("Pipeline");
+        var yaml     = BaseRepository.writeToString(pipeline);
 
         assertNotNull(yaml);
         assertNotEquals("", yaml);
-
     }
 
 
     @Test
     public void testSerialisationWithAllValues() throws IOException {
-
-
         var pipeline = new PipelineDefinition(
                 "Pipeline",
                 "description",
-                new UserInput(UserInput.Confirmation.Always, Arrays.asList("env")),
-                Arrays.asList(new StageWorkerDefinition(
+                new UserInput(UserInput.Confirmation.ALWAYS, List.of("env")),
+                List.of(new StageWorkerDefinition(
                         UUID.randomUUID(),
                         "pipeline",
                         (String) null,
