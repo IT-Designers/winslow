@@ -2,10 +2,9 @@ import {Component, OnInit} from '@angular/core';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {NotificationService} from '../notification.service';
 import {LongLoadingDetector} from '../long-loading-detector';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-create-dialog/create-pipeline-dialog.component';
-import {ParseError} from '../api/project-api.service';
-import {PipelineDefinitionInfo} from '../api/winslow-api';
+import {ParseError, PipelineDefinitionInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-pipelines',
@@ -75,10 +74,10 @@ export class PipelinesComponent implements OnInit {
         this.parseError.set(pipeline, []);
 
         if (result != null) {
-          if (ParseError.canShadow(result)) {
-            this.parseError.set(pipeline, [result as ParseError]);
-          } else {
+          if (typeof result === typeof '') {
             this.error.set(pipeline, result as string);
+          } else {
+            this.parseError.set(pipeline, [result as ParseError]);
           }
         } else {
           this.success.set(pipeline, 'Saved!');

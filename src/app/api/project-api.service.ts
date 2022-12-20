@@ -10,6 +10,7 @@ import {ChangeEvent} from './api.service';
 import {
   ExecutionGroupInfo,
   ImageInfo,
+  ParseError,
   PipelineDefinitionInfo,
   ProjectInfo,
   ResourceInfo,
@@ -262,11 +263,12 @@ export class ProjectApiService {
   }
 
   setProjectRawPipelineDefinition(projectId: string, raw: string): Promise<void | ParseError> {
-    return this.client.put<ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), raw)
+    return this.client
+      .put<object | ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), raw)
       .toPromise()
       .then(r => {
         if (r != null && Object.keys(r).length !== 0) {
-          return Promise.reject(r);
+          return Promise.reject(new ParseError(r as ParseError));
         } else {
           return Promise.resolve(null);
         }
@@ -681,20 +683,6 @@ export class LogEntry {
   error: boolean;
   message: string;
   stageId?: string; // ProjectsController.LogEntryInfo
-}
-
-
-export class ParseError {
-  line: number;
-  column: number;
-  message: string;
-
-  static canShadow(obj: any): boolean {
-    return obj != null
-      && obj.line != null
-      && obj.column != null
-      && obj.message != null;
-  }
 }
 
 export class EnvVariable {
