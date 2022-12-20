@@ -15,7 +15,6 @@ import {
   AuthTokenInfo,
   DeletionPolicy,
   EnvVariable,
-  ParseError,
   ProjectApiService,
 } from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
@@ -706,13 +705,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     this.dialog.openLoadingIndicator(
       this.api.setProjectRawPipelineDefinition(this.project.id, raw)
         .catch(e => {
-          if (ParseError.canShadow(e)) {
-            editor.parseError = [e];
-            return Promise.reject('Failed to parse input, see marked area(s) for more details');
-          } else {
-            editor.parseError = [];
-            return Promise.reject(e);
-          }
+          editor.parseError = [e];
+          return Promise.reject('Failed to parse input, see marked area(s) for more details');
         })
         .then(r => {
           editor.parseError = [];

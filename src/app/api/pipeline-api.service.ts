@@ -1,10 +1,11 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {loadStageDefinition, ParseError} from './project-api.service';
+import {loadStageDefinition} from './project-api.service';
 import {
   GpuRequirementsInfo,
   ImageInfo,
+  ParseError,
   PipelineDefinitionInfo,
   RequirementsInfo,
   StageWorkerDefinitionInfo,
@@ -32,7 +33,16 @@ export class PipelineApiService {
   }
 
   updatePipelineDefinition(pipeline: string, raw: string) {
-    return this.client.put<string | ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw).toPromise();
+    return this.client
+      .put<string | ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw)
+      .toPromise()
+      .then(response => {
+        if (typeof response === typeof '') {
+          return response;
+        } else {
+          return new ParseError(response as ParseError);
+        }
+      });
   }
 
   getPipelineDefinition(pipeline: string) {
@@ -81,6 +91,7 @@ export function loadPipelineDefinition(origin: PipelineDefinitionInfo): Pipeline
 declare module './winslow-api' {
   interface PipelineDefinitionInfo {
     hasActionMarker(): boolean;
+
     hasActionMarkerFor(pipelineName: string): boolean;
   }
 }
