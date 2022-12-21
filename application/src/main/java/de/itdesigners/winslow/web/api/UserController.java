@@ -43,6 +43,7 @@ public class UserController {
         return winslow
                 .getUserManager()
                 .getUsersPotentiallyIncomplete()
+                .stream()
                 .map(UserInfoConverter::from);
     }
 
@@ -153,7 +154,7 @@ public class UserController {
             @RequestBody String password) {
         try {
             ensure(isAllowedToModifyUser(user, name));
-            winslow.getUserManager().setPassword(name, password.toCharArray());
+            winslow.getUserManager().setUserPassword(name, password.toCharArray());
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
         } catch (InvalidPasswordException e) {
@@ -173,7 +174,7 @@ public class UserController {
             @Nonnull @PathVariable("name") String name) {
         try {
             ensure(isAllowedToDeleteUserPassword(user));
-            winslow.getUserManager().deletePassword(name);
+            winslow.getUserManager().deleteUserPassword(name);
         } catch (InvalidNameException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name", e);
         } catch (InvalidPasswordException e) {
