@@ -26,6 +26,10 @@ public class CachedFunction<T, R> implements Function<T, R> {
         this.cache.put(key, value);
     }
 
+    public boolean knowns(@Nonnull T key) {
+        return this.cache.containsKey(key);
+    }
+
     @Override
     public R apply(T parameter) {
         if (this.cache.containsKey(parameter)) {
