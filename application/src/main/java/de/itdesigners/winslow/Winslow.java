@@ -296,58 +296,56 @@ public class Winslow implements Runnable {
      * @param _args   ignored
      */
     private void lsUser(@Nonnull ConsoleHandle console, @Nonnull Arguments _args) {
-        try (var users = this.userManager.getUsersPotentiallyIncomplete()) {
-            var header = new String[]{
-                    "Active", "Name", "Display Name", "E-Mail", "Password", "Privileges", "Groups"
-            };
-            var columnWidths = new int[header.length];
-            var contents     = new ArrayList<String[]>();
-            contents.add(header);
+        var header = new String[]{
+                "Active", "Name", "Display Name", "E-Mail", "Password", "Privileges", "Groups"
+        };
+        var columnWidths = new int[header.length];
+        var contents     = new ArrayList<String[]>();
+        contents.add(header);
 
-            users.forEach(user -> {
-                contents.add(new String[]{
-                        user.active() ? "yes" : "no",
-                        user.name(),
-                        user.displayName() != null ? user.displayName() : "",
-                        user.email() != null ? user.email() : "",
-                        user.password() != null ? "*" : "",
-                        user.hasSuperPrivileges() ? "super" : "user",
-                        user.getGroups().stream().map(Group::name).collect(Collectors.joining(", "))
-                });
+        this.userManager.getUsersPotentiallyIncomplete().forEach(user -> {
+            contents.add(new String[]{
+                    user.active() ? "yes" : "no",
+                    user.name(),
+                    user.displayName() != null ? user.displayName() : "",
+                    user.email() != null ? user.email() : "",
+                    user.password() != null ? "*" : "",
+                    user.hasSuperPrivileges() ? "super" : "user",
+                    user.getGroups().stream().map(Group::name).collect(Collectors.joining(", "))
             });
+        });
 
-            for (var content : contents) {
-                for (int i = 0; i < content.length; ++i) {
-                    if (columnWidths[i] < content[i].length()) {
-                        columnWidths[i] = content[i].length();
-                    }
+        for (var content : contents) {
+            for (int i = 0; i < content.length; ++i) {
+                if (columnWidths[i] < content[i].length()) {
+                    columnWidths[i] = content[i].length();
                 }
             }
+        }
 
-            int currentRow = 0;
-            System.out.println();
-            for (var content : contents) {
-                if (currentRow == 1) {
-                    for (int i = 0; i < columnWidths.length; ++i) {
-                        if (i != 0) {
-                            System.out.print("--+--");
-                        }
-                        System.out.print("-".repeat(columnWidths[i]));
-                    }
-                    System.out.println();
-                }
-
-                for (int i = 0; i < content.length; ++i) {
+        int currentRow = 0;
+        System.out.println();
+        for (var content : contents) {
+            if (currentRow == 1) {
+                for (int i = 0; i < columnWidths.length; ++i) {
                     if (i != 0) {
-                        System.out.print("  |  ");
+                        System.out.print("--+--");
                     }
-                    System.out.printf("%" + columnWidths[i] + "s", content[i]);
+                    System.out.print("-".repeat(columnWidths[i]));
                 }
                 System.out.println();
-                ++currentRow;
+            }
+
+            for (int i = 0; i < content.length; ++i) {
+                if (i != 0) {
+                    System.out.print("  |  ");
+                }
+                System.out.printf("%" + columnWidths[i] + "s", content[i]);
             }
             System.out.println();
+            ++currentRow;
         }
+        System.out.println();
     }
 
     private void modUser(@Nonnull ConsoleHandle console, @Nonnull Arguments args) {

@@ -5,25 +5,23 @@ import de.itdesigners.winslow.api.auth.Role;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 public class UserManager implements GroupAssignmentResolver {
 
     private static final Logger LOG = Logger.getLogger(UserManager.class.getSimpleName());
 
-    private final @Nonnull Map<String, User> users = new HashMap<>();
-    private final @Nonnull GroupManager      groups;
+    private final @Nonnull UserPersistence persistence;
+    private final @Nonnull GroupManager    groups;
 
-    public UserManager(@Nonnull GroupManager groups) {
-        this.groups = groups;
-        this.users.put(
-                User.SUPER_USER_NAME,
+    public UserManager(@Nonnull UserPersistence persistence, @Nonnull GroupManager groups) throws IOException {
+        this.persistence = persistence;
+        this.groups      = groups;
+
+        this.persistence.storeIfNotExists(
                 new User(
                         User.SUPER_USER_NAME,
                         null,
@@ -52,10 +50,8 @@ public class UserManager implements GroupAssignmentResolver {
             @Nullable String email,
             @Nullable char[] password) throws InvalidNameException, NameAlreadyInUseException, IOException, InvalidPasswordException {
         InvalidNameException.ensureValid(name);
-        NameAlreadyInUseException.ensureNotPresent(this.users.keySet(), name);
-
         var user = new User(name, displayName, email, true, getPasswordHash(password), this);
-        this.users.put(name, user);
+        this.persistence.store(user);
         return user;
     }
 
@@ -93,40 +89,14 @@ public class UserManager implements GroupAssignmentResolver {
             boolean active,
             @Nullable PasswordHash passwordHash) throws InvalidNameException, NameNotFoundException, IOException {
         InvalidNameException.ensureValid(name);
-        NameNotFoundException.ensurePresent(this.users.keySet(), name);
-
-        // for now (without proper persistence), just replace the object
-        var user = new User(name, displayName, email, active, passwordHash, this);
-        this.users.put(name, user);
-        return user;
-    }
-
-    public void setPassword(
-            @Nonnull String name,
-            @Nonnull char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
-        updatePassword(name, password);
-    }
-
-    public void deletePassword(@Nonnull String name) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
-        updatePassword(name, null);
-    }
-
-    protected void updatePassword(
-            @Nonnull String name,
-            @Nullable char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
-        InvalidNameException.ensureValid(name);
-
-        var current = this.getUser(name).orElseThrow(() -> new NameNotFoundException(name));
-
-        // for now (without proper persistence), just replace the object
-        this.users.put(
-                current.name(),
-                new User(
-                        current.name(),
-                        current.displayName(),
-                        current.email(),
-                        current.active(),
-                        getPasswordHash(password),
+        return this.persistence.update(
+                name,
+                user -> new User(
+                        name,
+                        displayName,
+                        email,
+                        active,
+                        passwordHash,
                         this
                 )
         );
@@ -185,7 +155,11 @@ public class UserManager implements GroupAssignmentResolver {
             return user;
         } catch (InvalidNameException | IOException e) {
             // cleanup: delete the user
-            this.users.remove(name);
+            try {
+                this.persistence.delete(name);
+            } catch (NameNotFoundException ex) {
+                LOG.log(Level.SEVERE, "Cannot clean-up user because it no longer exists!?", ex);
+            }
             throw e;
         }
     }
@@ -199,7 +173,14 @@ public class UserManager implements GroupAssignmentResolver {
      */
     @Nonnull
     public Optional<User> getUser(@Nonnull String name) {
-        return Optional.ofNullable(this.users.get(name));
+        return this.persistence.loadUnsafeNoThrows(name).map(user -> new User(
+                user.name(),
+                user.displayName(),
+                user.email(),
+                user.active(),
+                user.password(),
+                this
+        ));
     }
 
     /**
@@ -211,27 +192,37 @@ public class UserManager implements GroupAssignmentResolver {
     public void setUserPassword(
             @Nonnull String name,
             @Nullable char[] password) throws IOException, InvalidNameException, NameNotFoundException, InvalidPasswordException {
+        updatePassword(name, password);
+    }
+
+    public void deleteUserPassword(@Nonnull String name) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
+        updatePassword(name, null);
+    }
+
+    protected void updatePassword(
+            @Nonnull String name,
+            @Nullable char[] password) throws InvalidNameException, NameNotFoundException, InvalidPasswordException, IOException {
         InvalidNameException.ensureValid(name);
-
-        var user = this.getUser(name).orElseThrow(() -> new NameNotFoundException(name));
-
-        // for now (without proper persistence), just replace the object
-        this.users.put(
-                user.name(),
-                new User(
+        this.persistence.update(
+                name,
+                user -> new User(
                         user.name(),
                         user.displayName(),
                         user.email(),
                         user.active(),
                         getPasswordHash(password),
-                        user.groupAssignmentResolver()
+                        this
                 )
         );
     }
 
     @Nonnull
-    public Stream<User> getUsersPotentiallyIncomplete() {
-        return this.users.values().stream();
+    public List<User> getUsersPotentiallyIncomplete() {
+        try (var stream = this.persistence.listUserNamesNoThrows()) {
+            return stream
+                    .flatMap(name -> getUser(name).stream())
+                    .toList();
+        }
     }
 
     /**
@@ -266,8 +257,7 @@ public class UserManager implements GroupAssignmentResolver {
     }
 
     public void deleteUser(@Nonnull String name) throws NameNotFoundException, IOException {
-        NameNotFoundException.ensurePresent(this.users.keySet(), name);
-        this.users.remove(name);
+        this.persistence.delete(name);
     }
 
     @Override
