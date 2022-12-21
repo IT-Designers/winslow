@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -33,13 +32,12 @@ public class GroupRepository extends BaseRepository implements GroupPersistence 
         super(lockBus, workDirectoryConfiguration);
         this.cachedLoader = new CachedFunction<>(
                 name -> getGroupHandle(name).unsafe().or(() -> {
+                    // TODO remove?
                     // insert hook to always be able to retrieve the super-group
                     if (Group.SUPER_GROUP_NAME.equals(name)) {
                         return Optional.of(new Group(
                                 name,
-                                List.of(
-                                        new Link(User.SUPER_USER_NAME, Role.OWNER)
-                                )
+                                List.of(new Link(User.SUPER_USER_NAME, Role.OWNER))
                         ));
                     } else {
                         return Optional.empty();
@@ -52,7 +50,7 @@ public class GroupRepository extends BaseRepository implements GroupPersistence 
                 event -> {
                     var eventPath = Path.of(event.getSubject()).normalize();
                     var eventFile = eventPath.getFileName().toString();
-                    var dir       = workDirectoryConfiguration.getAuthGroupDirectory();
+                    var dir       = getRepositoryDirectory();
                     var parent    = workDirectoryConfiguration.getPath().resolve(eventPath).getParent().toUri();
 
                     if (parent.getPath().equals(dir.toUri().getPath()) && eventFile.endsWith(FILE_EXTENSION)) {
@@ -80,7 +78,7 @@ public class GroupRepository extends BaseRepository implements GroupPersistence 
         return getRepositoryDirectory().resolve(Path.of(name + FILE_EXTENSION).normalize().getFileName());
     }
 
-    private synchronized <T> T synchronizedLoader(Function<CachedFunction<String, Optional<Group>>, T> callback) {
+    private synchronized <T> T synchronizedLoader(@Nonnull Function<CachedFunction<String, Optional<Group>>, T> callback) {
         return callback.apply(this.cachedLoader);
     }
 
@@ -98,23 +96,15 @@ public class GroupRepository extends BaseRepository implements GroupPersistence 
     }
 
     @Override
-    public void store(@Nonnull Group group) throws IOException {
-        try (var container = getGroupHandle(group.name()).exclusive().orElseThrow()) {
-            container.update(group);
-        }
-        synchronizedVoidLoader(loader -> loader.remember(group.name(), Optional.of(group)));
-    }
-
-    @Override
-    public void storeIfNotExists(@Nonnull Group group) throws IOException, NameAlreadyInUseException {
-        var handle = getGroupHandle(group.name());
-        if (!handle.exists()) {
-            try (var container = handle.exclusive().orElseThrow()) {
+    public boolean storeIfNotExists(@Nonnull Group group) throws IOException {
+        if (loadUnsafeNoThrows(group.name()).isEmpty()) {
+            try (var container = getGroupHandle(group.name()).exclusive().orElseThrow()) {
                 container.update(group);
             }
             synchronizedVoidLoader(loader -> loader.remember(group.name(), Optional.of(group)));
+            return true;
         } else {
-            throw new NameAlreadyInUseException(group.name());
+            return false;
         }
     }
 
@@ -122,10 +112,9 @@ public class GroupRepository extends BaseRepository implements GroupPersistence 
     @Override
     public <E extends Throwable> Group updateComputeIfAbsent(
             @Nonnull String name,
-            @Nonnull ThrowingFunction<Group, Group, E> updater,
-            @Nonnull Supplier<Optional<Group>> supplier) throws NameNotFoundException, IOException, E {
+            @Nonnull ThrowingFunction<Group, Group, E> updater) throws NameNotFoundException, IOException, E {
         try (var container = getGroupHandle(name).exclusive().orElseThrow()) {
-            var oldGroup = container.getNoThrow().or(supplier).orElseThrow(() -> new NameNotFoundException(name));
+            var oldGroup = container.getNoThrow().orElseThrow(() -> new NameNotFoundException(name));
             var newGroup = updater.apply(oldGroup);
             container.update(newGroup);
             synchronizedVoidLoader(loader -> loader.remember(name, Optional.of(newGroup)));

@@ -6,7 +6,6 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class DummyGroupPersistence implements GroupPersistence {
@@ -26,25 +25,22 @@ public class DummyGroupPersistence implements GroupPersistence {
     }
 
     @Override
-    public void store(@Nonnull Group group) throws IOException {
-        this.groups.put(group.name(), group);
-    }
-
-    @Override
-    public void storeIfNotExists(@Nonnull Group group) throws NameAlreadyInUseException, IOException {
-        NameAlreadyInUseException.ensureNotPresent(group.name(), this.groups.keySet().stream());
-        this.groups.put(group.name(), group);
+    public boolean storeIfNotExists(@Nonnull Group group) throws IOException {
+        if (this.groups.containsKey(group.name())) {
+            return false;
+        } else {
+            this.groups.put(group.name(), group);
+            return true;
+        }
     }
 
     @Nonnull
     @Override
     public <E extends Throwable> Group updateComputeIfAbsent(
             @Nonnull String name,
-            @Nonnull ThrowingFunction<Group, Group, E> updater,
-            @Nonnull Supplier<Optional<Group>> supplier) throws NameNotFoundException, IOException, E {
+            @Nonnull ThrowingFunction<Group, Group, E> updater) throws NameNotFoundException, IOException, E {
         var result = updater.apply(
                 this.loadUnsafeNoThrows(name)
-                    .or(supplier)
                     .orElseThrow(() -> new org.springframework.ldap.NameNotFoundException(name))
         );
         this.groups.put(name, result);

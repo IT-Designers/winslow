@@ -48,6 +48,12 @@ public interface WorkDirectoryConfiguration {
         return Path.of(getAuthenticationAndAuthorizationDirectory().resolve("groups").toUri());
     }
 
+    @Nonnull
+    default Path getAuthUserDirectory() {
+        // prevent the FileSystem from leaking through
+        return Path.of(getAuthenticationAndAuthorizationDirectory().resolve("users").toUri());
+    }
+
     /**
      * See Unix '/run':
      * - (early) directory in which process and runtime info is stored,

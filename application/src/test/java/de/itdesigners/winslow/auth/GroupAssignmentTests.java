@@ -12,7 +12,7 @@ public class GroupAssignmentTests {
     @Test
     public void userCanResolveAssignedGroups() throws InvalidNameException, NameAlreadyInUseException, IOException {
         GroupManager groupManager = new GroupManager(new DummyGroupPersistence());
-        UserManager  userManager  = new UserManager(groupManager);
+        UserManager  userManager  = new UserManager(new DummyUserPersistence(), groupManager);
 
         var bernd = userManager.createUserAndGroup("bernd");
 

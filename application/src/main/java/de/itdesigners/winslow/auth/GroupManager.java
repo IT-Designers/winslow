@@ -12,15 +12,14 @@ import java.util.stream.Stream;
 
 public class GroupManager {
 
-    private static final @Nonnull Group SUPER_GROUP = new Group(
-            Group.SUPER_GROUP_NAME,
-            List.of(new Link(User.SUPER_USER_NAME, Role.OWNER))
-    );
-
     private final @Nonnull GroupPersistence persistence;
 
-    public GroupManager(@Nonnull GroupPersistence persistence) {
+    public GroupManager(@Nonnull GroupPersistence persistence) throws IOException {
         this.persistence = persistence;
+        this.persistence.storeIfNotExists(new Group(
+                Group.SUPER_GROUP_NAME,
+                List.of(new Link(User.SUPER_USER_NAME, Role.OWNER))
+        ));
     }
 
     @Nonnull
@@ -42,21 +41,9 @@ public class GroupManager {
             @Nonnull String name,
             @Nonnull List<Link> members) throws InvalidNameException, NameAlreadyInUseException, IOException {
         InvalidNameException.ensureValid(name);
-        NameAlreadyInUseException.ensureNotPresent(name, this.persistence.listGroupNamesNoThrows());
         var group = new Group(name, Collections.unmodifiableList(members));
         this.persistence.store(group);
         return group;
-    }
-
-    @Nonnull
-    public Group createGroupIfNotExists(@Nonnull Group group) throws InvalidNameException, IOException {
-        try {
-            InvalidNameException.ensureValid(group.name());
-            this.persistence.storeIfNotExists(group);
-            return group;
-        } catch (NameAlreadyInUseException e) {
-            return this.persistence.loadUnsafeNoThrows(group.name()).orElseThrow();
-        }
     }
 
     public void addMemberToGroup(
@@ -85,7 +72,7 @@ public class GroupManager {
                             Stream.of(link)
                     ).toList()
             );
-        }, () -> getSuperGroupSupplier(group));
+        });
     }
 
     public Group addOrUpdateMembership(
@@ -115,14 +102,12 @@ public class GroupManager {
                                 .filter(l -> !l.name().equals(link.name())),
                         Stream.of(link)
                 ).toList()
-        ), () -> getSuperGroupSupplier(group));
+        ));
     }
 
     @Nonnull
     public Optional<Group> getGroup(@Nonnull String name) {
-        return this.persistence
-                .loadUnsafeNoThrows(name)
-                .or(() -> getSuperGroupSupplier(name));
+        return this.persistence.loadUnsafeNoThrows(name);
     }
 
     @Nonnull
@@ -137,13 +122,10 @@ public class GroupManager {
     @Nonnull
     public List<Group> getGroupsWithMember(@Nonnull String user) {
         try (var stream = this.persistence.listGroupNamesNoThrows()) {
-            return Stream.concat(
-                                 Stream.of(SUPER_GROUP.name()),
-                                 stream.filter(name -> !SUPER_GROUP.name().equals(name))
-                         )
-                         .flatMap(name -> getGroup(name).stream())
-                         .filter(group -> group.isMember(user))
-                         .toList();
+            return stream
+                    .flatMap(name -> getGroup(name).stream())
+                    .filter(group -> group.isMember(user))
+                    .toList();
         }
     }
 
@@ -151,7 +133,9 @@ public class GroupManager {
         this.persistence.delete(name);
     }
 
-    public void deleteMembership(@Nonnull String name, @Nonnull String user) throws IOException, NameNotFoundException, LinkWithNameNotFoundException {
+    public void deleteMembership(
+            @Nonnull String name,
+            @Nonnull String user) throws IOException, NameNotFoundException, LinkWithNameNotFoundException {
         LinkWithNameNotFoundException.ensurePresent(
                 user,
                 this.persistence
@@ -164,14 +148,5 @@ public class GroupManager {
                 oldGroup.name(),
                 oldGroup.members().stream().filter(link -> !link.name().equalsIgnoreCase(user)).toList()
         ));
-    }
-
-    @Nonnull
-    private static Optional<Group> getSuperGroupSupplier(@Nonnull String group) {
-        if (SUPER_GROUP.name().equals(group)) {
-            return Optional.of(SUPER_GROUP);
-        } else {
-            return Optional.empty();
-        }
     }
 }

@@ -5,7 +5,6 @@ import de.itdesigners.winslow.util.ThrowingFunction;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface GroupPersistence {
@@ -20,23 +19,31 @@ public interface GroupPersistence {
     @Nonnull
     Stream<String> listGroupNamesNoThrows();
 
-    void store(@Nonnull Group group) throws IOException;
+    default void store(@Nonnull Group group) throws IOException, NameAlreadyInUseException {
+        if (!storeIfNotExists(group)) {
+            throw new NameAlreadyInUseException(group.name());
+        }
+    }
 
-    void storeIfNotExists(@Nonnull Group group) throws NameAlreadyInUseException, IOException;
+    /**
+     * @param group The {@link Group} to store
+     * @return Whether the given {@link Group} was stored, or false if there already exists a {@link Group} with the same name
+     * @throws IOException If serializing or writing the {@link Group} failed
+     */
+    boolean storeIfNotExists(@Nonnull Group group) throws IOException;
 
     @Nonnull
     default <E extends Throwable> Group update(
             @Nonnull String name,
             @Nonnull ThrowingFunction<Group, Group, E> updater
     ) throws NameNotFoundException, IOException, E {
-        return updateComputeIfAbsent(name, updater, Optional::empty);
+        return updateComputeIfAbsent(name, updater);
     }
 
     @Nonnull
     <E extends Throwable> Group updateComputeIfAbsent(
             @Nonnull String name,
-            @Nonnull ThrowingFunction<Group, Group, E> updater,
-            @Nonnull Supplier<Optional<Group>> supplier
+            @Nonnull ThrowingFunction<Group, Group, E> updater
     ) throws NameNotFoundException, IOException, E;
 
     void delete(@Nonnull String name) throws NameNotFoundException, IOException;
