@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ProjectInfo, State, StateInfo} from '../api/project-api.service';
+import {ProjectInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-list',
@@ -18,7 +18,7 @@ export class ProjectListComponent implements OnInit {
   }
 
   isRunning(project: ProjectInfo) {
-    return this.stateInfoCheck(false, project, state => state.state === State.Running);
+    return this.stateInfoCheck(false, project, state => state.state === 'RUNNING');
   }
 
   getProgress(project: ProjectInfo) {

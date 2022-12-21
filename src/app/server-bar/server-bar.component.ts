@@ -1,28 +1,30 @@
-import { Component, Input, OnInit } from "@angular/core";
-import { GpuInfo, NodeInfo, NodesApiService } from "../api/nodes-api.service";
+import {Component, Input, OnInit} from '@angular/core';
+import {NodeInfoExt, NodesApiService} from '../api/nodes-api.service';
 
 @Component({
-  selector: "app-server-bar",
-  templateUrl: "./server-bar.component.html",
-  styleUrls: ["./server-bar.component.css"],
+  selector: 'app-server-bar',
+  templateUrl: './server-bar.component.html',
+  styleUrls: ['./server-bar.component.css'],
 })
 export class ServerBarComponent implements OnInit {
 
-  @Input("node") node: NodeInfo;
-
-  constructor(private nodes: NodesApiService) {}
 
   static readonly MAX_ENTRIES = 120;
 
-  runningJobs = "";
+  @Input('node') node: NodeInfoExt;
+
+  constructor(private nodes: NodesApiService) {
+  }
+
+  runningJobs = '';
 
   mergeOptionCpu = {};
   chartOptionCpu = {
 
     series: [
       {
-        name: "CPU",
-        type: "gauge",
+        name: 'CPU',
+        type: 'gauge',
         radius: 27,
         startAngle: 90,
         endAngle: -270,
@@ -35,7 +37,7 @@ export class ServerBarComponent implements OnInit {
           roundCap: true,
           clip: false,
           itemStyle: {
-            color: "#69B34C"
+            color: '#69B34C'
           },
         },
         axisLine: {
@@ -60,7 +62,7 @@ export class ServerBarComponent implements OnInit {
           {
             value: 0,
             detail: {
-              offsetCenter: ["0%", "0%"],
+              offsetCenter: ['0%', '0%'],
             },
           },
         ],
@@ -69,8 +71,8 @@ export class ServerBarComponent implements OnInit {
           height: 14,
           fontSize: 15,
           fontWeight: 'normal',
-          color: "black",
-          formatter: "{value}%",
+          color: 'black',
+          formatter: '{value}%',
         },
       },
     ],
@@ -81,7 +83,7 @@ export class ServerBarComponent implements OnInit {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-          type: 'shadow'
+        type: 'shadow'
       },
     },
     grid: {
@@ -89,52 +91,52 @@ export class ServerBarComponent implements OnInit {
       bottom: '25%'
     },
     xAxis: {
-      type: "value",
+      type: 'value',
       max: 32,
       show: false,
     },
     yAxis: {
-      type: "category",
+      type: 'category',
       show: false,
-      data: ["Memory Usage in GB"],
+      data: ['Memory Usage in GB'],
     },
     series: [
       {
-        name: "Heap",
-        type: "bar",
+        name: 'Heap',
+        type: 'bar',
         showBackground: true,
-        stack: "total",
+        stack: 'total',
         barMaxWidth: 20,
         emphasis: {
-          focus: "series",
+          focus: 'series',
         },
         itemStyle: {
-          color: "#007aff",
+          color: '#007aff',
           barBorderRadius: [3, 0, 0, 3]
         },
         data: [],
       },
       {
-        name: "Cache",
-        type: "bar",
-        stack: "total",
+        name: 'Cache',
+        type: 'bar',
+        stack: 'total',
         emphasis: {
-          focus: "series",
+          focus: 'series',
         },
         itemStyle: {
-          color: "#5ac8fa",
+          color: '#5ac8fa',
         },
         data: [],
       },
       {
-        name: "Swap",
-        type: "bar",
-        stack: "total",
+        name: 'Swap',
+        type: 'bar',
+        stack: 'total',
         emphasis: {
-          focus: "series",
+          focus: 'series',
         },
         itemStyle: {
-          color: "#003876",
+          color: '#003876',
           barBorderRadius: [0, 3, 3, 0]
         },
         data: [],
@@ -152,37 +154,37 @@ export class ServerBarComponent implements OnInit {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-          type: 'shadow'
+        type: 'shadow'
       },
     },
     xAxis: {
-      type: "value",
+      type: 'value',
       // set max value to 120 Mebibyte (~1 Gbit)
       max: 120,
       show: false,
     },
     yAxis: {
-      type: "category",
+      type: 'category',
       show: false,
-      data: ["Network IO"],
+      data: ['Network IO'],
     },
     series: [
       {
-        name: "TX",
-        type: "bar",
+        name: 'TX',
+        type: 'bar',
         showBackground: true,
         itemStyle: {
-          color: "#007aff",
+          color: '#007aff',
           borderRadius: 3,
         },
         data: [],
       },
       {
-        name: "RX",
-        type: "bar",
+        name: 'RX',
+        type: 'bar',
         showBackground: true,
         itemStyle: {
-          color: "#5ac8fa",
+          color: '#5ac8fa',
           borderRadius: 3
         },
         data: [],
@@ -200,37 +202,37 @@ export class ServerBarComponent implements OnInit {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-          type: 'shadow'
+        type: 'shadow'
       },
     },
     xAxis: {
-      type: "value",
+      type: 'value',
       max: 1024,
       show: false,
 
     },
     yAxis: {
-      type: "category",
+      type: 'category',
       show: false,
-      data: ["Disk IO"],
+      data: ['Disk IO'],
     },
     series: [
       {
-        name: "Write",
-        type: "bar",
+        name: 'Write',
+        type: 'bar',
         showBackground: true,
         itemStyle: {
-          color: "#007aff",
+          color: '#007aff',
           borderRadius: 3
         },
         data: [],
       },
       {
-        name: "Read",
-        type: "bar",
+        name: 'Read',
+        type: 'bar',
         showBackground: true,
         itemStyle: {
-          color: "#5ac8fa",
+          color: '#5ac8fa',
           borderRadius: 3
         },
         data: [],
@@ -242,8 +244,8 @@ export class ServerBarComponent implements OnInit {
   chartOptionGpu = {
     series: [
       {
-        name: "GPU",
-        type: "gauge",
+        name: 'GPU',
+        type: 'gauge',
         radius: 27,
         startAngle: 90,
         endAngle: -270,
@@ -256,7 +258,7 @@ export class ServerBarComponent implements OnInit {
           roundCap: true,
           clip: false,
           itemStyle: {
-            color: "#69B34C",
+            color: '#69B34C',
           },
         },
         axisLine: {
@@ -280,7 +282,7 @@ export class ServerBarComponent implements OnInit {
           {
             value: 0,
             detail: {
-              offsetCenter: ["0%", "0%"],
+              offsetCenter: ['0%', '0%'],
             },
           },
         ],
@@ -289,8 +291,8 @@ export class ServerBarComponent implements OnInit {
           height: 14,
           fontSize: 15,
           fontWeight: 'normal',
-          color: "black",
-          formatter: "{value}%",
+          color: 'black',
+          formatter: '{value}%',
         },
       },
     ],
@@ -299,27 +301,13 @@ export class ServerBarComponent implements OnInit {
   average = (arr) => arr.reduce((p, c) => p + c, 0) / arr.length;
 
   ngOnInit() {
-    const backupNode = this.node;
-    this.node = new NodeInfo(
-      this.node.name,
-      this.node.time,
-      this.node.uptime,
-      this.node.cpuInfo,
-      this.node.memInfo,
-      this.node.gpuInfo,
-      this.node.buildInfo,
-      this.node.allocInfo
-    );
 
-    this.node = backupNode;
     this.node.update = (node) => {
       // load all the new goodies without replacing the object
       if (node != null && node.time !== this.node.time) {
-        Object.keys(node).forEach(key => {
-          this.node[key] = node[key];
-        });
+        Object.assign(this.node, node);
+        this.update();
       }
-      this.update();
     };
   }
 
@@ -338,7 +326,7 @@ export class ServerBarComponent implements OnInit {
     this.mergeOptionCpu = {
       series: [
         {
-          name: "CPU",
+          name: 'CPU',
           progress: {
             itemStyle: {
               color: this.setColor(cpuValue),
@@ -348,7 +336,7 @@ export class ServerBarComponent implements OnInit {
             {
               value: cpuValue,
               detail: {
-                offsetCenter: ["0%", "0%"],
+                offsetCenter: ['0%', '0%'],
               },
             },
           ],
@@ -360,7 +348,7 @@ export class ServerBarComponent implements OnInit {
   private updateMemoryStatus() {
     let heap = this.bytesToGigabyte(this.node.memInfo.memoryTotal - this.node.memInfo.memoryFree).toFixed(2);
     let cache = this.bytesToGigabyte(this.node.memInfo.systemCache).toFixed(2);
-    let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2)
+    let swap = this.bytesToGigabyte(this.node.memInfo.swapTotal - this.node.memInfo.swapFree).toFixed(2);
 
     this.mergeOptionMemory = {
       xAxis: [
@@ -370,19 +358,19 @@ export class ServerBarComponent implements OnInit {
       ],
       series: [
         {
-          name: "Heap",
+          name: 'Heap',
           data: [
             {value: heap}
           ],
         },
         {
-          name: "Cache",
+          name: 'Cache',
           data: [
             {value: cache}
           ],
         },
         {
-          name: "Swap",
+          name: 'Swap',
           data: [
             {value: swap}
           ],
@@ -398,13 +386,13 @@ export class ServerBarComponent implements OnInit {
     this.mergeOptionNetwork = {
       series: [
         {
-          name: "TX",
+          name: 'TX',
           data: [
             {value: transmitting}
           ],
         },
         {
-          name: "RX",
+          name: 'RX',
           data: [
             {value: receiving}
           ],
@@ -420,13 +408,13 @@ export class ServerBarComponent implements OnInit {
     this.mergeOptionDisk = {
       series: [
         {
-          name: "Write",
+          name: 'Write',
           data: [
             {value: write}
           ],
         },
         {
-          name: "Read",
+          name: 'Read',
           data: [
             {value: read}
           ],
@@ -436,7 +424,7 @@ export class ServerBarComponent implements OnInit {
   }
 
   private updateGpuStatus() {
-    let gpus: any[] = [];;
+    let gpus: any[] = [];
 
     for (const gpu of this.node.gpuInfo) {
       gpus.push(gpu.computeUtilization);
@@ -447,7 +435,7 @@ export class ServerBarComponent implements OnInit {
     this.mergeOptionGpu = {
       series: [
         {
-          name: "GPU",
+          name: 'GPU',
           progress: {
             itemStyle: {
               color: this.setColor(gpuValue),
@@ -457,7 +445,7 @@ export class ServerBarComponent implements OnInit {
             {
               value: gpuValue,
               detail: {
-                offsetCenter: ["0%", "0%"],
+                offsetCenter: ['0%', '0%'],
               },
             },
           ],
@@ -474,11 +462,11 @@ export class ServerBarComponent implements OnInit {
     let color;
 
     if (val < 40) {
-      color = "#69B34C";
+      color = '#69B34C';
     } else if (val < 80) {
-      color = "#FF8E15";
+      color = '#FF8E15';
     } else {
-      color = "#FF5050";
+      color = '#FF5050';
     }
 
     return color;

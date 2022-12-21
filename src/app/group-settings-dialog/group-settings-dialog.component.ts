@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {ProjectInfo} from '../api/project-api.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import {ProjectInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-group-action-dialog',

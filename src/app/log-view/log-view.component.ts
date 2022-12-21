@@ -1,10 +1,11 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {LogEntry, LogSource, ProjectApiService, ProjectInfo, State} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {RegularExpressionEditorDialogComponent} from '../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import {LogEntryInfo, LogSource, ProjectInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-log-view',
@@ -22,7 +23,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
   selectedProject: ProjectInfo = null;
   selectedStageId: string = null;
 
-  logs?: LogEntry[] = [];
+  logs?: LogEntryInfo[] = [];
   displayLatest = false;
 
   stateSubscription: Subscription = null;
@@ -34,7 +35,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
   projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
 
-  contextMenu: { x: number, y: number, log: LogEntry } = {
+  contextMenu: { x: number, y: number, log: LogEntryInfo } = {
     x: 0,
     y: 0,
     log: null,
@@ -52,7 +53,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
     window.addEventListener('scroll', this.scrollCallback, true);
     this.stateSubscription = this.api.getProjectStateSubscriptionHandler().subscribe((id, info) => {
       if (id === this.selectedProject?.id && info != null) {
-        this.projectHasRunningStage = State.Running === info.getState();
+        this.projectHasRunningStage = info.state === 'RUNNING' ;
       }
     });
   }
@@ -197,12 +198,12 @@ export class LogViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  lineId(index: number, log: LogEntry): string {
+  lineId(index: number, log: LogEntryInfo): string {
     return log?.stageId + log?.line;
   }
 
   sourceIsManagement(source: LogSource) {
-    return source === LogSource.MANAGEMENT_EVENT;
+    return source === 'MANAGEMENT_EVENT';
   }
 
   toDate(time: number) {
@@ -217,7 +218,7 @@ export class LogViewComponent implements OnInit, OnDestroy {
     return this.regularExpressionPattern.trim().length > 0;
   }
 
-  rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent, log: LogEntry) {
+  rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent, log: LogEntryInfo) {
     event.preventDefault();
     this.contextMenu.x = event.x;
     this.contextMenu.y = event.y;

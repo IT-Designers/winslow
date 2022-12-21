@@ -239,6 +239,17 @@
     </ng-template>
   </mat-tab>
 
+  <mat-tab label="Pipeline View">
+    <ng-template matTabContent>
+      <div class="flex-grow flex-grow-column max-height">
+        <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+          <app-pipeline-view
+            [project]="projectValue"
+          ></app-pipeline-view>
+      </div>
+    </ng-template>
+  </mat-tab>
+
   <mat-tab label="Settings">
     <ng-template matTabContent>
       <app-loading-info [loading]="isLongLoading()"></app-loading-info>

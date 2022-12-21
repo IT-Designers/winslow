@@ -16,8 +16,8 @@
   <mat-form-field>
     <mat-select
       (selectionChange)="loadEnvForStageName($event.value)"
-      [value]="selectedStage?.name"> <!-- get triggered when the pipeline changes -->
-      <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.name">{{stage.name}}</mat-option>
+      [value]="selectedStage?.id"> <!-- get triggered when the pipeline changes -->
+      <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.id">{{stage.name}}</mat-option>
     </mat-select>
   </mat-form-field>
   <div class="controls"></div>
@@ -130,19 +130,19 @@
   <div class="action-row">
     <mat-label class="title">
       <input #requireGpus type="checkbox" [checked]="resources.gpus != null"
-             (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpus : null">
+             (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpu.count : null">
       GPUs
     </mat-label>
     <mat-form-field>
       <input #requiredGpus matInput required
-             [value]="'' +(selectedStage.requiredResources.gpus != null ? selectedStage.requiredResources.gpus : 0)"
+             [value]="'' +(selectedStage.requiredResources.gpu.count != null ? selectedStage.requiredResources.gpu.count : 0)"
              [disabled]="!requireGpus.checked"
              (change)="resources.gpus = toNumber($event.target.value); updateValid()">
     </mat-form-field>
     <div class="controls">
       <button dense mat-stroked-button color="primary"
-              [disabled]="requiredGpus.value == '' +selectedStage.requiredResources.gpus"
-              (click)="requiredGpus.value = '' +selectedStage.requiredResources.gpus; resources.gpus = selectedStage.requiredResources.gpus">
+              [disabled]="requiredGpus.value == '' +selectedStage.requiredResources.gpu.count"
+              (click)="requiredGpus.value = '' +selectedStage.requiredResources.gpu.count; resources.gpus = selectedStage.requiredResources.gpu.count">
         Reset
       </button>
     </div>
@@ -330,8 +330,8 @@
   <div class="action-row">
     <mat-label class="title">
       <input name="ws-config" type="radio"
-             [checked]="workspaceConfiguration?.mode == WorkspaceMode.STANDALONE"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.STANDALONE)">
+             [checked]="workspaceConfiguration?.mode == 'STANDALONE'"
+             (change)="setWorkspaceMode($event.target.checked,'STANDALONE')">
       Standalone
     </mat-label>
     <div>
@@ -342,8 +342,8 @@
   <div class="action-row">
     <mat-label class="title">
       <input name="ws-config" type="radio" value="increment"
-             [checked]="workspaceConfiguration?.mode == WorkspaceMode.INCREMENTAL"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.INCREMENTAL)"
+             [checked]="workspaceConfiguration?.mode == 'INCREMENTAL'"
+             (change)="setWorkspaceMode($event.target.checked, 'INCREMENTAL')"
       >
       Increment
     </mat-label>
@@ -356,8 +356,8 @@
     <mat-label class="title">
       <input name="ws-config" #wsContinuation type="radio" value="continuation"
              [disabled]="executionHistoryValue == null || executionHistoryValue.length == 0"
-             [checked]="workspaceConfiguration?.mode == WorkspaceMode.CONTINUATION"
-             (change)="setWorkspaceMode($event.target.checked, WorkspaceMode.CONTINUATION, executionHistoryValue[0].id)">
+             [checked]="workspaceConfiguration?.mode == 'CONTINUATION'"
+             (change)="setWorkspaceMode($event.target.checked,'CONTINUATION', executionHistoryValue[0].id)">
       Continuation
     </mat-label>
     <div>
@@ -372,7 +372,7 @@
       <mat-select #continuationValue
                   [value]="workspaceConfiguration.value"
                   [disabled]="!wsContinuation.checked"
-                  (valueChange)="setWorkspaceMode(true, WorkspaceMode.CONTINUATION, $event)">
+                  (valueChange)="setWorkspaceMode(true, 'CONTINUATION', $event)">
         <ng-container *ngFor="let h of executionHistoryValue; let i = index">
           <mat-option *ngFor="let s of h.stages; let n = index"
                       [value]="s.id">[{{tryParseStageNumber(h.id, executionHistoryValue.length - i)}}

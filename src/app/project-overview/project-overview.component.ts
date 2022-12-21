@@ -1,13 +1,15 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {Action, ExecutionGroupInfo, ProjectApiService, ProjectInfo, StageInfo, State, StatsInfo} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
-import {PipelineApiService, PipelineInfo} from '../api/pipeline-api.service';
+import {PipelineApiService} from '../api/pipeline-api.service';
 import {pipe, Subscription} from 'rxjs';
+import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../api/winslow-api';
+
 
 @Component({
   selector: 'app-project-overview',
@@ -15,6 +17,7 @@ import {pipe, Subscription} from 'rxjs';
   styleUrls: ['./project-overview.component.css']
 })
 export class ProjectOverviewComponent implements OnDestroy {
+
 
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
@@ -50,7 +53,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   subscription: Subscription = null;
 
   enqueued: ExecutionGroupInfo[] = [];
-  pipelineActions: PipelineInfo[] = [];
+  pipelineActions: PipelineDefinitionInfo[] = [];
 
   mergeOptionCpu = {};
   chartOptionCpu = {
@@ -197,6 +200,7 @@ export class ProjectOverviewComponent implements OnDestroy {
     }
   }
 
+
   @Input()
   set project(value: ProjectInfo) {
     this.projectValue = value;
@@ -232,9 +236,9 @@ export class ProjectOverviewComponent implements OnDestroy {
   @Input()
   set state(state: State) {
     this.stateValue = state;
-    this.stateFinished = State.Failed === state || State.Succeeded === state;
-    this.stateRunning = State.Running === state;
-    this.statePaused = State.Paused === state || State.Enqueued === state;
+    this.stateFinished = state === 'FAILED' || state === 'SUCCEEDED';
+    this.stateRunning = state === 'RUNNING';
+    this.statePaused = state === 'PAUSED' || state === 'ENQUEUED';
     this.cdr.detectChanges();
   }
 
@@ -276,7 +280,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   onStatsUpdate(stats: StatsInfo) {
     this.updateCpu(stats);
     this.updateMemory(stats);
-    this.nodeName = stats.runningOnNode;
+    this.nodeName = stats.nodeName;
   }
 
   private updateCpu(stats: StatsInfo) {
@@ -389,15 +393,15 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   isConfigure(action: Action) {
-    return Action.Configure === action;
+    return action === 'CONFIGURE';
   }
 
   isEnqueued(state: State) {
-    return State.Enqueued === state;
+    return state === 'ENQUEUED';
   }
 
   isRunning(state: State) {
-    return State.Running === state;
+    return state === 'RUNNING';
   }
 
   openProjectDiskUsageDialog() {

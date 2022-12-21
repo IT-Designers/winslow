@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { GpuInfo, NodeInfo, NodesApiService } from "../api/nodes-api.service";
-import { Subscription } from "rxjs";
-import { ChangeType } from "../api/api.service";
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {NodeInfoExt, NodesApiService} from '../api/nodes-api.service';
+import {Subscription} from 'rxjs';
+import {ChangeType} from '../api/api.service';
 
 @Component({
-  selector: "app-servers",
-  templateUrl: "./servers.component.html",
-  styleUrls: ["./servers.component.css"],
+  selector: 'app-servers',
+  templateUrl: './servers.component.html',
+  styleUrls: ['./servers.component.css'],
 })
 export class ServersComponent implements OnInit, OnDestroy {
 
@@ -16,8 +16,8 @@ export class ServersComponent implements OnInit, OnDestroy {
   // max amount of server to display without scrollbar
   static readonly MAX_SERVERS = 7;
 
-  nodes: NodeInfo[] = [];
-  node: NodeInfo;
+  nodes: NodeInfoExt[] = [];
+  node: NodeInfoExt;
   selectedNodeIndex: number = null;
   loadError = null;
   subscription: Subscription = null;
@@ -44,7 +44,7 @@ export class ServersComponent implements OnInit, OnDestroy {
               this.sortNodesByName();
             }
 
-            if(this.selectedNodeIndex == null) {
+            if (this.selectedNodeIndex == null) {
               this.selectedNodeIndex = 0;
               this.node = this.nodes[0];
             } else {
@@ -52,13 +52,13 @@ export class ServersComponent implements OnInit, OnDestroy {
             }
 
             // save last timestamp
-            if(!this.lastTimestamp) {
+            if (!this.lastTimestamp) {
               this.lastTimestamp = this.node.time;
             }
 
             // check if new timestamp is different
             // if yes, update diagrams
-            if (this.lastTimestamp != this.node.time) {
+            if (this.lastTimestamp !== this.node.time) {
               this.lastTimestamp = this.node.time;
             }
           }
@@ -86,11 +86,11 @@ export class ServersComponent implements OnInit, OnDestroy {
     }
   }
 
-  public trackNodeInfo(nodeInfo: NodeInfo): string {
+  public trackNodeInfo(nodeInfo: NodeInfoExt): string {
     return nodeInfo?.name;
   }
 
-  setNode(index: number, ) {
+  setNode(index: number) {
     this.selectedNodeIndex = index;
   }
 

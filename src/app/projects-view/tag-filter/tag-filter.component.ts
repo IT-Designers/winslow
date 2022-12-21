@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo} from '../../api/project-api.service';
+import {ProjectGroup} from '../../api/project-api.service';
 import {LocalStorageService} from '../../api/local-storage.service';
+import {ProjectInfo} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-tag-filter',

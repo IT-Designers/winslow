@@ -2,6 +2,8 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/operators';
+import {ResourceLimitation} from './winslow-api';
+import {loadResourceLimitation} from './project-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,29 +31,15 @@ export class SettingsApiService {
       .toPromise();
   }
 
-  getUserResourceLimitation(): Promise<UserResourceLimitation> {
-    return this.client.get<UserResourceLimitation>(SettingsApiService.getUrl('user-res-limit'))
-      .pipe(map(response => new UserResourceLimitation(response)))
+  getUserResourceLimitation(): Promise<ResourceLimitation> {
+    return this.client.get<ResourceLimitation>(SettingsApiService.getUrl('user-res-limit'))
+      .pipe(map(response => loadResourceLimitation(response)))
       .toPromise();
   }
 
-  setUserResourceLimitation(limit: UserResourceLimitation): Promise<UserResourceLimitation> {
-    return this.client.post<UserResourceLimitation>(SettingsApiService.getUrl('user-res-limit'), limit)
-      .pipe(map(response => new UserResourceLimitation(response)))
+  setUserResourceLimitation(limit: ResourceLimitation): Promise<ResourceLimitation> {
+    return this.client.post<ResourceLimitation>(SettingsApiService.getUrl('user-res-limit'), limit)
+      .pipe(map(response => loadResourceLimitation(response)))
       .toPromise();
-  }
-}
-
-
-export class UserResourceLimitation {
-  cpu?: number;
-  mem?: number;
-  gpu?: number;
-
-  constructor(origin?: UserResourceLimitation) {
-    if (origin != null) {
-      console.log('Loading: ' + JSON.stringify(origin));
-      Object.assign(this, origin);
-    }
   }
 }

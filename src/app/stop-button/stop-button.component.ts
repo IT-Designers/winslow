@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ProjectApiService, ProjectInfo} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
+import {ProjectInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-stop-button',

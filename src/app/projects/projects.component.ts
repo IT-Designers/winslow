@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
-import {ProjectApiService, ProjectGroup, ProjectInfo, State, StateInfo} from '../api/project-api.service';
+import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
@@ -15,6 +15,7 @@ import {UserApiService} from '../api/user-api.service';
 import {FilesApiService} from '../api/files-api.service';
 import {GroupActionsComponent} from '../group-actions/group-actions.component';
 import {LocalStorageService} from '../api/local-storage.service';
+import {ProjectInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-projects',
@@ -252,21 +253,21 @@ class Effects {
 
   update(state: StateInfo) {
     try {
-      if (state.isRunning() && (this.prev == null || !this.prev.isRunning())) {
+      if (state.state === 'RUNNING' && (this.prev == null || this.prev.state !== 'RUNNING')) {
         if (this.audio != null) {
           this.audio.pause();
         }
         this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/running.mp3`));
         this.audio.loop = true;
         this.audio.play();
-      } else if (this.prev != null && this.prev.getState() !== State.Failed && state.getState() === State.Failed) {
+      } else if (this.prev != null && this.prev.state !== 'FAILED' && state.state === 'FAILED') {
         if (this.audio != null) {
           this.audio.pause();
         }
         this.audio = new Audio(FilesApiService.getUrl(`resources/winslow-ui/${this.username}/effects/failed.mp3`));
         this.audio.loop = false;
         this.audio.play();
-      } else if (this.prev != null && this.prev.isRunning() && !state.isRunning()) {
+      } else if (this.prev != null && this.prev.state === 'RUNNING' && state.state !== 'RUNNING') {
         if (this.audio != null) {
           this.audio.pause();
         }

@@ -1,0 +1,12 @@
+<mat-card class="node" [ngClass]="{
+  'selected': selected$,
+  'merger' : merger,
+  'splitter' : splitter
+}"
+>
+  <mat-card-content>
+    <mat-icon *ngIf="merger"> call_merge</mat-icon>
+    <mat-icon *ngIf="splitter"> call_split</mat-icon>
+   <p>{{this.gatewayName ? this.gatewayName : ""}} </p>
+  </mat-card-content>
+</mat-card>

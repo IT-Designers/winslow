@@ -1,10 +1,10 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {ProjectInfo, State} from '../../api/project-api.service';
 import {StateIconComponent} from '../../state-icon/state-icon.component';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
+import {ProjectInfo, State} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-project-view-header',

@@ -1,0 +1,29 @@
+.addToolBar{
+  max-height: 46px;
+  height: 46px;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: clip;
+}
+.addToolBar li{
+  font-size: 0.95em;
+  font-weight: lighter;
+  height: 100%;
+  float: left;
+  display: block;
+  text-align: center;
+  padding: 0px 8px;
+  vertical-align: middle;
+  border-right: 1px solid black;
+}
+mat-icon{
+  transform: rotate(90deg);
+}
+.sub-font{
+  font-size: 0.8em;
+  color: #7f7f7f;
+}
+.last-li{
+  border-right: none !important;
+}

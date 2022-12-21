@@ -1,5 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ResourceLimitation} from '../api/project-api.service';
+import {similarResourceLimitation} from '../api/project-api.service';
+import {ResourceLimitation} from '../api/winslow-api';
+
 
 @Component({
   selector: 'app-resource-limitation',
@@ -48,6 +50,6 @@ export class ResourceLimitationComponent implements OnInit {
   }
 
   localRemoteEq() {
-    return ResourceLimitation.equals(this.local, this.remote);
+    return similarResourceLimitation(this.local, this.remote);
   }
 }

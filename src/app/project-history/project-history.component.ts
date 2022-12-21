@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfo, ProjectApiService, StageInfo, State} from '../api/project-api.service';
+import {ProjectApiService} from '../api/project-api.service';
+import {ExecutionGroupInfo, StageInfo, State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history',
@@ -9,8 +10,6 @@ import {ExecutionGroupInfo, ProjectApiService, StageInfo, State} from '../api/pr
 })
 export class ProjectHistoryComponent implements OnInit {
 
-  State = State;
-
   visibleStages = 10;
 
   @Input() firstEntry = true;
@@ -18,7 +17,7 @@ export class ProjectHistoryComponent implements OnInit {
   @Input() executionGroup: ExecutionGroupInfo;
   @Input() expanded = false;
   @Input() pipelineIsPaused: boolean = null;
-  @Input() active: boolean = false;
+  @Input() active = false;
   @Input() projectState: State;
 
   @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
@@ -36,7 +35,7 @@ export class ProjectHistoryComponent implements OnInit {
   selectedStageIndex: number;
 
   constructor(private cdr: ChangeDetectorRef,
-    private api: ProjectApiService) {
+              private api: ProjectApiService) {
   }
 
   ngOnInit(): void {
@@ -45,16 +44,15 @@ export class ProjectHistoryComponent implements OnInit {
 
   setSelectedStageIndexAndEmitStage() {
     this.selectedStageIndex = 0;
-    this.clickGetStage.emit(this.executionGroup.stages[this.executionGroup.stages.length-1])
+    this.clickGetStage.emit(this.executionGroup.stages[this.executionGroup.stages.length - 1]);
   }
 
   getRangeEnvVariableValues(stage: StageInfo): string {
     if (this.executionGroup.getGroupSize() > 1) {
       return [...this.executionGroup
-        .rangedValues
-        .keys()]
+        .rangedValuesKeys()]
         .sort()
-        .map(e => e + '=' + stage.env.get(e))
+        .map(e => e + '=' + stage.env[e])
         .join(', ');
     } else {
       return null;
@@ -70,5 +68,6 @@ export class ProjectHistoryComponent implements OnInit {
     this.visibleStages += increment;
     this.cdr.markForCheck();
   }
+
 
 }

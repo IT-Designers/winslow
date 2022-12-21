@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
+    "skipLibCheck": true,
     "sourceMap": true,
     "declaration": false,
     "downlevelIteration": true,
@@ -27,6 +28,19 @@
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
     "strictInjectionParameters": true,
-    "enableIvy": true
+    "enableIvy": true,
+
+    "files": [],
+    "references": [
+      {
+        "path": "./src/tsconfig.app.json"
+      },
+      {
+        "path": "./src/tsconfig.spec.json"
+      },
+      {
+        "path": "./e2e/tsconfig.e2e.json"
+      }
+    ]
   }
 }

@@ -86,7 +86,7 @@
   </div>
   <swal #swalUpload title="Uploading your files"
         [icon]="dataUpload != null ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
-        (afterClose)="dataUpload = null"
+        (didClose)="dataUpload = null"
         [allowOutsideClick]="false"
         [showCancelButton]="false"
         [showConfirmButton]="true"

@@ -1,6 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MatMenuTrigger} from '@angular/material/menu';
-import {ProjectGroup, ProjectInfo, StateInfo} from '../../api/project-api.service';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FilesApiService} from '../../api/files-api.service';
@@ -8,6 +7,8 @@ import {DialogService} from '../../dialog.service';
 import {GroupActionsComponent} from '../../group-actions/group-actions.component';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
+import {ProjectInfo, StateInfo} from '../../api/winslow-api';
+import {ProjectGroup} from '../../api/project-api.service';
 
 @Component({
   selector: 'app-projects-group',

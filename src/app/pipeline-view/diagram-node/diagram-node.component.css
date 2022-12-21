@@ -1,0 +1,30 @@
+.node {
+  max-width: 200px;
+  height: 75px;
+  overflow: hidden;
+}
+
+.title {
+  font-size: medium;
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  font-size: small;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pipeline-def{
+  border: 2px dashed black;
+}
+.selected {
+  background-color: #f5f5f5;
+  border: 2px solid #007aff;
+}
+
+
+

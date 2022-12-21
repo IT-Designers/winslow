@@ -1,5 +1,5 @@
-import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import {ExecutionGroupInfo, StageInfo, State} from '../api/project-api.service';
+import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
+import {ExecutionGroupInfo, StageInfo, State} from '../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
@@ -30,19 +30,18 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
 
   historyDetailsHeight: any;
-  @HostListener('window:resize', ['$event'])
-  getScreenSize(event?) {
-    this.setHistoryDetailsHeight(window.innerHeight)
-  }
-
-
   buttonValue: string;
   showStageDefinition: boolean;
 
   constructor() {
-    this.buttonValue = "stage-definition";
+    this.buttonValue = 'stage-definition';
     this.showStageDefinition = true;
-    this.setHistoryDetailsHeight(window.innerHeight)
+    this.setHistoryDetailsHeight(window.innerHeight);
+  }
+
+  @HostListener('window:resize', ['$event'])
+  getScreenSize(event?) {
+    this.setHistoryDetailsHeight(window.innerHeight);
   }
 
   ngOnInit(): void {
@@ -58,12 +57,12 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   }
 
   getStageDefinition() {
-    this.onButtonValueChange("stage-definition")
+    this.onButtonValueChange('stage-definition');
     this.showStageDefinition = true;
   }
 
   getStageInformation() {
-    this.onButtonValueChange("stage-information")
+    this.onButtonValueChange('stage-information');
     this.showStageDefinition = false;
   }
 
@@ -78,5 +77,4 @@ export class ProjectHistoryDetailsComponent implements OnInit {
       return '';
     }
   }
-
 }

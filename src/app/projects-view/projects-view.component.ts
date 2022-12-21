@@ -1,9 +1,10 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectGroup, ProjectInfo, StateInfo} from '../api/project-api.service';
+import {ProjectGroup} from '../api/project-api.service';
 import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FilesApiService} from '../api/files-api.service';
 import {DialogService} from '../dialog.service';
+import {ProjectInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
   selector: 'app-projects-view',

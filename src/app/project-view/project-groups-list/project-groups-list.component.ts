@@ -1,5 +1,6 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {GroupInfo, ProjectApiService, ProjectInfo} from '../../api/project-api.service';
+import {ProjectApiService} from '../../api/project-api.service';
+import {GroupInfo, Link, ProjectInfo} from '../../api/winslow-api';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../project-add-group-dialog/project-add-group-dialog.component';
@@ -17,7 +18,7 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
 
   roles = ['OWNER', 'MEMBER'];
   groupSearchInput = '';
-  displayGroups: GroupInfo[];
+  displayGroups: Link[];
 
 
   constructor(

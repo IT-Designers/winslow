@@ -1,0 +1,6 @@
+<mat-card class="node" [ngClass]="{ 'selected': selected$, 'pipeline-def' : isPipelineDef }"
+>
+  <mat-card-title class="title">{{this.containsNode ? node$.consumerData.name : "New Element"}}</mat-card-title>
+  <mat-card-subtitle class="subtitle">ID: {{this.containsNode ? node$.id : '...' }}</mat-card-subtitle>
+  <mat-card-content>{{this.containsNode ? node$.consumerData?.image?.name : ""}} </mat-card-content>
+</mat-card>
