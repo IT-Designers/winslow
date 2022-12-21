@@ -12,7 +12,9 @@ import org.junit.Test;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -79,7 +81,7 @@ public class FileAccessCheckerTest {
     @Test
     public void onlyPrivilegedUsersCanAccessWorkspacesOfProject() throws InvalidNameException, NameAlreadyInUseException, IOException {
         var groupRepository = new GroupManager(new DummyGroupPersistence());
-        var userRepository  = new UserManager(groupRepository);
+        var userRepository  = new UserManager(new DummyUserPersistence(), groupRepository);
 
         var root   = userRepository.getUser("root").orElseThrow();
         var owner  = userRepository.createUserWithoutGroup("project-owner");

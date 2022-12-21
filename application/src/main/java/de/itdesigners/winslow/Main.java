@@ -9,6 +9,7 @@ import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.auth.GroupManager;
 import de.itdesigners.winslow.auth.GroupRepository;
 import de.itdesigners.winslow.auth.UserManager;
+import de.itdesigners.winslow.auth.UserRepository;
 import de.itdesigners.winslow.docker.DockerBackendBuilder;
 import de.itdesigners.winslow.fs.*;
 import de.itdesigners.winslow.node.Node;
@@ -81,7 +82,7 @@ public class Main {
             var settings        = new SettingsRepository(lockBus, config);
             var nodes           = new NodeRepository(lockBus, config);
             var groupManager    = new GroupManager(new GroupRepository(lockBus, config));
-            var userManager     = new UserManager(groupManager);
+            var userManager     = new UserManager(new UserRepository(lockBus, config), groupManager);
 
             LOG.info("Preparing the orchestrator");
             var repository      = new PipelineRepository(lockBus, config);

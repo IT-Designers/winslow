@@ -17,9 +17,9 @@ public class SuperPrivilegesTests {
     }
 
     @Test
-    public void testSuperUser() {
+    public void testSuperUser() throws IOException {
         GroupManager groupManager = new GroupManager(new DummyGroupPersistence());
-        UserManager  userManager  = new UserManager(groupManager);
+        UserManager  userManager  = new UserManager(new DummyUserPersistence(), groupManager);
 
         var root = userManager.getUser(User.SUPER_USER_NAME);
         assertTrue(root.isPresent());
@@ -30,7 +30,7 @@ public class SuperPrivilegesTests {
     @Test
     public void testRandomUserInSuperGroupHavingSuperPrivileges() throws InvalidNameException, NameAlreadyInUseException, NameNotFoundException, LinkWithNameAlreadyExistsException, IOException {
         GroupManager groupManager = new GroupManager(new DummyGroupPersistence());
-        UserManager  userManager  = new UserManager(groupManager);
+        UserManager  userManager  = new UserManager(new DummyUserPersistence(), groupManager);
 
         var newUser   = userManager.createUserWithoutGroup("random");
         var rootGroup = groupManager.getGroup(Group.SUPER_GROUP_NAME).orElseThrow();
