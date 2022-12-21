@@ -2,7 +2,6 @@ package de.itdesigners.winslow.api.node;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -22,17 +21,6 @@ public record NodeInfo(
 
     private static final Logger LOG = Logger.getLogger(NodeInfo.class.getSimpleName());
 
-    @ConstructorProperties({
-            "name",
-            "time",
-            "uptime",
-            "cpuInfo",
-            "memInfo",
-            "netInfo",
-            "diskInfo",
-            "gpuInfo",
-            "allocInfo"
-    })
     public NodeInfo(
             @Nonnull String name,
             @Nullable Long time,
