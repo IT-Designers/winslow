@@ -5,14 +5,13 @@ import de.itdesigners.winslow.api.auth.Role;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class GroupManager {
 
-    private final @Nonnull GroupPersistence persistence;
+    private final @Nonnull GroupPersistence                                            persistence;
+    private final @Nonnull Map<ChangeEvent.Subject, List<ChangeEvent.Listener<Group>>> listeners = new HashMap<>();
 
     public GroupManager(@Nonnull GroupPersistence persistence) throws IOException {
         this.persistence = persistence;
@@ -20,6 +19,10 @@ public class GroupManager {
                 Group.SUPER_GROUP_NAME,
                 List.of(new Link(User.SUPER_USER_NAME, Role.OWNER))
         ));
+    }
+
+    public void addChangeListener(@Nonnull ChangeEvent.Subject subject, @Nonnull ChangeEvent.Listener<Group> listener) {
+        this.listeners.computeIfAbsent(subject, s -> new ArrayList<>()).add(listener);
     }
 
     @Nonnull
@@ -130,7 +133,17 @@ public class GroupManager {
     }
 
     public void deleteGroup(@Nonnull String name) throws NameNotFoundException, IOException {
+        var loaded = this.persistence.loadUnsafeNoThrows(name);
         this.persistence.delete(name);
+
+        loaded
+                .map(group -> new ChangeEvent<>(ChangeEvent.Subject.DELETED, group))
+                .ifPresent(event -> {
+                    Stream
+                            .ofNullable(this.listeners.get(event.subject()))
+                            .flatMap(Collection::stream)
+                            .forEach(listener -> listener.onEvent(event));
+                });
     }
 
     public void deleteMembership(
