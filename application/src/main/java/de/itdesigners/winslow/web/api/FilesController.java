@@ -472,7 +472,7 @@ public class FilesController {
                                              .filter(File::isFile)
                                              .map(File::length)
                                              .orElseGet(() -> {
-                                                 if (aggregateSizeForDirectories && user.isSuperUser()) {
+                                                 if (aggregateSizeForDirectories && user.hasSuperPrivileges()) {
                                                      return aggregateSize(file);
                                                  } else {
                                                      return null;

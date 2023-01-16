@@ -156,7 +156,7 @@ public class Project {
     }
 
     public boolean canBeManagedBy(@Nonnull User user) {
-        return user.isSuperUser() || getOwner().equals(user.name());
+        return user.hasSuperPrivileges() || getOwner().equals(user.name());
     }
 
     public boolean canBeAccessedBy(@Nonnull User user) {
