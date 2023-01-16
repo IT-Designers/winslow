@@ -6,12 +6,10 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import de.itdesigners.winslow.api.Build;
 import de.itdesigners.winslow.api.node.NodeInfo;
-import de.itdesigners.winslow.auth.GroupManager;
-import de.itdesigners.winslow.auth.GroupRepository;
-import de.itdesigners.winslow.auth.UserManager;
-import de.itdesigners.winslow.auth.UserRepository;
+import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.docker.DockerBackendBuilder;
 import de.itdesigners.winslow.fs.*;
+import de.itdesigners.winslow.handler.DeleteProjectGroupLinkageOnGroupDeletion;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
 import de.itdesigners.winslow.node.NodeRepository;
@@ -131,6 +129,7 @@ public class Main {
                     userManager
             );
 
+            setupListeners(winslow);
 
             if (!Env.isNoWebApiSet()) {
                 LOG.info("Starting WebApi");
@@ -150,6 +149,10 @@ public class Main {
                 webApi.stop();
             }
         }
+    }
+
+    private static void setupListeners(@Nonnull Winslow winslow) {
+        winslow.getGroupManager().addChangeListener(ChangeEvent.Subject.DELETED, new DeleteProjectGroupLinkageOnGroupDeletion(winslow));
     }
 
     @Nonnull

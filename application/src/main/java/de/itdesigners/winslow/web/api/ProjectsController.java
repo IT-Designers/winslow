@@ -5,6 +5,7 @@ import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.pipeline.*;
 import de.itdesigners.winslow.api.project.*;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
+import de.itdesigners.winslow.auth.ChangeEvent;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
