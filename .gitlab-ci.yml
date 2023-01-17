@@ -105,9 +105,6 @@ pages:
 
 release:
   stage: downstream
-  only:
-    refs:
-      - master
   trigger:
     project: trafficobservation/winslow/winslow-ui-ng
     strategy: depend
