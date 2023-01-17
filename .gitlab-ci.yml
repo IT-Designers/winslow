@@ -17,7 +17,7 @@ build:
     - echo $WINSLOW_API_TS_URL
     - echo $WINSLOW_API_TS_URL_LATEST
     - if [ "$WINSLOW_API_TS_URL" == "" ]; then export WINSLOW_API_TS_URL="$WINSLOW_API_TS_URL_LATEST" ; fi
-    - if [ "$WINSLOW_API_TS_URL" != "" ]; then curl -i -o "src/app/api/winslow-api.ts" -u "$NEXUS_LOGIN" "$WINSLOW_API_TS_URL" ; fi
+    - if [ "$WINSLOW_API_TS_URL" != "" ]; then curl -f -o "src/app/api/winslow-api.ts" -u "$NEXUS_LOGIN" "$WINSLOW_API_TS_URL" ; fi
     - echo $WINSLOW_API_TS_URL
     - echo $WINSLOW_API_TS_URL_LATEST
 #    - npm install -g -ng
