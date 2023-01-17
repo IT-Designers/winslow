@@ -3,6 +3,9 @@ stages:
   - deploy
   - downstream
 
+variables:
+  WINSLOW_API_TS_URL_LATEST: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
+
 build:
   stage: build
   image: node
@@ -11,6 +14,12 @@ build:
   variables:
     NODE_OPTIONS: "--openssl-legacy-provider"
   script:
+    - echo $WINSLOW_API_TS_URL
+    - echo $WINSLOW_API_TS_URL_LATEST
+    - if [ "$WINSLOW_API_TS_URL" == "" ]; then export WINSLOW_API_TS_URL="$WINSLOW_API_TS_URL_LATEST" ; fi
+    - if [ "$WINSLOW_API_TS_URL" != "" ]; then curl -o "src/app/api/winslow-api.ts" -u "$NEXUS_LOGIN" "$WINSLOW_API_TS_URL" ; fi
+    - echo $WINSLOW_API_TS_URL
+    - echo $WINSLOW_API_TS_URL_LATEST
 #    - npm install -g -ng
     - (npm install || (echo "===== eresolve-report.txt =====" && cat /root/.npm/eresolve-report.txt && echo "===== .log =====" && cat /root/.npm/_logs/* && exit 1))
     - npm run build -- --prod --configuration=production --baseHref=/ --deployUrl=/
