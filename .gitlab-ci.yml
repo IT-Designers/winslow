@@ -58,6 +58,9 @@ publish-on-artifact-share:
   tags:
     - shell
   script:
+    - echo $WINSLOW_API_TS_URL
+    - echo $WINSLOW_API_TS_URL_LATEST
+    - echo $WINSLOW_API_TS_URL_TAGGED
     - export WINSLOW_API_TS_URL="$(eval echo $WINSLOW_API_TS_URL)"
     - export WINSLOW_API_TS_URL_LATEST="$(eval echo $WINSLOW_API_TS_URL_LATEST)"
     - export WINSLOW_API_TS_URL_TAGGED="$(eval echo $WINSLOW_API_TS_URL_TAGGED)"
@@ -106,5 +109,5 @@ release:
     refs:
       - master
   trigger:
-    project: trafficobservation/winslow/docker
+    project: trafficobservation/winslow/winslow-ui-ng
     strategy: depend
