@@ -65,9 +65,9 @@ publish-on-artifact-share:
     - echo $WINSLOW_API_TS_URL_LATEST
     - echo $WINSLOW_API_TS_URL_TAGGED
     - export ARCHIVE=winslow-api.ts
-    - curl -v -u "$NEXUS_LOGIN" --upload-file "$ARCHIVE" "$WINSLOW_API_TS_URL"
-    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then curl -v -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_LATEST"; fi
-    - if [ "$CI_COMMIT_TAG" != "" ]; then curl -v -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_TAGGED"; fi
+    - curl -i -u "$NEXUS_LOGIN" --upload-file "$ARCHIVE" "$WINSLOW_API_TS_URL"
+    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_LATEST"; fi
+    - if [ "$CI_COMMIT_TAG" != "" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_TAGGED"; fi
 
 deploy:
   stage: deploy
