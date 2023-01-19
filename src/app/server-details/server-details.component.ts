@@ -334,12 +334,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   /*Ressource management using groups*/
   mockGroups = [
     {
-      name: 'ThisNameHas20Charact',
+      name: 'NewGroup1',
       role: 'OWNER'
-    },
-    {
-      name: 'MMMMMMMMMMMMMMMMMMMM',
-      role: 'MEMBER'
     }
   ];
 
