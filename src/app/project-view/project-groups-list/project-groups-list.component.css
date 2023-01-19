@@ -28,6 +28,13 @@ app-groups-add-member-dialog {
   align-items: center;
   margin-left: 290px;
 }
+.mat-input-container {
+  width: 97%;
+  font-size: 14px;
+}
+.text-input-mat {
+  width: 100%;
+}
 .scrollable {
   width: 90%;
   overflow-y: scroll;
