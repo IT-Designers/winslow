@@ -1,11 +1,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
 <div class="list-and-label-container">
   <div class="list-content" id="list-content">
-    <input type="text"
-           class="text-input"
-           [(ngModel)]="groupSearchInput"
-           placeholder="Search.."
-           (keyup)="filterFunction()">
+    <mat-form-field class="mat-input-container">
+      <input matInput
+             type="text"
+             [(ngModel)]="groupSearchInput"
+             placeholder="Search.."
+             (keyup)="filterFunction()">
+    </mat-form-field>
+
     <div class="scrollable">
       <!-- ---------- Version with seperate remove button ---------- -->
       <div *ngIf="displayGroups.length > 0">
