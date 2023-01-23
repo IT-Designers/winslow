@@ -22,7 +22,7 @@ export class DiagramNodeComponent implements OnInit {
     if (this.node$ !== undefined) {
       this.containsNode = true;
     }
-    if(this.node$.typeId == "node-start"){
+    if(this.node$?.typeId == "node-start"){
       this.isPipelineDef = true;
     }
   }

@@ -31,7 +31,13 @@ import {DiagramConfigHelper} from './diagram-config-helper';
 import {DiagramInitialData} from './diagram-initial-data';
 import {AddToolsComponent} from './add-tools/add-tools.component';
 import {DiagramGatewayComponent} from './diagram-gateway/diagram-gateway.component';
-import {ImageInfo, ProjectInfo, StageDefinitionInfo, StageWorkerDefinitionInfo} from '../api/winslow-api';
+import {
+  ImageInfo, PipelineDefinitionInfo,
+  ProjectInfo,
+  StageDefinitionInfo,
+  StageDefinitionInfoUnion,
+  StageWorkerDefinitionInfo
+} from '../api/winslow-api';
 import {createStageWorkerDefinitionInfo} from '../api/pipeline-api.service';
 
 @Component({
@@ -200,7 +206,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           dispatch(deleteAction);
         }
       } else {      //Default dispatch action for all actions that get not intercepted
-        console.log(action);
         dispatch(action);
       }
     },
@@ -219,11 +224,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
       let editData = JSON.parse(JSON.stringify(editNode.consumerData));
-      let i = this.project.pipelineDefinition.stages.map(function(stage) {
-        return stage.name;
-      }).indexOf(`${editData.name}`);
+      //let i = this.project.pipelineDefinition.stages.map(function(stage) {
+      //  return stage.name;
+      //}).indexOf(`${editData.name}`);
       editData = editForm;
-      delete editData.id;
+      //delete editData.id;
       editNode = Object.assign({}, editNode, {
         consumerData: editData,
         diagramMakerData: {
@@ -236,7 +241,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         type: 'UPDATE_NODE',
         payload: editNode,
       });
-      this.project.pipelineDefinition.stages[i] = editData;
+      //this.project.pipelineDefinition.stages[i+1] = editData;
     }
   }
 
@@ -245,6 +250,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
     //console.log(stageDef.env instanceof Map);
     //console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
     this.initialData = this.initClass.getInitData(this.project);
+    console.log(this.project.pipelineDefinition.stages)
 
   }
 
@@ -272,13 +278,41 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
       window.addEventListener('resize', () => {
         this.diagramMaker.updateContainer();
       });
+      this.configClass.getApiSwitch('layout', this.diagramMaker);
     }, 1000);
 
   }
 
   ngOnDestroy(): void {
+    this.project.pipelineDefinition.stages = [];
+    console.log(this.project.pipelineDefinition.stages)
+    const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
+    const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
+    console.log(edgeMap)
+    let i = 0;
+    for (let storeNode of nodeMap.values()){
+      if (i > 0){
+        let node = JSON.parse(JSON.stringify(storeNode))
+        this.project.pipelineDefinition.stages.push(node.consumerData as StageDefinitionInfoUnion);
+        this.project.pipelineDefinition.stages[i-1].nextStages = new Array();
+        console.log(this.project.pipelineDefinition.stages[i-1].nextStages)
+      }
+      i++;
+    }
+    console.log(this.project.pipelineDefinition.stages[1]);
+    for(let edge of edgeMap.values()){
+      let index = this.project.pipelineDefinition.stages.findIndex(function(stage) {
+        return stage.id == edge.src
+      });
+      if (index >= 0 ) {
+        console.log(index);
+        this.project.pipelineDefinition.stages[index].nextStages.push(edge.dest);
+      }
+
+    }
     if (this.diagramEditorContainer.nativeElement != null) {
       this.diagramMaker.destroy();
+      console.log("destroyed")
     }
     this.nodeComponentInstances.forEach(instance => instance.destroy());
   }
