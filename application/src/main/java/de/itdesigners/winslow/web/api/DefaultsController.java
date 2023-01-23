@@ -1,6 +1,7 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.pipeline.GatewaySubType;
 import de.itdesigners.winslow.api.pipeline.PipelineDefinitionInfo;
 import de.itdesigners.winslow.api.pipeline.StageDefinitionInfo;
 import de.itdesigners.winslow.config.*;
@@ -32,33 +33,56 @@ public class DefaultsController {
 
     }
 
-    @GetMapping("/and-gateway")
-    public StageDefinitionInfo getDefaultAndGateway() {
+    @GetMapping("/and-splitter")
+    public StageDefinitionInfo getDefaultAndSplitter() {
         var time = System.currentTimeMillis();
         return StageDefinitionInfoConverter.from(new StageAndGatewayDefinition(
                 UUID.randomUUID(),
                 "worker",
                 null,
-                null
+                null,
+                GatewaySubType.SPLITTER
         ));
-
     }
 
-    @GetMapping("/default/xor-gateway")
-    public StageDefinitionInfo getDefaultXOrGateway() {
+    @GetMapping("/all-merger")
+    public StageDefinitionInfo getDefaultAllMerger() {
+        var time = System.currentTimeMillis();
+        return StageDefinitionInfoConverter.from(new StageAndGatewayDefinition(
+                UUID.randomUUID(),
+                "worker",
+                null,
+                null,
+                GatewaySubType.MERGER
+        ));
+    }
 
-        return StageDefinitionInfoConverter.from(new StageXOrGatwayDefinition(
+    @GetMapping("/default/if-splitter")
+    public StageDefinitionInfo getDefaultIfSplitter() {
+        return StageDefinitionInfoConverter.from(new StageXOrGatewayDefinition(
                 null,
                 "worker",
                 null,
                 null,
-                null
+                null,
+                GatewaySubType.SPLITTER
         ));
+    }
 
+    @GetMapping("/default/any-merger")
+    public StageDefinitionInfo getDefaultAnyMerger() {
+        return StageDefinitionInfoConverter.from(new StageXOrGatewayDefinition(
+                null,
+                "worker",
+                null,
+                null,
+                null,
+                GatewaySubType.MERGER
+        ));
     }
 
     @GetMapping("/default/pipeline/{name}")
-    public PipelineDefinitionInfo getDefaultPipeline(@PathVariable(name = "pipeline") String pipelineName) {
+    public PipelineDefinitionInfo getDefaultPipeline(@PathVariable(name = "name") String pipelineName) {
         return PipelineDefinitionInfoConverter.from(
                 pipelineName + "_" + UUID.randomUUID(),
                 new PipelineDefinition(pipelineName)

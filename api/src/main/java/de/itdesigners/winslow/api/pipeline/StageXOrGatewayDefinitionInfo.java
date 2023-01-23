@@ -4,10 +4,11 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.UUID;
 
-public record StageXOrGatewayDefintionInfo(
+public record StageXOrGatewayDefinitionInfo(
         @Nonnull UUID id,
         @Nonnull String name,
         @Nonnull String description,
         @Nonnull List<String> conditions,
-        @Nonnull List<UUID> nextStages) implements StageDefinitionInfo {
+        @Nonnull List<UUID> nextStages,
+        @Nonnull GatewaySubType gatewaySubType) implements StageGatewayDefinitionInfo {
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StageWorkerDefinitionInfo.class, name = "Worker"),
-        @JsonSubTypes.Type(value = StageXOrGatewayDefintionInfo.class, name = "XorGateway"),
+        @JsonSubTypes.Type(value = StageXOrGatewayDefinitionInfo.class, name = "XorGateway"),
         @JsonSubTypes.Type(value = StageAndGatewayDefinitionInfo.class, name = "AndGateway"),
 })
 public interface StageDefinitionInfo {

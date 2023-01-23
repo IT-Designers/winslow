@@ -287,7 +287,7 @@ public class ExecutionGroup {
 
     @Transient
     public boolean isGateway() {
-        return getStageDefinition() instanceof StageAndGatewayDefinition || getStageDefinition() instanceof StageXOrGatwayDefinition;
+        return getStageDefinition() instanceof StageAndGatewayDefinition || getStageDefinition() instanceof StageXOrGatewayDefinition;
     }
 
     @Nonnull

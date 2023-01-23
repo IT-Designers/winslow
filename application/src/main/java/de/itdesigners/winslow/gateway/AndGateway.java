@@ -16,7 +16,7 @@ public class AndGateway extends Gateway {
     private final @Nonnull PipelineRepository        pipelines;
     private final @Nonnull ProjectRepository         projects;
     private final @Nonnull StageAndGatewayDefinition stageDefinition;
-    private                StageId               stageId;
+    private final          StageId                   stageId;
 
     public AndGateway(
             @Nonnull PipelineRepository pipelines,

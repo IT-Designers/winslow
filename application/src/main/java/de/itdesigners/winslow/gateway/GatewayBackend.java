@@ -6,7 +6,7 @@ import de.itdesigners.winslow.ResourceAllocationMonitor;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
-import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
+import de.itdesigners.winslow.config.StageXOrGatewayDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.pipeline.Submission;
 import de.itdesigners.winslow.project.ProjectRepository;
@@ -58,7 +58,7 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
     }
 
     private static boolean isCompatibleGatewayType(@Nonnull StageDefinition stageDefinition) {
-        return stageDefinition instanceof StageAndGatewayDefinition || stageDefinition instanceof StageXOrGatwayDefinition;
+        return stageDefinition instanceof StageAndGatewayDefinition || stageDefinition instanceof StageXOrGatewayDefinition;
     }
 
     @Nonnull
@@ -67,8 +67,8 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
             @Nonnull StageId stageId) throws IOException {
         if (stageDefinition instanceof StageAndGatewayDefinition stageAndGatewayDefinition) {
             return new GatewayStageHandle(new AndGateway(pipelines, projects, stageAndGatewayDefinition, stageId));
-        } else if (stageDefinition instanceof StageXOrGatwayDefinition stageXOrGatwayDefinition) {
-            return new GatewayStageHandle(new XOrGateway(pipelines, projects, stageXOrGatwayDefinition, stageId));
+        } else if (stageDefinition instanceof StageXOrGatewayDefinition stageXOrGatewayDefinition) {
+            return new GatewayStageHandle(new XOrGateway(pipelines, projects, stageXOrGatewayDefinition, stageId));
         } else {
             throw new IOException("Invalid StageType " + stageDefinition.getClass().toString());
         }

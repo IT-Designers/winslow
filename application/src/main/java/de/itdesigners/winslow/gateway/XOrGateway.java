@@ -3,8 +3,7 @@ package de.itdesigners.winslow.gateway;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.StageWorkerDefinition;
-import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
+import de.itdesigners.winslow.config.StageXOrGatewayDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
 import io.github.jamsesso.jsonlogic.JsonLogic;
@@ -18,14 +17,14 @@ import java.util.logging.Level;
 public class XOrGateway extends Gateway {
 
     private final @Nonnull PipelineRepository       pipelines;
-    private final @Nonnull ProjectRepository        projects;
-    private final @Nonnull StageXOrGatwayDefinition stageDefinition;
-    private                StageId               stageId;
+    private final @Nonnull ProjectRepository         projects;
+    private final @Nonnull StageXOrGatewayDefinition stageDefinition;
+    private final          StageId                   stageId;
 
     public XOrGateway(
             @Nonnull PipelineRepository pipelines,
             @Nonnull ProjectRepository projects,
-            @Nonnull StageXOrGatwayDefinition stageDefinition,
+            @Nonnull StageXOrGatewayDefinition stageDefinition,
             @Nonnull StageId stageId) {
         this.pipelines       = pipelines;
         this.projects        = projects;
@@ -109,7 +108,7 @@ public class XOrGateway extends Gateway {
     }
 
     private UUID findNextStageDefinitionID(Optional<ExecutionGroup> thisExecutionGroup, Map<String, String> result) {
-        var  conditions                   = stageDefinition.conditions();
+        var conditions = stageDefinition.conditions();
 
         this.log(Level.INFO, "args: " + conditions);
         for (int i = 0; i < conditions.size(); i++) {
@@ -133,6 +132,6 @@ public class XOrGateway extends Gateway {
                 ex.printStackTrace();
             }
         }
-            throw new RuntimeException("Could not calculate ResultIndex");
+        throw new RuntimeException("Could not calculate ResultIndex");
     }
 }

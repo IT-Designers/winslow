@@ -48,8 +48,8 @@ public class StageDefinitionTests {
 
         var stage = BaseRepository.readFromString(StageDefinition.class, stageYaml);
 
-        assertTrue(stage instanceof StageXOrGatwayDefinition);
-        var xor = (StageXOrGatwayDefinition) stage;
+        assertTrue(stage instanceof StageXOrGatewayDefinition);
+        var xor = (StageXOrGatewayDefinition) stage;
         assertEquals("The name of the stage", stage.name());
         assertTrue(xor.description().isEmpty());
         assertTrue(xor.conditions().size() == 2);
