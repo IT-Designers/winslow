@@ -33,7 +33,7 @@ public class DefaultsController {
 
     }
 
-    @GetMapping("/and-splitter")
+    @GetMapping("/default/and-splitter")
     public StageDefinitionInfo getDefaultAndSplitter() {
         var time = System.currentTimeMillis();
         return StageDefinitionInfoConverter.from(new StageAndGatewayDefinition(
@@ -45,7 +45,7 @@ public class DefaultsController {
         ));
     }
 
-    @GetMapping("/all-merger")
+    @GetMapping("/default/all-merger")
     public StageDefinitionInfo getDefaultAllMerger() {
         var time = System.currentTimeMillis();
         return StageDefinitionInfoConverter.from(new StageAndGatewayDefinition(
