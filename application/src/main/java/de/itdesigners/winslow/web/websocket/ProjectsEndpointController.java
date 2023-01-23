@@ -108,7 +108,7 @@ public class ProjectsEndpointController {
                         .peek(e -> e.getValue().poll())
                         .filter(e -> e.getValue().hasCompleted())
                         .map(Map.Entry::getKey)
-                        .collect(Collectors.toList());
+                        .toList();
 
                 completed
                         .stream()
@@ -292,6 +292,7 @@ public class ProjectsEndpointController {
                 .ifPresent(CoolDownWrapper::startCooldown);
     }
 
+    @Nonnull
     @SubscribeMapping("/projects")
     public Stream<ChangeEvent<String, ProjectInfo>> subscribeProjects(Principal principal) throws Exception {
         return getUser(principal)
@@ -300,21 +301,63 @@ public class ProjectsEndpointController {
                 .map(p -> new ChangeEvent<>(ChangeType.CREATE, p.id(), p));
     }
 
-    @SubscribeMapping("/projects/states")
-    public Stream<ChangeEvent<String, StateInfo>> subscribeProjectStates(Principal principal) throws Exception {
-        return getUser(principal)
-                .map(user -> projects
-                        .listProjects(user)
-                        .flatMap(project -> winslow
-                                .getOrchestrator()
-                                .getPipeline(project.id())
-                                .map(projects::getStateInfo)
-                                .map(state -> new ChangeEvent<>(ChangeType.CREATE, project.id(), state))
-                                .stream()
-                        ))
-                .orElse(Stream.empty());
+    @Nonnull
+    @SubscribeMapping("/projects/public")
+    public Stream<ChangeEvent<String, ProjectInfo>> subscribeProjectsPublic(Principal principal) throws Exception {
+        return subscribeProjects(principal).filter(e -> {
+            var project = e.getValue();
+            return project != null && project.publicAccess();
+        });
     }
 
+    @Nonnull
+    @SubscribeMapping("/projects/own")
+    public Stream<ChangeEvent<String, ProjectInfo>> subscribeProjectsOwn(Principal principal) throws Exception {
+        return subscribeProjects(principal).filter(e -> {
+            var project = e.getValue();
+            return project != null && (
+                    Objects.equals(project.owner(), principal.getName())
+                            || project.groups().stream().anyMatch(link -> Objects.equals(
+                            link.name(),
+                            principal.getName()
+                    ))
+            );
+        });
+    }
+
+    @Nonnull
+    @SubscribeMapping("/projects/states")
+    public Stream<ChangeEvent<String, StateInfo>> subscribeProjectStates(Principal principal) throws Exception {
+        return subscribeProjects(principal).flatMap(this::mapToStateInfo);
+    }
+
+    @Nonnull
+    @SubscribeMapping("/projects/states/public")
+    public Stream<ChangeEvent<String, StateInfo>> subscribeProjectStatesPublic(Principal principal) throws Exception {
+        return subscribeProjectsPublic(principal).flatMap(this::mapToStateInfo);
+    }
+
+    @Nonnull
+    @SubscribeMapping("/projects/states/own")
+    public Stream<ChangeEvent<String, StateInfo>> subscribeProjectStatesOwn(Principal principal) throws Exception {
+        return subscribeProjectsOwn(principal).flatMap(this::mapToStateInfo);
+    }
+
+    @Nonnull
+    private Stream<ChangeEvent<String, StateInfo>> mapToStateInfo(ChangeEvent<String, ProjectInfo> e) {
+        return Optional
+                .ofNullable(e.getValue())
+                .flatMap(project -> winslow
+                        .getOrchestrator()
+                        .getPipeline(project.id())
+                        .map(projects::getStateInfo)
+                        .map(state -> new ChangeEvent<>(ChangeType.CREATE, project.id(), state))
+                )
+                .stream();
+    }
+
+
+    @Nonnull
     @SubscribeMapping("/projects/{projectId}/history")
     public Stream<ChangeEvent<String, List<ExecutionGroupInfo>>> subscribeProjectHistory(
             @DestinationVariable("projectId") String projectId,
@@ -335,6 +378,7 @@ public class ProjectsEndpointController {
                 .stream();
     }
 
+    @Nonnull
     @SubscribeMapping("/projects/{projectId}/executing")
     public Stream<ChangeEvent<String, List<ExecutionGroupInfo>>> subscribeProjectExecution(
             @DestinationVariable("projectId") String projectId,
@@ -350,6 +394,7 @@ public class ProjectsEndpointController {
                 .stream();
     }
 
+    @Nonnull
     @SubscribeMapping("/projects/{projectId}/enqueued")
     public Stream<ChangeEvent<String, List<ExecutionGroupInfo>>> subscribeProjectEnqueued(
             @DestinationVariable("projectId") String projectId,
@@ -365,6 +410,7 @@ public class ProjectsEndpointController {
                 .stream();
     }
 
+    @Nonnull
     @SubscribeMapping("/projects/{projectId}/logs/latest")
     public Stream<ChangeEvent<String, List<LogEntryInfo>>> subscribeLogsLatest(
             @DestinationVariable("projectId") String projectId,
@@ -390,6 +436,7 @@ public class ProjectsEndpointController {
         );
     }
 
+    @Nonnull
     @SubscribeMapping("/projects/{projectId}/logs/{stageId}")
     public Stream<ChangeEvent<String, List<LogEntryInfo>>> subscribeLogsLatestForStage(
             @DestinationVariable("projectId") String projectId,
@@ -427,6 +474,7 @@ public class ProjectsEndpointController {
         return getUser(winslow, Optional.ofNullable(principal).map(Principal::getName).orElse(null));
     }
 
+    @Nonnull
     public static Optional<User> getUser(@Nonnull Winslow winslow, @Nullable String user) {
         return Env.getDevUser()
                   .or(() -> Optional.ofNullable(user))
@@ -441,6 +489,7 @@ public class ProjectsEndpointController {
                : p -> ProjectsEndpointController.getUser(winslow, p).isPresent();
     }
 
+    @Nonnull
     public static <T, V> ChangeEvent<T, V> encapsulate(@Nonnull T identifier, @Nullable V value) {
         return new ChangeEvent<T, V>(
                 value != null ? ChangeEvent.ChangeType.UPDATE : ChangeEvent.ChangeType.DELETE,
