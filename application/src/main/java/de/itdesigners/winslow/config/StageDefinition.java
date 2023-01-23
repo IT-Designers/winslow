@@ -2,6 +2,7 @@ package de.itdesigners.winslow.config;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import de.itdesigners.winslow.api.pipeline.StageDefinitionInfo;
 
 import javax.annotation.Nonnull;
 import java.beans.Transient;
@@ -16,21 +17,24 @@ import java.util.*;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StageWorkerDefinition.class, name = "Worker"),
-        @JsonSubTypes.Type(value = StageXOrGatwayDefinition.class, name = "XorGateway"),
+        @JsonSubTypes.Type(value = StageXOrGatewayDefinition.class, name = "XorGateway"),
         @JsonSubTypes.Type(value = StageAndGatewayDefinition.class, name = "AndGateway"),
 })
 
-public interface StageDefinition {
+public interface StageDefinition extends StageDefinitionInfo {
     @Nonnull
+    @Override
     UUID id();
 
     @Nonnull
+    @Override
     String name();
 
     @Nonnull
     String description();
 
     @Nonnull
+    @Override
     List<UUID> nextStages();
 
     default void check() throws RuntimeException {

@@ -8,5 +8,6 @@ public record StageAndGatewayDefinitionInfo(
         @Nonnull UUID id,
         @Nonnull String name,
         @Nonnull String description,
-        @Nonnull List<UUID> nextStages) implements StageDefinitionInfo {
+        @Nonnull List<UUID> nextStages,
+        @Nonnull GatewaySubType gatewaySubType) implements StageGatewayDefinitionInfo {
 }
