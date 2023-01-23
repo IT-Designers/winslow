@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2022-12-20 20:41:33.
+// Generated using typescript-generator version 3.1.1185 on 2023-01-23 17:52:44.
 
 export class GroupInfo {
   name: string;
@@ -174,15 +174,15 @@ export class NetInfo {
 
 export class NodeInfo {
   name: string;
-  time?: number;
-  uptime?: number;
+  time: number;
+  uptime: number;
   cpuInfo: CpuInfo;
   memInfo: MemInfo;
   netInfo: NetInfo;
   diskInfo: DiskInfo;
   gpuInfo: GpuInfo[];
-  allocInfo?: AllocInfo[];
   buildInfo: BuildInfo;
+  allocInfo: AllocInfo[];
 
   constructor(data: NodeInfo) {
     this.name = data.name;
@@ -193,8 +193,8 @@ export class NodeInfo {
     this.netInfo = data.netInfo;
     this.diskInfo = data.diskInfo;
     this.gpuInfo = data.gpuInfo;
-    this.allocInfo = data.allocInfo;
     this.buildInfo = data.buildInfo;
+    this.allocInfo = data.allocInfo;
   }
 }
 
@@ -421,10 +421,11 @@ export class ResourceInfo {
   }
 }
 
-export class StageAndGatewayDefinitionInfo implements StageDefinitionInfo {
+export class StageAndGatewayDefinitionInfo implements StageGatewayDefinitionInfo {
   name: string;
   id: string;
   nextStages: string[];
+  gatewaySubType: GatewaySubType;
   '@type': 'AndGateway';
   description: string;
 
@@ -432,16 +433,22 @@ export class StageAndGatewayDefinitionInfo implements StageDefinitionInfo {
     this.name = data.name;
     this.id = data.id;
     this.nextStages = data.nextStages;
+    this.gatewaySubType = data.gatewaySubType;
     this['@type'] = data['@type'];
     this.description = data.description;
   }
 }
 
 export interface StageDefinitionInfo {
-  '@type': 'AndGateway' | 'Worker' | 'XorGateway';
+  '@type': 'AndGateway' | 'XorGateway' | 'Worker';
   name: string;
   id: string;
   nextStages: string[];
+}
+
+export interface StageGatewayDefinitionInfo extends StageDefinitionInfo {
+  '@type': 'AndGateway' | 'XorGateway';
+  gatewaySubType: GatewaySubType;
 }
 
 export class StageInfo {
@@ -504,18 +511,20 @@ export class StageWorkerDefinitionInfo implements StageDefinitionInfo {
   }
 }
 
-export class StageXOrGatewayDefintionInfo implements StageDefinitionInfo {
+export class StageXOrGatewayDefinitionInfo implements StageGatewayDefinitionInfo {
   name: string;
   id: string;
   nextStages: string[];
+  gatewaySubType: GatewaySubType;
   '@type': 'XorGateway';
   description: string;
   conditions: string[];
 
-  constructor(data: StageXOrGatewayDefintionInfo) {
+  constructor(data: StageXOrGatewayDefinitionInfo) {
     this.name = data.name;
     this.id = data.id;
     this.nextStages = data.nextStages;
+    this.gatewaySubType = data.gatewaySubType;
     this['@type'] = data['@type'];
     this.description = data.description;
     this.conditions = data.conditions;
@@ -726,6 +735,8 @@ export type Role = 'OWNER' | 'MEMBER';
 
 export type Action = 'EXECUTE' | 'CONFIGURE';
 
+export type GatewaySubType = 'SPLITTER' | 'MERGER';
+
 export type LogSource = 'STANDARD_IO' | 'MANAGEMENT_EVENT';
 
 export type State = 'RUNNING' | 'PAUSED' | 'SUCCEEDED' | 'FAILED' | 'PREPARING' | 'ENQUEUED' | 'SKIPPED';
@@ -736,4 +747,4 @@ export type WorkspaceMode = 'STANDALONE' | 'INCREMENTAL' | 'CONTINUATION';
 
 export type RangedValueUnion = RangeWithStepSize | RangedList;
 
-export type StageDefinitionInfoUnion = StageWorkerDefinitionInfo | StageXOrGatewayDefintionInfo | StageAndGatewayDefinitionInfo;
+export type StageDefinitionInfoUnion = StageWorkerDefinitionInfo | StageXOrGatewayDefinitionInfo | StageAndGatewayDefinitionInfo;

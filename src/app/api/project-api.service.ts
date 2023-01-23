@@ -24,7 +24,7 @@ import {
   StageDefinitionInfoUnion,
   StageInfo,
   StageWorkerDefinitionInfo,
-  StageXOrGatewayDefintionInfo,
+  StageXOrGatewayDefinitionInfo,
   State,
   StateInfo,
   StatsInfo,
