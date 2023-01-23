@@ -3,11 +3,11 @@ package de.itdesigners.winslow.web;
 import de.itdesigners.winslow.api.pipeline.StageAndGatewayDefinitionInfo;
 import de.itdesigners.winslow.api.pipeline.StageDefinitionInfo;
 import de.itdesigners.winslow.api.pipeline.StageWorkerDefinitionInfo;
-import de.itdesigners.winslow.api.pipeline.StageXOrGatewayDefintionInfo;
+import de.itdesigners.winslow.api.pipeline.StageXOrGatewayDefinitionInfo;
 import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageWorkerDefinition;
-import de.itdesigners.winslow.config.StageXOrGatwayDefinition;
+import de.itdesigners.winslow.config.StageXOrGatewayDefinition;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -17,7 +17,7 @@ public class StageDefinitionInfoConverter {
     public static StageDefinitionInfo from(@Nonnull StageDefinition definition) {
         if (definition instanceof StageWorkerDefinition w) {
             return from(w);
-        } else if (definition instanceof StageXOrGatwayDefinition x) {
+        } else if (definition instanceof StageXOrGatewayDefinition x) {
             return from(x);
         } else if (definition instanceof StageAndGatewayDefinition a) {
             return from(a);
@@ -46,13 +46,14 @@ public class StageDefinitionInfoConverter {
     }
 
     @Nonnull
-    public static StageXOrGatewayDefintionInfo from(@Nonnull StageXOrGatwayDefinition xor) {
-        return new StageXOrGatewayDefintionInfo(
+    public static StageXOrGatewayDefinitionInfo from(@Nonnull StageXOrGatewayDefinition xor) {
+        return new StageXOrGatewayDefinitionInfo(
                 xor.id(),
                 xor.name(),
                 xor.description(),
                 xor.conditions(),
-                xor.nextStages()
+                xor.nextStages(),
+                xor.gatewaySubType()
         );
     }
 
@@ -62,7 +63,8 @@ public class StageDefinitionInfoConverter {
                 and.id(),
                 and.name(),
                 and.description(),
-                and.nextStages()
+                and.nextStages(),
+                and.gatewaySubType()
         );
     }
 

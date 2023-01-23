@@ -9,22 +9,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public record StageAndGatewayDefinition(
+public record StageXOrGatewayDefinition(
         @Nonnull UUID id,
         @Nonnull String name,
         @Nonnull String description,
+        @Nonnull List<String> conditions,
         @Nonnull List<UUID> nextStages,
         @Nonnull GatewaySubType gatewaySubType) implements StageDefinition, StageGatewayDefinitionInfo {
 
-    public StageAndGatewayDefinition(
+    public StageXOrGatewayDefinition(
             @Nullable UUID id,
             @Nonnull String name,
             @Nullable String description,
+            @Nullable List<String> conditions,
             @Nullable List<UUID> nextStages,
             @Nonnull GatewaySubType gatewaySubType) {
         this.id             = id != null ? id : StageDefinition.idFromName(name);
         this.name           = name;
         this.description    = description != null ? description : "";
+        this.conditions     = conditions != null ? conditions : Collections.emptyList();
         this.nextStages     = nextStages != null ? nextStages : Collections.emptyList();
         this.gatewaySubType = gatewaySubType;
         this.check();
