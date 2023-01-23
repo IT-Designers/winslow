@@ -24,7 +24,7 @@ import {
   StageDefinitionInfoUnion,
   StageInfo,
   StageWorkerDefinitionInfo,
-  StageXOrGatewayDefintionInfo,
+  StageXOrGatewayDefinitionInfo,
   State,
   StateInfo,
   StatsInfo,
@@ -621,7 +621,7 @@ export function loadStageDefinition(stage: StageDefinitionInfoUnion): StageDefin
   if (type === 'Worker') {
     return new StageWorkerDefinitionInfo(stage as StageWorkerDefinitionInfo);
   } else if (type === 'XorGateway') {
-    return new StageXOrGatewayDefintionInfo(stage as StageXOrGatewayDefintionInfo);
+    return new StageXOrGatewayDefinitionInfo(stage as StageXOrGatewayDefinitionInfo);
   } else if (type === 'AndGateway') {
     return new StageAndGatewayDefinitionInfo(stage as StageAndGatewayDefinitionInfo);
   } else {
