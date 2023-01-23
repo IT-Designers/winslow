@@ -43,7 +43,11 @@ export class ProjectApiService {
 
   public cachedTags: string[] = [];
   private readonly projectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
+  private readonly publicProjectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
+  private readonly ownProjectSubscriptionHandler: SubscriptionHandler<string, ProjectInfo>;
   private readonly projectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
+  private readonly publicProjectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
+  private readonly ownProjectStateSubscriptionHandler: SubscriptionHandler<string, StateInfo>;
 
   private static getUrl(more?: string) {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
@@ -65,10 +69,16 @@ export class ProjectApiService {
       p => new ProjectInfo(p)
     );
 
-    this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
+    this.publicProjectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
       rxStompService,
-      '/projects/states',
-      s => new StateInfo(s)
+      '/projects/public',
+      p => new ProjectInfo(p)
+    );
+
+    this.ownProjectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
+      rxStompService,
+      '/projects/own',
+      p => new ProjectInfo(p)
     );
 
     this.projectSubscriptionHandler.subscribe((id, value) => {
@@ -76,6 +86,37 @@ export class ProjectApiService {
         this.cacheTags(value.tags);
       }
     });
+
+    this.publicProjectSubscriptionHandler.subscribe((id, value) => {
+      if (value != null) {
+        this.cacheTags(value.tags);
+      }
+    });
+
+    this.ownProjectSubscriptionHandler.subscribe((id, value) => {
+      if (value != null) {
+        this.cacheTags(value.tags);
+      }
+    });
+
+
+    this.projectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
+      rxStompService,
+      '/projects/states',
+      s => new StateInfo(s)
+    );
+
+    this.publicProjectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
+      rxStompService,
+      '/projects/public',
+      s => new StateInfo(s)
+    );
+
+    this.ownProjectStateSubscriptionHandler = new SubscriptionHandler<string, StateInfo>(
+      rxStompService,
+      '/projects/own',
+      s => new StateInfo(s)
+    );
   }
 
   private cacheTags(tags: string[]) {
@@ -150,8 +191,24 @@ export class ProjectApiService {
     return this.projectSubscriptionHandler;
   }
 
+  public getPublicProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
+    return this.publicProjectSubscriptionHandler;
+  }
+
+  public getOwnProjectSubscriptionHandler(): SubscriptionHandler<string, ProjectInfo> {
+    return this.ownProjectSubscriptionHandler;
+  }
+
   public getProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
     return this.projectStateSubscriptionHandler;
+  }
+
+  public getPublicProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
+    return this.publicProjectStateSubscriptionHandler;
+  }
+
+  public getOwnProjectStateSubscriptionHandler(): SubscriptionHandler<string, StateInfo> {
+    return this.ownProjectStateSubscriptionHandler;
   }
 
   createProject(name: string, pipeline: PipelineDefinitionInfo, tags?: string[]): Promise<ProjectInfo> {
