@@ -30,13 +30,14 @@ export class DiagramInitialData {
         consumerData: project.pipelineDefinition.stages[i]
       };
       if (i < (project.pipelineDefinition.stages.length - 1)) {
-        edges[`edge${i}`] = {
-          id: `edge${i}`,
-          src: project.pipelineDefinition.stages[i].id,
-          dest: project.pipelineDefinition.stages[i+1].id,
-          diagramMakerData: {}
+        for(let u = 0; u < project.pipelineDefinition.stages[i].nextStages.length; u++){
+          edges[`edge${i}`] = {
+            id: `edge${i}`,
+            src: project.pipelineDefinition.stages[i].id,
+            dest: project.pipelineDefinition.stages[i].nextStages[u],
+            diagramMakerData: {}
+          }
         }
-
       }
     }
     edges["edgeStart"] = {

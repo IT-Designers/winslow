@@ -37,16 +37,16 @@ export class EditFormsComponent implements OnInit {
   @Input()
   set formObj(formObj){
     this.formObj$ = formObj;
-    console.log(formObj);
-    console.log(typeof formObj)
+    //console.log(formObj);
+    //console.log(typeof formObj)
     this.editForm = this.fb.group(formObj);
-    console.log("inputFormObj")
-    console.log(this.formObj$)
+    //console.log("inputFormObj")
+    //console.log(this.formObj$)
     if (this.formMap$) {
       this.extended = Array(this.formMap$.lenght);
       this.extended.fill(false);
-      console.log("inputForMap")
-      console.log(this.formMap$)
+      //console.log("inputForMap")
+      //console.log(this.formMap$)
     }
   };
   @Input()
@@ -91,16 +91,15 @@ export class EditFormsComponent implements OnInit {
     if (entry.value instanceof Array){
       //let newArray = new Array();
       let newArray : String[]  = Object.assign([], this.formObj$[entry.key]);
-      console.log(newArray);
       newArray.push("New Entry");
       this.formObj$[entry.key] = newArray;
       this.formMap$.set(entry.key , newArray);
       //this.editForm.patchValue({entry.key: })
       //this.triggerSaveData();
     }
-    console.log(this.formObj$);
-    console.log(this.formMap$);
-    console.log(this.editForm);
+    //console.log(this.formObj$);
+    //console.log(this.formMap$);
+    //console.log(this.editForm);
   }
 
 }
