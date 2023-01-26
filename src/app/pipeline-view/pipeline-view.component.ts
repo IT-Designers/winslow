@@ -21,7 +21,7 @@ import {
   DiagramMakerData,
   DiagramMakerNode,
   DiagramMakerPotentialNode,
-  Dispatch,
+  Dispatch, DragPanelAction,
 } from 'diagram-maker';
 
 
@@ -32,11 +32,9 @@ import {DiagramInitialData} from './diagram-initial-data';
 import {AddToolsComponent} from './add-tools/add-tools.component';
 import {DiagramGatewayComponent} from './diagram-gateway/diagram-gateway.component';
 import {
-  ImageInfo, PipelineDefinitionInfo,
   ProjectInfo,
   StageDefinitionInfo,
   StageDefinitionInfoUnion,
-  StageWorkerDefinitionInfo
 } from '../api/winslow-api';
 import {createStageWorkerDefinitionInfo} from '../api/pipeline-api.service';
 
@@ -205,8 +203,14 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           dispatch(deleteAction);
         }
-      } else {      //Default dispatch action for all actions that get not intercepted
+      }  else if (action.type === DiagramMakerActions.PANEL_DRAG) {
+        let dragAction : DragPanelAction = JSON.parse(JSON.stringify(action));
+        dragAction.payload.viewContainerSize.height = 5000;
+        dispatch(dragAction);
+      }
+      else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
+        console.log(action);
       }
     },
     nodeTypeConfig: this.configClass.getNodeTypes(),
