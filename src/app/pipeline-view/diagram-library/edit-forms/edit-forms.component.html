@@ -2,12 +2,12 @@
   <table>
     <ng-container *ngFor="let entry of formMap$ | keyvalue:keepOriginalOrder ; index as i">
       <tr>
-    <span *ngIf="entry.key != 'id' && isNotObject(entry.value)" class="val-string">
+    <span *ngIf="toDisplayProp(entry.key) && isNotObject(entry.value)" class="val-string">
       <td>{{entry.key}}</td>
       <td> <input (focusout)="triggerSaveData()" formControlName="{{entry.key}}"> </td>
     </span>
       </tr>
-      <tr *ngIf="!isNotObject(entry.value)">
+      <tr *ngIf="!isNotObject(entry.value) && toDisplayProp(entry.key)">
         <td class="nestedField">
           <span class="sub-object">
             <mat-icon class="icon" (click)="extendData(i)" *ngIf="!extended[i]">keyboard_arrow_right</mat-icon>

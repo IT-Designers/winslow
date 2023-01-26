@@ -58,7 +58,7 @@ export class EditFormsComponent implements OnInit {
   public keepOriginalOrder = (a, b) => a.key;
 
   isNotObject(prop) : boolean {
-    if (typeof prop == "number" || typeof prop == "string"){
+    if (typeof prop == "number" || typeof prop == "string" || typeof prop == "boolean"){
       return true;
     }
     else {return false;}
@@ -85,7 +85,7 @@ export class EditFormsComponent implements OnInit {
   extendData(index){
     this.extended[index] = !this.extended[index];
   }
-  addContent(entry){
+  addContent(entry){                                //entered by clicking the plus to add a new entry to an array
     //console.log(entry.value instanceof Array);
     console.log(entry.value instanceof ImageInfo);
     if (entry.value instanceof Array){
@@ -100,6 +100,12 @@ export class EditFormsComponent implements OnInit {
     //console.log(this.formObj$);
     //console.log(this.formMap$);
     //console.log(this.editForm);
+  }
+  toDisplayProp(entry){
+    if (entry ==  "id" || entry == "nextStages" || entry == "@type"){
+      return false;
+    }
+    else{return true;}
   }
 
 }
