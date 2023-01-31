@@ -16,6 +16,7 @@
   padding: 0px 8px;
   vertical-align: middle;
   border-right: 1px solid black;
+  width: 83px;
 }
 mat-icon{
   transform: rotate(90deg);
@@ -26,4 +27,7 @@ mat-icon{
 }
 .last-li{
   border-right: none !important;
+}
+.first-li{
+  width: 110px !important;
 }
