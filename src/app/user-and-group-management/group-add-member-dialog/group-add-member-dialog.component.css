@@ -1,6 +1,10 @@
 /*.add-user-popup-container {
   overflow: clip;
 }*/
+.list-container {
+  max-height: 220px;
+  overflow: scroll;
+}
 .scrollable {
   overflow: scroll;
 }
