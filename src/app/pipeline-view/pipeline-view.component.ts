@@ -128,7 +128,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           let newAction: CreateNodeAction<{}> = {
             type: DiagramMakerActions.NODE_CREATE,
             payload: {
-              id: `n${createAction.payload.id}`,
+              id: `${createAction.payload.id}`,
               typeId: `${createAction.payload.typeId}`,
               position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
               size: {width: 200, height: 75},
@@ -150,7 +150,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           let newAction: CreateNodeAction<{}> = {
             type: DiagramMakerActions.NODE_CREATE,
             payload: {
-              id: `n${createAction.payload.id}`,
+              id: `${createAction.payload.id}`,
               typeId: `${createAction.payload.typeId}`,
               position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
               size: {width: 150, height: 75},
@@ -195,7 +195,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           edgeSrcPossible = true;
         }
         if (edgeDestPossible && edgeSrcPossible) {
+          console.log(createEdgeAction);
           dispatch(createEdgeAction);
+          console.log(this.diagramMaker.store.getState().edges);
         }
       } else if (action.type === DiagramMakerActions.DELETE_ITEMS) {
         let deleteAction = action as DeleteItemsAction;
@@ -203,14 +205,14 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           dispatch(deleteAction);
         }
-      }  else if (action.type === DiagramMakerActions.PANEL_DRAG) {
+      }  else if (action.type === DiagramMakerActions.PANEL_DRAG) {         //Interceptor to fix a bug where the panel clips at the top edge
         let dragAction : DragPanelAction = JSON.parse(JSON.stringify(action));
         dragAction.payload.viewContainerSize.height = 5000;
         dispatch(dragAction);
       }
       else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
-        console.log(action);
+        //console.log(action);
       }
     },
     nodeTypeConfig: this.configClass.getNodeTypes(),
@@ -288,22 +290,21 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.project.pipelineDefinition.stages = [];
     console.log(this.project.pipelineDefinition.stages)
+    this.project.pipelineDefinition.stages = [];
     const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
     const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
-    console.log(edgeMap)
+    //console.log(edgeMap)
+    //console.log(nodeMap)
     let i = 0;
     for (let storeNode of nodeMap.values()){
       if (i > 0){
         let node = JSON.parse(JSON.stringify(storeNode))
         this.project.pipelineDefinition.stages.push(node.consumerData as StageDefinitionInfoUnion);
         this.project.pipelineDefinition.stages[i-1].nextStages = new Array();
-        console.log(this.project.pipelineDefinition.stages[i-1].nextStages)
       }
       i++;
     }
-    console.log(this.project.pipelineDefinition.stages[1]);
     for(let edge of edgeMap.values()){
       let index = this.project.pipelineDefinition.stages.findIndex(function(stage) {
         return stage.id == edge.src
@@ -312,7 +313,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log(index);
         this.project.pipelineDefinition.stages[index].nextStages.push(edge.dest);
       }
-
     }
     if (this.diagramEditorContainer.nativeElement != null) {
       this.diagramMaker.destroy();
