@@ -39,7 +39,6 @@ export class DiagramConfigHelper {
       switch (action) {
         case 'fit':
           diagramMaker.api.fit();
-          console.log("fit");
           break;
         case 'layout':
           diagramMaker.api.layout({
