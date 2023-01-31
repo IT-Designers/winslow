@@ -77,7 +77,6 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   }
 
   openAddMemberDialog() {
-    console.dir(this.myUser);
     this.createDialog
       .open(GroupAddMemberDialogComponent, {
         data: {
