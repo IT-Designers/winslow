@@ -2,6 +2,7 @@ import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {UserInfo, UserApiService} from '../../api/user-api.service';
 import {RoleApiService} from '../../api/role-api.service';
+import {Link} from '../../api/winslow-api';
 
 export interface AddMemberData {
   members: UserInfo[];
@@ -17,7 +18,7 @@ export interface AddMemberData {
 export class GroupAddMemberDialogComponent implements OnInit {
 
   allUsers: UserInfo[];
-  displayUsers: UserInfo[];
+  displayUsers: Link[];
   allRoles: string[];
   userSearchInput = '';
   showUsersToggle = false;

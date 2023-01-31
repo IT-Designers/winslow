@@ -1,5 +1,5 @@
 .add-group-popup-container {
-  width: 700px !important;
+  width: 705px !important;
   height: 400px !important;
 }
 .scrollable {
@@ -8,9 +8,6 @@
 .inputs {
   display: flex;
   flex-direction: column;
-}
-#list {
-  overflow: scroll;
 }
 .group-item-from-dialog {
   display: flex;
