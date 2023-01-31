@@ -195,9 +195,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           edgeSrcPossible = true;
         }
         if (edgeDestPossible && edgeSrcPossible) {
-          console.log(createEdgeAction);
           dispatch(createEdgeAction);
-          console.log(this.diagramMaker.store.getState().edges);
         }
       } else if (action.type === DiagramMakerActions.DELETE_ITEMS) {
         let deleteAction = action as DeleteItemsAction;
