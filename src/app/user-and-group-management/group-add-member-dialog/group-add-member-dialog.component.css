@@ -8,9 +8,6 @@
   display: flex;
   flex-direction: column;
 }
-#list {
-  overflow: scroll;
-}
 .user-item-from-dialog {
   display: flex;
   flex-direction: row;
