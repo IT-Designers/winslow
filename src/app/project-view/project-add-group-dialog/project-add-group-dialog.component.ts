@@ -33,8 +33,8 @@ export class ProjectAddGroupDialogComponent implements OnInit {
   ngOnInit(): void {
     this.groupApi.getGroups().then((groups) => {
       this.allGroups = groups.filter((group) => {
-        for (const allreadyAssignedGroup of this.data.alreadyAssigned) {
-          if (allreadyAssignedGroup.name === group.name) {
+        for (const alreadyAssignedGroup of this.data.alreadyAssigned) {
+          if (alreadyAssignedGroup.name === group.name) {
             return false;
           }
         }
@@ -44,7 +44,7 @@ export class ProjectAddGroupDialogComponent implements OnInit {
   }
 
   sortGroups() {
-    this.displayGroups.sort((a, b) => {
+    this.allGroups.sort((a, b) => {
       if (a.name.toUpperCase() > b.name.toUpperCase()) {
         return 1;
       } else {
@@ -54,17 +54,19 @@ export class ProjectAddGroupDialogComponent implements OnInit {
   }
 
   filterFunction() {
-    this.displayGroups = Array.from(this.allGroups);
+    this.displayGroups = [];
     this.sortGroups();
-    if (this.groupSearchInput) {
-      const searchedGroups = [];
-      for (const user of this.displayGroups) {
-        if (user.name.toUpperCase().includes(this.groupSearchInput.toUpperCase())) {
-          searchedGroups.push(user);
+    const searchedGroups = [];
+    for (const group of this.allGroups) {
+      if (this.groupSearchInput) {
+        if (group.name.toUpperCase().includes(this.groupSearchInput.toUpperCase())) {
+          searchedGroups.push(group);
         }
+      } else {
+        searchedGroups.push(group);
       }
-      this.displayGroups = Array.from(searchedGroups);
     }
+    this.displayGroups = Array.from(searchedGroups);
   }
 
   onKeyUp() {

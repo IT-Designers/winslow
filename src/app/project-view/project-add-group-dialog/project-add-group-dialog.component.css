@@ -1,9 +1,17 @@
+app-project-add-group-dialog > * {
+  overflow: clip;
+}
+
 .add-group-popup-container {
   width: 705px !important;
   height: 400px !important;
 }
 .scrollable {
   overflow: scroll !important;
+}
+.list-container {
+  max-height: 200px;
+  overflow: scroll;
 }
 .inputs {
   display: flex;

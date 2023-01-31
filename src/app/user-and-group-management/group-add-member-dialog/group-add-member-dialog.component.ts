@@ -45,7 +45,7 @@ export class GroupAddMemberDialogComponent implements OnInit {
   }
 
   sortUsers() {
-    this.displayUsers.sort((a, b) => {
+    this.allUsers.sort((a, b) => {
       if (a.name.toUpperCase() > b.name.toUpperCase()) {
         return 1;
       } else {
@@ -65,17 +65,19 @@ export class GroupAddMemberDialogComponent implements OnInit {
   }
 
   filterFunction() {
-    this.displayUsers = Array.from(this.allUsers);
+    this.displayUsers = [];
     this.sortUsers();
-    if (this.userSearchInput) {
-      const searchedUsers = [];
-      for (const user of this.displayUsers) {
+    const searchedUsers = [];
+    for (const user of this.allUsers) {
+      if (this.userSearchInput) {
         if (user.name.toUpperCase().includes(this.userSearchInput.toUpperCase())) {
           searchedUsers.push(user);
         }
+      } else {
+        searchedUsers.push(user);
       }
-      this.displayUsers = Array.from(searchedUsers);
     }
+    this.displayUsers = Array.from(searchedUsers);
   }
 
   addUserClicked(user) {
