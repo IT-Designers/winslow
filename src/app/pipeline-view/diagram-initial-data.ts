@@ -66,7 +66,7 @@ export class DiagramInitialData {
       workspace: {
         position: {x: 0, y: 0},
         scale: 1,
-        canvasSize: {width: 5000, height: 5000},
+        canvasSize: {width: 5000, height: 3000},
         viewContainerSize: {
           width: window.innerWidth,
           height: window.innerHeight,
