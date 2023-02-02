@@ -21,7 +21,6 @@ export class DiagramInitialData {
     };
     for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
       let nodeType : String;
-      console.log(project.pipelineDefinition.stages[i].id)
       if (project.pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
       else if(project.pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
         if (project.pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-and-splitter'}
@@ -42,8 +41,8 @@ export class DiagramInitialData {
       };
       if (i < (project.pipelineDefinition.stages.length - 1)) {
         for(let u = 0; u < project.pipelineDefinition.stages[i].nextStages.length; u++){
-          edges[`edge${i}`] = {
-            id: `edge${i}`,
+          edges[`edge${i}-${u}`] = {
+            id: `edge${i}-${u}`,
             src: project.pipelineDefinition.stages[i].id,
             dest: project.pipelineDefinition.stages[i].nextStages[u],
             diagramMakerData: {}
@@ -57,6 +56,7 @@ export class DiagramInitialData {
       dest: project.pipelineDefinition.stages[0].id,
       diagramMakerData: {}
     }
+    console.log(edges);
 
     let initialData = {
       nodes,
