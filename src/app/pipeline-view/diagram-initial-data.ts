@@ -13,18 +13,29 @@ export class DiagramInitialData {
       id: pipelineInfo.id,
       typeId: "node-start",
       diagramMakerData: {
-        position: {x: 50, y: 200},
+        position: {x: 50, y: 500},
         size: {width: 200, height: 75},
       },
       // @ts-ignore
       consumerData: pipelineInfo
     };
     for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
+      let nodeType : String;
+      console.log(project.pipelineDefinition.stages[i].id)
+      if (project.pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
+      else if(project.pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
+        if (project.pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-and-splitter'}
+        else{ nodeType = 'node-all-merger'}
+      }
+      else if(project.pipelineDefinition.stages[i]['@type'] == 'XorGateway'){
+        if (project.pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-if-splitter' }
+        else{nodeType = 'node-any-merger'}
+      }
       nodes[project.pipelineDefinition.stages[i].id] = {
         id: project.pipelineDefinition.stages[i].id,
-        typeId: "node-normal",
+        typeId: `${nodeType}`,
         diagramMakerData: {
-          position: {x: 250 * (i + 2) - 200, y: 200},
+          position: {x: 250 * (i + 2) - 200, y: 500},
           size: {width: 200, height: 75},
         },
         consumerData: project.pipelineDefinition.stages[i]
