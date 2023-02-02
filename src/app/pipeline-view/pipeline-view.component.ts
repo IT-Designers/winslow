@@ -32,11 +32,13 @@ import {DiagramInitialData} from './diagram-initial-data';
 import {AddToolsComponent} from './add-tools/add-tools.component';
 import {DiagramGatewayComponent} from './diagram-gateway/diagram-gateway.component';
 import {
-  ProjectInfo,
+  ProjectInfo, StageAndGatewayDefinitionInfo,
   StageDefinitionInfo,
-  StageDefinitionInfoUnion,
+  StageDefinitionInfoUnion, StageWorkerDefinitionInfo, StageXOrGatewayDefinitionInfo,
 } from '../api/winslow-api';
+import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {createStageWorkerDefinitionInfo} from '../api/pipeline-api.service';
+import {HttpClient} from "@angular/common/http";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -54,6 +56,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   public libraryComponent = null;
   public configClass = new DiagramConfigHelper();
   public initClass = new DiagramInitialData();
+  public defaultGetter = new DefaultApiServiceService(this.client);
+
 
   @ViewChild('diagramEditorContainer')
   diagramEditorContainer!: ElementRef;
@@ -115,49 +119,60 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
       },
     },
     actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {  //Intercepts actions before diagramMaker saves them into the store
+      //console.log(action);
       if (action.type === DiagramMakerActions.NODE_CREATE) {      //required extra steps to append Data to the nodes before dispatching
         const createAction = action as CreateNodeAction<any>;
         if (createAction.payload.typeId == 'node-normal' || createAction.payload.typeId == 'node-start') {
-          const stageDef = createStageWorkerDefinitionInfo(
-            createAction.payload.id,
-            'New Stage'
-          );
+          let stageData : StageWorkerDefinitionInfo;
+          console.log(this.project);
+          this.defaultGetter.getWorkerDefinition().then((data) => {
+            stageData = data;
+            dispatch(this.createElement(stageData, createAction));
+            return;
+          }, function (err){
+              console.error("No element created: Error while getting the data for the new element.");
+          });
 
-          //console.log(stageDef);
-          this.project.pipelineDefinition.stages.push(stageDef);
-          let newAction: CreateNodeAction<{}> = {
-            type: DiagramMakerActions.NODE_CREATE,
-            payload: {
-              id: `${createAction.payload.id}`,
-              typeId: `${createAction.payload.typeId}`,
-              position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
-              size: {width: 200, height: 75},
-              consumerData: stageDef
-            }
-          };
-          dispatch(newAction);
         }
-        if (createAction.payload.typeId == 'node-and-splitter' ||
-          createAction.payload.typeId == 'node-if-splitter' ||
-          createAction.payload.typeId == 'node-all-merger' ||
-          createAction.payload.typeId == 'node-any-merger'
-        ) {
-          const stageDef = createStageWorkerDefinitionInfo(
-            createAction.payload.id,
-            'A great name'
-          );
-
-          let newAction: CreateNodeAction<{}> = {
-            type: DiagramMakerActions.NODE_CREATE,
-            payload: {
-              id: `${createAction.payload.id}`,
-              typeId: `${createAction.payload.typeId}`,
-              position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
-              size: {width: 150, height: 75},
-              consumerData: stageDef,
-            }
-          };
-          dispatch(newAction);
+        else if (createAction.payload.typeId == 'node-and-splitter') {
+            let stageData : StageAndGatewayDefinitionInfo;
+            this.defaultGetter.getAndSplitterDefinition().then((data) =>{
+              stageData = data;
+              dispatch(this.createElement(stageData, createAction));
+              return;
+            }, function (err){
+              console.log("No element created: Error while getting the data for the new element.");
+            });
+        }
+        else if(createAction.payload.typeId == 'node-if-splitter'){
+          let stageData : StageXOrGatewayDefinitionInfo;
+          this.defaultGetter.getIfSplitterDefinition().then((data) =>{
+            stageData = data;
+            dispatch(this.createElement(stageData, createAction));
+            return;
+          }, function (err){
+            console.log("No element created: Error while getting the data for the new element.");
+          });
+        }
+        else if(createAction.payload.typeId == 'node-all-merger'){
+          let stageData : StageAndGatewayDefinitionInfo;
+          this.defaultGetter.getAllMergerDefinition().then((data) =>{
+            stageData = data;
+            dispatch(this.createElement(stageData, createAction));
+            return;
+          }, function(err){
+            console.log("No element created: Error while getting the data for the new element.");
+          });
+        }
+        else if(createAction.payload.typeId == 'node-any-merger'){
+          let stageData : StageXOrGatewayDefinitionInfo;
+          this.defaultGetter.getAnyMergerDefinition().then((data) => {
+            stageData = data;
+            dispatch(this.createElement(stageData, createAction));
+            return;
+          }, function(err){
+            console.log("No element created: Error while getting the data for the new element.");
+          });
         }
       } else if (action.type === DiagramMakerActions.EDGE_CREATE) {   //Logic if a Edge can be created or not
         let edgeDestPossible = true;
@@ -219,7 +234,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   nodeComponentInstances = [];
 
   constructor(private viewContainerRef: ViewContainerRef,
-              private componentFactoryResolver: ComponentFactoryResolver) {
+              private componentFactoryResolver: ComponentFactoryResolver,
+              private client:  HttpClient
+  ) {
   }
 
   editState(editForm) {
@@ -249,9 +266,27 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  createElement(stageData, createAction){
+    let nodeWidth : number;
+    if (createAction.payload.typeId == 'node-normal'){nodeWidth = 200}
+    else {nodeWidth = 150}
+    let newAction: CreateNodeAction<{}> = {
+      type: DiagramMakerActions.NODE_CREATE,
+      payload: {
+        id: `${stageData.id}`,
+        typeId: `${createAction.payload.typeId}`,
+        position: {x: createAction.payload.position.x, y: createAction.payload.position.y},
+        size: {width: nodeWidth, height: 75},
+        consumerData: stageData,
+      }
+    };
+    return newAction;
+  }
+
   ngOnInit() {
     const stageDef = this.project.pipelineDefinition.stages[1] as StageDefinitionInfo;
     //console.log(stageDef.env instanceof Map);
+    console.log(this.defaultGetter.getWorkerDefinition());
     //console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
     this.initialData = this.initClass.getInitData(this.project);
     console.log(this.project.pipelineDefinition.stages)

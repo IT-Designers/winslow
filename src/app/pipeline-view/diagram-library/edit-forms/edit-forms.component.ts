@@ -102,7 +102,7 @@ export class EditFormsComponent implements OnInit {
     //console.log(this.editForm);
   }
   toDisplayProp(entry){
-    if (entry ==  "id" || entry == "nextStages" || entry == "@type"){
+    if (entry ==  "id" || entry == "nextStages" || entry == "@type" || entry == "gatewaySubType"){
       return false;
     }
     else{return true;}
