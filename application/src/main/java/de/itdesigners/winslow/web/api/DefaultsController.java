@@ -60,7 +60,7 @@ public class DefaultsController {
     @GetMapping("/default/if-splitter")
     public StageDefinitionInfo getDefaultIfSplitter() {
         return StageDefinitionInfoConverter.from(new StageXOrGatewayDefinition(
-                null,
+                UUID.randomUUID(),
                 "worker",
                 null,
                 null,
@@ -72,7 +72,7 @@ public class DefaultsController {
     @GetMapping("/default/any-merger")
     public StageDefinitionInfo getDefaultAnyMerger() {
         return StageDefinitionInfoConverter.from(new StageXOrGatewayDefinition(
-                null,
+                UUID.randomUUID(),
                 "worker",
                 null,
                 null,
