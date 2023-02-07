@@ -315,13 +315,16 @@ public class ProjectsEndpointController {
     public Stream<ChangeEvent<String, ProjectInfo>> subscribeProjectsOwn(Principal principal) throws Exception {
         return subscribeProjects(principal).filter(e -> {
             var project = e.getValue();
-            return project != null && (
-                    Objects.equals(project.owner(), principal.getName())
-                            || project.groups().stream().anyMatch(link -> Objects.equals(
-                            link.name(),
-                            principal.getName()
-                    ))
-            );
+            if (project == null) {
+                return false;
+            } else if (principal == null) {
+                return Env.isDevEnv();
+            } else {
+                return Objects.equals(project.owner(), principal.getName())
+                        || project.groups().stream()
+                                  .flatMap(link -> winslow.getGroupManager().getGroup(link.name()).stream())
+                                  .anyMatch(group -> group.isMember(principal.getName()));
+            }
         });
     }
 
