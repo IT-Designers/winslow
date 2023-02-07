@@ -42,7 +42,6 @@ export class DiagramConfigHelper {
 
   getApiSwitch(action , diagramMaker) {
     {
-      console.log(action);
       switch (action) {
         case 'fit':
           diagramMaker.api.focusNode(Object.keys(diagramMaker.store.getState().nodes)[0]);
@@ -75,6 +74,9 @@ export class DiagramConfigHelper {
           break;
         case 'redo':
           diagramMaker.api.redo();
+          break;
+        case 'save':
+          console.log("saved soon");
           break;
         default:
           break;
