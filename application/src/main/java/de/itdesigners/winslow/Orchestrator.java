@@ -613,6 +613,14 @@ public class Orchestrator implements Closeable, AutoCloseable {
                                                     : null
                                             )
                             ));
+                } catch (Throwable t) {
+                    try (lock) {
+                        executor.abortNoThrows();
+                        executor.close();
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Failed to close Executor on abortion", e);
+                    }
+                    throw t;
                 } finally {
                     lock.waitForRelease();
                 }
