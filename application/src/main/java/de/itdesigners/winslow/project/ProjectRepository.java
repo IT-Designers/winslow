@@ -22,7 +22,8 @@ import java.util.stream.Stream;
 
 public class ProjectRepository extends BaseRepository {
 
-    private static final Logger LOG = Logger.getLogger(ProjectRepository.class.getSimpleName());
+    private static final Logger LOG         = Logger.getLogger(ProjectRepository.class.getSimpleName());
+    public static final  int    UUID_LENGTH = 36;
 
     private final @Nonnull List<Consumer<Pair<String, Handle<Project>>>> projectChangeListeners
             = Collections.synchronizedList(new ArrayList<>());
@@ -116,21 +117,24 @@ public class ProjectRepository extends BaseRepository {
 
     @Nonnull
     public Stream<Handle<Project>> getProjects() {
-        return listAll(FILE_EXTENSION)
-                .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX)
-                        && !p.getFileName().toString().endsWith(AuthTokenRepository.FILE_SUFFIX))
-                .map(this::getProject);
+        return listAllProjectPaths().map(this::getProject);
     }
 
     @Nonnull
     public Stream<String> getProjectIds() {
+        return listAllProjectPaths().map(path -> {
+            var fileName = path.getFileName().toString();
+            return fileName.substring(0, fileName.length() - FILE_EXTENSION.length());
+        });
+    }
+
+    @Nonnull
+    private Stream<Path> listAllProjectPaths() {
         return listAll(FILE_EXTENSION)
-                .filter(p -> !p.getFileName().toString().endsWith(PipelineRepository.FILE_SUFFIX)
-                        && !p.getFileName().toString().endsWith(AuthTokenRepository.FILE_SUFFIX))
-                .map(path -> {
-                    var fileName = path.getFileName().toString();
-                    return fileName.substring(0, fileName.length() - FILE_EXTENSION.length());
-                });
+                .filter(p -> p
+                        .getFileName()
+                        .toString()
+                        .length() == UUID_LENGTH + BaseRepository.FILE_EXTENSION.length());
     }
 
     private Handle<Project> getProject(Path path) {
