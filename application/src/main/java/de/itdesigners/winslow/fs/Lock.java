@@ -74,21 +74,17 @@ public class Lock implements AutoCloseable, Closeable {
         }
     }
 
-    public synchronized void release() {
-        if (!this.released) {
-            this.released = this.lockBus.release(this.token);
-            this.notifyAll();
-        }
-    }
-
     public boolean isAlive() {
         return !this.released;
     }
 
     @Override
-    public void close() {
-        this.helper.close();
-        this.release();
+    public synchronized void close() {
+        if (!this.released) {
+            this.released = this.lockBus.release(this.token);
+            this.helper.close();
+            this.notifyAll();
+        }
     }
 
     @Override
