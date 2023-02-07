@@ -3,10 +3,10 @@ import {PipelineDefinitionInfo, StageDefinitionInfo} from "../api/winslow-api";
 
 export class DiagramInitialData {
 
-  getInitData(project) {
+  getInitData(pipelineDefinition) {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, project.pipelineDefinition));
+    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
     delete pipelineInfo.userInput.requiredEnvVariables;
     nodes[pipelineInfo.id] = {
@@ -19,32 +19,32 @@ export class DiagramInitialData {
       // @ts-ignore
       consumerData: pipelineInfo
     };
-    for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
+    for (let i = 0; i < pipelineDefinition.stages.length; i++) {
       let nodeType : String;
-      if (project.pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
-      else if(project.pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
-        if (project.pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-and-splitter'}
+      if (pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
+      else if(pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
+        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-and-splitter'}
         else{ nodeType = 'node-all-merger'}
       }
-      else if(project.pipelineDefinition.stages[i]['@type'] == 'XorGateway'){
-        if (project.pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-if-splitter' }
+      else if(pipelineDefinition.stages[i]['@type'] == 'XorGateway'){
+        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-if-splitter' }
         else{nodeType = 'node-any-merger'}
       }
-      nodes[project.pipelineDefinition.stages[i].id] = {
-        id: project.pipelineDefinition.stages[i].id,
+      nodes[pipelineDefinition.stages[i].id] = {
+        id: pipelineDefinition.stages[i].id,
         typeId: `${nodeType}`,
         diagramMakerData: {
           position: {x: 250 * (i + 2) - 200, y: 500},
           size: {width: 200, height: 75},
         },
-        consumerData: project.pipelineDefinition.stages[i]
+        consumerData: pipelineDefinition.stages[i]
       };
-      if (i < (project.pipelineDefinition.stages.length - 1)) {
-        for(let u = 0; u < project.pipelineDefinition.stages[i].nextStages.length; u++){
+      if (i < (pipelineDefinition.stages.length - 1)) {
+        for(let u = 0; u < pipelineDefinition.stages[i].nextStages.length; u++){
           edges[`edge${i}-${u}`] = {
             id: `edge${i}-${u}`,
-            src: project.pipelineDefinition.stages[i].id,
-            dest: project.pipelineDefinition.stages[i].nextStages[u],
+            src: pipelineDefinition.stages[i].id,
+            dest: pipelineDefinition.stages[i].nextStages[u],
             diagramMakerData: {}
           }
         }
@@ -53,7 +53,7 @@ export class DiagramInitialData {
     edges["edgeStart"] = {
       id: 'edgeStart',
       src: pipelineInfo.id,
-      dest: project.pipelineDefinition.stages[0].id,
+      dest: pipelineDefinition.stages[0].id,
       diagramMakerData: {}
     }
     console.log(edges);

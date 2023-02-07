@@ -8,7 +8,6 @@ import {
   ViewChildren
 } from '@angular/core';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {ImageInfo} from "../../../api/winslow-api";
 
 @Component({
   selector: 'app-edit-forms',
@@ -41,7 +40,8 @@ export class EditFormsComponent implements OnInit {
     //console.log(typeof formObj)
     this.editForm = this.fb.group(formObj);
     //console.log("inputFormObj")
-    //console.log(this.formObj$)
+    console.log(this.formObj$)
+    console.log(this.editForm)
     if (this.formMap$) {
       this.extended = Array(this.formMap$.lenght);
       this.extended.fill(false);
@@ -87,17 +87,17 @@ export class EditFormsComponent implements OnInit {
   }
   addContent(entry){                                //entered by clicking the plus to add a new entry to an array
     //console.log(entry.value instanceof Array);
-    console.log(entry);
+    console.log(this.formObj$);
     if (entry.value instanceof Array){
       //let newArray = new Array();
-      let newArray : String[]  = Object.assign([], this.formObj$[entry.key]);
+      let newArray : Array<String>  = Object.assign([], this.formObj$[entry.key]);
       newArray.push("New Entry");
-      this.formObj$[entry.key] = newArray;
+      this.formObj$[entry.key] = newArray as Array<String>;
       this.formMap$.set(entry.key , newArray);
       //this.editForm.patchValue({entry.key: })
       //this.triggerSaveData();
     }
-    //console.log(this.formObj$);
+    console.log(this.formObj$);
     //console.log(this.formMap$);
     //console.log(this.editForm);
   }
@@ -108,6 +108,7 @@ export class EditFormsComponent implements OnInit {
     else{return true;}
   }
   isArray(entry){
+    //console.log(entry);
     if (entry instanceof Array){
       return true;
     }
