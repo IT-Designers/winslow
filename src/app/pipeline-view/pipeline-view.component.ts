@@ -37,7 +37,6 @@ import {
   StageDefinitionInfoUnion, StageWorkerDefinitionInfo, StageXOrGatewayDefinitionInfo,
 } from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
-import {createStageWorkerDefinitionInfo} from '../api/pipeline-api.service';
 import {HttpClient} from "@angular/common/http";
 
 @Component({
@@ -57,6 +56,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   public configClass = new DiagramConfigHelper();
   public initClass = new DiagramInitialData();
   public defaultGetter = new DefaultApiServiceService(this.client);
+  public saveStatus : boolean = true;
 
 
   @ViewChild('diagramEditorContainer')
@@ -90,7 +90,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramNodeComponent);
         const componentInstance = this.viewContainerRef.createComponent(componentFactory);
         diagramMakerContainer.appendChild(componentInstance.location.nativeElement);
-        //setTimeout(() => { componentInstance.destroy(); }, 1000);
       },
       destroy: () => {
         this.nodeComponentInstances.forEach(instance => instance.destroy());
@@ -102,11 +101,13 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
             this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
             this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
-            this.libraryComponent.instance.diagramApiCall.subscribe((action: String) =>
+            this.libraryComponent.instance.diagramApiCall.subscribe((action: String) => {
+              if (action == "save"){this.saveStatus = true; console.log("test");}
               this.configClass.getApiSwitch(action, this.diagramMaker)
-            );
+            });
             diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
           }
+          this.libraryComponent.instance.saveStatus = this.saveStatus;
           if (this.currentNode) {
             this.libraryComponent.instance.selectedNode = this.currentNode;
           }
@@ -210,12 +211,17 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           edgeSrcPossible = true;
         }
         if (edgeDestPossible && edgeSrcPossible) {
+          this.saveStatus = false;
           dispatch(createEdgeAction);
         }
       } else if (action.type === DiagramMakerActions.DELETE_ITEMS) {
         let deleteAction = action as DeleteItemsAction;
-        if (deleteAction.payload.nodeIds.includes('pipelineInfo')) {
-        } else {
+        const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
+        const keyIter = nodeMap.keys()
+        console.log(deleteAction.payload.nodeIds);
+        if (deleteAction.payload.nodeIds.includes(keyIter.next().value)){}
+        else {
+          this.saveStatus = false;
           dispatch(deleteAction);
         }
       }  else if (action.type === DiagramMakerActions.PANEL_DRAG) {         //Interceptor to fix a bug where the panel clips at the top edge
@@ -225,7 +231,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
-        //console.log(action);
       }
     },
     nodeTypeConfig: this.configClass.getNodeTypes(),
@@ -240,7 +245,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   editState(editForm) {
-    //console.log(editForm);
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -249,7 +253,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
       //  return stage.name;
       //}).indexOf(`${editData.name}`);
       editData = editForm;
-      //delete editData.id;
       editNode = Object.assign({}, editNode, {
         consumerData: editData,
         diagramMakerData: {
@@ -258,11 +261,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
           position: editNode.diagramMakerData.position,
         },
       });
+      this.saveStatus = false;
       this.diagramMaker.store.dispatch({
         type: 'UPDATE_NODE',
         payload: editNode,
       });
-      //this.project.pipelineDefinition.stages[i+1] = editData;
     }
   }
 
@@ -280,14 +283,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         consumerData: stageData,
       }
     };
+    this.saveStatus = false;
     return newAction;
   }
 
   ngOnInit() {
-    const stageDef = this.project.pipelineDefinition.stages[1] as StageDefinitionInfo;
-    //console.log(stageDef.env instanceof Map);
-    console.log(this.defaultGetter.getWorkerDefinition());
-    //console.log(this.project.pipelineDefinition.stages[1].env instanceof Map);
     this.initialData = this.initClass.getInitData(this.project);
     console.log(this.project.pipelineDefinition.stages)
 
@@ -323,12 +323,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    console.log(this.project.pipelineDefinition.stages)
     this.project.pipelineDefinition.stages = [];
     const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
     const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
-    //console.log(edgeMap)
-    //console.log(nodeMap)
     let i = 0;
     for (let storeNode of nodeMap.values()){
       if (i > 0){

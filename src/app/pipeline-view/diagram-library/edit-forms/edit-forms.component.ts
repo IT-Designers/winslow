@@ -87,7 +87,7 @@ export class EditFormsComponent implements OnInit {
   }
   addContent(entry){                                //entered by clicking the plus to add a new entry to an array
     //console.log(entry.value instanceof Array);
-    console.log(entry.value instanceof ImageInfo);
+    console.log(entry);
     if (entry.value instanceof Array){
       //let newArray = new Array();
       let newArray : String[]  = Object.assign([], this.formObj$[entry.key]);
@@ -107,5 +107,12 @@ export class EditFormsComponent implements OnInit {
     }
     else{return true;}
   }
+  isArray(entry){
+    if (entry instanceof Array){
+      return true;
+    }
+    else{return false;}
+  }
+
 
 }

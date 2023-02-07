@@ -30,4 +30,12 @@ mat-icon{
 }
 .first-li{
   width: 110px !important;
+  padding: 4px !important;
+}
+.drag-icon{
+  transform: rotate(180deg) !important;
+}
+.drag-li{
+  width: 24px !important;
+  padding: 0px !important;
 }

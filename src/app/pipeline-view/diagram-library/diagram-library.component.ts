@@ -13,6 +13,7 @@ export class DiagramLibraryComponent implements OnInit {
   @Output() editNode = new EventEmitter();
   @Output() diagramApiCall = new EventEmitter();
   selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
+  savedData : boolean = true;
   formHtmlMap : Map<string, object> = new Map();
   formObj : Object = {};
 
@@ -39,7 +40,12 @@ export class DiagramLibraryComponent implements OnInit {
       //console.log(this.formObj);
       //console.log(this.editForm.value);
   }
+  @Input()
+  set saveStatus(saveStatus : boolean){
+    this.savedData = saveStatus;
+  };
   onApiCall(action : String){
+    if (action == "save"){this.savedData = true;}
     this.diagramApiCall.emit(action);
   }
   startSave(){

@@ -13,7 +13,7 @@
             <mat-icon class="icon" (click)="extendData(i)" *ngIf="!extended[i]">keyboard_arrow_right</mat-icon>
             <mat-icon class="icon" (click)="extendData(i)" *ngIf="extended[i]">keyboard_arrow_down</mat-icon>
             <div (click)="extendData(i)">{{entry.key}} </div>
-          <mat-icon class="icon add-icon" (click)="addContent(entry)">add_box</mat-icon>
+          <mat-icon *ngIf="isArray(entry.value)" class="icon add-icon" (click)="addContent(entry)">add_box</mat-icon>
           </span>
           <div *ngIf="entry.value != null" [hidden]="!extended[i]">
             <app-edit-forms

@@ -71,7 +71,7 @@ export class DiagramInitialData {
         tools: {
           id: 'tools',
           position: {x: 10, y: 10},
-          size: {width: 630, height: 46},
+          size: {width: 650, height: 46},
         },
       },
       workspace: {
