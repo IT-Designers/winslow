@@ -244,7 +244,7 @@ public class Executor implements Closeable, AutoCloseable {
             } finally {
                 this.logBuffer = null;
                 this.notifyShutdownListeners();
-                this.logOutput.getLock().release();
+                this.logOutput.getLock().close();
             }
         } finally {
             this.notifyShutdownCompletedListeners();
