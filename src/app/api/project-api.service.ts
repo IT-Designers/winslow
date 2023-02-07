@@ -66,19 +66,19 @@ export class ProjectApiService {
     this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
       rxStompService,
       '/projects',
-      p => new ProjectInfo(p)
+      p => loadProjectInfo(p)
     );
 
     this.publicProjectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
       rxStompService,
       '/projects/public',
-      p => new ProjectInfo(p)
+      p => loadProjectInfo(p)
     );
 
     this.ownProjectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
       rxStompService,
       '/projects/own',
-      p => new ProjectInfo(p)
+      p => loadProjectInfo(p)
     );
 
     this.projectSubscriptionHandler.subscribe((id, value) => {
@@ -231,7 +231,8 @@ export class ProjectApiService {
   getProjectPipelineDefinition(projectId: string): Promise<PipelineDefinitionInfo> {
     return this.client
       .get<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
-      .toPromise();
+      .toPromise()
+      .then(loadPipelineDefinition);
   }
 
   getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
