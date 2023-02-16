@@ -258,12 +258,12 @@
       <div class="stage-control-item"><!--Project Name-->
         <label>Project Name</label>
         <mat-form-field>
-          <input #nameOriginal hidden [value]="project.name">
-          <input #nameEntered matInput name="name" [value]="project.name"
-                 (input)="updateName.disabled = $event.target.value == nameOriginal.value"
-                 (keydown.enter)="setName(nameEntered.value)">
+          <input #nameEntered matInput name="name" [value]="project.name">
         </mat-form-field>
-        <button #updateName mat-stroked-button disabled color="primary" (click)="setName(nameEntered.value)">
+        <button mat-stroked-button
+                [disabled]="(nameEntered.value == project.name) || !canIEditProject(project)"
+                color="primary"
+                (click)="setName(nameEntered.value)">
           Update
         </button>
       </div><!--Project Name-->
@@ -276,8 +276,11 @@
             </ng-container>
           </mat-select>
         </mat-form-field>
-        <button mat-stroked-button color="primary" #tagsButton
-                (click)="setPipeline(pipelineSelection.value)">
+        <button mat-stroked-button
+                color="primary"
+                #tagsButton
+                (click)="setPipeline(pipelineSelection.value)"
+                [disabled]="!canIEditProject(project)">
           Update
         </button>
       </div><!--Project Pipeline-->
@@ -289,7 +292,7 @@
                                     [proposals]="api.cachedTags">
         </app-tags-with-autocomplete>
         <button mat-stroked-button color="primary" #tagsButton
-                [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
+                [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json) || !canIEditProject(project)"
                 (click)="setTags(tags.selectedTags)">
           Update
         </button>
@@ -297,30 +300,7 @@
 
       <div class="whitespace-separator separator-line"></div>
       <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">Project Access</h3>
-      <!--<label>Group Access</label>
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <div class="stage-control-item">&lt;!&ndash;Group Access (Chiplist)&ndash;&gt;
 
-            <mat-chip-list>
-              <mat-chip *ngFor="let group of project.groups"
-                        [style.background-color]="getColor(group)"
-                        [matTooltip]="getTooltip(group)"
-                        (click)="changeGroupListBtnText()">
-                {{group.name}}
-              </mat-chip>
-            </mat-chip-list>
-            <button mat-stroked-button color="primary" #groupTagsButton
-                    (click)="changeGroupListBtnText()">
-              {{groupListBtnText}}
-            </button>
-          </div>&lt;!&ndash;Group Access (Chiplist)&ndash;&gt;
-        </mat-expansion-panel-header>
-        <div class="stage-control-item">&lt;!&ndash;Group List&ndash;&gt;
-          <app-project-groups-list
-            [project]="project"></app-project-groups-list>
-        </div>&lt;!&ndash;Group List&ndash;&gt;
-      </mat-expansion-panel>-->
       <div class="stage-control-item"><!--Group Access (Chiplist)-->
         <label>Group Access</label>
             <mat-chip-list *ngIf="project.groups.length > 0">
@@ -328,8 +308,8 @@
                         [style.background-color]="getColor(group)"
                         [matTooltip]="getTooltip(group)"
                         matTooltipShowDelay="250"
-                        (click)="changeGroupListBtnTextAndIcon()"
-                        (removed)="remove(group)">
+                        (removed)="remove(group)"
+                        [disabled]="!canIEditProject(project)">
                 {{group.name}}
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip>
@@ -337,22 +317,30 @@
             <label *ngIf="project.groups.length < 1" [ngStyle]="{'font-style':'italic'}">
               No groups assigned
             </label>
-            <button mat-raised-button color="primary" #groupTagsButton
-                    (click)="changeGroupListBtnTextAndIcon()">
+            <button mat-raised-button
+                    color="primary"
+                    #groupTagsButton
+                    (click)="changeGroupListBtnTextAndIcon()"
+                    [disabled]="!canIEditProject(project)">
               <!--{{groupListBtnText}}-->
               <mat-icon>{{groupListBtnIcon}}</mat-icon>
             </button>
           </div><!--Group Access (Chiplist)-->
       <div class="stage-control-item" *ngIf="showGroupList"><!--Group List-->
-          <app-project-groups-list [project]="project" (newGroupEmitter)="groupAdded($event)"></app-project-groups-list>
+          <app-project-groups-list [project]="project"
+                                   (newGroupEmitter)="groupAdded($event)">
+          </app-project-groups-list>
         </div><!--Group List-->
 
 
       <div class="stage-control-item whitespace-separator-top"><!--Public Access-->
         <label>Public Access</label>
-        <mat-slide-toggle #publicAccess [checked]="this.project?.publicAccess"></mat-slide-toggle>
+        <mat-slide-toggle #publicAccess
+                          [checked]="this.project?.publicAccess"
+                          [disabled]="!canIEditProject(project)">
+        </mat-slide-toggle>
         <button mat-stroked-button color="primary"
-                [disabled]="publicAccess.checked === this.project?.publicAccess"
+                [disabled]="(publicAccess.checked === this.project?.publicAccess) || !canIEditProject(project)"
                 (click)="updatePublicAccess(publicAccess.checked)">
           Update
         </button>
@@ -380,7 +368,7 @@
           </mat-slide-toggle>
         </mat-card-subtitle>
         <button mat-stroked-button color="primary"
-                [disabled]="deletionPolicyLocal === deletionPolicyRemote"
+                [disabled]="(deletionPolicyLocal === deletionPolicyRemote) || !canIEditProject(project)"
                 (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
           Update
         </button>
@@ -389,36 +377,36 @@
         <label [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
         <mat-form-field>
           <input #limit matInput type="number"
-                 [disabled]="deletionPolicyLocal == null || !custom.checked"
+                 [disabled]="(deletionPolicyLocal == null || !custom.checked) || !canIEditProject(project)"
                  [value]="deletionPolicyLocal != null ? ''+deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : ''"
                  [min]="1">
         </mat-form-field>
         <button mat-stroked-button color="primary"
-                [disabled]="deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked"
+                [disabled]="(deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked) || !canIEditProject(project)"
                 (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
           Update
         </button>
       </div><!--Number of workspaces of successful stages to keep-->
       <div class="stage-control-item"><!--Keep workspaces of failed stages-->
-        <label [class.disabled]="!custom.checked">Keep workspaces of failed stages</label>
+        <label [class.disabled]="(!custom.checked) || !canIEditProject(project)">Keep workspaces of failed stages</label>
         <mat-slide-toggle #keep
-                          [disabled]="deletionPolicyLocal == null || !custom.checked"
+                          [disabled]="(deletionPolicyLocal == null || !custom.checked) || !canIEditProject(project)"
                           [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage"
         ></mat-slide-toggle>
         <button mat-stroked-button color="primary"
-                [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked"
+                [disabled]="(deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked) || !canIEditProject(project)"
                 (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
           Update
         </button>
       </div><!--Keep workspaces of failed stages-->
       <div class="stage-control-item"><!--Always keep most recent workspace-->
-        <label [class.disabled]="!custom.checked">Always keep most recent workspace</label>
+        <label [class.disabled]="(!custom.checked) || !canIEditProject(project)">Always keep most recent workspace</label>
         <mat-slide-toggle #always
-                          [disabled]="deletionPolicyLocal == null || !custom.checked"
+                          [disabled]="(deletionPolicyLocal == null || !custom.checked) || !canIEditProject(project)"
                           [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
         ></mat-slide-toggle>
         <button mat-stroked-button color="primary"
-                [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked"
+                [disabled]="(deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked) || !canIEditProject(project)"
                 (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
           Update
         </button>
@@ -441,13 +429,17 @@
       <div class="stage-control-item"><!--Default workspace configuration mode-->
         <label>Default workspace configuration mode</label>
         <mat-form-field>
-          <mat-select #workspaceModeSelection [value]="this.workspaceMode">
+          <mat-select #workspaceModeSelection
+                      [value]="this.workspaceMode"
+                      [disabled]="!canIEditProject(project)">
             <ng-container *ngFor="let mode of workspaceModes()">
               <mat-option [value]="mode">{{mode}}</mat-option>
             </ng-container>
           </mat-select>
         </mat-form-field>
-        <button mat-stroked-button color="primary" (click)="setWorkspaceMode(workspaceModeSelection.value)">
+        <button mat-stroked-button
+                color="primary"
+                (click)="setWorkspaceMode(workspaceModeSelection.value)" [disabled]="!canIEditProject(project)">
           Update
         </button>
       </div><!--Default workspace configuration mode-->
