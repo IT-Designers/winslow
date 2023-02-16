@@ -39,9 +39,9 @@ export class EditFormsComponent implements OnInit {
     //console.log(formObj);
     //console.log(typeof formObj)
     this.editForm = this.fb.group(formObj);
+    console.log(this.editForm);
     //console.log("inputFormObj")
     //console.log(this.formObj$)
-    console.log(this.editForm)
     if (this.formMap$) {
       this.extended = Array(this.formMap$.lenght);
       this.extended.fill(false);
@@ -80,7 +80,9 @@ export class EditFormsComponent implements OnInit {
         ProfileImage.sendFormData();
       });
     }
-    this.onCollectData.emit([this.objPlace, this.editForm.value]);
+    console.log(this.objPlace);
+    console.log(this.formObj$);
+    this.onCollectData.emit([this.objPlace, this.formObj$]);
   }
   triggerSaveData(){
     this.onTriggerSaveData.emit();
@@ -106,6 +108,17 @@ export class EditFormsComponent implements OnInit {
     //console.log(this.formObj$);
     //console.log(this.formMap$);
     //console.log(this.editForm);
+  }
+  deleteContent(entry){                                //entered by clicking the plus to add a new entry to an array
+    if (entry.value instanceof Array){
+      //let newArray = new Array();
+      let newArray : Array<String>  = Object.assign([], this.formObj$[entry.key]);
+      newArray.pop();
+      console.log(this.formObj$[entry.key]);
+      this.formObj$[entry.key] = newArray as Array<String>;
+      console.log(this.formMap$);
+      this.formMap$.set(entry.key , newArray);
+    }
   }
   toDisplayProp(entry){
     if (entry ==  "id" || entry == "nextStages" || entry == "@type" || entry == "gatewaySubType"){
