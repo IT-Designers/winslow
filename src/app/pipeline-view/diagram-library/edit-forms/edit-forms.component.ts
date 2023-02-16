@@ -35,12 +35,12 @@ export class EditFormsComponent implements OnInit {
 
   @Input()
   set formObj(formObj){
-    this.formObj$ = formObj;
+    this.formObj$ = JSON.parse(JSON.stringify(formObj));
     //console.log(formObj);
     //console.log(typeof formObj)
     this.editForm = this.fb.group(formObj);
     //console.log("inputFormObj")
-    console.log(this.formObj$)
+    //console.log(this.formObj$)
     console.log(this.editForm)
     if (this.formMap$) {
       this.extended = Array(this.formMap$.lenght);
@@ -51,7 +51,11 @@ export class EditFormsComponent implements OnInit {
   };
   @Input()
   set formMap(formMap){
-    this.formMap$ = formMap;
+    let formHtmlMap = new Map();
+    for (const key of Object.keys(formMap)) {
+      formHtmlMap.set(key, formMap[key]);
+    }
+    this.formMap$ = formHtmlMap;
 
   };
 
@@ -67,7 +71,7 @@ export class EditFormsComponent implements OnInit {
   collectFormData(collectedFormData){
     this.formObj$ = this.editForm.value;
     this.formObj$[collectedFormData[0]] = collectedFormData[1];
-    //console.log(collectedFormData)
+    console.log(collectedFormData)
     //this.editForm.setValue(this.formObj.value);
   }
   sendFormData(){
@@ -87,17 +91,19 @@ export class EditFormsComponent implements OnInit {
   }
   addContent(entry){                                //entered by clicking the plus to add a new entry to an array
     //console.log(entry.value instanceof Array);
-    console.log(this.formObj$);
+    //console.log(this.formObj$);
     if (entry.value instanceof Array){
       //let newArray = new Array();
       let newArray : Array<String>  = Object.assign([], this.formObj$[entry.key]);
       newArray.push("New Entry");
+      console.log(this.formObj$[entry.key]);
       this.formObj$[entry.key] = newArray as Array<String>;
+      console.log(this.formMap$);
       this.formMap$.set(entry.key , newArray);
       //this.editForm.patchValue({entry.key: })
       //this.triggerSaveData();
     }
-    console.log(this.formObj$);
+    //console.log(this.formObj$);
     //console.log(this.formMap$);
     //console.log(this.editForm);
   }

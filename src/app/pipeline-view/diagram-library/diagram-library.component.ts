@@ -1,6 +1,11 @@
 import {Component, Input, OnInit, Output, EventEmitter, ViewChild} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
-import {StageDefinitionInfo} from "../../api/winslow-api";
+import {
+  PipelineDefinitionInfo,
+  StageDefinitionInfo,
+  StageDefinitionInfoUnion,
+  StageWorkerDefinitionInfo
+} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-diagram-library',
@@ -14,7 +19,7 @@ export class DiagramLibraryComponent implements OnInit {
   @Output() diagramApiCall = new EventEmitter();
   selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
   savedData : boolean = true;
-  formHtmlMap : Map<string, object> = new Map();
+  //formHtmlMap : Map<string, object> = new Map();
   formObj : Object = {};
 
   @ViewChild('form') childForm;
@@ -27,18 +32,14 @@ export class DiagramLibraryComponent implements OnInit {
   @Input()
   set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
       this.selectedNode$ = selectedNode;
-      this.formHtmlMap = new Map();
-      for (const key of Object.keys(this.selectedNode$.consumerData)) {
-        this.formHtmlMap.set(key, this.selectedNode$.consumerData[key]);
-      }
+      //this.formHtmlMap = new Map();
+      //for (const key of Object.keys(this.selectedNode$.consumerData)) {
+      //  this.formHtmlMap.set(key, this.selectedNode$.consumerData[key]);
+      //}
       //console.log(this.formHtmlMap);
-      this.formObj = {};
-      this.formObj['id'] = this.selectedNode$.id;
-      for (const key of Object.keys(this.selectedNode$.consumerData)) {
-        this.formObj[key] = this.selectedNode$.consumerData[key];
-      }
-      //console.log(this.formObj);
-      //console.log(this.editForm.value);
+      this.formObj = {} as StageDefinitionInfoUnion;
+      this.formObj = JSON.parse(JSON.stringify(this.selectedNode$.consumerData));
+      console.log(this.formObj);
   }
   @Input()
   set saveStatus(saveStatus : boolean){
@@ -52,8 +53,10 @@ export class DiagramLibraryComponent implements OnInit {
     this.childForm.sendFormData();
   }
   saveEdit(savedForm : Object){
-    this.formObj = savedForm;
-    this.editNode.emit(savedForm[1]);
+    console.log(this.formObj)
+    this.formObj = savedForm[1] as StageDefinitionInfoUnion;
+    console.log(this.formObj)
+    this.editNode.emit(this.formObj);
   }
   cancelEdit() {
     this.selectedNode$ = undefined;
