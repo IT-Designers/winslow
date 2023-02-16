@@ -24,12 +24,12 @@ import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.compon
 import {ActivatedRoute, Router} from '@angular/router';
 import {pipe, Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
-import {GroupApiService} from '../api/group-api.service';
+import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import {
   AuthTokenInfo,
   EnvVariable,
-  ExecutionGroupInfo, GroupInfo,
-  ImageInfo,
+  ExecutionGroupInfo,
+  ImageInfo, Link,
   PipelineDefinitionInfo,
   ProjectInfo,
   RangedValue,
@@ -172,8 +172,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   selectedHistoryEntryIndex = 0;
   selectedHistoryEntryStage: StageInfo;
 
-  allUserGroupnames: string[] = [];
-  projectGroupnames: string[] = [];
+  projectGroups: Link[];
+  myGroupnames: string[];
   showGroupList = false;
   groupListBtnText = 'Expand';
   groupListBtnIcon = 'expand_more';
@@ -243,14 +243,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.updateTabSelection(params.tab);
       }
     });
-    this.groupApi.getGroups().then((groups) => {
-      for (const group of groups) {
-        if (!group.name.includes('::')) {
-          this.allUserGroupnames.push(group.name);
-        }
-      }
-    });
-    this.projectGroupnames = this.project.groups.map(x => x.name);
+    this.groupApi.getGroups()
+      .then((groups) => this.myGroupnames = groups.map(x => x.name));
+    this.projectGroups = Array.from(this.project.groups);
     this.sortGroups();
   }
 
@@ -654,6 +649,21 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       }
     });
   }
+
+  canIEditProject(project: ProjectInfo) {
+    // tslint:disable-next-line:prefer-for-of
+    for (let i = 0; i < project.groups.length; i++) {
+      if (this.myGroupnames.includes(project.groups[i].name)) {
+        if (project.groups[i].role === 'OWNER') {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+  }
   getColor(group) {
     if (group.role === 'OWNER') {
       return '#8ed69b';
@@ -685,7 +695,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.project.groups.push(group);
     }
   }
-  remove(group: GroupInfo) {
+  remove(group: Link) {
     console.log('Before Removing Group ' + group.name);
     console.dir(this.project.groups);
     // @ts-ignore
