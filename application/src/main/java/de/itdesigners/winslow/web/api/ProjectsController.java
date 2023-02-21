@@ -646,11 +646,7 @@ public class ProjectsController {
 
     @DeleteMapping("projects/{projectId}/deletion-policy")
     public ResponseEntity<Boolean> resetDeletionPolicy(User user, @PathVariable("projectId") String projectId) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeManagedBy(user))
+        return getProjectIfAllowedToManage(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     pipeline.setDeletionPolicy(null);
                     return ResponseEntity.ok(Boolean.TRUE); // just _some_ value
@@ -663,11 +659,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @RequestBody DeletionPolicy policy) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeManagedBy(user))
+        return getProjectIfAllowedToManage(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     pipeline.setDeletionPolicy(policy);
                     return ResponseEntity.ok(policy); // just _some_ value
@@ -687,11 +679,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId,
             @RequestBody WorkspaceConfiguration.WorkspaceMode mode) {
-        return winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(project -> project.canBeManagedBy(user))
+        return getProjectIfAllowedToManage(user, projectId)
                 .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
                     pipeline.setWorkspaceConfigurationMode(mode);
                     return ResponseEntity.ok(mode); // just _some_ value
@@ -1146,12 +1134,7 @@ public class ProjectsController {
 
     @DeleteMapping("projects/{projectId}")
     public ResponseEntity<String> delete(User user, @PathVariable("projectId") String projectId) {
-        var project = winslow
-                .getProjectRepository()
-                .getProject(projectId)
-                .unsafe()
-                .filter(p -> p.canBeManagedBy(user));
-
+        var project = getProjectIfAllowedToManage(user, projectId);
         if (project.isPresent()) {
             var exclusive = winslow.getProjectRepository().getProject(projectId).exclusive();
 
@@ -1306,6 +1289,16 @@ public class ProjectsController {
                 .filter(project -> project.canBeAccessedBy(user));
     }
 
+    private Optional<Project> getProjectIfAllowedToManage(
+            @Nonnull User user,
+            @PathVariable("projectId") String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .filter(project -> project.canBeManagedBy(user));
+    }
+
     @Deprecated(forRemoval = true)
     @GetMapping("projects/{projectId}/stats")
     public Stream<StatsInfo> getStats(User user, @PathVariable("projectId") String projectId) {
@@ -1361,7 +1354,7 @@ public class ProjectsController {
                 .exclusive()
                 .flatMap(container -> {
                     try (container) {
-                        return container.getNoThrow().filter(p -> p.canBeAccessedBy(user)).map(project -> {
+                        return container.getNoThrow().filter(p -> p.canBeManagedBy(user)).map(project -> {
                             try {
                                 project.setResourceLimitation(limitation);
                                 container.update(project);
@@ -1381,7 +1374,7 @@ public class ProjectsController {
             @Nonnull User user,
             @PathVariable("projectId") String projectId
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return getProjectIfAllowedToManage(user, projectId)
                 .stream()
                 .flatMap(p -> {
                     var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
@@ -1396,7 +1389,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @RequestParam("name") String name
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return getProjectIfAllowedToManage(user, projectId)
                 .flatMap(p -> {
                     var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
 
@@ -1427,7 +1420,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId,
             @PathVariable("tokenId") String tokenId
     ) {
-        return getProjectIfAllowedToAccess(user, projectId)
+        return getProjectIfAllowedToManage(user, projectId)
                 .flatMap(p -> {
                     var handle = winslow.getProjectAuthTokenRepository().getAuthTokens(projectId);
                     return handle.exclusive().map(exclusive -> {
