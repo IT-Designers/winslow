@@ -42,6 +42,7 @@ import {
   WorkspaceConfiguration,
   WorkspaceMode
 } from '../api/winslow-api';
+import {UserApiService} from '../api/user-api.service';
 
 
 @Component({
@@ -263,6 +264,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       }
     }
     this.sortGroups();
+    /*if (this.myName !== '' && this.amIAdmin !== undefined) {
+      this.userApi.hasSuperPrivileges(this.myName)
+        .then((result) => {
+          console.log('Is user ' + this.myName + ' a Superuser? ' + result);
+          this.amIAdmin = result;
+        });
+    }*/
   }
 
   ngAfterViewInit() {

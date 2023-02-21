@@ -352,6 +352,7 @@
           [tokens]="authTokens"
           (create)="createAuthToken($event)"
           (delete)="deleteAuthToken($event.id)"
+          [canUserEdit]="canIEditProject(project)"
         ></app-auth-tokens>
       </div><!--Authentication Tokens-->
 
@@ -451,7 +452,13 @@
       <div class="whitespace-separator separator-line"></div>
 
       <div class="stage-control-item whitespace-separator-top"><!--Delete Button-->
-        <button class="whitespace-separator-top" mat-raised-button color="warn" (click)="delete()">Delete</button>
+        <button class="whitespace-separator-top"
+                mat-raised-button
+                color="warn"
+                (click)="delete()"
+                [disabled]="!canIEditProject(project)">
+          Delete
+        </button>
       </div><!--Delete Button-->
     </ng-template>
   </mat-tab>

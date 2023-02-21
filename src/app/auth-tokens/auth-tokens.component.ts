@@ -10,6 +10,7 @@ import {AuthTokenInfo} from '../api/winslow-api';
 export class AuthTokensComponent implements OnInit {
 
   @Input() tokens: AuthTokenInfo[] = null;
+  @Input() canUserEdit = false;
   @Output('create') createEmitter = new EventEmitter<string>();
   @Output('delete') deleteEmitter = new EventEmitter<AuthTokenInfo>();
 
