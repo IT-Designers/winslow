@@ -43,6 +43,7 @@ import {
   WorkspaceConfiguration,
   WorkspaceMode
 } from '../api/winslow-api';
+import {UserApiService} from '../api/user-api.service';
 
 
 @Component({
@@ -58,7 +59,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
               private dialog: DialogService,
               private route: ActivatedRoute,
               private router: Router,
-              private groupApi: GroupApiService) {
+              private groupApi: GroupApiService,
+              private userApi: UserApiService) {
     this.setHistoryListHeight(window.innerHeight);
   }
 
@@ -172,6 +174,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   selectedHistoryEntryIndex = 0;
   selectedHistoryEntryStage: StageInfo;
 
+  amIAdmin: boolean;
   projectGroups: Link[];
   myGroupnames: string[];
   showGroupList = false;
@@ -247,6 +250,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       .then((groups) => this.myGroupnames = groups.map(x => x.name));
     this.projectGroups = Array.from(this.project.groups);
     this.sortGroups();
+
+    this.userApi.getSelfUserName()
+      .then((name) => {
+        this.userApi.hasSuperPrivileges(name)
+          .then((result) => {
+            this.amIAdmin = result;
+          });
+      });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -262,6 +273,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       }
     }
     this.sortGroups();
+    /*if (this.myName !== '' && this.amIAdmin !== undefined) {
+      this.userApi.hasSuperPrivileges(this.myName)
+        .then((result) => {
+          console.log('Is user ' + this.myName + ' a Superuser? ' + result);
+          this.amIAdmin = result;
+        });
+    }*/
   }
 
   ngAfterViewInit() {
@@ -651,17 +669,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   canIEditProject(project: ProjectInfo) {
-    // tslint:disable-next-line:prefer-for-of
-    for (let i = 0; i < project.groups.length; i++) {
-      if (this.myGroupnames.includes(project.groups[i].name)) {
-        if (project.groups[i].role === 'OWNER') {
-          return true;
-        } else {
-          return false;
+    if (!this.amIAdmin) {
+      // tslint:disable-next-line:prefer-for-of
+      for (let i = 0; i < project.groups.length; i++) {
+        if (this.myGroupnames) {
+          if (this.myGroupnames.includes(project.groups[i].name)) {
+            if (project.groups[i].role === 'OWNER') {
+              return true;
+            } else {
+              return false;
+            }
+          } else {
+            return false;
+          }
         }
-      } else {
-        return false;
       }
+    } else {
+      return true;
     }
   }
   getColor(group) {
