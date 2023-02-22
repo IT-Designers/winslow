@@ -9,7 +9,7 @@ export class DiagramInitialData {
     let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
     delete pipelineInfo.userInput.requiredEnvVariables;
-    nodes[pipelineInfo.id] = {
+    nodes[pipelineInfo.id] = {    //first node - PipelineDefInfo
       id: pipelineInfo.id,
       typeId: "node-start",
       diagramMakerData: {
@@ -19,7 +19,7 @@ export class DiagramInitialData {
       // @ts-ignore
       consumerData: pipelineInfo
     };
-    for (let i = 0; i < pipelineDefinition.stages.length; i++) {
+    for (let i = 0; i < pipelineDefinition.stages.length; i++) {    //All other Stages and Gateways
       let nodeType : String;
       if (pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
       else if(pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
@@ -40,7 +40,7 @@ export class DiagramInitialData {
         consumerData: pipelineDefinition.stages[i]
       };
       if (i < (pipelineDefinition.stages.length - 1)) {
-        for(let u = 0; u < pipelineDefinition.stages[i].nextStages.length; u++){
+        for(let u = 0; u < pipelineDefinition.stages[i].nextStages.length; u++){    //edges created by stage.nextStages Array
           edges[`edge${i}-${u}`] = {
             id: `edge${i}-${u}`,
             src: pipelineDefinition.stages[i].id,
@@ -50,7 +50,7 @@ export class DiagramInitialData {
         }
       }
     }
-    edges["edgeStart"] = {
+    edges["edgeStart"] = {    //first edge from PipelineDef to the first stage
       id: 'edgeStart',
       src: pipelineInfo.id,
       dest: pipelineDefinition.stages[0].id,
@@ -62,13 +62,13 @@ export class DiagramInitialData {
       nodes,
       edges,
       panels: {
-        library: {
+        library: {    //edit-board data
           id: 'library',
           position: {x: 10, y: 10},
           size: {width: 320, height: 400},
           positionAnchor: PositionAnchor.TOP_RIGHT,
         },
-        tools: {
+        tools: {      //add Elements board data
           id: 'tools',
           position: {x: 10, y: 10},
           size: {width: 650, height: 46},

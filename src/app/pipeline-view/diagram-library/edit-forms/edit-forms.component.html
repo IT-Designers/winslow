@@ -3,7 +3,7 @@
     <ng-container *ngFor="let entry of formMap$ | keyvalue:keepOriginalOrder ; index as i">
       <tr>
     <span *ngIf="toDisplayProp(entry.key) && isNotObject(entry.value)" class="val-string">
-      <td>{{entry.key}}</td>
+      <td> <mat-icon *ngIf="isInsideArray(entry.value)" title="Delete Entity from Array" class="delete-icon" (click)="deleteContent(entry)"> remove_circle </mat-icon> {{entry.key}} </td>
       <td> <input (focusout)="triggerSaveData()" formControlName="{{entry.key}}"> </td>
     </span>
       </tr>
@@ -14,7 +14,6 @@
             <mat-icon class="icon" (click)="extendData(i)" *ngIf="extended[i]">keyboard_arrow_down</mat-icon>
             <div (click)="extendData(i)">{{entry.key}} </div>
             <mat-icon title="Add Entity to Array" *ngIf="isArray(entry.value)" class="icon" (click)="addContent(entry)">add_box</mat-icon>
-            <mat-icon title="Delete last Entity from Array" *ngIf="isArray(entry.value)" class="icon delete-icon" (click)="deleteContent(entry)">remove_circle</mat-icon>
           </span>
           <div *ngIf="entry.value != null" [hidden]="!extended[i]">
             <app-edit-forms

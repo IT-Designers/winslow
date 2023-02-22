@@ -19,7 +19,6 @@ export class DiagramLibraryComponent implements OnInit {
   @Output() diagramApiCall = new EventEmitter();
   selectedNode$?: DiagramMakerNode<StageDefinitionInfo>;
   savedData : boolean = true;
-  //formHtmlMap : Map<string, object> = new Map();
   formObj : Object = {};
 
   @ViewChild('form') childForm;
@@ -32,11 +31,6 @@ export class DiagramLibraryComponent implements OnInit {
   @Input()
   set selectedNode(selectedNode: DiagramMakerNode<StageDefinitionInfo>) {
       this.selectedNode$ = selectedNode;
-      //this.formHtmlMap = new Map();
-      //for (const key of Object.keys(this.selectedNode$.consumerData)) {
-      //  this.formHtmlMap.set(key, this.selectedNode$.consumerData[key]);
-      //}
-      //console.log(this.formHtmlMap);
       this.formObj = {} as StageDefinitionInfoUnion;
       this.formObj = JSON.parse(JSON.stringify(this.selectedNode$.consumerData));
       console.log(this.formObj);
@@ -45,20 +39,18 @@ export class DiagramLibraryComponent implements OnInit {
   set saveStatus(saveStatus : boolean){
     this.savedData = saveStatus;
   };
-  onApiCall(action : String){
+  onApiCall(action : String){       //used when clicking on the function icons e.g. save, undo...
     if (action == "save"){this.savedData = true;}
     this.diagramApiCall.emit(action);
   }
-  startSave(){
+  startSave(){          //starts the save on top level of the recursion of edit-forms
     this.childForm.sendFormData();
   }
-  saveEdit(savedForm : Object){
-    console.log(this.formObj)
+  saveEdit(savedForm : Object){   //receives the chaneged data from the edit-forms and saves it in the board and in the node
     this.formObj = savedForm[1] as StageDefinitionInfoUnion;
-    console.log(this.formObj)
     this.editNode.emit(this.formObj);
   }
-  cancelEdit() {
+  cancelEdit() {          //unloads the edit-node when clicking on the X-Icon
     this.selectedNode$ = undefined;
     this.resetSelectedNode.emit();
   }
