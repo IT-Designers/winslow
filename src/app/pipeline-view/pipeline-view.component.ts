@@ -127,7 +127,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         const createAction = action as CreateNodeAction<any>;
         if (createAction.payload.typeId == 'node-normal' || createAction.payload.typeId == 'node-start') {
           let stageData : StageWorkerDefinitionInfo;
-          this.defaultGetter.getWorkerDefinition().then((data) => {
+          this.defaultGetter.getWorkerDefinition().then((data) => {   //get default Stage/Gatewaydata from the api
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -245,7 +245,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
   }
 
-  editState(editForm) {
+  editState(editForm) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -270,7 +270,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  createElement(stageData, createAction){
+  createElement(stageData, createAction){ //helper function used for the intercepted createNode Actions
     let nodeWidth : number;
     if (createAction.payload.typeId == 'node-normal'){nodeWidth = 200}
     else {nodeWidth = 150}
@@ -301,7 +301,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.config,
         {
           initialData: this.initialData,
-          consumerRootReducer: (state: any, action: any) => {
+          consumerRootReducer: (state: any, action: any) => {   //new action for diagramMaker to update the consumerData when editing a node
             switch (action.type) {
               case 'UPDATE_NODE':
                 const newNode: any = {};
@@ -323,7 +323,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy(): void {     //code to save the workflow (in the frontend) e.g. while switching tabs
     this.pipelineDefinition.stages = [];
     const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
     const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
@@ -345,7 +345,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.pipelineDefinition.stages[index].nextStages.push(edge.dest);
       }
     }
-    if (this.diagramEditorContainer.nativeElement != null) {
+    if (this.diagramEditorContainer.nativeElement != null) {    //diagrammaker unload/destroy
       this.diagramMaker.destroy();
       console.log("destroyed")
     }

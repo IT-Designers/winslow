@@ -40,7 +40,7 @@ export class DiagramConfigHelper {
     return nodeTypes;
   }
 
-  getApiSwitch(action , diagramMaker) {
+  getApiSwitch(action , diagramMaker) {   //used by the function icons in the edit board
     {
       switch (action) {
         case 'fit':
