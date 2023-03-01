@@ -4,9 +4,9 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.*;
-import de.itdesigners.winslow.api.pipeline.LogSource;
-import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.LogEntry;
+import de.itdesigners.winslow.StageHandle;
+import de.itdesigners.winslow.api.pipeline.LogSource;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
 
@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,8 +37,8 @@ public class DockerStageHandle implements StageHandle {
     private final @Nonnull Deque<LogEntry> logs      = new ConcurrentLinkedDeque<>();
     private final @Nonnull Set<Closeable>  closeable = new HashSet<>();
 
-    private           boolean started     = false;
-    private           boolean gone        = false;
+    private           boolean   started     = false;
+    private           boolean   gone        = false;
     private @Nullable State     state       = State.PREPARING;
     private @Nullable StatsInfo stats       = null;
     private @Nullable String    containerId = null;
@@ -52,15 +53,36 @@ public class DockerStageHandle implements StageHandle {
         runAndCatchRuntimeExceptionsInNewThread(() -> {
             pullImageAndThenStartContainer(createContainerCmd.getImage());
             containerId = createContainer(createContainerCmd);
-            setupStatsListener(containerId);
-            startContainer(containerId);
+
+            LOG.info(stageId + ": setupLogListener");
             setupLogListener(containerId);
+            LOG.info(stageId + ": setupStatsListener");
+            setupStatsListener(containerId);
+
+            LOG.info(stageId + ": startContainer");
+            startContainer(containerId);
+
+            LOG.info(stageId + ": setupExecutionResultListener");
+            setupExecutionResultListener(containerId);
+
+            LOG.info(stageId + ": start completed");
         });
     }
 
     private void onListenerFailed() {
         this.gone  = true;
         this.state = State.FAILED;
+    }
+
+    private void runAndCatchRuntimeExceptionsInNewThreadWaitFor(@Nonnull Consumer<WaitForClose> fn) {
+        try (final var wfc = new WaitForClose()) {
+            runAndCatchRuntimeExceptionsInNewThread(() -> {
+                try (wfc) {
+                    fn.accept(wfc);
+                }
+            });
+            wfc.awaitClose();
+        }
     }
 
     private void runAndCatchRuntimeExceptionsInNewThread(@Nonnull Runnable fn) {
@@ -155,110 +177,124 @@ public class DockerStageHandle implements StageHandle {
         }
     }
 
-    private void setupLogListener(@Nonnull String containerId) {
-        try (var cmd = this.backend.getDockerClient().logContainerCmd(containerId)) {
-            cmd
-                    .withStdOut(true)
-                    .withStdErr(true)
-                    .withFollowStream(true)
-                    .withTailAll()
-                    .withTimestamps(DOCKER_LOGS_WITH_TIMESTAMP)
-                    .exec(new ResultCallback.Adapter<>() {
-                        @Override
-                        public void onStart(Closeable stream) {
-                            super.onStart(stream);
-                            DockerStageHandle.this.closeable.add(this);
-                            DockerStageHandle.this.started = true;
-                            DockerStageHandle.this.state   = State.RUNNING;
-                        }
-
-                        @Override
-                        public void onNext(Frame frame) {
-                            var message = new String(frame.getPayload(), StandardCharsets.UTF_8).trim();
-                            var time = DOCKER_LOGS_WITH_TIMESTAMP
-                                       ? Instant
-                                               .parse(message.substring(0, DOCKER_LOGS_TIMESTAMP_LENGTH))
-                                               .toEpochMilli()
-                                       : System.currentTimeMillis();
-                            message = DOCKER_LOGS_WITH_TIMESTAMP
-                                      ? message.substring(DOCKER_LOGS_TIMESTAMP_LENGTH).trim()
-                                      : message;
-
-                            if (frame.getStreamType() == StreamType.STDERR || frame.getStreamType() == StreamType.STDOUT) {
-                                log(
-                                        time,
-                                        LogSource.STANDARD_IO,
-                                        frame.getStreamType() == StreamType.STDERR,
-                                        message
-                                );
-                            } else {
-                                log(message, frame.getStreamType() == StreamType.STDERR);
+    private void setupExecutionResultListener(@Nonnull String containerId) {
+        runAndCatchRuntimeExceptionsInNewThreadWaitFor(flag -> {
+            try (var cmd = DockerStageHandle.this.backend
+                    .getDockerClient()
+                    .waitContainerCmd(containerId)) {
+                cmd
+                        .exec(new ResultCallback.Adapter<>() {
+                            @Override
+                            public void onStart(Closeable stream) {
+                                super.onStart(stream);
+                                DockerStageHandle.this.closeable.add(this);
+                                flag.close();
                             }
-                        }
 
-                        @Override
-                        public void onComplete() {
-                            super.onComplete();
-                            DockerStageHandle.this.closeable.remove(this);
-                            runAndCatchRuntimeExceptionsInNewThread(() -> {
-                                try (var cmd = DockerStageHandle.this.backend
-                                        .getDockerClient()
-                                        .waitContainerCmd(containerId)) {
-                                    cmd
-                                            .exec(new Adapter<>() {
-                                                @Override
-                                                public void onStart(Closeable stream) {
-                                                    super.onStart(stream);
-                                                    DockerStageHandle.this.closeable.add(this);
-                                                }
-
-                                                @Override
-                                                public void onNext(WaitResponse object) {
-                                                    if (object.getStatusCode() == 0) {
-                                                        DockerStageHandle.this.state = State.SUCCEEDED;
-                                                    } else {
-                                                        DockerStageHandle.this.state = State.FAILED;
-                                                        DockerStageHandle.this.gone  = object.getStatusCode() == null;
-                                                        logErr("Non successful exit code: " + object.getStatusCode());
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onComplete() {
-                                                    super.onComplete();
-                                                    DockerStageHandle.this.closeable.remove(this);
-                                                }
-                                            })
-                                            .awaitCompletion();
-                                } catch (InterruptedException | RuntimeException e) {
-                                    logErr("Exit code could not be retrieved, container cleaned up too fast");
-                                    LOG.log(Level.WARNING, "Failed to wait for container result", e);
+                            @Override
+                            public void onNext(WaitResponse object) {
+                                if (object.getStatusCode() == 0) {
+                                    DockerStageHandle.this.state = State.SUCCEEDED;
+                                } else {
                                     DockerStageHandle.this.state = State.FAILED;
-                                    DockerStageHandle.this.gone  = true;
-                                    if (e instanceof RuntimeException re) {
-                                        throw re;
-                                    } else {
-                                        throw new RuntimeException(e.getMessage(), e);
-                                    }
+                                    DockerStageHandle.this.gone  = object.getStatusCode() == null;
+                                    logErr("Non successful exit code: " + object.getStatusCode());
                                 }
-                            });
-                        }
+                            }
 
-                        @Override
-                        public void onError(Throwable throwable) {
-                            super.onError(throwable);
-                            LOG.log(Level.WARNING, "Log listener failed", throwable);
-                            DockerStageHandle.this.onListenerFailed();
-                        }
-                    })
-                    .awaitStarted();
-        } catch (InterruptedException e) {
-            LOG.log(Level.WARNING, "Failed to start stats listener", e);
-            throw new RuntimeException(e);
-        } catch (DockerException e) {
-            LOG.log(Level.WARNING, "Failed to start log listener", e);
-            throw e;
-        }
+                            @Override
+                            public void onComplete() {
+                                super.onComplete();
+                                DockerStageHandle.this.closeable.remove(this);
+                            }
+
+                            @Override
+                            public void onError(Throwable throwable) {
+                                super.onError(throwable);
+                                LOG.log(Level.WARNING, "Result listener failed", throwable);
+                                DockerStageHandle.this.onListenerFailed();
+                            }
+                        })
+                        .awaitCompletion();
+            } catch (InterruptedException | RuntimeException e) {
+                logErr("Exit code could not be retrieved, container cleaned up too fast");
+                LOG.log(Level.WARNING, "Failed to wait for container result", e);
+                DockerStageHandle.this.state = State.FAILED;
+                DockerStageHandle.this.gone  = true;
+                if (e instanceof RuntimeException re) {
+                    throw re;
+                } else {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+        });
+    }
+
+    private void setupLogListener(@Nonnull String containerId) {
+        runAndCatchRuntimeExceptionsInNewThreadWaitFor(flag -> {
+            try (var cmd = this.backend.getDockerClient().logContainerCmd(containerId)) {
+                cmd
+                        .withStdOut(true)
+                        .withStdErr(true)
+                        .withFollowStream(true)
+                        .withTailAll()
+                        .withTimestamps(DOCKER_LOGS_WITH_TIMESTAMP)
+                        .exec(new ResultCallback.Adapter<>() {
+                            @Override
+                            public void onStart(Closeable stream) {
+                                super.onStart(stream);
+                                DockerStageHandle.this.closeable.add(this);
+                                DockerStageHandle.this.started = true;
+                                DockerStageHandle.this.state   = State.RUNNING;
+                                flag.close();
+                            }
+
+                            @Override
+                            public void onNext(Frame frame) {
+                                var message = new String(frame.getPayload(), StandardCharsets.UTF_8).trim();
+                                var time = DOCKER_LOGS_WITH_TIMESTAMP
+                                           ? Instant
+                                                   .parse(message.substring(0, DOCKER_LOGS_TIMESTAMP_LENGTH))
+                                                   .toEpochMilli()
+                                           : System.currentTimeMillis();
+                                message = DOCKER_LOGS_WITH_TIMESTAMP
+                                          ? message.substring(DOCKER_LOGS_TIMESTAMP_LENGTH).trim()
+                                          : message;
+
+                                if (frame.getStreamType() == StreamType.STDERR || frame.getStreamType() == StreamType.STDOUT) {
+                                    log(
+                                            time,
+                                            LogSource.STANDARD_IO,
+                                            frame.getStreamType() == StreamType.STDERR,
+                                            message
+                                    );
+                                } else {
+                                    log(message, frame.getStreamType() == StreamType.STDERR);
+                                }
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                super.onComplete();
+                                DockerStageHandle.this.closeable.remove(this);
+                            }
+
+                            @Override
+                            public void onError(Throwable throwable) {
+                                super.onError(throwable);
+                                LOG.log(Level.WARNING, "Log listener failed", throwable);
+                                DockerStageHandle.this.onListenerFailed();
+                            }
+                        })
+                        .awaitCompletion();
+            } catch (InterruptedException e) {
+                LOG.log(Level.WARNING, "Failed to start stats listener", e);
+                throw new RuntimeException(e);
+            } catch (DockerException e) {
+                LOG.log(Level.WARNING, "Failed to start log listener", e);
+                throw e;
+            }
+        });
     }
 
     private void startContainer(@Nonnull String containerId) {
@@ -271,85 +307,88 @@ public class DockerStageHandle implements StageHandle {
     }
 
     private void setupStatsListener(@Nonnull String containerId) {
-        try (var cmd = this.backend.getDockerClient().statsCmd(containerId)) {
-            cmd
-                    .withNoStream(false)
-                    .exec(new ResultCallback.Adapter<>() {
-                        @Override
-                        public void onStart(Closeable stream) {
-                            super.onStart(stream);
-                            DockerStageHandle.this.closeable.add(this);
-                        }
+        runAndCatchRuntimeExceptionsInNewThreadWaitFor(flag -> {
+            try (var cmd = this.backend.getDockerClient().statsCmd(containerId)) {
+                cmd
+                        .withNoStream(false)
+                        .exec(new ResultCallback.Adapter<>() {
+                            @Override
+                            public void onStart(Closeable stream) {
+                                super.onStart(stream);
+                                DockerStageHandle.this.closeable.add(this);
+                                flag.close();
+                            }
 
-                        @Override
-                        public void onNext(Statistics stats) {
-                            // https://github.com/moby/moby/blob/801230ce315ef51425da53cc5712eb6063deee95/api/types/stats.go#L23
-                            var totalCpuUsage = Optional
-                                    .ofNullable(stats.getCpuStats())
-                                    .map(CpuStatsConfig::getCpuUsage)
-                                    .map(CpuUsageConfig::getTotalUsage)
-                                    .orElse(0L);
+                            @Override
+                            public void onNext(Statistics stats) {
+                                // https://github.com/moby/moby/blob/801230ce315ef51425da53cc5712eb6063deee95/api/types/stats.go#L23
+                                var totalCpuUsage = Optional
+                                        .ofNullable(stats.getCpuStats())
+                                        .map(CpuStatsConfig::getCpuUsage)
+                                        .map(CpuUsageConfig::getTotalUsage)
+                                        .orElse(0L);
 
-                            var preCpuUsage = Optional
-                                    .ofNullable(stats.getPreCpuStats())
-                                    .map(CpuStatsConfig::getCpuUsage)
-                                    .map(CpuUsageConfig::getTotalUsage)
-                                    .orElse(0L);
+                                var preCpuUsage = Optional
+                                        .ofNullable(stats.getPreCpuStats())
+                                        .map(CpuStatsConfig::getCpuUsage)
+                                        .map(CpuUsageConfig::getTotalUsage)
+                                        .orElse(0L);
 
-                            var cpuUsageDelta            = totalCpuUsage - preCpuUsage;
-                            var cpuUsagePercentPerSecond = (double) cpuUsageDelta / 1_000_000_000.0;
+                                var cpuUsageDelta            = totalCpuUsage - preCpuUsage;
+                                var cpuUsagePercentPerSecond = (double) cpuUsageDelta / 1_000_000_000.0;
 
-                            var cpuMaxFreq = (double) DockerStageHandle.this.backend
-                                    .getPlatformInfo()
-                                    .getCpuSingleCoreMaxFrequencyMhz()
-                                    .map(Integer::doubleValue)
-                                    .orElse(1_000.0); // TODO assume something ...
+                                var cpuMaxFreq = (double) DockerStageHandle.this.backend
+                                        .getPlatformInfo()
+                                        .getCpuSingleCoreMaxFrequencyMhz()
+                                        .map(Integer::doubleValue)
+                                        .orElse(1_000.0); // TODO assume something ...
 
-                            DockerStageHandle.this.stats = new StatsInfo(
-                                    DockerStageHandle.this.stageId,
-                                    DockerStageHandle.this.backend.getNodeName(),
-                                    (float) (cpuMaxFreq * cpuUsagePercentPerSecond),
-                                    (float) cpuMaxFreq,
-                                    Optional
-                                            .ofNullable(stats.getMemoryStats())
-                                            .map(c -> Optional
-                                                    .ofNullable(c.getUsage())
-                                                    .orElse(0L)
-                                                    - Optional
-                                                    .ofNullable(c.getStats())
-                                                    .map(StatsConfig::getCache)
-                                                    .orElse(0L)
-                                            )
-                                            .orElse(0L),
-                                    Optional
-                                            .ofNullable(stats.getMemoryStats())
-                                            .map(MemoryStatsConfig::getLimit)
-                                            .orElse(0L)
-                            );
+                                DockerStageHandle.this.stats = new StatsInfo(
+                                        DockerStageHandle.this.stageId,
+                                        DockerStageHandle.this.backend.getNodeName(),
+                                        (float) (cpuMaxFreq * cpuUsagePercentPerSecond),
+                                        (float) cpuMaxFreq,
+                                        Optional
+                                                .ofNullable(stats.getMemoryStats())
+                                                .map(c -> Optional
+                                                        .ofNullable(c.getUsage())
+                                                        .orElse(0L)
+                                                        - Optional
+                                                        .ofNullable(c.getStats())
+                                                        .map(StatsConfig::getCache)
+                                                        .orElse(0L)
+                                                )
+                                                .orElse(0L),
+                                        Optional
+                                                .ofNullable(stats.getMemoryStats())
+                                                .map(MemoryStatsConfig::getLimit)
+                                                .orElse(0L)
+                                );
 
-                        }
+                            }
 
-                        @Override
-                        public void onComplete() {
-                            super.onComplete();
-                            DockerStageHandle.this.closeable.remove(this);
-                        }
+                            @Override
+                            public void onComplete() {
+                                super.onComplete();
+                                DockerStageHandle.this.closeable.remove(this);
+                            }
 
-                        @Override
-                        public void onError(Throwable throwable) {
-                            super.onError(throwable);
-                            LOG.log(Level.WARNING, "Stats listener failed", throwable);
-                            DockerStageHandle.this.onListenerFailed();
-                        }
-                    })
-                    .awaitStarted();
-        } catch (InterruptedException e) {
-            LOG.log(Level.WARNING, "Failed to start stats listener", e);
-            throw new RuntimeException(e);
-        } catch (DockerException e) {
-            LOG.log(Level.WARNING, "Failed to start stats listener", e);
-            throw e;
-        }
+                            @Override
+                            public void onError(Throwable throwable) {
+                                super.onError(throwable);
+                                LOG.log(Level.WARNING, "Stats listener failed", throwable);
+                                DockerStageHandle.this.onListenerFailed();
+                            }
+                        })
+                        .awaitCompletion();
+            } catch (InterruptedException e) {
+                LOG.log(Level.WARNING, "Failed to start stats listener", e);
+                throw new RuntimeException(e);
+            } catch (DockerException e) {
+                LOG.log(Level.WARNING, "Failed to start stats listener", e);
+                throw e;
+            }
+        });
     }
 
     private void logOut(@Nonnull String message) {
