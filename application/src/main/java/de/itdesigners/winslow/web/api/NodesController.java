@@ -1,15 +1,21 @@
 package de.itdesigners.winslow.web.api;
 
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.node.NodeInfo;
+import de.itdesigners.winslow.api.node.NodeResourceUsageConfiguration;
 import de.itdesigners.winslow.api.node.NodeUtilization;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import de.itdesigners.winslow.auth.Group;
+import de.itdesigners.winslow.auth.User;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -66,4 +72,62 @@ public class NodesController {
     }
 
 
+    /***
+     * @param name The name of the node to retrieve the configuration for
+     * @return The {@link NodeResourceUsageConfiguration} for the given node name
+     */
+    @Nonnull
+    @GetMapping("/nodes/{name}/resource-usage-configuration")
+    public Optional<NodeResourceUsageConfiguration> getNodeResourceUsageConfiguration(
+            @PathVariable("name") String name
+    ) {
+        return winslow
+                .getNodeRepository()
+                .getNodeResourceLimitConfiguration(name);
+    }
+
+    @PutMapping("/nodes/{name}/resource-usage-configuration")
+    public void setNodeResourceUsageConfiguration(
+            @Nullable User user,
+            @PathVariable("name") String name,
+            @RequestBody NodeResourceUsageConfiguration configuration
+    ) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        var canEdit = user.hasSuperPrivileges();
+
+        if (!canEdit) {
+            canEdit = winslow
+                    .getNodeRepository()
+                    .getNodeResourceLimitConfiguration(name)
+                    .map(limit -> {
+                        // all the groups the user ist part of
+                        var userGroups = user.getGroups().stream().map(Group::name).toList();
+
+                        return limit
+                                .groupLimits()
+                                .entrySet()
+                                .stream()
+                                // after this: all the entries (groups) that can edit the configuration
+                                .filter(e -> e.getValue().role() == Role.OWNER)
+                                .map(Map.Entry::getKey)
+                                .anyMatch(userGroups::contains);
+                    })
+                    .orElse(Boolean.FALSE);
+        }
+
+        if (canEdit) {
+            winslow
+                    .getNodeRepository()
+                    .setNodeResourceLimitConfiguration(
+                            name,
+                            configuration
+                    );
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+    }
 }
