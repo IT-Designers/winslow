@@ -2,6 +2,7 @@ package de.itdesigners.winslow;
 
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
+import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.asblr.*;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.auth.UserManager;
@@ -12,6 +13,7 @@ import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.gateway.GatewayBackend;
 import de.itdesigners.winslow.node.NodeRepository;
+import de.itdesigners.winslow.node.NodeResourceLimitFinder;
 import de.itdesigners.winslow.pipeline.*;
 import de.itdesigners.winslow.project.LogReader;
 import de.itdesigners.winslow.project.LogRepository;
@@ -389,15 +391,21 @@ public class Orchestrator implements Closeable, AutoCloseable {
                         var wouldExceedLimit = getProjectUnsafe(pipeline.getProjectId()).map(project -> {
                             var allocView = new DistributedAllocationView(project.getOwner(), pipeline.getProjectId());
 
-                            var settingsLimit = settings.getUserResourceLimitations().unsafe();
-                            var userLimit     = users.getUser(project.getOwner()).flatMap(User::getResourceLimitation);
+                            Stream.of(
+                                          settings.getUserResourceLimitations().unsafe(),
+                                          users.getUser(project.getOwner()).flatMap(User::getResourceLimitation),
+                                          nodes.getNodeResourceLimitConfiguration(nodeName).flatMap(conf -> {
+                                              var finder = new NodeResourceLimitFinder(conf);
+                                              return users
+                                                      .getUser(project.getOwner())
+                                                      .flatMap(finder::getAppliedLimit)
+                                                      .or(finder::getFallback);
+                                          })
+                                  )
+                                  .flatMap(Optional::stream)
+                                  .reduce(ResourceLimitation::min)
+                                  .ifPresent(allocView::setUserLimit);
 
-
-                            if (settingsLimit.isPresent() && userLimit.isPresent()) {
-                                allocView.setUserLimit(settingsLimit.get().min(userLimit.get()));
-                            } else {
-                                settingsLimit.or(() -> userLimit).ifPresent(allocView::setUserLimit);
-                            }
 
                             allocView.loadAllocInfo(
                                     nodes.loadActiveNodes().flatMap(info -> info.allocInfo().stream()),
