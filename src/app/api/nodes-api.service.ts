@@ -5,7 +5,11 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {AllocInfo, BuildInfo, CpuInfo, DiskInfo, GpuInfo, MemInfo, NetInfo, NodeInfo, NodeUtilization} from './winslow-api';
+import {
+  NodeInfo,
+  NodeResourceUsageConfiguration,
+  NodeUtilization
+} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -60,6 +64,34 @@ export class NodesApiService {
       .get<NodeUtilization[]>(NodesApiService.getUrl(
         nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
       ))
+      .toPromise();
+  }
+
+  /**
+   * Retrieves the `NodeResourceUsageConfiguration` for the given node name.
+   *
+   * @param nodeName The name of the node to return the configuration for
+   */
+  public getNodeResourceUsageConfiguration(nodeName: string): Promise<NodeResourceUsageConfiguration> {
+    return this.client
+      .get<NodeResourceUsageConfiguration>(
+        NodesApiService.getUrl(nodeName + '/resource-usage-configuration')
+      )
+      .toPromise();
+  }
+
+  /**
+   * Tries to update teh `NodeResourceUsageConfiguration` for the given node
+   *
+   * @param nodeName The name of the node to update the configuration for
+   * @param conf The new configuration to set
+   */
+  public setNodeResourceUsageConfiguration(nodeName: string, conf: NodeResourceUsageConfiguration): Promise<void> {
+    return this.client
+      .put<void>(
+        NodesApiService.getUrl(nodeName + '/resource-usage-configuration'),
+        conf
+      )
       .toPromise();
   }
 }
