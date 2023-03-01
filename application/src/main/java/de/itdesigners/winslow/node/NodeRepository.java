@@ -2,6 +2,7 @@ package de.itdesigners.winslow.node;
 
 import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.api.node.NodeInfo;
+import de.itdesigners.winslow.api.node.NodeResourceUsageConfiguration;
 import de.itdesigners.winslow.api.node.NodeUtilization;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
@@ -322,7 +323,7 @@ public class NodeRepository extends BaseRepository {
                     .filter(list -> !list.isEmpty())
                     .map(list -> {
                         var first = list.get(0);
-                        var last = list.get(list.size() - 1);
+                        var last  = list.get(list.size() - 1);
                         return NodeUtilization.average(first.time(), last.uptime(), list);
                     });
         } else {
@@ -360,5 +361,38 @@ public class NodeRepository extends BaseRepository {
                 fileName.length() - CSV_SUFFIX.length()
         );
         return Long.parseLong(timestamp);
+    }
+
+    @Nonnull
+    public Optional<NodeResourceUsageConfiguration> getNodeResourceLimitConfiguration(@Nonnull String nodeName) {
+        try {
+            var path = getNodeResourceLimitConfigurationPath(nodeName);
+
+            if (Files.exists(path)) {
+                return Optional.of(readFromFile(NodeResourceUsageConfiguration.class, path.toFile()));
+            } else {
+                return Optional.empty();
+            }
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to load resource usage configuration", e);
+            return Optional.of(NodeResourceLimitFinder.ONLY_FOR_PRIVILEGED);
+        }
+    }
+
+    public void setNodeResourceLimitConfiguration(
+            @Nonnull String nodeName,
+            @Nonnull NodeResourceUsageConfiguration configuration
+    ) {
+        try {
+            var path = getNodeResourceLimitConfigurationPath(nodeName);
+            writeToFile(configuration, path.toFile());
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to store resource usage configuration", e);
+        }
+    }
+
+    @Nonnull
+    private Path getNodeResourceLimitConfigurationPath(@Nonnull String nodeName) {
+        return getRepositoryDirectory().resolve(nodeName + ".resource-configuration.yaml");
     }
 }
