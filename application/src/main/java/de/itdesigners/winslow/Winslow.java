@@ -26,16 +26,16 @@ public class Winslow implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(Winslow.class.getSimpleName());
 
-    @Nonnull private final Orchestrator                 orchestrator;
-    @Nonnull private final WorkDirectoryConfiguration   configuration;
-    @Nonnull private final ResourceManager              resourceManager;
-    @Nonnull private final GroupManager                 groupManager;
-    @Nonnull private final UserManager                  userManager;
-    @Nonnull private final PipelineDefinitionRepository pipelineRepository;
-    @Nonnull private final ProjectRepository            projectRepository;
-    @Nonnull private final AuthTokenRepository          projectAuthTokenRepository;
-    @Nonnull private final NodeRepository               nodeRepository;
-    @Nonnull private final SettingsRepository           settingsRepository;
+    private final @Nonnull Orchestrator                 orchestrator;
+    private final @Nonnull WorkDirectoryConfiguration   configuration;
+    private final @Nonnull ResourceManager              resourceManager;
+    private final @Nonnull GroupManager                 groupManager;
+    private final @Nonnull UserManager                  userManager;
+    private final @Nonnull PipelineDefinitionRepository pipelineRepository;
+    private final @Nonnull ProjectRepository            projectRepository;
+    private final @Nonnull AuthTokenRepository          projectAuthTokenRepository;
+    private final @Nonnull NodeRepository               nodeRepository;
+    private final @Nonnull SettingsRepository           settingsRepository;
 
     public Winslow(
             @Nonnull Orchestrator orchestrator,
