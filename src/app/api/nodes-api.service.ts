@@ -5,7 +5,11 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {AllocInfo, BuildInfo, CpuInfo, DiskInfo, GpuInfo, MemInfo, NetInfo, NodeInfo, NodeUtilization} from './winslow-api';
+import {
+  NodeInfo,
+  NodeResourceUsageConfiguration,
+  NodeUtilization
+} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
