@@ -13,9 +13,9 @@ public record ResourceLimitation(
     @CheckReturnValue
     public ResourceLimitation min(@Nonnull ResourceLimitation other) {
         return new ResourceLimitation(
-                cpu == null ? other.cpu : Math.min(cpu, other.cpu != null ? other.cpu : Long.MAX_VALUE),
-                mem == null ? other.mem : Math.min(mem, other.mem != null ? other.mem : Long.MAX_VALUE),
-                gpu == null ? other.gpu : Math.min(gpu, other.gpu != null ? other.gpu : Long.MAX_VALUE)
+                cpu == null ? other.cpu : (Long)Math.min(cpu, other.cpu != null ? other.cpu : Long.MAX_VALUE),
+                mem == null ? other.mem : (Long)Math.min(mem, other.mem != null ? other.mem : Long.MAX_VALUE),
+                gpu == null ? other.gpu : (Long)Math.min(gpu, other.gpu != null ? other.gpu : Long.MAX_VALUE)
         );
     }
 }
