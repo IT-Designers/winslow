@@ -18,4 +18,14 @@ public record ResourceLimitation(
                 gpu == null ? other.gpu : (Long)Math.min(gpu, other.gpu != null ? other.gpu : Long.MAX_VALUE)
         );
     }
+
+    @Nonnull
+    @CheckReturnValue
+    public ResourceLimitation max(@Nonnull ResourceLimitation other) {
+        return new ResourceLimitation(
+                cpu == null ? other.cpu : (Long)Math.max(cpu, other.cpu != null ? other.cpu : 0L),
+                mem == null ? other.mem : (Long)Math.max(mem, other.mem != null ? other.mem : 0L),
+                gpu == null ? other.gpu : (Long)Math.max(gpu, other.gpu != null ? other.gpu : 0L)
+        );
+    }
 }
