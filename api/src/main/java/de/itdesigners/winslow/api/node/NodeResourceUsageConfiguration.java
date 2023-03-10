@@ -3,7 +3,7 @@ package de.itdesigners.winslow.api.node;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -23,7 +23,7 @@ import java.util.Optional;
 public record NodeResourceUsageConfiguration(
         boolean freeForAll,
         @Nonnull Optional<ResourceLimitation> globalLimit,
-        @Nonnull Map<String, GroupResourceLimitEntry> groupLimits
+        @Nonnull List<GroupResourceLimitEntry> groupLimits
 ) {
 }
 
