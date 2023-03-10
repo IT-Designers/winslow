@@ -21,7 +21,7 @@ public record NodeResourceLimitFinder(@Nonnull NodeResourceUsageConfiguration co
             0L, 0L, 0L
     );
     public static final @Nonnull NodeResourceUsageConfiguration ONLY_FOR_PRIVILEGED = new NodeResourceUsageConfiguration(
-            false, Optional.empty(), Collections.emptyMap()
+            false, Optional.empty(), Collections.emptyList()
     );
 
     /**
@@ -66,10 +66,8 @@ public record NodeResourceLimitFinder(@Nonnull NodeResourceUsageConfiguration co
             return Optional.of(
                     configuration
                             .groupLimits()
-                            .entrySet()
                             .stream()
-                            .filter(e -> Objects.equals(e.getKey(), group.name()))
-                            .map(Map.Entry::getValue)
+                            .filter(e -> Objects.equals(e.name(), group.name()))
                             .map(GroupResourceLimitEntry::resourceLimitation)
                             .findFirst()
                             // no entry means no access
