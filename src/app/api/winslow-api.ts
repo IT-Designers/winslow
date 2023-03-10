@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2023-03-01 16:30:21.
+// Generated using typescript-generator version 3.1.1185 on 2023-03-10 16:04:58.
 
 export class GroupInfo {
   name: string;
@@ -147,10 +147,12 @@ export class GpuUtilization {
 }
 
 export class GroupResourceLimitEntry {
+  name: string;
   role: Role;
   resourceLimitation: ResourceLimitation;
 
   constructor(data: GroupResourceLimitEntry) {
+    this.name = data.name;
     this.role = data.role;
     this.resourceLimitation = data.resourceLimitation;
   }
@@ -211,7 +213,7 @@ export class NodeInfo {
 export class NodeResourceUsageConfiguration {
   freeForAll: boolean;
   globalLimit?: ResourceLimitation;
-  groupLimits: Record<string, GroupResourceLimitEntry>;
+  groupLimits: GroupResourceLimitEntry[];
 
   constructor(data: NodeResourceUsageConfiguration) {
     this.freeForAll = data.freeForAll;
