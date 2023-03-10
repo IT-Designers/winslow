@@ -3,6 +3,7 @@ package de.itdesigners.winslow.web.api;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
+import de.itdesigners.winslow.api.node.GroupResourceLimitEntry;
 import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.api.node.NodeResourceUsageConfiguration;
 import de.itdesigners.winslow.api.node.NodeUtilization;
@@ -108,11 +109,10 @@ public class NodesController {
 
                         return limit
                                 .groupLimits()
-                                .entrySet()
                                 .stream()
                                 // after this: all the entries (groups) that can edit the configuration
-                                .filter(e -> e.getValue().role() == Role.OWNER)
-                                .map(Map.Entry::getKey)
+                                .filter(e -> e.role() == Role.OWNER)
+                                .map(GroupResourceLimitEntry::name)
                                 .anyMatch(userGroups::contains);
                     })
                     .orElse(Boolean.FALSE);
