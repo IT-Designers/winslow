@@ -17,7 +17,7 @@
            (keyup)="filterFunction()">-->
     <div class="scrollable">
       <div *ngIf="displayGroups.length > 0">
-        <div class="list-item" *ngFor="let group of displayGroups">
+        <div class="list-item" *ngFor="let group of nodeResourceAllocations.groupLimits">
           <div class="username-label">
             <mat-chip [style.background-color]="getChipColor(group)"
                       [matTooltip]="getTooltip(group)"
@@ -45,9 +45,9 @@
                   Resources:
                 </mat-panel-title>
                 <label class="resource-title-value">
-                  {{assignedCpuCores}}/{{mockCpuCores}} CPU Cores &nbsp;
-                  {{assignedGpus}}/{{mockGpus}} GPUs &nbsp;
-                  {{assignedMemory}}/{{(mockMaxMemory/1024).toFixed()}} GiB &nbsp;
+                  {{group.resourceLimitation.cpu}}/{{maxCpuCores}} CPU Cores
+                  {{group.resourceLimitation.gpu}}/{{maxGpus}} GPUs &nbsp;
+                  {{getMemoryString(group.resourceLimitation.mem)}}/{{(maxMemory/1024).toFixed()}} GiB &nbsp;
                 </label>
               </mat-expansion-panel-header>
               <div class="expansion-content-container">
@@ -57,22 +57,19 @@
                     <input type="number"
                            matInput
                            min="0"
-                           max="{{mockCpuCores}}"
-                           placeholder="CPU Cores"
-                           [(ngModel)]="assignedCpuCores"
-                           [formControl]="cpuFormControl"
-                           [errorStateMatcher]="matcher"
-                           [disabled]="isServerFFA">
+                           max="{{maxCpuCores}}"
+                           [disabled]="isServerFFA"
+                           [(ngModel)]="group.resourceLimitation.cpu">
                     <mat-error *ngIf="cpuFormControl.hasError('max')">
-                      There are only {{mockCpuCores}} cores available
+                      There are only {{maxCpuCores}} cores available
                     </mat-error>
                   </mat-form-field>
                   <mat-slider class="slider"
                               min="0"
-                              max="{{mockCpuCores}}"
+                              max="{{maxCpuCores}}"
                               step="1"
-                              (input)="cpuHasChanged($event)"
-                              [(ngModel)]="assignedCpuCores"
+                              (input)="cpuHasChanged($event, group)"
+                              [(ngModel)]="group.resourceLimitation.cpu"
                               [disabled]="isServerFFA">
                     <input>
                   </mat-slider>
@@ -83,22 +80,20 @@
                     <input type="number"
                            matInput
                            min="0"
-                           max="{{mockGpus}}"
+                           max="{{maxGpus}}"
                            placeholder="GPUs"
-                           [(ngModel)]="assignedGpus"
-                           [formControl]="gpuFormControl"
-                           [errorStateMatcher]="matcher"
-                           [disabled]="isServerFFA">
+                           [disabled]="isServerFFA"
+                           [(ngModel)]="group.resourceLimitation.gpu">
                     <mat-error>
-                      There are only {{mockGpus}} GPUs available
+                      There are only {{maxGpus}} GPUs available
                     </mat-error>
                   </mat-form-field>
                   <mat-slider class="slider"
                               min="0"
-                              max="{{mockGpus}}"
+                              max="{{maxGpus}}"
                               step="1"
-                              (input)="gpuHasChanged($event)"
-                              [(ngModel)]="assignedGpus"
+                              (input)="gpuHasChanged($event, group)"
+                              [(ngModel)]="group.resourceLimitation.gpu"
                               [disabled]="isServerFFA">
                     <input>
                   </mat-slider>
@@ -109,23 +104,21 @@
                     <input type="number"
                            matInput
                            min="0"
-                           max="{{mockMaxMemory}}"
+                           max="{{maxMemory}}"
                            placeholder="Memory (MiB)"
-                           [ngModel]="assignedMemoryNumber"
                            (change)="memoryInputHasChanged($event)"
-                           [formControl]="memoryFormControl"
-                           [errorStateMatcher]="matcher"
-                           [disabled]="isServerFFA">
+                           [disabled]="isServerFFA"
+                           [(ngModel)]="group.resourceLimitation.mem">
                     <mat-error>
-                      There are only {{mockMaxMemory / 1024}} GiB of Memory available
+                      There are only {{maxMemory / 1024}} GiB of Memory available
                     </mat-error>
                   </mat-form-field>
                   <mat-slider class="slider"
                               min="0"
-                              max="{{mockMaxMemory}}"
+                              max="{{maxMemory}}"
                               step="256"
-                              (input)="memorySliderHasChanged($event)"
-                              [(ngModel)]="assignedMemoryNumber"
+                              (input)="memorySliderHasChanged($event, group)"
+                              [(ngModel)]="group.resourceLimitation.mem"
                               [disabled]="isServerFFA">
                     <input>
                   </mat-slider>
@@ -166,21 +159,20 @@
   <div class="ffa-container">
     <div class="label-and-checkbox-container">
       <label class="ffa-label">Free For All Server: </label>
-      <mat-checkbox [(ngModel)]="isServerFFA">
-
+      <mat-checkbox [(ngModel)]="nodeResourceAllocations.freeForAll">
       </mat-checkbox>
     </div>
     <div class="ffa-accordion-container">
       <mat-accordion class="ffa-accordion">
-        <mat-expansion-panel [disabled]="!isServerFFA" [expanded]="isServerFFA">
+        <mat-expansion-panel [disabled]="!nodeResourceAllocations.freeForAll" [expanded]="nodeResourceAllocations.freeForAll">
           <mat-expansion-panel-header>
             <mat-panel-title>
               Max. Resources per User:
             </mat-panel-title>
             <label class="resource-title-value">
-              {{assignedCpuCores}}/{{mockCpuCores}} CPU Cores &nbsp;
-              {{assignedGpus}}/{{mockGpus}} GPUs &nbsp;
-              {{assignedMemory}}/{{(mockMaxMemory/1024).toFixed()}} GiB &nbsp;
+              {{nodeResourceAllocations.globalLimit.cpu}}/{{maxCpuCores}} CPU Cores &nbsp;
+              {{nodeResourceAllocations.globalLimit.gpu}}/{{maxGpus}} GPUs &nbsp;
+              {{assignedMemoryStringFFA}}/{{(maxMemory/1024).toFixed()}} GiB &nbsp;
             </label>
           </mat-expansion-panel-header>
           <div class="expansion-content-container">
@@ -190,21 +182,19 @@
                 <input type="number"
                        matInput
                        min="0"
-                       max="{{mockCpuCores}}"
+                       max="{{maxCpuCores}}"
                        placeholder="CPU Cores"
-                       [(ngModel)]="assignedCpuCores"
-                       [formControl]="cpuFormControl"
-                       [errorStateMatcher]="matcher">
+                       [(ngModel)]="nodeResourceAllocations.globalLimit.cpu">
                 <mat-error *ngIf="cpuFormControl.hasError('max')">
-                  There are only {{mockCpuCores}} cores available
+                  There are only {{maxCpuCores}} cores available
                 </mat-error>
               </mat-form-field>
               <mat-slider class="slider"
                           min="0"
-                          max="{{mockCpuCores}}"
+                          max="{{maxCpuCores}}"
                           step="1"
-                          (input)="cpuHasChanged($event)"
-                          [(ngModel)]="assignedCpuCores">
+                          (input)="cpuHasChangedFFA($event)"
+                          [(ngModel)]="nodeResourceAllocations.globalLimit.cpu">
                 <input>
               </mat-slider>
             </div>
@@ -214,21 +204,19 @@
                 <input type="number"
                        matInput
                        min="0"
-                       max="{{mockGpus}}"
+                       max="{{maxGpus}}"
                        placeholder="GPUs"
-                       [(ngModel)]="assignedGpus"
-                       [formControl]="gpuFormControl"
-                       [errorStateMatcher]="matcher">
+                       [(ngModel)]="nodeResourceAllocations.globalLimit.gpu">
                 <mat-error>
-                  There are only {{mockGpus}} GPUs available
+                  There are only {{maxGpus}} GPUs available
                 </mat-error>
               </mat-form-field>
               <mat-slider class="slider"
                           min="0"
-                          max="{{mockGpus}}"
+                          max="{{maxGpus}}"
                           step="1"
-                          (input)="gpuHasChanged($event)"
-                          [(ngModel)]="assignedGpus">
+                          (input)="gpuHasChangedFFA($event)"
+                          [(ngModel)]="nodeResourceAllocations.globalLimit.gpu">
                 <input>
               </mat-slider>
             </div>
@@ -238,22 +226,20 @@
                 <input type="number"
                        matInput
                        min="0"
-                       max="{{mockMaxMemory}}"
+                       max="{{maxMemory}}"
                        placeholder="Memory (MiB)"
-                       [ngModel]="assignedMemoryNumber"
-                       (change)="memoryInputHasChanged($event)"
-                       [formControl]="memoryFormControl"
-                       [errorStateMatcher]="matcher">
+                       [ngModel]="assignedMemoryNumberFFA"
+                       (change)="memoryInputHasChangedFFA($event)">
                 <mat-error>
-                  There are only {{mockMaxMemory / 1024}} GiB of Memory available
+                  There are only {{mockMaxMemoryFFA / 1024}} GiB of Memory available
                 </mat-error>
               </mat-form-field>
               <mat-slider class="slider"
                           min="0"
-                          max="{{mockMaxMemory}}"
+                          max="{{maxMemory}}"
                           step="256"
-                          (input)="memorySliderHasChanged($event)"
-                          [(ngModel)]="assignedMemoryNumber">
+                          (input)="memorySliderHasChangedFFA($event)"
+                          [(ngModel)]="assignedMemoryNumberFFA">
                 <input>
               </mat-slider>
             </div>
