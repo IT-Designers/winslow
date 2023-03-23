@@ -3,11 +3,13 @@ import {MatDialog} from '@angular/material/dialog';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {ErrorStateMatcher} from '@angular/material/core';
 import {FormControl, FormGroupDirective, NgForm, Validators} from '@angular/forms';
+import {NodeInfoExt, NodeResourceInfo, NodesApiService} from '../../api/nodes-api.service';
 
 export interface AssignedGroupInfo {
   name: string;
   role: string;
 }
+
 
 export class MyErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -24,24 +26,48 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 export class ServerGroupsListComponent implements OnInit {
 
   @Input() assignedGroups: AssignedGroupInfo[] = null;
+  @Input() node: NodeInfoExt;
+
+  nodeResourceAllocations: NodeResourceInfo;
+
+  maxMemory = 0;
+  maxCpuCores = 0;
+  maxGpus = 0;
+
 
   mockCpuCores = 16;
+  mockCpuCoresFFA = 16;
   matcher = new MyErrorStateMatcher();
   cpuFormControl = new FormControl('', [
-    Validators.max(this.mockCpuCores),
+    Validators.max(this.maxCpuCores),
+  ]);
+  cpuFormControlFFA = new FormControl('', [
+    Validators.max(this.mockCpuCoresFFA),
   ]);
   assignedCpuCores = '0';
+  assignedCpuCoresFFA = '0';
   mockGpus = 3;
+  mockGpusFFA = 3;
   gpuFormControl = new FormControl('', [
     Validators.max(this.mockGpus),
   ]);
+  gpuFormControlFFA = new FormControl('', [
+    Validators.max(this.mockGpusFFA),
+  ]);
   assignedGpus = '0';
+  assignedGpusFFA = '0';
   mockMaxMemory = 32768;
+  mockMaxMemoryFFA = 32768;
   memoryFormControl = new FormControl('', [
     Validators.max(this.mockMaxMemory),
   ]);
-  assignedMemory = '0';
+  memoryFormControlFFA = new FormControl('', [
+    Validators.max(this.mockMaxMemoryFFA),
+  ]);
+  assignedMemoryString = '0';
+  assignedMemoryStringFFA = '0';
   assignedMemoryNumber = 0;
+  assignedMemoryNumberFFA = 0;
 
   groupSearchInput = '';
   displayGroups: AssignedGroupInfo[] = null;
@@ -49,11 +75,52 @@ export class ServerGroupsListComponent implements OnInit {
 
   isServerFFA = false;
 
-  constructor(private createDialog: MatDialog) {
+  testResourceObject = {
+    freeForAll: false,
+    globalLimit: {
+      cpu: 0,
+      gpu: 0,
+      mem: 0
+    },
+    groupLimits: [
+      {
+        name: 'Group 1',
+        resourceLimitation: {
+          cpu: 8,
+          gpu: 0,
+          mem: 4096,
+        },
+        role: 'OWNER'
+      },
+      {
+        name: 'Group 2',
+        resourceLimitation: {
+          cpu: 4,
+          gpu: 1,
+          mem: 2048,
+        },
+        role: 'MEMBER'
+      }
+    ]
+  };
+
+  constructor(private createDialog: MatDialog, private nodeApi: NodesApiService) {
   }
 
   ngOnInit(): void {
+    this.maxMemory = (this.node.memInfo.memoryTotal / 1024 / 1024);
+    this.maxGpus = this.node.gpuInfo.length;
+    console.dir(this.node);
+    this.nodeApi.setNodeResourceUsageConfiguration(this.testResourceObject, this.node.name)
+      .then((result) => console.dir(result));
+    this.nodeApi.getNodeResourceUsageConfiguration(this.node.name)
+      .then((result) => {
+        this.nodeResourceAllocations = result;
+        console.dir(result);
+      });
     this.displayGroups = Array.from(this.assignedGroups);
+    this.cpuFormControl.setValue(this.assignedCpuCores);
+    this.gpuFormControl.setValue(this.assignedGpus);
   }
 
   filterFunction() {
@@ -100,7 +167,6 @@ export class ServerGroupsListComponent implements OnInit {
     this.assignedGroups.splice(delIndex, 1);
     const delIndex2 = this.displayGroups.findIndex((group) => group.name === item.name);
     this.displayGroups.splice(delIndex2, 1);
-    console.log('Remove ' + item.name + ' from list');
     /*return this.dialog.openLoadingIndicator(
       this.projectApi.removeGroup(this.project.id, item.name),
       'Removing Group from Project'
@@ -128,29 +194,54 @@ export class ServerGroupsListComponent implements OnInit {
   }
 
 
-  cpuHasChanged(event) {
-    this.assignedCpuCores = event.value;
+  cpuHasChanged(event, group) {
+    group.resourceLimitation.cpu = event.value;
+  }
+  cpuHasChangedFFA(event) {
+    this.nodeResourceAllocations.globalLimit.cpu = event.value;
   }
 
-  gpuHasChanged(event) {
-    this.assignedGpus = event.value;
+  gpuHasChanged(event, group) {
+    group.resourceLimitation.gpu = event.value;
+  }
+  gpuHasChangedFFA(event) {
+    this.nodeResourceAllocations.globalLimit.gpu = event.value;
   }
 
-  memorySliderHasChanged(event) {
-    if (event.value >= 1024) {
-      this.assignedMemory = (event.value / 1024).toFixed(2) + ' GiB';
+  memorySliderHasChanged(event, group) {
+    group.resourceLimitation.mem = event.value;
+  }
+  getMemoryString(mem) {
+    if (mem >= 1024) {
+      return (mem / 1024).toFixed(2) + ' GiB';
     } else {
-      this.assignedMemory = event.value + ' MiB';
+      return mem + ' MiB';
     }
-    this.assignedMemoryNumber = event.value;
+  }
+  memorySliderHasChangedFFA(event) {
+    if (event.value >= 1024) {
+      this.assignedMemoryStringFFA = (event.value / 1024).toFixed(2) + ' GiB';
+    } else {
+      this.assignedMemoryStringFFA = event.value + ' MiB';
+    }
+    this.assignedMemoryNumberFFA = event.value;
   }
   memoryInputHasChanged(event) {
     if (event.target.value >= 1024) {
-      this.assignedMemory = (event.target.value / 1024).toFixed(2) + ' GiB';
+      this.assignedMemoryString = (event.target.value / 1024).toFixed(2) + ' GiB';
     } else {
-      this.assignedMemory = event.target.value + ' MiB';
+      this.assignedMemoryString = event.target.value + ' MiB';
     }
     this.assignedMemoryNumber = event.target.value;
   }
+  memoryInputHasChangedFFA(event) {
+    if (event.target.value >= 1024) {
+      this.assignedMemoryStringFFA = (event.target.value / 1024).toFixed(2) + ' GiB';
+    } else {
+      this.assignedMemoryStringFFA = event.target.value + ' MiB';
+    }
+    this.assignedMemoryNumberFFA = event.target.value;
+  }
+
 
 }

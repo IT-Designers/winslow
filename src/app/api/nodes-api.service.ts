@@ -5,11 +5,7 @@ import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {
-  NodeInfo,
-  NodeResourceUsageConfiguration,
-  NodeUtilization
-} from './winslow-api';
+import {AllocInfo, BuildInfo, CpuInfo, DiskInfo, GpuInfo, MemInfo, NetInfo, NodeInfo, NodeUtilization} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -67,31 +63,15 @@ export class NodesApiService {
       .toPromise();
   }
 
-  /**
-   * Retrieves the `NodeResourceUsageConfiguration` for the given node name.
-   *
-   * @param nodeName The name of the node to return the configuration for
-   */
-  public getNodeResourceUsageConfiguration(nodeName: string): Promise<NodeResourceUsageConfiguration> {
+  public getNodeResourceUsageConfiguration(nodeName: string) {
     return this.client
-      .get<NodeResourceUsageConfiguration>(
-        NodesApiService.getUrl(nodeName + '/resource-usage-configuration')
-      )
+      .get<NodeResourceInfo>(NodesApiService.getUrl(nodeName + '/resource-usage-configuration'))
       .toPromise();
   }
 
-  /**
-   * Tries to update teh `NodeResourceUsageConfiguration` for the given node
-   *
-   * @param nodeName The name of the node to update the configuration for
-   * @param conf The new configuration to set
-   */
-  public setNodeResourceUsageConfiguration(nodeName: string, conf: NodeResourceUsageConfiguration): Promise<void> {
+  public setNodeResourceUsageConfiguration(resourceConfig: NodeResourceInfo, nodeName: string) {
     return this.client
-      .put<void>(
-        NodesApiService.getUrl(nodeName + '/resource-usage-configuration'),
-        conf
-      )
+      .put<NodeResourceInfo>(NodesApiService.getUrl(nodeName + '/resource-usage-configuration'), resourceConfig)
       .toPromise();
   }
 }
@@ -105,6 +85,24 @@ export class NodesApiService {
 export class NodeInfoExt extends NodeInfo {
   // local only
   update: (node: NodeInfoExt) => void;
+}
+
+export interface ResourceLimit {
+  cpu: number;
+  gpu: number;
+  mem: number;
+}
+
+export interface NodeGroupInfo {
+  name: string;
+  resourceLimitation: ResourceLimit;
+  role: string;
+}
+
+export interface NodeResourceInfo {
+  freeForAll: boolean;
+  globalLimit: ResourceLimit;
+  groupLimits: NodeGroupInfo[];
 }
 
 
