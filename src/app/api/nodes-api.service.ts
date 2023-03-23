@@ -62,6 +62,18 @@ export class NodesApiService {
       ))
       .toPromise();
   }
+
+  public getNodeResourceUsageConfiguration(nodeName: string) {
+    return this.client
+      .get<NodeResourceInfo>(NodesApiService.getUrl(nodeName + '/resource-usage-configuration'))
+      .toPromise();
+  }
+
+  public setNodeResourceUsageConfiguration(resourceConfig: NodeResourceInfo, nodeName: string) {
+    return this.client
+      .put<NodeResourceInfo>(NodesApiService.getUrl(nodeName + '/resource-usage-configuration'), resourceConfig)
+      .toPromise();
+  }
 }
 
 /**
@@ -73,6 +85,24 @@ export class NodesApiService {
 export class NodeInfoExt extends NodeInfo {
   // local only
   update: (node: NodeInfoExt) => void;
+}
+
+export interface ResourceLimit {
+  cpu: number;
+  gpu: number;
+  mem: number;
+}
+
+export interface NodeGroupInfo {
+  name: string;
+  resourceLimitation: ResourceLimit;
+  role: string;
+}
+
+export interface NodeResourceInfo {
+  freeForAll: boolean;
+  globalLimit: ResourceLimit;
+  groupLimits: NodeGroupInfo[];
 }
 
 
