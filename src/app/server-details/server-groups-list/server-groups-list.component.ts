@@ -4,6 +4,7 @@ import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/p
 import {ErrorStateMatcher} from '@angular/material/core';
 import {FormControl, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 import {NodeInfoExt, NodeResourceInfo, NodesApiService} from '../../api/nodes-api.service';
+import {DialogService} from '../../dialog.service';
 
 export interface AssignedGroupInfo {
   name: string;
@@ -29,6 +30,7 @@ export class ServerGroupsListComponent implements OnInit {
   @Input() node: NodeInfoExt;
 
   nodeResourceAllocations: NodeResourceInfo;
+  editableResourceAllocations: NodeResourceInfo;
 
   maxMemory = 0;
   maxCpuCores = 0;
@@ -104,23 +106,23 @@ export class ServerGroupsListComponent implements OnInit {
     ]
   };
 
-  constructor(private createDialog: MatDialog, private nodeApi: NodesApiService) {
+  constructor(private dialog: DialogService, private createDialog: MatDialog, private nodeApi: NodesApiService) {
   }
 
   ngOnInit(): void {
     this.maxMemory = (this.node.memInfo.memoryTotal / 1024 / 1024);
     this.maxGpus = this.node.gpuInfo.length;
     console.dir(this.node);
-    this.nodeApi.setNodeResourceUsageConfiguration(this.testResourceObject, this.node.name)
-      .then((result) => console.dir(result));
     this.nodeApi.getNodeResourceUsageConfiguration(this.node.name)
       .then((result) => {
-        this.nodeResourceAllocations = result;
-        console.dir(result);
+        /*this.nodeResourceAllocations = Object.assign({}, result);
+        this.editableResourceAllocations = Object.assign({}, result);*/
+        this.nodeResourceAllocations = JSON.parse(JSON.stringify((result)));
+        this.editableResourceAllocations = JSON.parse(JSON.stringify((result)));
+        console.dir(this.nodeResourceAllocations);
+        console.dir(this.editableResourceAllocations);
       });
     this.displayGroups = Array.from(this.assignedGroups);
-    this.cpuFormControl.setValue(this.assignedCpuCores);
-    this.gpuFormControl.setValue(this.assignedGpus);
   }
 
   filterFunction() {
@@ -146,36 +148,28 @@ export class ServerGroupsListComponent implements OnInit {
       .afterClosed()
       .subscribe((data) => {
         if (data) {
+          const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
           const groupToAdd = {
             name: data.groupName,
-            role: data.groupRole
+            role: data.groupRole,
+            resourceLimitation : {
+              cpu: 0,
+              mem: 0,
+              gpu: 0
+            }
           };
-          /*this.dialog.openLoadingIndicator(
-            this.projectApi.addOrUpdateGroup(this.project.id, groupToAdd),
-            'Assigning Group to Project'
-          );*/
-          /*this.projectApi.addOrUpdateGroup(this.project.id, groupToAdd);*/
-          console.dir(groupToAdd);
-          this.displayGroups.push(groupToAdd);
-          // this.newGroupEmitter.emit(groupToAdd);
+          updateObject.groupLimits.push(groupToAdd);
+          return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+              .then(() => {
+                this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+                this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+              }),
+            'Adding Group to Resource Allocation');
         }
       });
   }
 
-  onRemoveItemClick(item) {
-    const delIndex = this.assignedGroups.findIndex((group) => group.name === item.name);
-    this.assignedGroups.splice(delIndex, 1);
-    const delIndex2 = this.displayGroups.findIndex((group) => group.name === item.name);
-    this.displayGroups.splice(delIndex2, 1);
-    /*return this.dialog.openLoadingIndicator(
-      this.projectApi.removeGroup(this.project.id, item.name),
-      'Removing Group from Project'
-    );*/
-  }
 
-  roleChanged(group) {
-    console.log('Role changed to ' + group.role);
-  }
 
   getChipColor(group) {
     if (group.role === 'OWNER') {
@@ -198,14 +192,14 @@ export class ServerGroupsListComponent implements OnInit {
     group.resourceLimitation.cpu = event.value;
   }
   cpuHasChangedFFA(event) {
-    this.nodeResourceAllocations.globalLimit.cpu = event.value;
+    this.editableResourceAllocations.globalLimit.cpu = event.value;
   }
 
   gpuHasChanged(event, group) {
     group.resourceLimitation.gpu = event.value;
   }
   gpuHasChangedFFA(event) {
-    this.nodeResourceAllocations.globalLimit.gpu = event.value;
+    this.editableResourceAllocations.globalLimit.gpu = event.value;
   }
 
   memorySliderHasChanged(event, group) {
@@ -243,5 +237,51 @@ export class ServerGroupsListComponent implements OnInit {
     this.assignedMemoryNumberFFA = event.target.value;
   }
 
+  roleChanged(group) {
+    console.log('Role changed to ' + group.role);
+    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    const groupIndex: number = this.findGroupIndex(updateObject, group);
+    updateObject.groupLimits[groupIndex].role = group.role;
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+        .then(() => {
+          this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+        }),
+      'Changing groups role');
+  }
+  updateGroup(group) {
+    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    console.dir(this.nodeResourceAllocations);
+    const groupIndex: number = this.findGroupIndex(updateObject, group);
+    updateObject.groupLimits[groupIndex] = group;
+    console.dir(updateObject);
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+        .then(() => {
+          this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+        }),
+      'Updating Group Resource Allocations');
+  }
+
+  onRemoveItemClick(group) {
+
+    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    const groupIndex = this.findGroupIndex(updateObject, group);
+    updateObject.groupLimits.splice(groupIndex, 1);
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+        .then(() => {
+          this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+          this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+        }),
+      'Updating Group Resource Allocations');
+  }
+
+  findGroupIndex(object: NodeResourceInfo, group) {
+    let groupIndex = 0;
+    object.groupLimits.find((g, i) => {
+      if (g.name === group.name) {
+        groupIndex = i;
+      }
+    });
+    return groupIndex;
+  }
 
 }

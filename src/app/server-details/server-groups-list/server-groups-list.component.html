@@ -17,7 +17,7 @@
            (keyup)="filterFunction()">-->
     <div class="scrollable">
       <div *ngIf="displayGroups.length > 0">
-        <div class="list-item" *ngFor="let group of nodeResourceAllocations.groupLimits">
+        <div class="list-item" *ngFor="let group of editableResourceAllocations.groupLimits">
           <div class="username-label">
             <mat-chip [style.background-color]="getChipColor(group)"
                       [matTooltip]="getTooltip(group)"
@@ -124,7 +124,7 @@
                   </mat-slider>
                 </div>
               </div>
-              <button mat-raised-button class="update-btn" color="primary" [disabled]="isServerFFA">Update</button>
+              <button mat-raised-button class="update-btn" color="primary" (click)="updateGroup(group)" [disabled]="isServerFFA">Update</button>
             </mat-expansion-panel>
           </mat-accordion>
 
@@ -159,19 +159,19 @@
   <div class="ffa-container">
     <div class="label-and-checkbox-container">
       <label class="ffa-label">Free For All Server: </label>
-      <mat-checkbox [(ngModel)]="nodeResourceAllocations.freeForAll">
+      <mat-checkbox [(ngModel)]="editableResourceAllocations.freeForAll">
       </mat-checkbox>
     </div>
     <div class="ffa-accordion-container">
       <mat-accordion class="ffa-accordion">
-        <mat-expansion-panel [disabled]="!nodeResourceAllocations.freeForAll" [expanded]="nodeResourceAllocations.freeForAll">
+        <mat-expansion-panel [disabled]="!editableResourceAllocations.freeForAll" [expanded]="editableResourceAllocations.freeForAll">
           <mat-expansion-panel-header>
             <mat-panel-title>
               Max. Resources per User:
             </mat-panel-title>
             <label class="resource-title-value">
-              {{nodeResourceAllocations.globalLimit.cpu}}/{{maxCpuCores}} CPU Cores &nbsp;
-              {{nodeResourceAllocations.globalLimit.gpu}}/{{maxGpus}} GPUs &nbsp;
+              {{editableResourceAllocations.globalLimit.cpu}}/{{maxCpuCores}} CPU Cores &nbsp;
+              {{editableResourceAllocations.globalLimit.gpu}}/{{maxGpus}} GPUs &nbsp;
               {{assignedMemoryStringFFA}}/{{(maxMemory/1024).toFixed()}} GiB &nbsp;
             </label>
           </mat-expansion-panel-header>
@@ -184,7 +184,7 @@
                        min="0"
                        max="{{maxCpuCores}}"
                        placeholder="CPU Cores"
-                       [(ngModel)]="nodeResourceAllocations.globalLimit.cpu">
+                       [(ngModel)]="editableResourceAllocations.globalLimit.cpu">
                 <mat-error *ngIf="cpuFormControl.hasError('max')">
                   There are only {{maxCpuCores}} cores available
                 </mat-error>
@@ -194,7 +194,7 @@
                           max="{{maxCpuCores}}"
                           step="1"
                           (input)="cpuHasChangedFFA($event)"
-                          [(ngModel)]="nodeResourceAllocations.globalLimit.cpu">
+                          [(ngModel)]="editableResourceAllocations.globalLimit.cpu">
                 <input>
               </mat-slider>
             </div>
@@ -206,7 +206,7 @@
                        min="0"
                        max="{{maxGpus}}"
                        placeholder="GPUs"
-                       [(ngModel)]="nodeResourceAllocations.globalLimit.gpu">
+                       [(ngModel)]="editableResourceAllocations.globalLimit.gpu">
                 <mat-error>
                   There are only {{maxGpus}} GPUs available
                 </mat-error>
@@ -216,7 +216,7 @@
                           max="{{maxGpus}}"
                           step="1"
                           (input)="gpuHasChangedFFA($event)"
-                          [(ngModel)]="nodeResourceAllocations.globalLimit.gpu">
+                          [(ngModel)]="editableResourceAllocations.globalLimit.gpu">
                 <input>
               </mat-slider>
             </div>
