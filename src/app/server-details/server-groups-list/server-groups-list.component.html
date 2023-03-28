@@ -23,7 +23,7 @@
                       [matTooltip]="getTooltip(group)"
                       matTooltipShowDelay="250"
                       class="username-chip"
-                      [disabled]="isServerFFA">
+                      [disabled]="editableResourceAllocations.freeForAll">
               {{group.name}}
             </mat-chip>
           </div>
@@ -33,13 +33,13 @@
             <mat-select class="role-select"
                         [(value)]="group.role"
                         (selectionChange)="roleChanged(group)"
-                        [disabled]="isServerFFA">
+                        [disabled]="editableResourceAllocations.freeForAll">
               <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-accordion class="big-accordion" >
-            <mat-expansion-panel [disabled]="isServerFFA">
+            <mat-expansion-panel [disabled]="editableResourceAllocations.freeForAll">
               <mat-expansion-panel-header>
                 <mat-panel-title>
                   Resources:
@@ -58,9 +58,9 @@
                            matInput
                            min="0"
                            max="{{maxCpuCores}}"
-                           [disabled]="isServerFFA"
+                           [disabled]="editableResourceAllocations.freeForAll"
                            [(ngModel)]="group.resourceLimitation.cpu">
-                    <mat-error *ngIf="cpuFormControl.hasError('max')">
+                    <mat-error>
                       There are only {{maxCpuCores}} cores available
                     </mat-error>
                   </mat-form-field>
@@ -70,7 +70,7 @@
                               step="1"
                               (input)="cpuHasChanged($event, group)"
                               [(ngModel)]="group.resourceLimitation.cpu"
-                              [disabled]="isServerFFA">
+                              [disabled]="editableResourceAllocations.freeForAll">
                     <input>
                   </mat-slider>
                 </div>
@@ -82,7 +82,7 @@
                            min="0"
                            max="{{maxGpus}}"
                            placeholder="GPUs"
-                           [disabled]="isServerFFA"
+                           [disabled]="editableResourceAllocations.freeForAll"
                            [(ngModel)]="group.resourceLimitation.gpu">
                     <mat-error>
                       There are only {{maxGpus}} GPUs available
@@ -94,7 +94,7 @@
                               step="1"
                               (input)="gpuHasChanged($event, group)"
                               [(ngModel)]="group.resourceLimitation.gpu"
-                              [disabled]="isServerFFA">
+                              [disabled]="editableResourceAllocations.freeForAll">
                     <input>
                   </mat-slider>
                 </div>
@@ -107,7 +107,7 @@
                            max="{{maxMemory}}"
                            placeholder="Memory (MiB)"
                            (change)="memoryInputHasChanged($event)"
-                           [disabled]="isServerFFA"
+                           [disabled]="editableResourceAllocations.freeForAll"
                            [(ngModel)]="group.resourceLimitation.mem">
                     <mat-error>
                       There are only {{maxMemory / 1024}} GiB of Memory available
@@ -119,12 +119,18 @@
                               step="256"
                               (input)="memorySliderHasChanged($event, group)"
                               [(ngModel)]="group.resourceLimitation.mem"
-                              [disabled]="isServerFFA">
+                              [disabled]="editableResourceAllocations.freeForAll">
                     <input>
                   </mat-slider>
                 </div>
               </div>
-              <button mat-raised-button class="update-btn" color="primary" (click)="updateGroup(group)" [disabled]="isServerFFA">Update</button>
+              <button mat-raised-button
+                      class="update-btn"
+                      color="primary"
+                      (click)="updateGroup(group)"
+                      [disabled]="editableResourceAllocations.freeForAll">
+                Update
+              </button>
             </mat-expansion-panel>
           </mat-accordion>
 
@@ -133,7 +139,7 @@
                     class="remove-member-button"
                     color="warn"
                     (click)="onRemoveItemClick(group)"
-                    [disabled]="isServerFFA">
+                    [disabled]="editableResourceAllocations.freeForAll">
               <!--<span class="material-symbols-outlined item-icon">group_remove</span>-->
               Remove
             </button>
@@ -159,7 +165,7 @@
   <div class="ffa-container">
     <div class="label-and-checkbox-container">
       <label class="ffa-label">Free For All Server: </label>
-      <mat-checkbox [(ngModel)]="editableResourceAllocations.freeForAll">
+      <mat-checkbox [(ngModel)]="editableResourceAllocations.freeForAll" (change)="ffaHasChanged($event)">
       </mat-checkbox>
     </div>
     <div class="ffa-accordion-container">
@@ -185,7 +191,7 @@
                        max="{{maxCpuCores}}"
                        placeholder="CPU Cores"
                        [(ngModel)]="editableResourceAllocations.globalLimit.cpu">
-                <mat-error *ngIf="cpuFormControl.hasError('max')">
+                <mat-error>
                   There are only {{maxCpuCores}} cores available
                 </mat-error>
               </mat-form-field>
