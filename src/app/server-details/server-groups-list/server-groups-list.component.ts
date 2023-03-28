@@ -29,8 +29,17 @@ export class ServerGroupsListComponent implements OnInit {
   @Input() assignedGroups: AssignedGroupInfo[] = null;
   @Input() node: NodeInfoExt;
 
-  nodeResourceAllocations: NodeResourceInfo;
-  editableResourceAllocations: NodeResourceInfo;
+  defaultResourceObject = {
+    freeForAll: false,
+    globalLimit: {
+      cpu: 0,
+      gpu: 0,
+      mem: 0
+    },
+    groupLimits: []
+  };
+  nodeResourceAllocations: NodeResourceInfo = this.defaultResourceObject;
+  editableResourceAllocations: NodeResourceInfo = this.defaultResourceObject;
 
   maxMemory = 0;
   maxCpuCores = 0;
@@ -46,7 +55,6 @@ export class ServerGroupsListComponent implements OnInit {
   cpuFormControlFFA = new FormControl('', [
     Validators.max(this.mockCpuCoresFFA),
   ]);
-  assignedCpuCores = '0';
   assignedCpuCoresFFA = '0';
   mockGpus = 3;
   mockGpusFFA = 3;
@@ -77,34 +85,6 @@ export class ServerGroupsListComponent implements OnInit {
 
   isServerFFA = false;
 
-  testResourceObject = {
-    freeForAll: false,
-    globalLimit: {
-      cpu: 0,
-      gpu: 0,
-      mem: 0
-    },
-    groupLimits: [
-      {
-        name: 'Group 1',
-        resourceLimitation: {
-          cpu: 8,
-          gpu: 0,
-          mem: 4096,
-        },
-        role: 'OWNER'
-      },
-      {
-        name: 'Group 2',
-        resourceLimitation: {
-          cpu: 4,
-          gpu: 1,
-          mem: 2048,
-        },
-        role: 'MEMBER'
-      }
-    ]
-  };
 
   constructor(private dialog: DialogService, private createDialog: MatDialog, private nodeApi: NodesApiService) {
   }
@@ -282,6 +262,17 @@ export class ServerGroupsListComponent implements OnInit {
       }
     });
     return groupIndex;
+  }
+
+  ffaHasChanged(event) {
+    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    updateObject.freeForAll = event.checked;
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+        .then(() => {
+          this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+          this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+        }),
+      'Updating Servers FFA status');
   }
 
 }
