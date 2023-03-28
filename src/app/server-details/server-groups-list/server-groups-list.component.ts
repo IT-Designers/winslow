@@ -142,7 +142,7 @@ export class ServerGroupsListComponent implements OnInit {
     this.createDialog
       .open(ProjectAddGroupDialogComponent, {
         data: {
-          alreadyAssigned: this.displayGroups
+          alreadyAssigned: this.nodeResourceAllocations.groupLimits
         } as unknown as AddGroupData
       })
       .afterClosed()
