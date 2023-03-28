@@ -108,7 +108,7 @@
                            placeholder="Memory (MiB)"
                            (change)="memoryInputHasChanged($event)"
                            [disabled]="editableResourceAllocations.freeForAll"
-                           [(ngModel)]="group.resourceLimitation.mem">
+                           [ngModel]="group.resourceLimitation.mem">
                     <mat-error>
                       There are only {{maxMemory / 1024}} GiB of Memory available
                     </mat-error>
@@ -178,7 +178,7 @@
             <label class="resource-title-value">
               {{editableResourceAllocations.globalLimit.cpu}}/{{maxCpuCores}} CPU Cores &nbsp;
               {{editableResourceAllocations.globalLimit.gpu}}/{{maxGpus}} GPUs &nbsp;
-              {{assignedMemoryStringFFA}}/{{(maxMemory/1024).toFixed()}} GiB &nbsp;
+              {{getMemoryString(editableResourceAllocations.globalLimit.mem)}}/{{(maxMemory/1024).toFixed()}} GiB &nbsp;
             </label>
           </mat-expansion-panel-header>
           <div class="expansion-content-container">
@@ -234,10 +234,10 @@
                        min="0"
                        max="{{maxMemory}}"
                        placeholder="Memory (MiB)"
-                       [ngModel]="assignedMemoryNumberFFA"
+                       [ngModel]="editableResourceAllocations.globalLimit.mem"
                        (change)="memoryInputHasChangedFFA($event)">
                 <mat-error>
-                  There are only {{mockMaxMemoryFFA / 1024}} GiB of Memory available
+                  There are only {{maxMemory / 1024}} GiB of Memory available
                 </mat-error>
               </mat-form-field>
               <mat-slider class="slider"
@@ -245,12 +245,12 @@
                           max="{{maxMemory}}"
                           step="256"
                           (input)="memorySliderHasChangedFFA($event)"
-                          [(ngModel)]="assignedMemoryNumberFFA">
+                          [(ngModel)]="editableResourceAllocations.globalLimit.mem">
                 <input>
               </mat-slider>
             </div>
           </div>
-          <button mat-raised-button class="update-btn" color="primary">Update</button>
+          <button mat-raised-button class="update-btn" color="primary" (click)="updateResourcesFFA()">Update</button>
         </mat-expansion-panel>
       </mat-accordion>
     </div>

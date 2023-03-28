@@ -45,39 +45,26 @@ export class ServerGroupsListComponent implements OnInit {
   maxCpuCores = 0;
   maxGpus = 0;
 
-
-  mockCpuCores = 16;
-  mockCpuCoresFFA = 16;
   matcher = new MyErrorStateMatcher();
   cpuFormControl = new FormControl('', [
     Validators.max(this.maxCpuCores),
   ]);
   cpuFormControlFFA = new FormControl('', [
-    Validators.max(this.mockCpuCoresFFA),
+    Validators.max(this.maxCpuCores),
   ]);
-  assignedCpuCoresFFA = '0';
-  mockGpus = 3;
-  mockGpusFFA = 3;
+
   gpuFormControl = new FormControl('', [
-    Validators.max(this.mockGpus),
+    Validators.max(this.maxGpus),
   ]);
   gpuFormControlFFA = new FormControl('', [
-    Validators.max(this.mockGpusFFA),
+    Validators.max(this.maxGpus),
   ]);
-  assignedGpus = '0';
-  assignedGpusFFA = '0';
-  mockMaxMemory = 32768;
-  mockMaxMemoryFFA = 32768;
   memoryFormControl = new FormControl('', [
-    Validators.max(this.mockMaxMemory),
+    Validators.max(this.maxMemory),
   ]);
   memoryFormControlFFA = new FormControl('', [
-    Validators.max(this.mockMaxMemoryFFA),
+    Validators.max(this.maxMemory),
   ]);
-  assignedMemoryString = '0';
-  assignedMemoryStringFFA = '0';
-  assignedMemoryNumber = 0;
-  assignedMemoryNumberFFA = 0;
 
   groupSearchInput = '';
   displayGroups: AssignedGroupInfo[] = null;
@@ -92,15 +79,10 @@ export class ServerGroupsListComponent implements OnInit {
   ngOnInit(): void {
     this.maxMemory = (this.node.memInfo.memoryTotal / 1024 / 1024);
     this.maxGpus = this.node.gpuInfo.length;
-    console.dir(this.node);
     this.nodeApi.getNodeResourceUsageConfiguration(this.node.name)
       .then((result) => {
-        /*this.nodeResourceAllocations = Object.assign({}, result);
-        this.editableResourceAllocations = Object.assign({}, result);*/
         this.nodeResourceAllocations = JSON.parse(JSON.stringify((result)));
         this.editableResourceAllocations = JSON.parse(JSON.stringify((result)));
-        console.dir(this.nodeResourceAllocations);
-        console.dir(this.editableResourceAllocations);
       });
     this.displayGroups = Array.from(this.assignedGroups);
   }
@@ -149,8 +131,6 @@ export class ServerGroupsListComponent implements OnInit {
       });
   }
 
-
-
   getChipColor(group) {
     if (group.role === 'OWNER') {
       return '#8ed69b';
@@ -185,6 +165,19 @@ export class ServerGroupsListComponent implements OnInit {
   memorySliderHasChanged(event, group) {
     group.resourceLimitation.mem = event.value;
   }
+  memorySliderHasChangedFFA(event) {
+    this.editableResourceAllocations.globalLimit.mem = event.value;
+  }
+  memoryInputHasChanged(event) {
+    if (0 <= event.target.value && event.target.value <= this.maxMemory) {
+      this.editableResourceAllocations.globalLimit.mem = event.target.value;
+    }
+  }
+  memoryInputHasChangedFFA(event) {
+    if (0 <= event.target.value && event.target.value <= this.maxMemory) {
+      this.editableResourceAllocations.globalLimit.mem = event.target.value;
+    }
+  }
   getMemoryString(mem) {
     if (mem >= 1024) {
       return (mem / 1024).toFixed(2) + ' GiB';
@@ -192,33 +185,9 @@ export class ServerGroupsListComponent implements OnInit {
       return mem + ' MiB';
     }
   }
-  memorySliderHasChangedFFA(event) {
-    if (event.value >= 1024) {
-      this.assignedMemoryStringFFA = (event.value / 1024).toFixed(2) + ' GiB';
-    } else {
-      this.assignedMemoryStringFFA = event.value + ' MiB';
-    }
-    this.assignedMemoryNumberFFA = event.value;
-  }
-  memoryInputHasChanged(event) {
-    if (event.target.value >= 1024) {
-      this.assignedMemoryString = (event.target.value / 1024).toFixed(2) + ' GiB';
-    } else {
-      this.assignedMemoryString = event.target.value + ' MiB';
-    }
-    this.assignedMemoryNumber = event.target.value;
-  }
-  memoryInputHasChangedFFA(event) {
-    if (event.target.value >= 1024) {
-      this.assignedMemoryStringFFA = (event.target.value / 1024).toFixed(2) + ' GiB';
-    } else {
-      this.assignedMemoryStringFFA = event.target.value + ' MiB';
-    }
-    this.assignedMemoryNumberFFA = event.target.value;
-  }
+
 
   roleChanged(group) {
-    console.log('Role changed to ' + group.role);
     const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     const groupIndex: number = this.findGroupIndex(updateObject, group);
     updateObject.groupLimits[groupIndex].role = group.role;
@@ -230,15 +199,24 @@ export class ServerGroupsListComponent implements OnInit {
   }
   updateGroup(group) {
     const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
-    console.dir(this.nodeResourceAllocations);
     const groupIndex: number = this.findGroupIndex(updateObject, group);
     updateObject.groupLimits[groupIndex] = group;
-    console.dir(updateObject);
     return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
         .then(() => {
           this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
         }),
       'Updating Group Resource Allocations');
+  }
+
+  updateResourcesFFA() {
+    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    updateObject.globalLimit = this.editableResourceAllocations.globalLimit;
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+        .then(() => {
+          this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+          this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
+        }),
+      'Updating Global Resource Limit');
   }
 
   onRemoveItemClick(group) {
