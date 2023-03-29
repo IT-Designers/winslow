@@ -1,10 +1,12 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {ErrorStateMatcher} from '@angular/material/core';
 import {FormControl, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 import {NodeInfoExt, NodeResourceInfo, NodesApiService} from '../../api/nodes-api.service';
 import {DialogService} from '../../dialog.service';
+import {UserApiService} from '../../api/user-api.service';
+import {GroupApiService} from '../../api/group-api.service';
 
 export interface AssignedGroupInfo {
   name: string;
@@ -24,10 +26,14 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
   templateUrl: './server-groups-list.component.html',
   styleUrls: ['./server-groups-list.component.css']
 })
-export class ServerGroupsListComponent implements OnInit {
+export class ServerGroupsListComponent implements OnInit, OnChanges {
 
   @Input() assignedGroups: AssignedGroupInfo[] = null;
   @Input() node: NodeInfoExt;
+
+  userIsAdmin = false;
+  userGroups: string[];
+  userRole = 'MEMBER';
 
   defaultResourceObject = {
     freeForAll: false,
@@ -73,10 +79,26 @@ export class ServerGroupsListComponent implements OnInit {
   isServerFFA = false;
 
 
-  constructor(private dialog: DialogService, private createDialog: MatDialog, private nodeApi: NodesApiService) {
+  constructor(private dialog: DialogService,
+              private createDialog: MatDialog,
+              private nodeApi: NodesApiService,
+              private userApi: UserApiService,
+              private groupApi: GroupApiService) {
   }
 
   ngOnInit(): void {
+    this.userApi.getSelfUserName()
+      .then((name) => {
+        this.userApi.hasSuperPrivileges(name)
+          .then((bool) => {
+            this.userIsAdmin = bool;
+            this.groupApi.getGroups()
+              .then((groups) => {
+                this.userGroups = groups.map(x => x.name);
+                this.isUserOwner();
+              });
+          });
+      });
     this.maxMemory = (this.node.memInfo.memoryTotal / 1024 / 1024);
     this.maxGpus = this.node.gpuInfo.length;
     this.nodeApi.getNodeResourceUsageConfiguration(this.node.name)
@@ -85,6 +107,31 @@ export class ServerGroupsListComponent implements OnInit {
         this.editableResourceAllocations = JSON.parse(JSON.stringify((result)));
       });
     this.displayGroups = Array.from(this.assignedGroups);
+  }
+
+  ngOnChanges() {
+    /*this.isUserOwner();*/
+  }
+
+  isUserOwner() {
+    if (!this.userIsAdmin) {
+      // tslint:disable-next-line:prefer-for-of
+      for (let i = 0; i < this.nodeResourceAllocations.groupLimits.length; i++) {
+        if (this.userGroups) {
+          if (this.userGroups.includes(this.nodeResourceAllocations.groupLimits[i].name)) {
+            if (this.nodeResourceAllocations.groupLimits[i].role === 'OWNER') {
+              this.userRole = 'OWNER';
+            } else {
+              this.userRole = 'MEMBER';
+            }
+          } else {
+            this.userRole = 'MEMBER';
+          }
+        }
+      }
+    } else {
+      this.userRole = 'OWNER';
+    }
   }
 
   filterFunction() {
