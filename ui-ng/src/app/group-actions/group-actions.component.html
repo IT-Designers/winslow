@@ -1,0 +1,59 @@
+<mat-card>
+  <mat-card-title>Filter</mat-card-title>
+  <mat-card-content>
+    <app-tag-filter
+      #filter
+      [availableTags]="api.cachedTags"
+      [preSelectedTag]="data.tag"
+      [projects]="projects"
+      (filtered)="projectsFiltered = $event"
+      (projectsGroups)="this.projectsGroups = $event"
+      (groupsOnTop)="this.groupsOnTop = $event"
+    ></app-tag-filter>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="drawer-content">
+  <app-projects-view class="drawer-element"
+                     [projects]="projects"
+                     [projectsFiltered]="projectsFiltered"
+                     [projectsGroups]="projectsGroups"
+                     [selectedProject]="selectedProject"
+                     [stateInfo]="stateInfo"
+                     [groupsOnTop]="groupsOnTop"
+                     [filter]="filter">
+  </app-projects-view>
+
+</mat-card>
+
+<mat-card>
+  <mat-card-title>Stage Execution</mat-card-title>
+  <mat-card-content class="flex-grow-column action-selector">
+    <app-stage-execution-selection #selection
+                                   [pipelines]="pipelines">
+    </app-stage-execution-selection>
+
+    <ng-container *ngIf="selection.
+    selectedStage != null && selection.selectedPipeline != null">
+      <div>
+        <mat-divider></mat-divider>
+      </div>
+      <div class="whitespace-separator-top">
+        <mat-card-subtitle>Submission</mat-card-subtitle>
+      </div>
+      <div class="action-row">
+        <div class="title"></div>
+        <div class="centered-controls">
+          <button [disabled]="!selection.isValid()" mat-stroked-button color="primary">Add by appending to queues
+          </button>
+          <button [disabled]="!selection.isValid()" mat-stroked-button color="warn">Add by replacing existing queues
+          </button>
+        </div>
+        <div class="controls"></div>
+      </div>
+    </ng-container>
+
+    <app-loading-info [error]="actionLoadError != null ? actionLoadError.message : null"
+                      [loading]="actionLongLoading.isLongLoading()"></app-loading-info>
+  </mat-card-content>
+</mat-card>

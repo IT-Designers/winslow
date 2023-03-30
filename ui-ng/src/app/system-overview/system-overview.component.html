@@ -1,0 +1,15 @@
+<app-servers></app-servers>
+
+<app-loading-info [error]="loadError ? loadError.message : null" [loading]="storages == null"></app-loading-info>
+
+<div class="overview-element" *ngIf="storages != null">
+  <h3>Storage</h3>
+  <div>
+    <ngx-charts-bar-horizontal-normalized
+      [legend]="true"
+      [yAxis]="true"
+      [showYAxisLabel]="true"
+      [results]="this.storages"
+    ></ngx-charts-bar-horizontal-normalized>
+  </div>
+</div>

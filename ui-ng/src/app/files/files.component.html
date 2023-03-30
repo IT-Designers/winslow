@@ -1,0 +1,109 @@
+<app-loading-info
+  [error]="loadError ? loadError.message : null"
+  [loading]="files == null || this.longLoading.isLongLoading()">
+</app-loading-info>
+
+<div class="container height" *ngIf="files != null && loadError == null">
+  <div class="files-browser-path">
+    <input type="text" class="files-browser-path" value="{{this.latestPath}}/"
+           (keydown.enter)="navigateDirectlyTo($event.target.value)">
+    <i class="material-icons-outlined action-area" (click)="fileInput.click()">cloud_upload</i>
+    <i class="material-icons-outlined action-area" (click)="createDirectory()">create_new_folder</i>
+    <input hidden #decompress value="false"/>
+    <input hidden #fileInput accept="*/*" type="file" (change)="uploadFile($event.target.files, decompress.value.toLowerCase() == 'true')">
+  </div>
+
+  <ng-template #gitLogo let-file="file">
+    <img *ngIf="file.isGitRepository()"
+         class="material-icons-outlined"
+         style="position: static; height: 0.75em; margin-left: -1.75em; margin-top: 0.2em"
+         src="assets/git-logomark-orange.png" alt="Git Repository">
+  </ng-template>
+
+  <div class="files-browser">
+
+    <ul class="files-browser-navigation">
+      <ng-template #fileTree let-path="path">
+        <li *ngFor="let file of directories(path)">
+          <p class="directory" [attr.data-path]="file.path">
+            <i
+              class="material-icons-outlined directory-toggle directory-{{directories(file.path) != null ? 'close' : 'open'}}"
+              (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right'}}
+            </i>
+            <i
+              class="material-icons-outlined directory-toggle directory-{{directories(file.path) != null ? 'close' : 'open'}}"
+              (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'folder_open' : 'folder'}}
+              <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
+            </i>
+            <label (click)="viewDirectory(file.path)">{{ file.name + formatGitBranch(file) }}</label>
+          </p>
+          <ul>
+            <ng-container
+              *ngTemplateOutlet="fileTree; context:{ path: file.path }"></ng-container>
+          </ul>
+        </li>
+      </ng-template>
+      <ng-container *ngTemplateOutlet="fileTree; context:{ path: '/' }"></ng-container>
+    </ul>
+
+
+    <div class="files-browser-view">
+      <ul class="files"
+          (contextmenu)="viewContextMenu($event)"
+          (click)="contextMenuVisible = false"
+          appDragDrop=""
+          (onFileDropped)="uploadFile($event)"
+      >
+        <li class="file" *ngFor="let file of this.currentDirectory()" (click)="onItemSelected(file)">
+          <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}
+            <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
+          </i>
+          <label>{{ file.name }}</label>
+          <label class="action-area file-size file-size-human-readable">{{ file.getFileSizeHumanReadable() }}</label>
+          <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
+          <i class="material-icons-outlined action-area">
+            <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">
+              cloud_download
+            </a>
+          </i>
+          <i class="material-icons-outlined action-area" (click)="delete(file)">delete</i>
+        </li>
+      </ul>
+      <div *ngIf="viewHint != null && viewHint.length > 0" class="hint">{{viewHint}}</div>
+    </div>
+  </div>
+  <div *ngIf="contextMenuVisible" class="context-menu" [ngStyle]="{'left.px': contextMenuX, 'top.px': contextMenuY}">
+    <ul>
+      <li (click)="createDirectory(); contextMenuVisible = false">New Directory</li>
+      <li (click)="toggleShowDirectorySize(); contextMenuVisible = false">{{showDirectorySize ? 'Hide Directory Size' : 'Show Directory Size'}}</li>
+      <li *ngIf="!isGitRepo(this.latestPath)" (click)="cloneGitRepo(); contextMenuVisible = false">Git Clone</li>
+      <li *ngIf="isGitRepo(this.latestPath)" (click)="pullGitRepo(); contextMenuVisible = false">Git Pull</li>
+      <li *ngIf="isGitRepo(this.latestPath)" (click)="checkoutGitRepo(); contextMenuVisible = false">Git Checkout</li>
+      <li (click)="decompress.value = 'true'; fileInput.click(); contextMenuVisible = false">Upload a Directory</li>
+      <li (click)="decompress.value = 'false'; fileInput.click(); contextMenuVisible = false">Upload a File</li>
+    </ul>
+  </div>
+  <swal #swalUpload title="Uploading your files"
+        [icon]="dataUpload != null ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
+        (didClose)="dataUpload = null"
+        [allowOutsideClick]="false"
+        [showCancelButton]="false"
+        [showConfirmButton]="true"
+        [showCloseButton]="false">
+    <div *swalPortal="swalTargets.content">
+      <mat-list *ngIf="dataUpload != null">
+        <mat-list *ngFor="let upload of dataUpload.uploads">
+          <ng-container>
+            <p>{{upload.name}}</p>
+            <div>
+              <div>Overall: {{getSpeed(upload.overallUploadSpeed)}} - {{getRemaining(upload.overallUploadSpeed, upload.loaded, upload.total)}} </div>
+              <div *ngIf="!upload.completed">Current: {{getSpeed(upload.currentUploadSpeed)}} - {{getRemaining(upload.currentUploadSpeed, upload.loaded, upload.total)}}</div>
+            </div>
+            <mat-progress-bar mode="determinate" value="{{ upload.loaded / upload.total * 100 }}"></mat-progress-bar>
+          </ng-container>
+        </mat-list>
+      </mat-list>
+    </div>
+  </swal>
+</div>
+

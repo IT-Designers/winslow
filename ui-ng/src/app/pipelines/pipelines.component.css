@@ -1,0 +1,13 @@
+:host {
+  overflow: auto;
+}
+
+.title-icon {
+    display: flex;
+    width: 2em;
+}
+
+.toml-pipeline {
+    margin: 0.2em 1em;
+    padding: 0.5em;
+}

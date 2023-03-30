@@ -1,0 +1,30 @@
+<div class="context" *ngIf="availableTagsValue.length > 0">
+  <button *ngIf="notVisibleTags.length > 0" class="expansion-button" mat-icon-button [matMenuTriggerFor]="menu"
+          aria-label="Example icon-button with a menu"
+          matTooltip="Show all Context">
+    <mat-icon>expand_more</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item disabled>Overhanging tags</button>
+    <mat-divider></mat-divider>
+    <button *ngFor="let tag of notVisibleTags" mat-menu-item (click)="changeContext(tag)">
+      <span *ngIf="tag != selectedContext">{{tag}}</span>
+      <span *ngIf="tag == selectedContext"><b>{{tag}}</b></span>
+    </button>
+  </mat-menu>
+
+  <mat-tab-group cdkScrollable="false" mat-align-tabs="start" [selectedIndex]="selectedIndex">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <div class="custom-tab" (click)="changeContext('')">[No]</div>
+      </ng-template>
+    </mat-tab>
+    <div *ngFor="let tag of availableTagsValue; let i = index">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <div id="{{i}}" class="custom-tab" (click)="changeContext(tag)">{{tag}}</div>
+        </ng-template>
+      </mat-tab>
+    </div>
+  </mat-tab-group>
+</div>

@@ -1,0 +1,62 @@
+#main:nth-child(2):nth-child(2):first-child {
+  padding-bottom: 75vh;
+}
+
+#main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#main > .top-menu {
+  color: white;
+  background-color: cornflowerblue;
+}
+
+#main > .container {
+  display: flex;
+  flex-direction: column;
+  min-height: 90vh;
+  padding: 0;
+  /*
+  border: solid 0.05em lightgray;
+  border-bottom-left-radius: 0.25em;
+  border-bottom-right-radius: 0.25em;
+  background-color: white;
+ */
+}
+
+.container {
+  flex-grow: 1;
+}
+
+.container > *:not(router-outlet) {
+  max-height: 100% !important;
+}
+
+@media (min-width: 60em) {
+  #main > .container {
+    /*
+    margin-left: 5em;
+    margin-right: 5em;
+     */
+  }
+}
+
+
+::ng-deep.mat-dialog-container > * {
+  max-height: calc(100vh - 10em);
+  overflow: auto;
+  display: block;
+  padding: 0.75em;
+}
+
+.grayscale {
+  filter: grayscale(50%);
+}
+
+app-loading-info {
+  z-index: 99999;
+  position: relative;
+}

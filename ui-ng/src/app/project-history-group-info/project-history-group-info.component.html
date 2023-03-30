@@ -1,0 +1,35 @@
+<ng-template #detailItem let-key="key" let-value="value">
+  <p class="history-item-detail-item mat-highlight-hover">
+    <label *ngIf="value != null">{{key}}</label>
+    <label *ngIf="value == null"><s>{{key}}</s></label>
+    <label>{{value}}</label>
+  </p>
+</ng-template>
+
+<mat-accordion>
+  <div *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i; trackBy:trackStageInfo">
+    <app-project-history-header class="history-header"
+      [class.active]="selectedStageIndex === i"
+      [state]="stage.state"
+      [isConfigure]="executionGroup?.configureOnly"
+      [itemNo]="tryParseStageNumber(stage.id, min(visibleStages, executionGroup.stages.length) - i)"
+      [time]="stage.finishTime != null ? stage.startTime : stage.finishTime"
+      [stageName]="executionGroup?.stageDefinition?.name"
+      [showResumeOnlyThisStage]="false"
+      [enqueued]="false"
+      [running]="stage.state == 'RUNNING'"
+      [paused]="stage.state == 'PAUSED'"
+      [comment]="getRangeEnvVariableValues(stage)"
+      [sharedWorkspace]="!executionGroup?.workspaceConfiguration?.sharedWithinGroup"
+      [nestedWorkspace]="!executionGroup?.workspaceConfiguration?.nestedWithinGroup"
+
+      (click)="emitStageAndSetIndex(stage, i)"
+
+      (clickKillCurrentStage)="clickKillStage.emit(stage)"
+      (clickUseAsBlueprint)="clickUseAsBlueprint.emit(stage)"
+      (clickOpenLogs)="clickOpenLogs.emit(stage)"
+      (clickOpenAnalysis)="clickOpenAnalysis.emit(stage)"
+    ></app-project-history-header>
+  </div>
+
+</mat-accordion>

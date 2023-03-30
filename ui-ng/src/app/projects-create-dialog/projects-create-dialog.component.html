@@ -1,0 +1,34 @@
+<div>
+  <h2>Creating a new project</h2>
+
+  <div class="inputs">
+    <mat-form-field>
+      <input matInput required cdkfocusinitial placeholder="Name of the new project"
+             [(ngModel)]="data.name">
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-select required placeholder="Pipeline to execute"
+                  [(ngModel)]="data.pipeline">
+        <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline">{{pipeline.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <label>Project Tags</label>
+    <app-tags-with-autocomplete
+      [sort]="false"
+      [tags]="data.tags"
+      (tags)="data.tags = $event"
+      [proposals]="cachedTags">
+    </app-tags-with-autocomplete>
+
+    <div mat-dialog-actions align="end">
+      <button mat-raised-button (click)="dialogRef.close()">Cancel</button>
+      <button mat-raised-button color="primary"
+              [disabled]="data.name?.trim().length == 0 || data.pipeline == null"
+              (click)="dialogRef.close(data)">
+        Create
+      </button>
+    </div>
+  </div>
+</div>

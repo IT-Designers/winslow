@@ -1,0 +1,41 @@
+:host {
+  overflow: auto;
+  padding: 1em;
+}
+
+.servers-header {
+  margin-bottom: 1em;
+}
+
+mat-grid-tile {
+  font-weight: bold;
+}
+
+.servers {
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+.cpu-status-green {
+  background-color: #69B34C;
+  padding: 3px;
+  border-radius: 3px;
+  position: absolute;
+  left: 80px;
+}
+
+.cpu-status-yellow {
+  background-color: #FAB733;
+  padding: 3px;
+  border-radius: 3px;
+  position: absolute;
+  left: 80px;
+}
+
+.cpu-status-red {
+  background-color: #FF0D0D;
+  padding: 3px;
+  border-radius: 3px;
+  position: absolute;
+  left: 80px;
+}

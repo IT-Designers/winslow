@@ -1,0 +1,83 @@
+:host {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  overflow-y: hidden;
+  height: 100%;
+}
+
+.drawer-container {
+  height: 100%;
+}
+
+.drawer {
+  width: 30vw;
+  background-color: whitesmoke;
+  overflow-y: auto;
+}
+
+.drawer-content {
+  padding: 0.2em;
+  overflow-y: hidden;
+  margin-bottom: 2em;
+}
+
+.drawer-element {
+  display: block;
+  margin: 0.5em;
+}
+
+.mat-icon-container-auto-align-label label {
+  padding-left: 1em;
+  margin: auto 0;
+}
+
+.button-group {
+  position: absolute;
+  left: 1.25em;
+  bottom: 1.25em;
+  right: 1.25em;
+}
+
+.button-group button {
+  margin: 0.25em;
+}
+
+.show-projects-button {
+  position: fixed;
+  left: 1.5em;
+  bottom: 1.5em;
+  z-index: 99
+}
+
+.hide-projects-button {
+  float: right;
+}
+
+.project-container {
+  background: white;
+  padding: 0 1em;
+  height: 100%;
+}
+
+.section {
+  font-weight: bold;
+  margin: 0.2em;
+}
+
+.group {
+  background: #f5f5f5;
+  margin: 0.2em;
+  border: 0;
+  box-shadow: none;
+}
+
+.group mat-expansion-panel-header {
+  padding-left: 0;
+}
+
+.group mat-icon {
+  max-height: 1.5em;
+  max-width: 1.5em;
+  margin: auto 1em;
+}

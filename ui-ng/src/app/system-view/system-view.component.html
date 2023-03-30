@@ -1,0 +1,30 @@
+<app-loading-info [loading]="longLoading.isLongLoading()"></app-loading-info>
+
+<div class="vmenu-host height">
+  <div class="vmenu-selection-container">
+    <mat-card class="vmenu-selection">
+      <mat-list>
+        <mat-list-item
+          (click)="setSelection('env')"
+          [class.selected]="selection == 'env'"
+        ><mat-icon>list</mat-icon>Environment Variables</mat-list-item>
+        <mat-list-item
+          (click)="setSelection('resource-limits')"
+          [class.selected]="selection == 'resource-limits'"
+        ><mat-icon>donut_small</mat-icon>Resource Limitations</mat-list-item>
+      </mat-list>
+    </mat-card>
+  </div>
+
+  <div class="vmenu-container">
+    <mat-card class="vmenu-container-selection">
+      <ng-container [ngSwitch]="selection">
+        <app-system-cfg-env *ngSwitchCase="'env'" [longLoading]="longLoading"></app-system-cfg-env>
+        <app-system-cfg-res-limit *ngSwitchCase="'resource-limits'" [longLoading]="longLoading"></app-system-cfg-res-limit>
+        <ng-container *ngSwitchDefault>
+          <i>Nothing selected</i>
+        </ng-container>
+      </ng-container>
+    </mat-card>
+  </div>
+</div>

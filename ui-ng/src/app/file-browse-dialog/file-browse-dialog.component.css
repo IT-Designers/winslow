@@ -1,0 +1,12 @@
+.files-browser {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.container {
+  height: 70vh;
+  display: flex;
+  flex-direction: column;
+}

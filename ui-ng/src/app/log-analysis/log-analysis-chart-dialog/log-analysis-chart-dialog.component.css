@@ -1,0 +1,35 @@
+.dialog-content {
+  display: block;
+  padding: 0;
+  margin: 0;
+  width: 720px;
+}
+
+.dialog-actions {
+  padding: 0;
+  margin: 0;
+}
+
+.wide-field {
+  width: 720px;
+}
+
+.left-field {
+  width: 355px;
+  margin-right: 10px;
+}
+
+.right-field {
+  width: 355px;
+}
+
+.warning-message {
+  display: inline-flex;
+  align-items: center;
+  width: 720px;
+}
+
+.warning-message mat-icon {
+  margin-bottom: 0.125rem;
+  margin-right: 0.5rem;
+}

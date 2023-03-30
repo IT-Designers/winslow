@@ -1,0 +1,411 @@
+<mat-tab-group mat-align-tabs="center" #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)"
+               class="fill-height" >
+
+  <mat-tab label="Overview">
+    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+    <app-project-overview
+      [project]="this.project"
+      [state]="stateValue"
+      [history]="history"
+      [visible]="selectedTabIndex == tabIndexOverview"
+      (openFiles)="openFolder(this.project, this.history[0])"
+      (openLogs)="openLogs(null)"
+      (clickUseAsBlueprint)="useAsBlueprint($event[0], $event[1])"
+      (clickDeleteEnqueued)="cancelEnqueuedStage($event.id)"
+      (clickResumeSingle)="updateRequestPause(false, true)"
+      (clickResume)="updateRequestPause(false, false)"
+      (clickPause)="updateRequestPause(true)"
+    ></app-project-overview>
+  </mat-tab>
+
+  <mat-tab label="Control">
+    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+
+    <div class="stage-control-item">
+      <app-stage-execution-selection
+        #executionSelection
+        [pipelineSelectionDisabled]="true"
+        (selectedPipeline)="onSelectedPipelineChanged($event)"
+        (selectedStage)="onSelectedStageChanged($event)"
+        [environmentVariables]="environmentVariables"
+        [defaultEnvironmentVariables]="defaultEnvironmentVariables"
+        [rangedEnvironmentVariables]="rangedEnvironmentVariables"
+        [workspaceConfigurationMode]="workspaceConfigurationMode"
+        [executionHistory]="history">
+      </app-stage-execution-selection>
+    </div>
+    <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
+      <button mat-stroked-button color="warn"
+              [disabled]="!executionSelection.valid"
+              (click)="configureGroup(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getImage()
+                )">
+        <mat-icon>group</mat-icon>
+        Set on other Projects
+      </button>
+      <button mat-stroked-button color="primary"
+              [disabled]="!executionSelection.valid"
+              (click)="configure(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getImage(),
+                  executionSelection.getResourceRequirements()
+                )">
+        <mat-icon>save</mat-icon>
+        Save configuration
+      </button>
+      <button mat-raised-button color="primary" #enqueueMenuTrigger="matMenuTrigger"
+              [matMenuTriggerFor]="enqueueMenu"
+              [disabled]="!executionSelection.valid"
+              (click)="$event.preventDefault();
+                       $event.stopPropagation();
+                       enqueueMenuTrigger.closeMenu();
+                       enqueue(
+                          executionSelection.selectedPipeline,
+                          executionSelection.selectedStage,
+                          executionSelection.getEnv(),
+                          executionSelection.getRangedEnv(),
+                          executionSelection.getImage(),
+                          executionSelection.getResourceRequirements(),
+                          executionSelection.getWorkspaceConfiguration(),
+                          executionSelection.getComment()
+                        )">
+        <mat-icon>send</mat-icon>
+        Enqueue
+        <mat-icon (click)="$event.preventDefault(); $event.stopPropagation(); enqueueMenuTrigger.openMenu()">more_vert
+        </mat-icon>
+        <mat-menu #enqueueMenu xPosition="before">
+          <button mat-menu-item (click)="enqueue(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getRangedEnv(),
+                  executionSelection.getImage(),
+                  executionSelection.getResourceRequirements(),
+                  executionSelection.getWorkspaceConfiguration(),
+                  executionSelection.getComment(),
+                  false,
+                  true
+                )">
+            Enqueue and resume pipeline
+          </button>
+          <button mat-menu-item (click)="enqueue(
+                  executionSelection.selectedPipeline,
+                  executionSelection.selectedStage,
+                  executionSelection.getEnv(),
+                  executionSelection.getRangedEnv(),
+                  executionSelection.getImage(),
+                  executionSelection.getResourceRequirements(),
+                  executionSelection.getWorkspaceConfiguration(),
+                  executionSelection.getComment(),
+                  true,
+                  true
+                )">
+            Enqueue and resume single
+          </button>
+        </mat-menu>
+      </button>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="History">
+      <ng-template matTabContent>
+
+        <div *ngIf="history.length > 0" class="history-more-buttons horizontal-center-with-margin">
+          <!-- <button *ngIf="historyCanLoadMoreEntries"
+                  mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(10)">
+            <mat-icon>arrow_drop_down</mat-icon>
+            Show 10 More
+          </button>
+          <button *ngIf="historyCanLoadMoreEntries"
+                  mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(50)">
+            <mat-icon>expand_more</mat-icon>
+            Show 50 More
+          </button> -->
+          <button *ngIf="historyCanLoadMoreEntries"
+                  mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(1000000)">
+            <mat-icon>arrow_downward</mat-icon>
+            Load All
+          </button>
+          <button mat-stroked-button color="warn" (click)="pruneHistory()">
+            <mat-icon>delete_forever</mat-icon>
+            Delete Failed
+          </button>
+        </div>
+        <div *ngIf="history?.length > 0">
+          <div [style.overflow]="'auto'"
+
+          [ngStyle]="history?.length < 7 ? {'height': history.length * 50 } :  {'height': historyListHeight + 'px' }"
+          (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null">
+
+            <app-project-history
+              *ngFor="let entry of history; index as i; trackBy:trackHistory"
+              [active]="selectedHistoryEntryIndex === i"
+              class="history-list-item"
+
+              [executionGroup]="entry"
+              [firstEntry]="i == 0"
+              [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
+              [expanded]="selectedHistoryEntry === entry"
+              [pipelineIsPaused]="paused"
+              [projectState]="stateValue"
+
+              (click)="setHistoryEntry(entry, i)"
+              (clickGetStage)="setHistoryEntryStage($event)"
+
+              (clickResume)="updateRequestPause(false)"
+              (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
+              (clickDelete)="cancelEnqueuedStage(entry.id)"
+              (clickPauseAfterThis)="updateRequestPause(true)"
+              (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
+              (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
+              (clickOpenWorkspace)="openWorkspace(project, $event)"
+              (clickOpenLogs)="openLogs($event)"
+              (clickOpenAnalysis)="openAnalysis($event)"
+              (clickOpenTensorboard)="openTensorboard(project, $event)"
+            ></app-project-history>
+          </div>
+        </div>
+
+        <div *ngIf="history?.length > 0">
+          <app-project-history-details
+          [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
+          [entryNumber]="selectedHistoryEntryNumber ? selectedHistoryEntryNumber : tryParseStageNumber(history[0]?.id, history?.length)"
+          [selectedStage]="selectedHistoryEntryStage ? selectedHistoryEntryStage : history[0]?.stages[history[0]?.stages.length-1]"
+          [projectState]="stateValue"
+
+          (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
+          (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"
+          (clickOpenWorkspace)="openWorkspace(project, $event)"
+          (clickOpenLogs)="openLogs($event)"
+          (clickOpenAnalysis)="openAnalysis($event)"
+          (clickOpenTensorboard)="openTensorboard(project, $event)"
+      >
+        </app-project-history-details>
+        </div>
+        <div *ngIf="history?.length == 0" class="empty-project-history">
+          This project has no history yet
+        </div>
+
+      </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Files">
+    <ng-template matTabContent>
+      <app-files class="files-tab-content"
+                 [additionalRoot]="filesAdditionalRoot"
+                 [navigationTarget]="this.filesNavigationTarget"
+      ></app-files>
+
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Logs">
+    <ng-template matTabContent>
+      <app-log-view class="flex-grow flex-grow-column max-height"
+                    [project]="projectValue"
+                    [selectedStage]="stageIdToDisplayLogsFor"
+      ></app-log-view>
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Analysis">
+    <ng-template matTabContent>
+      <app-log-analysis class="flex-grow flex-grow-column max-height"
+                    [project]="projectValue"
+                    [selectedStage]="stageIdToDisplayLogsFor"
+      ></app-log-analysis>
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Pipeline">
+    <ng-template matTabContent>
+      <div class="flex-grow flex-grow-column max-height">
+        <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+        <app-pipeline-editor #editor
+                             [raw]="rawPipelineDefinition"
+                             [error]="rawPipelineDefinitionError"
+                             [success]="rawPipelineDefinitionSuccess"
+                             [enableOnOthers]="true"
+                             (others)="updatePipelineDefinitionOnOthers($event)"
+                             (check)="checkPipelineDefinition($event)"
+                             (update)="updatePipelineDefinition($event, editor)">
+        </app-pipeline-editor>
+      </div>
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Pipeline View">
+    <ng-template matTabContent>
+      <div class="flex-grow flex-grow-column max-height">
+        <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+          <app-pipeline-view
+            [project]="projectValue"
+          ></app-pipeline-view>
+      </div>
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Settings">
+    <ng-template matTabContent>
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+      <div class="stage-control-item">
+        <label>Project Name</label>
+        <mat-form-field>
+          <input #nameOriginal hidden [value]="project.name">
+          <input #nameEntered matInput name="name" [value]="project.name"
+                 (input)="updateName.disabled = $event.target.value == nameOriginal.value"
+                 (keydown.enter)="setName(nameEntered.value)">
+        </mat-form-field>
+        <button #updateName mat-stroked-button disabled color="primary" (click)="setName(nameEntered.value)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <label>Project Tags</label>
+        <app-tags-with-autocomplete #tags
+                                    [sort]="false"
+                                    [tags]="project.tags"
+                                    [proposals]="api.cachedTags">
+        </app-tags-with-autocomplete>
+        <button mat-stroked-button color="primary" #tagsButton
+                [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json)"
+                (click)="setTags(tags.selectedTags)">
+          Update
+        </button>
+      </div>
+      <div class="stage-control-item">
+        <label>Project Pipeline</label>
+        <mat-form-field>
+          <mat-select #pipelineSelection [value]="this.probablyProjectPipelineId">
+            <ng-container *ngFor="let pipeline of pipelines">
+              <mat-option [value]="pipeline.id">{{pipeline.name}}</mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button color="primary" #tagsButton
+                (click)="setPipeline(pipelineSelection.value)">
+          Update
+        </button>
+      </div>
+
+      <div class="stage-control-item whitespace-separator-top">
+        <label>Public Access</label>
+        <mat-slide-toggle #publicAccess [checked]="this.project?.publicAccess"></mat-slide-toggle>
+        <button mat-stroked-button color="primary"
+                [disabled]="publicAccess.checked === this.project?.publicAccess"
+                (click)="updatePublicAccess(publicAccess.checked)">
+          Update
+        </button>
+      </div>
+
+      <div class="whitespace-separator separator-line"></div>
+
+      <div class="whitespace-separator-top">
+        <div class="whitespace-separator-top stage-control-item">
+          <mat-card-subtitle>
+            <mat-slide-toggle
+              #custom
+              [checked]="deletionPolicyLocal != null"
+              (change)="maybeResetDeletionPolicy(!$event.checked)">
+              Project specific Deletion Policy
+            </mat-slide-toggle>
+          </mat-card-subtitle>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+            Update
+          </button>
+        </div>
+        <div class="stage-control-item">
+          <label [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
+          <mat-form-field>
+            <input #limit matInput type="number"
+                   [disabled]="deletionPolicyLocal == null || !custom.checked"
+                   [value]="deletionPolicyLocal != null ? ''+deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : ''"
+                   [min]="1">
+          </mat-form-field>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+            Update
+          </button>
+        </div>
+        <div class="stage-control-item">
+          <label [class.disabled]="!custom.checked">Keep workspaces of failed stages</label>
+          <mat-slide-toggle #keep
+                            [disabled]="deletionPolicyLocal == null || !custom.checked"
+                            [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage"
+          ></mat-slide-toggle>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+            Update
+          </button>
+        </div>
+        <div class="stage-control-item">
+          <label [class.disabled]="!custom.checked">Always keep most recent workspace</label>
+          <mat-slide-toggle #always
+                            [disabled]="deletionPolicyLocal == null || !custom.checked"
+                            [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
+          ></mat-slide-toggle>
+          <button mat-stroked-button color="primary"
+                  [disabled]="deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked"
+                  (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)">
+            Update
+          </button>
+        </div>
+      </div>
+
+      <div class="whitespace-separator separator-line"></div>
+
+      <div class="whitespace-separator-top">
+        <app-resource-limitation
+          class="whitespace-separator-top "
+          title="Project specific Resource Limitation"
+          [limit]="resourceLimit"
+          (limit)="setResourceLimitation($event)"
+        ></app-resource-limitation>
+
+      </div>
+
+      <div class="whitespace-separator separator-line"></div>
+
+      <div class="stage-control-item">
+        <label>Default workspace configuration mode</label>
+        <mat-form-field>
+          <mat-select #workspaceModeSelection [value]="this.workspaceMode">
+            <ng-container *ngFor="let mode of workspaceModes()">
+              <mat-option [value]="mode">{{mode}}</mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button color="primary" (click)="setWorkspaceMode(workspaceModeSelection.value)">
+          Update
+        </button>
+      </div>
+
+      <div class="whitespace-separator separator-line"></div>
+
+      <div class="whitespace-separator-top">
+        <app-auth-tokens
+          class="whitespace-separator-top "
+            title="Authentication Tokens"
+            [tokens]="authTokens"
+            (create)="createAuthToken($event)"
+            (delete)="deleteAuthToken($event.id)"
+        ></app-auth-tokens>
+      </div>
+
+      <div class="whitespace-separator separator-line"></div>
+
+      <div class="stage-control-item whitespace-separator-top">
+        <button class="whitespace-separator-top" mat-stroked-button color="warn" (click)="delete()">Delete</button>
+      </div>
+    </ng-template>
+  </mat-tab>
+</mat-tab-group>

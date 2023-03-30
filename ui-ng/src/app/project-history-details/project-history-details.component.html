@@ -1,0 +1,257 @@
+<div *ngIf="entry">
+  <div class="selected-history-item">
+    <div class="selected-history-item-header">
+      <app-project-history-header class="history-header"
+        [itemNo]="entryNumber"
+        [time]="selectedStage?.startTime"
+        [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
+        [state]="entry.getMostRelevantState(projectState)"
+        [isConfigure]="entry?.configureOnly"
+        [showResumeOnlyThisStage]="false"
+        [enqueued]="false"
+        [running]="selectedStage?.state == 'RUNNING'"
+        [paused]="selectedStage?.state == 'PAUSED'"
+
+
+        (clickKillCurrentStage)="clickKillStage.emit(selectedStage)"
+        (clickUseAsBlueprint)="clickUseAsBlueprint.emit(selectedStage)"
+        (clickOpenWorkspace)="clickOpenWorkspace.emit(selectedStage)"
+        (clickOpenLogs)="clickOpenLogs.emit(selectedStage)"
+        (clickOpenAnalysis)="clickOpenAnalysis.emit(selectedStage)"
+        (clickOpenTensorboard)="clickOpenTensorboard.emit(selectedStage)"
+      ></app-project-history-header>
+    </div>
+
+    <div class="buttons">
+      <mat-button-toggle-group
+        #group="matButtonToggleGroup"
+        [value]="buttonValue"
+        (change)="onButtonValueChange(group.value)"
+      >
+        <mat-button-toggle
+          value="stage-definition"
+          (click)="getStageDefinition()"
+          >Stage Definition</mat-button-toggle
+        >
+        <mat-button-toggle
+          value="stage-information"
+          (click)="getStageInformation()"
+          >Stage Information
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div [style.overflow]="'auto'" [ngStyle]="{'height': historyDetailsHeight + 'px'}">
+
+      <ng-template #detailItem let-key="key" let-value="value">
+        <p class="history-item-detail-item mat-highlight-hover">
+          <label *ngIf="value != null">{{ key }}</label>
+          <label *ngIf="value == null"
+            ><s>{{ key }}</s></label
+          >
+          <label>{{ value }}</label>
+        </p>
+      </ng-template>
+
+      <div *ngIf="this.showStageDefinition" class="stage-definition-information">
+
+
+        <h4>Stage Definition</h4>
+        <div class="history-item-detail">
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: { key: 'Name', value: entry?.stageDefinition.name }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Image Name',
+                value: entry?.stageDefinition.image?.name
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Image Arguments',
+                value: entry?.stageDefinition.image?.args | json
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Required CPUs',
+                value: entry?.stageDefinition.requiredResources?.cpus
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Required RAM (MiB)',
+                value: entry?.stageDefinition.requiredResources?.megabytesOfRam
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Required GPUs',
+                value: entry?.stageDefinition.requiredResources?.gpus
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Required EnvVars',
+                value: entry?.stageDefinition.requiredEnvVariables | json
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Workspace Mode',
+                value: entry?.workspaceConfiguration?.mode
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Workspace Shared Within Group',
+                value: entry?.workspaceConfiguration?.sharedWithinGroup
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Workspace Nested Within Group',
+                value: entry?.workspaceConfiguration?.nestedWithinGroup
+              }
+            "
+          ></ng-template>
+          <ng-template
+            *ngTemplateOutlet="
+              detailItem;
+              context: {
+                key: 'Workspace Supplement',
+                value: entry?.workspaceConfiguration?.value
+              }
+            "
+          ></ng-template>
+          <ng-container
+            *ngFor="
+              let entry of entry?.rangedValues | keyvalue;
+              trackBy: trackKey
+            "
+          >
+            <ng-container *ngIf="entry.value?.DiscreteSteps != null">
+              <ng-template
+                *ngTemplateOutlet="
+                  detailItem;
+                  context: {
+                    key: 'Ranged/DiscreteSteps[' + entry.key + ']',
+                    value:
+                      '[' +
+                      entry.value.DiscreteSteps.min +
+                      ', ' +
+                      entry.value.DiscreteSteps.max +
+                      '], ' +
+                      entry.value.DiscreteSteps.stepSize
+                  }
+                "
+              >
+              </ng-template>
+            </ng-container>
+          </ng-container>
+
+          <h4>Environment Variables</h4>
+          <i *ngIf="entry?.stageDefinition?.env?.size == 0">none</i>
+          <ng-container
+            *ngFor="
+              let e of entry?.stageDefinition?.env | keyvalue;
+              trackBy: trackKey
+            "
+          >
+            <ng-template
+              *ngTemplateOutlet="
+                detailItem;
+                context: { key: e.key, value: e.value }
+              "
+            >
+            </ng-template>
+          </ng-container>
+        </div>
+      </div>
+
+      <div *ngIf="!this.showStageDefinition" class="stage-definition-information">
+        <div *ngIf="selectedStage?.id" class="history-item-detail">
+
+          <h4>General Information</h4>
+          <ng-template *ngTemplateOutlet="detailItem; context: { key: 'Unique Id', value: selectedStage.id }"></ng-template>
+          <ng-template
+            *ngTemplateOutlet="detailItem; context: { key: 'Workspace Directory', value: selectedStage.workspace }"></ng-template>
+          <ng-template
+            *ngTemplateOutlet="detailItem; context: { key: 'Started execution at', value: selectedStage.startTime != null ? toDate(selectedStage.startTime) : ' not yet started' }"></ng-template>
+          <ng-template
+            *ngTemplateOutlet="detailItem; context: { key: 'Finished execution at', value: selectedStage.finishTime != null ? toDate(selectedStage.finishTime) : ' not yet finished' }"></ng-template>
+
+          <h4>Stage Environment Variables</h4>
+          <i *ngIf="selectedStage?.env.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage?.env | keyvalue; trackBy:trackKey">
+            <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
+            </ng-template>
+          </ng-container>
+
+          <h4>Pipeline Environment Variables</h4>
+          <i *ngIf="selectedStage?.envPipeline.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage?.envPipeline | keyvalue; trackBy:trackKey">
+            <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
+            </ng-template>
+          </ng-container>
+
+          <h4>System Environment Variables</h4>
+          <i *ngIf="selectedStage?.envSystem.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage?.envSystem | keyvalue; trackBy:trackKey">
+            <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
+            </ng-template>
+          </ng-container>
+
+          <h4>Internal Environment Variables</h4>
+          <i *ngIf="selectedStage?.envInternal.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage?.envInternal | keyvalue; trackBy:trackKey">
+            <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
+            </ng-template>
+          </ng-container>
+
+          <h4>Result Variables</h4>
+          <i *ngIf="selectedStage?.result.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage?.result | keyvalue; trackBy:trackKey">
+            <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
+            </ng-template>
+          </ng-container>
+        </div>
+        <div *ngIf="!selectedStage?.id" class="history-item-detail">
+          No Stage Information available
+        </div>
+      </div>
+    </div>
+    </div>
+
+
+</div>

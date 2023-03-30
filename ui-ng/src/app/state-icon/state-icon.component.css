@@ -1,0 +1,48 @@
+:host {
+  display: flex;
+}
+.state-icon {
+  display: flex;
+  width: 2em;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.state-icon-preparing {
+  color: lightblue;
+}
+
+.state-icon-running {
+  color: lightblue;
+}
+
+.state-icon-success {
+  color: green;
+}
+.state-icon-failure {
+  color: red;
+}
+
+.state-icon-paused {
+  color: orange;
+}
+
+.state-icon-skipped {
+  color: #6ca5ff;
+}
+
+.state-icon-configured {
+  color: rgba(0, 0, 139, 0.85); /* darkblue ..% */
+  font-size: 0.8em;
+  text-align: center;
+  border: 2px solid;
+  border-radius: 5em;
+  width: 0.9em;
+  height: 0.9em;
+  padding: 0.27em;
+  margin: 0.1em
+}
+
+.state-icon-unknown {
+  color: silver;
+}

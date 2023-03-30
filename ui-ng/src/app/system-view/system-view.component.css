@@ -1,0 +1,14 @@
+:host {
+  flex-grow: 1;
+  display: flex;
+}
+
+.vmenu-container-selection {
+  display: flex;
+  flex-direction: column;
+}
+
+.vmenu-container-selection > * {
+  overflow: hidden;
+  max-height: 100%;
+}

@@ -1,0 +1,58 @@
+.header-row {
+  margin: 2em 0 1em 0;
+  text-align: center;
+}
+
+.graph-container {
+  display: flex;
+  flex-direction: row;
+  overflow: auto;
+  max-height: 20em;
+}
+
+.graph {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  padding: 0 2em;
+  margin: 2em 0;
+  overflow: hidden;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.ngx-graph-wrapper {
+  overflow: hidden;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.control-button-row button:not(:first-child) {
+  margin-left: 1em;
+}
+
+.control-button-row {
+  padding-top: 0em !important;
+}
+
+.control-row {
+  padding: 0em !important;
+}
+
+.divider {
+  display: flex;
+  flex-grow: 1;
+  max-height: 0;
+  border-bottom: 1px solid silver;
+  margin: 0 1em;
+}
+
+
+.control-button-row > button > mat-icon {
+  margin: 0 0.1em 0.1em 0;
+}
+
+.chart {
+  height: 200px !important;
+  width: 150% !important;
+}

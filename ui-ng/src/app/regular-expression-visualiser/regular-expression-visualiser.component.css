@@ -1,0 +1,19 @@
+.segment {
+  white-space: break-spaces;
+}
+
+.segment-normal {
+
+}
+
+.segment-match {
+  background-color: #007aff7f;
+}
+
+.segment-group {
+  background-color: #00ffff7f;
+}
+
+.segment-uncertain {
+  background-color: #fab7337f;
+}

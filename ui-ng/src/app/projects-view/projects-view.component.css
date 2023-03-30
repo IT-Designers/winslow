@@ -1,0 +1,78 @@
+.project-selection-sidebar-item {
+  height: 6em !important; /* TODO */
+}
+
+.mat-icon-container-auto-align-label label {
+  padding-left: 1em;
+  margin: auto 0;
+}
+
+.vmenu-selection {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.mat-card {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+.section {
+  font-weight: bold;
+  margin: 0.2em;
+}
+
+.group {
+  background: #f5f5f5;
+  margin: 0.2em;
+  border: 0;
+  box-shadow: none;
+}
+
+.group-on-top {
+  background: #f5f5f5;
+  margin: 0.2em;
+}
+
+.group mat-expansion-panel-header {
+  padding-left: 0;
+  height: 5.4em;
+}
+
+.group mat-icon {
+  max-height: 1.5em;
+  max-width: 1.5em;
+  margin-top: 0.2em;
+  margin-left: 1em;
+  margin-right: 0.5em;
+}
+
+.group h4 {
+  margin: 1.5em auto 0.2em 0.5em;
+}
+
+.mat-expansion-panel-header.mat-expanded {
+  background-color: #eeeeee;
+}
+
+.mat-expansion-panel.mat-expanded {
+  background-color: #eeeeee;
+}
+
+.mat-divider.mat-divider-inset {
+  margin-left: 0;
+}
+
+.mat-divider {
+  border-top-color: #dadada;
+  border-top-width: 1px;
+  width: 100%;
+}
+
+.icon {
+  max-height: 2em;
+  max-width: 2em;
+  margin-top: 0.1em;
+  margin-left: 1em;
+  margin-right: 0.5em;
+}

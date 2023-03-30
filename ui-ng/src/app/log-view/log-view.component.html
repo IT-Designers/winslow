@@ -1,0 +1,89 @@
+<app-loading-info [loading]="isLongLoading()"></app-loading-info>
+<div class="console-controls">
+  <button mat-raised-button color="accent"
+          [disabled]="displayLatest"
+          (click)="showLatestLogs()">Show log of most recent Stage
+  </button>
+
+  <button mat-stroked-button (click)="forceReloadLogs()">
+    <mat-icon>loop</mat-icon>
+    Force Reload
+  </button>
+
+  <app-stop-button style="display: flex;"
+                   [project]="selectedProject"
+                   [disabled]="!projectHasRunningStage"
+  ></app-stop-button>
+
+  <div class="vertical-center-with-margin">
+    <mat-slide-toggle (click)="scrollConsoleToBottom(true)"
+                      labelPosition="before"
+                      [checked]="stickConsole"
+                      (change)="this.scrollConsoleToBottomTimeout($event.checked)">
+      Stick to the Bottom
+    </mat-slide-toggle>
+  </div>
+
+  <mat-form-field appearance="legacy" class="reg-exp-field">
+    <code>
+      <input matInput [(ngModel)]="regularExpressionPattern">
+    </code>
+  </mat-form-field>
+
+  <button mat-icon-button>
+    <mat-icon class="material-icons-outlined">
+      <a [href]="downloadUrl" target="_blank">cloud_download</a>
+    </mat-icon>
+  </button>
+
+  <div class="console-scroll-up-down">
+    <button mat-stroked-button (click)="scrollConsoleToTop()">
+      <mat-icon>arrow_upward</mat-icon>
+    </button>
+    <button mat-stroked-button (click)="scrollConsoleToBottom(true)">
+      <mat-icon>arrow_downward</mat-icon>
+    </button>
+  </div>
+</div>
+
+
+<div class="logs-container flex-grow flex-grow-column">
+  <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
+    <div #scrollTopTarget></div>
+    <pre class="console-container">
+          <code *ngIf="logs != null" class="console"
+          ><ng-container *ngFor="let log of logs; trackBy:lineId"
+          ><span (contextmenu)="rightClickAction(matMenuTrigger, $event, log)"
+          ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{log.line}}</span
+          ><span *ngIf="isPatternMatching()"
+                 [class.console-err]="log.error"
+                 [class.console-mgmt]="sourceIsManagement(log.source)"
+          ><app-regular-expression-visualiser
+            [text]="log.message"
+            [pattern]="regularExpressionPattern">
+          </app-regular-expression-visualiser></span
+          ><span *ngIf="!isPatternMatching()"
+                 [class.console-err]="log.error"
+                 [class.console-mgmt]="sourceIsManagement(log.source)"
+          >{{log.message}}</span
+          ></span
+          ></ng-container
+          ></code>
+        </pre>
+    <div #scrollBottomTarget></div>
+  </div>
+</div>
+
+<div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
+     [matMenuTriggerFor]="menu"
+     [style.left.px]="contextMenu.x"
+     [style.top.px]="contextMenu.y"
+></div>
+<mat-menu #menu="matMenu">
+  <button mat-menu-item (click)="contextMenuCopy()">
+    <span>Copy</span>
+  </button>
+  <button mat-menu-item (click)="contextMenuOpenEditor()">
+    <span>Open in Regular-Expression-Editor</span>
+  </button>
+</mat-menu>

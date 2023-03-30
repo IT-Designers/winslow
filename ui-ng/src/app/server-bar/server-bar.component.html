@@ -1,0 +1,24 @@
+<div class="bar">
+  <mat-grid-list cols="12" rowHeight="60px">
+    <mat-grid-tile colspan='2'>{{ node.name }}</mat-grid-tile>
+    <mat-grid-tile colspan='1'>
+      <div echarts [options]="chartOptionCpu" class="chart" [merge]="mergeOptionCpu"></div>
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2'>
+      <div echarts [options]="chartOptionMemory" class="chart" [merge]="mergeOptionMemory"></div>
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2'>
+      <div echarts [options]="chartOptionNetwork" class="chart" [merge]="mergeOptionNetwork"></div>
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2'>
+      <div echarts [options]="chartOptionDisk" class="chart" [merge]="mergeOptionDisk"></div>
+    </mat-grid-tile>
+    <mat-grid-tile colspan='1'>
+      <div echarts *ngIf="this.node.gpuInfo.length != 0" [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu"></div>
+      <div echarts *ngIf="this.node.gpuInfo.length == 0">N/A</div>
+    </mat-grid-tile>
+    <mat-grid-tile colspan='2'>
+      {{ runningJobs }}
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

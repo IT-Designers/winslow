@@ -1,0 +1,19 @@
+
+.pipeline-to-stage-indention:before {
+  padding-left: 1.0em !important;
+  padding-right: 1.5em;
+  display: inline-block;
+  content: '⏎';
+  transform: scale(-1, 1);
+}
+
+
+/* --- Mat-Design Fixes --- */
+mat-card-subtitle {
+  margin-left: -1em;
+}
+
+mat-divider {
+  position: relative !important;
+}
+/* --- Mat-Design Fixes --- */

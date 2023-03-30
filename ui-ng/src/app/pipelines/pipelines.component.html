@@ -1,0 +1,44 @@
+<div>
+
+
+  <div *ngIf="this.pipelines != null" class="flex-grow-row control-button-row">
+    <div class="flex-grow"></div>
+    <button class="create-button" mat-raised-button color="primary"
+          (click)="openCreatePipelineDialog()">
+      Create Pipeline
+    </button>
+  </div>
+
+
+  <div class="none-defined-yet" *ngIf="pipelines != null && pipelines.length == 0">
+    <i>There are no pipelines defined yet</i>
+  </div>
+
+  <app-loading-info [error]="loadError ? loadError.message : null" [loading]="pipelines == null"></app-loading-info>
+
+  <mat-accordion>
+    <mat-expansion-panel *ngFor="let pipeline of pipelines" (expandedChange)="editor.layout()">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon class="title-icon">timeline</mat-icon>{{pipeline.name}}
+        </mat-panel-title>
+        <mat-panel-description>
+          {{pipeline.desc}}
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <div class="toml-pipeline">
+        <h5>Definition</h5>
+        <app-pipeline-editor #editor
+          [pipelineId]="pipeline.id"
+          [raw]="raw.get(pipeline.id)"
+          [error]="error.get(pipeline.id)"
+          [success]="success.get(pipeline.id)"
+          [parseError]="parseError.get(pipeline.id)"
+          (update)="update(pipeline.id, $event)"
+          (check)="check(pipeline.id, $event)">
+        </app-pipeline-editor>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+</div>

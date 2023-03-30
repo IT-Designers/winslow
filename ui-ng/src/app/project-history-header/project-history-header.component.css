@@ -1,0 +1,47 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.history-batch {
+  width: 1.3em;
+  color: darkgray;
+  margin: -0.125em -0.5em auto;
+  /*padding-top: 1em;*/
+}
+
+.history-comment {
+  flex-grow: 2;
+  text-align: center;
+  color: darkgray;
+}
+
+.history-control-icons {
+  flex-grow: 1;
+  text-align: end;
+}
+
+.state-icon-fix > span {
+  align-items: center;
+}
+
+.history-list-column {
+  white-space: nowrap;
+}
+
+.history-list-column:not(:first-child) {
+  padding-left: 1em;
+}
+
+.history-list-column:not(:last-child):not(:first-child) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+.history-item-no, .history-item-date, .history-control-icons {
+  overflow: unset !important;
+}
