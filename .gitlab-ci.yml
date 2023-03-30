@@ -143,7 +143,9 @@ deploy-winslow-node:
     - cd node
     - docker pull nexus.itd-intern.de/winslow/component-html:$TAG
     - docker pull nexus.itd-intern.de/winslow/component-server:$TAG
-    - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/node:$TAG
+    - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/node:$TAG \
+      --build-arg COMPONENT_HTML=nexus.itd-intern.de/winslow/component-html:$TAG \
+      --build-arg COMPONENT_SERVER=nexus.itd-intern.de/winslow/component-server:$TAG
     - docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
     - docker push $DOCKER_REGISTRY_WINSLOW/winslow/node:$TAG
 
