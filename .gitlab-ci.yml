@@ -140,6 +140,7 @@ deploy-winslow-node:
   script:
     - export TAG="${CI_COMMIT_TAG:-latest}"
     - echo $TAG
+    - cd node
     - docker pull nexus.itd-intern.de/winslow/component-html:$TAG
     - docker pull nexus.itd-intern.de/winslow/component-server:$TAG
     - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/node:$TAG
