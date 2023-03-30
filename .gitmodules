@@ -1,3 +1,0 @@
-[submodule "nomad-java-sdk"]
-	path = nomad-java-sdk
-	url = https://github.com/kellerkindt/nomad-java-sdk.git
