@@ -1,7 +1,3 @@
-before_script:
-  - git submodule sync --recursive
-  - git submodule update --init --recursive
-
 variables:
   WINSLOW_API_TS_URL: "$NEXUS_RAW_WINSLOW_URL/api/build/winslow-api_$CI_COMMIT_SHORT_SHA.ts"
   WINSLOW_API_TS_URL_LATEST: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
