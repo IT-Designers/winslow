@@ -7,7 +7,8 @@ public record AllocInfo(
         @Nonnull String title,
         long cpu,
         long memory,
-        long gpu) {
+        long gpu
+) {
 
     @Nonnull
     @CheckReturnValue

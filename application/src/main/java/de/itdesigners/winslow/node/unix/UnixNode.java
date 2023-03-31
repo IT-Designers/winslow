@@ -81,7 +81,7 @@ public class UnixNode implements Node {
         return SYS
                 .resolve("devices")
                 .resolve("system")
-                .resolve("cpus")
+                .resolve("cpu")
                 .resolve("cpufreq")
                 .resolve("policy0")
                 .resolve("cpuinfo_max_freq");
@@ -128,7 +128,7 @@ public class UnixNode implements Node {
     private Optional<Integer> tryLoadCpuInfoMhz() throws IOException {
         try (var lines = Files.lines(resolveCpuInfo())) {
             return lines
-                    .filter(l -> l.startsWith("cpus MHz"))
+                    .filter(l -> l.startsWith("cpu MHz"))
                     .map(l -> l.split(":"))
                     .filter(l -> l.length == 2)
                     .map(l -> l[1])
@@ -177,7 +177,7 @@ public class UnixNode implements Node {
                     .filter(line -> line.startsWith(CPU_INFO_MODEL_PREFIX))
                     .map(line -> line.split(CPU_INFO_SEPARATOR, 2)[1].trim())
                     .findFirst()
-                    .orElseThrow(() -> new IOException("Invalid cpus info file format"));
+                    .orElseThrow(() -> new IOException("Invalid cpu info file format"));
         }
     }
 
