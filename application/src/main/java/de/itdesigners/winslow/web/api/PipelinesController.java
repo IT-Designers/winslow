@@ -8,17 +8,23 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException;
 import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.api.pipeline.ParseError;
 import de.itdesigners.winslow.api.pipeline.PipelineDefinitionInfo;
+import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.web.PipelineDefinitionInfoConverter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,24 +54,32 @@ public class PipelinesController {
     }
 
     @GetMapping("pipelines/{pipeline}")
-    public Optional<PipelineDefinitionInfo> getPipeline(@PathVariable("pipeline") String pipeline) {
+    public Optional<PipelineDefinitionInfo> getPipeline(
+            @Nullable User user,
+            @PathVariable("pipeline") String pipeline) {
         return winslow
                 .getPipelineRepository()
                 .getPipeline(pipeline)
                 .unsafe()
+                .filter(pd -> user != null && pd.canBeAccessedBy(user))
                 .map(p -> PipelineDefinitionInfoConverter.from(pipeline, p));
     }
 
     @GetMapping("pipelines/{pipeline}/raw")
-    public Optional<String> getPipelineRaw(@PathVariable("pipeline") String pipeline) {
-        return winslow
+    public Optional<String> getPipelineRaw(@Nullable User user, @PathVariable("pipeline") String pipeline) {
+        var handle = winslow
                 .getPipelineRepository()
-                .getPipeline(pipeline)
-                .unsafeRaw();
+                .getPipeline(pipeline);
+
+        return handle
+                .unsafe()
+                .filter(pd -> user != null && pd.canBeAccessedBy(user))
+                .flatMap(_pd -> handle.unsafeRaw());
     }
 
     @PutMapping("pipelines/{pipeline}/raw")
     public ResponseEntity<String> setPipeline(
+            @Nullable User user,
             @PathVariable("pipeline") String pipeline,
             @RequestBody String raw) throws IOException {
         PipelineDefinition definition = null;
@@ -84,11 +98,21 @@ public class PipelinesController {
                 .getPipelineRepository()
                 .getPipeline(pipeline)
                 .exclusive();
+
         if (exclusive.isPresent()) {
             var container = exclusive.get();
             var lock      = container.getLock();
+            var previous  = container.getNoThrow();
 
             try (lock) {
+                if (user != null && previous.isPresent()) {
+                    if (!previous.get().canBeManagedBy(user)) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                    }
+                } else if (user != null && previous.isEmpty()) {
+                    definition = definition.withUserAndRole(user.name(), Role.OWNER);
+                }
+
                 container.update(definition);
             }
         }
@@ -131,7 +155,7 @@ public class PipelinesController {
                         )
                 );
             } else if (e instanceof MismatchedInputException) {
-                var cause    = (MismatchedInputException) e;
+                var cause = (MismatchedInputException) e;
                 var location = cause.getLocation();
                 throw new ParseErrorException(e, new ParseError(
                         location.getLineNr(),
@@ -150,7 +174,11 @@ public class PipelinesController {
     }
 
     @PostMapping("pipelines/create")
-    public Optional<PipelineDefinitionInfo> createPipeline(@RequestBody String name) {
+    public Optional<PipelineDefinitionInfo> createPipeline(@Nullable User user, @RequestBody String name) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
+        }
+
         var id = PipelineDefinitionRepository.derivePipelineIdFromName(name);
         return this.winslow
                 .getPipelineRepository()
@@ -223,7 +251,12 @@ public class PipelinesController {
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
                                     new DeletionPolicy(),
-                                    Collections.emptyList()
+                                    Collections.emptyList(),
+                                    List.of(new Link(
+                                            user.name(),
+                                            Role.OWNER
+                                    )),
+                                    false
                             );
                             container.update(def);
                             return Optional.of(PipelineDefinitionInfoConverter.from(id, def));

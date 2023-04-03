@@ -496,7 +496,9 @@ public class GraphTests {
                 stages,
                 Collections.emptyMap(),
                 new DeletionPolicy(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                Collections.emptyList(),
+                false
         );
     }
 

@@ -20,7 +20,9 @@ public class PipelineDefinitionInfoConverter {
                         .map(StageDefinitionInfoConverter::from)
                         .toList(),
                 pipeline.deletionPolicy(),
-                pipeline.markers()
+                pipeline.markers(),
+                pipeline.groups(),
+                pipeline.publicAccess()
         );
     }
 }
