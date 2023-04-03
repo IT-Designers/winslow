@@ -110,7 +110,26 @@ public record PipelineDefinition(
         return publicAccess || ACL.canUserAccess(user, groups());
     }
 
-    public PipelineDefinition withUserAndRole(@Nonnull String user, @Nonnull Role role) {
+    @Nonnull
+    public PipelineDefinition withoutGroup(@Nonnull String groupName) {
+        return new PipelineDefinition(
+                name(),
+                description(),
+                userInput(),
+                stages(),
+                environment(),
+                deletionPolicy(),
+                markers(),
+                groups()
+                        .stream()
+                        .filter(link -> !Objects.equals(link.name(), groupName))
+                        .toList(),
+                publicAccess()
+        );
+    }
+
+    @Nonnull
+    public PipelineDefinition withUserAndRole(@Nonnull String group, @Nonnull Role role) {
         return new PipelineDefinition(
                 name(),
                 description(),
@@ -120,10 +139,10 @@ public record PipelineDefinition(
                 deletionPolicy(),
                 markers(),
                 Stream.concat(
-                        Stream.of(new Link(user, role)),
+                        Stream.of(new Link(group, role)),
                         groups()
                                 .stream()
-                                .filter(link -> !Objects.equals(link.name(), user))
+                                .filter(link -> !Objects.equals(link.name(), group))
                 ).toList(),
                 publicAccess()
         );

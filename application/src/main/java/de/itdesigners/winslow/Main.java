@@ -9,6 +9,7 @@ import de.itdesigners.winslow.api.node.NodeInfo;
 import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.docker.DockerBackendBuilder;
 import de.itdesigners.winslow.fs.*;
+import de.itdesigners.winslow.handler.DeletePipelineDefinitionLinkageOnGroupDeletion;
 import de.itdesigners.winslow.handler.DeleteProjectGroupLinkageOnGroupDeletion;
 import de.itdesigners.winslow.node.Node;
 import de.itdesigners.winslow.node.NodeInfoUpdater;
@@ -153,6 +154,7 @@ public class Main {
 
     private static void setupListeners(@Nonnull Winslow winslow) {
         winslow.getGroupManager().addChangeListener(ChangeEvent.Subject.DELETED, new DeleteProjectGroupLinkageOnGroupDeletion(winslow));
+        winslow.getGroupManager().addChangeListener(ChangeEvent.Subject.DELETED, new DeletePipelineDefinitionLinkageOnGroupDeletion(winslow));
     }
 
     @Nonnull
