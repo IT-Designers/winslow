@@ -3,6 +3,7 @@ package de.itdesigners.winslow.project;
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
+import de.itdesigners.winslow.auth.ACL;
 import de.itdesigners.winslow.auth.Group;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
@@ -188,21 +189,12 @@ public class Project {
         }
     }
 
-    private boolean isSuperOrOwner(@Nonnull User user) {
-        return user.hasSuperPrivileges() || getOwner().equals(user.name());
-    }
-
     public boolean canBeManagedBy(@Nonnull User user) {
-        var userGroups = user.getGroups().stream().map(Group::name).toList();
-        return isSuperOrOwner(user)
-                || getGroups().stream().anyMatch(link -> link.role() == Role.OWNER && userGroups.contains(link.name()));
+        return ACL.canUserManage(user, getGroups(), getOwner());
     }
 
     public boolean canBeAccessedBy(@Nonnull User user) {
-        var userGroups = user.getGroups().stream().map(Group::name).toList();
-        return isPublic()
-                || isSuperOrOwner(user)
-                || getGroups().stream().anyMatch(link -> userGroups.contains(link.name()));
+        return publicAccess || ACL.canUserAccess(user, getGroups(), getOwner());
     }
 
     @Nonnull
