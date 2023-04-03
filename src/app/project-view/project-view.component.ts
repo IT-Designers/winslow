@@ -687,7 +687,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         .then(result => {
           if (result != null) {
             this.rawPipelineDefinitionSuccess = null;
-            this.rawPipelineDefinitionError = result;
+            this.rawPipelineDefinitionError = '' + result;
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
             this.rawPipelineDefinitionError = null;

@@ -53,7 +53,12 @@ export class PipelinesComponent implements OnInit {
       .then(result => {
         if (result != null) {
           this.success.delete(pipeline);
-          this.error.set(pipeline, result);
+          if (typeof result === typeof '') {
+            this.error.set(pipeline, result as string);
+          } else {
+            this.error.set(pipeline, 'There is at least one error!');
+            this.parseError.set(pipeline, [result as ParseError]);
+          }
         } else {
           this.error.delete(pipeline);
           this.parseError.delete(pipeline);
@@ -77,6 +82,7 @@ export class PipelinesComponent implements OnInit {
           if (typeof result === typeof '') {
             this.error.set(pipeline, result as string);
           } else {
+            this.error.set(pipeline, 'There is at least one error!');
             this.parseError.set(pipeline, [result as ParseError]);
           }
         } else {

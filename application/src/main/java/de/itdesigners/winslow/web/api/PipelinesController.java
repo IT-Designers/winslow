@@ -5,8 +5,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException;
 import de.itdesigners.winslow.PipelineDefinitionRepository;
+import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
@@ -104,7 +106,7 @@ public class PipelinesController {
             var lock      = container.getLock();
             var previous  = container.getNoThrow();
 
-            try (lock) {
+            try (container; lock) {
                 if (user != null && previous.isPresent()) {
                     if (!previous.get().canBeManagedBy(user)) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -117,7 +119,7 @@ public class PipelinesController {
             }
         }
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("pipelines/check")
@@ -127,6 +129,8 @@ public class PipelinesController {
             return ResponseEntity.ok(null);
         } catch (ParseErrorException e) {
             return toJsonResponseEntity(e.getParseError());
+        } catch (ValueInstantiationException e) {
+            return toJsonResponseEntity(e);
         } catch (Throwable t) {
             return ResponseEntity.ok(t.getMessage());
         }
@@ -136,6 +140,15 @@ public class PipelinesController {
     public static ResponseEntity<String> toJsonResponseEntity(@Nonnull ParseError error) throws JsonProcessingException {
         var response = new ObjectMapper(new JsonFactory()).writeValueAsString(error);
         return ResponseEntity.ok(response);
+    }
+
+    @Nonnull
+    public static ResponseEntity<String> toJsonResponseEntity(@Nonnull ValueInstantiationException exception) throws JsonProcessingException {
+        return toJsonResponseEntity(new ParseError(
+                exception.getLocation().getLineNr(),
+                exception.getLocation().getColumnNr(),
+                exception.getMessage()
+        ));
     }
 
     @Nonnull
