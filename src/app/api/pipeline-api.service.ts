@@ -28,8 +28,8 @@ export class PipelineApiService {
     return this.client.get<string>(PipelineApiService.getUrl(`${pipeline}/raw`)).toPromise();
   }
 
-  checkPipelineDefinition(raw: string) {
-    return this.client.post<string>(PipelineApiService.getUrl(`check`), raw).toPromise();
+  checkPipelineDefinition(raw: string): Promise<string | ParseError> {
+    return this.client.post<string | ParseError>(PipelineApiService.getUrl(`check`), raw).toPromise();
   }
 
   updatePipelineDefinition(pipeline: string, raw: string) {
@@ -37,9 +37,13 @@ export class PipelineApiService {
       .put<string | ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw)
       .toPromise()
       .then(response => {
-        if (typeof response === typeof '') {
+        if (response == null) {
+          return null;
+        } else if (typeof response === typeof '') {
+          console.log('pretend string');
           return response;
         } else {
+          console.log('pretend parse error');
           return new ParseError(response as ParseError);
         }
       });
