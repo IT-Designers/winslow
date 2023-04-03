@@ -14,7 +14,7 @@ import java.beans.Transient;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class Pipeline implements Cloneable {
+public class Pipeline {
 
     private final @Nonnull String               projectId;
     private final @Nonnull List<ExecutionGroup> executionHistory;
@@ -223,7 +223,8 @@ public class Pipeline implements Cloneable {
 
     @Transient
     public boolean hasEnqueuedStages() {
-        return this.activeExecutions.stream().anyMatch(ExecutionGroup::hasRemainingExecutions) || !this.executionQueue.isEmpty();
+        return this.activeExecutions.stream().anyMatch(ExecutionGroup::hasRemainingExecutions)
+                || !this.executionQueue.isEmpty();
     }
 
     public int getExecutionCounter() {
