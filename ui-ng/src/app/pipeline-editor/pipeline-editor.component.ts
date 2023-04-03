@@ -72,7 +72,7 @@ export class PipelineEditorComponent implements OnInit {
 
   @Input()
   set parseError(parseErrors: ParseError[]) {
-    if (this.editor != null) {
+    if (this.editor != null && parseErrors) {
       monaco.editor.setModelMarkers(
         this.editor.getModel(),
         'parse-editor',
