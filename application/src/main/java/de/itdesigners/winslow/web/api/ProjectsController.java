@@ -5,7 +5,6 @@ import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.pipeline.*;
 import de.itdesigners.winslow.api.project.*;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
-import de.itdesigners.winslow.auth.ChangeEvent;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.LockException;
@@ -71,6 +70,7 @@ public class ProjectsController {
                 .getPipelineRepository()
                 .getPipeline(body.pipeline())
                 .unsafe()
+                .filter(pd -> pd.canBeAccessedBy(user))
                 .flatMap(pipelineDefinition -> winslow
                         .getProjectRepository()
                         .createProject(user, pipelineDefinition, project -> {
@@ -784,6 +784,7 @@ public class ProjectsController {
                                             .getPipelineRepository()
                                             .getPipeline(pipelineId)
                                             .unsafe()
+                                            .filter(pd -> pd.canBeAccessedBy(user))
                                             .map(pipeline -> {
                                                 project.setPipelineDefinition(pipeline);
                                                 return project;

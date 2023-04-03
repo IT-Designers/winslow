@@ -1,6 +1,8 @@
 package de.itdesigners.winslow.config;
 
 import de.itdesigners.winslow.BaseRepository;
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import org.junit.Test;
 
@@ -73,7 +75,12 @@ public class PipelineDefinitionTests {
                 )),
                 Map.of("env1", "envValue"),
                 new DeletionPolicy(true, true, 10),
-                List.of("markers")
+                List.of("markers"),
+                List.of(
+                        new Link("OwnerBaer", Role.OWNER),
+                        new Link("MemberBaer", Role.MEMBER)
+                ),
+                true
         );
 
         var yaml = BaseRepository.writeToString(pipeline);
@@ -81,5 +88,7 @@ public class PipelineDefinitionTests {
         assertNotNull(yaml);
         assertNotEquals("", yaml);
 
+        var result = BaseRepository.readFromString(PipelineDefinition.class, yaml);
+        assertEquals(pipeline, result);
     }
 }

@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2023-03-10 16:04:58.
+// Generated using typescript-generator version 3.1.1185 on 2023-04-03 14:56:10.
 
 export class GroupInfo {
   name: string;
@@ -374,6 +374,8 @@ export class PipelineDefinitionInfo {
   stages: StageDefinitionInfoUnion[];
   deletionPolicy: DeletionPolicy;
   markers: string[];
+  groups: Link[];
+  publicAccess: boolean;
 
   constructor(data: PipelineDefinitionInfo) {
     this.id = data.id;
@@ -383,6 +385,8 @@ export class PipelineDefinitionInfo {
     this.stages = data.stages;
     this.deletionPolicy = data.deletionPolicy;
     this.markers = data.markers;
+    this.groups = data.groups;
+    this.publicAccess = data.publicAccess;
   }
 }
 

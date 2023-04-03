@@ -1,7 +1,8 @@
 package de.itdesigners.winslow.api.pipeline;
 
+import de.itdesigners.winslow.api.auth.Link;
+
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 public record PipelineDefinitionInfo(
@@ -11,7 +12,9 @@ public record PipelineDefinitionInfo(
         @Nonnull UserInputInfo userInput,
         @Nonnull List<StageDefinitionInfo> stages,
         @Nonnull DeletionPolicy deletionPolicy,
-        @Nonnull List<String> markers) {
+        @Nonnull List<String> markers,
+        @Nonnull List<Link> groups,
+        boolean publicAccess) {
 
     public PipelineDefinitionInfo(
             @Nonnull String id,
@@ -20,7 +23,9 @@ public record PipelineDefinitionInfo(
             @Nonnull UserInputInfo userInput,
             @Nonnull List<StageDefinitionInfo> stages,
             @Nonnull DeletionPolicy deletionPolicy,
-            @Nonnull List<String> markers) {
+            @Nonnull List<String> markers,
+            @Nonnull List<Link> groups,
+            boolean publicAccess) {
         this.id             = id;
         this.name           = name;
         this.description    = description;
@@ -28,5 +33,7 @@ public record PipelineDefinitionInfo(
         this.stages         = stages;
         this.deletionPolicy = deletionPolicy;
         this.markers        = markers;
+        this.groups         = groups;
+        this.publicAccess   = publicAccess;
     }
 }
