@@ -11,7 +11,7 @@ public class ProjectInfoConverter {
     public static ProjectInfo from(@Nonnull Project project) {
         return new ProjectInfo(
                 project.getId(),
-                project.getOwner(),
+                project.getAccountingGroup(),
                 project.getGroups(),
                 project.getTags(),
                 project.getName(),

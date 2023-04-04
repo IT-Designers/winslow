@@ -8,7 +8,7 @@ import java.util.List;
 
 public record ProjectInfo(
         @Nonnull String id,
-        @Nonnull String owner,
+        @Nonnull String accountingGroup,
         @Nonnull List<Link> groups,
         @Nonnull List<String> tags,
         @Nonnull String name,

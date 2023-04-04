@@ -1,8 +1,11 @@
 package de.itdesigners.winslow.web;
 
+import de.itdesigners.winslow.api.auth.Link;
+import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.file.FileInfo;
 import de.itdesigners.winslow.auth.Group;
 import de.itdesigners.winslow.auth.GroupAssignmentResolver;
+import de.itdesigners.winslow.auth.Prefix;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.project.Project;
@@ -33,7 +36,6 @@ import java.nio.file.attribute.FileTime;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -59,8 +61,8 @@ public class FilesControllerTest {
         resourceManager   = new ResourceManager(workDirectory, pathConfiguration);
         fileAccessChecker = new FileAccessChecker(resourceManager, id -> Optional.of(new Project(
                 id,
-                "project-owner",
-                List.of("project-group"),
+                "accounting-group",
+                List.of(new Link("user::project-owner", Role.OWNER)),
                 null,
                 "project-name",
                 null,
@@ -946,6 +948,7 @@ public class FilesControllerTest {
                 getProjectOwner(),
                 false
         );
+
         assertNotNull(response);
         assertNotNull(response.getBody());
 
@@ -1519,19 +1522,30 @@ public class FilesControllerTest {
     private static final GroupAssignmentResolver DUMMY_GROUP_RESOLVER = new GroupAssignmentResolver() {
         @Override
         public boolean isPartOfGroup(@Nonnull String user, @Nonnull String group) {
-            return false;
+            // check for  the user group
+            return Objects.equals(Prefix.User.wrap(user), group);
         }
 
         @Nonnull
         @Override
         public List<Group> getAssignedGroups(@Nonnull String user) {
-            return Collections.emptyList();
+            // create a group with the user-refix on-the-fly for the given user and set it as OWNER
+            return List.of(new Group(Prefix.User.wrap(user), List.of(new Link(user, Role.OWNER))));
         }
 
         @Nonnull
         @Override
         public Optional<Group> getGroup(@Nonnull String name) {
-            return Optional.empty();
+            // create a group on-the-fly and if it is a user group (prefixed) add the
+            // name without prefix as group owner (user::abc -> [abc, OWNER])
+            return Optional.of(
+                    new Group(
+                            name,
+                            Prefix.unwrap(name).stream()
+                                  .map(n -> new Link(n, Role.OWNER))
+                                  .toList()
+                    )
+            );
         }
     };
 
@@ -1543,7 +1557,7 @@ public class FilesControllerTest {
         return getUser("project-owner");
     }
 
-    private User getUser(String root) {
-        return new User(root, null, null, true, null, DUMMY_GROUP_RESOLVER);
+    private User getUser(String name) {
+        return new User(name, null, null, true, null, DUMMY_GROUP_RESOLVER);
     }
 }
