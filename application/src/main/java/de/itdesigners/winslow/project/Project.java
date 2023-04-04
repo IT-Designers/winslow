@@ -4,7 +4,7 @@ import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.ACL;
-import de.itdesigners.winslow.auth.Group;
+import de.itdesigners.winslow.auth.Prefix;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.PipelineDefinition;
 
@@ -15,10 +15,10 @@ import java.util.*;
 
 public class Project {
 
-    private @Nonnull final String id;
-    private @Nonnull final String owner;
+    private final @Nonnull String     id;
+    private final @Nonnull String     accountingGroup;
+    private final @Nonnull List<Link> groups;
 
-    private @Nullable List<Link>   groups;
     private @Nullable List<String> tags;
 
     private @Nonnull  PipelineDefinition pipeline;
@@ -26,52 +26,47 @@ public class Project {
     private           boolean            publicAccess;
     private @Nullable ResourceLimitation resourceLimit;
 
-    Project(@Nonnull String id, @Nonnull String owner, @Nonnull PipelineDefinition pipeline) {
-        this.id       = id;
-        this.owner    = owner;
-        this.pipeline = pipeline;
-        this.name     = "[no name]";
+    Project(@Nonnull String id, @Nonnull User user, @Nonnull PipelineDefinition pipeline) {
+        this.id              = id;
+        this.pipeline        = pipeline;
+        this.name            = "[no name]";
+        this.groups          = new ArrayList<>();
+        this.accountingGroup = Prefix.User.wrap(user.name());
+
+        this.groups.add(new Link(
+                this.accountingGroup,
+                Role.OWNER
+        ));
     }
 
+    @ConstructorProperties({
+            "id",
+            "accountingGroup",
+            "owner",
+            "groups",
+            "tags",
+            "name",
+            "public",
+            "pipelineDefinition",
+            "resourceLimit"
+    })
     public Project(
             @Nonnull String id,
-            @Nonnull String owner,
-            @Nullable List<String> groups,
-            @Nullable Iterable<String> tags,
-            @Nonnull String name,
-            @Nullable Boolean publicAccess,
-            @Nonnull PipelineDefinition pipelineDefinition,
-            @Nullable ResourceLimitation resourceLimit) {
-        this(
-                id,
-                owner,
-                groups != null ? groups.stream().map(Link::member).toList() : null,
-                tags,
-                name,
-                publicAccess,
-                pipelineDefinition,
-                resourceLimit
-        );
-    }
-
-    @ConstructorProperties({"id", "owner", "groups", "tags", "name", "public", "pipelineDefinition", "resourceLimit"})
-    public Project(
-            @Nonnull String id,
-            @Nonnull String owner,
+            @Nonnull String accountingGroup,
             @Nullable Iterable<Link> groups,
             @Nullable Iterable<String> tags,
             @Nonnull String name,
             @Nullable Boolean publicAccess,
             @Nonnull PipelineDefinition pipelineDefinition,
             @Nullable ResourceLimitation resourceLimit) {
-        this.id            = id;
-        this.owner         = owner;
-        this.groups        = null;
-        this.tags          = null;
-        this.pipeline      = pipelineDefinition;
-        this.name          = name;
-        this.publicAccess  = Objects.requireNonNullElse(publicAccess, false);
-        this.resourceLimit = resourceLimit;
+        this.id              = id;
+        this.accountingGroup = accountingGroup;
+        this.groups          = new ArrayList<>();
+        this.tags            = null;
+        this.pipeline        = pipelineDefinition;
+        this.name            = name;
+        this.publicAccess    = Objects.requireNonNullElse(publicAccess, false);
+        this.resourceLimit   = resourceLimit;
 
         if (groups != null) {
             groups.forEach(this::addGroup);
@@ -88,6 +83,14 @@ public class Project {
         return id;
     }
 
+    /**
+     * @return The name of the {@link de.itdesigners.winslow.auth.Group} to book the resource usage on
+     */
+    @Nonnull
+    public String getAccountingGroup() {
+        return accountingGroup;
+    }
+
     @Nonnull
     public String getName() {
         return name;
@@ -96,11 +99,6 @@ public class Project {
     public void setName(@Nonnull String name) {
         Objects.requireNonNull(name);
         this.name = name;
-    }
-
-    @Nonnull
-    public String getOwner() {
-        return owner;
     }
 
     public boolean isPublic() {
@@ -123,19 +121,16 @@ public class Project {
 
     @Nonnull
     public List<Link> getGroups() {
-        if (this.groups != null) {
-            return Collections.unmodifiableList(this.groups);
-        } else {
-            return Collections.emptyList();
-        }
+        return Collections.unmodifiableList(this.groups);
     }
 
-    public void addGroup(@Nonnull Link group) {
-        if (this.groups == null) {
-            this.groups = new ArrayList<>();
-        }
+    public void addGroup(@Nonnull Link group) throws IllegalArgumentException {
+        var numberOfOwners = this.groups.stream().filter(l -> Role.OWNER == l.role()).count();
         for (int i = 0; i < this.groups.size(); ++i) {
             if (this.groups.get(i).name().equals(group.name())) {
+                if (numberOfOwners < 2 && this.groups.get(i).role() == Role.OWNER && group.role() != Role.OWNER) {
+                    throw new IllegalArgumentException("Cannot remove last remaining owner");
+                }
                 this.groups.set(i, group);
                 return;
             }
@@ -143,12 +138,13 @@ public class Project {
         this.groups.add(group);
     }
 
-    public boolean removeGroup(@Nonnull String groupName) {
-        if (this.groups == null) {
-            return false;
-        }
+    public boolean removeGroup(@Nonnull String groupName) throws IllegalArgumentException {
+        var numberOfOwners = this.groups.stream().filter(l -> Role.OWNER == l.role()).count();
         for (int i = 0; i < this.groups.size(); ++i) {
             if (this.groups.get(i).name().equals(groupName)) {
+                if (numberOfOwners < 2 && this.groups.get(i).role() == Role.OWNER) {
+                    throw new IllegalArgumentException("Cannot remove last remaining owner");
+                }
                 this.groups.remove(i);
                 return true;
             }
@@ -189,12 +185,29 @@ public class Project {
         }
     }
 
+    /**
+     * @param user The {@link User} to check for
+     * @return Whether the given {@link User} has at least the {@link Role#OWNER} privileges
+     */
     public boolean canBeManagedBy(@Nonnull User user) {
-        return ACL.canUserManage(user, getGroups(), getOwner());
+        return ACL.canUserManage(user, getGroups());
     }
 
+    /**
+     * @param user The {@link User} to check for
+     * @return Whether the given {@link User} has at least the {@link Role#MAINTAINER} privileges
+     */
+    public boolean canBeMaintainedBy(@Nonnull User user) {
+        return ACL.canUserMaintain(user, getGroups());
+    }
+
+    /**
+     * @param user The {@link User} to check for
+     * @return Whether the given {@link User} has at least the {@link Role#MEMBER} privileges. Always returns true if
+     *         this {@link Project} {@link #isPublic()}
+     */
     public boolean canBeAccessedBy(@Nonnull User user) {
-        return publicAccess || ACL.canUserAccess(user, getGroups(), getOwner());
+        return publicAccess || ACL.canUserAccess(user, getGroups());
     }
 
     @Nonnull

@@ -320,10 +320,11 @@ public class ProjectsEndpointController {
             } else if (principal == null) {
                 return Env.isDevEnv();
             } else {
-                return Objects.equals(project.owner(), principal.getName())
-                        || project.groups().stream()
-                                  .flatMap(link -> winslow.getGroupManager().getGroup(link.name()).stream())
-                                  .anyMatch(group -> group.isMember(principal.getName()));
+                return project
+                        .groups()
+                        .stream()
+                        .flatMap(link -> winslow.getGroupManager().getGroup(link.name()).stream())
+                        .anyMatch(group -> group.isMember(principal.getName()));
             }
         });
     }

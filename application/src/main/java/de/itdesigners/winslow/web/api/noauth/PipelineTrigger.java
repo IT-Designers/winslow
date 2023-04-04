@@ -14,11 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 public class PipelineTrigger {
@@ -56,8 +54,6 @@ public class PipelineTrigger {
 
         var result = getProjectForTokenSecret(projectId, secret, REQUIRED_CAPABILITY_TRIGGER_PIPELINE).map(project -> {
             var controller = new ProjectsController(winslow);
-            var user       = winslow.getUserManager().getUserOrCreateAuthenticated(project.getOwner()).orElseThrow();
-
             var stageIndex = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
             var stageID    = project.getPipelineDefinition().stages().get(stageIndex).id();
 
@@ -82,7 +78,7 @@ public class PipelineTrigger {
             var workspaceConfiguration = (WorkspaceConfiguration) null;
 
             // try to update the request
-            var list = controller.getProjectHistory(user, projectId).toList();
+            var list = controller.getProjectHistoryUnchecked(projectId).toList();
             for (int n = list.size() - 1; n >= 0; --n) {
                 var info = list.get(n);
                 if (info.stageDefinition().id().equals(stageDefinition.id())) {
@@ -104,7 +100,7 @@ public class PipelineTrigger {
             }
 
 
-            controller.enqueueStageToExecute(user, projectId, new EnqueueRequest(
+            controller.enqueueStageToExecuteUnchecked(projectId, new EnqueueRequest(
                     stageID.toString(),
                     env,
                     rangedEnv,

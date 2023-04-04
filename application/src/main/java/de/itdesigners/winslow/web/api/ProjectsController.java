@@ -99,16 +99,27 @@ public class ProjectsController {
     public Stream<ExecutionGroupInfo> getProjectHistory(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .stream()
-                .flatMap(project -> {
-                    var pipeline = winslow.getOrchestrator().getPipeline(project);
-                    var active   = pipeline.stream().flatMap(Pipeline::getActiveExecutionGroups);
-                    var history  = pipeline.stream().flatMap(Pipeline::getExecutionHistory);
+                .flatMap(this::getProjectHistory);
+    }
 
-                    return Stream.concat(
-                            history.map(g -> ExecutionGroupInfoConverter.convert(g, false, false)),
-                            active.map(g -> ExecutionGroupInfoConverter.convert(g, true, false))
-                    );
-                });
+    public Stream<ExecutionGroupInfo> getProjectHistoryUnchecked(@Nonnull String projectId) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .stream()
+                .flatMap(this::getProjectHistory);
+    }
+
+    public Stream<ExecutionGroupInfo> getProjectHistory(@Nonnull Project project) {
+        var pipeline = winslow.getOrchestrator().getPipeline(project);
+        var active   = pipeline.stream().flatMap(Pipeline::getActiveExecutionGroups);
+        var history  = pipeline.stream().flatMap(Pipeline::getExecutionHistory);
+
+        return Stream.concat(
+                history.map(g -> ExecutionGroupInfoConverter.convert(g, false, false)),
+                active.map(g -> ExecutionGroupInfoConverter.convert(g, true, false))
+        );
     }
 
     @GetMapping("/projects/{projectId}/history/reversed/{count}")
@@ -811,31 +822,44 @@ public class ProjectsController {
             @RequestBody EnqueueRequest body
     ) {
         getProjectIfAllowedToAccess(user, projectId)
-
-                .flatMap(project -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
-
-                    // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
-                    // so changes will not be written back
-                    return getStageDefinitionNoClone(project, UUID.fromString(body.id()))
-                            .map(stageDef -> {
-                                enqueueExecutionStage(
-                                        pipeline,
-                                        stageDef,
-                                        body.env(),
-                                        body.rangedEnv(),
-                                        body.image(),
-                                        body.requiredResources(),
-                                        body.workspaceConfiguration(),
-                                        body.comment(),
-                                        body.optRunSingle().orElse(Boolean.FALSE),
-                                        body.optResume().orElse(Boolean.FALSE)
-                                );
-                                return Boolean.TRUE;
-                            })
-                            .orElse(Boolean.FALSE);
-                }))
+                .flatMap(project -> enqueueStageToExecute(project, body))
                 .filter(v -> v)
                 .orElseThrow();
+    }
+
+    @Nonnull
+    public Optional<Boolean> enqueueStageToExecuteUnchecked(@Nonnull String projectId, @Nonnull EnqueueRequest request) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .unsafe()
+                .flatMap(project -> enqueueStageToExecute(project, request));
+    }
+
+    @Nonnull
+    public Optional<Boolean> enqueueStageToExecute(@Nonnull Project project, @Nonnull EnqueueRequest request) {
+        return winslow.getOrchestrator().updatePipeline(project, pipeline -> {
+
+            // not cloning it is fine, because it was loaded in unsafe-mode and only in this temporary scope
+            // so changes will not be written back
+            return getStageDefinitionNoClone(project, UUID.fromString(request.id()))
+                    .map(stageDef -> {
+                        enqueueExecutionStage(
+                                pipeline,
+                                stageDef,
+                                request.env(),
+                                request.rangedEnv(),
+                                request.image(),
+                                request.requiredResources(),
+                                request.workspaceConfiguration(),
+                                request.comment(),
+                                request.optRunSingle().orElse(Boolean.FALSE),
+                                request.optResume().orElse(Boolean.FALSE)
+                        );
+                        return Boolean.TRUE;
+                    })
+                    .orElse(Boolean.FALSE);
+        });
     }
 
     @PostMapping("projects/{projectId}/enqueued-on-others")

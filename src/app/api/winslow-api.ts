@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2023-04-03 14:56:10.
+// Generated using typescript-generator version 3.1.1185 on 2023-04-04 16:57:49.
 
 export class GroupInfo {
   name: string;
@@ -705,7 +705,7 @@ export class ProjectCreateRequest {
 
 export class ProjectInfo {
   id: string;
-  owner: string;
+  accountingGroup: string;
   groups: Link[];
   tags: string[];
   name: string;
@@ -714,7 +714,7 @@ export class ProjectInfo {
 
   constructor(data: ProjectInfo) {
     this.id = data.id;
-    this.owner = data.owner;
+    this.accountingGroup = data.accountingGroup;
     this.groups = data.groups;
     this.tags = data.tags;
     this.name = data.name;
@@ -759,7 +759,7 @@ export class StorageInfo {
 
 export type DateAsNumber = number;
 
-export type Role = 'OWNER' | 'MEMBER';
+export type Role = 'OWNER' | 'MAINTAINER' | 'MEMBER';
 
 export type Action = 'EXECUTE' | 'CONFIGURE';
 
