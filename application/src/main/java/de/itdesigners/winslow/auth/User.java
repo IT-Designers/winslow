@@ -79,11 +79,4 @@ public record User(
     public boolean isPartOfGroup(@Nonnull String group) {
         return this.groupAssignmentResolver().isPartOfGroup(this.name(), group);
     }
-
-    @Nonnull
-    @Transient // TODO for now
-    public Optional<ResourceLimitation> getResourceLimitation() {
-        // TODO
-        return Optional.empty();
-    }
 }

@@ -55,7 +55,7 @@ public class DistributedAllocationViewTests {
         });
 
         assertEquals(new AllocInfo(PROJECT_ID, 2, 1024, 0), view.getProjectAllocation());
-        assertEquals(new AllocInfo(USER_ID, 7, 5120, 1), view.getUserAllocation());
+        assertEquals(new AllocInfo(USER_ID, 7, 5120, 1), view.getAccountAllocation());
     }
 
     @Test
@@ -238,7 +238,7 @@ public class DistributedAllocationViewTests {
             }
         });
 
-        view.setUserLimit(new ResourceLimitation(
+        view.setAccountLimit(new ResourceLimitation(
                 // the only associated AllocInfo should be the one with the exact id-match
                 ALLOCATIONS[0].cpu() + 2L,
                 ALLOCATIONS[0].memory() + 3L,

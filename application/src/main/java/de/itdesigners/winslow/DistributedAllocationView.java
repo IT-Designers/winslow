@@ -13,24 +13,24 @@ import java.util.stream.Stream;
 
 public class DistributedAllocationView {
 
-    private @Nonnull AllocInfo userAllocation;
+    private @Nonnull AllocInfo accountAllocation;
     private @Nonnull AllocInfo projectAllocation;
 
-    private @Nullable ResourceLimitation userLimit;
+    private @Nullable ResourceLimitation accountLimit;
     private @Nullable ResourceLimitation projectLimit;
 
-    public DistributedAllocationView(@Nonnull String user, @Nonnull String project) {
-        this.userAllocation    = new AllocInfo(user, 0, 0, 0);
+    public DistributedAllocationView(@Nonnull String account, @Nonnull String project) {
+        this.accountAllocation = new AllocInfo(account, 0, 0, 0);
         this.projectAllocation = new AllocInfo(project, 0, 0, 0);
     }
 
-    public void setUserLimit(@Nullable ResourceLimitation userLimit) {
-        this.userLimit = userLimit;
+    public void setAccountLimit(@Nullable ResourceLimitation accountLimit) {
+        this.accountLimit = accountLimit;
     }
 
     @Nullable
-    public ResourceLimitation getUserLimit() {
-        return userLimit;
+    public ResourceLimitation getAccountLimit() {
+        return accountLimit;
     }
 
     @Nullable
@@ -39,8 +39,8 @@ public class DistributedAllocationView {
     }
 
     @Nonnull
-    public AllocInfo getUserAllocation() {
-        return userAllocation;
+    public AllocInfo getAccountAllocation() {
+        return accountAllocation;
     }
 
     @Nonnull
@@ -60,15 +60,15 @@ public class DistributedAllocationView {
                 if (Objects.equals(a.title(), projectAllocation.title())) {
                     this.projectLimit = project.getResourceLimitation().orElse(null);
                 }
-                if (Objects.equals(project.getOwner(), userAllocation.title())) {
-                    this.userAllocation = this.userAllocation.add(a);
+                if (Objects.equals(project.getAccountingGroup(), accountAllocation.title())) {
+                    this.accountAllocation = this.accountAllocation.add(a);
                 }
             });
         });
     }
 
     public boolean wouldResourcesExceedLimit(@Nonnull ResourceAllocationMonitor.ResourceSet<Long> resources) {
-        return wouldResourcesExceedLimit(userLimit, userAllocation, resources)
+        return wouldResourcesExceedLimit(accountLimit, accountAllocation, resources)
                 || wouldResourcesExceedLimit(projectLimit, projectAllocation, resources);
     }
 

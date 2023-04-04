@@ -105,7 +105,7 @@ public class Main {
                     attributes,
                     logs,
                     settings,
-                    userManager,
+                    groupManager,
                     nodes,
                     nodeName,
                     resourceMonitor,

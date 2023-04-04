@@ -19,6 +19,14 @@ public class ACL {
         return canUserFulfillAnyRole(user, groups, owner, Role.values());
     }
 
+    public static boolean canUserMaintain(@Nonnull User user, @Nonnull List<Link> groups) {
+        return canUserMaintain(user, groups, null);
+    }
+
+    public static boolean canUserMaintain(@Nonnull User user, @Nonnull List<Link> groups, @Nullable String owner) {
+        return canUserFulfillAnyRole(user, groups, owner, Role.MAINTAINER, Role.OWNER);
+    }
+
     public static boolean canUserManage(@Nonnull User user, @Nonnull List<Link> groups) {
         return canUserManage(user, groups, null);
     }

@@ -1,5 +1,6 @@
 package de.itdesigners.winslow.web;
 
+import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.config.PipelineDefinition;
@@ -35,8 +36,11 @@ public class FileAccessCheckerTest {
                 new ResourceManager(workDir, config),
                 id -> Optional.of(new Project(
                         id,
-                        "project-owner",
-                        List.of("project-group"),
+                        "accounting-group",
+                        List.of(
+                                new Link("user::project-owner", Role.OWNER),
+                                new Link("project-group", Role.MEMBER)
+                        ),
                         null,
                         "project-name",
                         publicProject,
@@ -84,7 +88,7 @@ public class FileAccessCheckerTest {
         var userRepository  = new UserManager(new DummyUserPersistence(), groupRepository);
 
         var root   = userRepository.getUser("root").orElseThrow();
-        var owner  = userRepository.createUserWithoutGroup("project-owner");
+        var owner  = userRepository.createUserAndGroup("project-owner");
         var member = userRepository.createUserWithoutGroup("project-member");
         var other  = userRepository.createUserWithoutGroup("random-guy");
 

@@ -4,8 +4,7 @@ import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.StatsInfo;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.asblr.*;
-import de.itdesigners.winslow.auth.User;
-import de.itdesigners.winslow.auth.UserManager;
+import de.itdesigners.winslow.auth.GroupManager;
 import de.itdesigners.winslow.config.*;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.Lock;
@@ -59,7 +58,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
     private final @Nonnull RunInfoRepository  hints;
     private final @Nonnull LogRepository      logs;
     private final @Nonnull SettingsRepository settings;
-    private final @Nonnull UserManager        users;
+    private final @Nonnull GroupManager       groups;
     private final @Nonnull NodeRepository     nodes;
     private final @Nonnull String             nodeName;
 
@@ -84,7 +83,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
             @Nonnull SettingsRepository settings,
-            @Nonnull UserManager users,
+            @Nonnull GroupManager groups,
             @Nonnull NodeRepository nodes,
             @Nonnull String nodeName,
             @Nonnull ResourceAllocationMonitor monitor,
@@ -96,7 +95,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
         this.hints         = hints;
         this.logs          = logs;
         this.settings      = settings;
-        this.users         = users;
+        this.groups        = groups;
         this.nodes         = nodes;
         this.nodeName      = nodeName;
         this.monitor       = monitor;
@@ -384,22 +383,24 @@ public class Orchestrator implements Closeable, AutoCloseable {
 
                         var resources = getRequiredResources(stageWorkerDefinition);
                         var wouldExceedLimit = getProjectUnsafe(pipeline.getProjectId()).map(project -> {
-                            var allocView = new DistributedAllocationView(project.getOwner(), pipeline.getProjectId());
+                            var allocView = new DistributedAllocationView(
+                                    project.getAccountingGroup(),
+                                    pipeline.getProjectId()
+                            );
 
                             Stream.of(
                                           settings.getUserResourceLimitations().unsafe(),
-                                          users.getUser(project.getOwner()).flatMap(User::getResourceLimitation),
                                           nodes.getNodeResourceLimitConfiguration(nodeName).flatMap(conf -> {
                                               var finder = new NodeResourceLimitFinder(conf);
-                                              return users
-                                                      .getUser(project.getOwner())
+                                              return groups
+                                                      .getGroup(project.getAccountingGroup())
                                                       .flatMap(finder::getAppliedLimit)
                                                       .or(finder::getFallback);
                                           })
                                   )
                                   .flatMap(Optional::stream)
                                   .reduce(ResourceLimitation::min)
-                                  .ifPresent(allocView::setUserLimit);
+                                  .ifPresent(allocView::setAccountLimit);
 
 
                             allocView.loadAllocInfo(
