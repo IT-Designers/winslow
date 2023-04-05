@@ -99,6 +99,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
               });
           });
       });
+    this.maxCpuCores = this.node.cpuInfo.utilization.length;
     this.maxMemory = (this.node.memInfo.memoryTotal / 1024 / 1024);
     this.maxGpus = this.node.gpuInfo.length;
     this.nodeApi.getNodeResourceUsageConfiguration(this.node.name)
@@ -146,7 +147,6 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       this.displayGroups = Array.from(searchedMembers);
     }
   }
-
   openAddGroupDialog() {
     this.createDialog
       .open(ProjectAddGroupDialogComponent, {
