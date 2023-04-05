@@ -3,7 +3,8 @@ import {MatDialog} from '@angular/material/dialog';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {ErrorStateMatcher} from '@angular/material/core';
 import {FormControl, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {NodeInfoExt, NodeResourceInfo, NodesApiService} from '../../api/nodes-api.service';
+import {NodeResourceUsageConfiguration} from '../../api/winslow-api';
+import {NodeInfoExt, NodesApiService} from '../../api/nodes-api.service';
 import {DialogService} from '../../dialog.service';
 import {UserApiService} from '../../api/user-api.service';
 import {GroupApiService} from '../../api/group-api.service';
@@ -44,8 +45,8 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
     },
     groupLimits: []
   };
-  nodeResourceAllocations: NodeResourceInfo = this.defaultResourceObject;
-  editableResourceAllocations: NodeResourceInfo = this.defaultResourceObject;
+  nodeResourceAllocations: NodeResourceUsageConfiguration = this.defaultResourceObject;
+  editableResourceAllocations: NodeResourceUsageConfiguration = this.defaultResourceObject;
 
   maxMemory = 0;
   maxCpuCores = 0;
@@ -157,7 +158,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       .afterClosed()
       .subscribe((data) => {
         if (data) {
-          const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+          const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
           const groupToAdd = {
             name: data.groupName,
             role: data.groupRole,
@@ -168,7 +169,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
             }
           };
           updateObject.groupLimits.push(groupToAdd);
-          return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+          return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(this.node.name, updateObject)
               .then(() => {
                 this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
                 this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
@@ -235,20 +236,20 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
 
 
   roleChanged(group) {
-    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     const groupIndex: number = this.findGroupIndex(updateObject, group);
     updateObject.groupLimits[groupIndex].role = group.role;
-    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(this.node.name, updateObject)
         .then(() => {
           this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
         }),
       'Changing groups role');
   }
   updateGroup(group) {
-    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     const groupIndex: number = this.findGroupIndex(updateObject, group);
     updateObject.groupLimits[groupIndex] = group;
-    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(this.node.name, updateObject)
         .then(() => {
           this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
         }),
@@ -256,9 +257,9 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
   }
 
   updateResourcesFFA() {
-    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     updateObject.globalLimit = this.editableResourceAllocations.globalLimit;
-    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(this.node.name, updateObject)
         .then(() => {
           this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
           this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
@@ -268,10 +269,10 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
 
   onRemoveItemClick(group) {
 
-    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     const groupIndex = this.findGroupIndex(updateObject, group);
     updateObject.groupLimits.splice(groupIndex, 1);
-    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(this.node.name, updateObject)
         .then(() => {
           this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
           this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
@@ -279,7 +280,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       'Updating Group Resource Allocations');
   }
 
-  findGroupIndex(object: NodeResourceInfo, group) {
+  findGroupIndex(object: NodeResourceUsageConfiguration, group) {
     let groupIndex = 0;
     object.groupLimits.find((g, i) => {
       if (g.name === group.name) {
@@ -290,9 +291,9 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
   }
 
   ffaHasChanged(event) {
-    const updateObject: NodeResourceInfo = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
+    const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     updateObject.freeForAll = event.checked;
-    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(updateObject, this.node.name)
+    return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(this.node.name, updateObject)
         .then(() => {
           this.nodeResourceAllocations = JSON.parse(JSON.stringify(updateObject));
           this.editableResourceAllocations = JSON.parse(JSON.stringify(updateObject));
