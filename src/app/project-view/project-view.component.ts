@@ -24,11 +24,12 @@ import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.compon
 import {ActivatedRoute, Router} from '@angular/router';
 import {pipe, Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
+import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import {
   AuthTokenInfo,
   EnvVariable,
   ExecutionGroupInfo,
-  ImageInfo,
+  ImageInfo, Link,
   PipelineDefinitionInfo,
   ProjectInfo,
   RangedValue,
@@ -42,6 +43,7 @@ import {
   WorkspaceConfiguration,
   WorkspaceMode
 } from '../api/winslow-api';
+import {UserApiService} from '../api/user-api.service';
 
 
 @Component({
@@ -56,7 +58,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
               private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
               private dialog: DialogService,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private groupApi: GroupApiService,
+              private userApi: UserApiService) {
     this.setHistoryListHeight(window.innerHeight);
   }
 
@@ -170,6 +174,13 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   selectedHistoryEntryIndex = 0;
   selectedHistoryEntryStage: StageInfo;
 
+  amIAdmin: boolean;
+  projectGroups: Link[];
+  myGroupnames: string[];
+  showGroupList = false;
+  groupListBtnText = 'Expand';
+  groupListBtnIcon = 'expand_more';
+
   // load more entries, when user is scrolling to the bottom
   // on project history list
   @HostListener('scroll', ['$event'])
@@ -235,6 +246,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.updateTabSelection(params.tab);
       }
     });
+    this.groupApi.getGroups()
+      .then((groups) => this.myGroupnames = groups.map(x => x.name));
+    this.projectGroups = Array.from(this.project.groups);
+    this.sortGroups();
+
+    this.userApi.getSelfUserName()
+      .then((name) => {
+        this.userApi.hasSuperPrivileges(name)
+          .then((result) => {
+            this.amIAdmin = result;
+          });
+      });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -249,6 +272,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.selectedHistoryEntryStage = null;
       }
     }
+    this.sortGroups();
+    /*if (this.myName !== '' && this.amIAdmin !== undefined) {
+      this.userApi.hasSuperPrivileges(this.myName)
+        .then((result) => {
+          console.log('Is user ' + this.myName + ' a Superuser? ' + result);
+          this.amIAdmin = result;
+        });
+    }*/
   }
 
   ngAfterViewInit() {
@@ -620,6 +651,89 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         }),
       'Updating tags'
     );
+  }
+
+  /*Project Groups methods*/
+  sortGroups() {
+    this.project.groups.sort((a, b) => {
+      if (a.role < b.role) {
+        return 1;
+      } else if (a.role === b.role) {
+        if (a.name.toUpperCase() > b.name.toUpperCase()) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
+    });
+  }
+
+  canIEditProject(project: ProjectInfo) {
+    if (!this.amIAdmin) {
+      // tslint:disable-next-line:prefer-for-of
+      for (let i = 0; i < project.groups.length; i++) {
+        if (this.myGroupnames) {
+          if (this.myGroupnames.includes(project.groups[i].name)) {
+            if (project.groups[i].role === 'OWNER') {
+              return true;
+            } else {
+              return false;
+            }
+          } else {
+            return false;
+          }
+        }
+      }
+    } else {
+      return true;
+    }
+  }
+  getColor(group) {
+    if (group.role === 'OWNER') {
+      return '#8ed69b';
+    } else {
+      return '#d88bca';
+    }
+  }
+  getTooltip(group) {
+    if (group.role === 'OWNER') {
+      return 'OWNER';
+    } else if (group.role === 'MEMBER') {
+      return 'MEMBER';
+    }
+  }
+  changeGroupListBtnTextAndIcon() {
+    this.showGroupList = !this.showGroupList;
+    if (this.groupListBtnText === 'Expand') {
+      this.groupListBtnText = 'Collapse';
+      this.groupListBtnIcon = 'expand_less';
+    } else if (this.groupListBtnText === 'Collapse') {
+      this.groupListBtnText = 'Expand';
+      this.groupListBtnIcon = 'expand_more';
+    }
+  }
+  groupAdded(group: GroupInfo) {
+    // @ts-ignore
+    if (!this.project.groups.includes(group)) {
+      // @ts-ignore
+      this.project.groups.push(group);
+    }
+  }
+  remove(group: Link) {
+    console.log('Before Removing Group ' + group.name);
+    console.dir(this.project.groups);
+    // @ts-ignore
+    const index = this.project.groups.indexOf(group);
+    if (index >= 0) {
+      this.project.groups.splice(index, 1);
+      this.dialog.openLoadingIndicator(
+        this.api.removeGroup(this.project.id, group.name),
+        'Removing Group from Project'
+      );
+    }
+    this.sortGroups();
+    console.log('After Removing Group ' + group.name);
+    console.dir(this.project.groups);
   }
 
   onSelectedPipelineChanged(info: PipelineDefinitionInfo) {

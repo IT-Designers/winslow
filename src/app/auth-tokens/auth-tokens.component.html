@@ -3,17 +3,21 @@
 
   <div class="flex-grow">
     <div *ngFor="let token of tokens; trackBy:trackToken">
-      <button mat-icon-button color="warn"
+      <button mat-icon-button
+              color="warn"
               class="align-right-using-margin"
-              (click)="deleteToken(token)">
+              (click)="deleteToken(token)"
+              [disabled]="!canUserEdit">
           <mat-icon>delete</mat-icon>
       </button>
       {{token.name}}
     </div>
   </div>
 
-  <button mat-raised-button color="primary"
-        (click)="createToken()">
+  <button mat-raised-button
+          color="primary"
+          (click)="createToken()"
+          [disabled]="!canUserEdit">
     <mat-icon>add</mat-icon>
   </button>
 </div>

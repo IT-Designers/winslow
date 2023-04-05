@@ -1,0 +1,190 @@
+/* ---------- Overall Container Styling ---------- */
+.list-and-label-container {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 0;
+  display: flex;
+  flex-direction: column;
+}
+.list-content {
+  position: relative;
+  padding-bottom: 5px;
+  background-color: whitesmoke;
+  width: 100%;
+  min-width: 1000px;
+  max-width: 100%;
+  max-height: 440px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/*Alternative for mat input*/
+/*.text-input {
+  width: 97%;
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}*/
+.mat-input-container {
+  width: 97%;
+  font-size: 14px;
+}
+.text-input-mat {
+  width: 100%;
+}
+.scrollable {
+  width: 95%;
+  overflow-y: scroll;
+  border-bottom: 1px solid lightgray;
+}
+.no-groups-label {
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  padding: 10px;
+}
+
+/* ---------- List Item Styling ---------- */
+.list-item {
+  cursor: default;
+  padding: 3px;
+  border-bottom: 1px solid lightgrey;
+  margin-top: 1px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  /*justify-content: space-between;*/
+  align-items: center;
+}
+.username-label {
+  padding-left: 20px;
+  width: calc(16% - 20px);
+  min-width: calc(16% - 20px);
+  max-width: calc(16% - 20px);
+}
+.username-chip {
+  max-width: 200px;
+  overflow: clip;
+}
+/*Dropdown for role selection*/
+.role-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 17px;
+  height: 45px;
+  width: 15%;
+  min-width: 205px;
+  max-width: 15%;
+}
+/*Resource Expansion Panel*/
+.accordion {
+  min-width: 18%;
+  max-width: 18%;
+  padding: 0 1%;
+}
+.big-accordion {
+  min-width: 60%;
+  max-width: 60%;
+}
+  /*All Resources Container*/
+  .expansion-content-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+    /*Single Resource*/
+    .single-resource-container {
+      min-width: 32%;
+      max-width: 32%;
+      padding: 0 1%;
+      display: flex;
+      flex-direction: column;
+    }
+    .resource-label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .resource-title-value {
+      font-size: 12px;
+      font-style: italic;
+      color: grey;
+    }
+    .input-width {
+      width: 100%;
+    }
+    .slider {
+      width: 100%;
+    }
+    .mat-slider-thumb-label {
+      width: 50px !important;
+      height: 50px !important;
+      top: -62px !important;
+      right: -25px !important;
+    }
+
+/*Remove Member Button*/
+.btn-container {
+  padding-right: 20px;
+  min-width: calc(9% - 20px);
+  max-width: calc(9% - 20px);
+}
+.update-btn {
+  float: right;
+}
+.remove-member-button {
+  float: right;
+}
+.remove-member-button:enabled {
+  cursor: pointer;
+}
+.remove-member-button:enabled:hover {
+  scale: 1.1;
+}
+.remove-member-button:disabled {
+  background-color: grey;
+  cursor: default;
+}
+.item-icon {
+  font-size: 30px;
+  color: white;
+  margin-left: 3px;
+  margin-top: 2px;
+}
+
+.add-member-button-container {
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* ---------- FFA Section ---------- */
+.ffa-container {
+  padding: 20px;
+}
+.label-and-checkbox-container {
+  margin-bottom: 15px;
+}
+.ffa-label {
+  margin-right: 20px;
+}
+
+.ffa-accordion {
+  margin-top: 20px;
+}
+
+
+
+
+
+
+
+

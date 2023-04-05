@@ -59,3 +59,19 @@
 mat-sidenav-container {
   height: calc(100vh - 65px);
 }
+
+.username-and-settings {
+  min-width: 12vw;
+  max-width: 40vw;
+}
+
+.user-label-and-icon {
+  float: right;
+  display: flex;
+  flex-direction: row;
+}
+
+.username-label {
+  padding-top: 7px;
+  font-size: 14px;
+}

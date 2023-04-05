@@ -95,6 +95,21 @@ import { DiagramLibraryComponent } from './pipeline-view/diagram-library/diagram
 import { EditFormsComponent } from './pipeline-view/diagram-library/edit-forms/edit-forms.component';
 import { DiagramGatewayComponent } from './pipeline-view/diagram-gateway/diagram-gateway.component';
 import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component';
+import { UserAndGroupManagementComponent } from './user-and-group-management/user-and-group-management.component';
+import { GroupMemberListComponent } from './user-and-group-management/group-member-list/group-member-list.component';
+import { GroupAddMemberDialogComponent } from './user-and-group-management/group-add-member-dialog/group-add-member-dialog.component';
+import { NewGroupDialogComponent } from './user-and-group-management/new-group-dialog/new-group-dialog.component';
+import { ProjectGroupsListComponent } from './project-view/project-groups-list/project-groups-list.component';
+import { ProjectAddGroupDialogComponent } from './project-view/project-add-group-dialog/project-add-group-dialog.component';
+import { SearchableListComponent } from './user-and-group-management/searchable-list/searchable-list.component';
+import { UserAddNameDialogComponent } from './user-and-group-management/user-add-name-dialog/user-add-name-dialog.component';
+import { UserDetailsComponent } from './user-and-group-management/user-details/user-details.component';
+import { GroupDetailsComponent } from './user-and-group-management/group-details/group-details.component';
+import { PasswordDialogComponent } from './user-and-group-management/password-dialog/password-dialog.component';
+import { GroupAssignmentComponent } from './pipelines/group-assignment/group-assignment.component';
+import { RessourcesGroupAssignmentComponent } from './server-details/ressources-group-assignment/ressources-group-assignment.component';
+import {MatSliderModule} from '@angular/material/slider';
+import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
 
 @NgModule({
     declarations: [
@@ -155,6 +170,20 @@ import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component
         EditFormsComponent,
         DiagramGatewayComponent,
         AddToolsComponent,
+        UserAndGroupManagementComponent,
+        GroupMemberListComponent,
+        GroupAddMemberDialogComponent,
+        NewGroupDialogComponent,
+        ProjectGroupsListComponent,
+        ProjectAddGroupDialogComponent,
+        SearchableListComponent,
+        UserAddNameDialogComponent,
+        UserDetailsComponent,
+        GroupDetailsComponent,
+        PasswordDialogComponent,
+        GroupAssignmentComponent,
+        RessourcesGroupAssignmentComponent,
+        ServerGroupsListComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -187,7 +216,7 @@ import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component
             {path: 'files', component: FilesComponent},
             {path: 'servers', component: ServersComponent},
             {path: 'about', component: AboutComponent},
-
+            {path: 'groups', component: UserAndGroupManagementComponent},
             {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
             {
                 path: 'system',
@@ -240,6 +269,7 @@ import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component
         NgxEchartsModule.forRoot({
             echarts: {init: echarts.init}
         }),
+      MatSliderModule,
 
     ],
   providers: [

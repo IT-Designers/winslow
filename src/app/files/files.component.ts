@@ -483,6 +483,23 @@ export class FilesComponent implements OnInit {
       return Math.max(1, Math.round(seconds)) + 's';
     }
   }
+
+  private addLeadingZero(input) {
+    if (input < 10) {
+      return '0' + input;
+    } else {
+      return input;
+    }
+  }
+
+  timeStampToDate(timeStamp: number) {
+   const noFormat = new Date(timeStamp);
+   return noFormat.getFullYear()
+     + '/' + this.addLeadingZero(noFormat.getMonth())
+     + '/' + this.addLeadingZero(noFormat.getDay())
+     + ', ' + this.addLeadingZero(noFormat.getHours())
+     + ':' + this.addLeadingZero(noFormat.getMinutes());
+  }
 }
 
 export interface UploadProgress {

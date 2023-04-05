@@ -1,0 +1,151 @@
+.group-panel {
+  width: 80%;
+}
+.expansion-header {
+  height: auto;
+}
+.expansion-title {
+  min-width: 150px;
+  max-width: 15%;
+  display: flex;
+  align-items: center;
+}
+.group-chip-list {
+  margin: 10px;
+}
+
+/* ---------- Overall Container Styling ---------- */
+.group-assignment-container {
+  width: 60%;
+}
+.list-and-label-container {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 0;
+  display: flex;
+  flex-direction: row;
+}
+.label-and-chiplist-container {
+  display: flex;
+}
+.chiplist-container {
+  width: 80%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.chiplist-label {
+  width: 20%;
+  align-self: center;
+}
+app-groups-add-member-dialog {
+  overflow: clip;
+}
+
+/*.list-container {
+  display:flex;
+  flex-direction: row;
+}*/
+.list-content {
+  position: relative;
+  padding-bottom: 5px;
+  background-color: #f6f6f6;
+  /*margin-left: 20%;
+  min-width: 80%;*/
+  min-width: 100%;
+  max-height: 440px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.scrollable {
+  width: 90%;
+  overflow-y: scroll;
+  border-bottom: 1px solid lightgray;
+}
+.no-groups-label {
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  padding: 10px;
+}
+/* ---------- List Item Styling ---------- */
+/* ----- Version with seperate remove button ------ */
+.list-item {
+  cursor: default;
+  padding: 3px;
+  border-bottom: 1px solid lightgrey;
+  margin-top: 1px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.dropdown-item:hover {
+  background-color: lightgrey;
+}
+.username-label {
+  padding-left: 20px;
+  min-width: calc(33% - 20px);
+  max-width: calc(33% - 20px);
+}
+.role-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 17px;
+  height: 45px;
+  min-width: 33%;
+  max-width: 33%;
+}
+.btn-container {
+  padding-right: 20px;
+  min-width: calc(33% - 20px);
+  max-width: calc(33% - 20px);
+}
+.remove-member-button {
+  float: right;
+}
+.remove-member-button:enabled {
+  cursor: pointer;
+}
+.remove-member-button:enabled:hover {
+  scale: 1.1;
+}
+.remove-member-button:disabled {
+  background-color: grey;
+  cursor: default;
+}
+.item-icon {
+  font-size: 30px;
+  color: white;
+  margin-left: 3px;
+  margin-top: 2px;
+}
+.text-input {
+  width: 90%;
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.mat-input-container {
+  width: 97%;
+  font-size: 14px;
+}
+.text-input-mat {
+  width: 100%;
+}
+.add-member-button-container {
+  text-align: center;
+  margin-top: 4px;
+}
+

@@ -1,0 +1,73 @@
+/*.add-user-popup-container {
+  overflow: clip;
+}*/
+.list-container {
+  max-height: 220px;
+  overflow: scroll;
+}
+.scrollable {
+  overflow: scroll;
+}
+.inputs {
+  display: flex;
+  flex-direction: column;
+}
+.user-item-from-dialog {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  /*border: 1px solid lightgrey;*/
+  border-bottom: 1px solid lightgrey;
+  align-items: center;
+}
+.username-label-popup {
+  margin-left: 1em;
+  margin-right: 1em;
+
+  width: 2em;
+}
+.role-dropdown {
+  width: 8em;
+  display: flex;
+  align-items: center;
+  margin-top: 1.2em;
+}
+.add-member-round-button {
+  margin-right: 1em;
+  margin-left: 6em;
+  background-color: #3f51b5;
+  border-radius: 50%;
+  border: none;
+  width: 45px;
+  height: 45px;
+  box-shadow: 0 1px 3px gray;
+}
+.add-member-round-button:enabled {
+  cursor: pointer;
+}
+.add-member-round-button:enabled:hover {
+  scale: 1.1;
+}
+.add-member-round-button:disabled {
+  background-color: grey;
+  cursor: default;
+}
+.add-member-round-button:disabled:hover {
+}
+.item-icon {
+  font-size: 30px;
+  color: white;
+  margin-left: 5px;
+  margin-top: 2px;
+  /*margin-right: 1em;
+  margin-left: 3.5em;
+  font-size: 30px;*/
+}
+.add-user-popup-container {
+  width: 500px;
+  height: 400px;
+}
+/*.item-icon:hover {
+  cursor: pointer;
+  scale: 1.05;
+}*/

@@ -1,0 +1,40 @@
+<div class="user-name-dialog-container">
+  <h2>Choose a User Name</h2>
+
+  <div class="inputs">
+    <!--<label class="error-label">{{errorMessage}}</label>-->
+    <mat-form-field>
+      <input matInput
+             placeholder="Username"
+             id="nameInput" [(ngModel)]="nameInput"
+             (keyup.enter)="createClicked()"
+             (keyup)="checkName()">
+    </mat-form-field>
+
+    <div mat-dialog-actions class="dialog-actions-container">
+      <div class="spinner-container">
+        <mat-spinner *ngIf="isLoading"
+                     diameter="25"
+                     strokeWidth="3">
+        </mat-spinner>
+        <label *ngIf="isLoading" class="loading-label">
+          Checking User Name...
+        </label>
+        <label *ngIf="!isLoading" class="error-label">
+          {{errorMessage}}
+        </label>
+      </div>
+      <div class="buttons">
+        <button mat-raised-button color="primary"
+                (click)="dialogRef.close()">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary"
+                (click)="createClicked()"
+                [disabled]="errorMessage !== ''">
+          Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

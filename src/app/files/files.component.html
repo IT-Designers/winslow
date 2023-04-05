@@ -58,7 +58,8 @@
           <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}
             <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
           </i>
-          <label>{{ file.name }}</label>
+          <label class="file-name">{{ file.name }}</label>
+          <label class="last-modified">{{timeStampToDate(file.attributes['last-modified'])}}</label>
           <label class="action-area file-size file-size-human-readable">{{ file.getFileSizeHumanReadable() }}</label>
           <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
           <i class="material-icons-outlined action-area">

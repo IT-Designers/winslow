@@ -152,7 +152,13 @@ ul.files-browser-navigation > li > p {
   margin-top: auto;
   margin-bottom: auto;
 }
-
+.file-name {
+  min-width: 30%;
+  max-width: 30%;
+}
+.last-modified {
+  color: #696868;
+}
 .file-size {}
 .file-size-human-readable {
   min-width: 5em;
