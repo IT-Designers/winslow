@@ -1,0 +1,37 @@
+<div class="group-assignment-container">
+  <div class="assignment-item-container">
+    <label class="attribute-label">Server Administration: </label>
+    <div class="attribute-value-container">
+      <app-server-groups-list [assignedGroups]="mockGroups" [ngStyle]="{'width':'100%'}"></app-server-groups-list>
+    </div>
+
+  </div>
+  <div class="assignment-item-container">
+    <label class="attribute-label">CPU Access: </label>
+  </div>
+  <div class="assignment-item-container">
+    <label class="attribute-label">GPU Access: </label>
+  </div>
+  <div class="assignment-item-container">
+    <label class="attribute-label">Memory Access: </label>
+    <div class="attribute-value-container">
+      <mat-form-field appearance="fill">
+      <mat-label>Group</mat-label>
+      <mat-select>
+        <mat-option *ngFor="let group of mockGroups" [value]="group.name">
+          {{group.name}}
+        </mat-option>
+      </mat-select>
+      </mat-form-field>
+      <mat-slider thumbLabel [displayWith]="formatLabel" min="{{memoryMin}}" max="{{memoryMax}}" step="0.5" [(ngModel)]="memorySliderValue">
+        <input>
+      </mat-slider>
+      <p>{{memorySliderValue}} / {{memoryMax}} GiB</p>
+    </div>
+  </div>
+  <div class="assignment-item-container">
+    <label class="attribute-label">Disk Space Access: </label>
+  </div>
+</div>
+
+

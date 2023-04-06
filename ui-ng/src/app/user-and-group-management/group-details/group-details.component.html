@@ -1,0 +1,19 @@
+<label *ngIf="selectedGroup === null" class="nothing-selected">No group selected</label>
+<div *ngIf="selectedGroup != null" class="group-detail-container">
+  <h2>Group Details</h2>
+  <div class="detail-item">
+    <label for="detailGroupName" class="attribute-label"> Groupname: </label>
+    <label id="detailGroupName">{{selectedGroup.name}}</label>
+  </div>
+  <app-group-member-list [group]="selectedGroup"
+                         [myUser]="myUser"
+                         (memberEmitter)="onMemberAdded($event)"
+                         (removeMember)="onRemoveMember($event)"
+  ></app-group-member-list>
+  <button class="mat-raised-button delete-group-btn"
+          (click)="onGroupDelete()"
+          color="warn"
+          mat-raised-button="">
+    Delete
+  </button>
+</div>

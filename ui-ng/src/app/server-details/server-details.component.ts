@@ -331,6 +331,14 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     series: [],
   };
 
+  /*Ressource management using groups*/
+  mockGroups = [
+    {
+      name: 'NewGroup1',
+      role: 'OWNER'
+    }
+  ];
+
   average = (arr) => arr.reduce((p, c) => p + c, 0) / arr.length;
 
   axisLabelFormatterMinutes(value) {

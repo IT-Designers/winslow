@@ -10,7 +10,7 @@ import {
   AuthTokenInfo,
   EnvVariable,
   ExecutionGroupInfo,
-  ImageInfo,
+  ImageInfo, Link,
   LogEntryInfo,
   ParseError,
   PipelineDefinitionInfo,
@@ -370,6 +370,20 @@ export class ProjectApiService {
         this.cacheTags(tags);
         return result;
       });
+  }
+
+  addOrUpdateGroup(projectId: string, groupLink: Link): Promise<void> {
+    return this
+      .client
+      .post<void>(ProjectApiService.getUrl(`${projectId}/groups`), groupLink)
+      .toPromise();
+  }
+
+  removeGroup(projectId: string, groupname: string): Promise<object> {
+    return this
+      .client
+      .delete(ProjectApiService.getUrl(`${projectId}/groups/${groupname}`))
+      .toPromise();
   }
 
   stopStage(projectId: string, pause: boolean, stageId: string = null): Promise<boolean> {

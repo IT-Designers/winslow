@@ -1,0 +1,98 @@
+<label *ngIf="selectedUser === null" class="nothing-selected">No user selected</label>
+<div *ngIf="selectedUser != null" class="detail-container">
+  <h2>User Details</h2>
+  <div class="user-name-container">
+
+    <div class="detail-item">
+      <label class="attribute-label">  Username: </label>
+      <mat-form-field class="input-width">
+        <input matInput
+               placeholder="Username"
+               [defaultValue]="editableSelectedUser.name"
+               [(ngModel)]="editableSelectedUser.name"
+               (keyup)="somethingIsBeingChanged()"
+               [disabled]="!canIEditUser">
+      </mat-form-field>
+    </div>
+
+    <div class="detail-item">
+      <label class="attribute-label"> Display Name: </label>
+      <mat-form-field class="input-width">
+        <input matInput
+               placeholder="Display Name"
+               [defaultValue]="editableSelectedUser.displayName"
+               [(ngModel)]="editableSelectedUser.displayName"
+               (keyup)="somethingIsBeingChanged()"
+               [disabled]="!canIEditUser">
+      </mat-form-field>
+    </div>
+
+    <div class="detail-item">
+      <label class="attribute-label"> E-Mail: </label>
+      <mat-form-field class="input-width">
+        <input matInput
+               placeholder="Email"
+               [defaultValue]="editableSelectedUser.email"
+               [(ngModel)]="editableSelectedUser.email"
+               (keyup)="somethingIsBeingChanged()"
+               [disabled]="!canIEditUser">
+      </mat-form-field>
+    </div>
+
+    <div class="detail-item">
+      <label class="attribute-label"> Password: </label>
+      <label class="alt-width password-status-label" *ngIf="selectedUser.password != null">
+        User already has a Password
+      </label>
+      <label class="alt-width password-status-label" *ngIf="selectedUser.password === null">
+        User has no password and cannot log in
+      </label>
+      <button mat-raised-button
+              color="primary"
+              *ngIf="selectedUser.password != null"
+              (click)="changePasswordBtnClicked()"
+              class="update-btn"
+              [disabled]="!canIEditUser">
+        Change
+      </button>
+      <button mat-raised-button
+              color="primary"
+              *ngIf="selectedUser.password === null"
+              (click)="changePasswordBtnClicked()"
+              class="update-btn"
+              [disabled]="!canIEditUser">
+        Set
+      </button>
+    </div>
+
+    <div class="detail-item">
+      <label class="attribute-label"> Active: </label>
+      <div class="checkbox-container">
+        <mat-checkbox [(ngModel)]="editableSelectedUser.active"
+                      class="checkbox"
+                      (change)="somethingIsBeingChanged()"
+                      [disabled]="!canIEditUser">
+        </mat-checkbox>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-btn-container">
+    <button class="mat-raised-button bottom-btn"
+            (click)="onUpdate()"
+            color="primary"
+            mat-raised-button=""
+            [disabled]="!canIEditUser || !hasAnythingChanged">
+      Update User
+    </button>
+    <button class="mat-raised-button bottom-btn"
+            (click)="onUserDelete()"
+            color="warn"
+            mat-raised-button=""
+            [disabled]="!canIEditUser">
+      Delete
+    </button>
+  </div>
+
+</div>

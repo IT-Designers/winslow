@@ -1,0 +1,129 @@
+/* ---------- Overall Container Styling ---------- */
+.list-and-label-container {
+  width: 100%;
+  margin-top: 2vh;
+  margin-bottom: 2vh;
+  margin-left: 0;
+  display: flex;
+  flex-direction: row;
+}
+.list-label {
+  font-weight: bold;
+  display: inline-block;
+  flex-shrink: 0;
+  min-width: 13%;
+  max-width: 13%;
+  margin-top: 7px;
+}
+app-groups-add-member-dialog {
+  overflow: clip;
+}
+
+/*.list-container {
+  display:flex;
+  flex-direction: row;
+}*/
+.list-content {
+  position: relative;
+  padding-bottom: 5px;
+  background-color: #f6f6f6;
+  min-width: 87%;
+  max-width: 87%;
+  max-height: 460px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.scrollable {
+  width: 97%;
+  overflow-y: scroll;
+  border-bottom: 1px solid lightgray;
+}
+
+/* ---------- List Item Styling ---------- */
+.list-item {
+  cursor: default;
+  padding: 3px;
+  border-bottom: 1px solid lightgrey;
+  margin-top: 1px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.dropdown-item:hover {
+  background-color: lightgrey;
+}
+.username-label {
+  padding-left: 20px;
+  min-width: calc(33% - 20px);
+  max-width: calc(33% - 20px);
+}
+.role-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 17px;
+  height: 45px;
+  min-width: 33%;
+  max-width: 33%;
+}
+.btn-container {
+  padding-right: 20px;
+  min-width: calc(33% - 20px);
+  max-width: calc(33% - 20px);
+}
+.remove-member-button {
+  border: none;
+  background-color:  #F44336;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
+  float: right;
+}
+.remove-member-button:enabled {
+  cursor: pointer;
+}
+.remove-member-button:enabled:hover {
+  scale: 1.1;
+}
+.remove-member-button:disabled {
+  background-color: grey;
+  cursor: default;
+}
+.item-icon {
+  font-size: 30px;
+  color: white;
+  margin-left: 5px;
+  margin-top: 2px;
+}
+.text-input {
+  width: 96%;
+  padding: 2px;
+  padding-left: 5px;
+  border: 1px solid lightgrey;
+  border-bottom: 1px solid grey;
+  border-radius: 3px;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.mat-input-container {
+  width: 97%;
+  font-size: 14px;
+}
+.text-input-mat {
+  width: 100%;
+}
+
+.add-member-button-container {
+  text-align: center;
+  margin-top: 4px;
+}
+

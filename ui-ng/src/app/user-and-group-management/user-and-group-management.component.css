@@ -1,0 +1,42 @@
+.header {
+  padding-left: 35px;
+  padding-top: 0;
+  margin-bottom: 0;
+}
+/*---------- Group/User List ----------*/
+.searchable-list {
+  width: 100%;
+}
+
+/* ----- Group/User Detail ------*/
+.details {
+  width: 100%;
+  display: flex;
+}
+/*---------------------------------------------------*/
+.drawer-container {
+  height: 88.2vh;
+}
+.drawer {
+  width: 30vw;
+  background-color: whitesmoke;
+  overflow-y: auto;
+}
+.drawer-content {
+  padding: 0.2em;
+  overflow-y: hidden;
+  margin-bottom: 2em;
+}
+
+.drawer-element {
+  display: block;
+  margin: 0.5em;
+}
+
+.detail-container {
+  background: white;
+  padding: 0 3em;
+  height: 100%;
+  margin-left: 30vw;
+}
+

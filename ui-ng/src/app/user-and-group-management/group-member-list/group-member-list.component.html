@@ -1,0 +1,56 @@
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0"/>
+<div class="list-and-label-container">
+  <label for="list-content" class="list-label">Members:</label>
+  <div class="list-content" id="list-content">
+    <mat-form-field class="mat-input-container">
+      <mat-label>Search...</mat-label>
+      <input matInput
+             type="text"
+             class="text-input-mat"
+             [(ngModel)]="userSearchInput"
+             (keyup)="filterFunction()">
+    </mat-form-field>
+    <!--<input matInput
+           type="text"
+           class="text-input"
+           [(ngModel)]="userSearchInput"
+           placeholder="Search.."
+           (keyup)="filterFunction()">-->
+    <div class="scrollable">
+      <div class="list-item" *ngFor="let user of displayMembers">
+        <label class="username-label">{{user.name}}</label>
+        <mat-form-field appearance="fill" class="role-dropdown">
+          <mat-label>Choose Role</mat-label>
+          <mat-select class="role-select"
+                      [(value)]="user.role"
+                      (selectionChange)="roleChanged(user)"
+                      matTooltipShowDelay="500"
+                      [matTooltip]="getTooltipSelect(user)"
+                      [disabled]="user == disabledUser || !amIOwner()">
+            <mat-option *ngFor="let role of allRoles" value="{{role}}">
+              {{role}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="btn-container">
+          <button class="remove-member-button"
+                  (click)="onRemoveItemClick(user)"
+                  matTooltipShowDelay="500"
+                  [matTooltip]="getTooltipRemove(user)"
+                  [disabled]="user == disabledUser || !amIOwner()">
+            <span class="material-symbols-outlined item-icon">person_remove</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="add-member-button-container">
+      <button class="mat-raised-button"
+              mat-raised-button=""
+              color="primary"
+              (click)="openAddMemberDialog()">
+        Add Member
+      </button>
+    </div>
+  </div>
+</div>
