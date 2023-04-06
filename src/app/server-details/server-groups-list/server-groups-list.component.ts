@@ -2,7 +2,7 @@ import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {ErrorStateMatcher} from '@angular/material/core';
-import {FormControl, FormGroupDirective, NgForm, Validators} from '@angular/forms';
+import {FormControl, FormGroupDirective, NgForm} from '@angular/forms';
 import {NodeResourceUsageConfiguration} from '../../api/winslow-api';
 import {NodeInfoExt, NodesApiService} from '../../api/nodes-api.service';
 import {DialogService} from '../../dialog.service';
@@ -53,25 +53,6 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
   maxGpus = 0;
 
   matcher = new MyErrorStateMatcher();
-  cpuFormControl = new FormControl('', [
-    Validators.max(this.maxCpuCores),
-  ]);
-  cpuFormControlFFA = new FormControl('', [
-    Validators.max(this.maxCpuCores),
-  ]);
-
-  gpuFormControl = new FormControl('', [
-    Validators.max(this.maxGpus),
-  ]);
-  gpuFormControlFFA = new FormControl('', [
-    Validators.max(this.maxGpus),
-  ]);
-  memoryFormControl = new FormControl('', [
-    Validators.max(this.maxMemory),
-  ]);
-  memoryFormControlFFA = new FormControl('', [
-    Validators.max(this.maxMemory),
-  ]);
 
   groupSearchInput = '';
   displayGroups: AssignedGroupInfo[] = null;
@@ -105,8 +86,14 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
     this.maxGpus = this.node.gpuInfo.length;
     this.nodeApi.getNodeResourceUsageConfiguration(this.node.name)
       .then((result) => {
-        this.nodeResourceAllocations = JSON.parse(JSON.stringify((result)));
-        this.editableResourceAllocations = JSON.parse(JSON.stringify((result)));
+        if (result !== null) {
+          this.nodeResourceAllocations = JSON.parse(JSON.stringify((result)));
+          this.editableResourceAllocations = JSON.parse(JSON.stringify((result)));
+        } else {
+          this.nodeResourceAllocations = this.defaultResourceObject;
+          this.editableResourceAllocations = this.defaultResourceObject;
+        }
+
       });
     this.displayGroups = Array.from(this.assignedGroups);
   }
