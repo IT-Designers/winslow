@@ -53,5 +53,11 @@
   margin-bottom: auto;
   margin-top: auto;
 }
+.unsaved-data{
+  color: #FF0D0D;
+}
+.saved-data{
+  color: #69B34C;
+}
 
 

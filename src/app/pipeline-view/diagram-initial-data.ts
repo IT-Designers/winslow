@@ -3,69 +3,81 @@ import {PipelineDefinitionInfo, StageDefinitionInfo} from "../api/winslow-api";
 
 export class DiagramInitialData {
 
-  getInitData(project) {
+  getInitData(pipelineDefinition) {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, project.pipelineDefinition));
+    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
     delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
     delete pipelineInfo.userInput.requiredEnvVariables;
-    nodes[pipelineInfo.id] = {
+    nodes[pipelineInfo.id] = {    //first node - PipelineDefInfo
       id: pipelineInfo.id,
       typeId: "node-start",
       diagramMakerData: {
-        position: {x: 50, y: 200},
+        position: {x: 50, y: 500},
         size: {width: 200, height: 75},
       },
       // @ts-ignore
       consumerData: pipelineInfo
     };
-    for (let i = 0; i < project.pipelineDefinition.stages.length; i++) {
-      nodes[project.pipelineDefinition.stages[i].id] = {
-        id: project.pipelineDefinition.stages[i].id,
-        typeId: "node-normal",
+    for (let i = 0; i < pipelineDefinition.stages.length; i++) {    //All other Stages and Gateways
+      let nodeType : String;
+      if (pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
+      else if(pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
+        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-and-splitter'}
+        else{ nodeType = 'node-all-merger'}
+      }
+      else if(pipelineDefinition.stages[i]['@type'] == 'XorGateway'){
+        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-if-splitter' }
+        else{nodeType = 'node-any-merger'}
+      }
+      nodes[pipelineDefinition.stages[i].id] = {
+        id: pipelineDefinition.stages[i].id,
+        typeId: `${nodeType}`,
         diagramMakerData: {
-          position: {x: 250 * (i + 2) - 200, y: 200},
+          position: {x: 250 * (i + 2) - 200, y: 500},
           size: {width: 200, height: 75},
         },
-        consumerData: project.pipelineDefinition.stages[i]
+        consumerData: pipelineDefinition.stages[i]
       };
-      if (i < (project.pipelineDefinition.stages.length - 1)) {
-        edges[`edge${i}`] = {
-          id: `edge${i}`,
-          src: project.pipelineDefinition.stages[i].id,
-          dest: project.pipelineDefinition.stages[i+1].id,
-          diagramMakerData: {}
+      if (i < (pipelineDefinition.stages.length - 1)) {
+        for(let u = 0; u < pipelineDefinition.stages[i].nextStages.length; u++){    //edges created by stage.nextStages Array
+          edges[`edge${i}-${u}`] = {
+            id: `edge${i}-${u}`,
+            src: pipelineDefinition.stages[i].id,
+            dest: pipelineDefinition.stages[i].nextStages[u],
+            diagramMakerData: {}
+          }
         }
-
       }
     }
-    edges["edgeStart"] = {
+    edges["edgeStart"] = {    //first edge from PipelineDef to the first stage
       id: 'edgeStart',
       src: pipelineInfo.id,
-      dest: project.pipelineDefinition.stages[0].id,
+      dest: pipelineDefinition.stages[0].id,
       diagramMakerData: {}
     }
+    console.log(edges);
 
     let initialData = {
       nodes,
       edges,
       panels: {
-        library: {
+        library: {    //edit-board data
           id: 'library',
           position: {x: 10, y: 10},
           size: {width: 320, height: 400},
           positionAnchor: PositionAnchor.TOP_RIGHT,
         },
-        tools: {
+        tools: {      //add Elements board data
           id: 'tools',
           position: {x: 10, y: 10},
-          size: {width: 521, height: 46},
+          size: {width: 650, height: 46},
         },
       },
       workspace: {
         position: {x: 0, y: 0},
         scale: 1,
-        canvasSize: {width: 5000, height: 5000},
+        canvasSize: {width: 5000, height: 3000},
         viewContainerSize: {
           width: window.innerWidth,
           height: window.innerHeight,

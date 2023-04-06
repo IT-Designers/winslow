@@ -1,4 +1,11 @@
-import {ConnectorPlacement, Layout, VisibleConnectorTypes, WorkflowLayoutDirection} from "diagram-maker";
+import {
+  ConnectorPlacement,
+  DragWorkspaceAction,
+  Layout,
+  VisibleConnectorTypes,
+  WorkflowLayoutDirection,
+  WorkspaceActionsType
+} from "diagram-maker";
 
 export class DiagramConfigHelper {
 
@@ -33,13 +40,20 @@ export class DiagramConfigHelper {
     return nodeTypes;
   }
 
-  getApiSwitch(action , diagramMaker) {
+  getApiSwitch(action , diagramMaker) {   //used by the function icons in the edit board
     {
-      console.log(action);
       switch (action) {
         case 'fit':
-          diagramMaker.api.fit();
-          console.log("fit");
+          diagramMaker.api.focusNode(Object.keys(diagramMaker.store.getState().nodes)[0]);
+          diagramMaker.store.dispatch({
+            type: 'WORKSPACE_DRAG',
+            payload: {
+              position:{
+                x: 0,
+                y: 400
+              }
+            }
+          });
           break;
         case 'layout':
           diagramMaker.api.layout({
@@ -60,6 +74,9 @@ export class DiagramConfigHelper {
           break;
         case 'redo':
           diagramMaker.api.redo();
+          break;
+        case 'save':
+          console.log("saved soon");
           break;
         default:
           break;
