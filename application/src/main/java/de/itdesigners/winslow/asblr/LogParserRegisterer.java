@@ -253,6 +253,7 @@ public class LogParserRegisterer implements AssemblerStep {
                             try {
                                 builder.append(escapeMatchedVariable(matcher.group(substring)));
                             } catch (IllegalArgumentException ignored) {
+                                ignored.printStackTrace();
                             }
                         })));
                     }
