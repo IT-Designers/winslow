@@ -112,11 +112,14 @@ public class LogParserRegisterer implements AssemblerStep {
                     destinationResolver = (_e, _m) -> destination;
                 }
 
-                var lines      = Math.max(1, parameters.lines);
-                var lineBuffer = new ArrayDeque<String>(lines);
+                var lineAmount = Math.max(1, parameters.lines);
+                var lineBuffer = new ArrayDeque<String>(lineAmount);
+
+                // todo
+                writeToLogFile(parser.formatter(), parserDestination, context);
 
                 return Stream.of(entry -> {
-                    while (lineBuffer.size() >= lines) {
+                    while (lineBuffer.size() >= lineAmount) {
                         lineBuffer.removeFirst();
                     }
                     lineBuffer.add(entry.message());
@@ -127,20 +130,8 @@ public class LogParserRegisterer implements AssemblerStep {
                     if (matcher.find()) {
                         destinationResolver.apply(entry, matcher).ifPresentOrElse(
                                 destination -> {
-                                    try {
-                                        if (destination.getParent() != null) {
-                                            Files.createDirectories(destination.getParent());
-                                        }
-                                        Files.write(
-                                                destination,
-                                                List.of(formatter.format(entry, matcher)),
-                                                StandardCharsets.UTF_8,
-                                                StandardOpenOption.APPEND,
-                                                StandardOpenOption.CREATE
-                                        );
-                                    } catch (IOException e) {
-                                        context.log(Level.SEVERE, "Failed to write to destination", e);
-                                    }
+                                    var text = formatter.format(entry, matcher);
+                                    writeToLogFile(text, destination, context);
                                 },
                                 () -> context.log(
                                         Level.WARNING,
@@ -156,6 +147,23 @@ public class LogParserRegisterer implements AssemblerStep {
         } else {
             context.log(Level.WARNING, "Invalid destination path, at least one parser is ignored");
             return Stream.empty();
+        }
+    }
+
+    private void writeToLogFile(String text, Path destination, Context context) {
+        try {
+            if (destination.getParent() != null) {
+                Files.createDirectories(destination.getParent());
+            }
+            Files.write(
+                    destination,
+                    List.of(text),
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.APPEND,
+                    StandardOpenOption.CREATE
+            );
+        } catch (IOException e) {
+            context.log(Level.SEVERE, "Failed to write entry to destination", e);
         }
     }
 
@@ -200,9 +208,9 @@ public class LogParserRegisterer implements AssemblerStep {
         public static final          char                                                       MARKER        = '$';
         public static final          int                                                        MARKER_LENGTH = 1;
         public static final @Nonnull Map<String, TriConsumer<StringBuilder, LogEntry, Matcher>> GLOBAL_BLOCKS = Map.of(
-                "TIMESTAMP", (builder, e, matcher) -> builder.append(e.time()),
-                "SOURCE", (builder, e, matcher) -> builder.append(e.source()),
-                "ERROR", (builder, e, matcher) -> builder.append(e.error() ? 1 : 0)
+                "TIMESTAMP", (builder, e, matcher) -> builder.append(escapeGlobalVariable(String.valueOf(e.time()))),
+                "SOURCE", (builder, e, matcher) -> builder.append(escapeGlobalVariable(String.valueOf(e.source()))),
+                "ERROR", (builder, e, matcher) -> builder.append(escapeGlobalVariable(e.error() ? "1" : "0"))
         );
 
         private final @Nonnull List<TriConsumer<StringBuilder, LogEntry, Matcher>> block = new ArrayList<>();
@@ -215,7 +223,7 @@ public class LogParserRegisterer implements AssemblerStep {
             while ((nextIndex = format.indexOf(MARKER, prevIndex)) >= 0) {
                 if (nextIndex > prevIndex) {
                     var substring = format.substring(prevIndex, nextIndex);
-                    this.block.add((builder, e, matcher) -> builder.append(substring));
+                    this.block.add((builder, e, matcher) -> builder.append(escapeStringLiteral(substring)));
                 }
 
                 var length    = 0;
@@ -237,13 +245,13 @@ public class LogParserRegisterer implements AssemblerStep {
                         var index = Integer.parseInt(substring);
                         this.block.add((builder, e, matcher) -> {
                             if (index >= 0 && index <= matcher.groupCount()) {
-                                builder.append(matcher.group(index));
+                                builder.append(escapeMatchedVariable(matcher.group(index)));
                             }
                         });
                     } else {
-                        this.block.add(independentBlock(substring).orElse(((builder, e, matcher) -> {
+                        this.block.add(globalEnvironmentBlock(substring).orElse(((builder, e, matcher) -> {
                             try {
-                                builder.append(matcher.group(substring));
+                                builder.append(escapeMatchedVariable(matcher.group(substring)));
                             } catch (IllegalArgumentException ignored) {
                             }
                         })));
@@ -254,7 +262,7 @@ public class LogParserRegisterer implements AssemblerStep {
             }
             if (prevIndex < format.length()) {
                 var substring = format.substring(prevIndex);
-                this.block.add((builder, e, matcher) -> builder.append(substring));
+                this.block.add((builder, e, matcher) -> builder.append(escapeStringLiteral(substring)));
             }
         }
 
@@ -268,15 +276,31 @@ public class LogParserRegisterer implements AssemblerStep {
         }
 
         @Nonnull
-        private Optional<TriConsumer<StringBuilder, LogEntry, Matcher>> independentBlock(@Nonnull String name) {
+        private Optional<TriConsumer<StringBuilder, LogEntry, Matcher>> globalEnvironmentBlock(@Nonnull String name) {
             var upperCase = name.toUpperCase();
             return Optional
                     .ofNullable(GLOBAL_BLOCKS.get(upperCase))
                     .or(() -> environment
                             .apply(name)
                             .or(() -> environment.apply(upperCase))
-                            .map(value -> (builder, e, matcher) -> builder.append(value))
+                            .map(value -> (builder, e, matcher) -> builder.append(escapeGlobalVariable(value)))
                     );
+        }
+
+        @Nonnull
+        private static String escapeStringLiteral(@Nonnull String input) {
+            return input;
+        }
+
+        @Nonnull
+        private static String escapeGlobalVariable(@Nonnull String input) {
+            return escapeMatchedVariable(input);
+        }
+
+        @Nonnull
+        private static String escapeMatchedVariable(@Nonnull String input) {
+            var escaped = input.replace("\"", "\"\"");
+            return "\"" + escaped + "\"";
         }
     }
 }
