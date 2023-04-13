@@ -56,6 +56,16 @@ export class PipelineApiService {
       .then(info => loadPipelineDefinition(info));
   }
 
+  /**
+   * @param pipeline The name of the {@link PipelineDefinitionInfo} to check for
+   * @return Whether the name is available (not used yet).
+   */
+  getPipelineDefinitionAvailable(pipeline: string): Promise<object> {
+    return this.client
+      .get<PipelineDefinitionInfo>(PipelineApiService.getUrl(`${pipeline}/available`))
+      .toPromise();
+  }
+
   getPipelineDefinitions() {
     return this
       .client
