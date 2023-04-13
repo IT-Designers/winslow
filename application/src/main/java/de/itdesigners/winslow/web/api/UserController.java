@@ -47,13 +47,18 @@ public class UserController {
                 .map(UserInfoConverter::from);
     }
 
+    /**
+     * @param user The {@link User} that issued this request
+     * @param name The name of the {@link User} to check
+     * @return Whether the given name for a {@link User} is still available (not used yet).
+     */
     @GetMapping("/users/{name}/available")
     public ResponseEntity<String> getUserNameAvailable(
             @Nullable User user,
             @PathVariable("name") String name) {
         try {
             InvalidNameException.ensureValid(name);
-            if (winslow
+            if (user == null || winslow
                     .getUserManager()
                     .getUser(name)
                     .isPresent()) {

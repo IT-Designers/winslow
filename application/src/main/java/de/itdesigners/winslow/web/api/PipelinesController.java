@@ -67,6 +67,25 @@ public class PipelinesController {
                 .map(p -> PipelineDefinitionInfoConverter.from(pipeline, p));
     }
 
+    /**
+     * @param user The {@link User} that issued this request
+     * @param pipeline The name of the {@link PipelineDefinition} to check
+     * @return Whether the given name for a {@link PipelineDefinition} is still available (not used yet).
+     */
+    @GetMapping("pipelines/{pipeline}/available")
+    public ResponseEntity<String> getPipelineAvailable(
+            @Nullable User user,
+            @PathVariable("pipeline") String pipeline) {
+        if (user == null || winslow
+                .getPipelineRepository()
+                .getPipeline(pipeline)
+                .exists()) {
+            return new ResponseEntity<>("Name already taken.", HttpStatus.BAD_REQUEST);
+        } else {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+    }
+
     @GetMapping("pipelines/{pipeline}/raw")
     public Optional<String> getPipelineRaw(@Nullable User user, @PathVariable("pipeline") String pipeline) {
         var handle = winslow

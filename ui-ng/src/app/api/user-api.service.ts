@@ -45,6 +45,10 @@ export class UserApiService {
       .toPromise();
   }
 
+  /**
+   * @param userName The name of the {@link UserInfo} to check for
+   * @return Whether the name is available (not used yet).
+   */
   getUserNameAvailable(userName): Promise<object> {
     return this.client
       .get(UserApiService.getUrl(userName + '/available'))
