@@ -5,6 +5,7 @@ import {LongLoadingDetector} from '../long-loading-detector';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-create-dialog/create-pipeline-dialog.component';
 import {ParseError, PipelineDefinitionInfo} from '../api/winslow-api';
+import {DialogService} from "../dialog.service";
 
 @Component({
   selector: 'app-pipelines',
@@ -21,6 +22,8 @@ export class PipelinesComponent implements OnInit {
   success: Map<string, string> = new Map();
 
   longLoading = new LongLoadingDetector();
+
+  selectedPipeline: PipelineDefinitionInfo = null;
 
   mockGroups = [
     {
@@ -40,7 +43,8 @@ export class PipelinesComponent implements OnInit {
   constructor(
     private api: PipelineApiService,
     private notification: NotificationService,
-    private dialog: MatDialog) {
+    private createDialog: MatDialog,
+    private dialog: DialogService) {
   }
 
   ngOnInit() {
@@ -120,8 +124,22 @@ export class PipelinesComponent implements OnInit {
       .finally(() => this.longLoading.decrease());
   }
 
+  onPipelineClicked(pipeline) {
+    this.selectedPipeline = pipeline;
+    console.dir(pipeline);
+  }
+  onAddPipeline(name) {
+    if (name) {
+      return this.dialog.openLoadingIndicator(this.api.createPipelineDefinition(name)
+        .then((newPipeline) => {
+          this.pipelines.push(newPipeline);
+        }),
+        'Creating Pipeline');
+    }
+  }
+
   openCreatePipelineDialog() {
-    const dialog: MatDialogRef<CreatePipelineDialogComponent, CreatePipelineResult> = this.dialog.open(CreatePipelineDialogComponent, {});
+    const dialog: MatDialogRef<CreatePipelineDialogComponent, CreatePipelineResult> = this.createDialog.open(CreatePipelineDialogComponent, {});
     dialog
       .afterClosed()
       .subscribe(result => {

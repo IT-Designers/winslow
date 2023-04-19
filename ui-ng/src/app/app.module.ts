@@ -110,6 +110,8 @@ import { GroupAssignmentComponent } from './pipelines/group-assignment/group-ass
 import { RessourcesGroupAssignmentComponent } from './server-details/ressources-group-assignment/ressources-group-assignment.component';
 import {MatSliderModule} from '@angular/material/slider';
 import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
+import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-pipeline-dialog.component';
+import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-details.component';
 
 @NgModule({
     declarations: [
@@ -184,6 +186,8 @@ import { ServerGroupsListComponent } from './server-details/server-groups-list/s
         GroupAssignmentComponent,
         RessourcesGroupAssignmentComponent,
         ServerGroupsListComponent,
+        AddPipelineDialogComponent,
+        PipelineDetailsComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),
