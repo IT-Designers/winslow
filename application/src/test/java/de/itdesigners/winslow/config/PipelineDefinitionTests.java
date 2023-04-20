@@ -20,6 +20,7 @@ public class PipelineDefinitionTests {
     public void testMostBasicPipeline() throws IOException {
 
         var pipelineYaml = """ 
+                id: "this-should-be-a-uuid"
                 name: "Name of the pipeline"
                 description: "Description of the pipeline"
                  """;
@@ -38,6 +39,7 @@ public class PipelineDefinitionTests {
 
 
         var pipelineYaml = """ 
+                id: "this-should-be-a-uuid"
                 name: "Test"
                 userInput:
                     requiredEnvVariables: ["KEY_A", "KEY_B"]
@@ -54,7 +56,7 @@ public class PipelineDefinitionTests {
 
     @Test
     public void testDefaultSerialisation() throws IOException {
-        var pipeline = new PipelineDefinition("Pipeline");
+        var pipeline = new PipelineDefinition(UUID.randomUUID().toString(), "Pipeline");
         var yaml     = BaseRepository.writeToString(pipeline);
 
         assertNotNull(yaml);
@@ -65,6 +67,7 @@ public class PipelineDefinitionTests {
     @Test
     public void testSerialisationWithAllValues() throws IOException {
         var pipeline = new PipelineDefinition(
+                UUID.randomUUID().toString(),
                 "Pipeline",
                 "description",
                 new UserInput(UserInput.Confirmation.ALWAYS, List.of("env")),

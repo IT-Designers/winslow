@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException;
-import de.itdesigners.winslow.PipelineDefinitionRepository;
-import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.Winslow;
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
@@ -43,54 +41,36 @@ public class PipelinesController {
     }
 
     @GetMapping("pipelines")
-    public Stream<PipelineDefinitionInfo> getAllPipelines() {
+    public Stream<PipelineDefinitionInfo> getAllPipelines(@Nullable User user) {
         return winslow
                 .getPipelineRepository()
-                .getPipelineIdentifiers()
-                .flatMap(identifier -> winslow
+                .getPipelineIds()
+                .flatMap(id -> winslow
                         .getPipelineRepository()
-                        .getPipeline(identifier)
+                        .getPipeline(id)
                         .unsafe()
                         .stream()
-                        .map(p -> PipelineDefinitionInfoConverter.from(identifier, p)));
+                        .filter(p -> user != null && p.canBeAccessedBy(user))
+                        .map(PipelineDefinitionInfoConverter::from));
     }
 
     @GetMapping("pipelines/{pipeline}")
     public Optional<PipelineDefinitionInfo> getPipeline(
             @Nullable User user,
-            @PathVariable("pipeline") String pipeline) {
+            @PathVariable("pipeline") String pipelineId) {
         return winslow
                 .getPipelineRepository()
-                .getPipeline(pipeline)
+                .getPipeline(pipelineId)
                 .unsafe()
                 .filter(pd -> user != null && pd.canBeAccessedBy(user))
-                .map(p -> PipelineDefinitionInfoConverter.from(pipeline, p));
-    }
-
-    /**
-     * @param user The {@link User} that issued this request
-     * @param pipeline The name of the {@link PipelineDefinition} to check
-     * @return Whether the given name for a {@link PipelineDefinition} is still available (not used yet).
-     */
-    @GetMapping("pipelines/{pipeline}/available")
-    public ResponseEntity<String> getPipelineAvailable(
-            @Nullable User user,
-            @PathVariable("pipeline") String pipeline) {
-        if (user == null || winslow
-                .getPipelineRepository()
-                .getPipeline(pipeline)
-                .exists()) {
-            return new ResponseEntity<>("Name already taken.", HttpStatus.BAD_REQUEST);
-        } else {
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
+                .map(PipelineDefinitionInfoConverter::from);
     }
 
     @GetMapping("pipelines/{pipeline}/raw")
-    public Optional<String> getPipelineRaw(@Nullable User user, @PathVariable("pipeline") String pipeline) {
+    public Optional<String> getPipelineRaw(@Nullable User user, @PathVariable("pipeline") String pipelineId) {
         var handle = winslow
                 .getPipelineRepository()
-                .getPipeline(pipeline);
+                .getPipeline(pipelineId);
 
         return handle
                 .unsafe()
@@ -101,23 +81,31 @@ public class PipelinesController {
     @PutMapping("pipelines/{pipeline}/raw")
     public ResponseEntity<String> setPipeline(
             @Nullable User user,
-            @PathVariable("pipeline") String pipeline,
+            @PathVariable("pipeline") String pipelineId,
             @RequestBody String raw) throws IOException {
-        PipelineDefinition definition = null;
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
+        }
+
+        PipelineDefinition definition;
 
         try {
             definition = tryParsePipelineDef(raw);
             definition.check();
+
+            if (!Objects.equals(definition.id(), pipelineId)) {
+                throw new IllegalArgumentException("The id of the pipeline does not match the path pipeline-id");
+            }
+
         } catch (ParseErrorException e) {
             return toJsonResponseEntity(e.getParseError());
         } catch (Throwable t) {
             return ResponseEntity.ok(t.getMessage());
         }
 
-
         var exclusive = winslow
                 .getPipelineRepository()
-                .getPipeline(pipeline)
+                .getPipeline(pipelineId)
                 .exclusive();
 
         if (exclusive.isPresent()) {
@@ -126,11 +114,11 @@ public class PipelinesController {
             var previous  = container.getNoThrow();
 
             try (container; lock) {
-                if (user != null && previous.isPresent()) {
+                if (previous.isPresent()) {
                     if (!previous.get().canBeManagedBy(user)) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                     }
-                } else if (user != null && previous.isEmpty()) {
+                } else {
                     definition = definition.withUserAndRole(user.name(), Role.OWNER);
                 }
 
@@ -211,7 +199,7 @@ public class PipelinesController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
         }
 
-        var id = PipelineDefinitionRepository.derivePipelineIdFromName(name);
+        var id = UUID.randomUUID().toString();
         return this.winslow
                 .getPipelineRepository()
                 .getPipeline(id)
@@ -224,6 +212,7 @@ public class PipelinesController {
                             var id2 = UUID.randomUUID();
 
                             var def = new PipelineDefinition(
+                                    id,
                                     name,
                                     "Automatically generated description for '" + name + "'",
                                     new UserInput(
@@ -291,7 +280,7 @@ public class PipelinesController {
                                     false
                             );
                             container.update(def);
-                            return Optional.of(PipelineDefinitionInfoConverter.from(id, def));
+                            return Optional.of(PipelineDefinitionInfoConverter.from(def));
                         } else {
                             return Optional.empty();
                         }

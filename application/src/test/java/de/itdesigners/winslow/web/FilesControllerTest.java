@@ -66,7 +66,7 @@ public class FilesControllerTest {
                 null,
                 "project-name",
                 null,
-                new PipelineDefinition("pipeline-definition"),
+                new PipelineDefinition(UUID.randomUUID().toString(), "pipeline-definition"),
                 null
         )));
         controller        = new FilesController(resourceManager, fileAccessChecker);
