@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 
 public record PipelineDefinition(
+        @Nonnull String id,
         @Nonnull String name,
         @Nullable String description,
         @Nonnull UserInput userInput,
@@ -25,8 +26,9 @@ public record PipelineDefinition(
         @Nonnull List<Link> groups,
         boolean publicAccess) {
 
-    public PipelineDefinition(@Nonnull String name) {
+    public PipelineDefinition(@Nonnull String id, @Nonnull String name) {
         this(
+                id,
                 name,
                 null,
                 new UserInput(),
@@ -40,6 +42,7 @@ public record PipelineDefinition(
     }
 
     @ConstructorProperties({
+            "id",
             "name",
             "description",
             "requires",
@@ -51,6 +54,7 @@ public record PipelineDefinition(
             "publicAccess"
     })
     public PipelineDefinition( // the parameter names must match the corresponding getter names!
+            @Nonnull String id,
             @Nonnull String name,
             @Nullable String description,
             @Nullable UserInput userInput,
@@ -65,6 +69,7 @@ public record PipelineDefinition(
             throw new IllegalArgumentException("The name of a pipeline must not be blank");
         }
 
+        this.id             = id;
         this.name           = name;
         this.description    = description != null && !description.isBlank() ? description.trim() : null;
         this.userInput      = userInput != null ? userInput : new UserInput();
@@ -78,6 +83,7 @@ public record PipelineDefinition(
     }
 
     public void check() {
+        Objects.requireNonNull(id, "The id of a pipeline must be set");
         Objects.requireNonNull(name, "The name of a pipeline must be set");
         Objects.requireNonNull(userInput, "The user input of a pipeline must be set");
         Objects.requireNonNull(stages, "The stages of a pipeline must be set");
@@ -113,6 +119,7 @@ public record PipelineDefinition(
     @Nonnull
     public PipelineDefinition withoutGroup(@Nonnull String groupName) {
         return new PipelineDefinition(
+                id(),
                 name(),
                 description(),
                 userInput(),
@@ -131,6 +138,7 @@ public record PipelineDefinition(
     @Nonnull
     public PipelineDefinition withUserAndRole(@Nonnull String group, @Nonnull Role role) {
         return new PipelineDefinition(
+                id(),
                 name(),
                 description(),
                 userInput(),

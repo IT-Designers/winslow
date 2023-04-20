@@ -303,7 +303,7 @@ public class ProjectsController {
             @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
                 .map(Project::getPipelineDefinition)
-                .map(definition -> PipelineDefinitionInfoConverter.from(projectId, definition));
+                .map(PipelineDefinitionInfoConverter::from);
     }
 
     @GetMapping("/projects/{projectId}/state")
