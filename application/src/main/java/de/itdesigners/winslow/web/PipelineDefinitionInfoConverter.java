@@ -8,9 +8,9 @@ import javax.annotation.Nonnull;
 public class PipelineDefinitionInfoConverter {
 
     @Nonnull
-    public static PipelineDefinitionInfo from(@Nonnull String id, @Nonnull PipelineDefinition pipeline) {
+    public static PipelineDefinitionInfo from(@Nonnull PipelineDefinition pipeline) {
         return new PipelineDefinitionInfo(
-                id,
+                pipeline.id(),
                 pipeline.name(),
                 pipeline.optDescription().orElse(""),
                 UserInputInfoConverter.from(pipeline.userInput()),
