@@ -49,21 +49,11 @@ export class PipelineApiService {
       });
   }
 
-  getPipelineDefinition(pipeline: string) {
+  getPipelineDefinition(pipelineId: string) {
     return this.client
-      .get<PipelineDefinitionInfo>(PipelineApiService.getUrl(`${pipeline}`))
+      .get<PipelineDefinitionInfo>(PipelineApiService.getUrl(`${pipelineId}`))
       .toPromise()
       .then(info => loadPipelineDefinition(info));
-  }
-
-  /**
-   * @param pipeline The name of the {@link PipelineDefinitionInfo} to check for
-   * @return Whether the name is available (not used yet).
-   */
-  getPipelineDefinitionAvailable(pipeline: string): Promise<object> {
-    return this.client
-      .get<PipelineDefinitionInfo>(PipelineApiService.getUrl(`${pipeline}/available`))
-      .toPromise();
   }
 
   getPipelineDefinitions() {
@@ -80,14 +70,6 @@ export class PipelineApiService {
       .post<PipelineDefinitionInfo>(PipelineApiService.getUrl(`create`), name)
       .toPromise()
       .then(info => loadPipelineDefinition(info));
-  }
-
-  getLogParsers(pipeline: string, stage: string) {
-    return this
-      .client
-      .get<LogParser[]>(PipelineApiService.getUrl(`${pipeline}/${stage}/logparsers`))
-      .toPromise()
-      .then(info => info.map(i => new LogParser(i)));
   }
 }
 

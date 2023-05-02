@@ -10,6 +10,7 @@ import org.junit.Test;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
@@ -302,7 +303,7 @@ public class DistributedAllocationViewTests {
                 null,
                 "name-of-" + projectId,
                 null,
-                new PipelineDefinition("pipeline-definition-of-" + projectId),
+                new PipelineDefinition(UUID.randomUUID().toString(), "pipeline-definition-of-" + projectId),
                 resourceLimitation
         );
     }

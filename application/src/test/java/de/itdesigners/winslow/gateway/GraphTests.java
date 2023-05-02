@@ -490,6 +490,7 @@ public class GraphTests {
             @Nonnull String name,
             @Nonnull List<StageDefinition> stages) {
         return new PipelineDefinition(
+                UUID.randomUUID().toString(),
                 name,
                 null,
                 new UserInput(),
