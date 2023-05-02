@@ -30,9 +30,11 @@ export class SearchableListComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.displayItems = Array.from(this.allItems);
-    this.filterSystemGroups();
-    this.sortDisplayItemsByName();
+    if (this.allItems !== null) {
+      this.displayItems = Array.from(this.allItems);
+      this.filterSystemGroups();
+      this.sortDisplayItemsByName();
+    }
   }
 
   filterSystemGroups() {
@@ -99,6 +101,15 @@ export class SearchableListComponent implements OnInit, OnChanges {
           this.newItemEmitter.emit(name);
         });
     } else if (this.type === 'User') {
+      this.createDialog.open(UserAddNameDialogComponent, {
+        data: {} as string
+      })
+        .afterClosed()
+        .subscribe((name) => {
+          this.selectedItemName = name;
+          this.newItemEmitter.emit(name);
+        });
+    } else if (this.type === 'Pipeline') {
       this.createDialog.open(UserAddNameDialogComponent, {
         data: {} as string
       })
