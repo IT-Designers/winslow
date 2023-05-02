@@ -2,6 +2,7 @@ import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges
 import {MatDialog} from '@angular/material/dialog';
 import {NewGroupDialogComponent} from '../new-group-dialog/new-group-dialog.component';
 import {UserAddNameDialogComponent} from '../user-add-name-dialog/user-add-name-dialog.component';
+import {AddPipelineDialogComponent} from "../../pipelines/add-pipeline-dialog/add-pipeline-dialog.component";
 
 @Component({
   selector: 'app-searchable-list',
@@ -110,7 +111,7 @@ export class SearchableListComponent implements OnInit, OnChanges {
           this.newItemEmitter.emit(name);
         });
     } else if (this.type === 'Pipeline') {
-      this.createDialog.open(UserAddNameDialogComponent, {
+      this.createDialog.open(AddPipelineDialogComponent, {
         data: {} as string
       })
         .afterClosed()
