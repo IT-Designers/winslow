@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {GroupApiService, GroupInfo, MemberInfo} from '../../api/group-api.service';
 import {DialogService} from '../../dialog.service';
+import {Link} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-group-details',
@@ -10,7 +11,7 @@ import {DialogService} from '../../dialog.service';
 export class GroupDetailsComponent implements OnInit {
 
   @Input() selectedGroup: GroupInfo = null;
-  @Input() myUser: MemberInfo = null;
+  @Input() myUser: Link = null;
 
   @Output() groupDeleteEmitter = new EventEmitter();
 
