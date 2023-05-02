@@ -10,7 +10,7 @@ import {PipelineApiService} from "../../api/pipeline-api.service";
 export class AddPipelineDialogComponent implements OnInit {
 
   nameInput: string;
-  errorMessage = ' ';
+  errorMessage = '';
   isLoading = false;
   constructor(
     public dialogRef: MatDialogRef<AddPipelineDialogComponent>,
@@ -26,20 +26,7 @@ export class AddPipelineDialogComponent implements OnInit {
   }
 
   checkName() {
-    this.errorMessage = '';
-    this.isLoading = true;
-    if (!(this.nameInput.includes('%') || this.nameInput.includes('/') || this.nameInput.includes('\\'))) {
-      this.pipelineApi.getPipelineDefinitionAvailable(this.nameInput)
-        .then(() => this.isLoading = false)
-        .catch((error) => {
-          console.log(error);
-          this.errorMessage = 'Error: ' + error.error;
-          this.isLoading = false;
-        })
-    } else {
-      this.isLoading = false;
-      this.errorMessage = 'Error: Invalid name. Name must contain only: English letters, numbers, underscore, minus and dot and not exceed 20 characters';
-    }
+
   }
 
 }
