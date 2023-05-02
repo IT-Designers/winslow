@@ -1,0 +1,17 @@
+.pipeline-name-dialog-container {
+  width: 35em;
+  height: 195px !important;
+}
+.dialog-actions-container {
+  justify-content: space-between;
+}
+.app-add-pipeline-dialog {
+  overflow: clip;
+}
+.mat-form-field {
+  width: 100%;
+  margin-top: 1em;
+}
+.buttons {
+  float: right;
+}
