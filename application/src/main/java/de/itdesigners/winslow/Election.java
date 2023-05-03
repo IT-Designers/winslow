@@ -3,7 +3,10 @@ package de.itdesigners.winslow;
 import de.itdesigners.winslow.fs.LockBus;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 
 public class Election {
 
@@ -13,6 +16,8 @@ public class Election {
     private final          long   duration;
 
     private final Map<String, Participation> participations = new TreeMap<>();
+
+    private @Nonnull ResourceAllocationMonitor.ResourceSet<Long> requiredResources = new ResourceAllocationMonitor.ResourceSet<>();
 
     public Election(@Nonnull String issuer, @Nonnull String projectId, long time, long duration) {
         this.issuer    = issuer;
@@ -39,6 +44,10 @@ public class Election {
         this.participations.put(issuer, participation);
     }
 
+    public synchronized boolean hasParticipated(@Nonnull String issuer) {
+        return this.participations.containsKey(issuer);
+    }
+
     @Nonnull
     public synchronized Optional<String> getMostFittingParticipant() {
         var list = new ArrayList<>(this.participations.entrySet());
@@ -60,6 +69,14 @@ public class Election {
         }
     }
 
+    public synchronized void setRequiredResources(@Nonnull ResourceAllocationMonitor.ResourceSet<Long> requiredResources) {
+        this.requiredResources = requiredResources;
+    }
+
+    @Nonnull
+    public synchronized ResourceAllocationMonitor.ResourceSet<Long> getRequiredResources() {
+        return requiredResources;
+    }
 
     public static class Participation {
         final float affinity;
