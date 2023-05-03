@@ -99,6 +99,11 @@ public class LockBusElectionManagerAdapter {
 
                     try {
                         electionManager.participate(election, participation);
+                        election.setRequiredResources(requiredResources);
+                        orchestrator.getResourceAllocationMonitor().reserve(
+                                election.getProjectId(),
+                                requiredResources
+                        );
                     } catch (IOException | LockException e) {
                         LOG.log(
                                 Level.SEVERE,
@@ -110,6 +115,13 @@ public class LockBusElectionManagerAdapter {
     }
 
     private void handleElectionClosed(@Nonnull Election election) {
+        if (election.hasParticipated(nodeName)) {
+            orchestrator.getResourceAllocationMonitor().free(
+                    election.getProjectId(),
+                    election.getRequiredResources()
+            );
+        }
+
         election.getMostFittingParticipant().ifPresentOrElse(participant -> {
             if (nodeName.equals(participant)) {
                 var thread = new Thread(() -> {
