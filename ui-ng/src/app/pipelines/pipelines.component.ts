@@ -133,6 +133,8 @@ export class PipelinesComponent implements OnInit {
       return this.dialog.openLoadingIndicator(this.api.createPipelineDefinition(name)
         .then((newPipeline) => {
           this.pipelines.push(newPipeline);
+          this.pipelines = this.pipelines.concat([]);
+          this.selectedPipeline = newPipeline;
         }),
         'Creating Pipeline');
     }
