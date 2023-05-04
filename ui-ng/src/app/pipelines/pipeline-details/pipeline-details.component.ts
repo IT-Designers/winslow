@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
 import {Link, PipelineDefinitionInfo} from "../../api/winslow-api";
 import {DialogService} from "../../dialog.service";
 import {PipelineApiService} from "../../api/pipeline-api.service";
@@ -10,7 +10,7 @@ import {PipelineEditorComponent} from "../../pipeline-editor/pipeline-editor.com
   templateUrl: './pipeline-details.component.html',
   styleUrls: ['./pipeline-details.component.css']
 })
-export class PipelineDetailsComponent implements OnInit {
+export class PipelineDetailsComponent implements OnInit, OnChanges {
 
   @Input() selectedPipeline: PipelineDefinitionInfo = null;
   @Input() myUser: Link;
@@ -40,6 +40,10 @@ export class PipelineDetailsComponent implements OnInit {
   constructor(private dialog: DialogService, private pipelinesApi: PipelineApiService) { }
 
   ngOnInit(): void {
+    this.loadRawPipelineDefinition();
+  }
+
+  ngOnChanges() {
     this.loadRawPipelineDefinition();
   }
 
