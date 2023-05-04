@@ -18,8 +18,27 @@ public class RequirementsInfoConverter {
         );
     }
 
+    @Nonnull
     public static GpuRequirementsInfo from(@Nonnull Requirements.Gpu gpu) {
         return new GpuRequirementsInfo(gpu.getCount(), gpu.getVendor().orElse(""), gpu.getSupport());
     }
 
+    @Nonnull
+    public static Requirements reverse(@Nonnull RequirementsInfo requirements) {
+        return new Requirements(
+                requirements.cpus(),
+                requirements.megabytesOfRam(),
+                reverse(requirements.gpu()),
+                requirements.tags()
+        );
+    }
+
+    @Nonnull
+    public static Requirements.Gpu reverse(@Nonnull GpuRequirementsInfo gpu) {
+        return new Requirements.Gpu(
+                gpu.count(),
+                gpu.vendor(),
+                gpu.support()
+        );
+    }
 }
