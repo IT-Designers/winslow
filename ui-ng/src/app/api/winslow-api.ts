@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2023-04-04 16:57:49.
+// Generated using typescript-generator version 3.1.1185 on 2023-05-04 17:43:18.
 
 export class GroupInfo {
   name: string;
@@ -372,6 +372,7 @@ export class PipelineDefinitionInfo {
   description: string;
   userInput: UserInputInfo;
   stages: StageDefinitionInfoUnion[];
+  environment: Record<string, string>;
   deletionPolicy: DeletionPolicy;
   markers: string[];
   groups: Link[];
@@ -383,6 +384,7 @@ export class PipelineDefinitionInfo {
     this.description = data.description;
     this.userInput = data.userInput;
     this.stages = data.stages;
+    this.environment = data.environment;
     this.deletionPolicy = data.deletionPolicy;
     this.markers = data.markers;
     this.groups = data.groups;

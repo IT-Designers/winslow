@@ -66,6 +66,18 @@ public class PipelinesController {
                 .map(PipelineDefinitionInfoConverter::from);
     }
 
+    @PutMapping("pipelines")
+    public ResponseEntity<String> setPipeline(
+            @Nullable User user,
+            @RequestBody PipelineDefinitionInfo pipeline) throws IOException {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
+        }
+
+        return storePipelineDefinition(user, PipelineDefinitionInfoConverter.reverse(pipeline));
+    }
+
+
     @GetMapping("pipelines/{pipeline}/raw")
     public Optional<String> getPipelineRaw(@Nullable User user, @PathVariable("pipeline") String pipelineId) {
         var handle = winslow
@@ -103,9 +115,16 @@ public class PipelinesController {
             return ResponseEntity.ok(t.getMessage());
         }
 
+        return storePipelineDefinition(user, definition);
+    }
+
+    @Nonnull
+    private ResponseEntity<String> storePipelineDefinition(
+            @Nonnull User user,
+            @Nonnull PipelineDefinition definition) throws IOException {
         var exclusive = winslow
                 .getPipelineRepository()
-                .getPipeline(pipelineId)
+                .getPipeline(definition.id())
                 .exclusive();
 
         if (exclusive.isPresent()) {
@@ -175,7 +194,7 @@ public class PipelinesController {
                         )
                 );
             } else if (e instanceof MismatchedInputException) {
-                var cause = (MismatchedInputException) e;
+                var cause    = (MismatchedInputException) e;
                 var location = cause.getLocation();
                 throw new ParseErrorException(e, new ParseError(
                         location.getLineNr(),
