@@ -53,7 +53,12 @@
                 [disableClose]="true">
       <div class="drawer-content">
         <div class="drawer-element">
-          <app-searchable-list type="Pipeline" [allItems]="pipelines" searchPlaceholderText="Pipeline Name..." listItemTooltip="Edit Pipeline" (itemEmitter)="onPipelineClicked($event)" (newItemEmitter)="onAddPipeline($event)">
+          <app-searchable-list type="Pipeline"
+                               [allItems]="pipelines"
+                               searchPlaceholderText="Pipeline Name..."
+                               listItemTooltip="Edit Pipeline"
+                               (itemEmitter)="onPipelineClicked($event)"
+                               (newItemEmitter)="onAddPipeline($event)">
 
           </app-searchable-list>
 
@@ -63,7 +68,8 @@
 
     </mat-drawer>
     <mat-drawer-content class="detail-container">
-      <app-pipeline-details *ngIf="selectedPipeline !== null" [selectedPipeline]="selectedPipeline">
+      <app-pipeline-details *ngIf="selectedPipeline !== null"
+                            [selectedPipeline]="selectedPipeline">
 
       </app-pipeline-details>
     </mat-drawer-content>
