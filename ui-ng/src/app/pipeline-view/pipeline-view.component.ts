@@ -3,7 +3,7 @@ import {
   Component,
   ComponentFactoryResolver,
   ElementRef, EventEmitter,
-  Input,
+  Input, OnChanges,
   OnDestroy,
   OnInit, Output,
   ViewChild,
@@ -45,7 +45,7 @@ import {HttpClient} from "@angular/common/http";
   templateUrl: './pipeline-view.component.html',
   styleUrls: ['./pipeline-view.component.css']
 })
-export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
   @Input() public pipelineDefinition: PipelineDefinitionInfo;
   @Output() public onSave = new EventEmitter<PipelineDefinitionInfo>();
@@ -292,6 +292,36 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initialData = this.initClass.getInitData(this.pipelineDefinition);
     console.log(this.pipelineDefinition.stages)
 
+  }
+
+  ngOnChanges() {
+    // possibly unsafe
+    this.initialData = this.initClass.getInitData(this.pipelineDefinition);
+    setTimeout(() => {
+      this.diagramMaker = new DiagramMaker(
+        this.diagramEditorContainer.nativeElement,
+        this.config,
+        {
+          initialData: this.initialData,
+          consumerRootReducer: (state: any, action: any) => {   //new action for diagramMaker to update the consumerData when editing a node
+            switch (action.type) {
+              case 'UPDATE_NODE':
+                const newNode: any = {};
+                newNode[action.payload.id] = action.payload;
+                const newNodes = Object.assign({}, state.nodes, newNode);
+                return Object.assign({}, state, {nodes: newNodes});
+              default:
+                return state;
+            }
+          }
+        },
+      );
+
+      window.addEventListener('resize', () => {
+        this.diagramMaker.updateContainer();
+      });
+      this.configClass.getApiSwitch('layout', this.diagramMaker);
+    }, 1000);
   }
 
   ngAfterViewInit(): void {
