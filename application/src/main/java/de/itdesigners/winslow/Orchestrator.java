@@ -179,6 +179,11 @@ public class Orchestrator implements Closeable, AutoCloseable {
         return environment.getResourceManager();
     }
 
+    @Nonnull
+    public ResourceAllocationMonitor getResourceAllocationMonitor() {
+        return monitor;
+    }
+
     public void addStageExecutionTag(@Nonnull String tag) {
         this.stageExecutionTags.add(tag);
     }
