@@ -35,6 +35,9 @@ public class SwaggerConfiguration {
     }
 
     private ApiInfo apiEndpointsInfo() {
-        return new ApiInfoBuilder().title("Winslow REST API").description("REST API to interface with Winslow").build();
+        return new ApiInfoBuilder()
+                .title("Winslow REST API")
+                .description("REST API to interface with Winslow")
+                .build();
     }
 }

@@ -15,4 +15,13 @@ public class ImageInfoConverter {
                 image.getShmSizeMegabytes().orElse(0L)
         );
     }
+
+    @Nonnull
+    public static Image reverse(@Nonnull ImageInfo image) {
+        return new Image(
+                image.name(),
+                image.args(),
+                image.shmMegabytes()
+        );
+    }
 }

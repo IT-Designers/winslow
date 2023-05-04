@@ -19,6 +19,23 @@ public class PipelineDefinitionInfoConverter {
                         .stream()
                         .map(StageDefinitionInfoConverter::from)
                         .toList(),
+                pipeline.environment(),
+                pipeline.deletionPolicy(),
+                pipeline.markers(),
+                pipeline.groups(),
+                pipeline.publicAccess()
+        );
+    }
+
+    @Nonnull
+    public static PipelineDefinition reverse(@Nonnull PipelineDefinitionInfo pipeline) {
+        return new PipelineDefinition(
+                pipeline.id(),
+                pipeline.name(),
+                pipeline.description(),
+                UserInputInfoConverter.reverse(pipeline.userInput()),
+                pipeline.stages().stream().map(StageDefinitionInfoConverter::reverse).toList(),
+                pipeline.environment(),
                 pipeline.deletionPolicy(),
                 pipeline.markers(),
                 pipeline.groups(),

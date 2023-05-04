@@ -10,10 +10,10 @@ import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.config.StageXOrGatewayDefinition;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
 
 public class StageDefinitionInfoConverter {
 
+    @Nonnull
     public static StageDefinitionInfo from(@Nonnull StageDefinition definition) {
         if (definition instanceof StageWorkerDefinition w) {
             return from(w);
@@ -39,7 +39,7 @@ public class StageDefinitionInfoConverter {
                 HighlightInfoConverter.from(definition.highlight()),
                 definition.discardable(),
                 definition.privileged(),
-                Collections.emptyList(),
+                definition.logParsers().stream().map(LogParserInfoConverter::from).toList(),
                 definition.ignoreFailuresWithinExecutionGroup(),
                 definition.nextStages()
         );
@@ -68,4 +68,59 @@ public class StageDefinitionInfoConverter {
         );
     }
 
+    @Nonnull
+    public static StageDefinition reverse(@Nonnull StageDefinitionInfo definition) {
+        if (definition instanceof StageWorkerDefinitionInfo w) {
+            return reverse(w);
+        } else if (definition instanceof StageXOrGatewayDefinitionInfo x) {
+            return reverse(x);
+        } else if (definition instanceof StageAndGatewayDefinitionInfo a) {
+            return reverse(a);
+        } else {
+            throw new RuntimeException("Unsupported StageDefinition " + definition.getClass().getSimpleName());
+        }
+    }
+
+
+    @Nonnull
+    public static StageWorkerDefinition reverse(@Nonnull StageWorkerDefinitionInfo info) {
+        return new StageWorkerDefinition(
+                info.id(),
+                info.name(),
+                info.description(),
+                info.nextStages(),
+                ImageInfoConverter.reverse(info.image()),
+                RequirementsInfoConverter.reverse(info.requiredResources()),
+                UserInputInfoConverter.reverse(info.userInput()),
+                info.environment(),
+                HighlightInfoConverter.reverse(info.highlight()),
+                info.logParsers().stream().map(LogParserInfoConverter::reverse).toList(),
+                info.discardable(),
+                info.privileged(),
+                info.ignoreFailuresWithinExecutionGroup()
+        );
+    }
+
+    @Nonnull
+    public static StageXOrGatewayDefinition reverse(@Nonnull StageXOrGatewayDefinitionInfo info) {
+        return new StageXOrGatewayDefinition(
+                info.id(),
+                info.name(),
+                info.description(),
+                info.conditions(),
+                info.nextStages(),
+                info.gatewaySubType()
+        );
+    }
+
+    @Nonnull
+    public static StageAndGatewayDefinition reverse(@Nonnull StageAndGatewayDefinitionInfo info) {
+        return new StageAndGatewayDefinition(
+                info.id(),
+                info.name(),
+                info.description(),
+                info.nextStages(),
+                info.gatewaySubType()
+        );
+    }
 }
