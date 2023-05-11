@@ -17,6 +17,7 @@ export class GroupAssignmentComponent implements OnInit {
   @Input() currentlyAssignedGroups: AssignedGroupInfo[] = null;
 
   @Output() groupAssignmentRemovedEmitter = new EventEmitter();
+  @Output() groupAddedEmitter = new EventEmitter();
 
   showGroupList = false;
   groupListBtnText = 'Expand';
@@ -37,15 +38,12 @@ export class GroupAssignmentComponent implements OnInit {
   }
 
   onRemoveItemClick(item) {
+    this.groupAssignmentRemovedEmitter.emit(item);
     const delIndex = this.currentlyAssignedGroups.findIndex((group) => group.name === item.name);
     this.currentlyAssignedGroups.splice(delIndex, 1);
     const delIndex2 = this.displayGroups.findIndex((group) => group.name === item.name);
     this.displayGroups.splice(delIndex2, 1);
     console.log('Remove ' + item.name + ' from list');
-    /*return this.dialog.openLoadingIndicator(
-      this.projectApi.removeGroup(this.project.id, item.name),
-      'Removing Group from Project'
-    );*/
   }
   openAddGroupDialog() {
     this.createDialog
@@ -61,14 +59,9 @@ export class GroupAssignmentComponent implements OnInit {
             name: data.groupName,
             role: data.groupRole
           };
-          /*this.dialog.openLoadingIndicator(
-            this.projectApi.addOrUpdateGroup(this.project.id, groupToAdd),
-            'Assigning Group to Project'
-          );*/
-          /*this.projectApi.addOrUpdateGroup(this.project.id, groupToAdd);*/
-          console.dir(groupToAdd);
+
           this.displayGroups.push(groupToAdd);
-          // this.newGroupEmitter.emit(groupToAdd);
+          this.groupAddedEmitter.emit(groupToAdd);
         }
       });
   }

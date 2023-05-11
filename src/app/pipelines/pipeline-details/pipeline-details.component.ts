@@ -48,12 +48,15 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
   }
 
   loadRawPipelineDefinition() {
-    this.dialog.openLoadingIndicator(
-      this.pipelinesApi.getRaw(this.selectedPipeline.id)
-        .then(result => this.rawPipelineDefinition = result),
-      `Loading Pipeline Definition`,
-      false
-    );
+    if (this.selectedPipeline != null) {
+      this.dialog.openLoadingIndicator(
+        this.pipelinesApi.getRaw(this.selectedPipeline.id)
+          .then(result => this.rawPipelineDefinition = result),
+        `Loading Pipeline Definition`,
+        false
+      );
+    }
+
   }
 
   checkPipelineDefinition(raw: string) {
@@ -97,12 +100,33 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
     return this.longLoading.isLongLoading();
   }
 
+  onGroupAdd(event) {
+    this.selectedPipeline.groups.push(event);
+    this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
+      'Updating Pipeline with new group')
+  }
+
+  onGroupRemove(event) {
+    const delIndex = this.selectedPipeline.groups.findIndex((group) => group.name === event.name)
+    this.selectedPipeline.groups.splice(delIndex, 1);
+    this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
+      'Removing group from Pipeline');
+
+  }
+
   setName(name) {
-    console.log('Change Name to: ' + name);
+    if (name) {
+      this.selectedPipeline.name = name;
+      this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
+        'Updating Pipeline name');
+    }
   }
 
   delete() {
+    /*this.dialog.openAreYouSure(`Do you want to delete ${this.selectedPipeline.name}? `,
+      () => this.pipelinesApi.)*/
     console.log('Delete');
+    this.pipelineDeleteEmitter.emit(this.selectedPipeline);
   }
 
   onUpdatePipeline() {

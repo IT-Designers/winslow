@@ -25,20 +25,6 @@ export class PipelinesComponent implements OnInit {
 
   selectedPipeline: PipelineDefinitionInfo = null;
 
-  mockGroups = [
-    {
-      name: 'NewGroup1',
-      role: 'OWNER'
-    },
-    {
-      name: 'NewGroup2',
-      role: 'MEMBER'
-    },
-    {
-      name: 'NewGroup3',
-      role: 'OWNER'
-    }
-  ];
 
   constructor(
     private api: PipelineApiService,
@@ -126,7 +112,6 @@ export class PipelinesComponent implements OnInit {
 
   onPipelineClicked(pipeline) {
     this.selectedPipeline = pipeline;
-    console.dir(pipeline);
   }
   onAddPipeline(name) {
     if (name) {
@@ -138,6 +123,11 @@ export class PipelinesComponent implements OnInit {
         }),
         'Creating Pipeline');
     }
+  }
+
+  onDeletePipeline(event) {
+    //TODO: Delete Pipeline API
+    console.log("Delete Pipeline " + event.name);
   }
 
   openCreatePipelineDialog() {

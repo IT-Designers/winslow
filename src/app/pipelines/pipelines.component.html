@@ -68,8 +68,8 @@
 
     </mat-drawer>
     <mat-drawer-content class="detail-container">
-      <app-pipeline-details *ngIf="selectedPipeline !== null"
-                            [selectedPipeline]="selectedPipeline">
+      <app-pipeline-details [selectedPipeline]="selectedPipeline"
+                            (pipelineDeleteEmitter)="onDeletePipeline($event)">
 
       </app-pipeline-details>
     </mat-drawer-content>
