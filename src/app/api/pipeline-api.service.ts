@@ -56,6 +56,12 @@ export class PipelineApiService {
       .then(info => loadPipelineDefinition(info));
   }
 
+  setPipelineDefinition(pipeline: PipelineDefinitionInfo) {
+    return this.client
+      .put<PipelineDefinitionInfo>(PipelineApiService.getUrl(), pipeline)
+      .toPromise();
+  }
+
   getPipelineDefinitions() {
     return this
       .client
