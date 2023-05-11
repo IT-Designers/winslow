@@ -8,6 +8,15 @@
 :host mat-tab-group {
   overflow: auto !important;
 }
+.nothing-selected {
+  width: 54em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  text-align: center;
+  padding: 3em;
+  font-style: italic;
+}
 .stage-control-item {
   display: flex;
   margin: 0 2em;
@@ -56,4 +65,10 @@
 .max-height {
   height: 100%;
   overflow: hidden;
+}
+
+.delete-btn {
+  width: 20%;
+  float: right;
+  margin-right: 2vw;
 }
