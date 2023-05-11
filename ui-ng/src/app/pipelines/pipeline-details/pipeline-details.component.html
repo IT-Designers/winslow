@@ -1,4 +1,5 @@
-<mat-tab-group #tabGroup class="fill-height" >
+<label *ngIf="selectedPipeline === null" class="nothing-selected">No pipeline selected</label>
+<mat-tab-group #tabGroup class="fill-height" *ngIf="selectedPipeline != null">
 
   <mat-tab label="Diagram View">
     <ng-template matTabContent>
@@ -46,18 +47,21 @@
       </div>
 
       <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">Group Access</h3>
-        <div class="stage-control-item">
-          <label>Group Assignment</label>
-          <app-group-assignment [currentlyAssignedGroups]="mockGroups"
-                                (groupAssignmentRemovedEmitter)="null"
-          [ngStyle]="{'width': '80%'}">
-          </app-group-assignment>
-        </div>
+      <div class="stage-control-item">
+        <label>Group Assignment</label>
+        <app-group-assignment [currentlyAssignedGroups]="selectedPipeline.groups"
+                              (groupAssignmentRemovedEmitter)="onGroupRemove($event)"
+                              (groupAddedEmitter)="onGroupAdd($event)"
+                              [ngStyle]="{'width': '80%'}">
+        </app-group-assignment>
+      </div>
 
+      <div class="whitespace-separator whitespace-separator-top separator-line"></div>
 
 
       <div class="stage-control-item whitespace-separator-top"><!--Delete Button-->
-        <button class="whitespace-separator-top"
+        <label>Delete Pipeline</label>
+        <button class="delete-btn"
                 mat-raised-button
                 color="warn"
                 (click)="delete()">

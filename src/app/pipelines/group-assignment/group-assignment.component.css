@@ -1,5 +1,5 @@
 .group-panel {
-  width: 80%;
+  width: 100%;
 }
 .expansion-header {
   height: auto;
@@ -16,7 +16,7 @@
 
 /* ---------- Overall Container Styling ---------- */
 .group-assignment-container {
-  width: 60%;
+  width: 100%;
 }
 .list-and-label-container {
   margin-top: 20px;
