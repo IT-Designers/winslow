@@ -70,11 +70,32 @@ public class PipelinesController {
     public ResponseEntity<String> setPipeline(
             @Nullable User user,
             @RequestBody PipelineDefinitionInfo pipeline) throws IOException {
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
+        return storePipelineDefinition(
+                ensureValidUser(user),
+                PipelineDefinitionInfoConverter.reverse(pipeline)
+        );
+    }
+
+    @DeleteMapping("pipelines/{pipeline}")
+    public ResponseEntity<String> delete(@Nullable User user, @PathVariable("pipeline") String pipeline) throws IOException {
+        ensureValidUser(user);
+
+        var handle = winslow
+                .getPipelineRepository()
+                .getPipeline(pipeline);
+
+        // fast check: user allowed to delete?
+        if (handle.unsafe().filter(p -> p.canBeManagedBy(user)).isPresent()) {
+            try (var exclusive = handle.exclusive().orElseThrow()) {
+                // check a second time, just in case stuff changed while acquiring the lock
+                if (exclusive.getNoThrow().filter(p -> p.canBeManagedBy(user)).isPresent()) {
+                    exclusive.delete();
+                    return ResponseEntity.ok().build();
+                }
+            }
         }
 
-        return storePipelineDefinition(user, PipelineDefinitionInfoConverter.reverse(pipeline));
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
     }
 
 
@@ -95,9 +116,7 @@ public class PipelinesController {
             @Nullable User user,
             @PathVariable("pipeline") String pipelineId,
             @RequestBody String raw) throws IOException {
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
-        }
+        ensureValidUser(user);
 
         PipelineDefinition definition;
 
@@ -214,9 +233,7 @@ public class PipelinesController {
 
     @PostMapping("pipelines/create")
     public Optional<PipelineDefinitionInfo> createPipeline(@Nullable User user, @RequestBody String name) {
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
-        }
+        ensureValidUser(user);
 
         var id = UUID.randomUUID().toString();
         return this.winslow
@@ -308,6 +325,15 @@ public class PipelinesController {
                         return Optional.empty();
                     }
                 });
+    }
+
+    @Nonnull
+    private static User ensureValidUser(@Nullable User user) throws ResponseStatusException {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid user");
+        } else {
+            return user;
+        }
     }
 
     public static class ParseErrorException extends IOException {
