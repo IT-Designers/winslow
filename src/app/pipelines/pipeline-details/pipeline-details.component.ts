@@ -123,9 +123,6 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
   }
 
   delete() {
-    /*this.dialog.openAreYouSure(`Do you want to delete ${this.selectedPipeline.name}? `,
-      () => this.pipelinesApi.)*/
-    console.log('Delete');
     this.pipelineDeleteEmitter.emit(this.selectedPipeline);
   }
 

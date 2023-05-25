@@ -126,8 +126,15 @@ export class PipelinesComponent implements OnInit {
   }
 
   onDeletePipeline(event) {
-    //TODO: Delete Pipeline API
-    console.log("Delete Pipeline " + event.name);
+    this.dialog.openAreYouSure(`Pipeline being deleted ${this.selectedPipeline.name}`,
+      () => this.api.deletePipeline(this.selectedPipeline.id)
+        .then(() => {
+          let delIndex = this.pipelines.findIndex((tempPipeline) => tempPipeline.id === this.selectedPipeline.id);
+          this.pipelines.splice(delIndex, 1);
+          this.pipelines = this.pipelines.concat([]);
+          this.selectedPipeline = null;
+        }
+        ));
   }
 
   openCreatePipelineDialog() {
