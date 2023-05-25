@@ -56,6 +56,12 @@ export class PipelineApiService {
       .then(info => loadPipelineDefinition(info));
   }
 
+  deletePipeline(pipelineId: string) : Promise<void> {
+    return this.client
+      .delete<void>(PipelineApiService.getUrl(`${pipelineId}`))
+      .toPromise();
+  }
+
   setPipelineDefinition(pipeline: PipelineDefinitionInfo) {
     return this.client
       .put<PipelineDefinitionInfo>(PipelineApiService.getUrl(), pipeline)
