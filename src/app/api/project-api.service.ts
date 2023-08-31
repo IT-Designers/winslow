@@ -145,6 +145,13 @@ export class ProjectApiService {
       .toPromise();
   }
 
+  setProjectPipelineDefinition(projectId: string, info: PipelineDefinitionInfo): Promise<PipelineDefinitionInfo> {
+    return this.client
+      .put<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`), info)
+      .toPromise()
+      .then(loadPipelineDefinition);
+  }
+
   getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
     return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
       .toPromise()
