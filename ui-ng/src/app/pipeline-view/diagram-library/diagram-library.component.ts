@@ -33,14 +33,26 @@ export class DiagramLibraryComponent implements OnInit {
       this.selectedNode$ = selectedNode;
       this.formObj = {} as StageDefinitionInfoUnion;
       this.formObj = JSON.parse(JSON.stringify(this.selectedNode$.consumerData));
-      console.log(this.formObj);
   }
   @Input()
   set saveStatus(saveStatus : boolean){
     this.savedData = saveStatus;
   };
   onApiCall(action : String){       //used when clicking on the function icons e.g. save, undo...
-    if (action == "save"){this.savedData = true;}
+    switch (action) {
+      case 'save':
+        console.log('Save pressed');
+        this.savedData = true;
+
+        break;
+      case 'fit':
+        console.log('fit pressed');
+        break;
+      case 'layout':
+        console.log('layout pressed');
+        break;
+    }
+    /*if (action == "save"){this.savedData = true;}*/
     this.diagramApiCall.emit(action);
   }
   startSave(){          //starts the save on top level of the recursion of edit-forms

@@ -76,7 +76,9 @@ export class DiagramConfigHelper {
           diagramMaker.api.redo();
           break;
         case 'save':
-          console.log("saved soon");
+          console.log('Save API call');
+
+          console.dir(diagramMaker.store.getState())
           break;
         default:
           break;

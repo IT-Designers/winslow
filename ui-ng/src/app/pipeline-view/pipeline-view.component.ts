@@ -39,6 +39,9 @@ import {
 } from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
+import {stringify} from "@angular/compiler/src/util";
+import {PipelineApiService} from "../api/pipeline-api.service";
+import {DialogService} from "../dialog.service";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -48,6 +51,7 @@ import {HttpClient} from "@angular/common/http";
 export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
   @Input() public pipelineDefinition: PipelineDefinitionInfo;
+  @Input() public pipelineDefinitionEdit: PipelineDefinitionInfo;
   @Output() public onSave = new EventEmitter<PipelineDefinitionInfo>();
 
   public diagramMaker!: DiagramMaker;
@@ -101,10 +105,55 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {  //panel to edit Stages
           if (this.libraryComponent == null) {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
-            this.libraryComponent.instance.editNode.subscribe(editForm => this.editState(editForm));
+            this.libraryComponent.instance.editNode.subscribe(editForm => { //edit Form is what is stored in Diagram Maker of the definition of the stage / pipeline
+              //gets triggered when value is changed
+
+              //---------- All stages have the @type attribute, but not the pipeline itself ----------
+              if (!editForm["@type"]) {//---------- catches changes in pipeline def ----------
+                //---------- The editForm object of the pipeline doesn't have the stages ----------
+                //---------- Thus it cant completely overwrite this.pipelineDefinitionEdit ----------
+                /*editForm.stages = this.pipelineDefinitionEdit.stages;*/
+                /*this.pipelineDefinitionEdit = editForm;*/
+                this.pipelineDefinitionEdit.id = editForm.id;
+                this.pipelineDefinitionEdit.name = editForm.name;
+                this.pipelineDefinitionEdit.description = editForm.description;
+                this.pipelineDefinitionEdit.userInput = editForm.userInput;
+                this.pipelineDefinitionEdit.environment = editForm.environment;
+                this.pipelineDefinitionEdit.deletionPolicy = editForm.deletionPolicy;
+                this.pipelineDefinitionEdit.markers = editForm.markers;
+                this.pipelineDefinitionEdit.publicAccess = editForm.publicAccess;
+              } else {
+
+                editForm.nextStages = Object.values(editForm.nextStages);
+                this.pipelineDefinitionEdit.stages.find((stage) => stage.id === editForm.id);
+                for (let i = 0; i < this.pipelineDefinitionEdit.stages.length; i++) {
+                  if (this.pipelineDefinitionEdit.stages[i].id === editForm.id) {
+                    this.pipelineDefinitionEdit.stages[i] = editForm;
+                  }
+                }
+
+              }
+              console.log("Edit Form in pipeline view: ");
+              console.dir(editForm);
+              console.log("Complete Pipeline Definition in pipeline view: ");
+              console.dir(this.pipelineDefinition);
+              console.log("Complete Pipeline Edit Definition in pipeline view: ");
+              console.dir(this.pipelineDefinitionEdit);
+              this.editState(editForm);
+              console.dir(this.diagramMaker.store.getState());
+            });
             this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
             this.libraryComponent.instance.diagramApiCall.subscribe((action: String) => {
-              if (action == "save"){this.saveStatus = true; this.onSave.emit(this.pipelineDefinition);}
+              if (action == "save"){
+                this.saveStatus = true;
+                console.log("---------------------------------- SAVE ----------------------------------");
+                this.dialog.openLoadingIndicator(
+                  this.pipelinesApi.setPipelineDefinition(this.pipelineDefinitionEdit),
+                  'Updating Pipeline Definition'
+                )
+
+                this.onSave.emit(this.pipelineDefinition);
+              }
               this.configClass.getApiSwitch(action, this.diagramMaker)
             });
             diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
@@ -123,11 +172,17 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     },
     actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {  //Intercepts actions before diagramMaker saves them into the store
       //console.log(action);
+
+      //-------------------- This intercepts the creations of new nodes --------------------
       if (action.type === DiagramMakerActions.NODE_CREATE) {      //required extra steps to append Data to the nodes before dispatching
         const createAction = action as CreateNodeAction<any>;
+        //-------------------- Differentiated by the typeId of the node --------------------
         if (createAction.payload.typeId == 'node-normal' || createAction.payload.typeId == 'node-start') {
           let stageData : StageWorkerDefinitionInfo;
+          //-------------------- They get new Stage Definitions from the api --------------------
           this.defaultGetter.getWorkerDefinition().then((data) => {   //get default Stage/Gatewaydata from the api
+            //-------------------- Which are used to update the pipelineDefinitionEdit Object --------------------
+            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -139,6 +194,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         else if (createAction.payload.typeId == 'node-and-splitter') {
             let stageData : StageAndGatewayDefinitionInfo;
             this.defaultGetter.getAndSplitterDefinition().then((data) =>{
+              this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
               stageData = data;
               dispatch(this.createElement(stageData, createAction));
               return;
@@ -149,6 +205,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         else if(createAction.payload.typeId == 'node-if-splitter'){
           let stageData : StageXOrGatewayDefinitionInfo;
           this.defaultGetter.getIfSplitterDefinition().then((data) =>{
+            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -159,6 +216,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         else if(createAction.payload.typeId == 'node-all-merger'){
           let stageData : StageAndGatewayDefinitionInfo;
           this.defaultGetter.getAllMergerDefinition().then((data) =>{
+            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -169,6 +227,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         else if(createAction.payload.typeId == 'node-any-merger'){
           let stageData : StageXOrGatewayDefinitionInfo;
           this.defaultGetter.getAnyMergerDefinition().then((data) => {
+            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -213,6 +272,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         }
         if (edgeDestPossible && edgeSrcPossible) {
           this.saveStatus = false;
+          let stageToEdit = this.pipelineDefinitionEdit.stages.find((element) => element.id === createEdgeAction.payload.src);
+          stageToEdit.nextStages.push(createEdgeAction.payload.dest);
           dispatch(createEdgeAction);
         }
       } else if (action.type === DiagramMakerActions.DELETE_ITEMS) {
@@ -241,8 +302,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
 
   constructor(private viewContainerRef: ViewContainerRef,
               private componentFactoryResolver: ComponentFactoryResolver,
-              private client:  HttpClient
+              private client:  HttpClient,
+              private pipelinesApi: PipelineApiService,
+              private dialog: DialogService
   ) {
+    this.pipelineDefinitionEdit = this.pipelineDefinition;
   }
 
   editState(editForm) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
@@ -290,39 +354,29 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
 
   ngOnInit() {
     this.initialData = this.initClass.getInitData(this.pipelineDefinition);
-    console.log(this.pipelineDefinition.stages)
+    console.log("Full Pipeline Definition: ");
+    console.dir(this.pipelineDefinition);
 
   }
+
+  /*
+  ngOnInit() {
+    this.initialData = this.initClass.getInitData(this.objectDefinition);
+
+  }
+  * */
 
   ngOnChanges() {
+    //console.dir(this.pipelineDefinition);
     // possibly unsafe
+    this.libraryComponent = null;
     this.initialData = this.initClass.getInitData(this.pipelineDefinition);
-    setTimeout(() => {
-      this.diagramMaker = new DiagramMaker(
-        this.diagramEditorContainer.nativeElement,
-        this.config,
-        {
-          initialData: this.initialData,
-          consumerRootReducer: (state: any, action: any) => {   //new action for diagramMaker to update the consumerData when editing a node
-            switch (action.type) {
-              case 'UPDATE_NODE':
-                const newNode: any = {};
-                newNode[action.payload.id] = action.payload;
-                const newNodes = Object.assign({}, state.nodes, newNode);
-                return Object.assign({}, state, {nodes: newNodes});
-              default:
-                return state;
-            }
-          }
-        },
-      );
-
-      window.addEventListener('resize', () => {
-        this.diagramMaker.updateContainer();
-      });
-      this.configClass.getApiSwitch('layout', this.diagramMaker);
-    }, 1000);
+    /*this.ngOnDestroy();
+    this.initialData = this.initClass.getInitData(this.pipelineDefinition);
+    this.ngAfterViewInit();*/
+    console.log("---------------------------------- ON CHANGE ----------------------------------");
   }
+
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -349,11 +403,12 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         this.diagramMaker.updateContainer();
       });
       this.configClass.getApiSwitch('layout', this.diagramMaker);
-    }, 1000);
+    }, 500);
 
   }
 
   ngOnDestroy(): void {     //code to save the workflow (in the frontend) e.g. while switching tabs
+    //console.dir('Diagram onDestroy');
     this.pipelineDefinition.stages = [];
     const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
     const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
