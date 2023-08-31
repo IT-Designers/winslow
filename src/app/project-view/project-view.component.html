@@ -18,6 +18,11 @@
     ></app-project-overview>
   </mat-tab>
 
+  <!--<mat-tab label="ControlView">
+    <app-pipeline-control [pipelineDefinition]="projectValue.pipelineDefinition">
+    </app-pipeline-control>
+  </mat-tab>-->
+
   <mat-tab label="Control">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
@@ -235,6 +240,14 @@
                              (check)="checkPipelineDefinition($event)"
                              (update)="updatePipelineDefinition($event, editor)">
         </app-pipeline-editor>
+        <!--<app-pipeline-editor #editor
+                             [raw]="rawPipelineDefinition"
+                             [error]="rawPipelineDefinitionError"
+                             [success]="rawPipelineDefinitionSuccess"
+                             [enableOnOthers]="true"
+                             (check)="checkPipelineDefinition($event)"
+                             (update)="updatePipelineDefinition($event, editor)">
+        </app-pipeline-editor>-->
       </div>
     </ng-template>
   </mat-tab>
@@ -245,6 +258,7 @@
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
           <app-pipeline-view
             [pipelineDefinition]="projectValue.pipelineDefinition"
+            [pipelineDefinitionEdit]="projectValue.pipelineDefinition"
           ></app-pipeline-view>
       </div>
     </ng-template>

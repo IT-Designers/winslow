@@ -7,6 +7,7 @@
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
         <app-pipeline-view
           [pipelineDefinition]="selectedPipeline"
+          [pipelineDefinitionEdit]="selectedPipeline"
         ></app-pipeline-view>
       </div>
     </ng-template>
@@ -46,6 +47,20 @@
         </button>
       </div>
 
+      <div class="stage-control-item">
+        <label>Description</label>
+        <mat-form-field>
+          <input #descriptionEntered matInput name="description" [value]="selectedPipeline.description">
+        </mat-form-field>
+
+        <button mat-stroked-button
+                color="primary"
+                [disabled]="(descriptionEntered.value == selectedPipeline.description)"
+                (click)="setDescription(descriptionEntered.value)">
+          Update
+        </button>
+      </div>
+
       <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">Group Access</h3>
       <div class="stage-control-item">
         <label>Group Assignment</label>
@@ -54,7 +69,17 @@
                               (groupAddedEmitter)="onGroupAdd($event)"
                               [ngStyle]="{'width': '80%'}">
         </app-group-assignment>
+
       </div>
+
+      <div class="stage-control-item whitespace-separator-top">
+        <div>
+          <label>Public Access</label>
+          <mat-checkbox [(ngModel)]="selectedPipeline.publicAccess" [style]="{'margin-left':'10em'}">
+          </mat-checkbox>
+        </div>
+        </div>
+
 
       <div class="whitespace-separator whitespace-separator-top separator-line"></div>
 
