@@ -100,6 +100,12 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
     return this.longLoading.isLongLoading();
   }
 
+  /*onSave(event) {
+    console.log('onSave() in pipeline-details');
+    console.dir(event);
+    //TODO: make API call to save pipeline
+  }*/
+
   onGroupAdd(event) {
     this.selectedPipeline.groups.push(event);
     this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
@@ -119,6 +125,14 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
       this.selectedPipeline.name = name;
       this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
         'Updating Pipeline name');
+    }
+  }
+
+  setDescription(description) {
+    if (description) {
+      this.selectedPipeline.description = description;
+      this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
+        'Updating Pipeline Description');
     }
   }
 

@@ -7,8 +7,8 @@ export class DiagramInitialData {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
     let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
-    delete pipelineInfo.stages; delete pipelineInfo.hasActionMarker;  delete pipelineInfo.hasActionMarkerFor;
-    delete pipelineInfo.userInput.requiredEnvVariables;
+    // HELPER: deletes unnecessary parts of the object
+    delete pipelineInfo.stages;
     nodes[pipelineInfo.id] = {    //first node - PipelineDefInfo
       id: pipelineInfo.id,
       typeId: "node-start",
@@ -56,7 +56,7 @@ export class DiagramInitialData {
       dest: pipelineDefinition.stages[0].id,
       diagramMakerData: {}
     }
-    console.log(edges);
+    /*console.log(edges);*/
 
     let initialData = {
       nodes,
