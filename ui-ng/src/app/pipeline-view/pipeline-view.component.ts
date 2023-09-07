@@ -147,12 +147,13 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
               if (action == "save"){
                 this.saveStatus = true;
                 console.log("---------------------------------- SAVE ----------------------------------");
-                this.dialog.openLoadingIndicator(
+               /* this.dialog.openLoadingIndicator(
                   this.pipelinesApi.setPipelineDefinition(this.pipelineDefinitionEdit),
                   'Updating Pipeline Definition'
-                )
+                )*/
 
-                this.onSave.emit(this.pipelineDefinition);
+                // this.onSave.emit(this.pipelineDefinition);
+                this.onSave.emit(this.pipelineDefinitionEdit);
               }
               this.configClass.getApiSwitch(action, this.diagramMaker)
             });

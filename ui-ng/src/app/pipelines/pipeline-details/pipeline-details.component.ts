@@ -100,11 +100,11 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
     return this.longLoading.isLongLoading();
   }
 
-  /*onSave(event) {
-    console.log('onSave() in pipeline-details');
-    console.dir(event);
-    //TODO: make API call to save pipeline
-  }*/
+
+  setPipelineDefinition(pipeline: PipelineDefinitionInfo) {
+    this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(pipeline),
+      'Updating Pipeline with new definition');
+  }
 
   onGroupAdd(event) {
     this.selectedPipeline.groups.push(event);
