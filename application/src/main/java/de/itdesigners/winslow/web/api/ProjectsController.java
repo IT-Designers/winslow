@@ -306,6 +306,41 @@ public class ProjectsController {
                 .map(PipelineDefinitionInfoConverter::from);
     }
 
+    @PutMapping("projects/{projectId}/pipeline-definition")
+    public ResponseEntity<PipelineDefinitionInfo> setProjectPipelineDefinition(
+            User user,
+            @PathVariable("projectId") String projectId,
+            PipelineDefinitionInfo pipeline) {
+        return winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive()
+                .map(projectContainer -> {
+                    try (projectContainer) {
+                        try {
+
+                            var updatedProject = projectContainer
+                                    .get()
+                                    .filter(project -> project.canBeManagedBy(user));
+
+                            if (updatedProject.isPresent()) {
+                                var project = updatedProject.get();
+                                project.setPipelineDefinition(PipelineDefinitionInfoConverter.reverse(pipeline));
+                                projectContainer.update(project);
+                                return ResponseEntity.ok(PipelineDefinitionInfoConverter.from(
+                                        project.getPipelineDefinition()
+                                ));
+                            }
+                        } catch (LockException | IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        return ResponseEntity.notFound().<PipelineDefinitionInfo>build();
+                    }
+
+                }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/projects/{projectId}/state")
     public Optional<State> getProjectState(User user, @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
@@ -828,7 +863,9 @@ public class ProjectsController {
     }
 
     @Nonnull
-    public Optional<Boolean> enqueueStageToExecuteUnchecked(@Nonnull String projectId, @Nonnull EnqueueRequest request) {
+    public Optional<Boolean> enqueueStageToExecuteUnchecked(
+            @Nonnull String projectId,
+            @Nonnull EnqueueRequest request) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
