@@ -259,6 +259,7 @@
           <app-pipeline-view
             [pipelineDefinition]="projectValue.pipelineDefinition"
             [pipelineDefinitionEdit]="projectValue.pipelineDefinition"
+            (onSave)="updatePipelineDefinitionWithObject($event)"
           ></app-pipeline-view>
       </div>
     </ng-template>
