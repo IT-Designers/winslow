@@ -310,7 +310,7 @@ public class ProjectsController {
     public ResponseEntity<PipelineDefinitionInfo> setProjectPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId,
-            PipelineDefinitionInfo pipeline) {
+            @RequestBody PipelineDefinitionInfo pipeline) {
         return winslow
                 .getProjectRepository()
                 .getProject(projectId)
