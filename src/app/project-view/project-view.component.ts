@@ -720,8 +720,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
   remove(group: Link) {
-    console.log('Before Removing Group ' + group.name);
-    console.dir(this.project.groups);
     // @ts-ignore
     const index = this.project.groups.indexOf(group);
     if (index >= 0) {
@@ -732,8 +730,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       );
     }
     this.sortGroups();
-    console.log('After Removing Group ' + group.name);
-    console.dir(this.project.groups);
   }
 
   onSelectedPipelineChanged(info: PipelineDefinitionInfo) {
@@ -829,6 +825,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         }),
       `Saving Pipeline Definition`,
       true
+    );
+  }
+
+  updatePipelineDefinitionWithObject(pipeline: PipelineDefinitionInfo) {
+    this.dialog.openLoadingIndicator(
+      this.api.setProjectPipelineDefinition(this.project.id, pipeline)
+        .then((result) => {
+            this.setProjectPipeline(result);
+          }
+        ),
+      'Updating Pipeline with new definition'
     );
   }
 
