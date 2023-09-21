@@ -740,17 +740,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  updatePipelineDefinitionWithObject(pipeline: PipelineDefinitionInfo) {
-    this.dialog.openLoadingIndicator(
-      this.api.setProjectPipelineDefinition(this.project.id, pipeline)
-        .then((result) => {
-          this.setProjectPipeline(result);
-          }
-        ),
-      'Updating Pipeline with new definition'
-    );
-  }
-
   updatePipelineDefinitionOnOthers(raw: string) {
     this.api.listProjects()
       .then(projects => {
@@ -781,6 +770,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
           });
       });
   }
+
   maybeResetDeletionPolicy(reset: boolean) {
     const reApplyCurrentState = () => {
       const before = JSON.parse(JSON.stringify(this.deletionPolicyLocal));
