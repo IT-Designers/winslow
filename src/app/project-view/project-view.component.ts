@@ -740,6 +740,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
+  updatePipelineDefinitionWithObject(pipeline: PipelineDefinitionInfo) {
+    this.dialog.openLoadingIndicator(
+      this.api.setProjectPipelineDefinition(this.project.id, pipeline)
+        .then((result) => {
+            this.setProjectPipeline(result);
+          }
+        ),
+      'Updating Pipeline with new definition'
+    );
+  }
+
   updatePipelineDefinitionOnOthers(raw: string) {
     this.api.listProjects()
       .then(projects => {
