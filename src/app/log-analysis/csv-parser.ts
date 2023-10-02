@@ -48,7 +48,7 @@ function toTokenList(options: CsvParserOptions): TokenInfo[] {
   ];
 }
 
-export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIONS) {
+export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIONS): CsvFileContent {
   const tokens: TokenInfo[] = toTokenList(options);
 
   let fileContent = [];
@@ -136,6 +136,7 @@ export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIO
             parserState = State.BeforeQuote;
             break;
           case TokenType.RowDelimiter:
+            pushFieldToLine();
             pushLineToFile();
             parserState = State.BeforeQuote;
             break;
