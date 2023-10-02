@@ -104,6 +104,7 @@ export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIO
             pushFieldToLine();
             break;
           case TokenType.RowDelimiter:
+            pushFieldToLine();
             pushLineToFile();
             break;
           case TokenType.QuotationMark:
@@ -148,8 +149,12 @@ export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIO
     position += increment;
   }
 
-  pushFieldToLine();
-  pushLineToFile();
+  if (lineContent.length > 0) {
+    pushFieldToLine();
+    pushLineToFile();
+  }
+
+  console.log(fileContent)
   return fileContent;
 }
 
