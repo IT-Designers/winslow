@@ -1,4 +1,4 @@
-import {Component, Inject, OnDestroy} from '@angular/core';
+import {Component, Inject, OnDestroy, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {ChartAxisType, LogChart, LogChartDefinition, LogChartSnapshot} from '../log-chart-definition';
 import {Observable, Subscription} from 'rxjs';
