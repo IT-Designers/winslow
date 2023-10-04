@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { PipelineViewComponent } from './pipeline-view.component';
 
@@ -6,7 +6,7 @@ describe('PipelineViewComponent', () => {
   let component: PipelineViewComponent;
   let fixture: ComponentFixture<PipelineViewComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ PipelineViewComponent ]
     })
