@@ -155,7 +155,6 @@ export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIO
     pushLineToFile();
   }
 
-  console.log(fileContent)
   return fileContent;
 }
 
