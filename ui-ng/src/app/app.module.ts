@@ -227,7 +227,7 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
                 component: SystemViewComponent
             }]
     },
-], { relativeLinkResolution: 'legacy' }),
+], { relativeLinkResolution: 'corrected' }),
 
         BrowserModule,
         BrowserAnimationsModule,
