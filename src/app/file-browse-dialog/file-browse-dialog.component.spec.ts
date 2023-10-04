@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { FileBrowseDialog } from './file-browse-dialog.component';
 
@@ -6,7 +6,7 @@ describe('FileBrowseComponent', () => {
   let component: FileBrowseDialog;
   let fixture: ComponentFixture<FileBrowseDialog>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ FileBrowseDialog ]
     })

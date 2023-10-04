@@ -59,37 +59,42 @@ import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
 import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
 import {MonacoEditorModule} from 'ngx-monaco-editor';
-import { ProjectOverviewTabComponent } from './project-view/project-overview-tab/project-overview-tab.component';
-import { ProjectHistoryHeaderComponent } from './project-view/project-history-tab/project-history-header/project-history-header.component';
+import { ProjectOverviewComponent } from './project-overview/project-overview.component';
+import { ProjectHistoryHeaderComponent } from './project-history-header/project-history-header.component';
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
-import { ProjectHistoryComponent } from './project-view/project-history-tab/project-history/project-history.component';
-import {ProjectHistoryGroupInfoComponent} from './project-view/project-history-tab/project-history-group-info/project-history-group-info.component';
+import { ProjectHistoryComponent } from './project-history/project-history.component';
+import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/project-history-group-info.component';
 import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
 import {RxStompConfig} from './rx-stomp.config';
-import { ProjectLogsTabComponent } from './project-view/project-logs-tab/project-logs-tab.component';
+import { LogViewComponent } from './log-view/log-view.component';
 import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
 import { ResourceLimitationComponent } from './resource-limitation/resource-limitation.component';
 import { ServersComponent } from './servers/servers.component';
 import { NgxEchartsModule } from 'ngx-echarts';
-// @ts-ignore
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
-import { ProjectHistoryDetailsComponent } from './project-view/project-history-tab/project-history-details/project-history-details.component';
+import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 import { ProjectsGroupBuilderComponent } from './projects-view/tag-filter/projects-group-builder/projects-group-builder.component';
 import { ProjectsViewComponent } from './projects-view/projects-view.component';
-import { ProjectAnalysisTabComponent } from './project-view/project-analysis-tab/project-analysis-tab.component';
-import { LogAnalysisChartDialogComponent } from './project-view/project-analysis-tab/log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import { LogAnalysisChartComponent } from './project-view/project-analysis-tab/log-analysis-chart/log-analysis-chart.component';
+import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
+import { LogAnalysisChartDialogComponent } from './log-analysis/log-analysis-chart-dialog/log-analysis-chart-dialog.component';
+import { LogAnalysisChartComponent } from './log-analysis/log-analysis-chart/log-analysis-chart.component';
 import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
-import { LogAnalysisSettingsDialogComponent } from './project-view/project-analysis-tab/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
+import { LogAnalysisSettingsDialogComponent } from './log-analysis/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
 import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import { RegularExpressionEditorDialogComponent } from './regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import { PipelineViewComponent } from './pipeline-view/pipeline-view.component';
+import { DiagramNodeComponent } from './pipeline-view/diagram-node/diagram-node.component';
+import { DiagramLibraryComponent } from './pipeline-view/diagram-library/diagram-library.component';
+import { EditFormsComponent } from './pipeline-view/diagram-library/edit-forms/edit-forms.component';
+import { DiagramGatewayComponent } from './pipeline-view/diagram-gateway/diagram-gateway.component';
+import { AddToolsComponent } from './pipeline-view/add-tools/add-tools.component';
 import { UserAndGroupManagementComponent } from './user-and-group-management/user-and-group-management.component';
 import { GroupMemberListComponent } from './user-and-group-management/group-member-list/group-member-list.component';
 import { GroupAddMemberDialogComponent } from './user-and-group-management/group-add-member-dialog/group-add-member-dialog.component';
@@ -107,8 +112,6 @@ import {MatSliderModule} from '@angular/material/slider';
 import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
 import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-pipeline-dialog.component';
 import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-details.component';
-import { ProjectControlTabComponent } from './project-view/project-control-tab/project-control-tab.component';
-import { ProjectSettingsTabComponent } from './project-view/project-settings-tab/project-settings-tab.component';
 
 @NgModule({
     declarations: [
@@ -137,12 +140,12 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
         SystemCfgEnvComponent,
         EnvVariablesComponent,
         PipelineEditorComponent,
-        ProjectOverviewTabComponent,
+        ProjectOverviewComponent,
         ProjectHistoryHeaderComponent,
         ProjectDiskUsageDialogComponent,
         ProjectHistoryComponent,
         ProjectHistoryGroupInfoComponent,
-        ProjectLogsTabComponent,
+        LogViewComponent,
         StopButtonComponent,
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
@@ -154,7 +157,7 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
         AuthTokensComponent,
         ProjectsGroupBuilderComponent,
         ProjectsViewComponent,
-        ProjectAnalysisTabComponent,
+        LogAnalysisComponent,
         LogAnalysisChartDialogComponent,
         LogAnalysisChartComponent,
         RegularExpressionVisualiserComponent,
@@ -163,6 +166,12 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
         ProjectsContextFilterComponent,
         AddToContextPopupComponent,
         RegularExpressionEditorDialogComponent,
+        PipelineViewComponent,
+        DiagramNodeComponent,
+        DiagramLibraryComponent,
+        EditFormsComponent,
+        DiagramGatewayComponent,
+        AddToolsComponent,
         UserAndGroupManagementComponent,
         GroupMemberListComponent,
         GroupAddMemberDialogComponent,
@@ -179,96 +188,92 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
         ServerGroupsListComponent,
         AddPipelineDialogComponent,
         PipelineDetailsComponent,
-        ProjectControlTabComponent,
-        ProjectSettingsTabComponent,
     ],
-  imports: [
-    SweetAlert2Module.forRoot(),
-    MonacoEditorModule.forRoot(),
-    HttpClientModule,
-    HttpClientXsrfModule.withOptions({
-      cookieName: 'XSRF-TOKEN',
-      headerName: 'X-XSRF-TOKEN'
-    }),
+    imports: [
+        SweetAlert2Module.forRoot(),
+        MonacoEditorModule.forRoot(),
+        HttpClientModule,
+        HttpClientXsrfModule.withOptions({
+            cookieName: 'XSRF-TOKEN',
+            headerName: 'X-XSRF-TOKEN'
+        }),
 
-    RouterModule.forRoot([
-      {path: '', redirectTo: 'projects/', pathMatch: 'full'},
-      {path: 'actions', component: GroupActionsComponent},
-
-      {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
-      {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
-      {
+        RouterModule.forRoot([
+    { path: '', redirectTo: 'projects/', pathMatch: 'full' },
+    { path: 'actions', component: GroupActionsComponent },
+    { path: 'projects', redirectTo: 'projects/', pathMatch: 'full' },
+    { path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full' },
+    {
         path: 'projects',
         children: [{
-          path: ':id',
-          component: ProjectsComponent,
-          children: [{
-            path: ':tab',
-            component: ProjectViewComponent,
-          }]
-        }]
-      },
-
-      {path: 'pipelines', component: PipelinesComponent},
-      {path: 'files', component: FilesComponent},
-      {path: 'servers', component: ServersComponent},
-      {path: 'about', component: AboutComponent},
-      {path: 'groups', component: UserAndGroupManagementComponent},
-      {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
-      {
+                path: ':id',
+                component: ProjectsComponent,
+                children: [{
+                        path: ':tab',
+                        component: ProjectViewComponent,
+                    }]
+            }]
+    },
+    { path: 'pipelines', component: PipelinesComponent },
+    { path: 'files', component: FilesComponent },
+    { path: 'servers', component: ServersComponent },
+    { path: 'about', component: AboutComponent },
+    { path: 'groups', component: UserAndGroupManagementComponent },
+    { path: 'system', redirectTo: 'system/', pathMatch: 'full' },
+    {
         path: 'system',
         children: [{
-          path: ':cfg',
-          component: SystemViewComponent
-        }]
-      },
-    ]),
+                path: ':cfg',
+                component: SystemViewComponent
+            }]
+    },
+], { relativeLinkResolution: 'legacy' }),
 
-    BrowserModule,
-    BrowserAnimationsModule,
+        BrowserModule,
+        BrowserAnimationsModule,
 
-    FormsModule,
-    ReactiveFormsModule,
+        FormsModule,
+        ReactiveFormsModule,
 
 
-    MatDialogModule,
-    MatInputModule,
-    MatButtonModule,
-    MatListModule,
-    MatProgressBarModule,
-    MatButtonToggleModule,
-    MatExpansionModule,
-    MatStepperModule,
-    MatSelectModule,
-    MatTableModule,
-    MatGridListModule,
-    MatSnackBarModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
-    MatSlideToggleModule,
-    MatTabsModule,
-    MatCheckboxModule,
+        MatDialogModule,
+        MatInputModule,
+        MatButtonModule,
+        MatListModule,
+        MatProgressBarModule,
+        MatButtonToggleModule,
+        MatExpansionModule,
+        MatStepperModule,
+        MatSelectModule,
+        MatTableModule,
+        MatGridListModule,
+        MatSnackBarModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatTooltipModule,
+        MatSlideToggleModule,
+        MatTabsModule,
+        MatCheckboxModule,
 
-    MatToolbarModule,
-    MatSidenavModule,
-    MatListModule,
-    MatButtonModule,
-    MatIconModule,
+        MatToolbarModule,
+        MatSidenavModule,
+        MatListModule,
+        MatButtonModule,
+        MatIconModule,
 
-    NgxChartsModule,
-    MatCardModule,
-    ScrollingModule,
-    MatAutocompleteModule,
-    MatChipsModule,
-    MatMenuModule,
-    MatRadioModule,
-    NgxEchartsModule.forRoot({
-      echarts: {init: echarts.init}
-    }),
-    MatSliderModule,
+        NgxChartsModule,
+        MatCardModule,
+        ScrollingModule,
+        MatAutocompleteModule,
+        MatChipsModule,
+        MatMenuModule,
+        MatRadioModule,
+        NgxEchartsModule.forRoot({
+            echarts: {init: echarts.init}
+        }),
+      MatSliderModule,
 
-  ],
+    ],
   providers: [
     {
       provide: MatDialogRef,

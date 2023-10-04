@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ProjectHistoryGroupInfoComponent } from './project-history-group-info.component';
 
@@ -6,7 +6,7 @@ describe('ProjectHistoryGroupInfoComponent', () => {
   let component: ProjectHistoryGroupInfoComponent;
   let fixture: ComponentFixture<ProjectHistoryGroupInfoComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ProjectHistoryGroupInfoComponent ]
     })

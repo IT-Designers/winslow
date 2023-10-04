@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { EnvVariablesComponent } from './env-variables.component';
 
@@ -6,7 +6,7 @@ describe('EnvVariablesComponent', () => {
   let component: EnvVariablesComponent;
   let fixture: ComponentFixture<EnvVariablesComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ EnvVariablesComponent ]
     })
