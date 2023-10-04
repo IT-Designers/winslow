@@ -197,45 +197,40 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
             cookieName: 'XSRF-TOKEN',
             headerName: 'X-XSRF-TOKEN'
         }),
-
         RouterModule.forRoot([
-    { path: '', redirectTo: 'projects/', pathMatch: 'full' },
-    { path: 'actions', component: GroupActionsComponent },
-    { path: 'projects', redirectTo: 'projects/', pathMatch: 'full' },
-    { path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full' },
-    {
-        path: 'projects',
-        children: [{
-                path: ':id',
-                component: ProjectsComponent,
+            { path: '', redirectTo: 'projects/', pathMatch: 'full' },
+            { path: 'actions', component: GroupActionsComponent },
+            { path: 'projects', redirectTo: 'projects/', pathMatch: 'full' },
+            { path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full' },
+            {
+                path: 'projects',
                 children: [{
-                        path: ':tab',
-                        component: ProjectViewComponent,
+                        path: ':id',
+                        component: ProjectsComponent,
+                        children: [{
+                                path: ':tab',
+                                component: ProjectViewComponent,
+                            }]
                     }]
-            }]
-    },
-    { path: 'pipelines', component: PipelinesComponent },
-    { path: 'files', component: FilesComponent },
-    { path: 'servers', component: ServersComponent },
-    { path: 'about', component: AboutComponent },
-    { path: 'groups', component: UserAndGroupManagementComponent },
-    { path: 'system', redirectTo: 'system/', pathMatch: 'full' },
-    {
-        path: 'system',
-        children: [{
-                path: ':cfg',
-                component: SystemViewComponent
-            }]
-    },
-], { relativeLinkResolution: 'corrected' }),
-
+            },
+            { path: 'pipelines', component: PipelinesComponent },
+            { path: 'files', component: FilesComponent },
+            { path: 'servers', component: ServersComponent },
+            { path: 'about', component: AboutComponent },
+            { path: 'groups', component: UserAndGroupManagementComponent },
+            { path: 'system', redirectTo: 'system/', pathMatch: 'full' },
+            {
+                path: 'system',
+                children: [{
+                        path: ':cfg',
+                        component: SystemViewComponent
+                    }]
+            },
+        ], { relativeLinkResolution: 'corrected' }),
         BrowserModule,
         BrowserAnimationsModule,
-
         FormsModule,
         ReactiveFormsModule,
-
-
         MatDialogModule,
         MatInputModule,
         MatButtonModule,
@@ -254,13 +249,11 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         MatSlideToggleModule,
         MatTabsModule,
         MatCheckboxModule,
-
         MatToolbarModule,
         MatSidenavModule,
         MatListModule,
         MatButtonModule,
         MatIconModule,
-
         NgxChartsModule,
         MatCardModule,
         ScrollingModule,
@@ -269,34 +262,26 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         MatMenuModule,
         MatRadioModule,
         NgxEchartsModule.forRoot({
-            echarts: {init: echarts.init}
+            echarts: { init: echarts.init }
         }),
-      MatSliderModule,
-
+        MatSliderModule,
     ],
-  providers: [
-    {
-      provide: MatDialogRef,
-      useValue: {}
-    },
-    {
-      provide: InjectableRxStompConfig,
-      useValue: RxStompConfig
-    },
-    {
-      provide: RxStompService,
-      useFactory: rxStompServiceFactory,
-      deps: [InjectableRxStompConfig]
-    }
-  ],
-  bootstrap: [AppComponent],
-  entryComponents: [
-    ProjectsCreateDialog,
-    ProjectDiskUsageDialogComponent,
-    FileBrowseDialog,
-    CreatePipelineDialogComponent,
-    GroupSettingsDialogComponent,
-  ]
+    providers: [
+        {
+            provide: MatDialogRef,
+            useValue: {}
+        },
+        {
+            provide: InjectableRxStompConfig,
+            useValue: RxStompConfig
+        },
+        {
+            provide: RxStompService,
+            useFactory: rxStompServiceFactory,
+            deps: [InjectableRxStompConfig]
+        }
+    ],
+    bootstrap: [AppComponent]
 })
 export class AppModule {
 }
