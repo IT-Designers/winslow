@@ -4,7 +4,7 @@ import {BehaviorSubject, combineLatest, from, Observable, of, timer} from 'rxjs'
 import {GlobalChartSettings, LocalStorageService} from '../api/local-storage.service';
 import {finalize, map, shareReplay, switchMap} from 'rxjs/operators';
 import {CsvFileContent, parseCsv} from './csv-parser';
-import {StageInfo} from '../api/winslow-api';
+import {FileInfo, StageInfo} from '../api/winslow-api';
 
 export interface CsvFile {
   stageId: string;
@@ -76,24 +76,32 @@ export class CsvFilesService {
     return combined_suggestions;
   }
 
-  private async getFileSuggestionsForWorkspace(pathToWorkspace: string, currentPathRelative: string): Promise<string[]> {
-    const currentPathSplit = currentPathRelative.split('/');
-    const currentFileName = currentPathSplit[currentPathSplit.length - 1];
-    const parentPathSplit = currentPathSplit.slice(0, -1);
-    const parentPathRelative = parentPathSplit.join('/');
-    const parentPathFull = CsvFilesService.fullPathToFile(pathToWorkspace, parentPathRelative);
-    const parentOptions = await this.filesApi.listFiles(parentPathFull);
+  private async getFileSuggestionsForWorkspace(pathToWorkspace: string, currentPath: string): Promise<string[]> {
+    const api = this.filesApi;
+    const topLevelPath = `${CsvFilesService.WORKSPACE_DIR}/${pathToWorkspace}/`
+    const paths: string[] = []
 
-    if (!parentOptions.some(fileInfo => fileInfo.name == currentFileName)) {
-      if (parentPathRelative == "") {
-        return parentOptions.map(fileInfo => fileInfo.name);
+    const topLevelFileInfos = await api.listFiles(topLevelPath);
+
+    async function walk(fileInfos: FileInfo[]) {
+      for (const fileInfo of fileInfos) {
+        const relativePath = fileInfo.path.substr(topLevelPath.length);
+        if (fileInfo.directory) {
+          await walk(await api.listFiles(fileInfo.path));
+          continue;
+        }
+        if (!relativePath.startsWith(currentPath)) {
+          continue;
+        }
+        if (fileInfo.name.toLowerCase().endsWith('.csv')) {
+          paths.push(relativePath);
+        }
       }
-      return parentOptions.map(fileInfo => `${parentPathRelative}/${fileInfo.name}`);
     }
 
-    const currentPathFull = CsvFilesService.fullPathToFile(pathToWorkspace, currentPathSplit.join('/'));
-    const currentOptions = await this.filesApi.listFiles(currentPathFull);
-    return currentOptions.map(fileInfo => `${currentPathRelative}/${fileInfo.name}`);
+    await walk(topLevelFileInfos);
+
+    return paths;
   }
 
   private getCsvFile$(stage: StageInfo, filepath: string): Observable<CsvFile> {
