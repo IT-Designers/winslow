@@ -302,7 +302,8 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
-                .map(Project::getPipelineDefinition)
+                .flatMap(Project::getPipelineDefinitionId)
+                .flatMap(id -> winslow.getPipelineRepository().getPipeline(id).unsafe())
                 .map(PipelineDefinitionInfoConverter::from);
     }
 
