@@ -2,7 +2,7 @@ import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {CsvFileContent, parseCsv} from './csv-parser';
 import {GlobalChartSettings} from '../api/local-storage.service';
-import {getColor} from './colors';
+import {generateColor} from './colors';
 import {CsvFile, CsvFilesService} from './csv-files.service';
 
 export class LogChartSnapshot {
@@ -14,7 +14,7 @@ export class LogChartSnapshot {
     this.graphs = csvFiles.map((file, index) => ({
       data: LogChartSnapshot.getDataSet(definition, file.content, this.formatterVariables, globalChartSettings),
       name: file.stageId,
-      color: getColor(index)
+      color: generateColor(index)
     }));
   }
 

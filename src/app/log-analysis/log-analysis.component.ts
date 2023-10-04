@@ -6,7 +6,7 @@ import {FilesApiService} from '../api/files-api.service';
 import {LogChart, LogChartDefinition} from './log-chart-definition';
 import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import {PipelineApiService} from '../api/pipeline-api.service';
-import {getColor} from './colors';
+import {generateColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
 import {ExecutionGroupInfo, FileInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../api/winslow-api';
 
@@ -76,7 +76,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   stageColor(step: number) {
-    return getColor(step);
+    return generateColor(step);
   }
 
   hasSelectableStages(): boolean {
