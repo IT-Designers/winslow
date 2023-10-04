@@ -15,6 +15,7 @@ import de.itdesigners.winslow.project.Project;
 import de.itdesigners.winslow.project.ProjectRepository;
 import de.itdesigners.winslow.web.*;
 import de.itdesigners.winslow.web.api.noauth.PipelineTrigger;
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -326,11 +327,24 @@ public class ProjectsController {
 
                             if (updatedProject.isPresent()) {
                                 var project = updatedProject.get();
-                                project.setPipelineDefinition(PipelineDefinitionInfoConverter.reverse(pipeline));
-                                projectContainer.update(project);
-                                return ResponseEntity.ok(PipelineDefinitionInfoConverter.from(
-                                        project.getPipelineDefinition()
-                                ));
+                                var handle = project.getPipelineDefinitionId().map(id -> winslow.getPipelineRepository().getPipeline(id));
+
+                                if (handle.isEmpty()) {
+                                    // TODO create pipeline definition, set it on the project
+                                    throw new NotImplementedException("TODO create pipeline definition, set it on the project");
+                                }
+
+                                if (handle.isPresent()) {
+                                    var lock = handle.get().exclusive();
+                                    if (lock.isPresent()) {
+                                        var container = lock.get();
+                                        try (container) {
+                                            var stored = PipelineDefinitionInfoConverter.reverse(pipeline);
+                                            container.update(stored);
+                                            return ResponseEntity.ok(PipelineDefinitionInfoConverter.from(stored));
+                                        }
+                                    }
+                                }
                             }
                         } catch (LockException | IOException e) {
                             e.printStackTrace();
