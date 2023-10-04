@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { SystemCfgEnvComponent } from './system-cfg-env.component';
 
@@ -6,7 +6,7 @@ describe('SystemCfgEnvComponent', () => {
   let component: SystemCfgEnvComponent;
   let fixture: ComponentFixture<SystemCfgEnvComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ SystemCfgEnvComponent ]
     })

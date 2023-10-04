@@ -199,37 +199,35 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         }),
 
         RouterModule.forRoot([
-            {path: '', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'actions', component: GroupActionsComponent},
-
-            {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
-            {
-                path: 'projects',
+    { path: '', redirectTo: 'projects/', pathMatch: 'full' },
+    { path: 'actions', component: GroupActionsComponent },
+    { path: 'projects', redirectTo: 'projects/', pathMatch: 'full' },
+    { path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full' },
+    {
+        path: 'projects',
+        children: [{
+                path: ':id',
+                component: ProjectsComponent,
                 children: [{
-                    path: ':id',
-                    component: ProjectsComponent,
-                    children: [{
                         path: ':tab',
                         component: ProjectViewComponent,
                     }]
-                }]
-            },
-
-            {path: 'pipelines', component: PipelinesComponent},
-            {path: 'files', component: FilesComponent},
-            {path: 'servers', component: ServersComponent},
-            {path: 'about', component: AboutComponent},
-            {path: 'groups', component: UserAndGroupManagementComponent},
-            {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
-            {
-                path: 'system',
-                children: [{
-                    path: ':cfg',
-                    component: SystemViewComponent
-                }]
-            },
-        ]),
+            }]
+    },
+    { path: 'pipelines', component: PipelinesComponent },
+    { path: 'files', component: FilesComponent },
+    { path: 'servers', component: ServersComponent },
+    { path: 'about', component: AboutComponent },
+    { path: 'groups', component: UserAndGroupManagementComponent },
+    { path: 'system', redirectTo: 'system/', pathMatch: 'full' },
+    {
+        path: 'system',
+        children: [{
+                path: ':cfg',
+                component: SystemViewComponent
+            }]
+    },
+], { relativeLinkResolution: 'legacy' }),
 
         BrowserModule,
         BrowserAnimationsModule,
