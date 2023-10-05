@@ -1,13 +1,11 @@
 package de.itdesigners.winslow.project;
 
-import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.ACL;
 import de.itdesigners.winslow.auth.Prefix;
 import de.itdesigners.winslow.auth.User;
-import de.itdesigners.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,7 +56,7 @@ public class Project {
             @Nullable Iterable<String> tags,
             @Nonnull String name,
             @Nullable Boolean publicAccess,
-            @Nullable String pipelineDefinitionId,
+            @Nonnull String pipelineDefinitionId,
             @Nullable ResourceLimitation resourceLimit) {
         this.id                   = id;
         this.accountingGroup      = accountingGroup;
@@ -110,18 +108,13 @@ public class Project {
         this.publicAccess = publicAccessible;
     }
 
-    public void setPipelineDefinitionId(@Nullable String pipelineDefinitionId) {
+    public void setPipelineDefinitionId(@Nonnull String pipelineDefinitionId) {
         this.pipelineDefinitionId = pipelineDefinitionId;
     }
 
     @Nonnull
     public String getPipelineDefinitionId() {
         return pipelineDefinitionId;
-    }
-
-    @Nonnull
-    public Optional<PipelineDefinition> getPipelineDefinitionReadonly(PipelineDefinitionRepository repository) {
-        return repository.getPipeline(getPipelineDefinitionId()).unsafe();
     }
 
     @Nonnull

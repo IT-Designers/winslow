@@ -132,7 +132,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                         .getProjects()
                         .getProject(projectId)
                         .unsafe()
-                        .flatMap(project -> project.getPipelineDefinitionReadonly(orchestrator.getPipelineDefinitions()))
+                        .flatMap(project -> orchestrator.getPipelineDefinitions().getPipelineDefinitionReadonly(project))
                         .map(PipelineDefinition::deletionPolicy)
                 )
                 .orElseGet(DeletionPolicy::new);

@@ -4,7 +4,6 @@ import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageXOrGatewayDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
@@ -54,7 +53,7 @@ public class XOrGateway extends Gateway {
                 .equals(this.stageId.getExecutionGroupId())).findFirst();
 
         var rootNode    = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
-        var pipelineDef = projectReadOnly.getPipelineDefinitionReadonly(pipelineDefinitions).orElseThrow();
+        var pipelineDef = pipelineDefinitions.getPipelineDefinitionReadonly(projectReadOnly).orElseThrow();
         var graph       = new Graph(pipelineReadOnly, pipelineDef, rootNode);
 
         var numberOfInvocationsOfMyself = rootNode.getExecutionGroups().size();

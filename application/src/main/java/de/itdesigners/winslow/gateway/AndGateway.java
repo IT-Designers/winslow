@@ -49,7 +49,7 @@ public class AndGateway extends Gateway {
                 .equals(this.stageId.getExecutionGroupId())).findFirst();
 
         var rootNode = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
-        var pipelineDef = projectReadOnly.getPipelineDefinitionReadonly(pipelineDefinitions).orElseThrow();
+        var pipelineDef = pipelineDefinitions.getPipelineDefinitionReadonly(projectReadOnly).orElseThrow();
         var graph       = new Graph(pipelineReadOnly, pipelineDef, rootNode);
 
 
