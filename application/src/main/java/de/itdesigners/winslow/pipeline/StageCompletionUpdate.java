@@ -6,7 +6,6 @@ import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.fs.ObsoleteWorkspaceFinder;
-import de.itdesigners.winslow.project.Project;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,7 +77,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
 
                             stage.finishNow(State.SUCCEEDED);
 
-                            var remaining  = pipeline
+                            var remaining = pipeline
                                     .getActiveExecutionGroups()
                                     .anyMatch(ExecutionGroup::hasRemainingExecutions);
                             var singleExec = pipeline
@@ -133,7 +132,7 @@ public class StageCompletionUpdate implements PipelineUpdater.NoAccessUpdater, P
                         .getProjects()
                         .getProject(projectId)
                         .unsafe()
-                        .map(Project::getPipelineDefinition)
+                        .flatMap(project -> project.getPipelineDefinitionReadonly(orchestrator.getPipelineDefinitions()))
                         .map(PipelineDefinition::deletionPolicy)
                 )
                 .orElseGet(DeletionPolicy::new);

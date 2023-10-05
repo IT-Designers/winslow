@@ -1,8 +1,10 @@
 package de.itdesigners.winslow.gateway;
 
+import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.ExecutionGroup;
+import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageXOrGatewayDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
@@ -16,20 +18,23 @@ import java.util.logging.Level;
 
 public class XOrGateway extends Gateway {
 
-    private final @Nonnull PipelineRepository       pipelines;
-    private final @Nonnull ProjectRepository         projects;
-    private final @Nonnull StageXOrGatewayDefinition stageDefinition;
-    private final          StageId                   stageId;
+    private final @Nonnull PipelineDefinitionRepository pipelineDefinitions;
+    private final @Nonnull PipelineRepository           pipelines;
+    private final @Nonnull ProjectRepository            projects;
+    private final @Nonnull StageXOrGatewayDefinition    stageDefinition;
+    private final          StageId                      stageId;
 
     public XOrGateway(
+            @Nonnull PipelineDefinitionRepository pipelineDefinitions,
             @Nonnull PipelineRepository pipelines,
             @Nonnull ProjectRepository projects,
             @Nonnull StageXOrGatewayDefinition stageDefinition,
             @Nonnull StageId stageId) {
-        this.pipelines       = pipelines;
-        this.projects        = projects;
-        this.stageDefinition = stageDefinition;
-        this.stageId         = stageId;
+        this.pipelineDefinitions = pipelineDefinitions;
+        this.pipelines           = pipelines;
+        this.projects            = projects;
+        this.stageDefinition     = stageDefinition;
+        this.stageId             = stageId;
     }
 
     @Override
@@ -48,8 +53,9 @@ public class XOrGateway extends Gateway {
                 .getId()
                 .equals(this.stageId.getExecutionGroupId())).findFirst();
 
-        var rootNode = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
-        var graph    = new Graph(pipelineReadOnly, projectReadOnly.getPipelineDefinition(), rootNode);
+        var rootNode    = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
+        var pipelineDef = projectReadOnly.getPipelineDefinitionReadonly(pipelineDefinitions).orElseThrow();
+        var graph       = new Graph(pipelineReadOnly, pipelineDef, rootNode);
 
         var numberOfInvocationsOfMyself = rootNode.getExecutionGroups().size();
         this.log(Level.INFO, "numberOfInvocationsOfMyself: " + numberOfInvocationsOfMyself);
@@ -85,8 +91,7 @@ public class XOrGateway extends Gateway {
 
 
                     pipeline.enqueueSingleExecution(
-                            projectReadOnly
-                                    .getPipelineDefinition()
+                            pipelineDef
                                     .stages()
                                     .stream()
                                     .filter(stageDefinition1 -> stageDefinition1

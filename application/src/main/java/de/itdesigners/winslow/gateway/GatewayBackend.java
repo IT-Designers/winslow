@@ -1,9 +1,6 @@
 package de.itdesigners.winslow.gateway;
 
-import de.itdesigners.winslow.Backend;
-import de.itdesigners.winslow.PipelineRepository;
-import de.itdesigners.winslow.ResourceAllocationMonitor;
-import de.itdesigners.winslow.StageHandle;
+import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.config.StageAndGatewayDefinition;
 import de.itdesigners.winslow.config.StageDefinition;
 import de.itdesigners.winslow.config.StageXOrGatewayDefinition;
@@ -17,10 +14,15 @@ import java.io.IOException;
 
 public class GatewayBackend implements Backend, Closeable, AutoCloseable {
 
-    private final @Nonnull PipelineRepository pipelines;
-    private final @Nonnull ProjectRepository  projects;
+    private final @Nonnull PipelineDefinitionRepository pipelineDefinitions;
+    private final @Nonnull PipelineRepository           pipelines;
+    private final @Nonnull ProjectRepository            projects;
 
-    public GatewayBackend(@Nonnull PipelineRepository pipelines, @Nonnull ProjectRepository projects) {
+    public GatewayBackend(
+            @Nonnull PipelineDefinitionRepository pipelineDefinitions,
+            @Nonnull PipelineRepository pipelines,
+            @Nonnull ProjectRepository projects) {
+        this.pipelineDefinitions = pipelineDefinitions;
         this.pipelines = pipelines;
         this.projects  = projects;
     }
@@ -66,9 +68,21 @@ public class GatewayBackend implements Backend, Closeable, AutoCloseable {
             @Nonnull StageDefinition stageDefinition,
             @Nonnull StageId stageId) throws IOException {
         if (stageDefinition instanceof StageAndGatewayDefinition stageAndGatewayDefinition) {
-            return new GatewayStageHandle(new AndGateway(pipelines, projects, stageAndGatewayDefinition, stageId));
+            return new GatewayStageHandle(new AndGateway(
+                    pipelineDefinitions,
+                    pipelines,
+                    projects,
+                    stageAndGatewayDefinition,
+                    stageId
+            ));
         } else if (stageDefinition instanceof StageXOrGatewayDefinition stageXOrGatewayDefinition) {
-            return new GatewayStageHandle(new XOrGateway(pipelines, projects, stageXOrGatewayDefinition, stageId));
+            return new GatewayStageHandle(new XOrGateway(
+                    pipelineDefinitions,
+                    pipelines,
+                    projects,
+                    stageXOrGatewayDefinition,
+                    stageId
+            ));
         } else {
             throw new IOException("Invalid StageType " + stageDefinition.getClass().toString());
         }
