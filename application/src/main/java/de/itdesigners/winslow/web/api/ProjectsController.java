@@ -53,7 +53,7 @@ public class ProjectsController {
                 .unsafe()
                 .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> project
-                        .getPipelineDefinitionReadonly(winslow.getPipelineRepository())
+                        .getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository())
                         .map(definition -> ProjectInfoConverter.from(project, definition)));
     }
 
@@ -65,14 +65,14 @@ public class ProjectsController {
                 .flatMap(handle -> handle.unsafe().stream())
                 .filter(project -> project.canBeAccessedBy(user))
                 .flatMap(project -> project
-                        .getPipelineDefinitionReadonly(winslow.getPipelineRepository())
+                        .getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository())
                         .map(definition -> ProjectInfoConverter.from(project, definition)).stream());
     }
 
     @PostMapping("/projects")
     public Optional<ProjectInfo> createProject(User user, @RequestBody ProjectCreateRequest body) {
         return winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(body.pipeline())
                 .unsafe()
                 .filter(pd -> pd.canBeAccessedBy(user))
@@ -98,7 +98,7 @@ public class ProjectsController {
                             }
                         }))
                 .flatMap(project -> project
-                        .getPipelineDefinitionReadonly(winslow.getPipelineRepository())
+                        .getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository())
                         .map(definition -> ProjectInfoConverter.from(project, definition)));
     }
 
@@ -309,7 +309,7 @@ public class ProjectsController {
             User user,
             @PathVariable("projectId") String projectId) {
         return getProjectIfAllowedToAccess(user, projectId)
-                .flatMap(project -> project.getPipelineDefinitionReadonly(winslow.getPipelineRepository()))
+                .flatMap(project -> project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository()))
                 .map(PipelineDefinitionInfoConverter::from);
     }
 
@@ -333,7 +333,7 @@ public class ProjectsController {
                             if (updatedProject.isPresent()) {
                                 var project = updatedProject.get();
                                 var handle = winslow
-                                        .getPipelineRepository()
+                                        .getPipelineDefinitionRepository()
                                         .getPipeline(project.getPipelineDefinitionId());
 
                                 if (handle.isEmpty()) {
@@ -648,7 +648,7 @@ public class ProjectsController {
         return getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> {
                     try (var baos = new ByteArrayOutputStream()) {
-                        var pipelineDefinition = project.getPipelineDefinitionReadonly(winslow.getPipelineRepository());
+                        var pipelineDefinition = project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository());
                         ProjectRepository.defaultWriter().store(baos, pipelineDefinition);
                         return Optional.of(baos.toString(StandardCharsets.UTF_8));
                     } catch (IOException e) {
@@ -768,7 +768,7 @@ public class ProjectsController {
                         .getOrchestrator()
                         .getPipeline(project)
                         .map(pipeline -> {
-                            var pipelineDefinition = project.getPipelineDefinitionReadonly(winslow.getPipelineRepository());
+                            var pipelineDefinition = project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository());
 
                             var resolver = new EnvVariableResolver()
                                     .withExecutionHistory(pipeline::getActiveAndPastExecutionGroups)
@@ -817,7 +817,7 @@ public class ProjectsController {
                 .stream()
                 .flatMap(project -> {
                     var pipelineDef = project
-                            .getPipelineDefinitionReadonly(winslow.getPipelineRepository())
+                            .getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository())
                             .orElseThrow();
                     return Stream.concat(
                             pipelineDef
@@ -853,7 +853,7 @@ public class ProjectsController {
                                     .get()
                                     .filter(project -> project.canBeManagedBy(user))
                                     .flatMap(project -> winslow
-                                            .getPipelineRepository()
+                                            .getPipelineDefinitionRepository()
                                             .getPipeline(pipelineId)
                                             .unsafe()
                                             .filter(pd -> pd.canBeAccessedBy(user))
@@ -968,7 +968,7 @@ public class ProjectsController {
             @RequestBody String actionId) {
         getProjectIfAllowedToAccess(user, projectId)
                 .flatMap(project -> winslow
-                        .getPipelineRepository()
+                        .getPipelineDefinitionRepository()
                         .getPipeline(actionId)
                         .unsafe()
                         .flatMap(pipelineDefinition -> winslow.getOrchestrator().updatePipeline(project, pipeline -> {
@@ -1258,7 +1258,7 @@ public class ProjectsController {
 
     @Nonnull
     private Optional<StageDefinition> getStageDefinitionNoClone(@Nonnull Project project, int index) {
-        var pipelineDef = project.getPipelineDefinitionReadonly(winslow.getPipelineRepository()).orElseThrow();
+        var pipelineDef = project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository()).orElseThrow();
         if (pipelineDef.stages().size() > index) {
             return Optional.of(pipelineDef.stages().get(index));
         }
@@ -1267,7 +1267,7 @@ public class ProjectsController {
 
     @Nonnull
     private Optional<StageDefinition> getStageDefinitionNoClone(@Nonnull Project project, UUID id) {
-        return project.getPipelineDefinitionReadonly(winslow.getPipelineRepository())
+        return project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository())
                       .orElseThrow()
                       .stages()
                       .stream()

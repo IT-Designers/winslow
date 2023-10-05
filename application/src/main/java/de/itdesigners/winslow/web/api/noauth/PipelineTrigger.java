@@ -56,7 +56,7 @@ public class PipelineTrigger {
             var controller            = new ProjectsController(winslow);
             var stageIndex            = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
 
-            var pipelineDefinitionOpt = project.getPipelineDefinitionReadonly(winslow.getPipelineRepository());
+            var pipelineDefinitionOpt = project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository());
             if (pipelineDefinitionOpt.isEmpty()) {
                 return Optional.empty();
             }
@@ -130,7 +130,7 @@ public class PipelineTrigger {
 
     @Nonnull
     private Optional<Integer> getStageIndex(@Nonnull Project project, @Nonnull UUID stageDefId) {
-        var pipelineDefinitionsOpt = project.getPipelineDefinitionReadonly(winslow.getPipelineRepository());
+        var pipelineDefinitionsOpt = project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository());
 
         if (pipelineDefinitionsOpt.isEmpty()) {
             return Optional.empty();
