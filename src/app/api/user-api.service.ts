@@ -33,13 +33,13 @@ export class UserApiService {
       .toPromise();
   }
 
-  getUser(userName): Promise<UserInfo> {
+  getUser(userName: string): Promise<UserInfo> {
     return this.client
       .get<UserInfo>(UserApiService.getUrl(userName))
       .toPromise();
   }
 
-  deleteUser(userName): Promise<void> {
+  deleteUser(userName: string): Promise<void> {
     return this.client
       .delete<void>(UserApiService.getUrl(userName))
       .toPromise();
@@ -49,7 +49,7 @@ export class UserApiService {
    * @param userName The name of the {@link UserInfo} to check for
    * @return Whether the name is available (not used yet).
    */
-  getUserNameAvailable(userName): Promise<object> {
+  getUserNameAvailable(userName: string): Promise<object> {
     return this.client
       .get(UserApiService.getUrl(userName + '/available'))
       .toPromise();
