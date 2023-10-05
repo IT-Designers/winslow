@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {RxStompService} from '@stomp/ng2-stompjs';
+import {RxStompService} from '../rx-stomp.service';
 import {ChangeEvent} from './api.service';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';

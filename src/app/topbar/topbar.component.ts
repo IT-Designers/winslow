@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {RxStompService} from '@stomp/ng2-stompjs';
+import {RxStompService} from '../rx-stomp.service';
 import {RxStompState} from '@stomp/rx-stomp';
 import {UserApiService} from '../api/user-api.service';
 

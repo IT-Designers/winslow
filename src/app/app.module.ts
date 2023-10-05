@@ -64,8 +64,6 @@ import { ProjectHistoryHeaderComponent } from './project-history-header/project-
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
 import { ProjectHistoryComponent } from './project-history/project-history.component';
 import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/project-history-group-info.component';
-import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
-import {RxStompConfig} from './rx-stomp.config';
 import { LogViewComponent } from './log-view/log-view.component';
 import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
@@ -112,6 +110,9 @@ import {MatSliderModule} from '@angular/material/slider';
 import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
 import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-pipeline-dialog.component';
 import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-details.component';
+import { RxStompService } from './rx-stomp.service';
+import {rxStompServiceFactory} from "./rx-stomp-service-factory";
+import {RxStompConfig} from "@stomp/rx-stomp";
 
 @NgModule({
     declarations: [
@@ -188,6 +189,7 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         ServerGroupsListComponent,
         AddPipelineDialogComponent,
         PipelineDetailsComponent,
+
     ],
     imports: [
         SweetAlert2Module.forRoot(),
@@ -272,14 +274,9 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
             useValue: {}
         },
         {
-            provide: InjectableRxStompConfig,
-            useValue: RxStompConfig
-        },
-        {
             provide: RxStompService,
             useFactory: rxStompServiceFactory,
-            deps: [InjectableRxStompConfig]
-        }
+        },
     ],
     bootstrap: [AppComponent]
 })
