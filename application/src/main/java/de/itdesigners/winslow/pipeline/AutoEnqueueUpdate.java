@@ -4,7 +4,6 @@ import de.itdesigners.winslow.Orchestrator;
 import de.itdesigners.winslow.api.pipeline.State;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.*;
-import de.itdesigners.winslow.gateway.Graph;
 import de.itdesigners.winslow.project.Project;
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
@@ -73,7 +72,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                         .stream()
                         .flatMap(mostRecent -> getNextStageDefinition(
                                 project,
-                                project.getPipelineDefinitionReadonly(orchestrator.getPipelineDefinitions()).orElseThrow(),
+                                orchestrator.getPipelineDefinitions().getPipelineDefinitionReadonly(project).orElseThrow(),
                                 mostRecent
                         ).map(p -> p.addAt2(mostRecent)))
                         .map(triplet -> {
