@@ -129,7 +129,7 @@ public class LockBusElectionManagerAdapter {
             if (nodeName.equals(participant)) {
                 var thread = new Thread(() -> {
                     var projectOpt    = orchestrator.getProjectUnsafe(election.getProjectId());
-                    var definitionOpt = projectOpt.flatMap(project -> project.getPipelineDefinitionReadonly(orchestrator.getPipelineDefinitions()));
+                    var definitionOpt = projectOpt.flatMap(project -> orchestrator.getPipelineDefinitions().getPipelineDefinitionReadonly(project));
                     var exclusiveOpt  = projectOpt.flatMap(orchestrator::getPipelineExclusive);
 
                     exclusiveOpt.ifPresentOrElse(
