@@ -84,11 +84,12 @@ public class Main {
             var userManager     = new UserManager(new UserRepository(lockBus, config), groupManager);
 
             LOG.info("Preparing the orchestrator");
-            var repository      = new PipelineRepository(lockBus, config);
-            var attributes      = new RunInfoRepository(lockBus, config);
-            var resourceMonitor = new ResourceAllocationMonitor();
-            var node            = getNode(nodeName, resourceMonitor);
-            var backendBuilder  = getBackend(nodeName, node.getPlatformInfo());
+            var pipelines           = new PipelineRepository(lockBus, config);
+            var pipelineDefinitions = new PipelineDefinitionRepository(lockBus, config);
+            var attributes          = new RunInfoRepository(lockBus, config);
+            var resourceMonitor     = new ResourceAllocationMonitor();
+            var node                = getNode(nodeName, resourceMonitor);
+            var backendBuilder      = getBackend(nodeName, node.getPlatformInfo());
 
             var backend = backendBuilder.create();
             var updater = NodeInfoUpdater.spawn(nodes, node);
@@ -101,7 +102,8 @@ public class Main {
                     environment,
                     backend,
                     projects,
-                    repository,
+                    pipelines,
+                    pipelineDefinitions,
                     attributes,
                     logs,
                     settings,
@@ -120,7 +122,7 @@ public class Main {
             var winslow = new Winslow(
                     orchestrator,
                     config,
-                    lockBus,
+                    pipelineDefinitions,
                     resourceManager,
                     projects,
                     tokens,
@@ -153,8 +155,14 @@ public class Main {
     }
 
     private static void setupListeners(@Nonnull Winslow winslow) {
-        winslow.getGroupManager().addChangeListener(ChangeEvent.Subject.DELETED, new DeleteProjectGroupLinkageOnGroupDeletion(winslow));
-        winslow.getGroupManager().addChangeListener(ChangeEvent.Subject.DELETED, new DeletePipelineDefinitionLinkageOnGroupDeletion(winslow));
+        winslow.getGroupManager().addChangeListener(
+                ChangeEvent.Subject.DELETED,
+                new DeleteProjectGroupLinkageOnGroupDeletion(winslow)
+        );
+        winslow.getGroupManager().addChangeListener(
+                ChangeEvent.Subject.DELETED,
+                new DeletePipelineDefinitionLinkageOnGroupDeletion(winslow)
+        );
     }
 
     @Nonnull

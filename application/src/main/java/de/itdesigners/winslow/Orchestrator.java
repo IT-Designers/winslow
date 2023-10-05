@@ -53,14 +53,15 @@ public class Orchestrator implements Closeable, AutoCloseable {
     private final @Nonnull Environment   environment;
     private final @Nonnull List<Backend> backends;
 
-    private final @Nonnull ProjectRepository  projects;
-    private final @Nonnull PipelineRepository pipelines;
-    private final @Nonnull RunInfoRepository  hints;
-    private final @Nonnull LogRepository      logs;
-    private final @Nonnull SettingsRepository settings;
-    private final @Nonnull GroupManager       groups;
-    private final @Nonnull NodeRepository     nodes;
-    private final @Nonnull String             nodeName;
+    private final @Nonnull ProjectRepository            projects;
+    private final @Nonnull PipelineRepository           pipelines;
+    private final @Nonnull PipelineDefinitionRepository pipelineDefinitions;
+    private final @Nonnull RunInfoRepository            hints;
+    private final @Nonnull LogRepository                logs;
+    private final @Nonnull SettingsRepository           settings;
+    private final @Nonnull GroupManager                 groups;
+    private final @Nonnull NodeRepository               nodes;
+    private final @Nonnull String                       nodeName;
 
     private final @Nonnull Map<String, Executor>     executors         = new ConcurrentHashMap<>();
     private final @Nonnull Set<String>               missingResources  = new ConcurrentSkipListSet<>();
@@ -80,6 +81,7 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull Backend backend,
             @Nonnull ProjectRepository projects,
             @Nonnull PipelineRepository pipelines,
+            @Nonnull PipelineDefinitionRepository pipelineDefinitions,
             @Nonnull RunInfoRepository hints,
             @Nonnull LogRepository logs,
             @Nonnull SettingsRepository settings,
@@ -88,21 +90,22 @@ public class Orchestrator implements Closeable, AutoCloseable {
             @Nonnull String nodeName,
             @Nonnull ResourceAllocationMonitor monitor,
             boolean executeStages) {
-        this.lockBus       = lockBus;
-        this.environment   = environment;
-        this.projects      = projects;
-        this.pipelines     = pipelines;
-        this.hints         = hints;
-        this.logs          = logs;
-        this.settings      = settings;
-        this.groups        = groups;
-        this.nodes         = nodes;
-        this.nodeName      = nodeName;
-        this.monitor       = monitor;
-        this.executeStages = executeStages;
+        this.lockBus             = lockBus;
+        this.environment         = environment;
+        this.projects            = projects;
+        this.pipelines           = pipelines;
+        this.pipelineDefinitions = pipelineDefinitions;
+        this.hints               = hints;
+        this.logs                = logs;
+        this.settings            = settings;
+        this.groups              = groups;
+        this.nodes               = nodes;
+        this.nodeName            = nodeName;
+        this.monitor             = monitor;
+        this.executeStages       = executeStages;
 
         this.electionManager = new ElectionManager(lockBus);
-        this.backends        = List.of(backend, new GatewayBackend(pipelines, projects));
+        this.backends        = List.of(backend, new GatewayBackend(pipelineDefinitions, pipelines, projects));
 
         this.stageExecutionTags.add("winslow:node:" + this.nodeName);
         this.stageExecutionTags.add("winslow:server:" + this.nodeName);
@@ -157,6 +160,11 @@ public class Orchestrator implements Closeable, AutoCloseable {
     @Nonnull
     public PipelineRepository getPipelines() {
         return pipelines;
+    }
+
+    @Nonnull
+    public PipelineDefinitionRepository getPipelineDefinitions() {
+        return pipelineDefinitions;
     }
 
     @Nonnull

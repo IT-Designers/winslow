@@ -40,7 +40,7 @@ public class Winslow implements Runnable {
     public Winslow(
             @Nonnull Orchestrator orchestrator,
             @Nonnull WorkDirectoryConfiguration configuration,
-            @Nonnull LockBus lockBus,
+            @Nonnull PipelineDefinitionRepository pipelineDefinitionRepository,
             @Nonnull ResourceManager resourceManager,
             @Nonnull ProjectRepository projectRepository,
             @Nonnull AuthTokenRepository projectAuthTokenRepository,
@@ -55,7 +55,7 @@ public class Winslow implements Runnable {
         this.userManager                = userManager;
         this.projectAuthTokenRepository = projectAuthTokenRepository;
 
-        this.pipelineRepository = new PipelineDefinitionRepository(lockBus, configuration);
+        this.pipelineRepository = pipelineDefinitionRepository;
         this.projectRepository  = projectRepository;
         this.settingsRepository = settingsRepository;
         this.nodeRepository     = nodeRepository;

@@ -184,7 +184,7 @@ public class ProjectsEndpointController {
             publishProjectUpdate(
                     TOPIC_PROJECTS,
                     projectId,
-                    ProjectInfoConverter.from(project),
+                    ProjectInfoConverter.from(project, project.getPipelineDefinitionReadonly(winslow.getPipelineRepository()).orElseThrow()),
                     project
             );
         }

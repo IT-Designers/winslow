@@ -5,7 +5,6 @@ import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.pipeline.CommonUpdateConstraints;
 import de.itdesigners.winslow.pipeline.Pipeline;
-import de.itdesigners.winslow.project.Project;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -130,14 +129,14 @@ public class LockBusElectionManagerAdapter {
             if (nodeName.equals(participant)) {
                 var thread = new Thread(() -> {
                     var projectOpt    = orchestrator.getProjectUnsafe(election.getProjectId());
-                    var definitionOpt = projectOpt.map(Project::getPipelineDefinition);
+                    var definitionOpt = projectOpt.flatMap(project -> project.getPipelineDefinitionReadonly(orchestrator.getPipelineDefinitions()));
                     var exclusiveOpt  = projectOpt.flatMap(orchestrator::getPipelineExclusive);
 
                     exclusiveOpt.ifPresentOrElse(
                             container -> {
                                 try (var lock = container.getLock(); container) {
-                                    var pipeline = container.get().get();
-                                    var project  = projectOpt.get();
+                                    var pipeline   = container.get().get();
+                                    var project    = projectOpt.get();
                                     var definition = definitionOpt.get();
                                     if (orchestrator.startPipeline(lock, project, definition, pipeline)) {
                                         LOG.info("Updating pipeline...");
