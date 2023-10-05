@@ -1,11 +1,13 @@
 package de.itdesigners.winslow.project;
 
+import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.ACL;
 import de.itdesigners.winslow.auth.Prefix;
 import de.itdesigners.winslow.auth.User;
+import de.itdesigners.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,11 +23,11 @@ public class Project {
     private @Nullable List<String> tags;
 
     private @Nonnull  String             name;
-    private @Nullable String             pipelineDefinitionId;
+    private @Nonnull String             pipelineDefinitionId;
     private           boolean            publicAccess;
     private @Nullable ResourceLimitation resourceLimit;
 
-    Project(@Nonnull String id, @Nonnull User user, @Nullable String pipelineDefinitionId) {
+    Project(@Nonnull String id, @Nonnull User user, @Nonnull String pipelineDefinitionId) {
         this.id                   = id;
         this.pipelineDefinitionId = pipelineDefinitionId;
         this.name                 = "[no name]";
@@ -113,8 +115,13 @@ public class Project {
     }
 
     @Nonnull
-    public Optional<String> getPipelineDefinitionId() {
-        return Optional.ofNullable(pipelineDefinitionId);
+    public String getPipelineDefinitionId() {
+        return pipelineDefinitionId;
+    }
+
+    @Nonnull
+    public Optional<PipelineDefinition> getPipelineDefinitionReadonly(PipelineDefinitionRepository repository) {
+        return repository.getPipeline(getPipelineDefinitionId()).unsafe();
     }
 
     @Nonnull

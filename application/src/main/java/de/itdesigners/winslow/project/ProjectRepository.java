@@ -90,7 +90,7 @@ public class ProjectRepository extends BaseRepository {
             try (storable) {
                 // it should not yet exist, otherwise the UUID has clashed o.O
                 if (storable.get().isPresent()) {
-                    storable.close(); // early close so there wont be locks while recursively trying to find an unused UUID
+                    storable.close(); // early close so there won't be locks while recursively trying to find an unused UUID
                     return this.createProject(owner, pipeline, customizer);
                 }
 

@@ -53,11 +53,17 @@ public class PipelineTrigger {
 
 
         var result = getProjectForTokenSecret(projectId, secret, REQUIRED_CAPABILITY_TRIGGER_PIPELINE).map(project -> {
-            var controller = new ProjectsController(winslow);
-            var stageIndex = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
-            var stageID    = project.getPipelineDefinition().stages().get(stageIndex).id();
+            var controller            = new ProjectsController(winslow);
+            var stageIndex            = stageDefIdOpt.flatMap(id -> getStageIndex(project, id)).orElse(0);
 
-            var stageDefinition = project.getPipelineDefinition().stages().get(stageIndex);
+            var pipelineDefinitionOpt = project.getPipelineDefinitionReadonly(winslow.getPipelineRepository());
+            if (pipelineDefinitionOpt.isEmpty()) {
+                return Optional.empty();
+            }
+
+            var stageID = pipelineDefinitionOpt.get().stages().get(stageIndex).id();
+
+            var stageDefinition = pipelineDefinitionOpt.get().stages().get(stageIndex);
 
             var imageInfo = stageDefinition instanceof StageWorkerDefinition w
                             ? ImageInfoConverter.from(w.image())
@@ -124,7 +130,13 @@ public class PipelineTrigger {
 
     @Nonnull
     private Optional<Integer> getStageIndex(@Nonnull Project project, @Nonnull UUID stageDefId) {
-        var stages = project.getPipelineDefinition().stages();
+        var pipelineDefinitionsOpt = project.getPipelineDefinitionReadonly(winslow.getPipelineRepository());
+
+        if (pipelineDefinitionsOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var stages = pipelineDefinitionsOpt.get().stages();
         for (int i = 0; i < stages.size(); ++i) {
             if (stages.get(i).id().equals(stageDefId)) {
                 return Optional.of(i);
