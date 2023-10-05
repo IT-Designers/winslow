@@ -71,33 +71,34 @@ public class ProjectsController {
 
     @PostMapping("/projects")
     public Optional<ProjectInfo> createProject(User user, @RequestBody ProjectCreateRequest body) {
+        var pipelineDefinitionId = body.pipeline();
+
+        var pipelineDefinition   = winslow.getPipelineDefinitionRepository().getPipeline(pipelineDefinitionId).unsafe();
+
+        if (pipelineDefinition.isEmpty()) {
+            LOG.severe("Failed to create project with pipeline definition ID '" + pipelineDefinitionId + "'. No such pipeline definition exists.");
+            return Optional.empty();
+        }
+
         return winslow
-                .getPipelineDefinitionRepository()
-                .getPipeline(body.pipeline())
-                .unsafe()
-                .filter(pd -> pd.canBeAccessedBy(user))
-                .flatMap(pipelineDefinition -> winslow
-                        .getProjectRepository()
-                        .createProject(user, pipelineDefinition, project -> {
-                            project.setName(body.name());
-                            body.optTags().ifPresent(tags -> {
-                                project.setTags(tags.toArray(new String[0]));
-                            });
-                        })
-                        .filter(project -> {
-                            try {
-                                winslow.getOrchestrator().createPipeline(project);
-                                return true;
-                            } catch (OrchestratorException e) {
-                                LOG.log(Level.WARNING, "Failed to create pipeline for project", e);
-                                if (!winslow.getProjectRepository().deleteProject(project.getId())) {
-                                    LOG.severe(
-                                            "Failed to delete project for which no pipeline could be created, this leads to inconsistency!");
-                                }
-                                return false;
-                            }
-                        }))
-                .flatMap(project -> project
+                .getProjectRepository()
+                .createProject(user, pipelineDefinitionId, project -> {
+                    project.setName(body.name());
+                    body.optTags().ifPresent(tags -> project.setTags(tags.toArray(new String[0])));
+                })
+                .filter(project -> {
+                    try {
+                        winslow.getOrchestrator().createPipeline(project);
+                        return true;
+                    } catch (OrchestratorException e) {
+                        LOG.log(Level.WARNING, "Failed to create pipeline for project", e);
+                        if (!winslow.getProjectRepository().deleteProject(project.getId())) {
+                            LOG.severe(
+                                    "Failed to delete project for which no pipeline could be created, this leads to inconsistency!");
+                        }
+                        return false;
+                    }
+                }).flatMap(project -> project
                         .getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository())
                         .map(definition -> ProjectInfoConverter.from(project, definition)));
     }
@@ -336,14 +337,8 @@ public class ProjectsController {
                                         .getPipelineDefinitionRepository()
                                         .getPipeline(project.getPipelineDefinitionId());
 
-                                if (handle.isEmpty()) {
-                                    // TODO create pipeline definition, set it on the project
-                                    throw new NotImplementedException(
-                                            "TODO create pipeline definition, set it on the project");
-                                }
-
-                                if (handle.isPresent()) {
-                                    var lock = handle.get().exclusive();
+                                if (handle.exists()) {
+                                    var lock = handle.exclusive();
                                     if (lock.isPresent()) {
                                         var container = lock.get();
                                         try (container) {
@@ -352,6 +347,10 @@ public class ProjectsController {
                                             return ResponseEntity.ok(PipelineDefinitionInfoConverter.from(stored));
                                         }
                                     }
+                                } else {
+                                    // TODO create pipeline definition, set it on the project
+                                    throw new NotImplementedException(
+                                            "TODO create pipeline definition, set it on the project");
                                 }
                             }
                         } catch (LockException | IOException e) {
@@ -688,7 +687,7 @@ public class ProjectsController {
                     return ResponseEntity.notFound().build();
                 } else {
                     var project = maybeProject.get();
-                    project.setPipelineDefinition(definition);
+                    project.setPipelineDefinitionId(definition.id());
                     container.update(project);
                     return ResponseEntity.ok().build();
                 }
@@ -858,7 +857,7 @@ public class ProjectsController {
                                             .unsafe()
                                             .filter(pd -> pd.canBeAccessedBy(user))
                                             .map(pipeline -> {
-                                                project.setPipelineDefinition(pipeline);
+                                                project.setPipelineDefinitionId(pipelineId);
                                                 return project;
                                             }));
 
@@ -1258,7 +1257,9 @@ public class ProjectsController {
 
     @Nonnull
     private Optional<StageDefinition> getStageDefinitionNoClone(@Nonnull Project project, int index) {
-        var pipelineDef = project.getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository()).orElseThrow();
+        var pipelineDef = project
+                .getPipelineDefinitionReadonly(winslow.getPipelineDefinitionRepository())
+                .orElseThrow();
         if (pipelineDef.stages().size() > index) {
             return Optional.of(pipelineDef.stages().get(index));
         }
