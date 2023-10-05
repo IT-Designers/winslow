@@ -4,7 +4,6 @@ import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.LockedContainer;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.auth.User;
-import de.itdesigners.winslow.config.PipelineDefinition;
 import de.itdesigners.winslow.fs.Event;
 import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
@@ -36,15 +35,18 @@ public class ProjectRepository extends BaseRepository {
     }
 
     private void registerLockBusChangeListener() {
-        this.lockBus.registerEventListener(Event.Command.RELEASE, event -> {
-            getProjectIdFromLockEventSubject(Path.of(event.getSubject())).ifPresent(projectId -> {
-                var handle = getProject(projectId);
-                if (handle.exists()) {
-                    var pair = new Pair<>(projectId, handle);
-                    this.projectChangeListeners.forEach(listener -> listener.accept(pair));
-                }
-            });
-        });
+        this.lockBus.registerEventListener(
+                Event.Command.RELEASE,
+                event -> getProjectIdFromLockEventSubject(Path.of(event.getSubject())).ifPresent(
+                        projectId -> {
+                            var handle = getProject(projectId);
+                            if (handle.exists()) {
+                                var pair = new Pair<>(projectId, handle);
+                                this.projectChangeListeners.forEach(listener -> listener.accept(
+                                        pair));
+                            }
+                        })
+        );
     }
 
     public void registerProjectChangeListener(@Nonnull Consumer<Pair<String, Handle<Project>>> changeListener) {
@@ -74,15 +76,9 @@ public class ProjectRepository extends BaseRepository {
     }
 
     @Nonnull
-    public Optional<Project> createProject(@Nonnull User owner, @Nonnull PipelineDefinition pipeline) {
-        return this.createProject(owner, pipeline, project -> {
-        });
-    }
-
-    @Nonnull
     public Optional<Project> createProject(
             @Nonnull User owner,
-            @Nonnull PipelineDefinition pipeline,
+            @Nonnull String pipelineDefinitionId,
             @Nonnull Consumer<Project> customizer) {
         var id   = UUID.randomUUID().toString();
         var path = workDirectoryConfiguration.getProjectsDirectory().resolve(id + FILE_EXTENSION);
@@ -91,10 +87,10 @@ public class ProjectRepository extends BaseRepository {
                 // it should not yet exist, otherwise the UUID has clashed o.O
                 if (storable.get().isPresent()) {
                     storable.close(); // early close so there won't be locks while recursively trying to find an unused UUID
-                    return this.createProject(owner, pipeline, customizer);
+                    return this.createProject(owner, pipelineDefinitionId, customizer);
                 }
 
-                var project = new Project(id, owner, pipeline);
+                var project = new Project(id, owner, pipelineDefinitionId);
                 customizer.accept(project);
                 storable.update(project);
                 return Optional.of(project);
