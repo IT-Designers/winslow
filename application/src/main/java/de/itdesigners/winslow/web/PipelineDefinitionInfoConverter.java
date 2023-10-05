@@ -23,6 +23,7 @@ public class PipelineDefinitionInfoConverter {
                 pipeline.deletionPolicy(),
                 pipeline.markers(),
                 pipeline.groups(),
+                pipeline.belongsToProject(),
                 pipeline.publicAccess()
         );
     }
@@ -39,6 +40,7 @@ public class PipelineDefinitionInfoConverter {
                 pipeline.deletionPolicy(),
                 pipeline.markers(),
                 pipeline.groups(),
+                pipeline.belongsToProject(),
                 pipeline.publicAccess()
         );
     }
