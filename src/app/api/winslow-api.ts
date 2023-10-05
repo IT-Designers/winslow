@@ -376,6 +376,7 @@ export class PipelineDefinitionInfo {
   deletionPolicy: DeletionPolicy;
   markers: string[];
   groups: Link[];
+  belongsToProject: string | null;
   publicAccess: boolean;
 
   constructor(data: PipelineDefinitionInfo) {
@@ -388,6 +389,7 @@ export class PipelineDefinitionInfo {
     this.deletionPolicy = data.deletionPolicy;
     this.markers = data.markers;
     this.groups = data.groups;
+    this.belongsToProject = data.belongsToProject;
     this.publicAccess = data.publicAccess;
   }
 }
