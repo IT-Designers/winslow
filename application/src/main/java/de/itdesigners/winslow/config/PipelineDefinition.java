@@ -24,6 +24,7 @@ public record PipelineDefinition(
         @Nonnull DeletionPolicy deletionPolicy,
         @Nonnull List<String> markers,
         @Nonnull List<Link> groups,
+        @Nullable String belongsToProject, // A pipeline can either be shared or owned by a single project
         boolean publicAccess) {
 
     public PipelineDefinition(@Nonnull String id, @Nonnull String name) {
@@ -37,6 +38,7 @@ public record PipelineDefinition(
                 new DeletionPolicy(),
                 Collections.emptyList(),
                 Collections.emptyList(),
+                null,
                 false
         );
     }
@@ -51,7 +53,8 @@ public record PipelineDefinition(
             "deletionPolicy",
             "markers",
             "groups",
-            "publicAccess"
+            "belongsToProject",
+            "publicAccess",
     })
     public PipelineDefinition( // the parameter names must match the corresponding getter names!
             @Nonnull String id,
@@ -63,6 +66,7 @@ public record PipelineDefinition(
             @Nullable DeletionPolicy deletionPolicy,
             @Nullable List<String> markers,
             @Nullable List<Link> groups,
+            @Nullable String belongsToProject,
             boolean publicAccess
     ) {
         if (name.isBlank()) {
@@ -78,6 +82,7 @@ public record PipelineDefinition(
         this.deletionPolicy = deletionPolicy != null ? deletionPolicy : new DeletionPolicy();
         this.markers        = markers != null ? markers : Collections.emptyList();
         this.groups         = groups != null ? groups : Collections.emptyList();
+        this.belongsToProject = belongsToProject;
         this.publicAccess   = publicAccess;
         this.check();
     }
@@ -91,6 +96,8 @@ public record PipelineDefinition(
         Objects.requireNonNull(deletionPolicy, "The deletion policy of a pipeline must be set");
         Objects.requireNonNull(markers, "The markers of a pipeline must be set");
         Stream.ofNullable(this.stages).flatMap(List::stream).forEach(StageDefinition::check);
+
+        // todo check valid project id
     }
 
     @Nonnull
@@ -131,6 +138,7 @@ public record PipelineDefinition(
                         .stream()
                         .filter(link -> !Objects.equals(link.name(), groupName))
                         .toList(),
+                belongsToProject(),
                 publicAccess()
         );
     }
@@ -152,6 +160,7 @@ public record PipelineDefinition(
                                 .stream()
                                 .filter(link -> !Objects.equals(link.name(), group))
                 ).toList(),
+                belongsToProject(),
                 publicAccess()
         );
     }
