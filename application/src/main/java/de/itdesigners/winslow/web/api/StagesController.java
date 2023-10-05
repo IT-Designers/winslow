@@ -22,7 +22,7 @@ public class StagesController {
     @GetMapping("/stages/{pipeline}")
     public Stream<StageDefinitionInfo> getStagesForPipeline(@PathVariable(name = "pipeline") String pipeline) {
         return winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(pipeline)
                 .unsafe()
                 .stream()

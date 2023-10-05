@@ -4,7 +4,6 @@ import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.cli.FixWorkspacePaths;
 import de.itdesigners.winslow.config.ExecutionGroup;
-import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.project.AuthTokenRepository;
@@ -31,7 +30,7 @@ public class Winslow implements Runnable {
     private final @Nonnull ResourceManager              resourceManager;
     private final @Nonnull GroupManager                 groupManager;
     private final @Nonnull UserManager                  userManager;
-    private final @Nonnull PipelineDefinitionRepository pipelineRepository;
+    private final @Nonnull PipelineDefinitionRepository pipelineDefinitionRepository;
     private final @Nonnull ProjectRepository            projectRepository;
     private final @Nonnull AuthTokenRepository          projectAuthTokenRepository;
     private final @Nonnull NodeRepository               nodeRepository;
@@ -55,8 +54,8 @@ public class Winslow implements Runnable {
         this.userManager                = userManager;
         this.projectAuthTokenRepository = projectAuthTokenRepository;
 
-        this.pipelineRepository = pipelineDefinitionRepository;
-        this.projectRepository  = projectRepository;
+        this.pipelineDefinitionRepository = pipelineDefinitionRepository;
+        this.projectRepository            = projectRepository;
         this.settingsRepository = settingsRepository;
         this.nodeRepository     = nodeRepository;
 
@@ -429,8 +428,8 @@ public class Winslow implements Runnable {
     }
 
     @Nonnull
-    public PipelineDefinitionRepository getPipelineRepository() {
-        return pipelineRepository;
+    public PipelineDefinitionRepository getPipelineDefinitionRepository() {
+        return pipelineDefinitionRepository;
     }
 
     @Nonnull

@@ -43,10 +43,10 @@ public class PipelinesController {
     @GetMapping("pipelines")
     public Stream<PipelineDefinitionInfo> getAllPipelines(@Nullable User user) {
         return winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipelineIds()
                 .flatMap(id -> winslow
-                        .getPipelineRepository()
+                        .getPipelineDefinitionRepository()
                         .getPipeline(id)
                         .unsafe()
                         .stream()
@@ -59,7 +59,7 @@ public class PipelinesController {
             @Nullable User user,
             @PathVariable("pipeline") String pipelineId) {
         return winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(pipelineId)
                 .unsafe()
                 .filter(pd -> user != null && pd.canBeAccessedBy(user))
@@ -81,7 +81,7 @@ public class PipelinesController {
         ensureValidUser(user);
 
         var handle = winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(pipeline);
 
         // fast check: user allowed to delete?
@@ -102,7 +102,7 @@ public class PipelinesController {
     @GetMapping("pipelines/{pipeline}/raw")
     public Optional<String> getPipelineRaw(@Nullable User user, @PathVariable("pipeline") String pipelineId) {
         var handle = winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(pipelineId);
 
         return handle
@@ -142,7 +142,7 @@ public class PipelinesController {
             @Nonnull User user,
             @Nonnull PipelineDefinition definition) throws IOException {
         var exclusive = winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(definition.id())
                 .exclusive();
 
@@ -237,7 +237,7 @@ public class PipelinesController {
 
         var id = UUID.randomUUID().toString();
         return this.winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(id)
                 .exclusive()
                 .flatMap(container -> {
