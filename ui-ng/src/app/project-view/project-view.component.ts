@@ -818,8 +818,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         })
         .then(r => {
           editor.parseError = [];
-          return this.api
-            .getProjectPipelineDefinition(this.project.id)
+          return this.pipelinesApi
+            .getPipelineDefinition(this.project.pipelineDefinition.id)
             .then(definition => {
               this.setProjectPipeline(definition);
             });
@@ -831,7 +831,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   updatePipelineDefinitionWithObject(pipeline: PipelineDefinitionInfo) {
     this.dialog.openLoadingIndicator(
-      this.api.setProjectPipelineDefinition(this.project.id, pipeline)
+      this.pipelinesApi.setPipelineDefinition(pipeline)
         .then((result) => {
             this.setProjectPipeline(result);
           }
