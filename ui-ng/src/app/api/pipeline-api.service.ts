@@ -24,8 +24,21 @@ export class PipelineApiService {
     return `${environment.apiLocation}pipelines${more != null ? `/${more}` : ''}`;
   }
 
-  getRaw(pipeline: string) {
-    return this.client.get<string>(PipelineApiService.getUrl(`${pipeline}/raw`)).toPromise();
+  getRawPipelineDefinition(id: string) {
+    return this.client.get<string>(PipelineApiService.getUrl(`${id}/raw`)).toPromise();
+  }
+
+  setRawPipelineDefinition(id: string, raw: string) {
+    return this.client
+      .put<object | ParseError>(PipelineApiService.getUrl(`${id}/raw`), raw)
+      .toPromise()
+      .then(r => {
+        if (r != null && Object.keys(r).length !== 0) {
+          return Promise.reject(new ParseError(r as ParseError));
+        } else {
+          return Promise.resolve(null);
+        }
+      });
   }
 
   checkPipelineDefinition(raw: string): Promise<string | ParseError> {

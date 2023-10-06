@@ -50,7 +50,7 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
   loadRawPipelineDefinition() {
     if (this.selectedPipeline != null) {
       this.dialog.openLoadingIndicator(
-        this.pipelinesApi.getRaw(this.selectedPipeline.id)
+        this.pipelinesApi.getRawPipelineDefinition(this.selectedPipeline.id)
           .then(result => this.rawPipelineDefinition = result),
         `Loading Pipeline Definition`,
         false
