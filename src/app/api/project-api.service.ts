@@ -331,23 +331,6 @@ export class ProjectApiService {
     return ProjectApiService.getUrl(`${projectId}/raw-logs/${stageId}`);
   }
 
-  getProjectRawPipelineDefinition(projectId: string): Promise<string> {
-    return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`)).toPromise();
-  }
-
-  setProjectRawPipelineDefinition(projectId: string, raw: string): Promise<void | ParseError> {
-    return this.client
-      .put<object | ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), raw)
-      .toPromise()
-      .then(r => {
-        if (r != null && Object.keys(r).length !== 0) {
-          return Promise.reject(new ParseError(r as ParseError));
-        } else {
-          return Promise.resolve(null);
-        }
-      });
-  }
-
   getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
     return this.client
       .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))

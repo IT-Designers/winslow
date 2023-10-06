@@ -24,7 +24,7 @@ export class GroupSettingsDialogComponent implements OnInit {
   }
 
   apply() {
-    this.dialogRef.close(this.filtered.map(f => f.id));
+    this.dialogRef.close(this.filtered);
   }
 
   cancel() {
