@@ -452,15 +452,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
               })
               .afterClosed()
               .toPromise()
-              .then(selectedProjects => {
+              .then((selectedProjects: ProjectInfo[] | null) => {
                 if (selectedProjects) {
+                  const selectedProjectIds = selectedProjects.map(project => project.id)
                   return this.dialog.openLoadingIndicator(
-                    this.api.configureGroup(this.project.id, i, selectedProjects, env, image)
+                    this.api.configureGroup(this.project.id, i, selectedProjectIds, env, image)
                       .then(configureResult => {
                         const failed = [];
-                        for (let n = 0; n < configureResult.length && n < selectedProjects.length; ++n) {
+                        for (let n = 0; n < configureResult.length && n < selectedProjectIds.length; ++n) {
                           if (!configureResult[n]) {
-                            failed.push(selectedProjects[n]);
+                            failed.push(selectedProjectIds[n]);
                           }
                         }
                         if (failed.length === 0) {
@@ -534,7 +535,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   loadRawPipelineDefinition() {
     this.dialog.openLoadingIndicator(
-      this.api.getProjectRawPipelineDefinition(this.project.id)
+      this.pipelinesApi.getRawPipelineDefinition(this.project.pipelineDefinition.id)
         .then(result => this.rawPipelineDefinition = result),
       `Loading Pipeline Definition`,
       false
@@ -810,7 +811,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   updatePipelineDefinition(raw: string, editor: PipelineEditorComponent) {
     this.dialog.openLoadingIndicator(
-      this.api.setProjectRawPipelineDefinition(this.project.id, raw)
+      this.pipelinesApi.setRawPipelineDefinition(this.project.pipelineDefinition.id, raw)
         .catch(e => {
           editor.parseError = [e];
           return Promise.reject('Failed to parse input, see marked area(s) for more details');
@@ -851,12 +852,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
           })
           .afterClosed()
           .toPromise()
-          .then(result => {
+          .then((result: ProjectInfo[] | null) => {
             if (result) {
               const promises = [];
-              for (const projectId of result) {
-                promises.push(this.api.setProjectRawPipelineDefinition(
-                  projectId,
+              for (const project of result) {
+                promises.push(this.pipelinesApi.setRawPipelineDefinition(
+                  project.pipelineDefinition.id,
                   raw
                 ).catch(e => 'At least one update failed: ' + e));
               }
