@@ -83,6 +83,7 @@ public class PipelineDefinitionTests {
                         new Link("OwnerBaer", Role.OWNER),
                         new Link("MemberBaer", Role.MEMBER)
                 ),
+                null,
                 true
         );
 
