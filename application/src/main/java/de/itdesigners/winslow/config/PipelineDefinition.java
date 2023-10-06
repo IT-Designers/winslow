@@ -56,7 +56,8 @@ public record PipelineDefinition(
             "belongsToProject",
             "publicAccess",
     })
-    public PipelineDefinition( // the parameter names must match the corresponding getter names!
+    public PipelineDefinition(
+            // the parameter names must match the corresponding getter names!
             @Nonnull String id,
             @Nonnull String name,
             @Nullable String description,
@@ -73,17 +74,17 @@ public record PipelineDefinition(
             throw new IllegalArgumentException("The name of a pipeline must not be blank");
         }
 
-        this.id             = id;
-        this.name           = name;
-        this.description    = description != null && !description.isBlank() ? description.trim() : null;
-        this.userInput      = userInput != null ? userInput : new UserInput();
-        this.stages         = stages != null ? stages : Collections.emptyList();
-        this.environment    = environment != null ? environment : Collections.emptyMap();
+        this.id = id;
+        this.name = name;
+        this.description = description != null && !description.isBlank() ? description.trim() : null;
+        this.userInput = userInput != null ? userInput : new UserInput();
+        this.stages = stages != null ? stages : Collections.emptyList();
+        this.environment = environment != null ? environment : Collections.emptyMap();
         this.deletionPolicy = deletionPolicy != null ? deletionPolicy : new DeletionPolicy();
-        this.markers        = markers != null ? markers : Collections.emptyList();
-        this.groups         = groups != null ? groups : Collections.emptyList();
+        this.markers = markers != null ? markers : Collections.emptyList();
+        this.groups = groups != null ? groups : Collections.emptyList();
         this.belongsToProject = belongsToProject;
-        this.publicAccess   = publicAccess;
+        this.publicAccess = publicAccess;
         this.check();
     }
 
@@ -163,5 +164,12 @@ public record PipelineDefinition(
                 belongsToProject(),
                 publicAccess()
         );
+    }
+
+    public boolean isAvailableForProject(@Nonnull String projectId) {
+        if (belongsToProject() == null) {
+            return true;
+        }
+        return belongsToProject().equals(projectId);
     }
 }
