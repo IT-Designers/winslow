@@ -45,7 +45,7 @@ public class FileAccessCheckerTest {
                         null,
                         "project-name",
                         publicProject,
-                        new PipelineDefinition(UUID.randomUUID().toString(), "pipeline-definition"),
+                        new PipelineDefinition(UUID.randomUUID().toString(), "pipeline-definition").id(),
                         null
                 ))
         );
