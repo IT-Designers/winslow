@@ -122,12 +122,7 @@ public class PipelinesController {
 
         try {
             definition = tryParsePipelineDef(raw);
-            definition.check();
-
-            if (!Objects.equals(definition.id(), pipelineId)) {
-                throw new IllegalArgumentException("The id of the pipeline does not match the path pipeline-id");
-            }
-
+            throwIfInvalid(pipelineId, definition);
         } catch (ParseErrorException e) {
             return toJsonResponseEntity(e.getParseError());
         } catch (Throwable t) {
@@ -135,6 +130,27 @@ public class PipelinesController {
         }
 
         return storePipelineDefinition(user, definition);
+    }
+
+    private void throwIfInvalid(String pipelineId, PipelineDefinition definition) {
+        definition.check();
+
+        if (!Objects.equals(definition.id(), pipelineId)) {
+            throw new IllegalArgumentException("The id of the pipeline does not match the path pipeline-id");
+        }
+
+        var projectId = definition.belongsToProject();
+        if (projectId != null) {
+            var project = winslow.getProjectRepository().getProject(projectId).unsafe();
+
+            if (project.isEmpty()) {
+                throw new IllegalArgumentException("There is no project with the id '" + projectId + "'");
+            }
+
+            if (!project.get().getPipelineDefinitionId().equals(pipelineId)) {
+                throw new IllegalArgumentException("Project with id '" + projectId + "' references a different pipeline");
+            }
+        }
     }
 
     @Nonnull
