@@ -12,10 +12,7 @@ import de.itdesigners.winslow.pipeline.Pipeline;
 import de.itdesigners.winslow.pipeline.Stage;
 import de.itdesigners.winslow.project.AuthTokens;
 import de.itdesigners.winslow.project.Project;
-import de.itdesigners.winslow.web.AuthTokenInfoConverter;
-import de.itdesigners.winslow.web.ExecutionGroupInfoConverter;
-import de.itdesigners.winslow.web.LogEntryInfoConverter;
-import de.itdesigners.winslow.web.ProjectInfoConverter;
+import de.itdesigners.winslow.web.*;
 import de.itdesigners.winslow.web.api.noauth.PipelineTrigger;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -724,39 +721,42 @@ public class ProjectsController {
     public ResponseEntity<Boolean> setPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId,
-            @PathVariable("pipelineId") String pipelineId) {
-        return winslow
+            @PathVariable("pipelineId") String pipelineId
+    ) throws IOException, LockException {
+        var projectReadonly = winslow
                 .getProjectRepository()
                 .getProject(projectId)
-                .exclusive()
-                .map(projectContainer -> {
-                    try (projectContainer) {
-                        try {
-                            var updatedProject = projectContainer
-                                    .get()
-                                    .filter(project -> project.canBeManagedBy(user))
-                                    .flatMap(project -> winslow
-                                            .getPipelineDefinitionRepository()
-                                            .getPipeline(pipelineId)
-                                            .unsafe()
-                                            .filter(pd -> pd.canBeAccessedBy(user))
-                                            .map(pipeline -> {
-                                                project.setPipelineDefinitionId(pipelineId);
-                                                return project;
-                                            }));
+                .unsafe()
+                .filter(p -> p.canBeManagedBy(user))
+                .flatMap(p -> winslow.getPipelineDefinitionRepository().getPipeline(pipelineId).unsafe())
+                .filter(definition -> definition.canBeAccessedBy(user) && definition.isAvailableForProject(projectId));
 
-                            if (updatedProject.isPresent()) {
-                                projectContainer.update(updatedProject.get());
-                                return ResponseEntity.ok(true);
-                            }
-                        } catch (LockException | IOException e) {
-                            e.printStackTrace();
-                        }
+        if (projectReadonly.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
-                        return ResponseEntity.notFound().<Boolean>build();
-                    }
+        var projectExclusive = winslow
+                .getProjectRepository()
+                .getProject(projectId)
+                .exclusive();
 
-                }).orElseGet(() -> ResponseEntity.notFound().build());
+        if (projectExclusive.isPresent()) {
+            try (var project = projectExclusive.get()) {
+                var update = project
+                        .get()
+                        .map(p -> {
+                            p.setPipelineDefinitionId(pipelineId);
+                            return p;
+                        });
+
+                if (update.isPresent()) {
+                    project.update(update.get());
+                    return ResponseEntity.ok(true);
+                }
+            }
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping("projects/{projectId}/enqueued")
