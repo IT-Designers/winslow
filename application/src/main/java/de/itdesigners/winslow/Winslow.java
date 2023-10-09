@@ -4,6 +4,7 @@ import de.itdesigners.winslow.api.auth.Role;
 import de.itdesigners.winslow.auth.*;
 import de.itdesigners.winslow.cli.FixWorkspacePaths;
 import de.itdesigners.winslow.config.ExecutionGroup;
+import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
 import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.project.AuthTokenRepository;
@@ -56,8 +57,8 @@ public class Winslow implements Runnable {
 
         this.pipelineDefinitionRepository = pipelineDefinitionRepository;
         this.projectRepository            = projectRepository;
-        this.settingsRepository = settingsRepository;
-        this.nodeRepository     = nodeRepository;
+        this.settingsRepository           = settingsRepository;
+        this.nodeRepository               = nodeRepository;
 
         for (var userName : Env.getRootUsers()) {
             try {
@@ -81,6 +82,7 @@ public class Winslow implements Runnable {
         commands.put("reload", this::reload);
         commands.put("fix-workspace-paths", this::fixWorkspacePaths);
         commands.put("prune-lost-workspaces", this::pruneLostWorkspaces);
+        commands.put("unassign-abandoned-pipelines", this::unassignAbandonedPipelines);
         commands.put("passwd", this::passwd);
         commands.put("adduser", this::addUser);
         commands.put("lsuser", this::lsUser);
@@ -132,6 +134,48 @@ public class Winslow implements Runnable {
                     }
                 });
     }
+
+    private void unassignAbandonedPipelines(@Nonnull ConsoleHandle consoleHandle, @Nonnull Arguments _args) {
+        var pipelines = this.pipelineDefinitionRepository
+                .getPipelines()
+                .flatMap(h -> h.exclusive().stream())
+                .toList();
+
+        var total = 0;
+        var fixed = 0;
+
+        for (var pipelineContainer : pipelines) {
+            try {
+                var pipeline  = pipelineContainer.get().orElseThrow();
+                var projectId = pipeline.belongsToProject();
+
+                if (projectId == null) {
+                    continue;
+                }
+
+                var projectOpt = this.projectRepository.getProject(projectId).unsafe();
+
+                if (projectOpt.isEmpty()) {
+                    System.out.println("Unassigning pipeline " + pipeline.id() + ": Project missing.");
+                    pipelineContainer.update(pipeline.withAssignedProject(null));
+                    fixed++;
+                } else if (!projectOpt.get().getPipelineDefinitionId().equals(pipeline.id())) {
+                    System.out.println("Unassigning pipeline " + pipeline.id() + ": Project uses a different pipeline.");
+                    pipelineContainer.update(pipeline.withAssignedProject(null));
+                    fixed++;
+                }
+
+            } catch (NoSuchElementException | LockException | IOException e) {
+                e.printStackTrace();
+            } finally {
+                pipelineContainer.close();
+                total++;
+            }
+        }
+
+        System.out.println("Found " + total + " pipelines, with " + fixed + " problems. All problems have been fixed.");
+    }
+
 
     private void pruneLostWorkspaces(@Nonnull ConsoleHandle console, @Nonnull Arguments _args) {
         getOrchestrator()

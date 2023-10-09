@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 
-public record PipelineDefinition(
+public record PipelineDefinition (
         @Nonnull String id,
         @Nonnull String name,
         @Nullable String description,
@@ -162,6 +162,23 @@ public record PipelineDefinition(
                                 .filter(link -> !Objects.equals(link.name(), group))
                 ).toList(),
                 belongsToProject(),
+                publicAccess()
+        );
+    }
+
+    @Nonnull
+    public PipelineDefinition withAssignedProject(@Nullable String projectId) {
+        return new PipelineDefinition(
+                id(),
+                name(),
+                description(),
+                userInput(),
+                stages(),
+                environment(),
+                deletionPolicy(),
+                markers(),
+                groups(),
+                projectId,
                 publicAccess()
         );
     }
