@@ -8,11 +8,9 @@
     </mat-form-field>
 
     <mat-radio-group [(ngModel)]="data.pipelineOption">
-      <mat-radio-button [value]="PipelineOptionEnum.CreateExclusive">Create new exclusive pipeline</mat-radio-button>
-      <mat-radio-button [value]="PipelineOptionEnum.CreateShared">Create new shared pipeline</mat-radio-button>
       <mat-radio-button [value]="PipelineOptionEnum.UseShared">Use shared pipeline</mat-radio-button>
-      <mat-radio-button [value]="PipelineOptionEnum.CopyShared">Create exclusive copy of shared pipeline
-      </mat-radio-button>
+      <mat-radio-button [value]="PipelineOptionEnum.CreateShared">Create new shared pipeline</mat-radio-button>
+      <mat-radio-button [value]="PipelineOptionEnum.CreateLocal">Create new project-local pipeline</mat-radio-button>
     </mat-radio-group>
 
     <mat-form-field *ngIf="needsPipelineId()">
