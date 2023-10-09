@@ -145,8 +145,8 @@ public class Winslow implements Runnable {
         var fixed = 0;
 
         for (var pipelineContainer : pipelines) {
-            try {
-                var pipeline  = pipelineContainer.get().orElseThrow();
+            try (pipelineContainer) {
+                var pipeline = pipelineContainer.get().orElseThrow();
                 var projectId = pipeline.belongsToProject();
 
                 if (projectId == null) {
@@ -168,7 +168,6 @@ public class Winslow implements Runnable {
             } catch (NoSuchElementException | LockException | IOException e) {
                 e.printStackTrace();
             } finally {
-                pipelineContainer.close();
                 total++;
             }
         }
