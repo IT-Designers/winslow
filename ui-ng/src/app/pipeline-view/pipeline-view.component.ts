@@ -39,7 +39,6 @@ import {
 } from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
-import {stringify} from "@angular/compiler/src/util";
 import {PipelineApiService} from "../api/pipeline-api.service";
 import {DialogService} from "../dialog.service";
 
