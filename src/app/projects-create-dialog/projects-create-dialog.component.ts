@@ -5,10 +5,9 @@ import {ProjectApiService} from '../api/project-api.service';
 import {PipelineDefinitionInfo} from '../api/winslow-api';
 
 export enum CreateProjectPipelineOption {
-  CreateExclusive,
+  CreateLocal,
   CreateShared,
   UseShared,
-  CopyShared,
 }
 
 export interface CreateProjectData {
@@ -44,7 +43,7 @@ export class ProjectsCreateDialog implements OnInit {
   }
 
   needsPipelineId() {
-    return this.data.pipelineOption == CreateProjectPipelineOption.UseShared || this.data.pipelineOption == CreateProjectPipelineOption.CopyShared;
+    return this.data.pipelineOption == CreateProjectPipelineOption.UseShared;
   }
 
   blockSubmitButton() {
