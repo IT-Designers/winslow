@@ -1,10 +1,10 @@
 import {Injectable} from '@angular/core';
 import {FilesApiService} from '../api/files-api.service';
-import {BehaviorSubject, combineLatest, Observable, of, timer} from 'rxjs';
+import {BehaviorSubject, combineLatest, from, Observable, of, timer} from 'rxjs';
 import {GlobalChartSettings, LocalStorageService} from '../api/local-storage.service';
 import {finalize, map, shareReplay, switchMap} from 'rxjs/operators';
 import {CsvFileContent, parseCsv} from './csv-parser';
-import {StageInfo} from '../api/winslow-api';
+import {FileInfo, StageInfo} from '../api/winslow-api';
 
 export interface CsvFile {
   stageId: string;
@@ -25,14 +25,13 @@ interface CsvFileSource {
 export class CsvFilesService {
 
   private static readonly WORKSPACE_DIR = '/workspaces';
-  private static readonly CSV_FILE_DIR = '.log_parser_output';
 
   private readonly stages$: BehaviorSubject<StageInfo[]>;
   readonly globalChartSettings$: BehaviorSubject<GlobalChartSettings>;
 
   constructor(
     private filesApi: FilesApiService,
-    private localStorageService: LocalStorageService,
+    localStorageService: LocalStorageService,
   ) {
     const settings = localStorageService.getChartSettings();
     this.globalChartSettings$ = new BehaviorSubject<GlobalChartSettings>(settings);
@@ -53,6 +52,56 @@ export class CsvFilesService {
         return combineLatest(file$s);
       }),
     );
+  }
+
+  getFileSuggestions$(path$: Observable<string>): Observable<string[]> {
+    return combineLatest([this.stages$, path$]).pipe(
+      switchMap(([stages, path]) => from(this.getFileSuggestions(stages, path))),
+    )
+  }
+
+  private async getFileSuggestions(stages: StageInfo[], currentPath: string): Promise<string[]> {
+    const combined_suggestions = []
+    const workspace_suggestion_lists = (await Promise.all(stages.map(stage => {
+      return this.getFileSuggestionsForWorkspace(stage.workspace, currentPath);
+    })))
+    for (const workspace_suggestions of workspace_suggestion_lists) {
+      for (const workspace_suggestion of workspace_suggestions) {
+        if (!combined_suggestions.includes(workspace_suggestion)) {
+          combined_suggestions.push(workspace_suggestion);
+        }
+      }
+    }
+    combined_suggestions.sort();
+    return combined_suggestions;
+  }
+
+  private async getFileSuggestionsForWorkspace(pathToWorkspace: string, currentPath: string): Promise<string[]> {
+    const api = this.filesApi;
+    const topLevelPath = `${CsvFilesService.WORKSPACE_DIR}/${pathToWorkspace}/`
+    const paths: string[] = []
+
+    const topLevelFileInfos = await api.listFiles(topLevelPath);
+
+    async function walk(fileInfos: FileInfo[]) {
+      for (const fileInfo of fileInfos) {
+        const relativePath = fileInfo.path.substr(topLevelPath.length);
+        if (fileInfo.directory) {
+          await walk(await api.listFiles(fileInfo.path));
+          continue;
+        }
+        if (!relativePath.startsWith(currentPath)) {
+          continue;
+        }
+        if (fileInfo.name.toLowerCase().endsWith('.csv')) {
+          paths.push(relativePath);
+        }
+      }
+    }
+
+    await walk(topLevelFileInfos);
+
+    return paths;
   }
 
   private getCsvFile$(stage: StageInfo, filepath: string): Observable<CsvFile> {
@@ -91,7 +140,7 @@ export class CsvFilesService {
         const millis = globalSettings.refreshTimerInSeconds * 1000;
         return timer(0, millis); // Emit a value periodically to trigger the reloading of the file.
       }),
-      switchMap(ignored => {
+      switchMap(_ => {
         console.log(`Loading file ${fullPathToFile}.`);
         return this.filesApi.getFile(fullPathToFile);
       }),
@@ -118,12 +167,7 @@ export class CsvFilesService {
     this.csvFileSources.splice(index, 1)
   }
 
-  private async getFileInfo(directory: string, filename: string) {
-    const files = await this.filesApi.listFiles(directory);
-    return files.find(file => file.name == filename);
-  }
-
   private static fullPathToFile(pathToWorkspace: string, pathInWorkSpace: string) {
-    return `${CsvFilesService.WORKSPACE_DIR}/${pathToWorkspace}/${CsvFilesService.CSV_FILE_DIR}/${pathInWorkSpace}`
+    return `${CsvFilesService.WORKSPACE_DIR}/${pathToWorkspace}/${pathInWorkSpace}`
   }
 }

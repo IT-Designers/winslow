@@ -1,8 +1,8 @@
 import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
-import {CsvFileContent} from './csv-parser';
+import {CsvFileContent, parseCsv} from './csv-parser';
 import {GlobalChartSettings} from '../api/local-storage.service';
-import {getColor} from './colors';
+import {generateColor} from './colors';
 import {CsvFile, CsvFilesService} from './csv-files.service';
 
 export class LogChartSnapshot {
@@ -14,7 +14,7 @@ export class LogChartSnapshot {
     this.graphs = csvFiles.map((file, index) => ({
       data: LogChartSnapshot.getDataSet(definition, file.content, this.formatterVariables, globalChartSettings),
       name: file.stageId,
-      color: getColor(index)
+      color: generateColor(index)
     }));
   }
 
@@ -25,7 +25,13 @@ export class LogChartSnapshot {
 
   private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFile[]): string[] {
     if (!definition.formatterFromHeaderRow) {
-      return definition.customFormatter.split(';');
+      // formatter can be treated as a CSV file with 1 row
+      let parsedFormatter = parseCsv(definition.customFormatter);
+      if (parsedFormatter.length > 0) {
+        return parsedFormatter[0];
+      } else {
+        return [];
+      }
     }
 
     const variables = [];
