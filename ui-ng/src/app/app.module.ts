@@ -227,7 +227,7 @@ import {rxStompServiceFactory} from "./rx-stomp-service-factory";
                         component: SystemViewComponent
                     }]
             },
-        ], { relativeLinkResolution: 'corrected' }),
+        ], {}),
         BrowserModule,
         BrowserAnimationsModule,
         FormsModule,
