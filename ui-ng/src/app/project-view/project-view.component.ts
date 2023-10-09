@@ -13,8 +13,8 @@ import {
 } from '@angular/core';
 import {DeletionPolicy, ProjectApiService,} from '../api/project-api.service';
 import {NotificationService} from '../notification.service';
-import {MatDialog} from '@angular/material/dialog';
-import {MatTabGroup} from '@angular/material/tabs';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatLegacyTabGroup as MatTabGroup} from '@angular/material/legacy-tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';

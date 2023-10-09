@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import {RoleApiService} from '../api/role-api.service';
 import {UserApiService, UserInfo} from '../api/user-api.service';
-import {MatDialog} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {DialogService} from '../dialog.service';
 
 @Component({

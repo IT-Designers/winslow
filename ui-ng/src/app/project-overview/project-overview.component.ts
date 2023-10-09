@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {ProjectApiService} from '../api/project-api.service';
 import {DialogService} from '../dialog.service';
-import {MatDialog} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData

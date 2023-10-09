@@ -1,5 +1,5 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {ProjectApiService} from '../api/project-api.service';
 import {PipelineDefinitionInfo} from '../api/winslow-api';
