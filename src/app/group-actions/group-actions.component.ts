@@ -2,7 +2,7 @@ import {Component, Inject, OnInit} from '@angular/core';
 import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
-import {MAT_DIALOG_DATA} from '@angular/material/dialog';
+import {MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA} from '@angular/material/legacy-dialog';
 import {PipelineDefinitionInfo, ProjectInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
