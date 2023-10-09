@@ -7,7 +7,7 @@ import {
   QueryList,
   ViewChildren
 } from '@angular/core';
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormGroup} from "@angular/forms";
 
 @Component({
   selector: 'app-edit-forms',
@@ -20,14 +20,14 @@ export class EditFormsComponent implements OnInit {
   @Input() objPlace;
   @Output() onCollectData : EventEmitter<Object> = new EventEmitter();
   @Output() onTriggerSaveData : EventEmitter<Object> = new EventEmitter();
-  editForm: FormGroup;
+  editForm: UntypedFormGroup;
   extended: boolean[] = [];
   formMap$;
   formObj$;
 
   @ViewChildren('form') childForm:QueryList<EditFormsComponent>;
 
-  constructor( private fb: FormBuilder) { }
+  constructor( private fb: UntypedFormBuilder) { }
 
 
   ngOnInit(): void {

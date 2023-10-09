@@ -2,7 +2,7 @@ import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {ErrorStateMatcher} from '@angular/material/core';
-import {FormControl, FormGroupDirective, NgForm} from '@angular/forms';
+import {UntypedFormControl, FormGroupDirective, NgForm} from '@angular/forms';
 import {NodeResourceUsageConfiguration} from '../../api/winslow-api';
 import {NodeInfoExt, NodesApiService} from '../../api/nodes-api.service';
 import {DialogService} from '../../dialog.service';
@@ -16,7 +16,7 @@ export interface AssignedGroupInfo {
 
 
 export class MyErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const isSubmitted = form && form.submitted;
     return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
   }

@@ -6,7 +6,7 @@ Update
 
 | Old  | Current | Goal |
 |------|---------|------|
-| 10.1 | 11      | 16   |
+| 10.1 | 14      | 16   |
 
 ## Development server
 
