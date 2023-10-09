@@ -3,7 +3,7 @@ import {environment} from '../environments/environment';
 
 export const customRxStompConfig: RxStompConfig = {
   // Which server?
-  brokerURL: location.origin.replace(/^http/, 'ws') + '/ws/v1',
+  brokerURL: location.origin.replace(/^http/, 'ws') + '/ws/v1/',
 
 
   // Headers

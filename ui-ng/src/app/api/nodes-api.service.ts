@@ -23,9 +23,7 @@ export class NodesApiService {
 
   static getUrl(more?: string) {
     if (more != null) {
-      while (more.startsWith('/')) {
-        more = more.substr(1);
-      }
+      more.replace(/^\/*/, "")
     }
     return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
   }

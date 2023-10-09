@@ -112,7 +112,6 @@ import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-
 import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-details.component';
 import { RxStompService } from './rx-stomp.service';
 import {rxStompServiceFactory} from "./rx-stomp-service-factory";
-import {RxStompConfig} from "@stomp/rx-stomp";
 
 @NgModule({
     declarations: [
