@@ -1,5 +1,9 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
+import {
+  CreateProjectData,
+  CreateProjectPipelineOption,
+  ProjectsCreateDialog
+} from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
@@ -139,14 +143,15 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.createDialog
       .open(ProjectsCreateDialog, {
         data: {
-          tags: []
+          pipelineOption: CreateProjectPipelineOption.UseShared,
+          tags: [],
         } as CreateProjectData
       })
       .afterClosed()
-      .subscribe(result => {
+      .subscribe((result: CreateProjectData) => {
         if (result) {
           return this.dialog.openLoadingIndicator(
-            this.api.createProject(result.name, result.pipeline, result.tags).then(r => {
+            this.api.createProject(result.name, result.pipelineId, result.tags).then(r => {
               this.projects.push(r);
               this.projectsFiltered.push(r);
               this.selectedProject = r;

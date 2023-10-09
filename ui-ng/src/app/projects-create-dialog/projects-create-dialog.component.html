@@ -7,10 +7,18 @@
              [(ngModel)]="data.name">
     </mat-form-field>
 
-    <mat-form-field>
-      <mat-select required placeholder="Pipeline to execute"
-                  [(ngModel)]="data.pipeline">
-        <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline">{{pipeline.name}}</mat-option>
+    <mat-radio-group [(ngModel)]="data.pipelineOption">
+      <mat-radio-button [value]="PipelineOptionEnum.CreateExclusive">Create new exclusive pipeline</mat-radio-button>
+      <mat-radio-button [value]="PipelineOptionEnum.CreateShared">Create new shared pipeline</mat-radio-button>
+      <mat-radio-button [value]="PipelineOptionEnum.UseShared">Use shared pipeline</mat-radio-button>
+      <mat-radio-button [value]="PipelineOptionEnum.CopyShared">Create exclusive copy of shared pipeline
+      </mat-radio-button>
+    </mat-radio-group>
+
+    <mat-form-field *ngIf="needsPipelineId()">
+      <mat-select required placeholder="Pipeline to use"
+                  [(ngModel)]="data.pipelineId">
+        <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -19,13 +27,13 @@
       [sort]="false"
       [tags]="data.tags"
       (tags)="data.tags = $event"
-      [proposals]="cachedTags">
-    </app-tags-with-autocomplete>
+      [proposals]="cachedTags"
+    ></app-tags-with-autocomplete>
 
     <div mat-dialog-actions align="end">
       <button mat-raised-button (click)="dialogRef.close()">Cancel</button>
       <button mat-raised-button color="primary"
-              [disabled]="data.name?.trim().length == 0 || data.pipeline == null"
+              [disabled]="blockSubmitButton()"
               (click)="dialogRef.close(data)">
         Create
       </button>
