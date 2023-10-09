@@ -7,7 +7,6 @@ import {
 import {MatDialog} from '@angular/material/dialog';
 import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
-import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
@@ -20,6 +19,7 @@ import {FilesApiService} from '../api/files-api.service';
 import {GroupActionsComponent} from '../group-actions/group-actions.component';
 import {LocalStorageService} from '../api/local-storage.service';
 import {ProjectInfo, StateInfo} from '../api/winslow-api';
+import {PipelineApiService} from "../api/pipeline-api.service";
 
 @Component({
   selector: 'app-projects',
@@ -34,7 +34,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   projectsFiltered: ProjectInfo[] = null;
   projectsGroups: ProjectGroup[] = [];
   stateInfo: Map<string, StateInfo> = null;
-  interval;
   selectedProject: ProjectInfo = null;
   selectedProjectId: string = null;
 
@@ -47,10 +46,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   context: string;
   SELECTED_CONTEXT = 'SELECTED_CONTEXT';
 
-  constructor(readonly api: ProjectApiService,
+  constructor(readonly projectApi: ProjectApiService,
+              readonly pipelineApi: PipelineApiService,
               readonly users: UserApiService,
               private createDialog: MatDialog,
-              private notification: NotificationService,
               private dialog: DialogService,
               public route: ActivatedRoute,
               public router: Router,
@@ -80,7 +79,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   private createProjectSubscription() {
-    return this.api.getProjectSubscriptionHandler().subscribe((id, value) => {
+    return this.projectApi.getProjectSubscriptionHandler().subscribe((id, value) => {
       const projects = this.projects == null ? [] : [...this.projects];
       const index = projects.findIndex(project => project.id === id);
       if (index >= 0) {
@@ -97,7 +96,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   private createProjectStateSubscription() {
-    return this.api.getProjectStateSubscriptionHandler().subscribe((id, value) => {
+    return this.projectApi.getProjectStateSubscriptionHandler().subscribe((id, value) => {
       const stateInfo = this.stateInfo == null ? new Map() : new Map(this.stateInfo);
       if (stateInfo.has(id) && value == null) {
         stateInfo.delete(id);
@@ -124,7 +123,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.projects = null;
-    clearInterval(this.interval);
     if (this.paramsSubscription) {
       this.paramsSubscription.unsubscribe();
       this.paramsSubscription = null;
@@ -139,7 +137,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  createNewProject() {
+  openCreateProjectDialog() {
     this.createDialog
       .open(ProjectsCreateDialog, {
         data: {
@@ -150,16 +148,39 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .subscribe((result: CreateProjectData) => {
         if (result) {
-          return this.dialog.openLoadingIndicator(
-            this.api.createProject(result.name, result.pipelineId, result.tags).then(r => {
-              this.projects.push(r);
-              this.projectsFiltered.push(r);
-              this.selectedProject = r;
-            }),
-            `Creating new Project`
-          );
+          this.dialog.openLoadingIndicator(this.createProject(result), `Creating new Project`);
         }
       });
+  }
+
+  private async createProject(dialogData: CreateProjectData) {
+    const pipelineName = `Pipeline of project '${dialogData.name}'`;
+    let pipelineToUse: string;
+
+    if (dialogData.pipelineOption == CreateProjectPipelineOption.UseShared) {
+      pipelineToUse = dialogData.pipelineId;
+    } else {
+      pipelineToUse = (await this.pipelineApi.createPipelineDefinition(pipelineName)).id;
+    }
+
+    const project = await this.projectApi.createProject(dialogData.name, pipelineToUse, dialogData.tags);
+
+    if (dialogData.pipelineOption == CreateProjectPipelineOption.CreateExclusive) {
+      // take ownership of new exclusive pipeline
+      const definition = await this.pipelineApi.getPipelineDefinition(pipelineToUse);
+      definition.belongsToProject = project.id;
+      await this.pipelineApi.setPipelineDefinition(definition);
+    } else if (dialogData.pipelineOption == CreateProjectPipelineOption.CopyShared) {
+      // copy contents and take ownership
+      const definition = await this.pipelineApi.getPipelineDefinition(dialogData.pipelineId);
+      definition.belongsToProject = project.id;
+      definition.id = pipelineToUse;
+      await this.pipelineApi.setPipelineDefinition(definition);
+    }
+
+    this.projects.push(project);
+    this.projectsFiltered.push(project);
+    this.selectedProject = project;
   }
 
   stopLoading(project: ProjectInfo) {
@@ -213,7 +234,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   selectProject(project: ProjectInfo) {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
-    });
+    }).then();
   }
 
   openProjectDiskUsageDialog() {

@@ -3,7 +3,7 @@
     <div class="drawer-content">
       <!-- Context filter -->
       <app-projects-context-filter
-        [availableTags]="api.cachedTags"
+        [availableTags]="projectApi.cachedTags"
         (outputContext)="changeContext($event)"
       ></app-projects-context-filter>
 
@@ -17,7 +17,7 @@
           </mat-expansion-panel-header>
           <app-tag-filter
             #filter
-            [availableTags]="api.cachedTags"
+            [availableTags]="projectApi.cachedTags"
             [projects]="projects"
             [preSelectedTag]="context"
             (filtered)="projectsFiltered = $event"
@@ -40,7 +40,7 @@
     </div>
 
     <div class="button-group">
-      <button mat-mini-fab color="primary" (click)="createNewProject()">
+      <button mat-mini-fab color="primary" (click)="openCreateProjectDialog()">
         <mat-icon matTooltip="Create new Project">add</mat-icon>
       </button>
       <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
