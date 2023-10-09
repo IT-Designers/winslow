@@ -210,13 +210,13 @@ export class ProjectApiService {
     return this.ownProjectStateSubscriptionHandler;
   }
 
-  createProject(name: string, pipeline: PipelineDefinitionInfo, tags?: string[]): Promise<ProjectInfo> {
+  createProject(name: string, pipeline: string, tags?: string[]): Promise<ProjectInfo> {
     return this.client
       .post<ProjectInfo>(
         ProjectApiService.getUrl(null),
         {
           name,
-          pipeline: pipeline.id,
+          pipeline: pipeline,
           tags
         })
       .toPromise()
