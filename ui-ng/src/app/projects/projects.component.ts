@@ -154,7 +154,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   private async createProject(dialogData: CreateProjectData) {
-    const pipelineName = `Pipeline of project '${dialogData.name}'`;
+    const pipelineName = `${dialogData.name}`;
     let pipelineToUse: string;
 
     if (dialogData.pipelineOption == CreateProjectPipelineOption.UseShared) {
@@ -165,16 +165,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
     const project = await this.projectApi.createProject(dialogData.name, pipelineToUse, dialogData.tags);
 
-    if (dialogData.pipelineOption == CreateProjectPipelineOption.CreateExclusive) {
+    if (dialogData.pipelineOption == CreateProjectPipelineOption.CreateLocal) {
       // take ownership of new exclusive pipeline
       const definition = await this.pipelineApi.getPipelineDefinition(pipelineToUse);
       definition.belongsToProject = project.id;
-      await this.pipelineApi.setPipelineDefinition(definition);
-    } else if (dialogData.pipelineOption == CreateProjectPipelineOption.CopyShared) {
-      // copy contents and take ownership
-      const definition = await this.pipelineApi.getPipelineDefinition(dialogData.pipelineId);
-      definition.belongsToProject = project.id;
-      definition.id = pipelineToUse;
       await this.pipelineApi.setPipelineDefinition(definition);
     }
 
