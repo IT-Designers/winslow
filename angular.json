@@ -30,6 +30,7 @@
             ],
             "styles": [
               "node_modules/diagram-maker/dist/diagramMaker.css",
+              "node_modules/fontsource-roboto/latin.css",
               "src/styles.scss"
             ],
             "scripts": [],
@@ -129,7 +130,8 @@
             ],
             "styles": [
               "node_modules/diagram-maker/dist/diagramMaker.css",
-              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+              "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+              "node_modules/fontsource-roboto/latin.css",
               "src/styles.css"
             ],
             "scripts": []
