@@ -1,26 +1,29 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {ProjectApiService} from '../../api/project-api.service';
-import {DialogService} from '../../dialog.service';
-import {MatDialog} from '@angular/material/dialog';
+import {ProjectApiService} from '../api/project-api.service';
+import {DialogService} from '../dialog.service';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
-} from '../../project-disk-usage-dialog/project-disk-usage-dialog.component';
-import {Subscription} from 'rxjs';
-import {Action, ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../../api/winslow-api';
+} from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
+import {PipelineApiService} from '../api/pipeline-api.service';
+import {pipe, Subscription} from 'rxjs';
+import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../api/winslow-api';
 
 
 @Component({
-  selector: 'app-project-overview-tab',
-  templateUrl: './project-overview-tab.component.html',
-  styleUrls: ['./project-overview-tab.component.css']
+  selector: 'app-project-overview',
+  templateUrl: './project-overview.component.html',
+  styleUrls: ['./project-overview.component.css']
 })
-export class ProjectOverviewTabComponent implements OnDestroy {
+export class ProjectOverviewComponent implements OnDestroy {
 
 
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
 
+  @Output() openFiles = new EventEmitter<ProjectInfo>();
+  @Output() openLogs = new EventEmitter<ProjectInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo?]>();
   @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfo>();
@@ -50,6 +53,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   subscription: Subscription = null;
 
   enqueued: ExecutionGroupInfo[] = [];
+  pipelineActions: PipelineDefinitionInfo[] = [];
 
   mergeOptionCpu = {};
   chartOptionCpu = {
@@ -62,7 +66,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       },
       formatter: (params) => {
         params = params[0];
-        let date = new Date(params.name);
+        var date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
         return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
                date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
@@ -123,7 +127,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       },
       formatter: (params) => {
         params = params[0];
-        let date = new Date(params.name);
+        var date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
         return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
                date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
@@ -176,6 +180,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   constructor(private api: ProjectApiService,
               private dialog: DialogService,
               private createDialog: MatDialog,
+              private  pipelines: PipelineApiService,
               private cdr: ChangeDetectorRef) {
   }
 
@@ -201,6 +206,13 @@ export class ProjectOverviewTabComponent implements OnDestroy {
     this.projectValue = value;
     this.unsubscribe();
     this.subscribe();
+    if (value != null) {
+      this.pipelines
+        .getPipelineDefinitions()
+        .then(def => {
+          this.pipelineActions = def.filter(pipe(p => p.hasActionMarkerFor(this.projectValue.pipelineDefinition.name)));
+        });
+    }
     this.enqueued = [];
     this.initSeries();
   }
@@ -236,8 +248,8 @@ export class ProjectOverviewTabComponent implements OnDestroy {
     const now = new Date();
     const zeroes = [];
 
-    for (let i = ProjectOverviewTabComponent.GRAPH_ENTRIES; i >= 0; --i) {
-      const date = new Date(now.getTime() - (i * ProjectOverviewTabComponent.UPDATE_INTERVAL));
+    for (let i = ProjectOverviewComponent.GRAPH_ENTRIES; i >= 0; --i) {
+      const date = new Date(now.getTime() - (i * ProjectOverviewComponent.UPDATE_INTERVAL));
       zeroes.push({
         name: date.toString(),
         value:[date, 0]
@@ -278,9 +290,9 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       value: [date, stats.cpuUsed.toFixed(0)]/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
-    this.cpuMax = ProjectOverviewTabComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
+    this.cpuMax = ProjectOverviewComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
     this.cpu = this.cpu.map(c => {
-      ProjectOverviewTabComponent.limitSeriesTo(c, ProjectOverviewTabComponent.GRAPH_ENTRIES);
+      ProjectOverviewComponent.limitSeriesTo(c, ProjectOverviewComponent.GRAPH_ENTRIES);
       return c;
     });
 
@@ -318,9 +330,9 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       value: [date, this.bytesToGigabyte(stats.memoryAllocated).toFixed(2)]/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
-    this.memoryMax = ProjectOverviewTabComponent.maxOfSeriesOr(this.memory[0].series, 0.1, stats.memoryMaximum);
+    this.memoryMax = ProjectOverviewComponent.maxOfSeriesOr(this.memory[0].series, 0.1, stats.memoryMaximum);
     this.memory = this.memory.map(m => {
-      ProjectOverviewTabComponent.limitSeriesTo(m, ProjectOverviewTabComponent.GRAPH_ENTRIES);
+      ProjectOverviewComponent.limitSeriesTo(m, ProjectOverviewComponent.GRAPH_ENTRIES);
       return m;
     });
 
@@ -368,6 +380,30 @@ export class ProjectOverviewTabComponent implements OnDestroy {
     }
   }
 
+  emitOpenFiles() {
+    if (this.projectValue) {
+      this.openFiles.emit(this.projectValue);
+    }
+  }
+
+  emitOpenLogs() {
+    if (this.projectValue) {
+      this.openLogs.emit(this.projectValue);
+    }
+  }
+
+  isConfigure(action: Action) {
+    return action === 'CONFIGURE';
+  }
+
+  isEnqueued(state: State) {
+    return state === 'ENQUEUED';
+  }
+
+  isRunning(state: State) {
+    return state === 'RUNNING';
+  }
+
   openProjectDiskUsageDialog() {
     this.createDialog
       .open(ProjectDiskUsageDialogComponent, {
@@ -376,6 +412,31 @@ export class ProjectOverviewTabComponent implements OnDestroy {
         } as ProjectDiskUsageDialogData
       });
   }
+
+  enqueueAction(value: string) {
+    this.dialog.openLoadingIndicator(
+      this.api.action(this.projectValue.id, value),
+      `Submitting action...`
+    );
+  }
+
+
+  actionBackgroundColor(tag: string) {
+    tag = tag.trim();
+    let sum = tag.length;
+    for (let i = 0; i < tag.length; ++i) {
+      sum += (i + 1) * tag.charCodeAt(i) * 1337;
+    }
+
+    const min = 192;
+    const max = 256 - min;
+
+    const red = ((sum / 7) % max) + min;
+    const green = ((sum / 5) % max) + min;
+    const blue = ((sum / 3) % max) + min;
+    return `rgba(${red}, ${green}, ${blue}, 0.45)`;
+  }
+
   private subscribe() {
     this.unsubscribe();
     this.subscription = this.api.watchProjectStats(this.projectValue.id, stats => {

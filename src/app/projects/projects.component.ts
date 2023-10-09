@@ -1,12 +1,9 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {
-  CreateProjectData,
-  CreateProjectPipelineOption,
-  ProjectsCreateDialog
-} from '../projects-create-dialog/projects-create-dialog.component';
-import {MatDialog} from '@angular/material/dialog';
+import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
+import {NotificationService} from '../notification.service';
 import {DialogService} from '../dialog.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
@@ -19,7 +16,6 @@ import {FilesApiService} from '../api/files-api.service';
 import {GroupActionsComponent} from '../group-actions/group-actions.component';
 import {LocalStorageService} from '../api/local-storage.service';
 import {ProjectInfo, StateInfo} from '../api/winslow-api';
-import {PipelineApiService} from "../api/pipeline-api.service";
 
 @Component({
   selector: 'app-projects',
@@ -34,6 +30,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   projectsFiltered: ProjectInfo[] = null;
   projectsGroups: ProjectGroup[] = [];
   stateInfo: Map<string, StateInfo> = null;
+  interval;
   selectedProject: ProjectInfo = null;
   selectedProjectId: string = null;
 
@@ -46,11 +43,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   context: string;
   SELECTED_CONTEXT = 'SELECTED_CONTEXT';
 
-
-  constructor(readonly projectApi: ProjectApiService,
-              readonly pipelineApi: PipelineApiService,
+  constructor(readonly api: ProjectApiService,
               readonly users: UserApiService,
               private createDialog: MatDialog,
+              private notification: NotificationService,
               private dialog: DialogService,
               public route: ActivatedRoute,
               public router: Router,
@@ -71,22 +67,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private refreshProjects(): void {
-    // Replace projects array with a new object in order to get the filteredProjects to update.
-    // A different implementation for filtering projects might be useful for avoiding this.
-    this.projects = [...this.projects.sort((a, b) => a.name.localeCompare(b.name))];
-  }
-
-  private addOrUpdateProject(project: ProjectInfo) {
-    const index = this.projects.findIndex(preexistingProject => preexistingProject.id == project.id);
-    if (index === -1) {
-      this.projects.push(project);
-    } else {
-      this.projects[index] = project;
-    }
-    this.refreshProjects();
-  }
-
   private createEffects() {
     try {
       this.effects = new Effects(this.users);
@@ -96,9 +76,16 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   private createProjectSubscription() {
-    return this.projectApi.getProjectSubscriptionHandler().subscribe((id, value) => {
-      this.addOrUpdateProject(value);
-
+    return this.api.getProjectSubscriptionHandler().subscribe((id, value) => {
+      const projects = this.projects == null ? [] : [...this.projects];
+      const index = projects.findIndex(project => project.id === id);
+      if (index >= 0) {
+        projects[index] = value;
+      } else {
+        projects.push(value);
+        projects.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      this.projects = projects;
       if (this.selectedProjectId === id) {
         this.selectedProject = value;
       }
@@ -106,7 +93,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   private createProjectStateSubscription() {
-    return this.projectApi.getProjectStateSubscriptionHandler().subscribe((id, value) => {
+    return this.api.getProjectStateSubscriptionHandler().subscribe((id, value) => {
       const stateInfo = this.stateInfo == null ? new Map() : new Map(this.stateInfo);
       if (stateInfo.has(id) && value == null) {
         stateInfo.delete(id);
@@ -132,6 +119,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.projects = null;
+    clearInterval(this.interval);
     if (this.paramsSubscription) {
       this.paramsSubscription.unsubscribe();
       this.paramsSubscription = null;
@@ -146,66 +135,80 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  openCreateProjectDialog() {
+  createNewProject() {
     this.createDialog
       .open(ProjectsCreateDialog, {
         data: {
-          pipelineOption: CreateProjectPipelineOption.UseShared,
-          tags: [],
+          tags: []
         } as CreateProjectData
       })
       .afterClosed()
-      .subscribe((result: CreateProjectData) => {
+      .subscribe(result => {
         if (result) {
-          this.dialog.openLoadingIndicator(this.createProject(result), `Creating new Project`);
+          return this.dialog.openLoadingIndicator(
+            this.api.createProject(result.name, result.pipeline, result.tags).then(r => {
+              this.projects.push(r);
+              this.projectsFiltered.push(r);
+              this.selectedProject = r;
+            }),
+            `Creating new Project`
+          );
         }
       });
   }
 
-  private async createProject(dialogData: CreateProjectData) {
-    const pipelineName = `${dialogData.name}`;
-    let pipelineToUse: string;
-
-    if (dialogData.pipelineOption == CreateProjectPipelineOption.UseShared) {
-      pipelineToUse = dialogData.pipelineId;
-    } else {
-      pipelineToUse = (await this.pipelineApi.createPipelineDefinition(pipelineName)).id;
+  stopLoading(project: ProjectInfo) {
+    if (project != null) {
+      this.views.forEach(view => {
+        if (view.project.id === project.id) {
+          view.stopLoading();
+        }
+      });
     }
-
-    const project = await this.projectApi.createProject(dialogData.name, pipelineToUse, dialogData.tags);
-
-    if (dialogData.pipelineOption == CreateProjectPipelineOption.CreateLocal) {
-      // take ownership of new exclusive pipeline
-      const definition = await this.pipelineApi.getPipelineDefinition(pipelineToUse);
-      definition.belongsToProject = project.id;
-      await this.pipelineApi.setPipelineDefinition(definition);
-    }
-
-    // project does not need to be added, as it will be validated on the backend and then added via subscription
-    this.selectProject(project);
   }
 
-  onDeleted(id: string) {
-    const index = this.projects.findIndex(project => project.id == id);
-
-    if (index === -1) {
-      console.error(`Could not remove project ${id} from project list as no such project exists.`);
-      return;
+  startLoading(project: ProjectInfo) {
+    if (project != null) {
+      this.views.forEach(view => {
+        if (view.project.id === project.id) {
+          const stateInfo = this.stateInfo.get(project.id);
+          if (stateInfo != null) {
+            view.update(stateInfo);
+          }
+          view.startLoading();
+        }
+      });
     }
+  }
 
-    this.projects.splice(index, 1);
-    this.refreshProjects();
-
-    if (this.selectedProject != null && this.selectedProject.id === id) {
-      this.selectedProject = null;
+  onDeleted(project: ProjectInfo) {
+    console.log('--------------- Deleting project: ' + project.name);
+    console.dir(this.projects);
+    console.dir(this.projectsFiltered);
+    for (let i = 0; i < this.projects.length; ++i) {
+      if (this.projects[i].id === project.id) {
+        this.projects.splice(i, 1);
+        this.projectsFiltered.splice(i, 1);
+        this.projects = this.projects.sort();
+        if (this.selectedProject != null && this.selectedProject.id === project.id) {
+          if (this.projects.length > 0) {
+            if (i >= this.projects.length) {
+              i -= 1;
+            }
+            this.selectedProject = this.projects[i];
+          } else {
+            this.selectedProject = null;
+          }
+        }
+        break;
+      }
     }
-
   }
 
   selectProject(project: ProjectInfo) {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
-    }).then();
+    });
   }
 
   openProjectDiskUsageDialog() {

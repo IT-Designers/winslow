@@ -1,5 +1,5 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import {UserInfo, UserApiService} from '../../api/user-api.service';
 import {RoleApiService} from '../../api/role-api.service';
 import {Link} from '../../api/winslow-api';
