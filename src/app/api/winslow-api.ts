@@ -374,7 +374,6 @@ export class PipelineDefinitionInfo {
   stages: StageDefinitionInfoUnion[];
   environment: Record<string, string>;
   deletionPolicy: DeletionPolicy;
-  markers: string[];
   groups: Link[];
   belongsToProject: string | null;
   publicAccess: boolean;
@@ -387,7 +386,6 @@ export class PipelineDefinitionInfo {
     this.stages = data.stages;
     this.environment = data.environment;
     this.deletionPolicy = data.deletionPolicy;
-    this.markers = data.markers;
     this.groups = data.groups;
     this.belongsToProject = data.belongsToProject;
     this.publicAccess = data.publicAccess;
