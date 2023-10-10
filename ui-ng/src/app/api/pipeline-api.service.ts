@@ -111,35 +111,6 @@ export function loadPipelineDefinition(origin: PipelineDefinitionInfo): Pipeline
   });
 }
 
-// https://putridparrot.com/blog/extension-methods-in-typescript/
-// add new functions to IPipelineInfo
-// requires an Import from this module or
-// import "... pipeline-api.service.ts";
-declare module './winslow-api' {
-  interface PipelineDefinitionInfo {
-    hasActionMarker(): boolean;
-
-    hasActionMarkerFor(pipelineName: string): boolean;
-  }
-}
-
-
-// tslint:disable-next-line:only-arrow-functions
-PipelineDefinitionInfo.prototype.hasActionMarker = function() {
-  for (const marker of this.markers) {
-    const lower = marker.toLowerCase();
-    if (lower.startsWith('action')) {
-      return true;
-    }
-  }
-  return false;
-};
-
-PipelineDefinitionInfo.prototype.hasActionMarkerFor = function(pipelineName: string) {
-  const markers = this.markers.map(m => m.toLowerCase());
-  return markers.indexOf('action') >= 0 || markers.indexOf('action for ' + pipelineName.toLowerCase()) >= 0;
-};
-
 export function createStageWorkerDefinitionInfo(id: string, name: string): StageWorkerDefinitionInfo {
   return new StageWorkerDefinitionInfo({
     '@type': 'Worker',

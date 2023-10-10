@@ -324,7 +324,6 @@ public class PipelinesController {
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
                                     new DeletionPolicy(),
-                                    Collections.emptyList(),
                                     List.of(new Link(
                                             user.name(),
                                             Role.OWNER

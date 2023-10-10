@@ -7,8 +7,8 @@ import {
   ProjectDiskUsageDialogData
 } from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {PipelineApiService} from '../api/pipeline-api.service';
-import {pipe, Subscription} from 'rxjs';
-import {Action, ExecutionGroupInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../api/winslow-api';
+import {Subscription} from 'rxjs';
+import {Action, ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../api/winslow-api';
 
 
 @Component({
@@ -53,7 +53,6 @@ export class ProjectOverviewComponent implements OnDestroy {
   subscription: Subscription = null;
 
   enqueued: ExecutionGroupInfo[] = [];
-  pipelineActions: PipelineDefinitionInfo[] = [];
 
   mergeOptionCpu = {};
   chartOptionCpu = {
@@ -66,7 +65,7 @@ export class ProjectOverviewComponent implements OnDestroy {
       },
       formatter: (params) => {
         params = params[0];
-        var date = new Date(params.name);
+        let date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
         return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
                date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
@@ -127,7 +126,7 @@ export class ProjectOverviewComponent implements OnDestroy {
       },
       formatter: (params) => {
         params = params[0];
-        var date = new Date(params.name);
+        let date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
         return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
                date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
@@ -206,13 +205,6 @@ export class ProjectOverviewComponent implements OnDestroy {
     this.projectValue = value;
     this.unsubscribe();
     this.subscribe();
-    if (value != null) {
-      this.pipelines
-        .getPipelineDefinitions()
-        .then(def => {
-          this.pipelineActions = def.filter(pipe(p => p.hasActionMarkerFor(this.projectValue.pipelineDefinition.name)));
-        });
-    }
     this.enqueued = [];
     this.initSeries();
   }

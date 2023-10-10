@@ -22,7 +22,6 @@ public record PipelineDefinition (
         @Nonnull List<StageDefinition> stages,
         @Nonnull Map<String, String> environment,
         @Nonnull DeletionPolicy deletionPolicy,
-        @Nonnull List<String> markers,
         @Nonnull List<Link> groups,
         @Nullable String belongsToProject, // A pipeline can either be shared or owned by a single project
         boolean publicAccess) {
@@ -37,7 +36,6 @@ public record PipelineDefinition (
                 Collections.emptyMap(),
                 new DeletionPolicy(),
                 Collections.emptyList(),
-                Collections.emptyList(),
                 null,
                 false
         );
@@ -51,7 +49,6 @@ public record PipelineDefinition (
             "stages",
             "requiredEnvVariables",
             "deletionPolicy",
-            "markers",
             "groups",
             "belongsToProject",
             "publicAccess",
@@ -65,7 +62,6 @@ public record PipelineDefinition (
             @Nullable List<StageDefinition> stages,
             @Nullable Map<String, String> environment,
             @Nullable DeletionPolicy deletionPolicy,
-            @Nullable List<String> markers,
             @Nullable List<Link> groups,
             @Nullable String belongsToProject,
             boolean publicAccess
@@ -81,7 +77,6 @@ public record PipelineDefinition (
         this.stages = stages != null ? stages : Collections.emptyList();
         this.environment = environment != null ? environment : Collections.emptyMap();
         this.deletionPolicy = deletionPolicy != null ? deletionPolicy : new DeletionPolicy();
-        this.markers = markers != null ? markers : Collections.emptyList();
         this.groups = groups != null ? groups : Collections.emptyList();
         this.belongsToProject = belongsToProject;
         this.publicAccess = publicAccess;
@@ -95,7 +90,6 @@ public record PipelineDefinition (
         Objects.requireNonNull(stages, "The stages of a pipeline must be set");
         Objects.requireNonNull(environment, "The environment of a pipeline must be set");
         Objects.requireNonNull(deletionPolicy, "The deletion policy of a pipeline must be set");
-        Objects.requireNonNull(markers, "The markers of a pipeline must be set");
         Stream.ofNullable(this.stages).flatMap(List::stream).forEach(StageDefinition::check);
 
         // todo check valid project id
@@ -134,7 +128,6 @@ public record PipelineDefinition (
                 stages(),
                 environment(),
                 deletionPolicy(),
-                markers(),
                 groups()
                         .stream()
                         .filter(link -> !Objects.equals(link.name(), groupName))
@@ -154,7 +147,6 @@ public record PipelineDefinition (
                 stages(),
                 environment(),
                 deletionPolicy(),
-                markers(),
                 Stream.concat(
                         Stream.of(new Link(group, role)),
                         groups()
@@ -176,7 +168,6 @@ public record PipelineDefinition (
                 stages(),
                 environment(),
                 deletionPolicy(),
-                markers(),
                 groups(),
                 projectId,
                 publicAccess()

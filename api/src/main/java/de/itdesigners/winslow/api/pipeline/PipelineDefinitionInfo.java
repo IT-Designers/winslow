@@ -15,7 +15,6 @@ public record PipelineDefinitionInfo(
         @Nonnull List<StageDefinitionInfo> stages,
         @Nonnull Map<String, String> environment,
         @Nonnull DeletionPolicy deletionPolicy,
-        @Nonnull List<String> markers,
         @Nonnull List<Link> groups,
         @Nullable String belongsToProject,
         boolean publicAccess) {
@@ -28,7 +27,6 @@ public record PipelineDefinitionInfo(
             @Nonnull List<StageDefinitionInfo> stages,
             @Nonnull Map<String, String> environment,
             @Nonnull DeletionPolicy deletionPolicy,
-            @Nonnull List<String> markers,
             @Nonnull List<Link> groups,
             @Nullable String belongsToProject,
             boolean publicAccess) {
@@ -39,7 +37,6 @@ public record PipelineDefinitionInfo(
         this.stages           = stages;
         this.environment      = environment;
         this.deletionPolicy   = deletionPolicy;
-        this.markers          = markers;
         this.groups           = groups;
         this.belongsToProject = belongsToProject;
         this.publicAccess     = publicAccess;
