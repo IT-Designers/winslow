@@ -23,10 +23,13 @@ import {MatDialog, MatDialogState} from "@angular/material/dialog";
 export class ProjectControlTabComponent {
 
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
-  selectedProject: ProjectInfo;
+  projectInfo: ProjectInfo;
 
   @Input() set project(project: ProjectInfo) {
-    this.selectedProject = project;
+    this.projectInfo = project;
+  }
+  get project() {
+    return this.projectInfo;
   }
 
   protected readonly history: ExecutionGroupInfo[];
@@ -43,7 +46,7 @@ export class ProjectControlTabComponent {
   }
 
   // todo
-  configure(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
+  saveConfiguration(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
     if (pipeline.name === this.project.pipelineDefinition.name) {
       let index = null;
       for (let i = 0; i < pipeline.stages.length; ++i) {
@@ -54,7 +57,7 @@ export class ProjectControlTabComponent {
       }
       if (index !== null) {
         this.dialog.openLoadingIndicator(
-          this.api.configureGroup(this.project.id, index, [this.project.id], env, image, requiredResources),
+          this.projectApi.configureGroup(this.project.id, index, [this.project.id], env, image, requiredResources),
           `Submitting selections`
         );
       }
@@ -64,16 +67,16 @@ export class ProjectControlTabComponent {
   }
 
   // todo
-  configureGroup(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo) {
+  saveConfigurationOnOtherProjects(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo) {
     for (let i = 0; i < pipeline.stages.length; ++i) {
       if (stage.name === pipeline.stages[i].name) {
-        return this.api.listProjects()
+        return this.projectApi.listProjects()
           .then(projects => {
             return this.matDialog
               .open(GroupSettingsDialogComponent, {
                 data: {
                   projects,
-                  availableTags: this.api.cachedTags,
+                  availableTags: this.projectApi.cachedTags,
                 } as GroupSettingsDialogData
               })
               .afterClosed()
@@ -82,7 +85,7 @@ export class ProjectControlTabComponent {
                 if (selectedProjects) {
                   const selectedProjectIds = selectedProjects.map(project => project.id)
                   return this.dialog.openLoadingIndicator(
-                    this.api.configureGroup(this.project.id, i, selectedProjectIds, env, image)
+                    this.projectApi.configureGroup(this.project.id, i, selectedProjectIds, env, image)
                       .then(configureResult => {
                         const failed = [];
                         for (let n = 0; n < configureResult.length && n < selectedProjectIds.length; ++n) {
@@ -117,5 +120,23 @@ export class ProjectControlTabComponent {
     runSingle?: boolean,
     resume?: boolean,
   ) {
+    if (pipeline.name === this.project.pipelineDefinition.name) {
+      this.dialog.openLoadingIndicator(
+        this.projectApi.enqueue(
+          this.project.id,
+          stageDefinitionInfo.id,
+          env,
+          rangedEnv,
+          image,
+          requiredResources,
+          workspaceConfiguration,
+          comment,
+          runSingle,
+          resume),
+        `Submitting selections`
+      );
+    } else {
+      this.dialog.error('Changing the Pipeline is not yet supported!');
+    }
   }
 }

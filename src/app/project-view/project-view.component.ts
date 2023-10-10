@@ -18,7 +18,10 @@ import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
-import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
+import {
+  GroupSettingsDialogComponent,
+  GroupSettingsDialogData
+} from '../group-settings-dialog/group-settings-dialog.component';
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -376,40 +379,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   isRunning(state = this.stateValue): boolean {
     return state === 'RUNNING';
   }
-
-  enqueue(
-    pipeline: PipelineDefinitionInfo,
-    stageDefinitionInfo: StageDefinitionInfo,
-    env: any,
-    rangedEnv: any,
-    image: ImageInfo,
-    requiredResources?: ResourceInfo,
-    workspaceConfiguration?: WorkspaceConfiguration,
-    comment?: string,
-    runSingle?: boolean,
-    resume?: boolean,
-  ) {
-    if (pipeline.name === this.project.pipelineDefinition.name) {
-      this.dialog.openLoadingIndicator(
-        this.api.enqueue(
-          this.project.id,
-          stageDefinitionInfo.id,
-          env,
-          rangedEnv,
-          image,
-          requiredResources,
-          workspaceConfiguration,
-          comment,
-          runSingle,
-          resume),
-        `Submitting selections`
-      );
-    } else {
-      this.dialog.error('Changing the Pipeline is not yet supported!');
-    }
-  }
-
-
 
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
     const before = this.paused;
