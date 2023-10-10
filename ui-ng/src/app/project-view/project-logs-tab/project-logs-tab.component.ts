@@ -8,7 +8,7 @@ import {RegularExpressionEditorDialogComponent} from '../../regular-expression-e
 import {LogEntryInfo, LogSource, ProjectInfo} from '../../api/winslow-api';
 
 @Component({
-  selector: 'app-log-view',
+  selector: 'app-project-logs-tab',
   templateUrl: './project-logs-tab.component.html',
   styleUrls: ['./project-logs-tab.component.css']
 })
