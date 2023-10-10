@@ -3,7 +3,7 @@ import {ProjectApiService} from '../../api/project-api.service';
 import {ExecutionGroupInfo, StageInfo, State} from '../../api/winslow-api';
 
 @Component({
-  selector: 'app-project-history',
+  selector: 'app-project-history-tab',
   templateUrl: './project-history-tab.component.html',
   styleUrls: ['./project-history-tab.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

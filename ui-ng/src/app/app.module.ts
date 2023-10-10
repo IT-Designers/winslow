@@ -59,7 +59,7 @@ import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
 import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
 import {MonacoEditorModule} from 'ngx-monaco-editor';
-import { ProjectOverviewComponent } from './project-view/project-overview-tab/project-overview.component';
+import { ProjectOverviewTabComponent } from './project-view/project-overview-tab/project-overview-tab.component';
 import { ProjectHistoryHeaderComponent } from './project-view/project-history-tab/project-history-header/project-history-header.component';
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
 import { ProjectHistoryTabComponent } from './project-view/project-history-tab/project-history-tab.component';
@@ -140,7 +140,7 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         SystemCfgEnvComponent,
         EnvVariablesComponent,
         PipelineEditorComponent,
-        ProjectOverviewComponent,
+        ProjectOverviewTabComponent,
         ProjectHistoryHeaderComponent,
         ProjectDiskUsageDialogComponent,
         ProjectHistoryTabComponent,

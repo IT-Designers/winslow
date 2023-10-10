@@ -3,7 +3,7 @@
 
   <mat-tab label="Overview">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-    <app-project-overview
+    <app-project-overview-tab
       [project]="this.project"
       [state]="stateValue"
       [history]="history"
@@ -15,7 +15,7 @@
       (clickResumeSingle)="updateRequestPause(false, true)"
       (clickResume)="updateRequestPause(false, false)"
       (clickPause)="updateRequestPause(true)"
-    ></app-project-overview>
+    ></app-project-overview-tab>
   </mat-tab>
 
   <!--<mat-tab label="ControlView">
@@ -147,7 +147,7 @@
           [ngStyle]="history?.length < 7 ? {'height': history.length * 50 } :  {'height': historyListHeight + 'px' }"
           (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null">
 
-            <app-project-history
+            <app-project-history-tab
               *ngFor="let entry of history; index as i; trackBy:trackHistory"
               [active]="selectedHistoryEntryIndex === i"
               class="history-list-item"
@@ -172,7 +172,7 @@
               (clickOpenLogs)="openLogs($event)"
               (clickOpenAnalysis)="openAnalysis($event)"
               (clickOpenTensorboard)="openTensorboard(project, $event)"
-            ></app-project-history>
+            ></app-project-history-tab>
           </div>
         </div>
 
@@ -211,19 +211,19 @@
 
   <mat-tab label="Logs">
     <ng-template matTabContent>
-      <app-log-view class="flex-grow flex-grow-column max-height"
+      <app-project-logs-tab class="flex-grow flex-grow-column max-height"
                     [project]="projectValue"
                     [selectedStage]="stageIdToDisplayLogsFor"
-      ></app-log-view>
+      ></app-project-logs-tab>
     </ng-template>
   </mat-tab>
 
   <mat-tab label="Analysis">
     <ng-template matTabContent>
-      <app-log-analysis class="flex-grow flex-grow-column max-height"
+      <app-project-analysis-tab class="flex-grow flex-grow-column max-height"
                     [project]="projectValue"
                     [selectedStage]="stageIdToDisplayLogsFor"
-      ></app-log-analysis>
+      ></app-project-analysis-tab>
     </ng-template>
   </mat-tab>
 

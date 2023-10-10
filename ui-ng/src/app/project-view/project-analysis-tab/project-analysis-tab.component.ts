@@ -11,7 +11,7 @@ import {CsvFilesService} from './csv-files.service';
 import {ExecutionGroupInfo, FileInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../../api/winslow-api';
 
 @Component({
-  selector: 'app-log-analysis',
+  selector: 'app-project-analysis-tab',
   templateUrl: './project-analysis-tab.component.html',
   styleUrls: ['./project-analysis-tab.component.css']
 })
