@@ -53,8 +53,7 @@ import {UserApiService} from '../api/user-api.service';
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
 })
-export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
-
+export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(public api: ProjectApiService, private notification: NotificationService,
               private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
@@ -98,7 +97,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         this.probablyProjectPipelineId = this.api.findProjectPipeline(this.project, this.pipelines);
       }
     });
-    this.updateExecutionSelectionPipelines();
 
   }
 
@@ -276,10 +274,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }*/
   }
 
-  ngAfterViewInit() {
-    this.updateExecutionSelectionPipelines();
-  }
-
   ngOnDestroy(): void {
     if (this.paramsSubscription) {
       this.paramsSubscription.unsubscribe();
@@ -349,13 +343,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       const length = this.history.length - offset;
       this.history.splice(offset, 0, ...executions.reverse());
     });
-  }
-
-  private updateExecutionSelectionPipelines() {
-    if (this.executionSelection != null && this.project != null) {
-      this.executionSelection.pipelines = [this.project.pipelineDefinition];
-      this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
-    }
   }
 
   update(info: StateInfo) {
