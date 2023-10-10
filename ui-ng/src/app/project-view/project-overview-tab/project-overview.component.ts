@@ -1,14 +1,14 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {ProjectApiService} from '../api/project-api.service';
-import {DialogService} from '../dialog.service';
+import {ProjectApiService} from '../../api/project-api.service';
+import {DialogService} from '../../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
-} from '../project-disk-usage-dialog/project-disk-usage-dialog.component';
-import {PipelineApiService} from '../api/pipeline-api.service';
+} from '../../project-disk-usage-dialog/project-disk-usage-dialog.component';
+import {PipelineApiService} from '../../api/pipeline-api.service';
 import {Subscription} from 'rxjs';
-import {Action, ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../api/winslow-api';
+import {Action, ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../../api/winslow-api';
 
 
 @Component({

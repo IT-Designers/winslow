@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {State} from '../api/winslow-api';
+import {State} from '../../../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-header',

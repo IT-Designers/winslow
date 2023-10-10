@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectApiService} from '../api/project-api.service';
-import {ExecutionGroupInfo, StageInfo} from '../api/winslow-api';
+import {ProjectApiService} from '../../../api/project-api.service';
+import {ExecutionGroupInfo, StageInfo} from '../../../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-group-info',

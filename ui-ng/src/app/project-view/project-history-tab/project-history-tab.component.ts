@@ -1,14 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectApiService} from '../api/project-api.service';
-import {ExecutionGroupInfo, StageInfo, State} from '../api/winslow-api';
+import {ProjectApiService} from '../../api/project-api.service';
+import {ExecutionGroupInfo, StageInfo, State} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-project-history',
-  templateUrl: './project-history.component.html',
-  styleUrls: ['./project-history.component.css'],
+  templateUrl: './project-history-tab.component.html',
+  styleUrls: ['./project-history-tab.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectHistoryComponent implements OnInit {
+export class ProjectHistoryTabComponent implements OnInit {
 
   visibleStages = 10;
 

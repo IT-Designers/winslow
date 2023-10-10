@@ -1,18 +1,18 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ProjectApiService} from '../api/project-api.service';
+import {ProjectApiService} from '../../api/project-api.service';
 import {Subscription} from 'rxjs';
-import {LongLoadingDetector} from '../long-loading-detector';
+import {LongLoadingDetector} from '../../long-loading-detector';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
-import {RegularExpressionEditorDialogComponent} from '../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
-import {LogEntryInfo, LogSource, ProjectInfo} from '../api/winslow-api';
+import {RegularExpressionEditorDialogComponent} from '../../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import {LogEntryInfo, LogSource, ProjectInfo} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-log-view',
-  templateUrl: './log-view.component.html',
-  styleUrls: ['./log-view.component.css']
+  templateUrl: './project-logs-tab.component.html',
+  styleUrls: ['./project-logs-tab.component.css']
 })
-export class LogViewComponent implements OnInit, OnDestroy {
+export class ProjectLogsTabComponent implements OnInit, OnDestroy {
 
   private static readonly LONG_LOADING_FLAG = 'logs';
 
@@ -133,10 +133,10 @@ export class LogViewComponent implements OnInit, OnDestroy {
       stageId = ProjectApiService.LOGS_LATEST;
     }
     this.downloadUrl = this.api.getLogRawUrl(projectId, stageId);
-    this.longLoading.raise(LogViewComponent.LONG_LOADING_FLAG);
+    this.longLoading.raise(ProjectLogsTabComponent.LONG_LOADING_FLAG);
     this.displayLatest = ProjectApiService.LOGS_LATEST === stageId;
     this.logSubscription = this.api.watchLogs(projectId, (logs) => {
-      this.longLoading.clear(LogViewComponent.LONG_LOADING_FLAG);
+      this.longLoading.clear(ProjectLogsTabComponent.LONG_LOADING_FLAG);
       if (logs?.length > 0) {
         if (this.logs == null || this.logs.length === 0 || this.logs[0].stageId !== logs[0].stageId) {
           this.selectedStageId = logs[0].stageId;

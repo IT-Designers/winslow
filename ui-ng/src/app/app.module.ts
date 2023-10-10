@@ -59,14 +59,14 @@ import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
 import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
 import {MonacoEditorModule} from 'ngx-monaco-editor';
-import { ProjectOverviewComponent } from './project-overview/project-overview.component';
-import { ProjectHistoryHeaderComponent } from './project-history-header/project-history-header.component';
+import { ProjectOverviewComponent } from './project-view/project-overview-tab/project-overview.component';
+import { ProjectHistoryHeaderComponent } from './project-view/project-history-tab/project-history-header/project-history-header.component';
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
-import { ProjectHistoryComponent } from './project-history/project-history.component';
-import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/project-history-group-info.component';
+import { ProjectHistoryTabComponent } from './project-view/project-history-tab/project-history-tab.component';
+import {ProjectHistoryGroupInfoComponent} from './project-view/project-history-tab/project-history-group-info/project-history-group-info.component';
 import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
 import {RxStompConfig} from './rx-stomp.config';
-import { LogViewComponent } from './log-view/log-view.component';
+import { ProjectLogsTabComponent } from './project-view/project-logs-tab/project-logs-tab.component';
 import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
@@ -76,15 +76,15 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { ServerBarComponent } from './server-bar/server-bar.component';
 import { ServerDetailsComponent } from './server-details/server-details.component';
-import { ProjectHistoryDetailsComponent } from './project-history-details/project-history-details.component';
+import { ProjectHistoryDetailsComponent } from './project-view/project-history-tab/project-history-details/project-history-details.component';
 import { AuthTokensComponent } from './auth-tokens/auth-tokens.component';
 import { ProjectsGroupBuilderComponent } from './projects-view/tag-filter/projects-group-builder/projects-group-builder.component';
 import { ProjectsViewComponent } from './projects-view/projects-view.component';
-import { LogAnalysisComponent } from './log-analysis/log-analysis.component';
-import { LogAnalysisChartDialogComponent } from './log-analysis/log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import { LogAnalysisChartComponent } from './log-analysis/log-analysis-chart/log-analysis-chart.component';
+import { ProjectAnalysisTabComponent } from './project-view/project-analysis-tab/project-analysis-tab.component';
+import { LogAnalysisChartDialogComponent } from './project-view/project-analysis-tab/log-analysis-chart-dialog/log-analysis-chart-dialog.component';
+import { LogAnalysisChartComponent } from './project-view/project-analysis-tab/log-analysis-chart/log-analysis-chart.component';
 import { RegularExpressionVisualiserComponent } from './regular-expression-visualiser/regular-expression-visualiser.component';
-import { LogAnalysisSettingsDialogComponent } from './log-analysis/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
+import { LogAnalysisSettingsDialogComponent } from './project-view/project-analysis-tab/log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import { ProjectsGroupComponent } from './projects-view/projects-group/projects-group.component';
 import { ProjectsContextFilterComponent } from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
 import { AddToContextPopupComponent } from './projects-view/add-to-context-popup/add-to-context-popup.component';
@@ -143,9 +143,9 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         ProjectOverviewComponent,
         ProjectHistoryHeaderComponent,
         ProjectDiskUsageDialogComponent,
-        ProjectHistoryComponent,
+        ProjectHistoryTabComponent,
         ProjectHistoryGroupInfoComponent,
-        LogViewComponent,
+        ProjectLogsTabComponent,
         StopButtonComponent,
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,
@@ -157,7 +157,7 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         AuthTokensComponent,
         ProjectsGroupBuilderComponent,
         ProjectsViewComponent,
-        LogAnalysisComponent,
+        ProjectAnalysisTabComponent,
         LogAnalysisChartDialogComponent,
         LogAnalysisChartComponent,
         RegularExpressionVisualiserComponent,

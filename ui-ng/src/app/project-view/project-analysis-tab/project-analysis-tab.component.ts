@@ -1,21 +1,21 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ProjectApiService} from '../api/project-api.service';
+import {ProjectApiService} from '../../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import {FilesApiService} from '../api/files-api.service';
+import {FilesApiService} from '../../api/files-api.service';
 import {LogChart, LogChartDefinition} from './log-chart-definition';
 import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
-import {PipelineApiService} from '../api/pipeline-api.service';
+import {PipelineApiService} from '../../api/pipeline-api.service';
 import {generateColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
-import {ExecutionGroupInfo, FileInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../api/winslow-api';
+import {ExecutionGroupInfo, FileInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../../api/winslow-api';
 
 @Component({
   selector: 'app-log-analysis',
-  templateUrl: './log-analysis.component.html',
-  styleUrls: ['./log-analysis.component.css']
+  templateUrl: './project-analysis-tab.component.html',
+  styleUrls: ['./project-analysis-tab.component.css']
 })
-export class LogAnalysisComponent implements OnInit {
+export class ProjectAnalysisTabComponent implements OnInit {
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
 
@@ -229,7 +229,7 @@ export class LogAnalysisComponent implements OnInit {
   }
 
   private pathToChartsDir() {
-    return `${LogAnalysisComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.projectInfo.id}`;
+    return `${ProjectAnalysisTabComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.projectInfo.id}`;
   }
 
   private deleteChart(chart: LogChart) {

@@ -1,5 +1,5 @@
 import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfo, StageInfo, State} from '../api/winslow-api';
+import {ExecutionGroupInfo, StageInfo, State} from '../../../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
