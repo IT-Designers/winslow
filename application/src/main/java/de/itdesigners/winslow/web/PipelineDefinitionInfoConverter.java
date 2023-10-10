@@ -21,7 +21,6 @@ public class PipelineDefinitionInfoConverter {
                         .toList(),
                 pipeline.environment(),
                 pipeline.deletionPolicy(),
-                pipeline.markers(),
                 pipeline.groups(),
                 pipeline.belongsToProject(),
                 pipeline.publicAccess()
@@ -38,7 +37,6 @@ public class PipelineDefinitionInfoConverter {
                 pipeline.stages().stream().map(StageDefinitionInfoConverter::reverse).toList(),
                 pipeline.environment(),
                 pipeline.deletionPolicy(),
-                pipeline.markers(),
                 pipeline.groups(),
                 pipeline.belongsToProject(),
                 pipeline.publicAccess()
