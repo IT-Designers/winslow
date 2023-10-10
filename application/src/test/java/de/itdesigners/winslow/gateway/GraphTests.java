@@ -498,7 +498,6 @@ public class GraphTests {
                 Collections.emptyMap(),
                 new DeletionPolicy(),
                 Collections.emptyList(),
-                Collections.emptyList(),
                 null,
                 false
         );
