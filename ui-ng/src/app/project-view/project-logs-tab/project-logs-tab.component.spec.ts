@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LogAnalysisComponent } from './log-analysis.component';
+import { ProjectLogsTabComponent } from './project-logs-tab.component';
 
-describe('LogAnalysisComponent', () => {
-  let component: LogAnalysisComponent;
-  let fixture: ComponentFixture<LogAnalysisComponent>;
+describe('ProjectLogsTabComponent', () => {
+  let component: ProjectLogsTabComponent;
+  let fixture: ComponentFixture<ProjectLogsTabComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LogAnalysisComponent ]
+      declarations: [ ProjectLogsTabComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LogAnalysisComponent);
+    fixture = TestBed.createComponent(ProjectLogsTabComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

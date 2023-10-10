@@ -79,42 +79,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     this.updateOptions(newOptions);
   }
 
-  constructor() {
-  }
-
-  ngOnInit(): void {
-  }
-
-  ngOnDestroy(): void {
-  }
-
-  private static sanitiseNumberInput(input: string, alt: string): string {
-    if (Number.isNaN(parseFloat(input))) {
-      return alt;
-    } else {
-      return input;
-    }
-  }
-
-  getDataByStep(chart: Chart, graph: ChartGraph, logs: LogEntry[]): [number, number][] {
-    let points = []
-
-    let step = 0;
-    for (let log of logs) {
-      try {
-        if (log.source != LogSource.STANDARD_IO) continue;
-
-        let match = log.message.match(chart.regExpSource);
-        if (!match) continue;
-
-        let y = parseFloat(match.groups[graph.yAxisGroup]);
-        if (isNaN(y)) continue;
-
-        points.push([step, y]);
-        step++;
-      } catch (ignored) {
-      }
-    }
-    return points;
+  private updateOptions(newOptions) {
+    this.options = {...this.options, ...newOptions}
   }
 }

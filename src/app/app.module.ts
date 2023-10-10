@@ -59,14 +59,14 @@ import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
 import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
 import {MonacoEditorModule} from 'ngx-monaco-editor';
-import { ProjectOverviewComponent } from './project-overview/project-overview.component';
-import { ProjectHistoryHeaderComponent } from './project-history-header/project-history-header.component';
+import { ProjectOverviewComponent } from './project-view/project-overview-tab/project-overview.component';
+import { ProjectHistoryHeaderComponent } from './project-view/project-history-tab/project-history-header/project-history-header.component';
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
-import { ProjectHistoryComponent } from './project-history/project-history.component';
-import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/project-history-group-info.component';
+import { ProjectHistoryTabComponent } from './project-view/project-history-tab/project-history-tab.component';
+import {ProjectHistoryGroupInfoComponent} from './project-view/project-history-tab/project-history-group-info/project-history-group-info.component';
 import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
 import {RxStompConfig} from './rx-stomp.config';
-import { LogViewComponent } from './log-view/log-view.component';
+import { ProjectLogsTabComponent } from './project-view/project-logs-tab/project-logs-tab.component';
 import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
@@ -110,9 +110,9 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         ProjectOverviewComponent,
         ProjectHistoryHeaderComponent,
         ProjectDiskUsageDialogComponent,
-        ProjectHistoryComponent,
+        ProjectHistoryTabComponent,
         ProjectHistoryGroupInfoComponent,
-        LogViewComponent,
+        ProjectLogsTabComponent,
         StopButtonComponent,
         SystemCfgResLimitComponent,
         CheckableNumberInputComponent,

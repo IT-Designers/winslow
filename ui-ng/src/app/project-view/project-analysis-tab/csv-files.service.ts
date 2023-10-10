@@ -1,10 +1,10 @@
 import {Injectable} from '@angular/core';
-import {FilesApiService} from '../api/files-api.service';
+import {FilesApiService} from '../../api/files-api.service';
 import {BehaviorSubject, combineLatest, from, Observable, of, timer} from 'rxjs';
-import {GlobalChartSettings, LocalStorageService} from '../api/local-storage.service';
+import {GlobalChartSettings, LocalStorageService} from '../../api/local-storage.service';
 import {finalize, map, shareReplay, switchMap} from 'rxjs/operators';
 import {CsvFileContent, parseCsv} from './csv-parser';
-import {FileInfo, StageInfo} from '../api/winslow-api';
+import {FileInfo, StageInfo} from '../../api/winslow-api';
 
 export interface CsvFile {
   stageId: string;

@@ -59,6 +59,9 @@
   overflow-y: auto;
 }
 
-.chart-grid-list {
-  overflow-y: auto;
+.create-chart-button {
+  position: absolute;
+  display: block;
+  bottom: 1.5em;
+  right: 1.5em;
 }
