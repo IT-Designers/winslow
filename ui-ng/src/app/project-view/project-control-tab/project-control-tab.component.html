@@ -1,9 +1,9 @@
 <div class="stage-control-item">
     <app-stage-execution-selection
         #executionSelection
-        [pipelines]="[selectedProject.pipelineDefinition]"
+        [pipelines]="[projectInfo.pipelineDefinition]"
         [pipelineSelectionDisabled]="true"
-        [defaultPipelineId]="selectedProject.pipelineDefinition.id"
+        [defaultPipelineId]="projectInfo.pipelineDefinition.id"
     ></app-stage-execution-selection>
 </div>
 <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
