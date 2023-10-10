@@ -39,7 +39,7 @@ export class ProjectsCreateDialog implements OnInit {
   }
 
   ngOnInit() {
-    this.api.getPipelineDefinitions().then(pipelines => this.pipelines = pipelines);
+    this.api.getSharedPipelineDefinitions().then(pipelines => this.pipelines = pipelines);
   }
 
   needsPipelineId() {
@@ -47,14 +47,14 @@ export class ProjectsCreateDialog implements OnInit {
   }
 
   blockSubmitButton() {
-     if (this.data.name?.trim().length == 0) {
-       return true
-     }
+    if (this.data.name?.trim().length == 0) {
+      return true
+    }
 
-     if (this.needsPipelineId()) {
-       return this.data.pipelineId == null;
-     }
+    if (this.needsPipelineId()) {
+      return this.data.pipelineId == null;
+    }
 
-     return false
+    return false
   }
 }
