@@ -112,6 +112,7 @@ import {MatSliderModule} from '@angular/material/slider';
 import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
 import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-pipeline-dialog.component';
 import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-details.component';
+import { ProjectControlTabComponent } from './project-view/project-control-tab/project-control-tab.component';
 
 @NgModule({
     declarations: [
@@ -188,6 +189,7 @@ import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-
         ServerGroupsListComponent,
         AddPipelineDialogComponent,
         PipelineDetailsComponent,
+        ProjectControlTabComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

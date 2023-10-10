@@ -26,95 +26,11 @@
   <mat-tab label="Control">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
 
-    <div class="stage-control-item">
-      <app-stage-execution-selection
-        #executionSelection
-        [pipelineSelectionDisabled]="true"
-        (selectedPipeline)="onSelectedPipelineChanged($event)"
-        (selectedStage)="onSelectedStageChanged($event)"
-        [environmentVariables]="environmentVariables"
-        [defaultEnvironmentVariables]="defaultEnvironmentVariables"
-        [rangedEnvironmentVariables]="rangedEnvironmentVariables"
-        [workspaceConfigurationMode]="workspaceConfigurationMode"
-        [executionHistory]="history">
-      </app-stage-execution-selection>
-    </div>
-    <div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
-      <button mat-stroked-button color="warn"
-              [disabled]="!executionSelection.valid"
-              (click)="configureGroup(
-                  executionSelection.selectedPipeline,
-                  executionSelection.selectedStage,
-                  executionSelection.getEnv(),
-                  executionSelection.getImage()
-                )">
-        <mat-icon>group</mat-icon>
-        Set on other Projects
-      </button>
-      <button mat-stroked-button color="primary"
-              [disabled]="!executionSelection.valid"
-              (click)="configure(
-                  executionSelection.selectedPipeline,
-                  executionSelection.selectedStage,
-                  executionSelection.getEnv(),
-                  executionSelection.getImage(),
-                  executionSelection.getResourceRequirements()
-                )">
-        <mat-icon>save</mat-icon>
-        Save configuration
-      </button>
-      <button mat-raised-button color="primary" #enqueueMenuTrigger="matMenuTrigger"
-              [matMenuTriggerFor]="enqueueMenu"
-              [disabled]="!executionSelection.valid"
-              (click)="$event.preventDefault();
-                       $event.stopPropagation();
-                       enqueueMenuTrigger.closeMenu();
-                       enqueue(
-                          executionSelection.selectedPipeline,
-                          executionSelection.selectedStage,
-                          executionSelection.getEnv(),
-                          executionSelection.getRangedEnv(),
-                          executionSelection.getImage(),
-                          executionSelection.getResourceRequirements(),
-                          executionSelection.getWorkspaceConfiguration(),
-                          executionSelection.getComment()
-                        )">
-        <mat-icon>send</mat-icon>
-        Enqueue
-        <mat-icon (click)="$event.preventDefault(); $event.stopPropagation(); enqueueMenuTrigger.openMenu()">more_vert
-        </mat-icon>
-        <mat-menu #enqueueMenu xPosition="before">
-          <button mat-menu-item (click)="enqueue(
-                  executionSelection.selectedPipeline,
-                  executionSelection.selectedStage,
-                  executionSelection.getEnv(),
-                  executionSelection.getRangedEnv(),
-                  executionSelection.getImage(),
-                  executionSelection.getResourceRequirements(),
-                  executionSelection.getWorkspaceConfiguration(),
-                  executionSelection.getComment(),
-                  false,
-                  true
-                )">
-            Enqueue and resume pipeline
-          </button>
-          <button mat-menu-item (click)="enqueue(
-                  executionSelection.selectedPipeline,
-                  executionSelection.selectedStage,
-                  executionSelection.getEnv(),
-                  executionSelection.getRangedEnv(),
-                  executionSelection.getImage(),
-                  executionSelection.getResourceRequirements(),
-                  executionSelection.getWorkspaceConfiguration(),
-                  executionSelection.getComment(),
-                  true,
-                  true
-                )">
-            Enqueue and resume single
-          </button>
-        </mat-menu>
-      </button>
-    </div>
+    <app-project-control-tab
+      [project]="this.project"
+    >
+
+    </app-project-control-tab>
   </mat-tab>
 
   <mat-tab label="History">
