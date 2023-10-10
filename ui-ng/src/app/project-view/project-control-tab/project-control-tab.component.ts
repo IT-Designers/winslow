@@ -3,7 +3,7 @@ import {
   EnvVariable, ExecutionGroupInfo, ImageInfo,
   PipelineDefinitionInfo, ProjectInfo,
   RangedValue, ResourceInfo,
-  StageDefinitionInfo, StageWorkerDefinitionInfo, WorkspaceConfiguration,
+  StageDefinitionInfo, WorkspaceConfiguration,
   WorkspaceMode
 } from "../../api/winslow-api";
 import {StageExecutionSelectionComponent} from "../../stage-execution-selection/stage-execution-selection.component";
@@ -13,7 +13,7 @@ import {
   GroupSettingsDialogComponent,
   GroupSettingsDialogData
 } from "../../group-settings-dialog/group-settings-dialog.component";
-import {MatDialog, MatDialogState} from "@angular/material/dialog";
+import {MatDialog} from "@angular/material/dialog";
 
 @Component({
   selector: 'app-project-control-tab',
@@ -31,12 +31,6 @@ export class ProjectControlTabComponent {
   get project() {
     return this.projectInfo;
   }
-
-  protected readonly history: ExecutionGroupInfo[];
-  environmentVariables: Map<string, EnvVariable>;
-  defaultEnvironmentVariables: Record<string, string>;
-  rangedEnvironmentVariables: Record<string, RangedValue>;
-  workspaceConfigurationMode: WorkspaceMode;
 
   constructor(
     private matDialog: MatDialog,

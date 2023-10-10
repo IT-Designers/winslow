@@ -25,12 +25,7 @@
 
   <mat-tab label="Control">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-
-    <app-project-control-tab
-      [project]="this.project"
-    >
-
-    </app-project-control-tab>
+    <app-project-control-tab [project]="this.project"></app-project-control-tab>
   </mat-tab>
 
   <mat-tab label="History">
