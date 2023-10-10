@@ -81,12 +81,18 @@ export class PipelineApiService {
       .toPromise();
   }
 
-  getPipelineDefinitions() {
+  getPipelineDefinitions(): Promise<PipelineDefinitionInfo[]> {
     return this
       .client
       .get<PipelineDefinitionInfo[]>(PipelineApiService.getUrl())
       .toPromise()
       .then(info => info.map(i => loadPipelineDefinition(i)));
+  }
+
+  getSharedPipelineDefinitions() {
+    return this
+      .getPipelineDefinitions()
+      .then(pipelines => pipelines.filter(pipeline => pipeline.belongsToProject == null));
   }
 
   createPipelineDefinition(name: string) {
