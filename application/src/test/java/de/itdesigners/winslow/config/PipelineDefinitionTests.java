@@ -78,7 +78,6 @@ public class PipelineDefinitionTests {
                 )),
                 Map.of("env1", "envValue"),
                 new DeletionPolicy(true, true, 10),
-                List.of("markers"),
                 List.of(
                         new Link("OwnerBaer", Role.OWNER),
                         new Link("MemberBaer", Role.MEMBER)
