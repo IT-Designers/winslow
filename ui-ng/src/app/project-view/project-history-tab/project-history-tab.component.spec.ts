@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ProjectHistoryComponent } from './project-history.component';
+import { ProjectHistoryTabComponent } from './project-history-tab.component';
 
-describe('ProjectHistoryComponent', () => {
-  let component: ProjectHistoryComponent;
-  let fixture: ComponentFixture<ProjectHistoryComponent>;
+describe('ProjectHistoryTabComponent', () => {
+  let component: ProjectHistoryTabComponent;
+  let fixture: ComponentFixture<ProjectHistoryTabComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ProjectHistoryComponent ]
+      declarations: [ ProjectHistoryTabComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ProjectHistoryComponent);
+    fixture = TestBed.createComponent(ProjectHistoryTabComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,7 +1,7 @@
 import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {CsvFileContent, parseCsv} from './csv-parser';
-import {GlobalChartSettings} from '../api/local-storage.service';
+import {GlobalChartSettings} from '../../api/local-storage.service';
 import {generateColor} from './colors';
 import {CsvFile, CsvFilesService} from './csv-files.service';
 

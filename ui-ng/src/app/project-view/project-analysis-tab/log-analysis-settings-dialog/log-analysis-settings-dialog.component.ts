@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {CsvFilesService} from '../csv-files.service';
-import {GlobalChartSettings} from '../../api/local-storage.service';
+import {GlobalChartSettings} from '../../../api/local-storage.service';
 
 @Component({
   selector: 'app-log-analysis-settings-dialog',
