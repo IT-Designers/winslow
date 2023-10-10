@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ProjectOverviewComponent } from './project-overview.component';
+import { ProjectOverviewTabComponent } from './project-overview-tab.component';
 
 describe('ProjectInfoComponent', () => {
-  let component: ProjectOverviewComponent;
-  let fixture: ComponentFixture<ProjectOverviewComponent>;
+  let component: ProjectOverviewTabComponent;
+  let fixture: ComponentFixture<ProjectOverviewTabComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ProjectOverviewComponent ]
+      declarations: [ ProjectOverviewTabComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ProjectOverviewComponent);
+    fixture = TestBed.createComponent(ProjectOverviewTabComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

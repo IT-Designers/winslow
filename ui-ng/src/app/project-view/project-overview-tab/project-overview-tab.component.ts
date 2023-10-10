@@ -12,11 +12,11 @@ import {Action, ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} fr
 
 
 @Component({
-  selector: 'app-project-overview',
-  templateUrl: './project-overview.component.html',
-  styleUrls: ['./project-overview.component.css']
+  selector: 'app-project-overview-tab',
+  templateUrl: './project-overview-tab.component.html',
+  styleUrls: ['./project-overview-tab.component.css']
 })
-export class ProjectOverviewComponent implements OnDestroy {
+export class ProjectOverviewTabComponent implements OnDestroy {
 
 
   private static readonly UPDATE_INTERVAL = 1_000;
@@ -240,8 +240,8 @@ export class ProjectOverviewComponent implements OnDestroy {
     const now = new Date();
     const zeroes = [];
 
-    for (let i = ProjectOverviewComponent.GRAPH_ENTRIES; i >= 0; --i) {
-      const date = new Date(now.getTime() - (i * ProjectOverviewComponent.UPDATE_INTERVAL));
+    for (let i = ProjectOverviewTabComponent.GRAPH_ENTRIES; i >= 0; --i) {
+      const date = new Date(now.getTime() - (i * ProjectOverviewTabComponent.UPDATE_INTERVAL));
       zeroes.push({
         name: date.toString(),
         value:[date, 0]
@@ -282,9 +282,9 @@ export class ProjectOverviewComponent implements OnDestroy {
       value: [date, stats.cpuUsed.toFixed(0)]/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
-    this.cpuMax = ProjectOverviewComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
+    this.cpuMax = ProjectOverviewTabComponent.maxOfSeriesOr(this.cpu[0].series, 100, stats.cpuMaximum);
     this.cpu = this.cpu.map(c => {
-      ProjectOverviewComponent.limitSeriesTo(c, ProjectOverviewComponent.GRAPH_ENTRIES);
+      ProjectOverviewTabComponent.limitSeriesTo(c, ProjectOverviewTabComponent.GRAPH_ENTRIES);
       return c;
     });
 
@@ -322,9 +322,9 @@ export class ProjectOverviewComponent implements OnDestroy {
       value: [date, this.bytesToGigabyte(stats.memoryAllocated).toFixed(2)]/*.toLocaleString('en-US') -- ngx seems to be borked here?*/
     });
 
-    this.memoryMax = ProjectOverviewComponent.maxOfSeriesOr(this.memory[0].series, 0.1, stats.memoryMaximum);
+    this.memoryMax = ProjectOverviewTabComponent.maxOfSeriesOr(this.memory[0].series, 0.1, stats.memoryMaximum);
     this.memory = this.memory.map(m => {
-      ProjectOverviewComponent.limitSeriesTo(m, ProjectOverviewComponent.GRAPH_ENTRIES);
+      ProjectOverviewTabComponent.limitSeriesTo(m, ProjectOverviewTabComponent.GRAPH_ENTRIES);
       return m;
     });
 
