@@ -104,8 +104,7 @@ app-groups-add-member-dialog {
 }
 .text-input {
   width: 96%;
-  padding: 2px;
-  padding-left: 5px;
+  padding: 2px 2px 2px 5px;
   border: 1px solid lightgrey;
   border-bottom: 1px solid grey;
   border-radius: 3px;
@@ -114,7 +113,6 @@ app-groups-add-member-dialog {
   margin-bottom: 5px;
 }
 
-/* TODO(mdc-migration): The following rule targets internal classes of input that may no longer apply for the MDC version. */
 .mat-input-container {
   width: 97%;
   font-size: 14px;
