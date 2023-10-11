@@ -91,8 +91,6 @@ public record PipelineDefinition (
         Objects.requireNonNull(environment, "The environment of a pipeline must be set");
         Objects.requireNonNull(deletionPolicy, "The deletion policy of a pipeline must be set");
         Stream.ofNullable(this.stages).flatMap(List::stream).forEach(StageDefinition::check);
-
-        // todo check valid project id
     }
 
     @Nonnull
