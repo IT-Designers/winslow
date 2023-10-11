@@ -105,7 +105,6 @@ import { UserDetailsComponent } from './user-and-group-management/user-details/u
 import { GroupDetailsComponent } from './user-and-group-management/group-details/group-details.component';
 import { PasswordDialogComponent } from './user-and-group-management/password-dialog/password-dialog.component';
 import { GroupAssignmentComponent } from './pipelines/group-assignment/group-assignment.component';
-import { RessourcesGroupAssignmentComponent } from './server-details/ressources-group-assignment/ressources-group-assignment.component';
 import {MatSliderModule} from '@angular/material/slider';
 import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
 import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-pipeline-dialog.component';
@@ -184,7 +183,6 @@ import {rxStompServiceFactory} from "./rx-stomp-service-factory";
         GroupDetailsComponent,
         PasswordDialogComponent,
         GroupAssignmentComponent,
-        RessourcesGroupAssignmentComponent,
         ServerGroupsListComponent,
         AddPipelineDialogComponent,
         PipelineDetailsComponent,
