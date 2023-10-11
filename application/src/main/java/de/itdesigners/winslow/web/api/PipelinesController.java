@@ -122,7 +122,7 @@ public class PipelinesController {
 
         try {
             definition = tryParsePipelineDef(raw);
-            throwIfInvalid(pipelineId, definition);
+            checkPipelineValidity(pipelineId, definition);
         } catch (ParseErrorException e) {
             return toJsonResponseEntity(e.getParseError());
         } catch (Throwable t) {
@@ -132,7 +132,7 @@ public class PipelinesController {
         return storePipelineDefinition(user, definition);
     }
 
-    private void throwIfInvalid(String pipelineId, PipelineDefinition definition) {
+    private void checkPipelineValidity(String pipelineId, PipelineDefinition definition) {
         definition.check();
 
         if (!Objects.equals(definition.id(), pipelineId)) {
@@ -141,14 +141,26 @@ public class PipelinesController {
 
         var projectId = definition.belongsToProject();
         if (projectId != null) {
-            var project = winslow.getProjectRepository().getProject(projectId).unsafe();
+            var projectOpt = winslow.getProjectRepository().getProject(projectId).unsafe();
 
-            if (project.isEmpty()) {
+            if (projectOpt.isEmpty()) {
                 throw new IllegalArgumentException("There is no project with the id '" + projectId + "'");
             }
 
-            if (!project.get().getPipelineDefinitionId().equals(pipelineId)) {
+            if (!projectOpt.get().getPipelineDefinitionId().equals(pipelineId)) {
                 throw new IllegalArgumentException("Project with id '" + projectId + "' references a different pipeline");
+            }
+
+            var otherProjectUsingPipeline = winslow
+                    .getProjectRepository()
+                    .getProjects()
+                    .flatMap(projectHandle -> projectHandle.unsafe().stream())
+                    .filter(project -> project.getPipelineDefinitionId().equals(pipelineId) && !project.getId().equals(projectId))
+                    .findAny();
+
+            if (otherProjectUsingPipeline.isPresent()) {
+                var otherProjectId = otherProjectUsingPipeline.get().getId();
+                throw new IllegalArgumentException("Pipeline cannot be project-local for '" + projectId + "' as it is also used by '" + otherProjectId + "'");
             }
         }
     }
