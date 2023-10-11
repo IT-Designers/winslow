@@ -83,7 +83,7 @@ app-groups-add-member-dialog {
   border-radius: 50%;
   width: 45px;
   height: 45px;
-  box-shadow: 0 1px 3px gray; /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
+  box-shadow: 0 1px 3px rgb(128, 128, 128); /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
   float: right;
 }
 .remove-member-button:enabled {

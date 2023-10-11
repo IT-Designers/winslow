@@ -1,5 +1,4 @@
 import {AfterViewInit, Component, Inject, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../api/api.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {FilesComponent} from '../files/files.component';
 
@@ -19,8 +18,8 @@ export class FileBrowseDialog implements OnInit, AfterViewInit {
 
   constructor(
     public dialogRef: MatDialogRef<FileBrowseDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: FileBrowseData,
-    private api: ApiService) {
+    @Inject(MAT_DIALOG_DATA) public data: FileBrowseData
+  ) {
   }
 
   ngOnInit() {

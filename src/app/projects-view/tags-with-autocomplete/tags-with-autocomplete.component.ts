@@ -13,7 +13,6 @@ import {map, startWith} from 'rxjs/operators';
 })
 export class TagsWithAutocompleteComponent implements OnInit {
 
-  selectable = true;
   removable = true;
   tagsCtrl = new UntypedFormControl();
   separatorKeysCodes: number[] = [ENTER, COMMA];
