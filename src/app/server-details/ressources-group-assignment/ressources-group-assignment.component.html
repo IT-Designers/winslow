@@ -23,7 +23,7 @@
         </mat-option>
       </mat-select>
       </mat-form-field>
-      <mat-slider thumbLabel [displayWith]="formatLabel" min="{{memoryMin}}" max="{{memoryMax}}" step="0.5" [(ngModel)]="memorySliderValue">
+      <mat-slider thumbLabel [displayWith]="formatLabel" min="{{memoryMin}}" max="{{memoryMax}}" step="0.5" [(ngModel)]="memorySliderValue"><input matSliderThumb />
         <input>
       </mat-slider>
       <p>{{memorySliderValue}} / {{memoryMax}} GiB</p>

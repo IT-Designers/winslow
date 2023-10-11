@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {CreateProjectData, ProjectsCreateDialog} from '../projects-create-dialog/projects-create-dialog.component';
-import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
 import {ProjectViewComponent} from '../project-view/project-view.component';
 import {NotificationService} from '../notification.service';

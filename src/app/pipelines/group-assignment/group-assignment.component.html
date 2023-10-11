@@ -5,8 +5,8 @@
     <mat-panel-title class="expansion-title">
       Group Access
     </mat-panel-title>
-    <mat-chip-list *ngIf="currentlyAssignedGroups.length > 0" class="group-chip-list">
-      <mat-chip *ngFor="let group of displayGroups"
+    <mat-chip-listbox *ngIf="currentlyAssignedGroups.length > 0" class="group-chip-list">
+      <mat-chip-option *ngFor="let group of displayGroups"
                 [style.background-color]="getChipColor(group)"
                 [matTooltip]="getTooltip(group)"
                 matTooltipShowDelay="250"
@@ -14,8 +14,8 @@
                 (removed)="onRemoveItemClick(group)">
         {{group.name}}
         <mat-icon matChipRemove>cancel</mat-icon>
-      </mat-chip>
-    </mat-chip-list>
+      </mat-chip-option>
+    </mat-chip-listbox>
     <label *ngIf="currentlyAssignedGroups.length < 1" [ngStyle]="{'font-style':'italic'}">
       No groups assigned
     </label>
@@ -34,11 +34,11 @@
         <div *ngIf="displayGroups.length > 0">
           <div class="list-item" *ngFor="let group of displayGroups">
             <div class="username-label">
-              <mat-chip [style.background-color]="getChipColor(group)"
+              <mat-chip-option [style.background-color]="getChipColor(group)"
                         [matTooltip]="getTooltip(group)"
                         matTooltipShowDelay="250">
                 {{group.name}}
-              </mat-chip>
+              </mat-chip-option>
             </div>
             <mat-form-field appearance="fill" class="role-dropdown">
               <mat-label>Choose Role</mat-label>

@@ -2,8 +2,8 @@ import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angul
 import {ProjectApiService} from '../api/project-api.service';
 import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {MatLegacyMenuTrigger as MatMenuTrigger} from '@angular/material/legacy-menu';
-import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatMenuTrigger} from '@angular/material/menu';
+import {MatDialog} from '@angular/material/dialog';
 import {RegularExpressionEditorDialogComponent} from '../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 import {LogEntryInfo, LogSource, ProjectInfo} from '../api/winslow-api';
 

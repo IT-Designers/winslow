@@ -1,6 +1,6 @@
 import {Component, EventEmitter, OnInit, OnChanges, Input, Output, SimpleChanges} from '@angular/core';
 import {RoleApiService} from '../../api/role-api.service';
-import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
 import {AddMemberData, GroupAddMemberDialogComponent} from '../group-add-member-dialog/group-add-member-dialog.component';
 import {GroupApiService} from '../../api/group-api.service';
