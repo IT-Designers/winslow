@@ -1,10 +1,8 @@
 import {Component, Input, OnInit, Output, EventEmitter, ViewChild} from '@angular/core';
 import {DiagramMakerNode} from "diagram-maker";
 import {
-  PipelineDefinitionInfo,
   StageDefinitionInfo,
   StageDefinitionInfoUnion,
-  StageWorkerDefinitionInfo
 } from "../../api/winslow-api";
 
 @Component({
@@ -51,9 +49,11 @@ export class DiagramLibraryComponent implements OnInit {
       case 'layout':
         console.log('layout pressed');
         break;
+      case 'flat-delete':
+        break;
     }
     /*if (action == "save"){this.savedData = true;}*/
-    this.diagramApiCall.emit(action);
+    this.diagramApiCall.emit({action: action, node: this.selectedNode$});
   }
   startSave(){          //starts the save on top level of the recursion of edit-forms
     this.childForm.sendFormData();
