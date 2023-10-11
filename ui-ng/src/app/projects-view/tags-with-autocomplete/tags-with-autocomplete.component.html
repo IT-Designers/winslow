@@ -1,7 +1,6 @@
 <ng-template #template>
   <mat-chip-grid #chipList aria-label="Tag selection">
     <mat-chip-row *ngFor="let tag of selectedTags"
-              [selectable]="selectable"
               [removable]="!readonly && removable"
               (removed)="remove(tag)"
               (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
