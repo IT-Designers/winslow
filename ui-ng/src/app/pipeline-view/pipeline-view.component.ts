@@ -473,11 +473,15 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
   ngOnChanges() {
     //console.dir(this.pipelineDefinition);
     // possibly unsafe
-    this.libraryComponent = null;
-    this.initialData = this.initClass.getInitData(this.pipelineDefinition);
-    /*this.ngOnDestroy();
-    this.initialData = this.initClass.getInitData(this.pipelineDefinition);
-    this.ngAfterViewInit();*/
+   /* this.libraryComponent = null;
+    this.initialData = this.initClass.getInitData(this.pipelineDefinition);*/
+    setTimeout(() => {
+      this.libraryComponent = null;
+      this.ngOnDestroy();
+      this.initialData = this.initClass.getInitData(this.pipelineDefinition);
+      this.ngAfterViewInit();
+    }, 1000);
+
     console.log("---------------------------------- ON CHANGE ----------------------------------");
   }
 
