@@ -19,7 +19,7 @@ $light-theme: mat.define-light-theme((
   /* density prevent warning from angular
   density is reduced by 4px*0.0001
   */
-  density: -0.0001,
+  density: 0,
 ));
 
 $dark-theme: mat.define-dark-theme((
@@ -29,7 +29,7 @@ $dark-theme: mat.define-dark-theme((
     warn: $my-theme-warn,
   ),
   typography: mat.define-typography-config(),
-  density: 0,
+  density: -2.9,
 ));
 
 @mixin darkMode { // this mixin can be used for alternative darkmode settings

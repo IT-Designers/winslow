@@ -113,7 +113,6 @@ mat-grid-tile {
   margin-top: 10px;
 }
 
-/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version. */
 .mat-button-toggle-group {
   height: 32px;
   align-items: center;
