@@ -21,7 +21,7 @@ import {
   DiagramMakerData,
   DiagramMakerNode,
   DiagramMakerPotentialNode,
-  Dispatch, DragPanelAction,
+  Dispatch, DragPanelAction, Layout, WorkflowLayoutDirection,
 } from 'diagram-maker';
 
 
