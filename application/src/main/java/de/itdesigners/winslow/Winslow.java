@@ -82,7 +82,7 @@ public class Winslow implements Runnable {
         commands.put("reload", this::reload);
         commands.put("fix-workspace-paths", this::fixWorkspacePaths);
         commands.put("prune-lost-workspaces", this::pruneLostWorkspaces);
-        commands.put("unassign-abandoned-pipelines", this::unassignAbandonedPipelines);
+        commands.put("fix-invalid-project-pipelines", this::fixInvalidProjectPipelines);
         commands.put("passwd", this::passwd);
         commands.put("adduser", this::addUser);
         commands.put("lsuser", this::lsUser);
@@ -135,8 +135,12 @@ public class Winslow implements Runnable {
                 });
     }
 
-    private void unassignAbandonedPipelines(@Nonnull ConsoleHandle consoleHandle, @Nonnull Arguments _args) {
-        var pipelines = this.pipelineDefinitionRepository
+    private void fixInvalidProjectPipelines(@Nonnull ConsoleHandle consoleHandle, @Nonnull Arguments _args) {
+        var projects = projectRepository
+                .getProjects()
+                .flatMap(h -> h.exclusive().stream())
+                .toList();
+        var pipelines = pipelineDefinitionRepository
                 .getPipelines()
                 .flatMap(h -> h.exclusive().stream())
                 .toList();
@@ -163,6 +167,16 @@ public class Winslow implements Runnable {
                     System.out.println("Unassigning pipeline " + pipeline.id() + ": Project uses a different pipeline.");
                     pipelineContainer.update(pipeline.withAssignedProject(null));
                     fixed++;
+                } else {
+                    for (var projectContainer : projects) {
+                        var project = projectContainer.get().orElseThrow();
+                        if (project.getPipelineDefinitionId().equals(pipeline.id()) && !projectOpt.get().getId().equals(project.getId())) {
+                            System.out.println("Unassigning pipeline " + pipeline.id() + ": Used by other projects.");
+                            pipelineContainer.update(pipeline.withAssignedProject(null));
+                            fixed++;
+                            break;
+                        }
+                    }
                 }
 
             } catch (NoSuchElementException | LockException | IOException e) {
@@ -172,7 +186,7 @@ public class Winslow implements Runnable {
             }
         }
 
-        System.out.println("Found " + total + " pipelines, with " + fixed + " problems. All problems have been fixed.");
+        System.out.println("Found " + total + " pipelines of which " + fixed + " had to be unassigned from their project.");
     }
 
 
