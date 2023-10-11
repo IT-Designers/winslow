@@ -2,11 +2,7 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.2.1.
 
-Update
-
-| Old  | Current | Goal |
-|------|---------|------|
-| 10.1 | 15      | 16   |
+Node version >=16 required
 
 ## Development server
 
