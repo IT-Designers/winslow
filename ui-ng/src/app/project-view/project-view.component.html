@@ -318,8 +318,8 @@
 
       <div class="stage-control-item"><!--Group Access (Chiplist)-->
         <label>Group Access</label>
-            <mat-chip-list *ngIf="project.groups.length > 0">
-              <mat-chip *ngFor="let group of project.groups"
+            <mat-chip-listbox *ngIf="project.groups.length > 0">
+              <mat-chip-option *ngFor="let group of project.groups"
                         [style.background-color]="getColor(group)"
                         [matTooltip]="getTooltip(group)"
                         matTooltipShowDelay="250"
@@ -327,8 +327,8 @@
                         [disabled]="!canIEditProject(project)">
                 {{group.name}}
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
-            </mat-chip-list>
+              </mat-chip-option>
+            </mat-chip-listbox>
             <label *ngIf="project.groups.length < 1" [ngStyle]="{'font-style':'italic'}">
               No groups assigned
             </label>

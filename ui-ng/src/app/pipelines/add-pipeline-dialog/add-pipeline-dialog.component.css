@@ -8,7 +8,7 @@
 .app-add-pipeline-dialog {
   overflow: clip;
 }
-.mat-form-field {
+.mat-mdc-form-field {
   width: 100%;
   margin-top: 1em;
 }

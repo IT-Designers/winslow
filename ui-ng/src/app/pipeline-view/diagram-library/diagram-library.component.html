@@ -19,7 +19,7 @@
     <h3 class="category">Selected Node
       <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel</mat-icon>
     </h3>
-    <mat-card class="editCard" *ngIf="selectedNode$">
+    <mat-card appearance="outlined" class="editCard" *ngIf="selectedNode$">
       <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
 
       <form class="editNodeForm" (ngSubmit)="startSave()">

@@ -28,6 +28,7 @@
   flex: 3;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 .stage-control-item .mat-form-field-wrapper, .stage-control-item-controls {
   display: inline-flex;
   flex-grow: 1;

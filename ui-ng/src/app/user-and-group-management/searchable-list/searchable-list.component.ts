@@ -1,5 +1,5 @@
 import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges} from '@angular/core';
-import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {NewGroupDialogComponent} from '../new-group-dialog/new-group-dialog.component';
 import {UserAddNameDialogComponent} from '../user-add-name-dialog/user-add-name-dialog.component';
 import {AddPipelineDialogComponent} from "../../pipelines/add-pipeline-dialog/add-pipeline-dialog.component";

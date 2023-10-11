@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {UserApiService, UserInfo} from '../../api/user-api.service';
 import {DialogService} from '../../dialog.service';
-import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
 
 @Component({
