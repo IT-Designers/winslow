@@ -1,5 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 @import "./styles-diagram-maker.scss";
+@import "styles.scss";
 
 a {
   cursor: pointer;
@@ -15,6 +16,9 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: whitesmoke;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 
 h1 {
@@ -81,11 +85,17 @@ body {
   border-radius: 1em;
   padding: 1em;
   background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 
 
 .none-defined-yet {
   background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
   text-align: center;
   padding: 3em;
 }
@@ -165,6 +175,9 @@ body {
 .vmenu-selection-container .mat-card {
   flex-grow: 1;
   background-color: whitesmoke;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
   padding: 0.5em;
   border-right: 1px solid lightgray;
 }
