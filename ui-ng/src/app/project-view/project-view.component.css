@@ -8,15 +8,7 @@
 :host mat-tab-group {
   overflow: auto !important;
 }
-.nothing-selected {
-  width: 54em;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 10px;
-  text-align: center;
-  padding: 3em;
-  font-style: italic;
-}
+
 .stage-control-item {
   display: flex;
   margin: 0 2em;
@@ -63,13 +55,55 @@
   border-radius: 0.25em;
 }
 
+.files-tab-content {
+  height: 100%;
+}
+
 .max-height {
   height: 100%;
   overflow: hidden;
 }
 
-.delete-btn {
-  width: 20%;
-  float: right;
-  margin-right: 2vw;
+label.disabled {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+
+.history-item-no {
+  text-align: end;
+  min-width: 2em;
+}
+
+.history-item-date {
+  min-width: 10em;
+  text-align: end;
+}
+
+.history-item-detail p {
+  display: flex;
+  justify-content: space-between;
+}
+
+.history-item-detail-item {
+  margin: 0;
+  padding: 0.75em 1em;
+}
+
+.history-more-buttons {
+  width: max-content;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.history-more-buttons button:not(:first-child) {
+  margin-left: 2em;
+}
+
+.empty-project-history {
+  text-align: center;
+  margin: auto;
+  width: 50%;
+  padding: 100px;
+  font-size: 2em;
+  opacity: 70%;
 }

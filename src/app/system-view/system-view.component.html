@@ -2,7 +2,7 @@
 
 <div class="vmenu-host height">
   <div class="vmenu-selection-container">
-    <mat-card class="vmenu-selection">
+    <mat-card appearance="outlined" class="vmenu-selection">
       <mat-list>
         <mat-list-item
           (click)="setSelection('env')"
@@ -17,7 +17,7 @@
   </div>
 
   <div class="vmenu-container">
-    <mat-card class="vmenu-container-selection">
+    <mat-card appearance="outlined" class="vmenu-container-selection">
       <ng-container [ngSwitch]="selection">
         <app-system-cfg-env *ngSwitchCase="'env'" [longLoading]="longLoading"></app-system-cfg-env>
         <app-system-cfg-res-limit *ngSwitchCase="'resource-limits'" [longLoading]="longLoading"></app-system-cfg-res-limit>

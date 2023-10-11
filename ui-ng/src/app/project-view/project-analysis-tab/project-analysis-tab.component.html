@@ -10,7 +10,7 @@
 
     <mat-icon class="color-icon" [ngStyle]="{'color': stageColor(0)}">trending_up</mat-icon>
 
-    <mat-form-field appearance="legacy" class="stage-selection">
+    <mat-form-field class="stage-selection">
       <mat-select
         [(ngModel)]="stageToDisplay"
         (selectionChange)="refreshStages()"
@@ -42,7 +42,7 @@
 
       <mat-icon class="color-icon" [ngStyle]="{'color': stageColor(i + 1)}">trending_up</mat-icon>
 
-      <mat-form-field appearance="legacy" class="stage-selection">
+      <mat-form-field class="stage-selection">
         <mat-select
           [(ngModel)]="stagesToCompare[i]"
           (selectionChange)="refreshStages()"
@@ -67,7 +67,7 @@
 
   <div class="chart-grid">
     <ng-container *ngFor="let chart of charts; let i = index">
-      <mat-card class="chart-card">
+      <mat-card appearance="outlined" class="chart-card">
         <mat-card-content class="chart-card-content">
           <app-log-analysis-chart
             [chart]="chart"
