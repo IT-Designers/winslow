@@ -22,7 +22,14 @@ export class ProjectSettingsTabComponent {
 
   @Output() projectChanged = new EventEmitter<ProjectInfo>();
   @Output() projectDeleted = new EventEmitter<string>();
+
   @Input() set project(projectInfo: ProjectInfo) {
+    if (projectInfo == null) {
+      return;
+    }
+
+    this._project = projectInfo;
+
     this.projectApi.getDeletionPolicy(this.project.id)
       .then(policy => {
         this.deletionPolicyLocal = policy;
@@ -45,13 +52,33 @@ export class ProjectSettingsTabComponent {
       .then(limit => {
         this.resourceLimit = limit;
       });
+
+    this.userApi.getSelfUserName()
+      .then(name => this.userApi.hasSuperPrivileges(name))
+      .then(isAdmin => {
+        if (isAdmin) {
+          this.userCanEditProject = true;
+        }
+      })
+
+    this.groupApi.getGroups()
+      .then(userGroups => this.project.groups.forEach(projectGroup => {
+        if (projectGroup.role !== 'OWNER' && userGroups.some(userGroup => userGroup.name == projectGroup.name)) {
+          this.userCanEditProject = true;
+        }
+      }))
+
+    this.pipelineApi.getPipelineDefinitions()
+      .then(usablePipelines => this.pipelines = usablePipelines.filter(
+        pipeline => pipeline.belongsToProject == null || pipeline.belongsToProject == this.project.id)
+      )
   };
 
   get project() {
-    return this.projectInfo;
+    return this._project;
   }
 
-  private projectInfo: ProjectInfo;
+  private _project: ProjectInfo | null = null;
 
   userCanEditProject: boolean = false;
   cachedTags: string[] = [];
@@ -73,26 +100,6 @@ export class ProjectSettingsTabComponent {
   ) {
     this.cachedTags = projectApi.cachedTags;
     this.userCanEditProject = false;
-
-    this.userApi.getSelfUserName()
-      .then(name => this.userApi.hasSuperPrivileges(name))
-      .then(isAdmin => {
-        if (isAdmin) {
-          this.userCanEditProject = true;
-        }
-      })
-
-    this.groupApi.getGroups()
-      .then(userGroups => this.project.groups.forEach(projectGroup => {
-        if (projectGroup.role !== 'OWNER' && userGroups.some(userGroup => userGroup.name == projectGroup.name)) {
-          this.userCanEditProject = true;
-        }
-      }))
-
-    this.pipelineApi.getPipelineDefinitions()
-      .then(usablePipelines => this.pipelines = usablePipelines.filter(
-        pipeline => pipeline.belongsToProject == null || pipeline.belongsToProject == this.project.id)
-      )
   }
 
   updateProject(): void {
