@@ -178,6 +178,8 @@
 
   <mat-tab label="Settings">
     <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-    <app-project-settings-tab></app-project-settings-tab>
+    <app-project-settings-tab
+      [project]="projectValue"
+    ></app-project-settings-tab>
   </mat-tab>
 </mat-tab-group>
