@@ -71,22 +71,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     if (changed) {
       this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
 
-      this.deletionPolicyLocal = null;
-      this.deletionPolicyRemote = null;
-      this.api.getDeletionPolicy(this.project.id).then(policy => {
-        this.deletionPolicyLocal = policy;
-        this.deletionPolicyRemote = policy;
-      });
-
       this.setupFiles();
 
       if (this.tabs) {
         this.selectTabIndex(this.selectedTabIndex);
       }
 
-      this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
-      this.api.getResourceLimitation(this.projectValue.id).then(limit => this.resourceLimit = limit);
-      this.api.getAuthTokens(this.projectValue.id).then(tokens => this.authTokens = tokens);
       this.resubscribe(value.id);
     }
 
@@ -120,8 +110,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   projectValue: ProjectInfo;
   probablyProjectPipelineId = null;
 
-  @Output('state') private stateEmitter = new EventEmitter<State>();
-  @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
+  @Output('state') stateEmitter = new EventEmitter<State>();
+  @Output('deleted') deletedEmitter = new EventEmitter<boolean>();
 
   filesAdditionalRoot: string = null;
   filesNavigationTarget: string = null;
@@ -154,7 +144,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   environmentVariables: Map<string, EnvVariable> = null;
   defaultEnvironmentVariables: Record<string, string> = null;
   rangedEnvironmentVariables: Record<string, RangedValue> = null;
-  workspaceConfigurationMode: WorkspaceMode = null;
 
   rawPipelineDefinition: string = null;
   rawPipelineDefinitionError: string = null;
@@ -162,9 +151,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
-  workspaceMode: WorkspaceMode = null;
   resourceLimit: ResourceLimitation = null;
-  authTokens: AuthTokenInfo[] = null;
 
   historyListHeight: any;
   selectedHistoryEntry: ExecutionGroupInfo = null;
@@ -265,13 +252,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
     this.sortGroups();
-    /*if (this.myName !== '' && this.amIAdmin !== undefined) {
-      this.userApi.hasSuperPrivileges(this.myName)
-        .then((result) => {
-          console.log('Is user ' + this.myName + ' a Superuser? ' + result);
-          this.amIAdmin = result;
-        });
-    }*/
   }
 
   ngOnDestroy(): void {
@@ -470,26 +450,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     this.tabs.selectedIndex = Tab.Analysis;
   }
 
-  setName(name: string) {
-    this.dialog.openLoadingIndicator(
-      this.api
-        .setName(this.project.id, name)
-        .then(result => {
-          this.project.name = name;
-        }),
-      `Updating name`
-    );
-  }
-
-  delete() {
-    this.dialog.openAreYouSure(
-      `Project being deleted: ${this.project.name}`,
-      () => this.api.delete(this.project.id).then(result => {
-        this.deletedEmitter.emit(true);
-      })
-    );
-  }
-
   killStage(stageId: string) {
     this.dialog.openAreYouSure(
       `Kill  running stage ${stageId}`,
@@ -567,28 +527,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
           `Loading environment variables`,
           false
         );
-      }
-    }
-  }
-
-  setPipeline(pipelineId: string) {
-    for (const pipeline of this.pipelines) {
-      if (pipelineId === pipeline.id) {
-        this.dialog.openLoadingIndicator(
-          this.api
-            .setPipelineDefinition(this.project.id, pipelineId)
-            .then(successful => {
-              if (successful) {
-                this.setProjectPipeline(pipeline);
-                return Promise.resolve();
-              } else {
-                return Promise.reject();
-              }
-            }),
-          `Submitting Pipeline selection`,
-          true
-        );
-        break;
       }
     }
   }
@@ -680,59 +618,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       });
   }
 
-  maybeResetDeletionPolicy(reset: boolean) {
-    const reApplyCurrentState = () => {
-      const before = JSON.parse(JSON.stringify(this.deletionPolicyLocal));
-      this.deletionPolicyLocal = null;
-      if (before != null) {
-        setTimeout(() => {
-          this.deletionPolicyLocal = before;
-        });
-      }
-    };
-    if (reset) {
-      this.deletionPolicyLocal = null;
-    } else {
-      if (this.deletionPolicyLocal === null) {
-        this.dialog.openLoadingIndicator(
-          this.api.getDefaultDeletionPolicy(this.project.id)
-            .then(result => this.deletionPolicyLocal = result)
-            .catch(e => {
-              reApplyCurrentState();
-              return Promise.reject(e);
-            }),
-          'Loading default policy',
-          false
-        );
-      }
-    }
-  }
-
-  updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean, always: boolean) {
-    let promise = null;
-    if (set) {
-      const policy = new DeletionPolicy();
-      policy.numberOfWorkspacesOfSucceededStagesToKeep = Number(limitStr) > 0 ? Number(limitStr) : null;
-      policy.keepWorkspaceOfFailedStage = keep;
-      policy.alwaysKeepMostRecentWorkspace = always;
-      promise = this.api.updateDeletionPolicy(this.project.id, policy)
-        .then(result => {
-          this.deletionPolicyLocal = result;
-          this.deletionPolicyRemote = result;
-        });
-    } else {
-      promise = this.api.resetDeletionPolicy(this.project.id)
-        .then(r => {
-          this.deletionPolicyLocal = null;
-          this.deletionPolicyRemote = null;
-        });
-    }
-    this.dialog.openLoadingIndicator(
-      promise,
-      'Updating Deletion Policy'
-    );
-  }
-
   loadMoreHistoryEntries(count: number = 1) {
     const projectId = this.projectValue.id;
     const groupId = this.history[this.history.length - 1].id;
@@ -776,14 +661,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     });
   }
 
-  updatePublicAccess(checked: boolean) {
-    this.dialog.openLoadingIndicator(
-      this.api.updatePublicAccess(this.projectValue.id, checked)
-        .then(v => this.projectValue.publicAccess = v),
-      `Updating public access property`
-    );
-  }
-
   pruneHistory() {
     this.dialog.openAreYouSure(
       `Delete all failed stages of this project`,
@@ -799,61 +676,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     return value.id;
   }
 
-  workspaceModes(): WorkspaceMode[] {
-    const modes: WorkspaceMode[] = ['STANDALONE', 'INCREMENTAL', 'CONTINUATION'];
-    return modes;
-  }
 
-  setWorkspaceMode(value: WorkspaceMode) {
-    this.dialog.openLoadingIndicator(
-      this.api.setWorkspaceConfigurationMode(this.projectValue.id, value)
-        .then(mode => {
-          this.workspaceMode = mode;
-        }),
-      `Updating workspace configuration mode`,
-    );
-  }
-
-  setResourceLimitation(limit?: ResourceLimitation) {
-    this.dialog.openLoadingIndicator(
-      this.api.setResourceLimitation(this.projectValue.id, limit)
-        .then(l => {
-          this.resourceLimit = l;
-        }),
-      `Updating resource limitation`
-    );
-  }
-
-  createAuthToken(name: string) {
-    this.dialog.openLoadingIndicator(
-      this.api.createAuthToken(this.projectValue.id, name)
-        .then(l => {
-          this.authTokens.push(l);
-          // weird
-          setTimeout(
-            () => this.dialog.info(l.secret, 'The secret value is'),
-            100
-          );
-          // this.dialog.info(`The secret for the new Auth-Token is: <br><pre>${l.secret}</pre>`);
-        }),
-      `Creating a new authentication token`
-    );
-  }
-
-  deleteAuthToken(id: string) {
-    this.dialog.openLoadingIndicator(
-      this.api.deleteAuthToken(this.projectValue.id, id)
-        .then(l => {
-          for (let i = 0; i < this.authTokens.length; ++i) {
-            if (this.authTokens[i].id === id) {
-              this.authTokens.splice(i, 1);
-              break;
-            }
-          }
-        }),
-      `Creating a new authentication token`
-    );
-  }
 }
 
 

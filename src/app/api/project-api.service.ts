@@ -382,13 +382,14 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  setPipelineDefinition(projectId: string, pipelineId: string): Promise<boolean> {
+  setPipelineDefinition(projectId: string, pipelineId: string): Promise<PipelineDefinitionInfo> {
     return this
       .client
-      .put<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), {})
+      .put<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), {})
       .toPromise();
   }
 
+  // todo does this exist on backend?
   delete(projectId: string): Promise<string> {
     return this.client
       .delete<string>(ProjectApiService.getUrl(`${projectId}`))
