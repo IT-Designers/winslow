@@ -718,12 +718,12 @@ public class ProjectsController {
     }
 
     @PutMapping("projects/{projectId}/pipeline/{pipelineId}")
-    public ResponseEntity<Boolean> setPipelineDefinition(
+    public ResponseEntity<PipelineDefinitionInfo> setPipelineDefinition(
             User user,
             @PathVariable("projectId") String projectId,
             @PathVariable("pipelineId") String pipelineId
     ) throws IOException, LockException {
-        var projectReadonly = winslow
+        var pipelineDefinitionReadonly = winslow
                 .getProjectRepository()
                 .getProject(projectId)
                 .unsafe()
@@ -731,7 +731,7 @@ public class ProjectsController {
                 .flatMap(p -> winslow.getPipelineDefinitionRepository().getPipeline(pipelineId).unsafe())
                 .filter(definition -> definition.canBeAccessedBy(user) && definition.isAvailableForProject(projectId));
 
-        if (projectReadonly.isEmpty()) {
+        if (pipelineDefinitionReadonly.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -751,7 +751,8 @@ public class ProjectsController {
 
                 if (update.isPresent()) {
                     project.update(update.get());
-                    return ResponseEntity.ok(true);
+                    var pipelineDefinitionInfo = PipelineDefinitionInfoConverter.from(pipelineDefinitionReadonly.get());
+                    return ResponseEntity.ok(pipelineDefinitionInfo);
                 }
             }
         }

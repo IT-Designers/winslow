@@ -23,14 +23,7 @@ import {MatDialog} from "@angular/material/dialog";
 export class ProjectControlTabComponent {
 
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
-  projectInfo: ProjectInfo;
-
-  @Input() set project(project: ProjectInfo) {
-    this.projectInfo = project;
-  }
-  get project() {
-    return this.projectInfo;
-  }
+  @Input() project: ProjectInfo;
 
   constructor(
     private matDialog: MatDialog,

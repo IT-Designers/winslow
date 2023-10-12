@@ -113,6 +113,7 @@ import { ServerGroupsListComponent } from './server-details/server-groups-list/s
 import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-pipeline-dialog.component';
 import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-details.component';
 import { ProjectControlTabComponent } from './project-view/project-control-tab/project-control-tab.component';
+import { ProjectSettingsTabComponent } from './project-view/project-settings-tab/project-settings-tab.component';
 
 @NgModule({
     declarations: [
@@ -190,6 +191,7 @@ import { ProjectControlTabComponent } from './project-view/project-control-tab/p
         AddPipelineDialogComponent,
         PipelineDetailsComponent,
         ProjectControlTabComponent,
+        ProjectSettingsTabComponent,
     ],
     imports: [
         SweetAlert2Module.forRoot(),

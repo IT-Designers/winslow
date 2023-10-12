@@ -2,16 +2,6 @@
 /* eslint-disable */
 // Generated using typescript-generator version 3.1.1185 on 2023-05-04 17:43:18.
 
-export class GroupInfo {
-  name: string;
-  members: Link[];
-
-  constructor(data: GroupInfo) {
-    this.name = data.name;
-    this.members = data.members;
-  }
-}
-
 export class Link {
   name: string;
   role: Role;
