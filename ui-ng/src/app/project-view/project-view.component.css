@@ -18,11 +18,6 @@
   overflow: hidden;
 }
 
-label.disabled {
-  color: rgba(0, 0, 0, 0.2);
-}
-
-
 .history-item-no {
   text-align: end;
   min-width: 2em;

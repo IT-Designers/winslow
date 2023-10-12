@@ -1,0 +1,22 @@
+.stage-control-item {
+    display: flex;
+    margin: 0 2em;
+    align-items: center;
+}
+
+.stage-control-item > *:first-child {
+    flex: 1;
+}
+
+.stage-control-item > *:last-child {
+
+}
+
+.stage-control-item > *:not(:first-child):not(:last-child) {
+    margin: 0 1em;
+    flex: 3;
+}
+
+label.disabled {
+    color: rgba(0, 0, 0, 0.2);
+}
