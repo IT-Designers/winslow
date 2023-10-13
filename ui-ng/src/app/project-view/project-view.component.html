@@ -1,94 +1,99 @@
-<mat-tab-group mat-align-tabs="center" #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)"
-               class="fill-height" >
+<mat-tab-group
+  mat-align-tabs="center" #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)"
+  class="fill-height"
+>
 
   <mat-tab label="Overview">
-    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-    <app-project-overview-tab
-      [project]="this.project"
-      [state]="stateValue"
-      [history]="history"
-      [visible]="selectedTabIndex == tabIndexOverview"
-      (openFiles)="openFolder(this.project, this.history[0])"
-      (openLogs)="openLogs(null)"
-      (clickUseAsBlueprint)="useAsBlueprint($event[0], $event[1])"
-      (clickDeleteEnqueued)="cancelEnqueuedStage($event.id)"
-      (clickResumeSingle)="updateRequestPause(false, true)"
-      (clickResume)="updateRequestPause(false, false)"
-      (clickPause)="updateRequestPause(true)"
-    ></app-project-overview-tab>
+    <ng-template matTabContent>
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+      <app-project-overview-tab
+        [project]="this.project"
+        [state]="stateValue"
+        [history]="history"
+        [visible]="selectedTabIndex == tabIndexOverview"
+        (openFiles)="openFolder(this.project, this.history[0])"
+        (openLogs)="openLogs(null)"
+        (clickUseAsBlueprint)="useAsBlueprint($event[0], $event[1])"
+        (clickDeleteEnqueued)="cancelEnqueuedStage($event.id)"
+        (clickResumeSingle)="updateRequestPause(false, true)"
+        (clickResume)="updateRequestPause(false, false)"
+        (clickPause)="updateRequestPause(true)"
+      ></app-project-overview-tab>
+    </ng-template>
   </mat-tab>
 
-  <!--<mat-tab label="ControlView">
-    <app-pipeline-control [pipelineDefinition]="projectValue.pipelineDefinition">
-    </app-pipeline-control>
-  </mat-tab>-->
-
   <mat-tab label="Control">
-    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-    <app-project-control-tab [project]="this.project"></app-project-control-tab>
+    <ng-template matTabContent>
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+      <app-project-control-tab [project]="this.project"></app-project-control-tab>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="History">
-      <ng-template matTabContent>
+    <ng-template matTabContent>
 
-        <div *ngIf="history.length > 0" class="history-more-buttons horizontal-center-with-margin">
-          <!-- <button *ngIf="historyCanLoadMoreEntries"
-                  mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(10)">
-            <mat-icon>arrow_drop_down</mat-icon>
-            Show 10 More
-          </button>
-          <button *ngIf="historyCanLoadMoreEntries"
-                  mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(50)">
-            <mat-icon>expand_more</mat-icon>
-            Show 50 More
-          </button> -->
-          <button *ngIf="historyCanLoadMoreEntries"
-                  mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(1000000)">
-            <mat-icon>arrow_downward</mat-icon>
-            Load All
-          </button>
-          <button mat-stroked-button color="warn" (click)="pruneHistory()">
-            <mat-icon>delete_forever</mat-icon>
-            Delete Failed
-          </button>
-        </div>
-        <div *ngIf="history?.length > 0">
-          <div [style.overflow]="'auto'"
+      <div *ngIf="history.length > 0" class="history-more-buttons horizontal-center-with-margin">
+        <!-- <button *ngIf="historyCanLoadMoreEntries"
+                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(10)">
+          <mat-icon>arrow_drop_down</mat-icon>
+          Show 10 More
+        </button>
+        <button *ngIf="historyCanLoadMoreEntries"
+                mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(50)">
+          <mat-icon>expand_more</mat-icon>
+          Show 50 More
+        </button> -->
+        <button
+          *ngIf="historyCanLoadMoreEntries"
+          mat-stroked-button color="primary" (click)="loadMoreHistoryEntries(1000000)"
+        >
+          <mat-icon>arrow_downward</mat-icon>
+          Load All
+        </button>
+        <button mat-stroked-button color="warn" (click)="pruneHistory()">
+          <mat-icon>delete_forever</mat-icon>
+          Delete Failed
+        </button>
+      </div>
+      <div *ngIf="history?.length > 0">
+        <div
+          [style.overflow]="'auto'"
 
           [ngStyle]="history?.length < 7 ? {'height': history.length * 50 } :  {'height': historyListHeight + 'px' }"
-          (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null">
+          (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null"
+        >
 
-            <app-project-history-tab
-              *ngFor="let entry of history; index as i; trackBy:trackHistory"
-              [active]="selectedHistoryEntryIndex === i"
-              class="history-list-item"
+          <app-project-history-tab
+            *ngFor="let entry of history; index as i; trackBy:trackHistory"
+            [active]="selectedHistoryEntryIndex === i"
+            class="history-list-item"
 
-              [executionGroup]="entry"
-              [firstEntry]="i == 0"
-              [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
-              [expanded]="selectedHistoryEntry === entry"
-              [pipelineIsPaused]="paused"
-              [projectState]="stateValue"
+            [executionGroup]="entry"
+            [firstEntry]="i == 0"
+            [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
+            [expanded]="selectedHistoryEntry === entry"
+            [pipelineIsPaused]="paused"
+            [projectState]="stateValue"
 
-              (click)="setHistoryEntry(entry, i)"
-              (clickGetStage)="setHistoryEntryStage($event)"
+            (click)="setHistoryEntry(entry, i)"
+            (clickGetStage)="setHistoryEntryStage($event)"
 
-              (clickResume)="updateRequestPause(false)"
-              (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
-              (clickDelete)="cancelEnqueuedStage(entry.id)"
-              (clickPauseAfterThis)="updateRequestPause(true)"
-              (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
-              (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
-              (clickOpenWorkspace)="openWorkspace(project, $event)"
-              (clickOpenLogs)="openLogs($event)"
-              (clickOpenAnalysis)="openAnalysis($event)"
-              (clickOpenTensorboard)="openTensorboard(project, $event)"
-            ></app-project-history-tab>
-          </div>
+            (clickResume)="updateRequestPause(false)"
+            (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
+            (clickDelete)="cancelEnqueuedStage(entry.id)"
+            (clickPauseAfterThis)="updateRequestPause(true)"
+            (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
+            (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
+            (clickOpenWorkspace)="openWorkspace(project, $event)"
+            (clickOpenLogs)="openLogs($event)"
+            (clickOpenAnalysis)="openAnalysis($event)"
+            (clickOpenTensorboard)="openTensorboard(project, $event)"
+          ></app-project-history-tab>
         </div>
+      </div>
 
-        <div *ngIf="history?.length > 0">
-          <app-project-history-details
+      <div *ngIf="history?.length > 0">
+        <app-project-history-details
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
           [entryNumber]="selectedHistoryEntryNumber ? selectedHistoryEntryNumber : tryParseStageNumber(history[0]?.id, history?.length)"
           [selectedStage]="selectedHistoryEntryStage ? selectedHistoryEntryStage : history[0]?.stages[history[0]?.stages.length-1]"
@@ -100,21 +105,22 @@
           (clickOpenLogs)="openLogs($event)"
           (clickOpenAnalysis)="openAnalysis($event)"
           (clickOpenTensorboard)="openTensorboard(project, $event)"
-      >
+        >
         </app-project-history-details>
-        </div>
-        <div *ngIf="history?.length == 0" class="empty-project-history">
-          This project has no history yet
-        </div>
+      </div>
+      <div *ngIf="history?.length == 0" class="empty-project-history">
+        This project has no history yet
+      </div>
 
-      </ng-template>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="Files">
     <ng-template matTabContent>
-      <app-files class="files-tab-content"
-                 [additionalRoot]="filesAdditionalRoot"
-                 [navigationTarget]="this.filesNavigationTarget"
+      <app-files
+        class="files-tab-content"
+        [additionalRoot]="filesAdditionalRoot"
+        [navigationTarget]="this.filesNavigationTarget"
       ></app-files>
 
     </ng-template>
@@ -122,18 +128,20 @@
 
   <mat-tab label="Logs">
     <ng-template matTabContent>
-      <app-project-logs-tab class="flex-grow flex-grow-column max-height"
-                    [project]="projectValue"
-                    [selectedStage]="stageIdToDisplayLogsFor"
+      <app-project-logs-tab
+        class="flex-grow flex-grow-column max-height"
+        [project]="projectValue"
+        [selectedStage]="stageIdToDisplayLogsFor"
       ></app-project-logs-tab>
     </ng-template>
   </mat-tab>
 
   <mat-tab label="Analysis">
     <ng-template matTabContent>
-      <app-project-analysis-tab class="flex-grow flex-grow-column max-height"
-                    [project]="projectValue"
-                    [selectedStage]="stageIdToDisplayLogsFor"
+      <app-project-analysis-tab
+        class="flex-grow flex-grow-column max-height"
+        [project]="projectValue"
+        [selectedStage]="stageIdToDisplayLogsFor"
       ></app-project-analysis-tab>
     </ng-template>
   </mat-tab>
@@ -142,23 +150,17 @@
     <ng-template matTabContent>
       <div class="flex-grow flex-grow-column max-height">
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-        <app-pipeline-editor #editor
-                             [raw]="rawPipelineDefinition"
-                             [error]="rawPipelineDefinitionError"
-                             [success]="rawPipelineDefinitionSuccess"
-                             [enableOnOthers]="true"
-                             (others)="updatePipelineDefinitionOnOthers($event)"
-                             (check)="checkPipelineDefinition($event)"
-                             (update)="updatePipelineDefinition($event, editor)">
+        <app-pipeline-editor
+          #editor
+          [raw]="rawPipelineDefinition"
+          [error]="rawPipelineDefinitionError"
+          [success]="rawPipelineDefinitionSuccess"
+          [enableOnOthers]="true"
+          (others)="updatePipelineDefinitionOnOthers($event)"
+          (check)="checkPipelineDefinition($event)"
+          (update)="updatePipelineDefinition($event, editor)"
+        >
         </app-pipeline-editor>
-        <!--<app-pipeline-editor #editor
-                             [raw]="rawPipelineDefinition"
-                             [error]="rawPipelineDefinitionError"
-                             [success]="rawPipelineDefinitionSuccess"
-                             [enableOnOthers]="true"
-                             (check)="checkPipelineDefinition($event)"
-                             (update)="updatePipelineDefinition($event, editor)">
-        </app-pipeline-editor>-->
       </div>
     </ng-template>
   </mat-tab>
@@ -167,19 +169,21 @@
     <ng-template matTabContent>
       <div class="flex-grow flex-grow-column max-height">
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-          <app-pipeline-view
-            [pipelineDefinition]="projectValue.pipelineDefinition"
-            [pipelineDefinitionEdit]="projectValue.pipelineDefinition"
-            (onSave)="updatePipelineDefinitionWithObject($event)"
-          ></app-pipeline-view>
+        <app-pipeline-view
+          [pipelineDefinition]="projectValue.pipelineDefinition"
+          [pipelineDefinitionEdit]="projectValue.pipelineDefinition"
+          (onSave)="updatePipelineDefinitionWithObject($event)"
+        ></app-pipeline-view>
       </div>
     </ng-template>
   </mat-tab>
 
   <mat-tab label="Settings">
-    <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-    <app-project-settings-tab
-      [project]="projectValue"
-    ></app-project-settings-tab>
+    <ng-template matTabContent>
+      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
+      <app-project-settings-tab
+        [project]="projectValue"
+      ></app-project-settings-tab>
+    </ng-template>
   </mat-tab>
 </mat-tab-group>

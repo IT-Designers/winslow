@@ -532,11 +532,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private setProjectPipeline(pipeline: PipelineDefinitionInfo) {
-    const p = this.project;
-    const pid = p.pipelineDefinition.id;
-    p.pipelineDefinition = ProjectViewComponent.deepClone(pipeline);
-    p.pipelineDefinition.id = pid;
-    this.project = p;
+    const projectInfo = this.project;
+    projectInfo.pipelineDefinition = pipeline;
+    this.project = new ProjectInfo(projectInfo); // rerender tabs with new pipeline //todo make this an observable
   }
 
   checkPipelineDefinition(raw: string) {
