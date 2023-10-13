@@ -6,7 +6,6 @@ import {
   ProjectDiskUsageDialogComponent,
   ProjectDiskUsageDialogData
 } from '../../project-disk-usage-dialog/project-disk-usage-dialog.component';
-import {PipelineApiService} from '../../api/pipeline-api.service';
 import {Subscription} from 'rxjs';
 import {Action, ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../../api/winslow-api';
 
@@ -179,7 +178,6 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   constructor(private api: ProjectApiService,
               private dialog: DialogService,
               private createDialog: MatDialog,
-              private  pipelines: PipelineApiService,
               private cdr: ChangeDetectorRef) {
   }
 
