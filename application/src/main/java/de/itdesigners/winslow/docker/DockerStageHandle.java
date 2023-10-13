@@ -4,6 +4,7 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.*;
+import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.LogSource;
@@ -51,7 +52,7 @@ public class DockerStageHandle implements StageHandle {
         this.stageId = stageId;
 
         runAndCatchRuntimeExceptionsInNewThread(() -> {
-            pullImageAndThenStartContainer(createContainerCmd.getImage());
+            pullImage(createContainerCmd.getImage());
             containerId = createContainer(createContainerCmd);
 
             LOG.info(stageId + ": setupLogListener");
@@ -101,7 +102,7 @@ public class DockerStageHandle implements StageHandle {
         }
     }
 
-    private void pullImageAndThenStartContainer(@Nullable String containerImage) throws DockerException {
+    private void pullImage(@Nullable String containerImage) throws DockerException {
         var image = Optional
                 .ofNullable(containerImage)
                 .map(i -> {
@@ -158,8 +159,8 @@ public class DockerStageHandle implements StageHandle {
                     DockerStageHandle.this.closeable.remove(this);
                 }
             }).awaitCompletion();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (InterruptedException | RuntimeException e) {
+            logErr((e.getCause() != null ? e.getCause() : e).getClass().getSimpleName() + ": " + e.getMessage());
         }
     }
 
