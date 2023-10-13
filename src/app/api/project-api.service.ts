@@ -389,7 +389,6 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  // todo does this exist on backend?
   delete(projectId: string): Promise<string> {
     return this.client
       .delete<string>(ProjectApiService.getUrl(`${projectId}`))
