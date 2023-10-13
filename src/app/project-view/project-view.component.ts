@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   EventEmitter,
   HostListener,
@@ -12,7 +11,6 @@ import {
   ViewChild
 } from '@angular/core';
 import {DeletionPolicy, ProjectApiService,} from '../api/project-api.service';
-import {NotificationService} from '../notification.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
@@ -25,14 +23,12 @@ import {
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {pipe, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
-import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import {
-  AuthTokenInfo,
   EnvVariable,
   ExecutionGroupInfo,
-  ImageInfo, Link,
+  Link,
   PipelineDefinitionInfo,
   ProjectInfo,
   RangedValue,
@@ -43,11 +39,7 @@ import {
   StageWorkerDefinitionInfo,
   State,
   StateInfo,
-  WorkspaceConfiguration,
-  WorkspaceMode
 } from '../api/winslow-api';
-import {UserApiService} from '../api/user-api.service';
-
 
 @Component({
   selector: 'app-project-view',
@@ -413,9 +405,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   openFolder(project: ProjectInfo, group: ExecutionGroupInfo) {
     if (group != null && group.stages != null && group.stages.length > 0) {
       const stage = group.stages[group.stages.length - 1];
-      this.tabs.selectedIndex = Tab.Files;
-      this.setupFiles(project);
-      this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
+      this.openWorkspace(project, stage);
     }
   }
 
