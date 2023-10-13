@@ -23,7 +23,18 @@ import {MatDialog} from "@angular/material/dialog";
 export class ProjectControlTabComponent {
 
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
-  @Input() project: ProjectInfo;
+  @Input() set project(project: ProjectInfo) {
+    this._project = project;
+    // todo make stage execution selection able to react to pipeline changes on its own (or replace it entirely)
+    // trigger rerender of stage execution selection
+    this.pipelineDefinition = project.pipelineDefinition;
+  };
+  get project() {
+    return this._project;
+  }
+  private _project: ProjectInfo;
+
+  pipelineDefinition: PipelineDefinitionInfo;
 
   constructor(
     private matDialog: MatDialog,
