@@ -44,7 +44,7 @@ export class ProjectSettingsTabComponent {
 
     this.projectApi.getWorkspaceConfigurationMode(this.project.id)
       .then(mode => {
-        this.workspaceConfigurationMode = mode;
+        this.workspaceMode = mode;
       });
 
 
@@ -89,7 +89,6 @@ export class ProjectSettingsTabComponent {
   deletionPolicyRemote: DeletionPolicy | null = null;
   resourceLimit: ResourceLimitation | null = null;
   workspaceMode: WorkspaceMode | null = null;
-  workspaceConfigurationMode: WorkspaceMode | null = null;
 
   constructor(
     private pipelineApi: PipelineApiService,
@@ -102,17 +101,11 @@ export class ProjectSettingsTabComponent {
     this.userCanEditProject = false;
   }
 
-  updateProject(): void {
-    //this.project = new ProjectInfo(this.project); // trigger re-rendering by providing new project object
-    //this.projectChanged.emit(this.project); // update project in project-view to reflect changes
-  }
-
   setName(name: string): void {
     this.dialog.openLoadingIndicator(
       this.projectApi
         .setName(this.project.id, name)
-        .then(() => this.project.name = name)
-        .then(this.updateProject),
+        .then(() => this.project.name = name),
       `Updating name to ${name}`
     );
   }
@@ -121,8 +114,7 @@ export class ProjectSettingsTabComponent {
     this.dialog.openLoadingIndicator(
       this.projectApi
         .setPipelineDefinition(this.project.id, pipelineId)
-        .then(pipeline => this.project.pipelineDefinition = pipeline)
-        .then(this.updateProject),
+        .then(pipeline => this.project.pipelineDefinition = pipeline),
       `Submitting pipeline selection`
     );
   }
@@ -131,8 +123,7 @@ export class ProjectSettingsTabComponent {
     return this.dialog.openLoadingIndicator(
       this.projectApi
         .setTags(this.project.id, tags)
-        .then(tagsReceived => this.project.tags = tagsReceived)
-        .then(this.updateProject),
+        .then(tagsReceived => this.project.tags = tagsReceived),
       'Updating tags'
     );
   }
@@ -140,8 +131,7 @@ export class ProjectSettingsTabComponent {
   setPublicAccess(value: boolean): void {
     this.dialog.openLoadingIndicator(
       this.projectApi.updatePublicAccess(this.project.id, value)
-        .then(valueReceived => this.project.publicAccess = valueReceived)
-        .then(this.updateProject),
+        .then(valueReceived => this.project.publicAccess = valueReceived),
       `Updating public access property`
     );
   }
@@ -162,19 +152,14 @@ export class ProjectSettingsTabComponent {
     );
   }
 
-  //todo cleanup
   deleteAuthToken(id: string) {
     this.dialog.openLoadingIndicator(
       this.projectApi.deleteAuthToken(this.project.id, id)
         .then(() => {
-          for (let i = 0; i < this.authTokens.length; ++i) {
-            if (this.authTokens[i].id === id) {
-              this.authTokens.splice(i, 1);
-              break;
-            }
-          }
+          const index = this.authTokens.findIndex(authToken => authToken.id == id);
+          this.authTokens.splice(index, 1);
         }),
-      `Creating a new authentication token`
+      `Deleting authentication token`
     );
   }
 
@@ -256,25 +241,22 @@ export class ProjectSettingsTabComponent {
     );
   }
 
-  //todo error handling
   removeGroup(group: Link): void {
-    const index = this.project.groups.indexOf(group);
-    if (index >= 0) {
-      this.project.groups.splice(index, 1);
-      this.dialog.openLoadingIndicator(
-        this.projectApi
-          .removeGroup(this.project.id, group.name)
-          .then(this.updateProject),
-        'Removing group from Project'
-      );
-    }
+    this.dialog.openLoadingIndicator(
+      this.projectApi
+        .removeGroup(this.project.id, group.name)
+        .then(() => {
+          const index = this.project.groups.indexOf(group);
+          this.project.groups.splice(index, 1);
+        }),
+      'Removing group from Project'
+    );
   }
 
   onGroupAdded(group: Link): void {
     if (!this.project.groups.includes(group)) {
       this.project.groups.push(group);
     }
-    this.updateProject();
   }
 
   getGroupLinkColor(group: Link): string {
