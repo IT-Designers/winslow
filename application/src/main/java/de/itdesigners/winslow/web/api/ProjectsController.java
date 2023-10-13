@@ -809,6 +809,7 @@ public class ProjectsController {
         });
     }
 
+    // todo obsolete?
     @PostMapping("projects/{projectId}/enqueued-on-others")
     public Stream<Boolean> enqueueStageOnOthersToConfigure(
             User user,
