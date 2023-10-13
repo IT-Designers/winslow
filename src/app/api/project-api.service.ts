@@ -279,26 +279,6 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-
-  configureGroup(
-    projectId: string,
-    stageIndex: number,
-    projectIds: string[],
-    env: any,
-    image: ImageInfo = null,
-    requiredResources: ResourceInfo = null): Promise<boolean[]> {
-    return this.client.post<boolean[]>(
-      ProjectApiService.getUrl(`${projectId}/enqueued-on-others`),
-      {
-        stageIndex,
-        projectIds,
-        env,
-        image,
-        requiredResources
-      }
-    ).toPromise();
-  }
-
   pause(projectId: string): Promise<boolean> {
     return this.resume(projectId, true);
   }
