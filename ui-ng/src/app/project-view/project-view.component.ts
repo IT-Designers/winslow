@@ -39,6 +39,7 @@ import {
   State,
   StateInfo,
 } from '../api/winslow-api';
+import {Tag} from "@angular/compiler/src/i18n/serializers/xml_helper";
 
 @Component({
   selector: 'app-project-view',
@@ -70,8 +71,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
       this.setupFiles();
 
-      if (this.tabs) {
-        this.selectTabIndex(this.selectedTabIndex);
+      if (this.tabGroup) {
+        this.selectTabIndex(this.tabGroup.selectedIndex);
       }
 
       this.resubscribe(projectInfo.id);
@@ -97,9 +98,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     this.stateEmitter.emit(this.stateValue);
   }
 
-  tabIndexOverview = Tab.Overview;
+  overviewTabIndex = ProjectViewTab.Overview;
 
-  @ViewChild('tabGroup') tabs: MatTabGroup;
+  @ViewChild('tabGroup') tabGroup: MatTabGroup;
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
 
   projectValue: ProjectInfo;
@@ -140,7 +141,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   rawPipelineDefinitionSuccess: string = null;
 
   paramsSubscription: Subscription = null;
-  selectedTabIndex: number = Tab.Overview;
   resourceLimit: ResourceLimitation = null;
 
   historyListHeight: any;
@@ -192,27 +192,42 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-
   setHistoryEntryStage(stage: StageInfo) {
     this.selectedHistoryEntryStage = stage;
   }
 
-  updateTabSelection(tab: string) {
-    for (let i = 0; i < 10; ++i) {
-      if (Tab[i] && Tab[i].toLowerCase() === tab) {
-        this.selectedTabIndex = i;
-        this.onSelectedTabChanged(this.selectedTabIndex);
-        break;
-      }
-    }
-  }
-
   ngOnInit(): void {
     this.setupFiles();
+
     this.paramsSubscription = this.route.children[0].params.subscribe(params => {
-      if (params.tab != null) {
-        this.updateTabSelection(params.tab);
+      if (params.tab == null) {
+        return;
       }
+
+      const tabIndex = Object.keys(ProjectViewTab).findIndex(key => key.toLowerCase() === params.tab);
+      if (tabIndex === -1) {
+        console.warn(`Attempted to switch to ProjectViewTab '${params.tab}', however no such tab is defined.`);
+        console.warn(`Valid tabs are: ${Object.keys(ProjectViewTab).join(", ")}`);
+        return;
+      }
+
+      if (this.tabGroup == null) {
+        // Should never happen, as @ViewChild should be initialized before ngOnInit is called.
+        console.error(`Could not switch to ProjectViewTab '${params.tab}' as the MatTabGroup is not initialized.`);
+        return;
+      }
+
+      if (ProjectViewTab.PipelineDefinition === tabIndex) {
+        this.dialog.openLoadingIndicator(
+          this.pipelinesApi.getRawPipelineDefinition(this.project.pipelineDefinition.id)
+            .then(result => this.rawPipelineDefinition = result),
+          `Loading Pipeline Definition`,
+          false
+        );
+      } else {
+        this.rawPipelineDefinition = null;
+      }
+
     });
   }
 
@@ -322,26 +337,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   selectTabIndex(index: number) {
-    this.router.navigate([Tab[index].toLowerCase()], {
+    this.router.navigate([ProjectViewTab[index].toLowerCase()], {
       relativeTo: this.route,
     });
-  }
-
-  onSelectedTabChanged(index: number) {
-    if (this.tabs && index != null) {
-      this.tabs.selectedIndex = index;
-    }
-
-    if (Tab.PipelineDefinition === index) {
-      this.dialog.openLoadingIndicator(
-        this.pipelinesApi.getRawPipelineDefinition(this.project.pipelineDefinition.id)
-          .then(result => this.rawPipelineDefinition = result),
-        `Loading Pipeline Definition`,
-        false
-      );
-    } else {
-      this.rawPipelineDefinition = null;
-    }
   }
 
   isLongLoading() {
@@ -356,7 +354,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   openWorkspace(project: ProjectInfo, stage: StageInfo) {
-    this.tabs.selectedIndex = Tab.Files;
+    this.tabGroup.selectedIndex = ProjectViewTab.Files;
     this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
   }
@@ -374,12 +372,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   openLogs(entry?: StageInfo, watchLatestLogs = false) {
     this.stageIdToDisplayLogsFor = entry?.id;
-    this.tabs.selectedIndex = Tab.Logs;
+    this.tabGroup.selectedIndex = ProjectViewTab.Logs;
   }
 
   openAnalysis(entry?: StageInfo, watchLatestLogs = false) {
     this.stageIdToDisplayLogsFor = entry?.id;
-    this.tabs.selectedIndex = Tab.Analysis;
+    this.tabGroup.selectedIndex = ProjectViewTab.Analysis;
   }
 
   killStage(stageId: string) {
@@ -412,7 +410,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.environment;
       this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
       this.rangedEnvironmentVariables = this.rangedEnvironmentVariables ?? {};
-      this.tabs.selectedIndex = Tab.Control;
+      this.tabGroup.selectedIndex = ProjectViewTab.Control;
     }
   }
 
@@ -580,12 +578,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   trackHistory(index: number, value: ExecutionGroupInfo): string {
     return value.id;
   }
-
-
 }
 
-
-export enum Tab {
+export enum ProjectViewTab {
   Overview,
   Control,
   History,

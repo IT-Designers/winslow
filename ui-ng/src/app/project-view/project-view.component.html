@@ -1,5 +1,5 @@
 <mat-tab-group
-  mat-align-tabs="center" #tabGroup [selectedIndex]="selectedTabIndex" (selectedIndexChange)="selectTabIndex($event)"
+  mat-align-tabs="center" #tabGroup [selectedIndex]="overviewTabIndex" (selectedIndexChange)="selectTabIndex($event)"
   class="fill-height"
 >
 
@@ -10,7 +10,7 @@
         [project]="this.project"
         [state]="stateValue"
         [history]="history"
-        [visible]="selectedTabIndex == tabIndexOverview"
+        [visible]="tabGroup.selectedIndex == overviewTabIndex"
         (openFiles)="openFolder(this.project, this.history[0])"
         (openLogs)="openLogs(null)"
         (clickUseAsBlueprint)="useAsBlueprint($event[0], $event[1])"
