@@ -1,5 +1,5 @@
 <mat-tab-group
-  mat-align-tabs="center" #tabGroup [selectedIndex]="overviewTabIndex" (selectedIndexChange)="navigateToSelectedTab($event)"
+  mat-align-tabs="center" #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedIndexChange)="updateRouteToMatchTab()"
   class="fill-height"
 >
 
@@ -7,12 +7,10 @@
     <ng-template matTabContent>
       <app-loading-info [loading]="isLongLoading()"></app-loading-info>
       <app-project-overview-tab
-        [project]="this.project"
+        [project]="project"
         [state]="stateValue"
         [history]="history"
         [visible]="tabGroup.selectedIndex == overviewTabIndex"
-        (openFiles)="openFolder(this.project, this.history[0])"
-        (openLogs)="openLogs(null)"
         (clickUseAsBlueprint)="useAsBlueprint($event[0], $event[1])"
         (clickDeleteEnqueued)="cancelEnqueuedStage($event.id)"
         (clickResumeSingle)="updateRequestPause(false, true)"
@@ -25,7 +23,7 @@
   <mat-tab label="Control">
     <ng-template matTabContent>
       <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-      <app-project-control-tab [project]="this.project"></app-project-control-tab>
+      <app-project-control-tab [project]="project"></app-project-control-tab>
     </ng-template>
   </mat-tab>
 
@@ -120,7 +118,7 @@
       <app-files
         class="files-tab-content"
         [additionalRoot]="filesAdditionalRoot"
-        [navigationTarget]="this.filesNavigationTarget"
+        [navigationTarget]="filesNavigationTarget"
       ></app-files>
 
     </ng-template>
@@ -130,7 +128,7 @@
     <ng-template matTabContent>
       <app-project-logs-tab
         class="flex-grow flex-grow-column max-height"
-        [project]="projectValue"
+        [project]="project"
         [selectedStage]="stageIdToDisplayLogsFor"
       ></app-project-logs-tab>
     </ng-template>
@@ -140,7 +138,7 @@
     <ng-template matTabContent>
       <app-project-analysis-tab
         class="flex-grow flex-grow-column max-height"
-        [project]="projectValue"
+        [project]="project"
         [selectedStage]="stageIdToDisplayLogsFor"
       ></app-project-analysis-tab>
     </ng-template>
