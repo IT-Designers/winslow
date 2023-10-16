@@ -21,8 +21,6 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
 
-  @Output() openFiles = new EventEmitter<ProjectInfo>();
-  @Output() openLogs = new EventEmitter<ProjectInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo?]>();
   @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfo>();
@@ -370,30 +368,6 @@ export class ProjectOverviewTabComponent implements OnDestroy {
     }
   }
 
-  emitOpenFiles() {
-    if (this.projectValue) {
-      this.openFiles.emit(this.projectValue);
-    }
-  }
-
-  emitOpenLogs() {
-    if (this.projectValue) {
-      this.openLogs.emit(this.projectValue);
-    }
-  }
-
-  isConfigure(action: Action) {
-    return action === 'CONFIGURE';
-  }
-
-  isEnqueued(state: State) {
-    return state === 'ENQUEUED';
-  }
-
-  isRunning(state: State) {
-    return state === 'RUNNING';
-  }
-
   openProjectDiskUsageDialog() {
     this.createDialog
       .open(ProjectDiskUsageDialogComponent, {
@@ -402,31 +376,6 @@ export class ProjectOverviewTabComponent implements OnDestroy {
         } as ProjectDiskUsageDialogData
       });
   }
-
-  enqueueAction(value: string) {
-    this.dialog.openLoadingIndicator(
-      this.api.action(this.projectValue.id, value),
-      `Submitting action...`
-    );
-  }
-
-
-  actionBackgroundColor(tag: string) {
-    tag = tag.trim();
-    let sum = tag.length;
-    for (let i = 0; i < tag.length; ++i) {
-      sum += (i + 1) * tag.charCodeAt(i) * 1337;
-    }
-
-    const min = 192;
-    const max = 256 - min;
-
-    const red = ((sum / 7) % max) + min;
-    const green = ((sum / 5) % max) + min;
-    const blue = ((sum / 3) % max) + min;
-    return `rgba(${red}, ${green}, ${blue}, 0.45)`;
-  }
-
   private subscribe() {
     this.unsubscribe();
     this.subscription = this.api.watchProjectStats(this.projectValue.id, stats => {
