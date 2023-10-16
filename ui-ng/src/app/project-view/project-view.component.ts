@@ -34,7 +34,6 @@ import {
   RangedValue,
   ResourceInfo,
   ResourceLimitation,
-  StageDefinitionInfo,
   StageInfo,
   StageWorkerDefinitionInfo,
   State,
@@ -60,12 +59,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   @Input()
-  public set project(value: ProjectInfo) {
-    const changed = this.projectValue?.id !== value?.id;
-    this.projectValue = value;
+  public set project(projectInfo: ProjectInfo) {
+    const changed = this.projectValue?.id !== projectInfo?.id;
+    this.projectValue = projectInfo;
 
     if (changed) {
-      this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
+      this.rawPipelineDefinition = null;
+      this.rawPipelineDefinitionError = null;
+      this.rawPipelineDefinitionSuccess = null;
 
       this.setupFiles();
 
@@ -73,17 +74,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
         this.selectTabIndex(this.selectedTabIndex);
       }
 
-      this.resubscribe(value.id);
+      this.resubscribe(projectInfo.id);
     }
-
-    this.pipelinesApi.getPipelineDefinitions().then(result => {
-      this.pipelines = result;
-      this.probablyProjectPipelineId = null;
-      if (this.project && this.project.pipelineDefinition) {
-        this.probablyProjectPipelineId = this.api.findProjectPipeline(this.project, this.pipelines);
-      }
-    });
-
   }
 
   public get project(): ProjectInfo {
@@ -91,12 +83,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   @Input()
-  public set state(value: StateInfo) {
-    this.update(value);
+  public set state(state: StateInfo) {
+    if (!state) {
+      return;
+    }
+
+    this.stateValue = state.state;
+    this.pauseReason = state.pauseReason;
+    this.progress = state.stageProgress;
+
+    this.paused = this.stateValue === 'PAUSED' || this.pauseReason != null;
+
+    this.stateEmitter.emit(this.stateValue);
   }
-
-  static TRUNCATE_TO_MAX_LINES = 5000;
-
 
   tabIndexOverview = Tab.Overview;
 
@@ -104,7 +103,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
 
   projectValue: ProjectInfo;
-  probablyProjectPipelineId = null;
 
   @Output('state') stateEmitter = new EventEmitter<State>();
   @Output('deleted') deletedEmitter = new EventEmitter<boolean>();
@@ -133,10 +131,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   longLoading = new LongLoadingDetector();
 
-  pipelines: PipelineDefinitionInfo[];
-
-  selectedPipeline: PipelineDefinitionInfo = null;
-  selectedStage: StageDefinitionInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
   defaultEnvironmentVariables: Record<string, string> = null;
   rangedEnvironmentVariables: Record<string, RangedValue> = null;
@@ -306,20 +300,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       const length = this.history.length - offset;
       this.history.splice(offset, 0, ...executions.reverse());
     });
-  }
-
-  update(info: StateInfo) {
-    if (!info) {
-      return;
-    }
-
-    this.stateValue = info.state;
-    this.pauseReason = info.pauseReason;
-    this.progress = info.stageProgress;
-
-    this.paused = this.stateValue === 'PAUSED' || this.pauseReason != null;
-
-    this.stateEmitter.emit(this.stateValue);
   }
 
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
