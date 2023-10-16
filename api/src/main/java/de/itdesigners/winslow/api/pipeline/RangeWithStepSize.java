@@ -36,6 +36,7 @@ public record RangeWithStepSize(
     }
 
     @Override
+    @Transient
     public int getStepCount() {
         return Math.max(0, (int) Math.ceil(Math.abs((this.max - this.min) / this.stepSize))) + 1;
     }
