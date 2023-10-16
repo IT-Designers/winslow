@@ -10,7 +10,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {DeletionPolicy, ProjectApiService,} from '../api/project-api.service';
+import {ProjectApiService,} from '../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
@@ -33,13 +33,11 @@ import {
   ProjectInfo,
   RangedValue,
   ResourceInfo,
-  ResourceLimitation,
   StageInfo,
   StageWorkerDefinitionInfo,
   State,
   StateInfo,
 } from '../api/winslow-api';
-import {Tag} from "@angular/compiler/src/i18n/serializers/xml_helper";
 
 @Component({
   selector: 'app-project-view',
@@ -69,7 +67,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       this.setupFiles();
 
       if (this.tabGroup) {
-        this.selectTabIndex(this.tabGroup.selectedIndex);
+        this.navigateToSelectedTab(this.tabGroup.selectedIndex);
       }
 
       this.resubscribe(projectInfo.id);
@@ -124,9 +122,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   pauseReason?: string = null;
   progress?: number;
 
-  deletionPolicyLocal?: DeletionPolicy;
-  deletionPolicyRemote?: DeletionPolicy;
-
   longLoading = new LongLoadingDetector();
 
   environmentVariables: Map<string, EnvVariable> = null;
@@ -138,7 +133,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   rawPipelineDefinitionSuccess: string = null;
 
   paramsSubscription: Subscription = null;
-  resourceLimit: ResourceLimitation = null;
 
   historyListHeight: any;
   selectedHistoryEntry: ExecutionGroupInfo = null;
@@ -252,11 +246,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnDestroy(): void {
-    if (this.paramsSubscription) {
-      this.paramsSubscription.unsubscribe();
-      this.paramsSubscription = null;
-    }
+    this.paramsSubscription?.unsubscribe();
     this.unsubscribe();
+  }
+
+  navigateToSelectedTab(index: number) {
+    this.router.navigate([ProjectViewTab[index].toLowerCase()], {
+      relativeTo: this.route,
+    });
   }
 
   private resubscribe(projectId: string) {
@@ -339,12 +336,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
           return Promise.reject(err);
         })
     );
-  }
-
-  selectTabIndex(index: number) {
-    this.router.navigate([ProjectViewTab[index].toLowerCase()], {
-      relativeTo: this.route,
-    });
   }
 
   isLongLoading() {
