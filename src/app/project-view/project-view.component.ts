@@ -66,10 +66,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       this.rawPipelineDefinitionError = null;
       this.rawPipelineDefinitionSuccess = null;
 
-      this.setupFiles();
+      this.filesAdditionalRoot = `${projectInfo.name};workspaces/${projectInfo.id}`;
 
-      if (this.tabGroup) {
-        this.navigateToSelectedTab(this.tabGroup.selectedIndex);
+      if (this.tabGroup != null) {
+        this.updateRouteToMatchTab();
       }
 
       this.resubscribe(projectInfo.id);
@@ -96,6 +96,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   overviewTabIndex = ProjectViewTab.Overview;
+  selectedTabIndex = ProjectViewTab.Overview;
 
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
@@ -185,25 +186,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit(): void {
-    this.setupFiles();
 
     this.paramsSubscription = this.route.children[0].params.subscribe(params => {
-      if (params.tab == null) {
+      if (!params.tab) {
         return;
       }
 
-      const tabIndex = Object.keys(ProjectViewTab).findIndex(key => key.toLowerCase() === params.tab);
-      if (tabIndex === -1) {
+      const tabIndex = this.indexFromTabName(params.tab);
+      if (tabIndex == null) {
         console.warn(`Attempted to switch to ProjectViewTab '${params.tab}', however no such tab is defined.`);
-        console.warn(`Valid tabs are: ${Object.keys(ProjectViewTab).join(", ")}`);
         return;
       }
 
-      if (this.tabGroup == null) {
-        // Should never happen, as @ViewChild should be initialized before ngOnInit is called.
-        console.error(`Could not switch to ProjectViewTab '${params.tab}' as the MatTabGroup is not initialized.`);
-        return;
-      }
+      this.selectedTabIndex = tabIndex;
 
       if (ProjectViewTab.PipelineDefinition === tabIndex) {
         this.dialog.openLoadingIndicator(
@@ -212,8 +207,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
           `Loading Pipeline Definition`,
           false
         );
-      } else {
-        this.rawPipelineDefinition = null;
       }
 
     });
@@ -239,8 +232,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     this.unsubscribe();
   }
 
-  navigateToSelectedTab(index: number) {
-    this.router.navigate([ProjectViewTab[index].toLowerCase()], {
+  updateRouteToMatchTab() {
+    this.router.navigate([ProjectViewTab[this.selectedTabIndex].toLowerCase()], {
       relativeTo: this.route,
     });
   }
@@ -331,29 +324,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     return this.longLoading.isLongLoading();
   }
 
-  openFolder(project: ProjectInfo, group: ExecutionGroupInfo) {
-    if (group != null && group.stages != null && group.stages.length > 0) {
-      const stage = group.stages[group.stages.length - 1];
-      this.openWorkspace(project, stage);
-    }
-  }
-
   openWorkspace(project: ProjectInfo, stage: StageInfo) {
     this.tabGroup.selectedIndex = ProjectViewTab.Files;
-    this.setupFiles(project);
     this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
   }
 
   openTensorboard(project: ProjectInfo, entry: StageInfo) {
     window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.id}/start`, '_blank');
   }
-
-  private setupFiles(project = this.projectValue) {
-    if (project != null) {
-      this.filesAdditionalRoot = `${project.name};workspaces/${project.id}`;
-    }
-  }
-
 
   openLogs(entry?: StageInfo, watchLatestLogs = false) {
     this.stageIdToDisplayLogsFor = entry?.id;
@@ -446,7 +424,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   updatePipelineDefinition(raw: string, editor: PipelineEditorComponent) {
     this.dialog.openLoadingIndicator(
-      this.pipelinesApi.setRawPipelineDefinition(this.project.pipelineDefinition.id, raw)
+      this.pipelinesApi
+        .setRawPipelineDefinition(this.project.pipelineDefinition.id, raw)
         .catch(e => {
           editor.parseError = [e];
           return Promise.reject('Failed to parse input, see marked area(s) for more details');
@@ -563,9 +542,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   trackHistory(index: number, value: ExecutionGroupInfo): string {
     return value.id;
   }
+
+  private indexFromTabName(name: string): number | null {
+    const lower = name.toLowerCase();
+    for (const key of Object.keys(ProjectViewTab)) {
+      if (typeof key === "string" && key.toLowerCase() === lower) {
+        return ProjectViewTab[key];
+      }
+    }
+    return null;
+  }
 }
 
-export enum ProjectViewTab {
+enum ProjectViewTab {
   Overview,
   Control,
   History,
