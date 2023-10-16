@@ -169,7 +169,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-
   @HostListener('window:resize', ['$event'])
   getScreenSize(event?) {
     this.setHistoryListHeight(window.innerHeight);
@@ -202,10 +201,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   setHistoryEntryStage(stage: StageInfo) {
     this.selectedHistoryEntryStage = stage;
-  }
-
-  private static deepClone(obj: any): any {
-    return JSON.parse(JSON.stringify(obj));
   }
 
   updateTabSelection(tab: string) {
@@ -327,14 +322,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     this.stateEmitter.emit(this.stateValue);
   }
 
-  isEnqueued(state = this.stateValue): boolean {
-    return state === 'ENQUEUED';
-  }
-
-  isRunning(state = this.stateValue): boolean {
-    return state === 'RUNNING';
-  }
-
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
     const before = this.paused;
     this.paused = pause;
@@ -354,14 +341,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     );
   }
 
-  startLoading() {
-    this.selectTabIndex(this.selectedTabIndex);
-  }
-
-  stopLoading() {
-    this.onSelectedTabChanged(null);
-  }
-
   selectTabIndex(index: number) {
     this.router.navigate([Tab[index].toLowerCase()], {
       relativeTo: this.route,
@@ -373,29 +352,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       this.tabs.selectedIndex = index;
     }
 
-    this.conditionally(
-      Tab.PipelineDefinition === index,
-      () => this.loadRawPipelineDefinition(),
-      () => this.rawPipelineDefinition = null
-    );
-  }
-
-  conditionally(condition: boolean, fn, fnAlt = null): boolean {
-    if (condition) {
-      fn();
-    } else if (fnAlt != null) {
-      fnAlt();
+    if (Tab.PipelineDefinition === index) {
+      this.dialog.openLoadingIndicator(
+        this.pipelinesApi.getRawPipelineDefinition(this.project.pipelineDefinition.id)
+          .then(result => this.rawPipelineDefinition = result),
+        `Loading Pipeline Definition`,
+        false
+      );
+    } else {
+      this.rawPipelineDefinition = null;
     }
-    return condition;
-  }
-
-  loadRawPipelineDefinition() {
-    this.dialog.openLoadingIndicator(
-      this.pipelinesApi.getRawPipelineDefinition(this.project.pipelineDefinition.id)
-        .then(result => this.rawPipelineDefinition = result),
-      `Loading Pipeline Definition`,
-      false
-    );
   }
 
   isLongLoading() {
@@ -490,35 +456,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
         }
       }
     });
-  }
-
-  onSelectedPipelineChanged(info: PipelineDefinitionInfo) {
-    this.selectedPipeline = info;
-  }
-
-  onSelectedStageChanged(info: StageDefinitionInfo) {
-    this.selectedStage = info;
-    if (this.selectedPipeline != null && this.selectedStage != null) {
-      if (this.selectedPipeline.name === this.project.pipelineDefinition.name) {
-        let index = null;
-        for (let i = 0; i < this.selectedPipeline.stages.length; ++i) {
-          if (this.selectedPipeline.stages[i].name === this.selectedStage.name) {
-            index = i;
-            break;
-          }
-        }
-
-        this.dialog.openLoadingIndicator(
-          this.api
-            .getEnvironment(this.project.id, index)
-            .then(result => {
-              this.environmentVariables = result;
-            }),
-          `Loading environment variables`,
-          false
-        );
-      }
-    }
   }
 
   private setProjectPipeline(pipeline: PipelineDefinitionInfo) {

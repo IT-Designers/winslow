@@ -177,30 +177,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.selectedProject = project;
   }
 
-  stopLoading(project: ProjectInfo) {
-    if (project != null) {
-      this.views.forEach(view => {
-        if (view.project.id === project.id) {
-          view.stopLoading();
-        }
-      });
-    }
-  }
-
-  startLoading(project: ProjectInfo) {
-    if (project != null) {
-      this.views.forEach(view => {
-        if (view.project.id === project.id) {
-          const stateInfo = this.stateInfo.get(project.id);
-          if (stateInfo != null) {
-            view.update(stateInfo);
-          }
-          view.startLoading();
-        }
-      });
-    }
-  }
-
   onDeleted(project: ProjectInfo) {
     console.log('--------------- Deleting project: ' + project.name);
     console.dir(this.projects);
