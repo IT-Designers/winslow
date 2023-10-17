@@ -13,12 +13,11 @@
 }
 
 .selected-history-item {
-  margin-top: 2em !important;
+  margin-top: 1.5em !important;
   border-radius: 5px;
   border: 1px solid darkgrey;
   background-color: white;
   z-index: 999;
-  margin-top: -1px;
 }
 
 .history-item {

@@ -1,7 +1,6 @@
 <ng-template #template>
-  <mat-chip-list #chipList aria-label="Tag selection">
-    <mat-chip *ngFor="let tag of selectedTags"
-              [selectable]="selectable"
+  <mat-chip-grid #chipList aria-label="Tag selection">
+    <mat-chip-row *ngFor="let tag of selectedTags"
               [removable]="!readonly && removable"
               (removed)="remove(tag)"
               (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
@@ -10,7 +9,7 @@
               [style.background-color]="colorful ? bgColor(tag) : ''">
       {{tag}}
       <mat-icon matChipRemove *ngIf="!readonly && removable">cancel</mat-icon>
-    </mat-chip>
+    </mat-chip-row>
     <input
       [hidden]="readonly"
       [formControl]="tagsCtrl"
@@ -19,7 +18,7 @@
       [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
       [matChipInputAddOnBlur]="addOnBlur"
       (matChipInputTokenEnd)="add($event)">
-  </mat-chip-list>
+  </mat-chip-grid>
   <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
                     [hidden]="readonly"
                     (optionSelected)="selected($event)">

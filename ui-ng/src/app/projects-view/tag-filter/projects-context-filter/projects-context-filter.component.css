@@ -7,22 +7,22 @@
   width: 2em;
 }
 
-.context /deep/ .mat-tab-label-container {
+.context deep .mat-tab-label-container {
   flex-wrap: nowrap;
   overflow-x: clip;
   white-space: nowrap;
 }
 
-.context /deep/ .mat-tab-label {
+.context deep .mat-tab-label {
   min-width: min-content;
   padding: 0;
 }
 
-.context /deep/ .mat-tab-header-pagination {
+.context deep .mat-tab-header-pagination {
   display: none !important;
 }
 
-.context /deep/ .mat-tab-header {
+.context deep .mat-mdc-tab-header {
   margin-left: 0.5em;
   margin-right: 3em;
 }

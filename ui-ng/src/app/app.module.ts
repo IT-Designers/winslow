@@ -58,6 +58,9 @@ import {SystemViewComponent} from './system-view/system-view.component';
 import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component';
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
 import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
+import {MonacoEditorModule} from 'ngx-monaco-editor-v2';
+import { ProjectOverviewComponent } from './project-overview/project-overview.component';
+import { ProjectHistoryHeaderComponent } from './project-history-header/project-history-header.component';
 import {MonacoEditorModule} from 'ngx-monaco-editor';
 import { ProjectOverviewTabComponent } from './project-view/project-overview-tab/project-overview-tab.component';
 import { ProjectHistoryHeaderComponent } from './project-view/project-history-tab/project-history-header/project-history-header.component';
@@ -67,6 +70,9 @@ import {ProjectHistoryGroupInfoComponent} from './project-view/project-history-t
 import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
 import {RxStompConfig} from './rx-stomp.config';
 import { ProjectLogsTabComponent } from './project-view/project-logs-tab/project-logs-tab.component';
+import { ProjectHistoryComponent } from './project-history/project-history.component';
+import {ProjectHistoryGroupInfoComponent} from './project-history-group-info/project-history-group-info.component';
+import { LogViewComponent } from './log-view/log-view.component';
 import { StopButtonComponent } from './stop-button/stop-button.component';
 import { SystemCfgResLimitComponent } from './system-cfg-res-limit/system-cfg-res-limit.component';
 import { CheckableNumberInputComponent } from './checkable-number-input/checkable-number-input.component';
@@ -107,13 +113,14 @@ import { UserDetailsComponent } from './user-and-group-management/user-details/u
 import { GroupDetailsComponent } from './user-and-group-management/group-details/group-details.component';
 import { PasswordDialogComponent } from './user-and-group-management/password-dialog/password-dialog.component';
 import { GroupAssignmentComponent } from './pipelines/group-assignment/group-assignment.component';
-import { RessourcesGroupAssignmentComponent } from './server-details/ressources-group-assignment/ressources-group-assignment.component';
 import {MatSliderModule} from '@angular/material/slider';
 import { ServerGroupsListComponent } from './server-details/server-groups-list/server-groups-list.component';
 import { AddPipelineDialogComponent } from './pipelines/add-pipeline-dialog/add-pipeline-dialog.component';
 import { PipelineDetailsComponent } from './pipelines/pipeline-details/pipeline-details.component';
 import { ProjectControlTabComponent } from './project-view/project-control-tab/project-control-tab.component';
 import { ProjectSettingsTabComponent } from './project-view/project-settings-tab/project-settings-tab.component';
+import { RxStompService } from './rx-stomp.service';
+import {rxStompServiceFactory} from "./rx-stomp-service-factory";
 
 @NgModule({
     declarations: [
@@ -186,7 +193,6 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
         GroupDetailsComponent,
         PasswordDialogComponent,
         GroupAssignmentComponent,
-        RessourcesGroupAssignmentComponent,
         ServerGroupsListComponent,
         AddPipelineDialogComponent,
         PipelineDetailsComponent,
@@ -201,47 +207,40 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
             cookieName: 'XSRF-TOKEN',
             headerName: 'X-XSRF-TOKEN'
         }),
-
         RouterModule.forRoot([
-            {path: '', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'actions', component: GroupActionsComponent},
-
-            {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
-            {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
+            { path: '', redirectTo: 'projects/', pathMatch: 'full' },
+            { path: 'actions', component: GroupActionsComponent },
+            { path: 'projects', redirectTo: 'projects/', pathMatch: 'full' },
+            { path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full' },
             {
                 path: 'projects',
                 children: [{
-                    path: ':id',
-                    component: ProjectsComponent,
-                    children: [{
-                        path: ':tab',
-                        component: ProjectViewComponent,
+                        path: ':id',
+                        component: ProjectsComponent,
+                        children: [{
+                                path: ':tab',
+                                component: ProjectViewComponent,
+                            }]
                     }]
-                }]
             },
-
-            {path: 'pipelines', component: PipelinesComponent},
-            {path: 'files', component: FilesComponent},
-            {path: 'servers', component: ServersComponent},
-            {path: 'about', component: AboutComponent},
-            {path: 'groups', component: UserAndGroupManagementComponent},
-            {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
+            { path: 'pipelines', component: PipelinesComponent },
+            { path: 'files', component: FilesComponent },
+            { path: 'servers', component: ServersComponent },
+            { path: 'about', component: AboutComponent },
+            { path: 'groups', component: UserAndGroupManagementComponent },
+            { path: 'system', redirectTo: 'system/', pathMatch: 'full' },
             {
                 path: 'system',
                 children: [{
-                    path: ':cfg',
-                    component: SystemViewComponent
-                }]
+                        path: ':cfg',
+                        component: SystemViewComponent
+                    }]
             },
-        ]),
-
+        ], {}),
         BrowserModule,
         BrowserAnimationsModule,
-
         FormsModule,
         ReactiveFormsModule,
-
-
         MatDialogModule,
         MatInputModule,
         MatButtonModule,
@@ -260,13 +259,11 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
         MatSlideToggleModule,
         MatTabsModule,
         MatCheckboxModule,
-
         MatToolbarModule,
         MatSidenavModule,
         MatListModule,
         MatButtonModule,
         MatIconModule,
-
         NgxChartsModule,
         MatCardModule,
         ScrollingModule,
@@ -275,34 +272,21 @@ import { ProjectSettingsTabComponent } from './project-view/project-settings-tab
         MatMenuModule,
         MatRadioModule,
         NgxEchartsModule.forRoot({
-            echarts: {init: echarts.init}
+            echarts: { init: echarts.init }
         }),
-      MatSliderModule,
-
+        MatSliderModule,
     ],
-  providers: [
-    {
-      provide: MatDialogRef,
-      useValue: {}
-    },
-    {
-      provide: InjectableRxStompConfig,
-      useValue: RxStompConfig
-    },
-    {
-      provide: RxStompService,
-      useFactory: rxStompServiceFactory,
-      deps: [InjectableRxStompConfig]
-    }
-  ],
-  bootstrap: [AppComponent],
-  entryComponents: [
-    ProjectsCreateDialog,
-    ProjectDiskUsageDialogComponent,
-    FileBrowseDialog,
-    CreatePipelineDialogComponent,
-    GroupSettingsDialogComponent,
-  ]
+    providers: [
+        {
+            provide: MatDialogRef,
+            useValue: {}
+        },
+        {
+            provide: RxStompService,
+            useFactory: rxStompServiceFactory,
+        },
+    ],
+    bootstrap: [AppComponent]
 })
 export class AppModule {
 }

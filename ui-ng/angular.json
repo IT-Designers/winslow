@@ -16,16 +16,17 @@
             "outputPath": "dist/winslow-ui-ng",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
-            "aot": true,
             "assets": [
               "src/favicon.png",
               "src/assets",
               {
                 "glob": "**/*",
-                "input": "node_modules/ngx-monaco-editor/assets/monaco",
-                "output": "./assets/monaco/"
+                "input": "node_modules/monaco-editor",
+                "output": "/assets/monaco/"
               }
             ],
             "styles": [
@@ -35,7 +36,8 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "@stomp/stompjs",
-              "@stomp/rx-stomp"
+              "@stomp/rx-stomp",
+              "lodash"
             ]
           },
           "configurations": {
@@ -46,14 +48,13 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "extractCss": true,
-              "namedChunks": false,
-              "extractLicenses": true,
-              "vendorChunk": false,
               "buildOptimizer": true,
+              "optimization": true,
+              "vendorChunk": false,
+              "extractLicenses": true,
+              "sourceMap": false,
+              "namedChunks": false,
+              "outputHashing": "all",
               "budgets": [
                 {
                   "type": "initial",
@@ -66,19 +67,29 @@
                   "maximumError": "10kb"
                 }
               ]
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "winslow-ui-ng:build"
-          },
           "configurations": {
             "production": {
               "browserTarget": "winslow-ui-ng:build:production"
+            },
+            "development": {
+              "browserTarget": "winslow-ui-ng:build:development"
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
@@ -99,23 +110,10 @@
             ],
             "styles": [
               "node_modules/diagram-maker/dist/diagramMaker.css",
-              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+              "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.css"
             ],
             "scripts": []
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "tsconfig.app.json",
-              "tsconfig.spec.json",
-              "e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
           }
         },
         "e2e": {
@@ -132,6 +130,5 @@
         }
       }
     }
-  },
-  "defaultProject": "winslow-ui-ng"
+  }
 }

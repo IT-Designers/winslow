@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { CreatePipelineDialogComponent } from './create-pipeline-dialog.component';
 
@@ -6,7 +6,7 @@ describe('DialogCreatePipelineComponent', () => {
   let component: CreatePipelineDialogComponent;
   let fixture: ComponentFixture<CreatePipelineDialogComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ CreatePipelineDialogComponent ]
     })

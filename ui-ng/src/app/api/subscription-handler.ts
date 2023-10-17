@@ -1,5 +1,5 @@
 import {EventEmitter} from '@angular/core';
-import {RxStompService} from '@stomp/ng2-stompjs';
+import {RxStompService} from '../rx-stomp.service';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent, ChangeType} from './api.service';
 import {Subscription} from 'rxjs';
