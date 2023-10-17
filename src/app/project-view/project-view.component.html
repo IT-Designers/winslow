@@ -61,7 +61,7 @@
           (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null"
         >
 
-          <app-project-history-tab
+          <app-project-history
             *ngFor="let entry of history; index as i; trackBy:trackHistory"
             [active]="selectedHistoryEntryIndex === i"
             class="history-list-item"
@@ -86,7 +86,7 @@
             (clickOpenLogs)="openLogs($event)"
             (clickOpenAnalysis)="openAnalysis($event)"
             (clickOpenTensorboard)="openTensorboard(project, $event)"
-          ></app-project-history-tab>
+          ></app-project-history>
         </div>
       </div>
 
