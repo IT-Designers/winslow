@@ -39,7 +39,6 @@ export class ProjectControlTabComponent {
   pipelineDefinition: PipelineDefinitionInfo;
 
   constructor(
-    private matDialog: MatDialog,
     private dialog: DialogService,
     private projectApi: ProjectApiService,
   ) {
