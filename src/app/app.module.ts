@@ -58,7 +58,7 @@ import {SystemViewComponent} from './system-view/system-view.component';
 import { SystemCfgEnvComponent } from './system-cfg-env/system-cfg-env.component';
 import { EnvVariablesComponent } from './env-variables/env-variables.component';
 import { PipelineEditorComponent } from './pipeline-editor/pipeline-editor.component';
-import {MonacoEditorModule} from 'ngx-monaco-editor';
+import {MonacoEditorModule} from 'ngx-monaco-editor-v2';
 import { ProjectOverviewComponent } from './project-overview/project-overview.component';
 import { ProjectHistoryHeaderComponent } from './project-history-header/project-history-header.component';
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
