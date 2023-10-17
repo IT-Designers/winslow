@@ -1,7 +1,5 @@
 import {Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {ParseError} from '../api/winslow-api';
-import {editor} from "monaco-editor";
-import ICodeEditor = editor.ICodeEditor;
 
 @Component({
   selector: 'app-pipeline-editor',
@@ -14,19 +12,21 @@ export class PipelineEditorComponent implements OnInit {
   State = EditorState;
 
 
-  @ViewChild('editorContainer') container!: ElementRef<HTMLDivElement>;
+  @ViewChild('editorContainer') container: ElementRef<HTMLDivElement>;
 
-  @Input() pipelineId!: string;
-  @Input() rawV?: string;
-  @Input() errorV?: string;
-  @Input() successV?: string;
+  @Input() pipelineId: string;
+  @Input() rawV: string;
+  @Input() errorV: string = null;
+  @Input() successV: string = null;
+  @Input() enableOnOthers = false;
 
+  @Output() others = new EventEmitter<string>();
   @Output() update = new EventEmitter<string>();
   @Output() check = new EventEmitter<string>();
 
-  state?: EditorState;
+  @Output() state?: EditorState = null;
 
-  editor?: ICodeEditor;
+  editor: any = null;
   original = '';
 
   editorOptions = {
@@ -41,32 +41,30 @@ export class PipelineEditorComponent implements OnInit {
   }
 
   @Input()
-  set raw(raw: string | undefined) {
-    if (raw != undefined) {
-      this.original = raw;
-      this.rawV = raw;
-      this.updateState();
-    }
+  set raw(raw: string) {
+    this.original = raw;
+    this.rawV = raw;
+    this.updateState();
   }
 
   @Input()
-  set error(error: string | undefined) {
+  set error(error: string) {
     this.errorV = error;
     this.updateState();
-    if (this.editor != undefined) {
+    if (this.editor != null) {
       setTimeout(() => {
-        this.editor?.layout();
+        this.editor.layout();
       });
     }
   }
 
   @Input()
-  set success(success: string | undefined) {
+  set success(success: string) {
     this.successV = success;
     this.updateState();
-    if (this.editor != undefined) {
+    if (this.editor != null) {
       setTimeout(() => {
-        this.editor?.layout();
+        this.editor.layout();
       });
     }
   }
@@ -96,13 +94,13 @@ export class PipelineEditorComponent implements OnInit {
     }
   }
 
-  onInit(editor: ICodeEditor) {
+  onInit(editor: any) {
     this.editor = editor;
     this.editor.layout();
     this.updateState();
   }
 
-  layout(width?: number, height?: number) {
+  layout(width: number = null, height: number = null) {
     if (this.container && (width == null || height == null)) {
       width = this.container.nativeElement.getBoundingClientRect().width;
       height = this.container.nativeElement.getBoundingClientRect().height;
@@ -114,17 +112,15 @@ export class PipelineEditorComponent implements OnInit {
           width,
           height
         };
-        this.editor.layout(dimension);
       }
+      this.editor.layout(dimension);
     }
   }
 
-  save(rawV: string | undefined) {
-    if (rawV != undefined) {
-      this.raw = rawV;
-      this.updateState();
-      this.update.emit(rawV);
-    }
+  save(rawV: string) {
+    this.raw = rawV;
+    this.updateState();
+    this.update.emit(rawV);
   }
 
   updateState() {
@@ -135,7 +131,7 @@ export class PipelineEditorComponent implements OnInit {
     } else if (this.successV != null) {
       this.state = EditorState.Success;
     } else {
-      this.state = undefined;
+      this.state = null;
     }
   }
 }

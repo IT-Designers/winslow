@@ -13,11 +13,11 @@ export class EnvVariablesComponent implements OnInit {
 
   keys: Set<string> = new Set();
 
-  environmentVariables?: Map<string, EnvVariable>;
+  environmentVariables: Map<string, EnvVariable> = null;
   requiredEnvVariables: Set<string> = new Set();
-  defaultValues?: Map<string, string>;
+  defaultValues: Map<string, string> = null;
 
-  formGroupEnv!: UntypedFormGroup;
+  formGroupEnv: UntypedFormGroup = null;
 
   // caches for angular
   undoTarget: any = {};
@@ -39,13 +39,13 @@ export class EnvVariablesComponent implements OnInit {
 
   private rebuildKeys() {
     const keys = new Set<string>();
-    if (this.environmentVariables != undefined) {
+    if (this.environmentVariables != null) {
       this.environmentVariables.forEach((value, key) => keys.add(key));
     }
-    if (this.requiredEnvVariables != undefined) {
+    if (this.requiredEnvVariables != null) {
       this.requiredEnvVariables.forEach(key => keys.add(key));
     }
-    if (this.defaultValues != undefined) {
+    if (this.defaultValues != null) {
       this.defaultValues.forEach((value, key) => keys.add(key));
     }
     this.keys = keys;
@@ -54,8 +54,8 @@ export class EnvVariablesComponent implements OnInit {
   private rebuildEnvControl() {
     this.formGroupEnv = new UntypedFormGroup({});
     this.formGroupEnv.valueChanges.subscribe(value => this.value.emit(value));
-    if (this.keys != undefined) {
-      const controls : {[key: string]: any}= {};
+    if (this.keys != null) {
+      const controls = {};
       this.keys.forEach(key => {
         this.prepareEnvFormControl(key, this.valueOf(key));
         controls[key] = this.formGroupEnv.get(key);
@@ -65,11 +65,11 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   valueOf(key: string) {
-    const variable = this.environmentVariables != undefined ? this.environmentVariables.get(key) : undefined;
-    if (variable != undefined) {
+    const variable = this.environmentVariables != null ? this.environmentVariables.get(key) : null;
+    if (variable != null) {
       return this.values[key] = variable.value;
     } else {
-      return this.values[key] = (this.defaultValues != undefined ? this.defaultValues.get(key) : undefined);
+      return this.values[key] = (this.defaultValues != null ? this.defaultValues.get(key) : null);
     }
   }
 
@@ -85,7 +85,7 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   @Input()
-  set env(env: Map<string, EnvVariable> | undefined) {
+  set env(env: Map<string, EnvVariable>) {
     this.environmentVariables = env;
     this.rebuildKeys();
     this.rebuildEnvControl();
@@ -98,7 +98,7 @@ export class EnvVariablesComponent implements OnInit {
   @Input()
   set required(keys: string[]) {
     const set = new Set<string>();
-    if (keys != undefined) {
+    if (keys != null) {
       keys.forEach(key => set.add(key));
     }
     this.requiredEnvVariables = set;
@@ -111,9 +111,9 @@ export class EnvVariablesComponent implements OnInit {
     });
   }
 
-  prepareEnvFormControl(key: string, value?: string) {
+  prepareEnvFormControl(key: string, value: string) {
     let control = this.formGroupEnv.get(key);
-    if (control == undefined) {
+    if (control == null) {
       control = new UntypedFormControl(value);
       this.formGroupEnv.setControl(key, control);
       this.formControls[key] = control;
@@ -138,8 +138,8 @@ export class EnvVariablesComponent implements OnInit {
 
   private lookForChanges() {
     const defaults = this.defaultValues;
-    let changesDetected = defaults != undefined && Object.keys(this.formGroupEnv.value).length !== defaults.size;
-    if (!changesDetected && defaults != undefined) {
+    let changesDetected = defaults != null && Object.keys(this.formGroupEnv.value).length !== defaults.size;
+    if (!changesDetected && defaults != null) {
       for (const key of Object.keys(this.formGroupEnv.value)) {
         if (!defaults.has(key) || defaults.get(key) !== this.formGroupEnv.value[key]) {
           changesDetected = true;
@@ -153,7 +153,7 @@ export class EnvVariablesComponent implements OnInit {
   browseForValue(valueReceiver: HTMLInputElement) {
     this.dialog.open(FileBrowseDialog, {
       data: {
-        preselectedPath: valueReceiver.value.trim().length > 0 ? valueReceiver.value.trim() : undefined
+        preselectedPath: valueReceiver.value.trim().length > 0 ? valueReceiver.value.trim() : null
       }
     })
       .afterClosed()
@@ -168,22 +168,22 @@ export class EnvVariablesComponent implements OnInit {
   add(name: HTMLInputElement, value: HTMLInputElement) {
     this.setEnvValue(name.value.trim(), value.value.trim());
     this.updateValid();
-    name.value = '';
-    value.value = '';
+    name.value = null;
+    value.value = null;
     name.focus();
   }
 
   private setEnvValue(key: string, value: string) {
     this.prepareEnvFormControl(key, value);
-    if (this.environmentVariables == undefined) {
+    if (this.environmentVariables == null) {
       this.environmentVariables = new Map();
     }
     let current = this.environmentVariables.get(key);
-    if (current == undefined) {
+    if (current == null) {
       current = new EnvVariable({
         key,
         value,
-        valueInherited: undefined
+        valueInherited: null
       });
       this.environmentVariables.set(key, current);
     } else {
@@ -195,13 +195,13 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   delete(key: string) {
-    if (this.environmentVariables != undefined
+    if (this.environmentVariables != null
       && this.environmentVariables.has(key)
-      && this.environmentVariables.get(key)?.valueInherited != undefined) {
-      this.formGroupEnv.get(key)?.setValue(undefined);
+      && this.environmentVariables.get(key).valueInherited != null) {
+      this.formGroupEnv.get(key).setValue(null);
     } else {
       this.formGroupEnv.removeControl(key);
-      this.formControls[key] = undefined;
+      this.formControls[key] = null;
       this.keys.delete(key);
     }
     this.formGroupEnv.markAllAsTouched();
@@ -209,11 +209,11 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   valueOrInherited(key: string) {
-    const env = this.environmentVariables?.get(key);
-    const envValue = env != undefined ? env.value : (this.defaultValues?.get(key));
-    const envInherited = env?.valueInherited;
+    const env = this.environmentVariables != null ? this.environmentVariables.get(key) : null;
+    const envValue = env != null ? env.value : (this.defaultValues != null ? this.defaultValues.get(key) : null);
+    const envInherited = env != null ? env.valueInherited : null;
 
-    return envValue != undefined || envInherited == undefined ? envValue : envInherited;
+    return envValue != null || envInherited == null ? envValue : envInherited;
   }
 
   private updateUndoTarget(key: string) {

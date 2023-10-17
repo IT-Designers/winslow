@@ -1,11 +1,5 @@
 import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
-import {
-  ExecutionGroupInfo,
-  isRangeWithStepSize,
-  isStageWorkerDefinitionInfo,
-  StageInfo,
-  State
-} from '../../../api/winslow-api';
+import {ExecutionGroupInfo, StageInfo, State} from '../../../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
@@ -14,11 +8,20 @@ import {
 })
 export class ProjectHistoryDetailsComponent implements OnInit {
 
-  @Input() entry!: ExecutionGroupInfo;
-  @Input() entryNumber!: number;
-  @Input() selectedStage!: StageInfo;
-  @Input() projectState?: State;
+  @Input() entry: ExecutionGroupInfo;
+  @Input() entryNumber: number;
+  @Input() stageNumber: number;
+  @Input() selectedStage: StageInfo;
+  @Input() projectState: State;
+  @Input() firstEntry = true;
+  @Input() executionGroup: ExecutionGroupInfo;
+  @Input() expanded = false;
+  @Input() pipelineIsPaused: boolean = null;
 
+  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
+  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
@@ -37,7 +40,7 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   }
 
   @HostListener('window:resize', ['$event'])
-  getScreenSize(_event?: Event) {
+  getScreenSize(event?) {
     this.setHistoryDetailsHeight(window.innerHeight);
   }
 
@@ -74,7 +77,4 @@ export class ProjectHistoryDetailsComponent implements OnInit {
       return '';
     }
   }
-
-  protected readonly isStageWorkerDefinitionInfo = isStageWorkerDefinitionInfo;
-  protected readonly isRangeWithStepSize = isRangeWithStepSize;
 }

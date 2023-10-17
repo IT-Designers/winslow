@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {CsvFilesService} from '../csv-files.service';
-import {GlobalChartSettings, LocalStorageService} from '../../../api/local-storage.service';
+import {GlobalChartSettings} from '../../../api/local-storage.service';
 
 @Component({
   selector: 'app-log-analysis-settings-dialog',
@@ -9,21 +9,19 @@ import {GlobalChartSettings, LocalStorageService} from '../../../api/local-stora
 })
 export class LogAnalysisSettingsDialogComponent implements OnInit {
 
-  settings!: GlobalChartSettings
+  settings: GlobalChartSettings
 
   constructor(
-    private csvFilesService: CsvFilesService,
-    private localStorageService: LocalStorageService,
+    private csvFilesService: CsvFilesService
   ) {
   }
 
   ngOnInit(): void {
-    this.settings = this.csvFilesService.globalChartSettings$.getValue();
+    this.settings = this.csvFilesService.globalChartSettings$.getValue()
   }
 
   save() {
-    this.csvFilesService.globalChartSettings$.next(this.settings);
-    this.localStorageService.setChartSettings(this.settings);
+    this.csvFilesService.globalChartSettings$.next(this.settings)
   }
 
 }

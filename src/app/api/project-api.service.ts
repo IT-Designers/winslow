@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {RxStompService} from '../rx-stomp.service';
 import {SubscriptionHandler} from './subscription-handler';
-import {lastValueFrom, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
 import {
@@ -15,7 +15,8 @@ import {
   PipelineDefinitionInfo,
   ProjectInfo,
   RangedList,
-  RangeWithStepSize, Raw,
+  RangedValue,
+  RangeWithStepSize,
   ResourceInfo,
   ResourceLimitation,
   StageAndGatewayDefinitionInfo,
@@ -23,6 +24,7 @@ import {
   StageInfo,
   StageWorkerDefinitionInfo,
   StageXOrGatewayDefinitionInfo,
+  State,
   StateInfo,
   StatsInfo,
   WorkspaceConfiguration,
@@ -50,9 +52,14 @@ export class ProjectApiService {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
-  private static fixExecutionGroupInfoArray(groups: Raw<ExecutionGroupInfo>[]): ExecutionGroupInfo[] {
+  private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfo[]): ExecutionGroupInfo[] {
     return groups.map(origin => loadExecutionGroupInfo(origin));
   }
+
+  static toMap(entry) {
+    return entry != null ? new Map(Object.keys(entry).map(key => [key, entry[key]])) : new Map();
+  }
+
 
   constructor(private client: HttpClient, private rxStompService: RxStompService) {
     this.projectSubscriptionHandler = new SubscriptionHandler<string, ProjectInfo>(
@@ -204,40 +211,44 @@ export class ProjectApiService {
   }
 
   createProject(name: string, pipeline: string, tags?: string[]): Promise<ProjectInfo> {
-    return lastValueFrom(
-      this.client.post<ProjectInfo>(ProjectApiService.getUrl(), {
-        name,
-        pipeline: pipeline,
-        tags
-      })).then(result => result ?? loadProjectInfo(result));
+    return this.client
+      .post<ProjectInfo>(
+        ProjectApiService.getUrl(null),
+        {
+          name,
+          pipeline: pipeline,
+          tags
+        })
+      .toPromise()
+      .then(result => result ?? loadProjectInfo(result));
   }
 
   listProjects(): Promise<ProjectInfo[]> {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
+
   getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
-    return lastValueFrom(
-      this.client.get<Raw<ExecutionGroupInfo>[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
-    ).then(ProjectApiService.fixExecutionGroupInfoArray);
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
+      .toPromise()
+      .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
   getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
-    return lastValueFrom(
-      this.client.get<Raw<ExecutionGroupInfo>[]>(ProjectApiService.getUrl(`${projectId}/history`))
-    ).then(ProjectApiService.fixExecutionGroupInfoArray);
+    return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history`))
+      .toPromise()
+      .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
   deleteEnqueued(projectId: string, groupId: string): Promise<boolean> {
-    return lastValueFrom(
-      this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${groupId}`))
-    );
+    return this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/enqueued/${groupId}`)).toPromise();
   }
 
   action(projectId: string, actionId: string): Promise<void> {
-    return lastValueFrom(
-      this.client.post<void>(ProjectApiService.getUrl(`${projectId}/action`), actionId)
-    );
+    return this.client.post<void>(
+      ProjectApiService.getUrl(`${projectId}/action`),
+      actionId
+    ).toPromise();
   }
 
   enqueue(
@@ -245,29 +256,27 @@ export class ProjectApiService {
     nextStageId: string,
     env: any,
     rangedEnv?: Map<string, RangeWithStepSize>,
-    image?: ImageInfo,
-    requiredResources?: ResourceInfo,
-    workspaceConfiguration?: WorkspaceConfiguration,
-    comment?: string,
+    image: ImageInfo = null,
+    requiredResources: ResourceInfo = null,
+    workspaceConfiguration: WorkspaceConfiguration = null,
+    comment: string = null,
     runSingle: boolean = false,
     resume?: boolean,
   ): Promise<void> {
-    return lastValueFrom(
-      this.client.post<void>(
-        ProjectApiService.getUrl(`${projectId}/enqueued`),
-        {
-          id: nextStageId,
-          env,
-          rangedEnv,
-          image,
-          requiredResources,
-          workspaceConfiguration,
-          comment,
-          runSingle,
-          resume
-        }
-      )
-    );
+    return this.client.post<void>(
+      ProjectApiService.getUrl(`${projectId}/enqueued`),
+      {
+        id: nextStageId,
+        env,
+        rangedEnv,
+        image,
+        requiredResources,
+        workspaceConfiguration,
+        comment,
+        runSingle,
+        resume
+      }
+    ).toPromise();
   }
 
   pause(projectId: string): Promise<boolean> {
@@ -275,12 +284,13 @@ export class ProjectApiService {
   }
 
   resume(projectId: string, paused: boolean = false, singleStageOnly = false): Promise<boolean> {
-    return lastValueFrom(
-      this.client.put<boolean>(ProjectApiService.getUrl(`${projectId}/paused`), {
+    return this.client.put<boolean>(
+      ProjectApiService.getUrl(`${projectId}/paused`),
+      {
         paused,
         strategy: singleStageOnly ? 'once' : null
-      })
-    );
+      }
+    ).toPromise();
   }
 
   getLogRawUrl(projectId: string, stageId: string): string {
@@ -288,152 +298,164 @@ export class ProjectApiService {
   }
 
   getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
-    return lastValueFrom(
-      this.client.get<Record<string, Raw<EnvVariable>>>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
-    ).then(response => {
-      const map = new Map<string, EnvVariable>();
-      for (const [key, value] of Object.entries(response)) {
-        map.set(key, new EnvVariable(value));
-      }
-      return map;
-    });
+    return this.client
+      .get<object>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
+      .toPromise()
+      .then(response => {
+        const map = new Map();
+        for (const [key, value] of Object.entries(response)) {
+          map.set(key, new EnvVariable(value));
+        }
+        return map;
+      });
   }
 
   setName(projectId: string, name: string): Promise<void> {
-    return lastValueFrom(
-      this.client.put<void>(ProjectApiService.getUrl(`${projectId}/name`), name)
-    );
+    return this
+      .client
+      .put<void>(ProjectApiService.getUrl(`${projectId}/name`), name)
+      .toPromise();
   }
 
   setTags(projectId: string, tags: string[]): Promise<string[]> {
-    return lastValueFrom(this
+    return this
       .client
       .put<string[]>(ProjectApiService.getUrl(`${projectId}/tags`), tags)
-    ).then(result => {
-      this.cacheTags(tags);
-      return result;
-    });
+      .toPromise()
+      .then(result => {
+        this.cacheTags(tags);
+        return result;
+      });
   }
 
   addOrUpdateGroup(projectId: string, groupLink: Link): Promise<void> {
-    return lastValueFrom(
-      this.client.post<void>(ProjectApiService.getUrl(`${projectId}/groups`), groupLink)
-    );
+    return this
+      .client
+      .post<void>(ProjectApiService.getUrl(`${projectId}/groups`), groupLink)
+      .toPromise();
   }
 
   removeGroup(projectId: string, groupname: string): Promise<object> {
-    return lastValueFrom(
-      this.client.delete(ProjectApiService.getUrl(`${projectId}/groups/${groupname}`))
-    );
+    return this
+      .client
+      .delete(ProjectApiService.getUrl(`${projectId}/groups/${groupname}`))
+      .toPromise();
   }
 
-  stopStage(projectId: string, pause: boolean, stageId?: string): Promise<boolean> {
-    return lastValueFrom(
-      this.client.put<boolean>(
-        ProjectApiService.getUrl(`${projectId}/stop${stageId != undefined ? '/' + stageId : ''}`),
+  stopStage(projectId: string, pause: boolean, stageId: string = null): Promise<boolean> {
+    return this
+      .client
+      .put<boolean>(
+        ProjectApiService.getUrl(`${projectId}/stop${stageId != null ? '/' + stageId : ''}`),
         pause
       )
-    );
+      .toPromise();
   }
 
-  killStage(projectId: string, stageId?: string): Promise<boolean> {
-    return lastValueFrom(
-      this.client.put<boolean>(ProjectApiService.getUrl(
-        `${projectId}/kill${(stageId == undefined ? '' : '/' + stageId)}`), {}
+  killStage(projectId: string, stageId: string = null): Promise<boolean> {
+    return this
+      .client
+      .put<boolean>(ProjectApiService.getUrl(
+          `${projectId}/kill${stageId != null ? '/' + stageId : ''}`),
+        {}
       )
-    );
+      .toPromise();
   }
 
   setPipelineDefinition(projectId: string, pipelineId: string): Promise<PipelineDefinitionInfo> {
-    return lastValueFrom(
-      this.client.put<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), {})
-    );
+    return this
+      .client
+      .put<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), {})
+      .toPromise();
   }
 
   delete(projectId: string): Promise<string> {
-    return lastValueFrom(
-      this.client
-        .delete<string>(ProjectApiService.getUrl(`${projectId}`))
-    );
+    return this.client
+      .delete<string>(ProjectApiService.getUrl(`${projectId}`))
+      .toPromise();
   }
 
   getDeletionPolicy(projectId: string): Promise<DeletionPolicy> {
-    return lastValueFrom(
-      this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`))
-    );
+    return this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`)).toPromise();
   }
 
   resetDeletionPolicy(projectId: string): Promise<any> {
-    return lastValueFrom(
-      this.client.delete<any>(ProjectApiService.getUrl(`${projectId}/deletion-policy`))
-    );
+    return this.client.delete<any>(ProjectApiService.getUrl(`${projectId}/deletion-policy`)).toPromise();
   }
 
   updateDeletionPolicy(projectId: string, policy: DeletionPolicy): Promise<DeletionPolicy> {
-    return lastValueFrom(
-      this.client.put<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`), policy)
-    );
+    return this.client.put<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy`), policy).toPromise();
   }
 
   updatePublicAccess(projectId: string, publicAccess: boolean): Promise<boolean> {
-    return lastValueFrom(
-      this.client.put<boolean>(ProjectApiService.getUrl(`${projectId}/public`), publicAccess)
-    );
+    return this.client.put<boolean>(ProjectApiService.getUrl(`${projectId}/public`), publicAccess).toPromise();
   }
 
   getDefaultDeletionPolicy(projectId: string): Promise<DeletionPolicy> {
-    return lastValueFrom(
-      this.client.get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy/default`))
-    );
+    return this
+      .client
+      .get<DeletionPolicy>(ProjectApiService.getUrl(`${projectId}/deletion-policy/default`))
+      .toPromise();
   }
 
   pruneHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
-    return lastValueFrom(
-      this.client.post<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
-    ).then(ProjectApiService.fixExecutionGroupInfoArray);
+    return this
+      .client
+      .post<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
+      .toPromise()
+      .then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
   getWorkspaceConfigurationMode(projectId: string): Promise<WorkspaceMode> {
-    return lastValueFrom(
-      this.client.get<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`))
-    );
+    return this
+      .client
+      .get<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`))
+      .toPromise();
   }
 
   setWorkspaceConfigurationMode(projectId: string, mode: WorkspaceMode): Promise<WorkspaceMode> {
-    return lastValueFrom(
-      this.client.put<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`), mode)
-    );
+    return this
+      .client
+      .put<WorkspaceMode>(ProjectApiService.getUrl(`${projectId}/workspace-configuration-mode`), mode)
+      .toPromise();
   }
 
 
   getResourceLimitation(projectId: string): Promise<ResourceLimitation> {
-    return lastValueFrom(
-      this.client.get<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`))
-    );
+    return this
+      .client
+      .get<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`))
+      .toPromise();
   }
 
   setResourceLimitation(projectId: string, limit: ResourceLimitation): Promise<ResourceLimitation> {
-    return lastValueFrom(
-      this.client.put<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`), limit)
-    );
+    return this
+      .client
+      .put<ResourceLimitation>(ProjectApiService.getUrl(`${projectId}/resource-limitation`), limit)
+      .toPromise();
   }
 
   getAuthTokens(projectId: string): Promise<AuthTokenInfo[]> {
-    return lastValueFrom(
-      this.client.get<AuthTokenInfo[]>(ProjectApiService.getUrl(`${projectId}/auth-tokens`))
-    ).then(e => e.map(o => new AuthTokenInfo(o)));
+    return this
+      .client
+      .get<AuthTokenInfo[]>(ProjectApiService.getUrl(`${projectId}/auth-tokens`))
+      .toPromise()
+      .then(e => e.map(o => new AuthTokenInfo(o)));
   }
 
   createAuthToken(projectId: string, name: string): Promise<AuthTokenInfo> {
-    return lastValueFrom(
-      this.client.post<AuthTokenInfo>(ProjectApiService.getUrl(`${projectId}/auth-tokens?name=${name}`), new FormData())
-    ).then(e => new AuthTokenInfo(e));
+    return this
+      .client
+      .post<AuthTokenInfo>(ProjectApiService.getUrl(`${projectId}/auth-tokens?name=${name}`), new FormData())
+      .toPromise()
+      .then(e => new AuthTokenInfo(e));
   }
 
   deleteAuthToken(projectId: string, id: string): Promise<boolean> {
-    return lastValueFrom(
-      this.client.delete<boolean>(ProjectApiService.getUrl(`${projectId}/auth-tokens/${id}`))
-    );
+    return this
+      .client
+      .delete<boolean>(ProjectApiService.getUrl(`${projectId}/auth-tokens/${id}`))
+      .toPromise();
   }
 
 
@@ -482,11 +504,6 @@ export function loadProjectInfo(origin: ProjectInfo): ProjectInfo {
 
 
 export class ProjectGroup {
-  constructor(data: Raw<ProjectGroup>) {
-    this.name = data.name;
-    this.projects = data.projects
-  }
-
   name: string;
   projects: ProjectInfo[];
 }
@@ -511,13 +528,117 @@ export function createRangedList(values: string[]): RangedList {
   });
 }
 
-export function loadExecutionGroupInfo(origin: Raw<ExecutionGroupInfo>): ExecutionGroupInfo {
+export function loadExecutionGroupInfo(origin: ExecutionGroupInfo): ExecutionGroupInfo {
   return new ExecutionGroupInfo({
     ...origin,
     stages: origin.stages.map(stage => loadStageInfo(stage)),
     stageDefinition: loadStageDefinition(origin.stageDefinition)
   });
 }
+
+declare module './winslow-api' {
+  interface ExecutionGroupInfo {
+    enqueueIndex?: number;
+
+    rangedValuesKeys(): string[];
+
+    hasStagesState(state: State): boolean;
+
+    getMostRecentStage(): StageInfo;
+
+    getMostRecentStartOrFinishTime(): number;
+
+    getMostRelevantState(projectState?: State): State;
+
+    isMostRecentStateRunning(): boolean;
+
+    hasRunningStages(): boolean;
+
+    getGroupSize(): number;
+  }
+}
+
+ExecutionGroupInfo.prototype.rangedValuesKeys = function(): string[] {
+  return Object.keys(this.rangedValues);
+};
+
+ExecutionGroupInfo.prototype.hasStagesState = function(state: State): boolean {
+  for (const stage of this.stages) {
+    if (stage.state === state) {
+      return true;
+    }
+  }
+  return false;
+};
+
+ExecutionGroupInfo.prototype.getMostRecentStage = function(): StageInfo {
+  for (const stage of [...this.stages].reverse()) {
+    if (stage.finishTime != null) {
+      return stage;
+    } else if (stage.startTime != null) {
+      return stage;
+    }
+  }
+  return null;
+};
+
+ExecutionGroupInfo.prototype.getMostRecentStartOrFinishTime = function(): number {
+  const stage = this.getMostRecentStage();
+  if (stage == null) {
+    return null;
+  } else if (stage.startTime != null) {
+    return stage.startTime;
+  } else if (stage?.finishTime != null) {
+    return stage.finishTime;
+  } else {
+    return null;
+  }
+};
+
+ExecutionGroupInfo.prototype.getMostRelevantState = function(projectState: State = null): State {
+  const states: Array<State> = ['RUNNING', 'PREPARING', 'FAILED'];
+  for (const state of states) {
+    if (this.hasStagesState(state)) {
+      return state;
+    }
+  }
+  if (this.enqueued) {
+    return 'ENQUEUED';
+  } else if (this.active) {
+    const alternative = projectState === 'PAUSED' ? 'PAUSED' : 'PREPARING';
+    return this.getMostRecentStage()?.state ?? alternative;
+  } else {
+    return this.getMostRecentStage()?.state ?? 'SKIPPED';
+  }
+};
+
+ExecutionGroupInfo.prototype.isMostRecentStateRunning = function(): boolean {
+  return this.getMostRelevantState() === 'RUNNING';
+};
+
+ExecutionGroupInfo.prototype.hasRunningStages = function(): boolean {
+  for (const stage of this.stages) {
+    if (stage.state === 'RUNNING') {
+      return true;
+    }
+  }
+  return false;
+};
+
+ExecutionGroupInfo.prototype.getGroupSize = function(): number {
+  const rvKeys = Object.keys(this.rangedValues);
+
+  if (rvKeys.length > 0) {
+    let size = 0;
+    for (const entry of Object.entries(this.rangedValues)) {
+      size += (entry[1] as RangedValue).stepCount;
+    }
+    return size;
+  } else {
+    return 1;
+  }
+};
+
 
 export function loadStageInfo(stage: StageInfo): StageInfo {
   return new StageInfo(stage);
@@ -539,12 +660,6 @@ export function loadStageDefinition(stage: StageDefinitionInfoUnion): StageDefin
 }
 
 export class DeletionPolicy {
-  constructor(data: Raw<DeletionPolicy>) {
-    this.keepWorkspaceOfFailedStage = data.keepWorkspaceOfFailedStage;
-    this.numberOfWorkspacesOfSucceededStagesToKeep = data.numberOfWorkspacesOfSucceededStagesToKeep;
-    this.alwaysKeepMostRecentWorkspace = data.alwaysKeepMostRecentWorkspace;
-  }
-
   keepWorkspaceOfFailedStage: boolean;
   numberOfWorkspacesOfSucceededStagesToKeep?: number;
   alwaysKeepMostRecentWorkspace?: boolean;
@@ -552,10 +667,9 @@ export class DeletionPolicy {
 
 export function createWorkspaceConfiguration(
   mode: WorkspaceMode = 'INCREMENTAL',
-  value?: string,
+  value: string = null,
   sharedWithinGroup: boolean = false,
-  nestedWithinGroup: boolean = true
-): WorkspaceConfiguration {
+  nestedWithinGroup: boolean = true): WorkspaceConfiguration {
   return new WorkspaceConfiguration({
     mode, value, sharedWithinGroup, nestedWithinGroup
   });
@@ -568,7 +682,7 @@ export function loadResourceLimitation(origin: ResourceLimitation): ResourceLimi
   });
 }
 
-export function createResourceLimitation(cpu?: number, mem?: number, gpu?: number): ResourceLimitation {
+export function createResourceLimitation(cpu: number = null, mem: number = null, gpu: number = null): ResourceLimitation {
   return new ResourceLimitation({cpu, mem, gpu});
 }
 
