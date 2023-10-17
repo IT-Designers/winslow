@@ -62,7 +62,7 @@ import {MonacoEditorModule} from 'ngx-monaco-editor';
 import { ProjectOverviewTabComponent } from './project-view/project-overview-tab/project-overview-tab.component';
 import { ProjectHistoryHeaderComponent } from './project-view/project-history-tab/project-history-header/project-history-header.component';
 import { ProjectDiskUsageDialogComponent } from './project-disk-usage-dialog/project-disk-usage-dialog.component';
-import { ProjectHistoryTabComponent } from './project-view/project-history-tab/project-history-tab.component';
+import { ProjectHistoryComponent } from './project-view/project-history-tab/project-history/project-history.component';
 import {ProjectHistoryGroupInfoComponent} from './project-view/project-history-tab/project-history-group-info/project-history-group-info.component';
 import { InjectableRxStompConfig, RxStompService, rxStompServiceFactory } from '@stomp/ng2-stompjs';
 import {RxStompConfig} from './rx-stomp.config';
@@ -110,7 +110,7 @@ import { ProjectHistoryDetailsComponent } from './project-history-details/projec
         ProjectOverviewTabComponent,
         ProjectHistoryHeaderComponent,
         ProjectDiskUsageDialogComponent,
-        ProjectHistoryTabComponent,
+        ProjectHistoryComponent,
         ProjectHistoryGroupInfoComponent,
         ProjectLogsTabComponent,
         StopButtonComponent,
