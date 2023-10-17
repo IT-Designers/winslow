@@ -62,8 +62,8 @@
 
   <div class="stage-control-item">
     <label>Group Access</label>
-    <mat-chip-list *ngIf="project.groups.length > 0">
-      <mat-chip
+    <mat-chip-listbox *ngIf="project.groups.length > 0">
+      <mat-chip-option
         *ngFor="let group of project.groups"
         [style.background-color]="getGroupLinkColor(group)"
         [matTooltip]="group.role"
@@ -73,8 +73,8 @@
       >
         {{group.name}}
         <mat-icon matChipRemove>cancel</mat-icon>
-      </mat-chip>
-    </mat-chip-list>
+      </mat-chip-option>
+    </mat-chip-listbox>
     <label *ngIf="project.groups.length < 1" [ngStyle]="{'font-style':'italic'}">
       No groups assigned
     </label>
