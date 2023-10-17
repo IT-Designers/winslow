@@ -106,3 +106,7 @@ label.disabled {
   font-size: 2em;
   opacity: 70%;
 }
+
+::ng-deep .at-mdc-tab-body-content {
+  flex: 1 1 100%;
+}
