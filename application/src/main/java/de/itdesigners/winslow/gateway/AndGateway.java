@@ -1,9 +1,9 @@
 package de.itdesigners.winslow.gateway;
 
+import de.itdesigners.winslow.PipelineDefinitionRepository;
 import de.itdesigners.winslow.PipelineRepository;
 import de.itdesigners.winslow.api.pipeline.WorkspaceConfiguration;
 import de.itdesigners.winslow.config.StageAndGatewayDefinition;
-import de.itdesigners.winslow.config.StageWorkerDefinition;
 import de.itdesigners.winslow.pipeline.StageId;
 import de.itdesigners.winslow.project.ProjectRepository;
 
@@ -13,20 +13,23 @@ import java.util.logging.Level;
 
 public class AndGateway extends Gateway {
 
-    private final @Nonnull PipelineRepository        pipelines;
+    private final @Nonnull PipelineDefinitionRepository pipelineDefinitions;
+    private final @Nonnull PipelineRepository           pipelines;
     private final @Nonnull ProjectRepository         projects;
     private final @Nonnull StageAndGatewayDefinition stageDefinition;
     private final          StageId                   stageId;
 
     public AndGateway(
+            @Nonnull PipelineDefinitionRepository pipelineDefinitions,
             @Nonnull PipelineRepository pipelines,
             @Nonnull ProjectRepository projects,
             @Nonnull StageAndGatewayDefinition stageDefinition,
             @Nonnull StageId stageId) {
-        this.pipelines       = pipelines;
-        this.projects        = projects;
-        this.stageDefinition = stageDefinition;
-        this.stageId         = stageId;
+        this.pipelineDefinitions = pipelineDefinitions;
+        this.pipelines           = pipelines;
+        this.projects            = projects;
+        this.stageDefinition     = stageDefinition;
+        this.stageId             = stageId;
     }
 
     @Override
@@ -46,7 +49,9 @@ public class AndGateway extends Gateway {
                 .equals(this.stageId.getExecutionGroupId())).findFirst();
 
         var rootNode = new Node(thisExecutionGroup.get().getStageDefinition(), thisExecutionGroup.get());
-        var graph    = new Graph(pipelineReadOnly, projectReadOnly.getPipelineDefinition(), rootNode);
+        var pipelineDef = pipelineDefinitions.getPipelineDefinitionReadonly(projectReadOnly).orElseThrow();
+        var graph       = new Graph(pipelineReadOnly, pipelineDef, rootNode);
+
 
         var numberOfPrevStageDefinitions = rootNode.getPreviousNodes().size();
         var numberOfInvocationsOfMyself  = rootNode.getExecutionGroups().size();
@@ -75,8 +80,7 @@ public class AndGateway extends Gateway {
                     this.log(Level.INFO, "next stages: " + thisExecutionGroup.get().getStageDefinition().nextStages());
                     for (var nextStageDefinitionNames : thisExecutionGroup.get().getStageDefinition().nextStages()) {
                         pipeline.enqueueSingleExecution(
-                                projectReadOnly
-                                        .getPipelineDefinition()
+                                pipelineDef
                                         .stages()
                                         .stream()
                                         .filter(stageDefinition1 -> stageDefinition1

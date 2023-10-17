@@ -43,10 +43,10 @@ public class PipelinesController {
     @GetMapping("pipelines")
     public Stream<PipelineDefinitionInfo> getAllPipelines(@Nullable User user) {
         return winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipelineIds()
                 .flatMap(id -> winslow
-                        .getPipelineRepository()
+                        .getPipelineDefinitionRepository()
                         .getPipeline(id)
                         .unsafe()
                         .stream()
@@ -59,7 +59,7 @@ public class PipelinesController {
             @Nullable User user,
             @PathVariable("pipeline") String pipelineId) {
         return winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(pipelineId)
                 .unsafe()
                 .filter(pd -> user != null && pd.canBeAccessedBy(user))
@@ -81,7 +81,7 @@ public class PipelinesController {
         ensureValidUser(user);
 
         var handle = winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(pipeline);
 
         // fast check: user allowed to delete?
@@ -102,7 +102,7 @@ public class PipelinesController {
     @GetMapping("pipelines/{pipeline}/raw")
     public Optional<String> getPipelineRaw(@Nullable User user, @PathVariable("pipeline") String pipelineId) {
         var handle = winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(pipelineId);
 
         return handle
@@ -122,12 +122,7 @@ public class PipelinesController {
 
         try {
             definition = tryParsePipelineDef(raw);
-            definition.check();
-
-            if (!Objects.equals(definition.id(), pipelineId)) {
-                throw new IllegalArgumentException("The id of the pipeline does not match the path pipeline-id");
-            }
-
+            checkPipelineValidity(pipelineId, definition);
         } catch (ParseErrorException e) {
             return toJsonResponseEntity(e.getParseError());
         } catch (Throwable t) {
@@ -137,12 +132,45 @@ public class PipelinesController {
         return storePipelineDefinition(user, definition);
     }
 
+    private void checkPipelineValidity(String pipelineId, PipelineDefinition definition) {
+        definition.check();
+
+        if (!Objects.equals(definition.id(), pipelineId)) {
+            throw new IllegalArgumentException("The id of the pipeline does not match the path pipeline-id");
+        }
+
+        var projectId = definition.belongsToProject();
+        if (projectId != null) {
+            var projectOpt = winslow.getProjectRepository().getProject(projectId).unsafe();
+
+            if (projectOpt.isEmpty()) {
+                throw new IllegalArgumentException("There is no project with the id '" + projectId + "'");
+            }
+
+            if (!projectOpt.get().getPipelineDefinitionId().equals(pipelineId)) {
+                throw new IllegalArgumentException("Project with id '" + projectId + "' references a different pipeline");
+            }
+
+            var otherProjectUsingPipeline = winslow
+                    .getProjectRepository()
+                    .getProjects()
+                    .flatMap(projectHandle -> projectHandle.unsafe().stream())
+                    .filter(project -> project.getPipelineDefinitionId().equals(pipelineId) && !project.getId().equals(projectId))
+                    .findAny();
+
+            if (otherProjectUsingPipeline.isPresent()) {
+                var otherProjectId = otherProjectUsingPipeline.get().getId();
+                throw new IllegalArgumentException("Pipeline cannot be project-local for '" + projectId + "' as it is also used by '" + otherProjectId + "'");
+            }
+        }
+    }
+
     @Nonnull
     private ResponseEntity<String> storePipelineDefinition(
             @Nonnull User user,
             @Nonnull PipelineDefinition definition) throws IOException {
         var exclusive = winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(definition.id())
                 .exclusive();
 
@@ -237,7 +265,7 @@ public class PipelinesController {
 
         var id = UUID.randomUUID().toString();
         return this.winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipeline(id)
                 .exclusive()
                 .flatMap(container -> {
@@ -308,11 +336,11 @@ public class PipelinesController {
                                     )),
                                     Map.of("some-key", "some-value", "another-key", "another-value"),
                                     new DeletionPolicy(),
-                                    Collections.emptyList(),
                                     List.of(new Link(
                                             user.name(),
                                             Role.OWNER
                                     )),
+                                    null,
                                     false
                             );
                             container.update(def);

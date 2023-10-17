@@ -9,51 +9,6 @@
   overflow: auto !important;
 }
 
-.stage-control-item {
-  display: flex;
-  margin: 0 2em;
-  align-items: center;
-}
-
-.stage-control-item > *:first-child {
-  flex: 1;
-}
-
-.stage-control-item > *:last-child {
-
-}
-
-.stage-control-item > *:not(:first-child):not(:last-child) {
-  margin: 0 1em;
-  flex: 3;
-}
-
-.stage-control-item .mat-form-field-wrapper, .stage-control-item-controls {
-  display: inline-flex;
-  flex-grow: 1;
-}
-
-.stage-control-item button:not(:first-child), .stage-control-item-controls button:not(:first-child) {
-  margin-right: 1em;
-  margin-left: 1em;
-}
-
-.stage-control-item-controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 3em;
-  margin-bottom: 1em;
-}
-
-.stage-control-item-env-list {
-  margin: 1em 2em 2em 2em;
-  padding: 1em 0;
-  border: 1px solid silver;
-  border-top: none;
-  border-bottom: none;
-  border-radius: 0.25em;
-}
-
 .files-tab-content {
   height: 100%;
 }
@@ -62,11 +17,6 @@
   height: 100%;
   overflow: hidden;
 }
-
-label.disabled {
-  color: rgba(0, 0, 0, 0.2);
-}
-
 
 .history-item-no {
   text-align: end;
@@ -105,4 +55,19 @@ label.disabled {
   padding: 100px;
   font-size: 2em;
   opacity: 70%;
+}
+
+mat-tab-group {
+  flex-grow: 1;
+}
+
+:host ::ng-deep .mat-mdc-tab-body-wrapper {
+  flex-grow: 1;
+  display: flex;
+}
+
+:host ::ng-deep .mat-mdc-tab-body-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }

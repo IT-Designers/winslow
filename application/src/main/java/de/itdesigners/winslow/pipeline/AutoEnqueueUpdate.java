@@ -72,6 +72,7 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
                         .stream()
                         .flatMap(mostRecent -> getNextStageDefinition(
                                 project,
+                                orchestrator.getPipelineDefinitions().getPipelineDefinitionReadonly(project).orElseThrow(),
                                 mostRecent
                         ).map(p -> p.addAt2(mostRecent)))
                         .map(triplet -> {
@@ -126,8 +127,8 @@ public class AutoEnqueueUpdate implements PipelineUpdater.NoAccessUpdater, Pipel
     @Nonnull
     private static Stream<Pair<ExecutionGroup, StageDefinition>> getNextStageDefinition(
             @Nonnull Project project,
+            @Nonnull PipelineDefinition pipelineDefinition,
             @Nonnull ExecutionGroup mostRecent) {
-        var pipelineDefinition = project.getPipelineDefinition();
 
         return mostRecent
                 .getStageDefinition()

@@ -303,7 +303,7 @@ public class DistributedAllocationViewTests {
                 null,
                 "name-of-" + projectId,
                 null,
-                new PipelineDefinition(UUID.randomUUID().toString(), "pipeline-definition-of-" + projectId),
+                new PipelineDefinition(UUID.randomUUID().toString(), "pipeline-definition-of-" + projectId).id(),
                 resourceLimitation
         );
     }

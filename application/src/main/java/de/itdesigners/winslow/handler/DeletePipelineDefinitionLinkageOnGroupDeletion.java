@@ -20,7 +20,7 @@ public record DeletePipelineDefinitionLinkageOnGroupDeletion(
     public void onEvent(@Nonnull ChangeEvent<Group> event) {
         var groupName = event.value().name();
         winslow
-                .getPipelineRepository()
+                .getPipelineDefinitionRepository()
                 .getPipelines()
                 .filter(handle -> handle.unsafe().map(
                         pd -> pd.groups().stream().anyMatch(l -> Objects.equals(l.name(), groupName))

@@ -45,7 +45,7 @@ export class PipelinesComponent implements OnInit {
 
   loadRaw(pipeline: string) {
     return this.api
-      .getRaw(pipeline)
+      .getRawPipelineDefinition(pipeline)
       .then(raw => {
         this.raw.set(pipeline, raw);
       });

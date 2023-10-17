@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {RxStompService} from '@stomp/ng2-stompjs';
+import {RxStompService} from '../rx-stomp.service';
 import {ChangeEvent} from './api.service';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
@@ -23,9 +23,7 @@ export class NodesApiService {
 
   static getUrl(more?: string) {
     if (more != null) {
-      while (more.startsWith('/')) {
-        more = more.substr(1);
-      }
+      more.replace(/^\/*/, "")
     }
     return `${environment.apiLocation}nodes${more != null ? `/${more}` : ''}`;
   }

@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
-<mat-chip-list></mat-chip-list>
+<mat-chip-listbox></mat-chip-listbox>
 <div class="list-and-label-container">
   <div class="list-content" id="list-content">
     <mat-form-field class="mat-input-container">
@@ -19,13 +19,13 @@
       <div *ngIf="displayGroups.length > 0">
         <div class="list-item" *ngFor="let group of editableResourceAllocations.groupLimits">
           <div class="username-label">
-            <mat-chip [style.background-color]="getChipColor(group)"
+            <mat-chip-option [style.background-color]="getChipColor(group)"
                       [matTooltip]="getTooltip(group)"
                       matTooltipShowDelay="250"
                       class="username-chip"
                       [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'">
               {{group.name}}
-            </mat-chip>
+            </mat-chip-option>
           </div>
 
           <mat-form-field appearance="fill" class="role-dropdown">
@@ -68,9 +68,8 @@
                               min="0"
                               max="{{maxCpuCores}}"
                               step="1"
-                              (input)="cpuHasChanged($event, group)"
                               [(ngModel)]="group.resourceLimitation.cpu"
-                              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'">
+                              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'" #ngSlider><input matSliderThumb (input)="cpuHasChanged({source: ngSliderThumb, parent: ngSlider, value: ngSliderThumb.value}, group)" #ngSliderThumb="matSliderThumb" />
                     <input>
                   </mat-slider>
                 </div>
@@ -92,9 +91,8 @@
                               min="0"
                               max="{{maxGpus}}"
                               step="1"
-                              (input)="gpuHasChanged($event, group)"
                               [(ngModel)]="group.resourceLimitation.gpu"
-                              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'">
+                              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'" #ngSlider><input matSliderThumb (input)="gpuHasChanged({source: ngSliderThumb, parent: ngSlider, value: ngSliderThumb.value}, group)" #ngSliderThumb="matSliderThumb" />
                     <input>
                   </mat-slider>
                 </div>
@@ -117,9 +115,8 @@
                               min="0"
                               max="{{maxMemory}}"
                               step="256"
-                              (input)="memorySliderHasChanged($event, group)"
                               [(ngModel)]="group.resourceLimitation.mem"
-                              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'">
+                              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'" #ngSlider><input matSliderThumb (input)="memorySliderHasChanged({source: ngSliderThumb, parent: ngSlider, value: ngSliderThumb.value}, group)" #ngSliderThumb="matSliderThumb" />
                     <input>
                   </mat-slider>
                 </div>
@@ -203,9 +200,8 @@
                           min="0"
                           max="{{maxCpuCores}}"
                           step="1"
-                          (input)="cpuHasChangedFFA($event)"
                           [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
-                          [disabled]="userRole === 'MEMBER'">
+                          [disabled]="userRole === 'MEMBER'" #ngSlider><input matSliderThumb (input)="cpuHasChangedFFA({source: ngSliderThumb, parent: ngSlider, value: ngSliderThumb.value})" #ngSliderThumb="matSliderThumb" />
                 <input>
               </mat-slider>
             </div>
@@ -227,9 +223,8 @@
                           min="0"
                           max="{{maxGpus}}"
                           step="1"
-                          (input)="gpuHasChangedFFA($event)"
                           [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
-                          [disabled]="userRole === 'MEMBER'">
+                          [disabled]="userRole === 'MEMBER'" #ngSlider><input matSliderThumb (input)="gpuHasChangedFFA({source: ngSliderThumb, parent: ngSlider, value: ngSliderThumb.value})" #ngSliderThumb="matSliderThumb" />
                 <input>
               </mat-slider>
             </div>
@@ -252,9 +247,8 @@
                           min="0"
                           max="{{maxMemory}}"
                           step="256"
-                          (input)="memorySliderHasChangedFFA($event)"
                           [(ngModel)]="editableResourceAllocations.globalLimit.mem"
-                          [disabled]="userRole === 'MEMBER'">
+                          [disabled]="userRole === 'MEMBER'" #ngSlider><input matSliderThumb (input)="memorySliderHasChangedFFA({source: ngSliderThumb, parent: ngSlider, value: ngSliderThumb.value})" #ngSliderThumb="matSliderThumb" />
                 <input>
               </mat-slider>
             </div>

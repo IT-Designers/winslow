@@ -1,53 +1,36 @@
+@use '@angular/material' as mat;
 
-/*@import '~@angular/material/theming';*/
-// angular 12 @use '~@angular/material' as mat;
-// angular 13 @use '@angular/material' as mat;
-// https://stackoverflow.com/questions/67652012/sasserror-cant-find-stylesheet-to-import-use-angular-material-as-mat
-//angular 11?
-@import '~@angular/material/theming';
-@include mat-core();
+@include mat.core();
 
 /* You can add global styles to this file, and also import other style files */
- @import "./styles-diagram-maker.scss";
+@import "./styles-diagram-maker.scss";
 
 
+$my-theme-primary: mat.define-palette(mat.$indigo-palette);
+$my-theme-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$my-theme-warn: mat.define-palette(mat.$red-palette); //mat-palette($mat-deep-orange, A200);
 
+$light-theme: mat.define-light-theme((
+  color: (
+    primary: $my-theme-primary,
+    accent: $my-theme-accent,
+    warn: $my-theme-warn,
+  ),
+  /*
+  density is reduced by 4px*0.0001
+  */
+  density: -2,
+));
 
-// =====================================
-// always include only once per project
-// =====================================
-@include mat-core();
-
-// =====================================
-// import our custom themes
-// =====================================
-
-$my-theme-primary: mat-palette($mat-indigo);
-$my-theme-accent:  mat-palette($mat-pink, A200, A100, A400);
-$my-theme-warn: mat-palette($mat-red); //mat-palette($mat-deep-orange, A200);
-
-$light-theme: mat-light-theme(
-    $my-theme-primary,
-    $my-theme-accent,
-    $my-theme-warn
-);
-
-// ====================================
-// Make sure to have a dark background
-// Dropdowns will blend in with light
-// backgrounds.
-// ====================================
-$dark-theme: mat-dark-theme(
-    $my-theme-primary,
-    $my-theme-accent,
-    $my-theme-warn
-);
-
-
-// Include theme styles for core and each component used in your app.
-// Alternatively, you can import and @include the theme mixins for each component
-// that you are using.
-
+$dark-theme: mat.define-dark-theme((
+  color: (
+    primary: $my-theme-primary,
+    accent: $my-theme-accent,
+    warn: $my-theme-warn,
+  ),
+  typography: mat.define-typography-config(),
+  density: -1.9,
+));
 
 @mixin darkMode { // this mixin can be used for alternative darkmode settings
     @media(prefers-color-scheme: dark) {
@@ -55,9 +38,10 @@ $dark-theme: mat-dark-theme(
     }
 }
 
-@include angular-material-theme($light-theme);
+//default light-theme
+@include mat.all-component-themes($light-theme);
 @include darkMode { // usage example for darkmode mixin
-  @include angular-material-theme($dark-theme);
+  @include mat.all-component-themes($dark-theme); //TODO
 }
 
 a {
@@ -75,7 +59,7 @@ html, body {
   margin: 0;
   background-color: whitesmoke; //ganz unten sichtbar
   @include darkMode {
-    background-color: black;
+    background-color: #303030;
   }
 }
 
@@ -143,11 +127,17 @@ body {
   border-radius: 1em;
   padding: 1em;
   background-color: white;
+  @include darkMode {
+    background-color: #303030;
+  }
 }
 
 
 .none-defined-yet {
   background-color: white;
+  @include darkMode {
+    background-color: #303030;
+  }
   text-align: center;
   padding: 3em;
 }
@@ -260,6 +250,9 @@ body {
 .vmenu-selection mat-list-item:hover {
   /* same color as the Mat-Design uses */
   background-color: rgba(0, 0, 0, 0.04);
+  @include darkMode {
+    background-color: #303030;
+  }
 }
 
 .action-row {

@@ -26,9 +26,8 @@ export class PipelineEditorComponent implements OnInit {
 
   @Output() state?: EditorState = null;
 
-  editor = null;
+  editor: any = null;
   original = '';
-
 
   editorOptions = {
     theme: 'vs',
@@ -73,24 +72,29 @@ export class PipelineEditorComponent implements OnInit {
   @Input()
   set parseError(parseErrors: ParseError[]) {
     if (this.editor != null && parseErrors) {
+      // @ts-ignore
       monaco.editor.setModelMarkers(
         this.editor.getModel(),
-        'parse-editor',
+      'parse-editor',
         parseErrors.map(e => {
+          this.errorV = e.message;
+          console.log(e.message)
           return {
             startLineNumber: e.line,
             startColumn: e.column,
             endLineNumber: e.line,
             endColumn: e.column + 100,
             message: e.message,
+            // @ts-ignore
             severity: monaco.MarkerSeverity.Error
+            // @ts-ignore
           } as monaco.editor.IMarkerData;
         })
       );
     }
   }
 
-  onInit(editor: monaco.editor.IStandaloneCodeEditor) {
+  onInit(editor: any) {
     this.editor = editor;
     this.editor.layout();
     this.updateState();

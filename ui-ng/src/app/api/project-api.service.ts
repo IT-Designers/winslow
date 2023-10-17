@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {RxStompService} from '@stomp/ng2-stompjs';
+import {RxStompService} from '../rx-stomp.service';
 import {SubscriptionHandler} from './subscription-handler';
 import {Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
@@ -12,7 +12,6 @@ import {
   ExecutionGroupInfo,
   ImageInfo, Link,
   LogEntryInfo,
-  ParseError,
   PipelineDefinitionInfo,
   ProjectInfo,
   RangedList,
@@ -211,13 +210,13 @@ export class ProjectApiService {
     return this.ownProjectStateSubscriptionHandler;
   }
 
-  createProject(name: string, pipeline: PipelineDefinitionInfo, tags?: string[]): Promise<ProjectInfo> {
+  createProject(name: string, pipeline: string, tags?: string[]): Promise<ProjectInfo> {
     return this.client
       .post<ProjectInfo>(
         ProjectApiService.getUrl(null),
         {
           name,
-          pipeline: pipeline.id,
+          pipeline: pipeline,
           tags
         })
       .toPromise()
@@ -228,19 +227,6 @@ export class ProjectApiService {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
-  getProjectPipelineDefinition(projectId: string): Promise<PipelineDefinitionInfo> {
-    return this.client
-      .get<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`))
-      .toPromise()
-      .then(loadPipelineDefinition);
-  }
-
-  setProjectPipelineDefinition(projectId: string, info: PipelineDefinitionInfo): Promise<PipelineDefinitionInfo> {
-    return this.client
-      .put<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline-definition`), info)
-      .toPromise()
-      .then(loadPipelineDefinition);
-  }
 
   getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
     return this.client.get<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
@@ -293,26 +279,6 @@ export class ProjectApiService {
     ).toPromise();
   }
 
-
-  configureGroup(
-    projectId: string,
-    stageIndex: number,
-    projectIds: string[],
-    env: any,
-    image: ImageInfo = null,
-    requiredResources: ResourceInfo = null): Promise<boolean[]> {
-    return this.client.post<boolean[]>(
-      ProjectApiService.getUrl(`${projectId}/enqueued-on-others`),
-      {
-        stageIndex,
-        projectIds,
-        env,
-        image,
-        requiredResources
-      }
-    ).toPromise();
-  }
-
   pause(projectId: string): Promise<boolean> {
     return this.resume(projectId, true);
   }
@@ -329,23 +295,6 @@ export class ProjectApiService {
 
   getLogRawUrl(projectId: string, stageId: string): string {
     return ProjectApiService.getUrl(`${projectId}/raw-logs/${stageId}`);
-  }
-
-  getProjectRawPipelineDefinition(projectId: string): Promise<string> {
-    return this.client.get<string>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`)).toPromise();
-  }
-
-  setProjectRawPipelineDefinition(projectId: string, raw: string): Promise<void | ParseError> {
-    return this.client
-      .put<object | ParseError>(ProjectApiService.getUrl(`${projectId}/pipeline-definition-raw`), raw)
-      .toPromise()
-      .then(r => {
-        if (r != null && Object.keys(r).length !== 0) {
-          return Promise.reject(new ParseError(r as ParseError));
-        } else {
-          return Promise.resolve(null);
-        }
-      });
   }
 
   getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
@@ -413,10 +362,10 @@ export class ProjectApiService {
       .toPromise();
   }
 
-  setPipelineDefinition(projectId: string, pipelineId: string): Promise<boolean> {
+  setPipelineDefinition(projectId: string, pipelineId: string): Promise<PipelineDefinitionInfo> {
     return this
       .client
-      .put<boolean>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), {})
+      .put<PipelineDefinitionInfo>(ProjectApiService.getUrl(`${projectId}/pipeline/${pipelineId}`), {})
       .toPromise();
   }
 

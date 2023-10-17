@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {FileBrowseDialog} from '../file-browse-dialog/file-browse-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {EnvVariable} from '../api/winslow-api';
@@ -17,7 +17,7 @@ export class EnvVariablesComponent implements OnInit {
   requiredEnvVariables: Set<string> = new Set();
   defaultValues: Map<string, string> = null;
 
-  formGroupEnv: FormGroup = null;
+  formGroupEnv: UntypedFormGroup = null;
 
   // caches for angular
   undoTarget: any = {};
@@ -52,7 +52,7 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   private rebuildEnvControl() {
-    this.formGroupEnv = new FormGroup({});
+    this.formGroupEnv = new UntypedFormGroup({});
     this.formGroupEnv.valueChanges.subscribe(value => this.value.emit(value));
     if (this.keys != null) {
       const controls = {};
@@ -114,7 +114,7 @@ export class EnvVariablesComponent implements OnInit {
   prepareEnvFormControl(key: string, value: string) {
     let control = this.formGroupEnv.get(key);
     if (control == null) {
-      control = new FormControl(value);
+      control = new UntypedFormControl(value);
       this.formGroupEnv.setControl(key, control);
       this.formControls[key] = control;
     } else {

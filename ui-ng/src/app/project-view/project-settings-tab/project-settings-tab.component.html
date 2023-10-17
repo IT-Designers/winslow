@@ -1,0 +1,249 @@
+<ng-container *ngIf="project == null">
+
+</ng-container>
+
+<ng-container *ngIf="project != null">
+
+  <h3>General</h3>
+
+  <div class="stage-control-item">
+    <label>Project Name</label>
+    <mat-form-field>
+      <input #nameEntered matInput name="name" [value]="project.name">
+    </mat-form-field>
+    <button
+      mat-stroked-button
+      [disabled]="!userCanEditProject || nameEntered.value == project.name"
+      color="primary"
+      (click)="setName(nameEntered.value)"
+    >
+      Update
+    </button>
+  </div>
+  <div class="stage-control-item">
+    <label>Project Pipeline</label>
+    <mat-form-field>
+      <mat-select #pipelineSelection [value]="this.project.pipelineDefinition.id">
+        <ng-container *ngFor="let pipeline of pipelines">
+          <mat-option [value]="pipeline.id">{{ pipeline.name }}</mat-option>
+        </ng-container>
+      </mat-select>
+    </mat-form-field>
+    <button
+      mat-stroked-button
+      color="primary"
+      #tagsButton
+      (click)="setPipeline(pipelineSelection.value)"
+      [disabled]="!userCanEditProject || project.pipelineDefinition.id == pipelineSelection.value"
+    >
+      Update
+    </button>
+  </div>
+  <div class="stage-control-item">
+    <label>Project Tags</label>
+    <app-tags-with-autocomplete
+      #tags
+      [sort]="false"
+      [tags]="project.tags"
+      [proposals]="cachedTags"
+    >
+    </app-tags-with-autocomplete>
+    <button
+      mat-stroked-button color="primary" #tagsButton
+      [disabled]="(project.tags.sort() | json) == (tags.selectedTags.sort() | json) || !userCanEditProject"
+      (click)="setTags(tags.selectedTags)"
+    >
+      Update
+    </button>
+  </div>
+
+  <div class="whitespace-separator separator-line"></div>
+  <h3>Project Access</h3>
+
+  <div class="stage-control-item">
+    <label>Group Access</label>
+    <mat-chip-listbox *ngIf="project.groups.length > 0">
+      <mat-chip-option
+        *ngFor="let group of project.groups"
+        [style.background-color]="getGroupLinkColor(group)"
+        [matTooltip]="group.role"
+        matTooltipShowDelay="250"
+        (removed)="removeGroup(group)"
+        [disabled]="!userCanEditProject"
+      >
+        {{group.name}}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip-option>
+    </mat-chip-listbox>
+    <label *ngIf="project.groups.length < 1" [ngStyle]="{'font-style':'italic'}">
+      No groups assigned
+    </label>
+    <button
+      mat-raised-button
+      color="primary"
+      #groupTagsButton
+      (click)="showGroupList = !showGroupList"
+      [disabled]="!userCanEditProject"
+    >
+      <mat-icon>{{showGroupList ? "expand_less" : "expand_more"}}</mat-icon>
+    </button>
+  </div>
+  <div class="stage-control-item" *ngIf="showGroupList">
+    <app-project-groups-list
+      [project]="project"
+      (newGroupEmitter)="onGroupAdded($event)"
+    >
+    </app-project-groups-list>
+  </div><!--Group List-->
+
+
+  <div class="stage-control-item whitespace-separator-top"><!--Public Access-->
+    <label>Public Access</label>
+    <mat-slide-toggle
+      #publicAccess
+      [checked]="this.project?.publicAccess"
+      [disabled]="!userCanEditProject"
+    >
+    </mat-slide-toggle>
+    <button
+      mat-stroked-button color="primary"
+      [disabled]="(publicAccess.checked === this.project?.publicAccess) || !userCanEditProject"
+      (click)="setPublicAccess(publicAccess.checked)"
+    >
+      Update
+    </button>
+  </div>
+  <div class="whitespace-separator-top"><!--Authentication Tokens-->
+    <app-auth-tokens
+      class="whitespace-separator-top "
+      title="Authentication Tokens"
+      [tokens]="authTokens"
+      (create)="createAuthToken($event)"
+      (delete)="deleteAuthToken($event.id)"
+      [canUserEdit]="userCanEditProject"
+    ></app-auth-tokens>
+  </div>
+
+  <div class="whitespace-separator separator-line"></div>
+  <h3>Deletion Policy</h3>
+
+  <div class="stage-control-item whitespace-separator-top">
+    <mat-card-subtitle>
+      <mat-slide-toggle
+        #custom
+        [checked]="deletionPolicyLocal != null"
+        (change)="maybeResetDeletionPolicy(!$event.checked)"
+      >
+        Project specific Deletion Policy
+      </mat-slide-toggle>
+    </mat-card-subtitle>
+    <button
+      mat-stroked-button color="primary"
+      [disabled]="(deletionPolicyLocal === deletionPolicyRemote) || !userCanEditProject"
+      (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)"
+    >
+      Update
+    </button>
+  </div>
+  <div class="stage-control-item">
+    <label [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
+    <mat-form-field>
+      <input
+        #limit matInput type="number"
+        [disabled]="(deletionPolicyLocal == null || !custom.checked) || !userCanEditProject"
+        [value]="deletionPolicyLocal != null ? ''+deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : ''"
+        [min]="1"
+      >
+    </mat-form-field>
+    <button
+      mat-stroked-button color="primary"
+      [disabled]="(deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked) || !userCanEditProject"
+      (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)"
+    >
+      Update
+    </button>
+  </div>
+  <div class="stage-control-item">
+    <label [class.disabled]="(!custom.checked) || !userCanEditProject">Keep workspaces of failed stages</label>
+    <mat-slide-toggle
+      #keep
+      [disabled]="(deletionPolicyLocal == null || !custom.checked) || !userCanEditProject"
+      [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage"
+    ></mat-slide-toggle>
+    <button
+      mat-stroked-button color="primary"
+      [disabled]="(deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.keepWorkspaceOfFailedStage == keep.checked || !custom.checked) || !userCanEditProject"
+      (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)"
+    >
+      Update
+    </button>
+  </div>
+  <div class="stage-control-item">
+    <label [class.disabled]="(!custom.checked) || !userCanEditProject">Always keep most recent workspace</label>
+    <mat-slide-toggle
+      #always
+      [disabled]="(deletionPolicyLocal == null || !custom.checked) || !userCanEditProject"
+      [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
+    ></mat-slide-toggle>
+    <button
+      mat-stroked-button color="primary"
+      [disabled]="(deletionPolicyLocal === deletionPolicyRemote && deletionPolicyLocal?.alwaysKeepMostRecentWorkspace == keep.checked || !custom.checked) || !userCanEditProject"
+      (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)"
+    >
+      Update
+    </button>
+  </div>
+
+  <div class="whitespace-separator separator-line"></div>
+  <h3>Resource Limitation</h3>
+
+  <div class="whitespace-separator-top">
+    <app-resource-limitation
+      class="whitespace-separator-top "
+      title="Project specific Resource Limitation"
+      [limit]="resourceLimit"
+      (limit)="setResourceLimitation($event)"
+    ></app-resource-limitation>
+  </div>
+
+  <div class="whitespace-separator separator-line"></div>
+  <h3>Other</h3>
+
+  <div class="stage-control-item">
+    <label>Default workspace configuration mode</label>
+    <mat-form-field>
+      <mat-select
+        #workspaceModeSelection
+        [value]="workspaceMode"
+        [disabled]="!userCanEditProject"
+      >
+        <ng-container *ngFor="let mode of workspaceModes()">
+          <mat-option [value]="mode">{{mode}}</mat-option>
+        </ng-container>
+      </mat-select>
+    </mat-form-field>
+    <button
+      mat-stroked-button
+      color="primary"
+      (click)="setWorkspaceMode(workspaceModeSelection.value)"
+      [disabled]="!userCanEditProject || workspaceMode == workspaceModeSelection.value"
+    >
+      Update
+    </button>
+  </div>
+
+  <div class="stage-control-item whitespace-separator-top">
+    <button
+      class="whitespace-separator-top"
+      mat-raised-button
+      color="warn"
+      (click)="deleteProject()"
+      [disabled]="!userCanEditProject"
+    >
+      Delete this project
+    </button>
+  </div>
+
+  <div class="whitespace-separator separator-line"></div>
+
+</ng-container>

@@ -14,11 +14,11 @@
       <div *ngIf="displayGroups.length > 0">
         <div class="list-item" *ngFor="let group of displayGroups">
           <div class="username-label">
-            <mat-chip [style.background-color]="getColor(group)"
+            <mat-chip-option [style.background-color]="getColor(group)"
                       [matTooltip]="getTooltip(group)"
                       matTooltipShowDelay="250">
               {{group.name}}
-            </mat-chip>
+            </mat-chip-option>
           </div>
           <mat-form-field appearance="fill" class="role-dropdown">
             <mat-label>Choose Role</mat-label>

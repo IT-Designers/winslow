@@ -1,0 +1,63 @@
+<div class="stage-control-item">
+  <app-stage-execution-selection
+    #executionSelection
+    [pipelines]="[pipelineDefinition]"
+    [pipelineSelectionDisabled]="true"
+    [defaultPipelineId]="pipelineDefinition.id"
+  ></app-stage-execution-selection>
+</div>
+<div *ngIf="executionSelection.selectedStage != null" class="stage-control-item-controls">
+  <button
+    mat-raised-button color="primary"
+    [disabled]="!executionSelection.valid"
+    (click)="enqueue(
+        executionSelection.selectedPipeline,
+        executionSelection.selectedStage,
+        executionSelection.getEnv(),
+        executionSelection.getRangedEnv(),
+        executionSelection.getImage(),
+        executionSelection.getResourceRequirements(),
+        executionSelection.getWorkspaceConfiguration(),
+        executionSelection.getComment(),
+        false,
+        false
+      )"
+  >
+    <mat-icon>send</mat-icon>
+    Enqueue
+  </button>
+  <button
+    [disabled]="!executionSelection.valid"
+    mat-raised-button (click)="enqueue(
+        executionSelection.selectedPipeline,
+        executionSelection.selectedStage,
+        executionSelection.getEnv(),
+        executionSelection.getRangedEnv(),
+        executionSelection.getImage(),
+        executionSelection.getResourceRequirements(),
+        executionSelection.getWorkspaceConfiguration(),
+        executionSelection.getComment(),
+        false,
+        true
+      )"
+  >
+    Enqueue and resume pipeline
+  </button>
+  <button
+    [disabled]="!executionSelection.valid"
+    mat-raised-button (click)="enqueue(
+        executionSelection.selectedPipeline,
+        executionSelection.selectedStage,
+        executionSelection.getEnv(),
+        executionSelection.getRangedEnv(),
+        executionSelection.getImage(),
+        executionSelection.getResourceRequirements(),
+        executionSelection.getWorkspaceConfiguration(),
+        executionSelection.getComment(),
+        true,
+        true
+      )"
+  >
+    Enqueue and resume single
+  </button>
+</div>

@@ -24,8 +24,21 @@ export class PipelineApiService {
     return `${environment.apiLocation}pipelines${more != null ? `/${more}` : ''}`;
   }
 
-  getRaw(pipeline: string) {
-    return this.client.get<string>(PipelineApiService.getUrl(`${pipeline}/raw`)).toPromise();
+  getRawPipelineDefinition(id: string) {
+    return this.client.get<string>(PipelineApiService.getUrl(`${id}/raw`)).toPromise();
+  }
+
+  setRawPipelineDefinition(id: string, raw: string) {
+    return this.client
+      .put<object | ParseError>(PipelineApiService.getUrl(`${id}/raw`), raw)
+      .toPromise()
+      .then(r => {
+        if (r != null && Object.keys(r).length !== 0) {
+          return Promise.reject(new ParseError(r as ParseError));
+        } else {
+          return Promise.resolve(null);
+        }
+      });
   }
 
   checkPipelineDefinition(raw: string): Promise<string | ParseError> {
@@ -68,12 +81,18 @@ export class PipelineApiService {
       .toPromise();
   }
 
-  getPipelineDefinitions() {
+  getPipelineDefinitions(): Promise<PipelineDefinitionInfo[]> {
     return this
       .client
       .get<PipelineDefinitionInfo[]>(PipelineApiService.getUrl())
       .toPromise()
       .then(info => info.map(i => loadPipelineDefinition(i)));
+  }
+
+  getSharedPipelineDefinitions() {
+    return this
+      .getPipelineDefinitions()
+      .then(pipelines => pipelines.filter(pipeline => pipeline.belongsToProject == null));
   }
 
   createPipelineDefinition(name: string) {
@@ -91,35 +110,6 @@ export function loadPipelineDefinition(origin: PipelineDefinitionInfo): Pipeline
     stages: origin.stages.map(stage => loadStageDefinition(stage))
   });
 }
-
-// https://putridparrot.com/blog/extension-methods-in-typescript/
-// add new functions to IPipelineInfo
-// requires an Import from this module or
-// import "... pipeline-api.service.ts";
-declare module './winslow-api' {
-  interface PipelineDefinitionInfo {
-    hasActionMarker(): boolean;
-
-    hasActionMarkerFor(pipelineName: string): boolean;
-  }
-}
-
-
-// tslint:disable-next-line:only-arrow-functions
-PipelineDefinitionInfo.prototype.hasActionMarker = function() {
-  for (const marker of this.markers) {
-    const lower = marker.toLowerCase();
-    if (lower.startsWith('action')) {
-      return true;
-    }
-  }
-  return false;
-};
-
-PipelineDefinitionInfo.prototype.hasActionMarkerFor = function(pipelineName: string) {
-  const markers = this.markers.map(m => m.toLowerCase());
-  return markers.indexOf('action') >= 0 || markers.indexOf('action for ' + pipelineName.toLowerCase()) >= 0;
-};
 
 export function createStageWorkerDefinitionInfo(id: string, name: string): StageWorkerDefinitionInfo {
   return new StageWorkerDefinitionInfo({

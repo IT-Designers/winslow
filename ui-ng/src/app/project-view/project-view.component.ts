@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   EventEmitter,
   HostListener,
@@ -11,95 +10,70 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {DeletionPolicy, ProjectApiService,} from '../api/project-api.service';
-import {NotificationService} from '../notification.service';
+import {ProjectApiService,} from '../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
-import {GroupSettingsDialogComponent, GroupSettingsDialogData} from '../group-settings-dialog/group-settings-dialog.component';
+import {
+  GroupSettingsDialogComponent,
+  GroupSettingsDialogData
+} from '../group-settings-dialog/group-settings-dialog.component';
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {pipe, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
-import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import {
-  AuthTokenInfo,
   EnvVariable,
   ExecutionGroupInfo,
-  ImageInfo, Link,
   PipelineDefinitionInfo,
   ProjectInfo,
   RangedValue,
   ResourceInfo,
-  ResourceLimitation,
-  StageDefinitionInfo,
   StageInfo,
   StageWorkerDefinitionInfo,
   State,
   StateInfo,
-  WorkspaceConfiguration,
-  WorkspaceMode
 } from '../api/winslow-api';
-import {UserApiService} from '../api/user-api.service';
-
 
 @Component({
   selector: 'app-project-view',
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
 })
-export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
+export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
-
-  constructor(public api: ProjectApiService, private notification: NotificationService,
-              private pipelinesApi: PipelineApiService, private matDialog: MatDialog,
-              private dialog: DialogService,
-              private route: ActivatedRoute,
-              private router: Router,
-              private groupApi: GroupApiService,
-              private userApi: UserApiService) {
+  constructor(
+    public api: ProjectApiService,
+    private pipelinesApi: PipelineApiService,
+    private matDialog: MatDialog,
+    private dialog: DialogService,
+    private route: ActivatedRoute,
+    private router: Router,
+  ) {
     this.setHistoryListHeight(window.innerHeight);
   }
 
   @Input()
-  public set project(value: ProjectInfo) {
-    const changed = this.projectValue?.id !== value?.id;
-    this.projectValue = value;
+  public set project(projectInfo: ProjectInfo) {
+    const changed = this.projectValue?.id !== projectInfo?.id;
+    this.projectValue = projectInfo;
 
     if (changed) {
-      this.rawPipelineDefinition = this.rawPipelineDefinitionError = this.rawPipelineDefinitionSuccess = null;
+      this.rawPipelineDefinition = null;
+      this.rawPipelineDefinitionError = null;
+      this.rawPipelineDefinitionSuccess = null;
 
-      this.deletionPolicyLocal = null;
-      this.deletionPolicyRemote = null;
-      this.api.getDeletionPolicy(this.project.id).then(policy => {
-        this.deletionPolicyLocal = policy;
-        this.deletionPolicyRemote = policy;
-      });
+      this.filesAdditionalRoot = `${projectInfo.name};workspaces/${projectInfo.id}`;
 
-      this.setupFiles();
-
-      if (this.tabs) {
-        this.selectTabIndex(this.selectedTabIndex);
+      if (this.tabGroup != null) {
+        this.updateRouteToMatchTab();
       }
 
-      this.api.getWorkspaceConfigurationMode(this.projectValue.id).then(mode => this.workspaceConfigurationMode = mode);
-      this.api.getResourceLimitation(this.projectValue.id).then(limit => this.resourceLimit = limit);
-      this.api.getAuthTokens(this.projectValue.id).then(tokens => this.authTokens = tokens);
-      this.resubscribe(value.id);
+      this.resubscribe(projectInfo.id);
     }
-
-    this.pipelinesApi.getPipelineDefinitions().then(result => {
-      this.pipelines = result.filter(pipe(p => !p.hasActionMarker()));
-      this.probablyProjectPipelineId = null;
-      if (this.project && this.project.pipelineDefinition) {
-        this.probablyProjectPipelineId = this.api.findProjectPipeline(this.project, this.pipelines);
-      }
-    });
-    this.updateExecutionSelectionPipelines();
-
   }
 
   public get project(): ProjectInfo {
@@ -107,23 +81,30 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   @Input()
-  public set state(value: StateInfo) {
-    this.update(value);
+  public set state(state: StateInfo) {
+    if (!state) {
+      return;
+    }
+
+    this.stateValue = state.state;
+    this.pauseReason = state.pauseReason;
+    this.progress = state.stageProgress;
+
+    this.paused = this.stateValue === 'PAUSED' || this.pauseReason != null;
+
+    this.stateEmitter.emit(this.stateValue);
   }
 
-  static TRUNCATE_TO_MAX_LINES = 5000;
+  overviewTabIndex = ProjectViewTab.Overview;
+  selectedTabIndex = ProjectViewTab.Overview;
 
-
-  tabIndexOverview = Tab.Overview;
-
-  @ViewChild('tabGroup') tabs: MatTabGroup;
+  @ViewChild('tabGroup') tabGroup: MatTabGroup;
   @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
 
   projectValue: ProjectInfo;
-  probablyProjectPipelineId = null;
 
-  @Output('state') private stateEmitter = new EventEmitter<State>();
-  @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
+  @Output('state') stateEmitter = new EventEmitter<State>();
+  @Output('deleted') projectDeletedEmitter = new EventEmitter<string>();
 
   filesAdditionalRoot: string = null;
   filesNavigationTarget: string = null;
@@ -144,42 +125,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   pauseReason?: string = null;
   progress?: number;
 
-  deletionPolicyLocal?: DeletionPolicy;
-  deletionPolicyRemote?: DeletionPolicy;
-
   longLoading = new LongLoadingDetector();
 
-  pipelines: PipelineDefinitionInfo[];
-
-  selectedPipeline: PipelineDefinitionInfo = null;
-  selectedStage: StageDefinitionInfo = null;
   environmentVariables: Map<string, EnvVariable> = null;
   defaultEnvironmentVariables: Record<string, string> = null;
   rangedEnvironmentVariables: Record<string, RangedValue> = null;
-  workspaceConfigurationMode: WorkspaceMode = null;
 
   rawPipelineDefinition: string = null;
   rawPipelineDefinitionError: string = null;
   rawPipelineDefinitionSuccess: string = null;
 
   paramsSubscription: Subscription = null;
-  selectedTabIndex: number = Tab.Overview;
-  workspaceMode: WorkspaceMode = null;
-  resourceLimit: ResourceLimitation = null;
-  authTokens: AuthTokenInfo[] = null;
 
   historyListHeight: any;
   selectedHistoryEntry: ExecutionGroupInfo = null;
   selectedHistoryEntryNumber: number;
   selectedHistoryEntryIndex = 0;
   selectedHistoryEntryStage: StageInfo;
-
-  amIAdmin: boolean;
-  projectGroups: Link[];
-  myGroupnames: string[];
-  showGroupList = false;
-  groupListBtnText = 'Expand';
-  groupListBtnIcon = 'expand_more';
 
   // load more entries, when user is scrolling to the bottom
   // on project history list
@@ -189,7 +151,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.loadMoreHistoryEntries(10);
     }
   }
-
 
   @HostListener('window:resize', ['$event'])
   getScreenSize(event?) {
@@ -220,44 +181,35 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     }
   }
 
-
   setHistoryEntryStage(stage: StageInfo) {
     this.selectedHistoryEntryStage = stage;
   }
 
-  private static deepClone(obj: any): any {
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  updateTabSelection(tab: string) {
-    for (let i = 0; i < 10; ++i) {
-      if (Tab[i] && Tab[i].toLowerCase() === tab) {
-        this.selectedTabIndex = i;
-        this.onSelectedTabChanged(this.selectedTabIndex);
-        break;
-      }
-    }
-  }
-
   ngOnInit(): void {
-    this.setupFiles();
-    this.paramsSubscription = this.route.children[0].params.subscribe(params => {
-      if (params.tab != null) {
-        this.updateTabSelection(params.tab);
-      }
-    });
-    this.groupApi.getGroups()
-      .then((groups) => this.myGroupnames = groups.map(x => x.name));
-    this.projectGroups = Array.from(this.project.groups);
-    this.sortGroups();
 
-    this.userApi.getSelfUserName()
-      .then((name) => {
-        this.userApi.hasSuperPrivileges(name)
-          .then((result) => {
-            this.amIAdmin = result;
-          });
-      });
+    this.paramsSubscription = this.route.children[0].params.subscribe(params => {
+      if (!params.tab) {
+        return;
+      }
+
+      const tabIndex = this.indexFromTabName(params.tab);
+      if (tabIndex == null) {
+        console.warn(`Attempted to switch to ProjectViewTab '${params.tab}', however no such tab is defined.`);
+        return;
+      }
+
+      this.selectedTabIndex = tabIndex;
+
+      if (ProjectViewTab.PipelineDefinition === tabIndex) {
+        this.dialog.openLoadingIndicator(
+          this.pipelinesApi.getRawPipelineDefinition(this.project.pipelineDefinition.id)
+            .then(result => this.rawPipelineDefinition = result),
+          `Loading Pipeline Definition`,
+          false
+        );
+      }
+
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -273,25 +225,17 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       }
     }
     this.sortGroups();
-    /*if (this.myName !== '' && this.amIAdmin !== undefined) {
-      this.userApi.hasSuperPrivileges(this.myName)
-        .then((result) => {
-          console.log('Is user ' + this.myName + ' a Superuser? ' + result);
-          this.amIAdmin = result;
-        });
-    }*/
-  }
-
-  ngAfterViewInit() {
-    this.updateExecutionSelectionPipelines();
   }
 
   ngOnDestroy(): void {
-    if (this.paramsSubscription) {
-      this.paramsSubscription.unsubscribe();
-      this.paramsSubscription = null;
-    }
+    this.paramsSubscription?.unsubscribe();
     this.unsubscribe();
+  }
+
+  updateRouteToMatchTab() {
+    this.router.navigate([ProjectViewTab[this.selectedTabIndex].toLowerCase()], {
+      relativeTo: this.route,
+    });
   }
 
   private resubscribe(projectId: string) {
@@ -357,127 +301,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     });
   }
 
-  private updateExecutionSelectionPipelines() {
-    if (this.executionSelection != null && this.project != null) {
-      this.executionSelection.pipelines = [this.project.pipelineDefinition];
-      this.executionSelection.defaultPipelineId = this.project.pipelineDefinition.id;
-    }
-  }
-
-  update(info: StateInfo) {
-    if (!info) {
-      return;
-    }
-
-    this.stateValue = info.state;
-    this.pauseReason = info.pauseReason;
-    this.progress = info.stageProgress;
-
-    this.paused = this.stateValue === 'PAUSED' || this.pauseReason != null;
-
-    this.stateEmitter.emit(this.stateValue);
-  }
-
-  isEnqueued(state = this.stateValue): boolean {
-    return state === 'ENQUEUED';
-  }
-
-  isRunning(state = this.stateValue): boolean {
-    return state === 'RUNNING';
-  }
-
-  enqueue(
-    pipeline: PipelineDefinitionInfo,
-    stageDefinitionInfo: StageDefinitionInfo,
-    env: any,
-    rangedEnv: any,
-    image: ImageInfo,
-    requiredResources?: ResourceInfo,
-    workspaceConfiguration?: WorkspaceConfiguration,
-    comment?: string,
-    runSingle?: boolean,
-    resume?: boolean,
-  ) {
-    if (pipeline.name === this.project.pipelineDefinition.name) {
-      this.dialog.openLoadingIndicator(
-        this.api.enqueue(
-          this.project.id,
-          stageDefinitionInfo.id,
-          env,
-          rangedEnv,
-          image,
-          requiredResources,
-          workspaceConfiguration,
-          comment,
-          runSingle,
-          resume),
-        `Submitting selections`
-      );
-    } else {
-      this.dialog.error('Changing the Pipeline is not yet supported!');
-    }
-  }
-
-  configure(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo, requiredResources?: ResourceInfo) {
-    if (pipeline.name === this.project.pipelineDefinition.name) {
-      let index = null;
-      for (let i = 0; i < pipeline.stages.length; ++i) {
-        if (pipeline.stages[i].name === stage.name) {
-          index = i;
-          break;
-        }
-      }
-      if (index !== null) {
-        this.dialog.openLoadingIndicator(
-          this.api.configureGroup(this.project.id, index, [this.project.id], env, image, requiredResources),
-          `Submitting selections`
-        );
-      }
-    } else {
-      this.dialog.error('Changing the Pipeline is not yet supported!');
-    }
-  }
-
-  configureGroup(pipeline: PipelineDefinitionInfo, stage: StageDefinitionInfo, env: any, image: ImageInfo) {
-    for (let i = 0; i < pipeline.stages.length; ++i) {
-      if (stage.name === pipeline.stages[i].name) {
-        return this.api.listProjects()
-          .then(projects => {
-            return this.matDialog
-              .open(GroupSettingsDialogComponent, {
-                data: {
-                  projects,
-                  availableTags: this.api.cachedTags,
-                } as GroupSettingsDialogData
-              })
-              .afterClosed()
-              .toPromise()
-              .then(selectedProjects => {
-                if (selectedProjects) {
-                  return this.dialog.openLoadingIndicator(
-                    this.api.configureGroup(this.project.id, i, selectedProjects, env, image)
-                      .then(configureResult => {
-                        const failed = [];
-                        for (let n = 0; n < configureResult.length && n < selectedProjects.length; ++n) {
-                          if (!configureResult[n]) {
-                            failed.push(selectedProjects[n]);
-                          }
-                        }
-                        if (failed.length === 0) {
-                          return Promise.resolve();
-                        } else {
-                          return Promise.reject('The operation failed for at least one project: ' + (failed.join(', ')));
-                        }
-                      }),
-                    `Applying settings on all selected projects`,
-                  );
-                }
-              });
-          });
-      }
-    }
-  }
-
   updateRequestPause(pause: boolean, singleStageOnly?: boolean) {
     const before = this.paused;
     this.paused = pause;
@@ -497,66 +320,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     );
   }
 
-  startLoading() {
-    this.selectTabIndex(this.selectedTabIndex);
-  }
-
-  stopLoading() {
-    this.onSelectedTabChanged(null);
-  }
-
-  selectTabIndex(index: number) {
-    this.router.navigate([Tab[index].toLowerCase()], {
-      relativeTo: this.route,
-    });
-  }
-
-  onSelectedTabChanged(index: number) {
-    if (this.tabs && index != null) {
-      this.tabs.selectedIndex = index;
-    }
-
-    this.conditionally(
-      Tab.PipelineDefinition === index,
-      () => this.loadRawPipelineDefinition(),
-      () => this.rawPipelineDefinition = null
-    );
-  }
-
-  conditionally(condition: boolean, fn, fnAlt = null): boolean {
-    if (condition) {
-      fn();
-    } else if (fnAlt != null) {
-      fnAlt();
-    }
-    return condition;
-  }
-
-  loadRawPipelineDefinition() {
-    this.dialog.openLoadingIndicator(
-      this.api.getProjectRawPipelineDefinition(this.project.id)
-        .then(result => this.rawPipelineDefinition = result),
-      `Loading Pipeline Definition`,
-      false
-    );
-  }
-
   isLongLoading() {
     return this.longLoading.isLongLoading();
   }
 
-  openFolder(project: ProjectInfo, group: ExecutionGroupInfo) {
-    if (group != null && group.stages != null && group.stages.length > 0) {
-      const stage = group.stages[group.stages.length - 1];
-      this.tabs.selectedIndex = Tab.Files;
-      this.setupFiles(project);
-      this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
-    }
-  }
-
   openWorkspace(project: ProjectInfo, stage: StageInfo) {
-    this.tabs.selectedIndex = Tab.Files;
-    this.setupFiles(project);
+    this.tabGroup.selectedIndex = ProjectViewTab.Files;
     this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
   }
 
@@ -564,41 +333,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.id}/start`, '_blank');
   }
 
-  private setupFiles(project = this.projectValue) {
-    if (project != null) {
-      this.filesAdditionalRoot = `${project.name};workspaces/${project.id}`;
-    }
-  }
-
-
   openLogs(entry?: StageInfo, watchLatestLogs = false) {
     this.stageIdToDisplayLogsFor = entry?.id;
-    this.tabs.selectedIndex = Tab.Logs;
+    this.tabGroup.selectedIndex = ProjectViewTab.Logs;
   }
 
   openAnalysis(entry?: StageInfo, watchLatestLogs = false) {
     this.stageIdToDisplayLogsFor = entry?.id;
-    this.tabs.selectedIndex = Tab.Analysis;
-  }
-
-  setName(name: string) {
-    this.dialog.openLoadingIndicator(
-      this.api
-        .setName(this.project.id, name)
-        .then(result => {
-          this.project.name = name;
-        }),
-      `Updating name`
-    );
-  }
-
-  delete() {
-    this.dialog.openAreYouSure(
-      `Project being deleted: ${this.project.name}`,
-      () => this.api.delete(this.project.id).then(result => {
-        this.deletedEmitter.emit(true);
-      })
-    );
+    this.tabGroup.selectedIndex = ProjectViewTab.Analysis;
   }
 
   killStage(stageId: string) {
@@ -631,7 +373,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.environment;
       this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
       this.rangedEnvironmentVariables = this.rangedEnvironmentVariables ?? {};
-      this.tabs.selectedIndex = Tab.Control;
+      this.tabGroup.selectedIndex = ProjectViewTab.Control;
     }
   }
 
@@ -639,17 +381,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     this.dialog.openAreYouSure(
       `Remove enqueued stage from project ${this.project.name}`,
       () => this.api.deleteEnqueued(this.project.id, groupId).then()
-    );
-  }
-
-  setTags(tags: string[]) {
-    return this.dialog.openLoadingIndicator(
-      this.api
-        .setTags(this.project.id, tags)
-        .then(result => {
-          this.project.tags = tags;
-        }),
-      'Updating tags'
     );
   }
 
@@ -668,127 +399,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     });
   }
 
-  canIEditProject(project: ProjectInfo) {
-    if (!this.amIAdmin) {
-      // tslint:disable-next-line:prefer-for-of
-      for (let i = 0; i < project.groups.length; i++) {
-        if (this.myGroupnames) {
-          if (this.myGroupnames.includes(project.groups[i].name)) {
-            if (project.groups[i].role === 'OWNER') {
-              return true;
-            } else {
-              return false;
-            }
-          } else {
-            return false;
-          }
-        }
-      }
-    } else {
-      return true;
-    }
-  }
-  getColor(group) {
-    if (group.role === 'OWNER') {
-      return '#8ed69b';
-    } else {
-      return '#d88bca';
-    }
-  }
-  getTooltip(group) {
-    if (group.role === 'OWNER') {
-      return 'OWNER';
-    } else if (group.role === 'MEMBER') {
-      return 'MEMBER';
-    }
-  }
-  changeGroupListBtnTextAndIcon() {
-    this.showGroupList = !this.showGroupList;
-    if (this.groupListBtnText === 'Expand') {
-      this.groupListBtnText = 'Collapse';
-      this.groupListBtnIcon = 'expand_less';
-    } else if (this.groupListBtnText === 'Collapse') {
-      this.groupListBtnText = 'Expand';
-      this.groupListBtnIcon = 'expand_more';
-    }
-  }
-  groupAdded(group: GroupInfo) {
-    // @ts-ignore
-    if (!this.project.groups.includes(group)) {
-      // @ts-ignore
-      this.project.groups.push(group);
-    }
-  }
-  remove(group: Link) {
-    // @ts-ignore
-    const index = this.project.groups.indexOf(group);
-    if (index >= 0) {
-      this.project.groups.splice(index, 1);
-      this.dialog.openLoadingIndicator(
-        this.api.removeGroup(this.project.id, group.name),
-        'Removing Group from Project'
-      );
-    }
-    this.sortGroups();
-  }
-
-  onSelectedPipelineChanged(info: PipelineDefinitionInfo) {
-    this.selectedPipeline = info;
-  }
-
-  onSelectedStageChanged(info: StageDefinitionInfo) {
-    this.selectedStage = info;
-    if (this.selectedPipeline != null && this.selectedStage != null) {
-      if (this.selectedPipeline.name === this.project.pipelineDefinition.name) {
-        let index = null;
-        for (let i = 0; i < this.selectedPipeline.stages.length; ++i) {
-          if (this.selectedPipeline.stages[i].name === this.selectedStage.name) {
-            index = i;
-            break;
-          }
-        }
-
-        this.dialog.openLoadingIndicator(
-          this.api
-            .getEnvironment(this.project.id, index)
-            .then(result => {
-              this.environmentVariables = result;
-            }),
-          `Loading environment variables`,
-          false
-        );
-      }
-    }
-  }
-
-  setPipeline(pipelineId: string) {
-    for (const pipeline of this.pipelines) {
-      if (pipelineId === pipeline.id) {
-        this.dialog.openLoadingIndicator(
-          this.api
-            .setPipelineDefinition(this.project.id, pipelineId)
-            .then(successful => {
-              if (successful) {
-                this.setProjectPipeline(pipeline);
-                return Promise.resolve();
-              } else {
-                return Promise.reject();
-              }
-            }),
-          `Submitting Pipeline selection`,
-          true
-        );
-        break;
-      }
-    }
-  }
-
   private setProjectPipeline(pipeline: PipelineDefinitionInfo) {
-    const p = this.project;
-    const pid = p.pipelineDefinition.id;
-    p.pipelineDefinition = ProjectViewComponent.deepClone(pipeline);
-    p.pipelineDefinition.id = pid;
-    this.project = p;
+    const projectInfo = this.project;
+    projectInfo.pipelineDefinition = pipeline;
+    this.project = new ProjectInfo(projectInfo); // rerender tabs with new pipeline //todo make this an observable
   }
 
   checkPipelineDefinition(raw: string) {
@@ -797,7 +411,8 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         .then(result => {
           if (result != null) {
             this.rawPipelineDefinitionSuccess = null;
-            this.rawPipelineDefinitionError = '' + result;
+            // @ts-ignore
+            this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in pipeline-details
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
             this.rawPipelineDefinitionError = null;
@@ -810,15 +425,16 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   updatePipelineDefinition(raw: string, editor: PipelineEditorComponent) {
     this.dialog.openLoadingIndicator(
-      this.api.setProjectRawPipelineDefinition(this.project.id, raw)
+      this.pipelinesApi
+        .setRawPipelineDefinition(this.project.pipelineDefinition.id, raw)
         .catch(e => {
           editor.parseError = [e];
           return Promise.reject('Failed to parse input, see marked area(s) for more details');
         })
         .then(r => {
           editor.parseError = [];
-          return this.api
-            .getProjectPipelineDefinition(this.project.id)
+          return this.pipelinesApi
+            .getPipelineDefinition(this.project.pipelineDefinition.id)
             .then(definition => {
               this.setProjectPipeline(definition);
             });
@@ -830,7 +446,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
   updatePipelineDefinitionWithObject(pipeline: PipelineDefinitionInfo) {
     this.dialog.openLoadingIndicator(
-      this.api.setProjectPipelineDefinition(this.project.id, pipeline)
+      this.pipelinesApi.setPipelineDefinition(pipeline)
         .then((result) => {
             this.setProjectPipeline(result);
           }
@@ -851,12 +467,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
           })
           .afterClosed()
           .toPromise()
-          .then(result => {
+          .then((result: ProjectInfo[] | null) => {
             if (result) {
               const promises = [];
-              for (const projectId of result) {
-                promises.push(this.api.setProjectRawPipelineDefinition(
-                  projectId,
+              for (const project of result) {
+                promises.push(this.pipelinesApi.setRawPipelineDefinition(
+                  project.pipelineDefinition.id,
                   raw
                 ).catch(e => 'At least one update failed: ' + e));
               }
@@ -868,59 +484,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
             }
           });
       });
-  }
-
-  maybeResetDeletionPolicy(reset: boolean) {
-    const reApplyCurrentState = () => {
-      const before = JSON.parse(JSON.stringify(this.deletionPolicyLocal));
-      this.deletionPolicyLocal = null;
-      if (before != null) {
-        setTimeout(() => {
-          this.deletionPolicyLocal = before;
-        });
-      }
-    };
-    if (reset) {
-      this.deletionPolicyLocal = null;
-    } else {
-      if (this.deletionPolicyLocal === null) {
-        this.dialog.openLoadingIndicator(
-          this.api.getDefaultDeletionPolicy(this.project.id)
-            .then(result => this.deletionPolicyLocal = result)
-            .catch(e => {
-              reApplyCurrentState();
-              return Promise.reject(e);
-            }),
-          'Loading default policy',
-          false
-        );
-      }
-    }
-  }
-
-  updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean, always: boolean) {
-    let promise = null;
-    if (set) {
-      const policy = new DeletionPolicy();
-      policy.numberOfWorkspacesOfSucceededStagesToKeep = Number(limitStr) > 0 ? Number(limitStr) : null;
-      policy.keepWorkspaceOfFailedStage = keep;
-      policy.alwaysKeepMostRecentWorkspace = always;
-      promise = this.api.updateDeletionPolicy(this.project.id, policy)
-        .then(result => {
-          this.deletionPolicyLocal = result;
-          this.deletionPolicyRemote = result;
-        });
-    } else {
-      promise = this.api.resetDeletionPolicy(this.project.id)
-        .then(r => {
-          this.deletionPolicyLocal = null;
-          this.deletionPolicyRemote = null;
-        });
-    }
-    this.dialog.openLoadingIndicator(
-      promise,
-      'Updating Deletion Policy'
-    );
   }
 
   loadMoreHistoryEntries(count: number = 1) {
@@ -966,14 +529,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     });
   }
 
-  updatePublicAccess(checked: boolean) {
-    this.dialog.openLoadingIndicator(
-      this.api.updatePublicAccess(this.projectValue.id, checked)
-        .then(v => this.projectValue.publicAccess = v),
-      `Updating public access property`
-    );
-  }
-
   pruneHistory() {
     this.dialog.openAreYouSure(
       `Delete all failed stages of this project`,
@@ -989,65 +544,18 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     return value.id;
   }
 
-  workspaceModes(): WorkspaceMode[] {
-    const modes: WorkspaceMode[] = ['STANDALONE', 'INCREMENTAL', 'CONTINUATION'];
-    return modes;
-  }
-
-  setWorkspaceMode(value: WorkspaceMode) {
-    this.dialog.openLoadingIndicator(
-      this.api.setWorkspaceConfigurationMode(this.projectValue.id, value)
-        .then(mode => {
-          this.workspaceMode = mode;
-        }),
-      `Updating workspace configuration mode`,
-    );
-  }
-
-  setResourceLimitation(limit?: ResourceLimitation) {
-    this.dialog.openLoadingIndicator(
-      this.api.setResourceLimitation(this.projectValue.id, limit)
-        .then(l => {
-          this.resourceLimit = l;
-        }),
-      `Updating resource limitation`
-    );
-  }
-
-  createAuthToken(name: string) {
-    this.dialog.openLoadingIndicator(
-      this.api.createAuthToken(this.projectValue.id, name)
-        .then(l => {
-          this.authTokens.push(l);
-          // weird
-          setTimeout(
-            () => this.dialog.info(l.secret, 'The secret value is'),
-            100
-          );
-          // this.dialog.info(`The secret for the new Auth-Token is: <br><pre>${l.secret}</pre>`);
-        }),
-      `Creating a new authentication token`
-    );
-  }
-
-  deleteAuthToken(id: string) {
-    this.dialog.openLoadingIndicator(
-      this.api.deleteAuthToken(this.projectValue.id, id)
-        .then(l => {
-          for (let i = 0; i < this.authTokens.length; ++i) {
-            if (this.authTokens[i].id === id) {
-              this.authTokens.splice(i, 1);
-              break;
-            }
-          }
-        }),
-      `Creating a new authentication token`
-    );
+  private indexFromTabName(name: string): number | null {
+    const lower = name.toLowerCase();
+    for (const key of Object.keys(ProjectViewTab)) {
+      if (typeof key === "string" && key.toLowerCase() === lower) {
+        return ProjectViewTab[key];
+      }
+    }
+    return null;
   }
 }
 
-
-export enum Tab {
+enum ProjectViewTab {
   Overview,
   Control,
   History,

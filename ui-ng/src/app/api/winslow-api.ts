@@ -2,16 +2,6 @@
 /* eslint-disable */
 // Generated using typescript-generator version 3.1.1185 on 2023-05-04 17:43:18.
 
-export class GroupInfo {
-  name: string;
-  members: Link[];
-
-  constructor(data: GroupInfo) {
-    this.name = data.name;
-    this.members = data.members;
-  }
-}
-
 export class Link {
   name: string;
   role: Role;
@@ -374,8 +364,8 @@ export class PipelineDefinitionInfo {
   stages: StageDefinitionInfoUnion[];
   environment: Record<string, string>;
   deletionPolicy: DeletionPolicy;
-  markers: string[];
   groups: Link[];
+  belongsToProject: string | null;
   publicAccess: boolean;
 
   constructor(data: PipelineDefinitionInfo) {
@@ -386,8 +376,8 @@ export class PipelineDefinitionInfo {
     this.stages = data.stages;
     this.environment = data.environment;
     this.deletionPolicy = data.deletionPolicy;
-    this.markers = data.markers;
     this.groups = data.groups;
+    this.belongsToProject = data.belongsToProject;
     this.publicAccess = data.publicAccess;
   }
 }

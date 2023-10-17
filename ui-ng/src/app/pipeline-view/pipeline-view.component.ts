@@ -117,7 +117,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
                 this.pipelineDefinitionEdit.userInput = editForm.userInput;
                 this.pipelineDefinitionEdit.environment = editForm.environment;
                 this.pipelineDefinitionEdit.deletionPolicy = editForm.deletionPolicy;
-                this.pipelineDefinitionEdit.markers = editForm.markers;
                 this.pipelineDefinitionEdit.publicAccess = editForm.publicAccess;
               } else {    //catches changes on the stages
                 editForm.nextStages = Object.values(editForm.nextStages);

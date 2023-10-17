@@ -50,7 +50,7 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
   loadRawPipelineDefinition() {
     if (this.selectedPipeline != null) {
       this.dialog.openLoadingIndicator(
-        this.pipelinesApi.getRaw(this.selectedPipeline.id)
+        this.pipelinesApi.getRawPipelineDefinition(this.selectedPipeline.id)
           .then(result => this.rawPipelineDefinition = result),
         `Loading Pipeline Definition`,
         false
@@ -65,7 +65,8 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
         .then(result => {
           if (result != null) {
             this.rawPipelineDefinitionSuccess = null;
-            this.rawPipelineDefinitionError = '' + result;
+            // @ts-ignore
+            this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in project-view
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
             this.rawPipelineDefinitionError = null;

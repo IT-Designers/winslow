@@ -6,7 +6,6 @@ import de.itdesigners.winslow.api.settings.ResourceLimitation;
 import de.itdesigners.winslow.auth.ACL;
 import de.itdesigners.winslow.auth.Prefix;
 import de.itdesigners.winslow.auth.User;
-import de.itdesigners.winslow.config.PipelineDefinition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,17 +20,17 @@ public class Project {
 
     private @Nullable List<String> tags;
 
-    private @Nonnull  PipelineDefinition pipeline;
     private @Nonnull  String             name;
+    private @Nonnull String             pipelineDefinitionId;
     private           boolean            publicAccess;
     private @Nullable ResourceLimitation resourceLimit;
 
-    Project(@Nonnull String id, @Nonnull User user, @Nonnull PipelineDefinition pipeline) {
-        this.id              = id;
-        this.pipeline        = pipeline;
-        this.name            = "[no name]";
-        this.groups          = new ArrayList<>();
-        this.accountingGroup = Prefix.User.wrap(user.name());
+    Project(@Nonnull String id, @Nonnull User user, @Nonnull String pipelineDefinitionId) {
+        this.id                   = id;
+        this.pipelineDefinitionId = pipelineDefinitionId;
+        this.name                 = "[no name]";
+        this.groups               = new ArrayList<>();
+        this.accountingGroup      = Prefix.User.wrap(user.name());
 
         this.groups.add(new Link(
                 this.accountingGroup,
@@ -57,16 +56,16 @@ public class Project {
             @Nullable Iterable<String> tags,
             @Nonnull String name,
             @Nullable Boolean publicAccess,
-            @Nonnull PipelineDefinition pipelineDefinition,
+            @Nonnull String pipelineDefinitionId,
             @Nullable ResourceLimitation resourceLimit) {
-        this.id              = id;
-        this.accountingGroup = accountingGroup;
-        this.groups          = new ArrayList<>();
-        this.tags            = null;
-        this.pipeline        = pipelineDefinition;
-        this.name            = name;
-        this.publicAccess    = Objects.requireNonNullElse(publicAccess, false);
-        this.resourceLimit   = resourceLimit;
+        this.id                   = id;
+        this.accountingGroup      = accountingGroup;
+        this.groups               = new ArrayList<>();
+        this.tags                 = null;
+        this.pipelineDefinitionId = pipelineDefinitionId;
+        this.name                 = name;
+        this.publicAccess         = Objects.requireNonNullElse(publicAccess, false);
+        this.resourceLimit        = resourceLimit;
 
         if (groups != null) {
             groups.forEach(this::addGroup);
@@ -109,14 +108,13 @@ public class Project {
         this.publicAccess = publicAccessible;
     }
 
-    public void setPipelineDefinition(@Nonnull PipelineDefinition definition) {
-        Objects.requireNonNull(definition);
-        this.pipeline = definition;
+    public void setPipelineDefinitionId(@Nonnull String pipelineDefinitionId) {
+        this.pipelineDefinitionId = pipelineDefinitionId;
     }
 
     @Nonnull
-    public PipelineDefinition getPipelineDefinition() {
-        return pipeline;
+    public String getPipelineDefinitionId() {
+        return pipelineDefinitionId;
     }
 
     @Nonnull
@@ -204,7 +202,7 @@ public class Project {
     /**
      * @param user The {@link User} to check for
      * @return Whether the given {@link User} has at least the {@link Role#MEMBER} privileges. Always returns true if
-     *         this {@link Project} {@link #isPublic()}
+     * this {@link Project} {@link #isPublic()}
      */
     public boolean canBeAccessedBy(@Nonnull User user) {
         return publicAccess || ACL.canUserAccess(user, getGroups());
