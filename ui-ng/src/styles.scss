@@ -16,7 +16,7 @@ $light-theme: mat.define-light-theme((
     accent: $my-theme-accent,
     warn: $my-theme-warn,
   ),
-  /* density prevent warning from angular
+  /*
   density is reduced by 4px*0.0001
   */
   density: -3,
@@ -39,9 +39,9 @@ $dark-theme: mat.define-dark-theme((
 }
 
 //default light-theme
-@include mat.all-legacy-component-themes($light-theme);
+@include mat.all-component-themes($light-theme);
 @include darkMode { // usage example for darkmode mixin
-  @include mat.all-legacy-component-themes($dark-theme);
+  @include mat.all-component-themes($dark-theme); //TODO
 }
 
 a {
