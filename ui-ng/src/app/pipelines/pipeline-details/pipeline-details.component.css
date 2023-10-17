@@ -85,4 +85,5 @@ mat-tab-group {
 :host ::ng-deep .mat-mdc-tab-body-content {
   flex-grow: 1;
   display: flex;
+  flex-direction: column;
 }
