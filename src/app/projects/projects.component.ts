@@ -181,8 +181,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       await this.pipelineApi.setPipelineDefinition(definition);
     }
 
-
-    this.addOrUpdateProject(project);
+    // project does not need to be added, as it will be validated on the backend and then added via subscription
     this.selectProject(project);
   }
 

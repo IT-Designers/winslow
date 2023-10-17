@@ -62,8 +62,7 @@ export class StageExecutionSelectionComponent implements OnInit {
     return JSON.parse(JSON.stringify(image));
   }
 
-  constructor(private dialog: MatDialog,
-              private api: ProjectApiService) {
+  constructor(private api: ProjectApiService) {
     this.updateValid();
   }
 
