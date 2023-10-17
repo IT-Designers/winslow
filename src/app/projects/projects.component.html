@@ -65,7 +65,7 @@
       <app-project-view
         [project]="selectedProject"
         [state]="stateInfo?.get(selectedProject.id)"
-        (deleted)="onDeleted(selectedProject)">
+        (deleted)="onDeleted($event)">
       </app-project-view>
     </ng-container>
 
