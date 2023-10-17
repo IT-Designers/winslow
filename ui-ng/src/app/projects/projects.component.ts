@@ -77,19 +77,14 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.projects = [...this.projects.sort((a, b) => a.name.localeCompare(b.name))];
   }
 
-  private addProject(project: ProjectInfo) {
-    this.projects.push(project);
-    this.refreshProjects()
-  }
-
   private addOrUpdateProject(project: ProjectInfo) {
     const index = this.projects.findIndex(preexistingProject => preexistingProject.id == project.id);
     if (index === -1) {
-      this.addProject(project);
+      this.projects.push(project);
     } else {
       this.projects[index] = project;
-      this.refreshProjects();
     }
+    this.refreshProjects();
   }
 
   private createEffects() {
@@ -186,8 +181,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       await this.pipelineApi.setPipelineDefinition(definition);
     }
 
-    this.addProject(project);
-    this.selectedProject = project;
+
+    this.addOrUpdateProject(project);
+    this.selectProject(project);
   }
 
   onDeleted(id: string) {
