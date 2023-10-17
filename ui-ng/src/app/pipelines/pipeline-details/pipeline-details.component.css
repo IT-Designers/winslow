@@ -72,3 +72,17 @@
   float: right;
   margin-right: 2vw;
 }
+
+mat-tab-group {
+  flex-grow: 1;
+}
+
+:host ::ng-deep .mat-mdc-tab-body-wrapper {
+  flex-grow: 1;
+  display: flex;
+}
+
+:host ::ng-deep .mat-mdc-tab-body-content {
+  flex-grow: 1;
+  display: flex;
+}
