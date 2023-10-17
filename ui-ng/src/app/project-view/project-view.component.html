@@ -1,11 +1,11 @@
 <mat-tab-group
+  mat-stretch-tabs
   mat-align-tabs="center" #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedIndexChange)="updateRouteToMatchTab()"
   class="fill-height"
 >
 
   <mat-tab label="Overview">
     <ng-template matTabContent>
-      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
       <app-project-overview-tab
         [project]="project"
         [state]="stateValue"
@@ -22,7 +22,6 @@
 
   <mat-tab label="Control">
     <ng-template matTabContent>
-      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
       <app-project-control-tab [project]="project"></app-project-control-tab>
     </ng-template>
   </mat-tab>
@@ -146,39 +145,31 @@
 
   <mat-tab label="Pipeline">
     <ng-template matTabContent>
-      <div class="flex-grow flex-grow-column max-height">
-        <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-        <app-pipeline-editor
-          #editor
-          [raw]="rawPipelineDefinition"
-          [error]="rawPipelineDefinitionError"
-          [success]="rawPipelineDefinitionSuccess"
-          [enableOnOthers]="true"
-          (others)="updatePipelineDefinitionOnOthers($event)"
-          (check)="checkPipelineDefinition($event)"
-          (update)="updatePipelineDefinition($event, editor)"
-        >
-        </app-pipeline-editor>
-      </div>
+      <app-pipeline-editor
+        #editor
+        [raw]="rawPipelineDefinition"
+        [error]="rawPipelineDefinitionError"
+        [success]="rawPipelineDefinitionSuccess"
+        [enableOnOthers]="true"
+        (others)="updatePipelineDefinitionOnOthers($event)"
+        (check)="checkPipelineDefinition($event)"
+        (update)="updatePipelineDefinition($event, editor)"
+      ></app-pipeline-editor>
     </ng-template>
   </mat-tab>
 
   <mat-tab label="Pipeline View">
     <ng-template matTabContent>
-      <div class="flex-grow flex-grow-column max-height">
-        <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-        <app-pipeline-view
-          [pipelineDefinition]="projectValue.pipelineDefinition"
-          [pipelineDefinitionEdit]="projectValue.pipelineDefinition"
-          (onSave)="updatePipelineDefinitionWithObject($event)"
-        ></app-pipeline-view>
-      </div>
+      <app-pipeline-view
+        [pipelineDefinition]="projectValue.pipelineDefinition"
+        [pipelineDefinitionEdit]="projectValue.pipelineDefinition"
+        (onSave)="updatePipelineDefinitionWithObject($event)"
+      ></app-pipeline-view>
     </ng-template>
   </mat-tab>
 
   <mat-tab label="Settings">
     <ng-template matTabContent>
-      <app-loading-info [loading]="isLongLoading()"></app-loading-info>
       <app-project-settings-tab
         [project]="projectValue"
         (projectDeleted)="projectDeletedEmitter.emit($event)"
@@ -186,3 +177,5 @@
     </ng-template>
   </mat-tab>
 </mat-tab-group>
+
+<app-loading-info [loading]="isLongLoading()"></app-loading-info>
