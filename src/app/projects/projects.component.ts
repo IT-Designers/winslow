@@ -46,6 +46,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   context: string;
   SELECTED_CONTEXT = 'SELECTED_CONTEXT';
 
+
   constructor(readonly projectApi: ProjectApiService,
               readonly pipelineApi: PipelineApiService,
               readonly users: UserApiService,
@@ -70,6 +71,27 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     });
   }
 
+  private refreshProjects(): void {
+    // Replace projects array with a new object in order to get the filteredProjects to update.
+    // A different implementation for filtering projects might be useful for avoiding this.
+    this.projects = [...this.projects.sort((a, b) => a.name.localeCompare(b.name))];
+  }
+
+  private addProject(project: ProjectInfo) {
+    this.projects.push(project);
+    this.refreshProjects()
+  }
+
+  private addOrUpdateProject(project: ProjectInfo) {
+    const index = this.projects.findIndex(preexistingProject => preexistingProject.id == project.id);
+    if (index === -1) {
+      this.addProject(project);
+    } else {
+      this.projects[index] = project;
+      this.refreshProjects();
+    }
+  }
+
   private createEffects() {
     try {
       this.effects = new Effects(this.users);
@@ -80,15 +102,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   private createProjectSubscription() {
     return this.projectApi.getProjectSubscriptionHandler().subscribe((id, value) => {
-      const projects = this.projects == null ? [] : [...this.projects];
-      const index = projects.findIndex(project => project.id === id);
-      if (index >= 0) {
-        projects[index] = value;
-      } else {
-        projects.push(value);
-        projects.sort((a, b) => a.name.localeCompare(b.name));
-      }
-      this.projects = projects;
+      this.addOrUpdateProject(value);
+
       if (this.selectedProjectId === id) {
         this.selectedProject = value;
       }
@@ -122,7 +137,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.projects = null;
     if (this.paramsSubscription) {
       this.paramsSubscription.unsubscribe();
       this.paramsSubscription = null;
@@ -172,33 +186,25 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       await this.pipelineApi.setPipelineDefinition(definition);
     }
 
-    this.projects.push(project);
-    this.projectsFiltered.push(project);
+    this.addProject(project);
     this.selectedProject = project;
   }
 
-  onDeleted(project: ProjectInfo) {
-    console.log('--------------- Deleting project: ' + project.name);
-    console.dir(this.projects);
-    console.dir(this.projectsFiltered);
-    for (let i = 0; i < this.projects.length; ++i) {
-      if (this.projects[i].id === project.id) {
-        this.projects.splice(i, 1);
-        this.projectsFiltered.splice(i, 1);
-        this.projects = this.projects.sort();
-        if (this.selectedProject != null && this.selectedProject.id === project.id) {
-          if (this.projects.length > 0) {
-            if (i >= this.projects.length) {
-              i -= 1;
-            }
-            this.selectedProject = this.projects[i];
-          } else {
-            this.selectedProject = null;
-          }
-        }
-        break;
-      }
+  onDeleted(id: string) {
+    const index = this.projects.findIndex(project => project.id == id);
+
+    if (index === -1) {
+      console.error(`Could not remove project ${id} from project list as no such project exists.`);
+      return;
     }
+
+    this.projects.splice(index, 1);
+    this.refreshProjects();
+
+    if (this.selectedProject != null && this.selectedProject.id === id) {
+      this.selectedProject = null;
+    }
+
   }
 
   selectProject(project: ProjectInfo) {

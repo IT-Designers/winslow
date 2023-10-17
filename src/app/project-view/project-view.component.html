@@ -181,6 +181,7 @@
       <app-loading-info [loading]="isLongLoading()"></app-loading-info>
       <app-project-settings-tab
         [project]="projectValue"
+        (projectDeleted)="projectDeletedEmitter.emit($event)"
       ></app-project-settings-tab>
     </ng-template>
   </mat-tab>
