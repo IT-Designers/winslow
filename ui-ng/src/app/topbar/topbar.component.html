@@ -1,0 +1,58 @@
+
+<mat-toolbar color="primary">
+  <mat-toolbar-row style="max-height: 55px;">
+    <a [routerLink]="['']">
+      <img
+        [class.ws-connected]="connected"
+        [class.ws-disconnected]="!connected"
+        src="assets/winslow_quadratic.svg" alt="Winslow Icon" style="height: 2.75em; padding: 0; max-height: 100%; vertical-align: bottom; margin-right: 20px;">
+    </a>
+    <div>
+      <a mat-button [routerLink]="['projects']" routerLinkActive="active">
+        <i class="material-icons material-icons-outlined">book</i> Projects
+      </a>
+      <a mat-button [routerLink]="['pipelines']" routerLinkActive="active">
+        <i class="material-icons">low_priority</i> Pipelines
+      </a>
+      <a mat-button [routerLink]="['files']" routerLinkActive="active">
+        <i class="material-icons">folder_open</i> Files
+      </a>
+      <a mat-button [routerLink]="['servers']" routerLinkActive="active">
+        <i class="material-icons">storage</i> Servers
+      </a>
+    </div>
+
+    <div class="username-and-settings" style="margin-left: auto">
+      <button mat-icon-button [matMenuTriggerFor]="settingsMenu" style="float: right">
+        <mat-icon>settings</mat-icon>
+      </button>
+      <div class="user-label-and-icon">
+        <div class="username-label">
+          <label>
+            {{myUserName}}
+          </label>
+        </div>
+        <a mat-icon-button [routerLink]="['groups']">
+          <mat-icon style="scale: 1.15">
+            <i class="material-icons">person</i>
+          </mat-icon>
+        </a>
+      </div>
+    </div>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-menu #settingsMenu="matMenu" xPosition="before">
+  <button mat-menu-item [routerLink]="['groups']">
+    <mat-icon>people</mat-icon>
+    User and Groups
+  </button>
+  <button mat-menu-item [routerLink]="['system']">
+    <mat-icon>build</mat-icon>
+    System
+  </button>
+  <button mat-menu-item [routerLink]="['about']">
+    <mat-icon>info</mat-icon>
+    About
+  </button>
+</mat-menu>
