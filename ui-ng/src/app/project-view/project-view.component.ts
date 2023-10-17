@@ -104,7 +104,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   projectValue: ProjectInfo;
 
   @Output('state') stateEmitter = new EventEmitter<State>();
-  @Output('deleted') deletedEmitter = new EventEmitter<boolean>();
+  @Output('deleted') projectDeletedEmitter = new EventEmitter<string>();
 
   filesAdditionalRoot: string = null;
   filesNavigationTarget: string = null;
