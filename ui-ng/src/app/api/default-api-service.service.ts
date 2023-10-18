@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
-import {StageAndGatewayDefinitionInfo, StageWorkerDefinitionInfo, StageXOrGatewayDefinitionInfo} from './winslow-api';
+import {StageDefinitionInfoUnion} from './winslow-api';
+import {map} from 'rxjs/operators';
+import {loadStageDefinition} from "./project-api.service";
+
 
 @Injectable({
   providedIn: 'root'
@@ -14,38 +17,41 @@ export class DefaultApiServiceService {
 
   constructor(private client: HttpClient) { }
 
-  getWorkerDefinition(): Promise<StageWorkerDefinitionInfo> {
-    return this
-      .client
-      .get<StageWorkerDefinitionInfo>(DefaultApiServiceService.getUrl('worker'))
+  getWorkerDefinition(): Promise<StageDefinitionInfoUnion> {
+    return this.client.get<StageDefinitionInfoUnion>(DefaultApiServiceService.getUrl('worker'))
+      .pipe(map(response => loadStageDefinition(response)))
       .toPromise();
   }
 
-  getAndSplitterDefinition(): Promise<StageAndGatewayDefinitionInfo> {
+  getAndSplitterDefinition(): Promise<StageDefinitionInfoUnion> {
     return this
       .client
-      .get<StageAndGatewayDefinitionInfo>(DefaultApiServiceService.getUrl('and-splitter'))
+      .get<StageDefinitionInfoUnion>(DefaultApiServiceService.getUrl('and-splitter'))
+      .pipe(map(response => loadStageDefinition(response)))
       .toPromise();
   }
 
-  getAllMergerDefinition(): Promise<StageAndGatewayDefinitionInfo> {
+  getAllMergerDefinition(): Promise<StageDefinitionInfoUnion> {
     return this
       .client
-      .get<StageAndGatewayDefinitionInfo>(DefaultApiServiceService.getUrl('all-merger'))
+      .get<StageDefinitionInfoUnion>(DefaultApiServiceService.getUrl('all-merger'))
+      .pipe(map(response => loadStageDefinition(response)))
       .toPromise();
   }
 
-  getIfSplitterDefinition(): Promise<StageXOrGatewayDefinitionInfo> {
+  getIfSplitterDefinition(): Promise<StageDefinitionInfoUnion> {
     return this
       .client
-      .get<StageXOrGatewayDefinitionInfo>(DefaultApiServiceService.getUrl('if-splitter'))
+      .get<StageDefinitionInfoUnion>(DefaultApiServiceService.getUrl('if-splitter'))
+      .pipe(map(response => loadStageDefinition(response)))
       .toPromise();
   }
 
-  getAnyMergerDefinition(): Promise<StageXOrGatewayDefinitionInfo> {
+  getAnyMergerDefinition(): Promise<StageDefinitionInfoUnion> {
     return this
       .client
-      .get<StageXOrGatewayDefinitionInfo>(DefaultApiServiceService.getUrl('any-merger'))
+      .get<StageDefinitionInfoUnion>(DefaultApiServiceService.getUrl('any-merger'))
+      .pipe(map(response => loadStageDefinition(response)))
       .toPromise();
   }
 }
