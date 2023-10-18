@@ -9,8 +9,8 @@ import {UserApiService} from '../../api/user-api.service';
 })
 export class UserAddNameDialogComponent implements OnInit {
 
-  nameInput: string;
-  errorMessage = ' ';
+  nameInput: string = '';
+  errorMessage = '';
   isLoading = false;
 
   constructor(
