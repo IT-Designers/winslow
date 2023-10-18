@@ -9,7 +9,7 @@ import {PipelineApiService} from "../../api/pipeline-api.service";
 })
 export class AddPipelineDialogComponent implements OnInit {
 
-  nameInput: string;
+  nameInput: string = '';
   errorMessage = '';
   isLoading = false;
   constructor(
