@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, TrackByFunction} from '@angular/core';
 import {DialogService} from '../dialog.service';
 import {AuthTokenInfo} from '../api/winslow-api';
 
@@ -9,7 +9,7 @@ import {AuthTokenInfo} from '../api/winslow-api';
 })
 export class AuthTokensComponent implements OnInit {
 
-  @Input() tokens: AuthTokenInfo[] = null;
+  @Input() tokens: AuthTokenInfo[] = [];
   @Input() canUserEdit = false;
   @Output('create') createEmitter = new EventEmitter<string>();
   @Output('delete') deleteEmitter = new EventEmitter<AuthTokenInfo>();
@@ -19,7 +19,7 @@ export class AuthTokensComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  trackToken(token: AuthTokenInfo): string {
+  trackToken(_index: number, token: AuthTokenInfo): string {
     return token.id;
   }
 
