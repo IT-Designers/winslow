@@ -1,7 +1,8 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {ProjectApiService} from '../../api/project-api.service';
+import {ProjectApiService, ProjectGroup} from '../../api/project-api.service';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
+import {ProjectInfo} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-add-to-context-popup',
@@ -11,22 +12,21 @@ import {DialogService} from '../../dialog.service';
 export class AddToContextPopupComponent implements OnInit {
 
   isGroup: boolean;
-  proposals = [];
+  proposals: string[] = [];
   cachedTags: string[];
-  previewTags: string[];
+  previewTags: string[] = [];
   CONTEXT_PREFIX = 'context::';
 
-  constructor(public api: ProjectApiService,
-              private dialog: DialogService,
-              @Inject(MAT_DIALOG_DATA) public data: any) {
-  }
-
-  ngOnInit(): void {
+  constructor(
+    public api: ProjectApiService,
+    private dialog: DialogService,
+    @Inject(MAT_DIALOG_DATA) public data: AddToContextDialogData
+  ) {
     this.cachedTags = this.api.cachedTags;
+    this.isGroup = false;
     if (this.data.projectGroup) {
       this.isGroup = true;
     } else if (this.data.project) {
-      this.isGroup = false;
       this.previewTags = this.data.project.tags
         .filter(tag => tag.startsWith(this.CONTEXT_PREFIX));
     }
@@ -37,24 +37,28 @@ export class AddToContextPopupComponent implements OnInit {
     });
   }
 
-  setTagsForProject(tags: string[]) {
-    this.data.project.tags.forEach(tag => {
+  ngOnInit(): void {
+
+  }
+
+  setTagsForProject(project: ProjectInfo, tags: string[]) {
+    project.tags.forEach(tag => {
       if (!tags.includes(tag)) {
         tags.push(tag);
       }
     });
     return this.dialog.openLoadingIndicator(
       this.api
-        .setTags(this.data.project.id, tags)
+        .setTags(project.id, tags)
         .then(result => {
-          this.data.project.tags = tags;
+          project.tags = tags;
         }),
       'Updating tags'
     );
   }
 
-  setTagsForGroup(tags: string[]) {
-    this.data.projectGroup.projects.forEach(project => {
+  setTagsForGroup(projectGroup: ProjectGroup, tags: string[]) {
+    projectGroup.projects.forEach(project => {
       project.tags.forEach(tag => {
         tags.push(tag);
       });
@@ -66,4 +70,12 @@ export class AddToContextPopupComponent implements OnInit {
     });
   }
 
+}
+
+type AddToContextDialogData = {
+  project: ProjectInfo
+  projectGroup: undefined
+} | {
+  project: undefined
+  projectGroup: ProjectGroup
 }
