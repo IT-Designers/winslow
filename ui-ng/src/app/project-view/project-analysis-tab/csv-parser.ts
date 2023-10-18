@@ -51,8 +51,8 @@ function toTokenList(options: CsvParserOptions): TokenInfo[] {
 export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIONS): CsvFileContent {
   const tokens: TokenInfo[] = toTokenList(options);
 
-  let fileContent = [];
-  let lineContent = [];
+  let fileContent: string[][] = [];
+  let lineContent: string[] = [];
   let fieldContent = '';
 
   function resetField() {
@@ -81,7 +81,7 @@ export function parseCsv(text: string, options: CsvParserOptions = DEFAULT_OPTIO
     // check if there is a token at the current position
     let increment: number = 1;
     let tokenType: TokenType = TokenType.NoToken;
-    let tokenLiteral: string = null;
+    let tokenLiteral: string = "";
 
     for (const token of tokens) {
       const tokenLength = token.literal.length;
