@@ -72,6 +72,12 @@
 
       </div>
 
+      <div class="button-group">
+        <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()">
+          <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
+        </button>
+      </div>
+
     </mat-drawer>
     <mat-drawer-content class="detail-container">
       <app-pipeline-details

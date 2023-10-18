@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
 <div class="list-and-label-container">
   <div class="list-content" id="list-content">
-    <mat-form-field class="mat-input-container">
+    <mat-form-field class="mat-input-container" appearance="outline">
       <input matInput
              type="text"
              [(ngModel)]="groupSearchInput"
@@ -20,7 +20,7 @@
               {{group.name}}
             </mat-chip-option>
           </div>
-          <mat-form-field appearance="fill" class="role-dropdown">
+          <mat-form-field appearance="outline" class="role-dropdown">
             <mat-label>Choose Role</mat-label>
             <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
               <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
