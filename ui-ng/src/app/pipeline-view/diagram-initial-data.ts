@@ -65,7 +65,7 @@ export class DiagramInitialData {
         library: {    //edit-board data
           id: 'library',
           position: {x: 10, y: 10},
-          size: {width: 320, height: 400},
+          size: {width: 350, height: 500},
           positionAnchor: PositionAnchor.TOP_RIGHT,
         },
         tools: {      //add Elements board data
