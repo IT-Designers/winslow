@@ -39,8 +39,6 @@ import {
 } from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
-import {PipelineApiService} from "../api/pipeline-api.service";
-import {DialogService} from "../dialog.service";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -212,9 +210,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         if (createAction.payload.typeId == 'node-normal' || createAction.payload.typeId == 'node-start') {
           let stageData: StageWorkerDefinitionInfo;
           //-------------------- They get new Stage Definitions from the api --------------------
-          this.defaultGetter.getWorkerDefinition().then((data) => {   //get default Stage/Gatewaydata from the api
+          this.defaultGetter.getWorkerDefinition().then((data: StageWorkerDefinitionInfo) => {
             //-------------------- Which are used to update the pipelineDefinitionEdit Object --------------------
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -264,8 +262,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
           });
         }
       } else if (action.type === DiagramMakerActions.EDGE_CREATE) {   //Logic if a Edge can be created or not
-        let edgeDestPossible = true;
-        let edgeSrcPossible = true;
+        let edgeDestPossible: boolean = true;
+        let edgeSrcPossible: boolean = true;
         const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
         const nodeMap = this.diagramMaker.store.getState().nodes;
         let createEdgeAction = action as CreateEdgeAction<{}>;
