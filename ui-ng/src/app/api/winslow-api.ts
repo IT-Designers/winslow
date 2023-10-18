@@ -768,3 +768,15 @@ export type WorkspaceMode = 'STANDALONE' | 'INCREMENTAL' | 'CONTINUATION';
 export type RangedValueUnion = RangeWithStepSize | RangedList;
 
 export type StageDefinitionInfoUnion = StageWorkerDefinitionInfo | StageXOrGatewayDefinitionInfo | StageAndGatewayDefinitionInfo;
+
+export function stageDefinitionIsWorker(def: StageDefinitionInfoUnion): def is StageWorkerDefinitionInfo {
+  return (def as StageWorkerDefinitionInfo)["@type"] == "Worker"
+}
+
+export function stageDefinitionIsAndGateway(def: StageDefinitionInfoUnion): def is StageAndGatewayDefinitionInfo {
+  return (def as StageAndGatewayDefinitionInfo)["@type"] == "AndGateway"
+}
+
+export function stageDefinitionIsXorGateway(def: StageDefinitionInfoUnion): def is StageXOrGatewayDefinitionInfo {
+  return (def as StageXOrGatewayDefinitionInfo)["@type"] == "XorGateway"
+}

@@ -1,12 +1,19 @@
 import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "diagram-maker";
-import {PipelineDefinitionInfo, StageDefinitionInfo} from "../api/winslow-api";
+import {
+  PipelineDefinitionInfo,
+  StageDefinitionInfo,
+  stageDefinitionIsAndGateway,
+  stageDefinitionIsWorker,
+  stageDefinitionIsXorGateway
+} from "../api/winslow-api";
 
 export class DiagramInitialData {
 
-  getInitData(pipelineDefinition) {
+  getInitData(pipelineDefinition: PipelineDefinitionInfo) {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
+    // todo: replace any with concrete type
+    let pipelineInfo: any = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
     // HELPER: deletes unnecessary parts of the object
     delete pipelineInfo.stages;
     nodes[pipelineInfo.id] = {    //first node - PipelineDefInfo
@@ -16,19 +23,25 @@ export class DiagramInitialData {
         position: {x: 50, y: 500},
         size: {width: 200, height: 75},
       },
-      // @ts-ignore
       consumerData: pipelineInfo
     };
     for (let i = 0; i < pipelineDefinition.stages.length; i++) {    //All other Stages and Gateways
-      let nodeType : String;
-      if (pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
-      else if(pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
-        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-and-splitter'}
-        else{ nodeType = 'node-all-merger'}
-      }
-      else if(pipelineDefinition.stages[i]['@type'] == 'XorGateway'){
-        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-if-splitter' }
-        else{nodeType = 'node-any-merger'}
+      let nodeType: String = "";
+      let stage = pipelineDefinition.stages[i];
+      if (stageDefinitionIsWorker(stage)) {
+        nodeType = 'node-normal';
+      } else if (stageDefinitionIsAndGateway(stage)) {
+        if (stage.gatewaySubType == 'SPLITTER') {
+          nodeType = 'node-and-splitter'
+        } else {
+          nodeType = 'node-all-merger'
+        }
+      } else if (stageDefinitionIsXorGateway(stage)) {
+        if (stage.gatewaySubType == 'SPLITTER') {
+          nodeType = 'node-if-splitter'
+        } else {
+          nodeType = 'node-any-merger'
+        }
       }
       nodes[pipelineDefinition.stages[i].id] = {
         id: pipelineDefinition.stages[i].id,
@@ -40,7 +53,7 @@ export class DiagramInitialData {
         consumerData: pipelineDefinition.stages[i]
       };
       if (i < (pipelineDefinition.stages.length - 1)) {
-        for(let u = 0; u < pipelineDefinition.stages[i].nextStages.length; u++){    //edges created by stage.nextStages Array
+        for (let u = 0; u < pipelineDefinition.stages[i].nextStages.length; u++) {    //edges created by stage.nextStages Array
           edges[`edge${i}-${u}`] = {
             id: `edge${i}-${u}`,
             src: pipelineDefinition.stages[i].id,
@@ -58,7 +71,7 @@ export class DiagramInitialData {
     }
     /*console.log(edges);*/
 
-    let initialData = {
+    return {
       nodes,
       edges,
       panels: {
@@ -84,7 +97,6 @@ export class DiagramInitialData {
         },
       },
       editor: {mode: EditorMode.DRAG},
-    }
-    return initialData;
+    };
   }
 }
