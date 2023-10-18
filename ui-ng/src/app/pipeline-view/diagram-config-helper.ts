@@ -1,16 +1,12 @@
-import {
-  ConnectorPlacement,
-  DragWorkspaceAction,
-  Layout,
-  VisibleConnectorTypes,
-  WorkflowLayoutDirection,
-  WorkspaceActionsType
-} from "diagram-maker";
+import {ConnectorPlacement, DiagramMaker, Layout, VisibleConnectorTypes, WorkflowLayoutDirection} from "diagram-maker";
+
+export type DiagramAction = 'fit' | 'layout' | 'zoomIn' | 'zoomOut' | 'undo' | 'redo' | 'save'
+
 
 export class DiagramConfigHelper {
 
-  getNodeTypes(){
-    let nodeTypes = {
+  getNodeTypes() {
+    return {
       'node-normal': {
         size: {width: 200, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
@@ -36,11 +32,10 @@ export class DiagramConfigHelper {
         size: {width: 150, height: 75},
         connectorPlacementOverride: ConnectorPlacement.LEFT_RIGHT,
       },
-    }
-    return nodeTypes;
+    };
   }
 
-  getApiSwitch(action , diagramMaker) {   //used by the function icons in the edit board
+  getApiSwitch(action: DiagramAction, diagramMaker: DiagramMaker): void {   //used by the function icons in the edit board
     {
       switch (action) {
         case 'fit':
@@ -48,7 +43,7 @@ export class DiagramConfigHelper {
           diagramMaker.store.dispatch({
             type: 'WORKSPACE_DRAG',
             payload: {
-              position:{
+              position: {
                 x: 0,
                 y: 400
               }
