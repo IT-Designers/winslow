@@ -11,6 +11,10 @@
   flex-direction: column;
   margin: 0;
   background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
   overflow: auto;
 }
 
@@ -29,6 +33,10 @@ input.files-browser-path {
   padding: 0;
   margin: 0 1em;
   background-color: whitesmoke;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+    color: white;
+  }
 }
 
 .files-browser {
@@ -64,7 +72,7 @@ input.files-browser-path {
 }
 
 .files-browser-navigation li {
-  border-left: 1px dotted gray;
+  border-left: 1px dotted rgb(128, 128, 128);
 }
 
 .files-browser-navigation ul {
@@ -173,8 +181,12 @@ ul.files-browser-navigation > li > p {
   margin: 0;
   border: 1px solid silver;
   border-radius: 0.2em;
-  box-shadow: 0.1em 0.1em gray;
+  box-shadow: 0.1em 0.1em rgb(128, 128, 128);
   background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
 }
 
 .context-menu ul {

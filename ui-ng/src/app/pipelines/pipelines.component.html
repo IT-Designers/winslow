@@ -50,7 +50,8 @@
     <mat-drawer mode="side"
                 class="drawer"
                 [opened]="true"
-                [disableClose]="true">
+                [disableClose]="true"
+                #drawer>
       <div class="drawer-content">
         <div class="drawer-element">
           <app-searchable-list type="Pipeline"
@@ -66,12 +67,23 @@
 
       </div>
 
+      <div class="button-group">
+        <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()">
+          <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
+        </button>
+      </div>
+
     </mat-drawer>
     <mat-drawer-content class="detail-container">
       <app-pipeline-details [selectedPipeline]="selectedPipeline"
                             (pipelineDeleteEmitter)="onDeletePipeline($event)">
 
       </app-pipeline-details>
+
+      <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab color="white" (click)="drawer.toggle()">
+        <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
+      </button>
+
     </mat-drawer-content>
   </mat-drawer-container>
 

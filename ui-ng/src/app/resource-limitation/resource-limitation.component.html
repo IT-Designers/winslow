@@ -15,7 +15,7 @@
 </div>
 <div class="data-row">
   <label [class.disabled]="!resourceLimit.checked">CPU cores</label>
-  <mat-form-field>
+  <mat-form-field appearance="outline">
     <input #limitCpu matInput type="number"
            [disabled]="!resourceLimit.checked"
            [value]="local != null ? ''+local.cpu : null"
@@ -25,7 +25,7 @@
 </div>
 <div class="data-row">
   <label [class.disabled]="!resourceLimit.checked">RAM (MiB)</label>
-  <mat-form-field>
+  <mat-form-field appearance="outline">
     <input #limitMem matInput type="number"
            [disabled]="!resourceLimit.checked"
            [value]="local != null ? ''+local.mem : null"
@@ -35,7 +35,7 @@
 </div>
 <div class="data-row">
   <label [class.disabled]="!resourceLimit.checked">GPUs</label>
-  <mat-form-field>
+  <mat-form-field appearance="outline">
     <input #limitGpu matInput type="number"
            [disabled]="!resourceLimit.checked"
            [value]="local != null ? ''+local.gpu : null"

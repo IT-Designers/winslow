@@ -8,7 +8,7 @@
 
   <div class="stage-control-item">
     <label>Project Name</label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input #nameEntered matInput name="name" [value]="project.name">
     </mat-form-field>
     <button
@@ -22,7 +22,7 @@
   </div>
   <div class="stage-control-item">
     <label>Project Pipeline</label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-select #pipelineSelection [value]="this.project.pipelineDefinition.id">
         <ng-container *ngFor="let pipeline of pipelines">
           <mat-option [value]="pipeline.id">{{ pipeline.name }}</mat-option>
@@ -79,7 +79,7 @@
       No groups assigned
     </label>
     <button
-      mat-raised-button
+      mat-mini-fab
       color="primary"
       #groupTagsButton
       (click)="showGroupList = !showGroupList"
@@ -146,8 +146,8 @@
     </button>
   </div>
   <div class="stage-control-item">
-    <label [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
-    <mat-form-field>
+    <label class="label-darkmode" [class.disabled]="!custom.checked">Number of workspaces of successful stages to keep</label>
+    <mat-form-field appearance="outline">
       <input
         #limit matInput type="number"
         [disabled]="(deletionPolicyLocal == null || !custom.checked) || !userCanEditProject"
@@ -211,7 +211,7 @@
 
   <div class="stage-control-item">
     <label>Default workspace configuration mode</label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-select
         #workspaceModeSelection
         [value]="workspaceMode"

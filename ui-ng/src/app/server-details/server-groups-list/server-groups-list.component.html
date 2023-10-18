@@ -2,7 +2,7 @@
 <mat-chip-listbox></mat-chip-listbox>
 <div class="list-and-label-container">
   <div class="list-content" id="list-content">
-    <mat-form-field class="mat-input-container">
+    <mat-form-field class="mat-input-container" appearance="outline">
       <input matInput
              type="text"
              class="text-input-mat"
@@ -10,11 +10,6 @@
              placeholder="Search.."
              (keyup)="filterFunction()">
     </mat-form-field>
-    <!--<input type="text"
-           class="text-input"
-           [(ngModel)]="groupSearchInput"
-           placeholder="Search.."
-           (keyup)="filterFunction()">-->
     <div class="scrollable">
       <div *ngIf="displayGroups.length > 0">
         <div class="list-item" *ngFor="let group of editableResourceAllocations.groupLimits">
@@ -28,7 +23,7 @@
             </mat-chip-option>
           </div>
 
-          <mat-form-field appearance="fill" class="role-dropdown">
+          <mat-form-field appearance="outline" class="role-dropdown">
             <mat-label>Choose Role</mat-label>
             <mat-select class="role-select"
                         [(value)]="group.role"
@@ -53,7 +48,7 @@
               <div class="expansion-content-container">
                 <div class="single-resource-container">
                   <label class="resource-label">CPU Cores: </label>
-                  <mat-form-field class="input-width">
+                  <mat-form-field class="input-width" appearance="outline">
                     <input type="number"
                            matInput
                            min="0"
@@ -75,7 +70,7 @@
                 </div>
                 <div class="single-resource-container" [ngStyle]="{'border-left':'1px solid darkgrey', 'border-right':'1px solid darkgrey'}">
                   <label class="resource-label">GPUs: </label>
-                  <mat-form-field class="input-width">
+                  <mat-form-field class="input-width" appearance="outline">
                     <input type="number"
                            matInput
                            min="0"
@@ -98,7 +93,7 @@
                 </div>
                 <div class="single-resource-container">
                   <label class="resource-label">Memory: </label>
-                  <mat-form-field class="input-width">
+                  <mat-form-field class="input-width" appearance="outline">
                     <input type="number"
                            matInput
                            min="0"
@@ -184,7 +179,7 @@
           <div class="expansion-content-container">
             <div class="single-resource-container">
               <label class="resource-label">CPU Cores: </label>
-              <mat-form-field class="input-width">
+              <mat-form-field class="input-width" appearance="outline">
                 <input type="number"
                        matInput
                        min="0"
@@ -207,7 +202,7 @@
             </div>
             <div class="single-resource-container" [ngStyle]="{'border-left':'1px solid darkgrey', 'border-right':'1px solid darkgrey'}">
               <label class="resource-label">GPUs: </label>
-              <mat-form-field class="input-width">
+              <mat-form-field class="input-width" appearance="outline">
                 <input type="number"
                        matInput
                        min="0"
@@ -230,7 +225,7 @@
             </div>
             <div class="single-resource-container">
               <label class="resource-label">Memory: </label>
-              <mat-form-field class="input-width">
+              <mat-form-field class="input-width" appearance="outline">
                 <input type="number"
                        matInput
                        min="0"
