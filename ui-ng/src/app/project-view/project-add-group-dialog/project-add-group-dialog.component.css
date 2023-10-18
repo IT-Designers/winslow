@@ -45,7 +45,7 @@ app-project-add-group-dialog > * {
   border: none;
   width: 45px;
   height: 45px;
-  box-shadow: 0 1px 3px gray;
+  box-shadow: 0 1px 3px grey;
 }
 .item-icon {
   font-size: 30px;

@@ -64,7 +64,7 @@ input.files-browser-path {
 }
 
 .files-browser-navigation li {
-  border-left: 1px dotted gray;
+  border-left: 1px dotted grey;
 }
 
 .files-browser-navigation ul {
@@ -173,7 +173,7 @@ ul.files-browser-navigation > li > p {
   margin: 0;
   border: 1px solid silver;
   border-radius: 0.2em;
-  box-shadow: 0.1em 0.1em gray;
+  box-shadow: 0.1em 0.1em grey;
   background-color: white;
 }
 

@@ -31,7 +31,7 @@ mat-expansion-panel div {
   /* border-radius: 5px;
   border: 1px solid darkgrey; */
   border-bottom: 1px solid darkgrey;
-  border-radius: 0px !important;
+  border-radius: 0 !important;
   z-index: 999;
 }
 
