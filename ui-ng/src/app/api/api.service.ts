@@ -7,7 +7,7 @@ export class ApiService {
 
 }
 
-export class ChangeEvent<T, V> {
+export interface ChangeEvent<T, V> {
   type: ChangeType;
   identifier: T;
   value: V;
