@@ -39,20 +39,9 @@ export class DiagramLibraryComponent implements OnInit {
   onApiCall(action : String){       //used when clicking on the function icons e.g. save, undo...
     switch (action) {
       case 'save':
-        console.log('Save pressed');
         this.savedData = true;
-
-        break;
-      case 'fit':
-        console.log('fit pressed');
-        break;
-      case 'layout':
-        console.log('layout pressed');
-        break;
-      case 'flat-delete':
         break;
     }
-    /*if (action == "save"){this.savedData = true;}*/
     this.diagramApiCall.emit({action: action, node: this.selectedNode$});
   }
   startSave(){          //starts the save on top level of the recursion of edit-forms
