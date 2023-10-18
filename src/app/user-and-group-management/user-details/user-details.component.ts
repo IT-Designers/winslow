@@ -11,8 +11,8 @@ import {PasswordDialogComponent} from '../password-dialog/password-dialog.compon
 })
 export class UserDetailsComponent implements OnInit, OnChanges {
 
-  @Input() selectedUser: UserInfo = null;   // Object should remain constant
-  @Input() myName: string = null;
+  @Input() selectedUser!: UserInfo;   // Object should remain constant
+  @Input() myName!: string;
 
   @Output() deletedUserEmitter = new EventEmitter();
 
@@ -33,7 +33,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
       this.editableSelectedUser = Object.assign({}, this.selectedUser);
       this.userApi.hasSuperPrivileges(this.myName)
         .then((bool) => {
-          if (bool === true) {
+          if (bool) {
             this.canIEditUser = bool;
           } else {
             this.canIEditUser = this.myName === this.selectedUser.name;
