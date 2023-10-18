@@ -10,26 +10,26 @@ export class DragDropDirectiveDirective {
   @HostBinding('class.dragover') dragover = false;
 
   @HostListener('dragover', ['$event'])
-  onDragOver(event) {
+  onDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragover = true;
   }
 
   @HostListener('dragleave', ['$event'])
-  onDragLeave(event) {
+  onDragLeave(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragover = false;
   }
 
   @HostListener('drop', ['$event'])
-  onDrop(event) {
+  onDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragover = false;
-    const files = event.dataTransfer.files;
-    if (files.length > 0) {
+    const files = event.dataTransfer?.files;
+    if (files != undefined && files.length > 0) {
       this.onFileDropped.emit(files);
     }
   }
