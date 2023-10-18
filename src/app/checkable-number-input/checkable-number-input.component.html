@@ -5,14 +5,14 @@
 <span class="vertical-center-with-margin flex-grow-normal">{{name}}</span>
 <mat-form-field class="flex-grow-a-lot">
   <input matInput
-         [placeholder]="unit"
-         [disabled]="value == null && checkable"
-         [value]="value"
+         [placeholder]="unit ?? ''"
+         [disabled]="value == undefined && checkable"
+         [value]="'' + (value ?? '')"
          (change)="onValueUpdate($event)">
 </mat-form-field>
 <div class="vertical-center-with-margin">
   <button mat-icon-button color="primary"
-          *ngIf="revertable"
+          *ngIf="revertible"
           [disabled]="value == valueOriginal"
           (click)="value = valueOriginal">
     <mat-icon class="material-icons-outlined">undo</mat-icon>
