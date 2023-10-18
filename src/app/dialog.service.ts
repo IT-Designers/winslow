@@ -23,9 +23,9 @@ export class DialogService {
       });
   }
 
-  private errorCatcher(promise: Promise<any>): Promise<boolean> {
+  private errorCatcher(promise: Promise<void>): Promise<boolean> {
     return promise
-      .then(r => true)
+      .then(() => true)
       .catch(err => {
         Swal.clickCancel();
         if (err && err.error && err.error.text) {
@@ -36,14 +36,14 @@ export class DialogService {
         } else {
           Swal.fire({
             icon: 'error',
-            text: err != null ? JSON.stringify(err) : null,
+            text: err != undefined ? JSON.stringify(err) : undefined,
           });
         }
         return false;
       });
   }
 
-  private preConfirmPromiseWithErrorCatcher(promise: (value: any) => Promise<any>): (r) => Promise<boolean> {
+  private preConfirmPromiseWithErrorCatcher<T>(promise: (value: T) => Promise<void>): (v: T) => Promise<boolean> {
     return v => this.errorCatcher(promise(v));
   }
 
@@ -70,7 +70,7 @@ export class DialogService {
     }
   }
 
-  private show(options: SweetAlertOptions, withSuccessNotification: boolean, state, done = false) {
+  private show(options: SweetAlertOptions, withSuccessNotification: boolean, state: {showed: boolean}, done = false) {
     if (state && !state.showed) {
       state.showed = true;
       if (!done || withSuccessNotification) {
@@ -179,7 +179,7 @@ export class InputDefinition {
   placeholder?: string;
   value?: string;
 
-  constructor(title: string, placeholder: string = null, value: string = null) {
+  constructor(title: string, placeholder?: string, value?: string) {
     this.title = title;
     this.placeholder = placeholder;
     this.value = value;
