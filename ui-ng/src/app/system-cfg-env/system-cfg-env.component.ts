@@ -11,7 +11,7 @@ import {DialogService} from '../dialog.service';
 export class SystemCfgEnvComponent implements OnInit {
 
   // env cache
-  environmentVariables: Map<string, [boolean, string]> = null;
+  environmentVariables?: Map<string, [boolean, string]>;
   defaultEnvironmentVariablesValue = new Map<string, string>();
   envSubmitValue: any = null;
 
