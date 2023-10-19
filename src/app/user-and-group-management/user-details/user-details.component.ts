@@ -18,7 +18,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
 
   canIEditUser = false;
   newPassword = '';
-  editableSelectedUser = new UserInfo();
+  editableSelectedUser: UserInfo = {active: false, displayName: "", email: "", name: "", password: ""};
 
   hasAnythingChanged = false;
 
@@ -73,8 +73,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
 
   changePasswordBtnClicked() {
     this.createDialog.open(PasswordDialogComponent, {
-      data: {
-      }
+      data: {}
     })
       .afterClosed()
       .subscribe((password) => {

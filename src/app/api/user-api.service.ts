@@ -82,18 +82,10 @@ export class UserApiService {
 }
 
 // todo make type without password
-export class UserInfo {
+export interface UserInfo {
   name: string;
   displayName: string;
   email: string;
   active: boolean;
   password: string;
-
-  constructor(data: UserInfo) {
-    this.name = data.name
-    this.displayName = data.displayName
-    this.email = data.email
-    this.active = data.active
-    this.password = data.password
-  }
 }
