@@ -42,7 +42,7 @@ export class FilesComponent implements OnInit {
     const directory = true;
     const name = 'resources';
     const path = '/resources';
-    const info = new FileInfo({name, path, directory, fileSize: 0, attributes: {}} as FileInfo);
+    const info = new FileInfo({name, path, directory, fileSize: 0, attributes: {}});
     root.push(info);
     this.files = new Map();
     this.files.set('/', root);
@@ -70,9 +70,9 @@ export class FilesComponent implements OnInit {
     const directory = true;
     const name = value.split(';')[0];
     const path = `/${value.split(';')[1]}`;
-    const additional = new FileInfo({name, directory, path, fileSize: 0, attributes: {}} as FileInfo);
-    this.files.get('/').splice(1);
-    this.files.get('/').push(additional);
+    const additional = new FileInfo({name, directory, path, fileSize: 0, attributes: {}});
+    this.files.get('/')?.splice(1);
+    this.files.get('/')?.push(additional);
     this.files.set(additional.path, []);
     this.navigationTarget = additional.path;
   }
@@ -134,7 +134,7 @@ export class FilesComponent implements OnInit {
   }
 
   currentDirectory(): FileInfo[] {
-    return this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [];
+    return this.files.get(this.latestPath) ?? [];
   }
 
   viewDirectory(path: string) {
@@ -216,7 +216,7 @@ export class FilesComponent implements OnInit {
       name => {
         if (name != null && name.length > 0) {
           const path = this.absoluteDirectoryPath(this.latestPath + '/' + name);
-          return this.api.createDirectory(path).then(r => this.navigateDirectlyTo(this.latestPath));
+          return this.api.createDirectory(path).then(() => void this.navigateDirectlyTo(this.latestPath));
         }
       }
     );

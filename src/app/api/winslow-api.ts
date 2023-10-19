@@ -1,6 +1,16 @@
-/* tslint:disable */
-/* eslint-disable */
-// Generated using typescript-generator version 3.1.1185 on 2023-05-04 17:43:18.
+import {FileInfoAttribute, humanReadableFileSize} from "./files-api.service";
+
+/*
+ * Represents the properties of a class, excluding its methods.
+ *
+ * This type transforms a class type `Class` into a type that includes only its member properties but not its methods.
+ * Suitable for objects received via the API that have not yet been transformed into class instances.
+ *
+ * @typeparam Class - The class type from which to extract properties.
+ */
+export type Raw<Class> = {
+  [Key in keyof Class as Class[Key] extends (...args: any[]) => unknown ? never : Key]: Class[Key]
+}
 
 export class Link {
   name: string;
@@ -34,14 +44,50 @@ export class FileInfo {
   path: string;
   fileSize?: number;
   attributes: Record<string, any>;
+  fileSizeHumanReadableCached?: string;
 
-  constructor(data: FileInfo) {
+  constructor(data: Raw<FileInfo>) {
     this.name = data.name;
     this.directory = data.directory;
     this.path = data.path;
     this.fileSize = data.fileSize;
     this.attributes = data.attributes;
   }
+
+  getAttribute(key: FileInfoAttribute): any {
+    return this.attributes != null ? this.attributes[key] : null;
+  }
+
+  getFileSizeHumanReadable(): string | undefined {
+    if (this.fileSizeHumanReadableCached == undefined) {
+      this.fileSizeHumanReadableCached = humanReadableFileSize(this.fileSize);
+    }
+    return this.fileSizeHumanReadableCached;
+  }
+
+  hasAttribute(key: FileInfoAttribute): boolean {
+    return this.attributes != null && this.attributes[key] != null;
+  }
+
+  isGitRepository(): boolean {
+    return this.hasAttribute('git-branch');
+  };
+
+  getGitBranch(): string | undefined {
+    const attr = this.getAttribute('git-branch');
+    if (typeof attr === typeof '') {
+      return attr as string;
+    } else {
+      return undefined;
+    }
+  };
+
+  setGitBranch(branch: string): void {
+    if (this.attributes == null) {
+      this.attributes = new Map<string, unknown>();
+    }
+    this.attributes['git-branch'] = branch;
+  };
 }
 
 export class AllocInfo {
@@ -767,7 +813,10 @@ export type WorkspaceMode = 'STANDALONE' | 'INCREMENTAL' | 'CONTINUATION';
 
 export type RangedValueUnion = RangeWithStepSize | RangedList;
 
-export type StageDefinitionInfoUnion = StageWorkerDefinitionInfo | StageXOrGatewayDefinitionInfo | StageAndGatewayDefinitionInfo;
+export type StageDefinitionInfoUnion =
+  StageWorkerDefinitionInfo
+  | StageXOrGatewayDefinitionInfo
+  | StageAndGatewayDefinitionInfo;
 
 export function stageDefinitionIsWorker(def: StageDefinitionInfoUnion): def is StageWorkerDefinitionInfo {
   return (def as StageWorkerDefinitionInfo)["@type"] == "Worker"
