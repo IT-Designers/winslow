@@ -30,7 +30,7 @@ export class TagsWithAutocompleteComponent implements OnInit {
   selectedTags: string[] = [];
   filteredTags: Observable<string[]>;
 
-  @ViewChild('auto') matAutocomplete: MatAutocomplete;
+  @ViewChild('auto') matAutocomplete!: MatAutocomplete;
 
   @Output('tags') tagsEmitter = new EventEmitter<string[]>();
   @Output() tagActionPrimary = new EventEmitter<string>();
