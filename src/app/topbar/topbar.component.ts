@@ -12,7 +12,7 @@ export class TopbarComponent implements OnInit {
 
   connected = false;
 
-  myUserName: string;
+  myUserName?: string;
 
   constructor(private rxStompService: RxStompService, private userApi: UserApiService) {
     rxStompService
