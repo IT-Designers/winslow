@@ -1,4 +1,5 @@
 import {Injectable} from '@angular/core';
+import {Raw} from "./winslow-api";
 
 @Injectable({
   providedIn: 'root'
@@ -10,17 +11,32 @@ export class LocalStorageService {
 
   private readonly KEY_CHART_SETTINGS = 'winslow-chart-settings';
 
-  getChartSettings() {
-    const item = JSON.parse(localStorage.getItem(this.KEY_CHART_SETTINGS));
-    return item ?? new GlobalChartSettings();
+  getChartSettings(): GlobalChartSettings {
+    const item = localStorage.getItem(this.KEY_CHART_SETTINGS);
+    if (item != null) {
+      const parsed = JSON.parse(item);
+      if (parsed != null) {
+        return new GlobalChartSettings(parsed);
+      }
+    }
+    return new GlobalChartSettings({
+      enableEntryLimit: false,
+      enableRefreshing: false,
+      entryLimit: 50,
+      refreshTimerInSeconds: 5
+    });
   }
 
-  setChartSettings(item: GlobalChartSettings) {
+  setChartSettings(item: GlobalChartSettings): void {
     localStorage.setItem(this.KEY_CHART_SETTINGS, JSON.stringify(item));
   }
 
   getSettings(KEY: string) {
-    return JSON.parse(localStorage.getItem(KEY));
+    const item = localStorage.getItem(KEY);
+    if (item == null) {
+      return null;
+    }
+    return JSON.parse(item);
   }
 
   setSettings(KEY: string, data: any) {
@@ -29,11 +45,11 @@ export class LocalStorageService {
 }
 
 export class GlobalChartSettings {
-  constructor() {
-    this.enableEntryLimit = false;
-    this.entryLimit = 50;
-    this.enableRefreshing = true;
-    this.refreshTimerInSeconds = 5;
+  constructor(data: Raw<GlobalChartSettings>) {
+    this.enableEntryLimit = data.enableEntryLimit;
+    this.entryLimit = data.entryLimit;
+    this.enableRefreshing = data.enableRefreshing;
+    this.refreshTimerInSeconds = data.refreshTimerInSeconds;
   }
 
   enableEntryLimit: boolean;
