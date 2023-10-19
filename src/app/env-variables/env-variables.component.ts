@@ -85,7 +85,7 @@ export class EnvVariablesComponent implements OnInit {
   }
 
   @Input()
-  set env(env: Map<string, EnvVariable>) {
+  set env(env: Map<string, EnvVariable> | undefined) {
     this.environmentVariables = env;
     this.rebuildKeys();
     this.rebuildEnvControl();
