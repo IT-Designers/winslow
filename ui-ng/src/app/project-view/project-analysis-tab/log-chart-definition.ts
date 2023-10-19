@@ -34,7 +34,7 @@ export class LogChartSnapshot {
       }
     }
 
-    const variables = [];
+    const variables: string[] = [];
 
     csvFiles.map(csvFile => csvFile.content).forEach(csvContent => {
       if (csvContent.length > 0) {
@@ -51,7 +51,7 @@ export class LogChartSnapshot {
 
   private static getDataSet(definition: LogChartDefinition, csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
     const rowLimit = globalChartSettings?.enableEntryLimit ? globalChartSettings.entryLimit : definition.entryLimit;
-    const rows = LogChartSnapshot.getLatestRows(csvContent, rowLimit);
+    const rows = LogChartSnapshot.getLatestRows(csvContent, rowLimit ?? 0);
     const xIndex = formatterVariables.findIndex(variableName => variableName == definition.xVariable);
     const yIndex = formatterVariables.findIndex(variableName => variableName == definition.yVariable);
 
@@ -125,13 +125,13 @@ export class ChartDisplaySettings {
   name: string = 'Unnamed chart';
 
   xAxisName: string = 'x-Axis';
-  xAxisMinValue: number = null;
-  xAxisMaxValue: number = null;
+  xAxisMinValue?: number;
+  xAxisMaxValue?: number;
   xAxisType: ChartAxisType = ChartAxisType.VALUE;
 
   yAxisName: string = 'y-Axis';
-  yAxisMinValue: number = null;
-  yAxisMaxValue: number = null;
+  yAxisMinValue?: number;
+  yAxisMaxValue?: number;
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 
