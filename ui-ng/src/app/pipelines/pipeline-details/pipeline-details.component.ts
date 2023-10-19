@@ -12,8 +12,7 @@ import {PipelineEditorComponent} from "../../pipeline-editor/pipeline-editor.com
 })
 export class PipelineDetailsComponent implements OnInit, OnChanges {
 
-  @Input() selectedPipeline: PipelineDefinitionInfo = null;
-  @Input() myUser: Link;
+  @Input() selectedPipeline!: PipelineDefinitionInfo;
 
   @Output() pipelineDeleteEmitter = new EventEmitter();
 
@@ -32,9 +31,9 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
     }
   ];
 
-  rawPipelineDefinition: string = null;
-  rawPipelineDefinitionError: string = null;
-  rawPipelineDefinitionSuccess: string = null;
+  rawPipelineDefinition?: string;
+  rawPipelineDefinitionError?: string;
+  rawPipelineDefinitionSuccess?: string;
 
   longLoading = new LongLoadingDetector();
   constructor(private dialog: DialogService, private pipelinesApi: PipelineApiService) { }
@@ -64,12 +63,12 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
       this.pipelinesApi.checkPipelineDefinition(raw)
         .then(result => {
           if (result != null) {
-            this.rawPipelineDefinitionSuccess = null;
+            this.rawPipelineDefinitionSuccess = undefined;
             // @ts-ignore
             this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in project-view
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
-            this.rawPipelineDefinitionError = null;
+            this.rawPipelineDefinitionError = undefined;
           }
         }),
       `Checking Pipeline Definition`,
@@ -84,7 +83,7 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
           editor.parseError = [e];
           return Promise.reject('Failed to parse input, see marked area(s) for more details');
         })
-        .then(r => {
+        .then(_r => {
           editor.parseError = [];
           return this.pipelinesApi
             .getPipelineDefinition(this.selectedPipeline.id)
@@ -107,13 +106,13 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
       'Updating Pipeline with new definition');
   }
 
-  onGroupAdd(event) {
+  onGroupAdd(event: Link): void {
     this.selectedPipeline.groups.push(event);
     this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
       'Updating Pipeline with new group')
   }
 
-  onGroupRemove(event) {
+  onGroupRemove(event: Link): void  {
     const delIndex = this.selectedPipeline.groups.findIndex((group) => group.name === event.name)
     this.selectedPipeline.groups.splice(delIndex, 1);
     this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
@@ -121,7 +120,7 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
 
   }
 
-  setName(name) {
+  setName(name?: string): void {
     if (name) {
       this.selectedPipeline.name = name;
       this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
@@ -129,7 +128,7 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
     }
   }
 
-  setDescription(description) {
+  setDescription(description?: string): void {
     if (description) {
       this.selectedPipeline.description = description;
       this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
