@@ -1,47 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
 
-enum SegmentType {
-  NORMAL = "segment-normal",
-  MATCH = "segment-match",
-  GROUP = "segment-group",
-  UNCERTAIN = "segment-uncertain",
-}
-
-class Segment {
-  text: string;
-  classType: SegmentType;
-
-  constructor(type: SegmentType, text: string) {
-    this.classType = type;
-    this.text = text;
-  }
-}
-
-class RegExpMatchIndices {
-  readonly start: number;
-  readonly end: number;
-  readonly groups: { start: number, end: number }[];
-
-  private constructor(indices: [number, number][]) {
-    this.start = indices[0][0]
-    this.end = indices[0][1]
-    this.groups = indices.slice(1).map(groupIndices => ({
-      start: groupIndices[0],
-      end: groupIndices[1]
-    }))
-  }
-
-  static fromRegExpMatchArray(match: RegExpMatchArray) {
-    try {
-      const indices = match["indices"];
-      return new RegExpMatchIndices(indices);
-    } catch (error) {
-      console.error(`Missing indices for match ${match.input}. Is the 'd'-flag set?`);
-      throw error;
-    }
-  }
-}
-
 @Component({
   selector: 'app-regular-expression-visualiser',
   templateUrl: './regular-expression-visualiser.component.html',
@@ -56,9 +14,11 @@ export class RegularExpressionVisualiserComponent implements OnInit {
     this.regExp = new RegExp(pattern, "d");
   }
 
-  regExp: RegExp;
+  regExp!: RegExp;
 
   constructor() {
+    this.text = "";
+    this.pattern = "";
   }
 
   ngOnInit(): void {
@@ -67,7 +27,7 @@ export class RegularExpressionVisualiserComponent implements OnInit {
   getSegments(text: string): Segment[] {
     const regExpMatchArray = text.match(this.regExp);
 
-    if (!regExpMatchArray) {
+    if (regExpMatchArray == null) {
       return [
         new Segment(SegmentType.NORMAL, text)
       ];
@@ -111,5 +71,49 @@ export class RegularExpressionVisualiserComponent implements OnInit {
     segments.push(new Segment(SegmentType.MATCH, text.substring(match.groups[lastIndex].end, match.end)));
 
     return segments;
+  }
+}
+
+enum SegmentType {
+  NORMAL = "segment-normal",
+  MATCH = "segment-match",
+  GROUP = "segment-group",
+  UNCERTAIN = "segment-uncertain",
+}
+
+class Segment {
+  text: string;
+  classType: SegmentType;
+
+  constructor(type: SegmentType, text: string) {
+    this.classType = type;
+    this.text = text;
+  }
+}
+
+type RegexArrayWithIndices = RegExpMatchArray & { indices?: [number, number][] }
+
+class RegExpMatchIndices {
+  readonly start: number;
+  readonly end: number;
+  readonly groups: { start: number, end: number }[];
+
+  private constructor(indices: [number, number][]) {
+    this.start = indices[0][0]
+    this.end = indices[0][1]
+    this.groups = indices.slice(1).map(groupIndices => ({
+      start: groupIndices[0],
+      end: groupIndices[1]
+    }))
+  }
+
+  static fromRegExpMatchArray(match: RegexArrayWithIndices): RegExpMatchIndices {
+    if (match.indices != undefined) {
+      return new RegExpMatchIndices(match.indices);
+    } else {
+      const message = `Missing indices for match ${match.input}. Is the 'd'-flag set?`;
+      console.error(message);
+      throw new Error(message);
+    }
   }
 }
