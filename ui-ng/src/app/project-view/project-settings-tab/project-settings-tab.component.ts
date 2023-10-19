@@ -180,10 +180,11 @@ export class ProjectSettingsTabComponent {
   updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean, always: boolean): void {
     let promise: Promise<void>;
     if (set) {
-      const policy = new DeletionPolicy();
-      policy.numberOfWorkspacesOfSucceededStagesToKeep = Number(limitStr) > 0 ? Number(limitStr) : null;
-      policy.keepWorkspaceOfFailedStage = keep;
-      policy.alwaysKeepMostRecentWorkspace = always;
+      const policy =  new DeletionPolicy({
+        numberOfWorkspacesOfSucceededStagesToKeep: Number(limitStr) > 0 ? Number(limitStr) : undefined,
+        keepWorkspaceOfFailedStage: keep,
+        alwaysKeepMostRecentWorkspace: always,
+      });
       promise = this.projectApi.updateDeletionPolicy(this.project.id, policy)
         .then(result => {
           this.deletionPolicyLocal = result;
