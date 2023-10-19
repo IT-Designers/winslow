@@ -13,8 +13,11 @@ export class PasswordDialogComponent implements OnInit {
 
   passwordHintColor = 'red';
 
-  constructor(public dialogRef: MatDialogRef<PasswordDialogComponent>,
-              @Inject(MAT_DIALOG_DATA) public data) { }
+  constructor(
+    public dialogRef: MatDialogRef<PasswordDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: unknown,
+  ) {
+  }
 
   ngOnInit(): void {
   }
