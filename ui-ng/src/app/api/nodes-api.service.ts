@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {RxStompService} from '../rx-stomp.service';
 import {ChangeEvent} from './api.service';
-import {Subscription} from 'rxjs';
+import {lastValueFrom, Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
@@ -39,9 +39,9 @@ export class NodesApiService {
    * Retrieves the `NodeInfo` for all active nodes
    */
   public getNodes(): Promise<NodeInfoExt> {
-    return this.client
-      .get<NodeInfoExt>(NodesApiService.getUrl())
-      .toPromise();
+    return lastValueFrom(
+      this.client.get<NodeInfoExt>(NodesApiService.getUrl())
+    );
   }
 
   /**
@@ -58,11 +58,11 @@ export class NodesApiService {
       .map(p => p[0] + '=' + p[1])
       .join('&');
 
-    return this.client
-      .get<NodeUtilization[]>(NodesApiService.getUrl(
+    return lastValueFrom(
+      this.client.get<NodeUtilization[]>(NodesApiService.getUrl(
         nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
       ))
-      .toPromise();
+    );
   }
 
   /**
@@ -71,11 +71,11 @@ export class NodesApiService {
    * @param nodeName The name of the node to return the configuration for
    */
   public getNodeResourceUsageConfiguration(nodeName: string): Promise<NodeResourceUsageConfiguration> {
-    return this.client
-      .get<NodeResourceUsageConfiguration>(
+    return lastValueFrom(
+      this.client.get<NodeResourceUsageConfiguration>(
         NodesApiService.getUrl(nodeName + '/resource-usage-configuration')
       )
-      .toPromise();
+    );
   }
 
   /**
@@ -85,12 +85,13 @@ export class NodesApiService {
    * @param conf The new configuration to set
    */
   public setNodeResourceUsageConfiguration(nodeName: string, conf: NodeResourceUsageConfiguration): Promise<void> {
-    return this.client
-      .put<void>(
-        NodesApiService.getUrl(nodeName + '/resource-usage-configuration'),
-        conf
-      )
-      .toPromise();
+    return lastValueFrom(
+      this.client
+        .put<void>(
+          NodesApiService.getUrl(nodeName + '/resource-usage-configuration'),
+          conf
+        )
+    );
   }
 }
 
@@ -102,7 +103,7 @@ export class NodesApiService {
  */
 export class NodeInfoExt extends NodeInfo {
   // local only
-  update: (node: NodeInfoExt) => void;
+  update?: (node: NodeInfoExt) => void;
 }
 
 
