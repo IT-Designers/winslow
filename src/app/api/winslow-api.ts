@@ -96,7 +96,7 @@ export class AllocInfo {
   memory: number;
   gpu: number;
 
-  constructor(data: AllocInfo) {
+  constructor(data: Raw<AllocInfo>) {
     this.title = data.title;
     this.cpu = data.cpu;
     this.memory = data.memory;
@@ -109,7 +109,7 @@ export class BuildInfo {
   commitHashShort: string;
   commitHashLong: string;
 
-  constructor(data: BuildInfo) {
+  constructor(data: Raw<BuildInfo>) {
     this.date = data.date;
     this.commitHashShort = data.commitHashShort;
     this.commitHashLong = data.commitHashLong;
@@ -120,7 +120,7 @@ export class CpuInfo {
   modelName: string;
   utilization: number[];
 
-  constructor(data: CpuInfo) {
+  constructor(data: Raw<CpuInfo>) {
     this.modelName = data.modelName;
     this.utilization = data.utilization;
   }
@@ -129,7 +129,7 @@ export class CpuInfo {
 export class CpuUtilization {
   cpus: number[];
 
-  constructor(data: CpuUtilization) {
+  constructor(data: Raw<CpuUtilization>) {
     this.cpus = data.cpus;
   }
 }
@@ -140,7 +140,7 @@ export class DiskInfo {
   free: number;
   used: number;
 
-  constructor(data: DiskInfo) {
+  constructor(data: Raw<DiskInfo>) {
     this.reading = data.reading;
     this.writing = data.writing;
     this.free = data.free;
@@ -157,7 +157,7 @@ export class GpuInfo {
   memoryUsedMegabytes: number;
   memoryTotalMegabytes: number;
 
-  constructor(data: GpuInfo) {
+  constructor(data: Raw<GpuInfo>) {
     this.id = data.id;
     this.vendor = data.vendor;
     this.name = data.name;
@@ -174,7 +174,7 @@ export class GpuUtilization {
   memoryUsedMegabytes: number;
   memoryTotalMegabytes: number;
 
-  constructor(data: GpuUtilization) {
+  constructor(data: Raw<GpuUtilization>) {
     this.computeUtilization = data.computeUtilization;
     this.memoryUtilization = data.memoryUtilization;
     this.memoryUsedMegabytes = data.memoryUsedMegabytes;
@@ -187,7 +187,7 @@ export class GroupResourceLimitEntry {
   role: Role;
   resourceLimitation: ResourceLimitation;
 
-  constructor(data: GroupResourceLimitEntry) {
+  constructor(data: Raw<GroupResourceLimitEntry>) {
     this.name = data.name;
     this.role = data.role;
     this.resourceLimitation = data.resourceLimitation;
@@ -201,7 +201,7 @@ export class MemInfo {
   swapTotal: number;
   swapFree: number;
 
-  constructor(data: MemInfo) {
+  constructor(data: Raw<MemInfo>) {
     this.memoryTotal = data.memoryTotal;
     this.memoryFree = data.memoryFree;
     this.systemCache = data.systemCache;
@@ -214,7 +214,7 @@ export class NetInfo {
   receiving: number;
   transmitting: number;
 
-  constructor(data: NetInfo) {
+  constructor(data: Raw<NetInfo>) {
     this.receiving = data.receiving;
     this.transmitting = data.transmitting;
   }
@@ -232,7 +232,7 @@ export class NodeInfo {
   buildInfo: BuildInfo;
   allocInfo: AllocInfo[];
 
-  constructor(data: NodeInfo) {
+  constructor(data: Raw<NodeInfo>) {
     this.name = data.name;
     this.time = data.time;
     this.uptime = data.uptime;
@@ -251,7 +251,7 @@ export class NodeResourceUsageConfiguration {
   globalLimit?: ResourceLimitation;
   groupLimits: GroupResourceLimitEntry[];
 
-  constructor(data: NodeResourceUsageConfiguration) {
+  constructor(data: Raw<NodeResourceUsageConfiguration>) {
     this.freeForAll = data.freeForAll;
     this.globalLimit = data.globalLimit;
     this.groupLimits = data.groupLimits;
@@ -267,7 +267,7 @@ export class NodeUtilization {
   diskInfo: DiskInfo;
   gpuUtilization: GpuUtilization[];
 
-  constructor(data: NodeUtilization) {
+  constructor(data: Raw<NodeUtilization>) {
     this.time = data.time;
     this.uptime = data.uptime;
     this.cpuUtilization = data.cpuUtilization;
@@ -295,7 +295,7 @@ export class EnvVariable {
   value?: string;
   valueInherited?: string;
 
-  constructor(data: EnvVariable) {
+  constructor(data: Raw<EnvVariable>) {
     this.key = data.key;
     this.value = data.value;
     this.valueInherited = data.valueInherited;
@@ -313,7 +313,7 @@ export class ExecutionGroupInfo {
   enqueued: boolean;
   comment?: string;
 
-  constructor(data: ExecutionGroupInfo) {
+  constructor(data: Raw<ExecutionGroupInfo>) {
     this.id = data.id;
     this.configureOnly = data.configureOnly;
     this.stageDefinition = data.stageDefinition;
@@ -331,7 +331,7 @@ export class GpuRequirementsInfo {
   vendor: string;
   support: string[];
 
-  constructor(data: GpuRequirementsInfo) {
+  constructor(data: Raw<GpuRequirementsInfo>) {
     this.count = data.count;
     this.vendor = data.vendor;
     this.support = data.support;
@@ -341,7 +341,7 @@ export class GpuRequirementsInfo {
 export class HighlightInfo {
   resources: string[];
 
-  constructor(data: HighlightInfo) {
+  constructor(data: Raw<HighlightInfo>) {
     this.resources = data.resources;
   }
 }
@@ -351,7 +351,7 @@ export class ImageInfo {
   args: string[];
   shmMegabytes: number;
 
-  constructor(data: ImageInfo) {
+  constructor(data: Raw<ImageInfo>) {
     this.name = data.name;
     this.args = data.args;
     this.shmMegabytes = data.shmMegabytes;
@@ -366,7 +366,7 @@ export class LogEntryInfo {
   line: number;
   stageId: string;
 
-  constructor(data: LogEntryInfo) {
+  constructor(data: Raw<LogEntryInfo>) {
     this.time = data.time;
     this.source = data.source;
     this.error = data.error;
@@ -382,7 +382,7 @@ export class LogParserInfo {
   formatter: string;
   type: string;
 
-  constructor(data: LogParserInfo) {
+  constructor(data: Raw<LogParserInfo>) {
     this.matcher = data.matcher;
     this.destination = data.destination;
     this.formatter = data.formatter;
@@ -395,7 +395,7 @@ export class ParseError {
   column: number;
   message: string;
 
-  constructor(data: ParseError) {
+  constructor(data: Raw<ParseError>) {
     this.line = data.line;
     this.column = data.column;
     this.message = data.message;
@@ -414,7 +414,7 @@ export class PipelineDefinitionInfo {
   belongsToProject: string | null;
   publicAccess: boolean;
 
-  constructor(data: PipelineDefinitionInfo) {
+  constructor(data: Raw<PipelineDefinitionInfo>) {
     this.id = data.id;
     this.name = data.name;
     this.description = data.description;
@@ -435,7 +435,7 @@ export class RangeWithStepSize implements RangedValue {
   max: number;
   stepSize: number;
 
-  constructor(data: RangeWithStepSize) {
+  constructor(data: Raw<RangeWithStepSize>) {
     this.stepCount = data.stepCount;
     this['@type'] = data['@type'];
     this.min = data.min;
@@ -449,7 +449,7 @@ export class RangedList implements RangedValue {
   '@type': 'List';
   values: string[];
 
-  constructor(data: RangedList) {
+  constructor(data: Raw<RangedList>) {
     this.stepCount = data.stepCount;
     this['@type'] = data['@type'];
     this.values = data.values;
@@ -467,7 +467,7 @@ export class RequirementsInfo {
   gpu: GpuRequirementsInfo;
   tags: string[];
 
-  constructor(data: RequirementsInfo) {
+  constructor(data: Raw<RequirementsInfo>) {
     this.cpus = data.cpus;
     this.megabytesOfRam = data.megabytesOfRam;
     this.gpu = data.gpu;
@@ -480,7 +480,7 @@ export class ResourceInfo {
   megabytesOfRam: number;
   gpus: number;
 
-  constructor(data: ResourceInfo) {
+  constructor(data: Raw<ResourceInfo>) {
     this.cpus = data.cpus;
     this.megabytesOfRam = data.megabytesOfRam;
     this.gpus = data.gpus;
@@ -495,7 +495,7 @@ export class StageAndGatewayDefinitionInfo implements StageGatewayDefinitionInfo
   '@type': 'AndGateway';
   description: string;
 
-  constructor(data: StageAndGatewayDefinitionInfo) {
+  constructor(data: Raw<StageAndGatewayDefinitionInfo>) {
     this.name = data.name;
     this.id = data.id;
     this.nextStages = data.nextStages;
@@ -529,7 +529,7 @@ export class StageInfo {
   envInternal: Record<string, string>;
   result: Record<string, string>;
 
-  constructor(data: StageInfo) {
+  constructor(data: Raw<StageInfo>) {
     this.id = data.id;
     this.startTime = data.startTime;
     this.finishTime = data.finishTime;
@@ -559,7 +559,7 @@ export class StageWorkerDefinitionInfo implements StageDefinitionInfo {
   logParsers: LogParserInfo[];
   ignoreFailuresWithinExecutionGroup: boolean;
 
-  constructor(data: StageWorkerDefinitionInfo) {
+  constructor(data: Raw<StageWorkerDefinitionInfo>) {
     this.name = data.name;
     this.id = data.id;
     this.nextStages = data.nextStages;
@@ -586,7 +586,7 @@ export class StageXOrGatewayDefinitionInfo implements StageGatewayDefinitionInfo
   description: string;
   conditions: string[];
 
-  constructor(data: StageXOrGatewayDefinitionInfo) {
+  constructor(data: Raw<StageXOrGatewayDefinitionInfo>) {
     this.name = data.name;
     this.id = data.id;
     this.nextStages = data.nextStages;
@@ -604,7 +604,7 @@ export class StateInfo {
   stageProgress?: number;
   hasEnqueuedStages: boolean;
 
-  constructor(data: StateInfo) {
+  constructor(data: Raw<StateInfo>) {
     this.state = data.state;
     this.pauseReason = data.pauseReason;
     this.description = data.description;
@@ -621,7 +621,7 @@ export class StatsInfo {
   memoryAllocated: number;
   memoryMaximum: number;
 
-  constructor(data: StatsInfo) {
+  constructor(data: Raw<StatsInfo>) {
     this.stageId = data.stageId;
     this.nodeName = data.nodeName;
     this.cpuUsed = data.cpuUsed;
@@ -635,7 +635,7 @@ export class UserInputInfo {
   confirmation: Confirmation;
   requiredEnvVariables: string[];
 
-  constructor(data: UserInputInfo) {
+  constructor(data: Raw<UserInputInfo>) {
     this.confirmation = data.confirmation;
     this.requiredEnvVariables = data.requiredEnvVariables;
   }
@@ -647,7 +647,7 @@ export class WorkspaceConfiguration {
   sharedWithinGroup: boolean;
   nestedWithinGroup: boolean;
 
-  constructor(data: WorkspaceConfiguration) {
+  constructor(data: Raw<WorkspaceConfiguration>) {
     this.mode = data.mode;
     this.value = data.value;
     this.sharedWithinGroup = data.sharedWithinGroup;
@@ -661,7 +661,7 @@ export class AuthTokenInfo {
   name: string;
   capabilities: string[];
 
-  constructor(data: AuthTokenInfo) {
+  constructor(data: Raw<AuthTokenInfo>) {
     this.id = data.id;
     this.secret = data.secret;
     this.name = data.name;
@@ -681,7 +681,7 @@ export class EnqueueOnOtherRequest {
   resume?: boolean;
   projectIds: string[];
 
-  constructor(data: EnqueueOnOtherRequest) {
+  constructor(data: Raw<EnqueueOnOtherRequest>) {
     this.id = data.id;
     this.env = data.env;
     this.rangedEnv = data.rangedEnv;
@@ -706,7 +706,7 @@ export class EnqueueRequest {
   runSingle?: boolean;
   resume?: boolean;
 
-  constructor(data: EnqueueRequest) {
+  constructor(data: Raw<EnqueueRequest>) {
     this.id = data.id;
     this.env = data.env;
     this.rangedEnv = data.rangedEnv;
@@ -723,7 +723,7 @@ export class LogLinesRequest {
   skipLines?: number;
   expectingStageId?: string;
 
-  constructor(data: LogLinesRequest) {
+  constructor(data: Raw<LogLinesRequest>) {
     this.skipLines = data.skipLines;
     this.expectingStageId = data.expectingStageId;
   }
@@ -734,7 +734,7 @@ export class ProjectCreateRequest {
   pipeline: string;
   tags?: string[];
 
-  constructor(data: ProjectCreateRequest) {
+  constructor(data: Raw<ProjectCreateRequest>) {
     this.name = data.name;
     this.pipeline = data.pipeline;
     this.tags = data.tags;
@@ -750,7 +750,7 @@ export class ProjectInfo {
   publicAccess: boolean;
   pipelineDefinition: PipelineDefinitionInfo;
 
-  constructor(data: ProjectInfo) {
+  constructor(data: Raw<ProjectInfo>) {
     this.id = data.id;
     this.accountingGroup = data.accountingGroup;
     this.groups = data.groups;
@@ -765,7 +765,7 @@ export class UpdatePauseRequest {
   paused: boolean;
   strategy?: string;
 
-  constructor(data: UpdatePauseRequest) {
+  constructor(data: Raw<UpdatePauseRequest>) {
     this.paused = data.paused;
     this.strategy = data.strategy;
   }
@@ -776,7 +776,7 @@ export class ResourceLimitation {
   mem?: number;
   gpu?: number;
 
-  constructor(data: ResourceLimitation) {
+  constructor(data: Raw<ResourceLimitation>) {
     this.cpu = data.cpu;
     this.mem = data.mem;
     this.gpu = data.gpu;
@@ -788,7 +788,7 @@ export class StorageInfo {
   bytesUsed: number;
   bytesFree: number;
 
-  constructor(data: StorageInfo) {
+  constructor(data: Raw<StorageInfo>) {
     this.name = data.name;
     this.bytesUsed = data.bytesUsed;
     this.bytesFree = data.bytesFree;
