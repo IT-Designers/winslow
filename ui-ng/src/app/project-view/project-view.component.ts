@@ -816,7 +816,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
           editor.parseError = [e];
           return Promise.reject('Failed to parse input, see marked area(s) for more details');
         })
-        .then(r => {
+        .then(() => {
           editor.parseError = [];
           return this.api
             .getProjectPipelineDefinition(this.project.id)
