@@ -1,7 +1,7 @@
 export class LongLoadingDetector {
-  loadingCount: number = null;
-  loadingSince: number = null;
-  longLoadingMs: number = null;
+  loadingCount: number;
+  loadingSince?: number;
+  longLoadingMs: number;
 
   longLoading = false;
 
@@ -31,7 +31,7 @@ export class LongLoadingDetector {
 
   private decreaseCheck() {
     if (this.loadingCount + this.flags.size <= 0) {
-      this.loadingSince = null;
+      this.loadingSince = undefined;
       this.checkLongLoading();
     }
   }
