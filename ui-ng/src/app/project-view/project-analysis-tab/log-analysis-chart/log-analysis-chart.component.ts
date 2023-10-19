@@ -9,15 +9,19 @@ import {Subscription} from "rxjs";
 })
 export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
-  options: {}
-  subscription: Subscription;
+  options: EChartsOptions = {};
+  subscription?: Subscription;
 
-  @Input() chart: LogChart
+  @Input() chart?: LogChart
 
   constructor() {
   }
 
   ngOnInit() {
+    if (this.chart == undefined) {
+      console.error("Cannot display chart: Input is not initialized.");
+      return;
+    }
     this.subscription = this.chart.snapshot$.subscribe({
       next: snapshot => {
         this.settings(snapshot.definition.displaySettings)
@@ -79,7 +83,9 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     this.updateOptions(newOptions);
   }
 
-  private updateOptions(newOptions) {
+  private updateOptions(newOptions: EChartsOptions) {
     this.options = {...this.options, ...newOptions}
   }
 }
+
+type EChartsOptions = {} // Not sure if a proper type for these exists yet
