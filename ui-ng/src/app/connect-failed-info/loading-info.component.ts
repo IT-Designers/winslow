@@ -6,8 +6,8 @@ import {Component, Input, OnInit} from '@angular/core';
   styleUrls: ['./connect-failed-info.css']
 })
 export class LoadingInfoComponent implements OnInit {
-  @Input() loading: boolean = null;
-  @Input() error: string = null;
+  @Input() loading?: boolean;
+  @Input() error?: string;
 
   constructor() { }
 
