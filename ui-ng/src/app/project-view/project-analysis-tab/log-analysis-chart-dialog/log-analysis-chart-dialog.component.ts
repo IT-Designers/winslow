@@ -1,4 +1,4 @@
-import {Component, Inject, OnDestroy, ViewChild} from '@angular/core';
+import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {ChartAxisType, LogChart, LogChartDefinition, LogChartSnapshot} from '../log-chart-definition';
 import {Observable, Subscription} from 'rxjs';
@@ -15,7 +15,7 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
   AxisTypes = Object.values(ChartAxisType);
   chart: LogChart;
   definition: LogChartDefinition;
-  latestSnapshot: LogChartSnapshot;
+  latestSnapshot: LogChartSnapshot | undefined;
   subscription: Subscription;
   fileSuggestions: Observable<string[]>;
 
@@ -25,7 +25,7 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
   ) {
     const definition: LogChartDefinition = dialogData;
 
-    this.chart = new LogChart(this.csvFilesService, null, definition);
+    this.chart = new LogChart(this.csvFilesService, undefined, definition);
 
     this.definition = {...definition};
     this.definition.displaySettings = {...definition.displaySettings};
@@ -52,18 +52,21 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0);
   }
 
-  isValidVariable(variable: string): boolean {
+  isInvalidVariable(variable: string): boolean {
     if (variable == '') {
-      return true;
+      return false; // Empty variable means use default instead
     }
-    return this.latestSnapshot.formatterVariables.includes(variable);
+    if (this.latestSnapshot == undefined) {
+      return false; // Cannot validate yet, so assume no mistakes were made
+    }
+    return !this.latestSnapshot.formatterVariables.includes(variable);
   }
 
-  isValidEntryLimit(entryLimit: number | null): boolean {
+  isInvalidEntryLimit(entryLimit: number | null): boolean {
     if (entryLimit == null) {
-      return true;
+      return false;
     }
-    return entryLimit > 1;
+    return entryLimit <= 1;
   }
 
 }
