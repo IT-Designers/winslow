@@ -14,7 +14,7 @@ interface FileBrowseData {
 })
 export class FileBrowseDialog implements OnInit, AfterViewInit {
 
-  @ViewChild('files') files: FilesComponent;
+  @ViewChild('files') files!: FilesComponent;
 
   constructor(
     public dialogRef: MatDialogRef<FileBrowseDialog>,
