@@ -3,14 +3,15 @@ import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {loadStageDefinition} from './project-api.service';
 import {
-  GpuRequirementsInfo,
+  GpuRequirementsInfo, HighlightInfo,
   ImageInfo,
   ParseError,
-  PipelineDefinitionInfo,
+  PipelineDefinitionInfo, Raw,
   RequirementsInfo,
   StageWorkerDefinitionInfo,
   UserInputInfo
 } from './winslow-api';
+import {lastValueFrom} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -20,35 +21,38 @@ export class PipelineApiService {
   constructor(private client: HttpClient) {
   }
 
-  private static getUrl(more?: string) {
+  private static getUrl(more?: string): string {
     return `${environment.apiLocation}pipelines${more != null ? `/${more}` : ''}`;
   }
 
-  getRawPipelineDefinition(id: string) {
-    return this.client.get<string>(PipelineApiService.getUrl(`${id}/raw`)).toPromise();
+  getRawPipelineDefinition(id: string): Promise<string> {
+    return lastValueFrom(
+      this.client.get<string>(PipelineApiService.getUrl(`${id}/raw`))
+    );
   }
 
-  setRawPipelineDefinition(id: string, raw: string) {
-    return this.client
-      .put<object | ParseError>(PipelineApiService.getUrl(`${id}/raw`), raw)
-      .toPromise()
-      .then(r => {
-        if (r != null && Object.keys(r).length !== 0) {
-          return Promise.reject(new ParseError(r as ParseError));
-        } else {
-          return Promise.resolve(null);
-        }
-      });
+  setRawPipelineDefinition(id: string, raw: string): Promise<void> {
+    return lastValueFrom(
+      this.client.put<object | ParseError>(PipelineApiService.getUrl(`${id}/raw`), raw)
+    ).then(r => {
+      if (r != null && Object.keys(r).length !== 0) {
+        return Promise.reject(new ParseError(r as ParseError));
+      } else {
+        return Promise.resolve();
+      }
+    });
   }
 
   checkPipelineDefinition(raw: string): Promise<string | ParseError> {
-    return this.client.post<string | ParseError>(PipelineApiService.getUrl(`check`), raw).toPromise();
+    return lastValueFrom(
+      this.client.post<string | ParseError>(PipelineApiService.getUrl(`check`), raw)
+    );
   }
 
-  updatePipelineDefinition(pipeline: string, raw: string) {
-    return this.client
-      .put<string | ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw)
-      .toPromise()
+  updatePipelineDefinition(pipeline: string, raw: string): Promise<null | string | ParseError> {
+    return lastValueFrom(
+      this.client.put<string | ParseError>(PipelineApiService.getUrl(`${pipeline}/raw`), raw)
+    )
       .then(response => {
         if (response == null) {
           return null;
@@ -62,45 +66,40 @@ export class PipelineApiService {
       });
   }
 
-  getPipelineDefinition(pipelineId: string) {
-    return this.client
-      .get<PipelineDefinitionInfo>(PipelineApiService.getUrl(`${pipelineId}`))
-      .toPromise()
-      .then(info => loadPipelineDefinition(info));
+  getPipelineDefinition(pipelineId: string): Promise<PipelineDefinitionInfo> {
+    return lastValueFrom(
+      this.client.get<Raw<PipelineDefinitionInfo>>(PipelineApiService.getUrl(`${pipelineId}`))
+    ).then(info => loadPipelineDefinition(info));
   }
 
-  deletePipeline(pipelineId: string) : Promise<void> {
-    return this.client
-      .delete<void>(PipelineApiService.getUrl(`${pipelineId}`))
-      .toPromise();
+  deletePipeline(pipelineId: string): Promise<void> {
+    return lastValueFrom(
+      this.client.delete<void>(PipelineApiService.getUrl(`${pipelineId}`))
+    );
   }
 
   setPipelineDefinition(pipeline: PipelineDefinitionInfo) {
-    return this.client
-      .put<PipelineDefinitionInfo>(PipelineApiService.getUrl(), pipeline)
-      .toPromise();
+    return lastValueFrom(
+      this.client.put<PipelineDefinitionInfo>(PipelineApiService.getUrl(), pipeline)
+    );
   }
 
   getPipelineDefinitions(): Promise<PipelineDefinitionInfo[]> {
-    return this
-      .client
-      .get<PipelineDefinitionInfo[]>(PipelineApiService.getUrl())
-      .toPromise()
-      .then(info => info.map(i => loadPipelineDefinition(i)));
+    return lastValueFrom(
+      this.client.get<Raw<PipelineDefinitionInfo>[]>(PipelineApiService.getUrl())
+    ).then(info => info.map(i => loadPipelineDefinition(i)));
   }
 
-  getSharedPipelineDefinitions() {
+  getSharedPipelineDefinitions(): Promise<PipelineDefinitionInfo[]> {
     return this
       .getPipelineDefinitions()
       .then(pipelines => pipelines.filter(pipeline => pipeline.belongsToProject == null));
   }
 
-  createPipelineDefinition(name: string) {
-    return this
-      .client
-      .post<PipelineDefinitionInfo>(PipelineApiService.getUrl(`create`), name)
-      .toPromise()
-      .then(info => loadPipelineDefinition(info));
+  createPipelineDefinition(name: string): Promise<PipelineDefinitionInfo> {
+    return lastValueFrom(
+      this.client.post<PipelineDefinitionInfo>(PipelineApiService.getUrl(`create`), name)
+    ).then(info => loadPipelineDefinition(info));
   }
 }
 
@@ -119,7 +118,9 @@ export function createStageWorkerDefinitionInfo(id: string, name: string): Stage
     description: '',
     discardable: false,
     environment: {},
-    highlight: null,
+    highlight: new HighlightInfo({
+      resources: []
+    }),
     ignoreFailuresWithinExecutionGroup: false,
     image: new ImageInfo({
       name: 'hello-world',
@@ -144,19 +145,4 @@ export function createStageWorkerDefinitionInfo(id: string, name: string): Stage
       requiredEnvVariables: []
     })
   });
-}
-
-
-export class LogParser {
-  destination: string;
-  formatter: string;
-  matcher: string;
-  type: string;
-
-  constructor(info) {
-    this.destination = info.destination;
-    this.formatter = info.formatter;
-    this.matcher = info.matcher;
-    this.type = info.type;
-  }
 }
