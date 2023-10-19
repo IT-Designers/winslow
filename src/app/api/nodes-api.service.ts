@@ -1,11 +1,15 @@
 import {Injectable} from '@angular/core';
 import {RxStompService} from '../rx-stomp.service';
 import {ChangeEvent} from './api.service';
-import {Subscription} from 'rxjs';
+import {lastValueFrom, Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {AllocInfo, BuildInfo, CpuInfo, DiskInfo, GpuInfo, MemInfo, NetInfo, NodeInfo, NodeUtilization} from './winslow-api';
+import {
+  NodeInfo,
+  NodeResourceUsageConfiguration,
+  NodeUtilization
+} from './winslow-api';
 
 @Injectable({
   providedIn: 'root'
@@ -35,9 +39,9 @@ export class NodesApiService {
    * Retrieves the `NodeInfo` for all active nodes
    */
   public getNodes(): Promise<NodeInfoExt> {
-    return this.client
-      .get<NodeInfoExt>(NodesApiService.getUrl())
-      .toPromise();
+    return lastValueFrom(
+      this.client.get<NodeInfoExt>(NodesApiService.getUrl())
+    );
   }
 
   /**
@@ -54,23 +58,40 @@ export class NodesApiService {
       .map(p => p[0] + '=' + p[1])
       .join('&');
 
-    return this.client
-      .get<NodeUtilization[]>(NodesApiService.getUrl(
+    return lastValueFrom(
+      this.client.get<NodeUtilization[]>(NodesApiService.getUrl(
         nodeName + '/utilization' + (params.length > 0 ? '?' + params : '')
       ))
-      .toPromise();
+    );
   }
 
-  public getNodeResourceUsageConfiguration(nodeName: string) {
-    return this.client
-      .get<NodeResourceInfo>(NodesApiService.getUrl(nodeName + '/resource-usage-configuration'))
-      .toPromise();
+  /**
+   * Retrieves the `NodeResourceUsageConfiguration` for the given node name.
+   *
+   * @param nodeName The name of the node to return the configuration for
+   */
+  public getNodeResourceUsageConfiguration(nodeName: string): Promise<NodeResourceUsageConfiguration> {
+    return lastValueFrom(
+      this.client.get<NodeResourceUsageConfiguration>(
+        NodesApiService.getUrl(nodeName + '/resource-usage-configuration')
+      )
+    );
   }
 
-  public setNodeResourceUsageConfiguration(resourceConfig: NodeResourceInfo, nodeName: string) {
-    return this.client
-      .put<NodeResourceInfo>(NodesApiService.getUrl(nodeName + '/resource-usage-configuration'), resourceConfig)
-      .toPromise();
+  /**
+   * Tries to update teh `NodeResourceUsageConfiguration` for the given node
+   *
+   * @param nodeName The name of the node to update the configuration for
+   * @param conf The new configuration to set
+   */
+  public setNodeResourceUsageConfiguration(nodeName: string, conf: NodeResourceUsageConfiguration): Promise<void> {
+    return lastValueFrom(
+      this.client
+        .put<void>(
+          NodesApiService.getUrl(nodeName + '/resource-usage-configuration'),
+          conf
+        )
+    );
   }
 }
 
@@ -82,25 +103,7 @@ export class NodesApiService {
  */
 export class NodeInfoExt extends NodeInfo {
   // local only
-  update: (node: NodeInfoExt) => void;
-}
-
-export interface ResourceLimit {
-  cpu: number;
-  gpu: number;
-  mem: number;
-}
-
-export interface NodeGroupInfo {
-  name: string;
-  resourceLimitation: ResourceLimit;
-  role: string;
-}
-
-export interface NodeResourceInfo {
-  freeForAll: boolean;
-  globalLimit: ResourceLimit;
-  groupLimits: NodeGroupInfo[];
+  update?: (node: NodeInfoExt) => void;
 }
 
 
