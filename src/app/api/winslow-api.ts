@@ -9,7 +9,7 @@ import {FileInfoAttribute, humanReadableFileSize} from "./files-api.service";
  * @typeparam Class - The class type from which to extract properties.
  */
 export type Raw<Class> = {
-  [Key in keyof Class as Class[Key] extends (...args: any[]) => unknown ? never : Key]: Class[Key]
+  [Key in keyof Class as Class[Key] extends Function ? never : Key]: Class[Key]
 }
 
 export class Link {
