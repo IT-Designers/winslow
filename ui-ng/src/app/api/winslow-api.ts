@@ -312,6 +312,7 @@ export class ExecutionGroupInfo {
   active: boolean;
   enqueued: boolean;
   comment?: string;
+  enqueueIndex?: number;
 
   constructor(data: Raw<ExecutionGroupInfo>) {
     this.id = data.id;
@@ -323,7 +324,89 @@ export class ExecutionGroupInfo {
     this.active = data.active;
     this.enqueued = data.enqueued;
     this.comment = data.comment;
+    this.enqueueIndex = data.enqueueIndex;
   }
+
+  rangedValuesKeys (): string[] {
+    return Object.keys(this.rangedValues);
+  };
+
+  hasStagesState (state: State): boolean {
+    for (const stage of this.stages) {
+      if (stage.state === state) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  getMostRecentStage (): StageInfo | undefined {
+    for (const stage of [...this.stages].reverse()) {
+      if (stage.finishTime != null) {
+        return stage;
+      } else if (stage.startTime != null) {
+        return stage;
+      }
+    }
+    return undefined;
+  };
+
+  getMostRecentStartOrFinishTime (): number | undefined {
+    const stage = this.getMostRecentStage();
+    if (stage == undefined) {
+      return undefined;
+    } else if (stage.startTime != undefined) {
+      return stage.startTime;
+    } else if (stage?.finishTime != undefined) {
+      return stage.finishTime;
+    } else {
+      return undefined;
+    }
+  };
+
+  getMostRelevantState(projectState?: State): State {
+    const states: Array<State> = ['RUNNING', 'PREPARING', 'FAILED'];
+    for (const state of states) {
+      if (this.hasStagesState(state)) {
+        return state;
+      }
+    }
+    if (this.enqueued) {
+      return 'ENQUEUED';
+    } else if (this.active) {
+      const alternative = projectState === 'PAUSED' ? 'PAUSED' : 'PREPARING';
+      return this.getMostRecentStage()?.state ?? alternative;
+    } else {
+      return this.getMostRecentStage()?.state ?? 'SKIPPED';
+    }
+  };
+
+  isMostRecentStateRunning (): boolean {
+    return this.getMostRelevantState() === 'RUNNING';
+  };
+
+  hasRunningStages (): boolean {
+    for (const stage of this.stages) {
+      if (stage.state === 'RUNNING') {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  getGroupSize (): number {
+    const rvKeys = Object.keys(this.rangedValues);
+
+    if (rvKeys.length > 0) {
+      let size = 0;
+      for (const entry of Object.entries(this.rangedValues)) {
+        size += (entry[1] as RangedValue).stepCount;
+      }
+      return size;
+    } else {
+      return 1;
+    }
+  };
 }
 
 export class GpuRequirementsInfo {

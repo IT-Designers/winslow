@@ -122,10 +122,10 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   }
 
   private buildGroup(tag: string, projectsForTag: ProjectInfo[]) {
-    const group: ProjectGroup = new ProjectGroup();
-    group.name = tag;
-    group.projects = projectsForTag;
-    return group;
+    return new ProjectGroup({
+      name: tag,
+      projects: projectsForTag,
+    });
   }
 
   updateLocalStorage(key: string, value: boolean) {
