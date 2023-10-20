@@ -16,7 +16,7 @@ export class ProjectsViewComponent implements OnInit {
   @Input() projects: ProjectInfo[];
   @Input() projectsFiltered: ProjectInfo[];
   @Input() projectsGroups: ProjectGroup[];
-  @Input() selectedProject: ProjectInfo;
+  @Input() selectedProject: ProjectInfo | null = null;
   @Input() stateInfo: Map<string, StateInfo>;
   @Input() filter: TagFilterComponent;
   @Input() groupsOnTop: boolean;
