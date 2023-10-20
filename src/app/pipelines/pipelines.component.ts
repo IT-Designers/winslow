@@ -21,7 +21,7 @@ export class PipelinesComponent implements OnInit {
 
   longLoading = new LongLoadingDetector();
 
-  selectedPipeline?: PipelineDefinitionInfo;
+  selectedPipeline: PipelineDefinitionInfo | undefined;
 
 
   constructor(
