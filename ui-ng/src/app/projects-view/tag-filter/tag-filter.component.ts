@@ -22,7 +22,7 @@ export class TagFilterComponent implements OnInit {
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
 
   @Input()
-  set preSelectedTag(tag: string | undefined) {
+  set preSelectedTag(tag: string | null) {
     if (this.lastPreselectedTag) {
       this.removeIncludedTag(this.lastPreselectedTag);
     }

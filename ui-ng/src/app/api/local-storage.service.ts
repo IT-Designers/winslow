@@ -10,6 +10,24 @@ export class LocalStorageService {
   }
 
   private readonly KEY_CHART_SETTINGS = 'winslow-chart-settings';
+  private readonly KEY_SELECTED_CONTEXT = 'winslow-selected-context';
+  private readonly KEY_GROUPS_ON_TOP = 'winslow-groups-on-top';
+
+  private get<T>(key: string): T | null {
+    const item = localStorage.getItem(key);
+    if (item == null) {
+      return null;
+    }
+    return JSON.parse(item);
+  }
+
+  private set<T>(key: string, data: T | null): void {
+    if (data == null) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+  }
 
   getChartSettings(): GlobalChartSettings {
     const item = localStorage.getItem(this.KEY_CHART_SETTINGS);
@@ -31,16 +49,20 @@ export class LocalStorageService {
     localStorage.setItem(this.KEY_CHART_SETTINGS, JSON.stringify(item));
   }
 
-  getSettings(KEY: string) {
-    const item = localStorage.getItem(KEY);
-    if (item == null) {
-      return null;
-    }
-    return JSON.parse(item);
+  getSelectedContext(): string | null {
+    return this.get<string>(this.KEY_SELECTED_CONTEXT);
   }
 
-  setSettings(KEY: string, data: any) {
-    localStorage.setItem(KEY, JSON.stringify(data));
+  setSelectedContext(data: string | null): void {
+    return this.set<string>(this.KEY_SELECTED_CONTEXT, data);
+  }
+
+  getGroupsOnTop(): boolean | null {
+    return this.get<boolean>(this.KEY_SELECTED_CONTEXT);
+  }
+
+  setGroupsOnTop(data: boolean | null): void {
+    return this.set<boolean>(this.KEY_SELECTED_CONTEXT, data);
   }
 }
 

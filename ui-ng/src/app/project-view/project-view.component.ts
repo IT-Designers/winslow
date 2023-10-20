@@ -81,7 +81,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   @Input()
-  public set state(state: StateInfo) {
+  public set state(state: StateInfo | undefined) {
     if (!state) {
       return;
     }

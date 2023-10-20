@@ -3,8 +3,8 @@
     <div class="drawer-content">
       <!-- Context filter -->
       <app-projects-context-filter
-        [availableTags]="projectApi.cachedTags"
-        (outputContext)="changeContext($event)"
+          [availableTags]="projectApi.cachedTags"
+          (outputContext)="changeContext($event)"
       ></app-projects-context-filter>
 
       <mat-accordion class="drawer-element">
@@ -16,26 +16,28 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
           <app-tag-filter
-            #filter
-            [availableTags]="projectApi.cachedTags"
-            [projects]="projects"
-            [preSelectedTag]="context"
-            (filtered)="projectsFiltered = $event"
-            (projectsGroups)="this.projectsGroups = $event"
-            (groupsOnTop)="this.groupsOnTop = $event"
+              #filter
+              [availableTags]="projectApi.cachedTags"
+              [projects]="projects"
+              [preSelectedTag]="context"
+              (filtered)="projectsFiltered = $event"
+              (projectsGroups)="this.projectsGroups = $event"
+              (groupsOnTop)="this.groupsOnTop = $event"
           ></app-tag-filter>
         </mat-expansion-panel>
       </mat-accordion>
 
       <!-- Project view -->
-      <app-projects-view class="drawer-element"
-                         [projects]="projects"
-                         [projectsFiltered]="projectsFiltered"
-                         [projectsGroups]="projectsGroups"
-                         [selectedProject]="selectedProject"
-                         [stateInfo]="stateInfo"
-                         [groupsOnTop]="groupsOnTop"
-                         [filter]="filter">
+      <app-projects-view
+          class="drawer-element"
+          [projects]="projects"
+          [projectsFiltered]="projectsFiltered"
+          [projectsGroups]="projectsGroups"
+          [selectedProject]="selectedProject"
+          [stateInfo]="stateInfo"
+          [groupsOnTop]="groupsOnTop ?? false"
+          [filter]="filter"
+      >
       </app-projects-view>
     </div>
 
@@ -46,7 +48,7 @@
       <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
         <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
       </button>
-      <button mat-mini-fab color="warn" (click)="openGroupActions(context)">
+      <button mat-mini-fab color="warn" (click)="openGroupActions()">
         <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
       </button>
 
@@ -63,9 +65,10 @@
 
     <ng-container *ngIf="selectedProject != null">
       <app-project-view
-        [project]="selectedProject"
-        [state]="stateInfo?.get(selectedProject.id)"
-        (deleted)="onDeleted($event)">
+          [project]="selectedProject"
+          [state]="stateInfo?.get(selectedProject.id)"
+          (deleted)="onDeleted($event)"
+      >
       </app-project-view>
     </ng-container>
 
