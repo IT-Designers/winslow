@@ -10,14 +10,13 @@ import {ProjectInfo} from '../../api/winslow-api';
 })
 export class TagFilterComponent implements OnInit {
 
-  availableTagsValue: string[];
-  projectsValue: ProjectInfo[];
-  filteredProjects: ProjectInfo[];
-  projectsGroupsValue: ProjectGroup[];
-  lastPreselectedTag: string;
-  SELECTED_CONTEXT = 'SELECTED_CONTEXT';
+  availableTagsValue: string[] = [];
+  projectsValue!: ProjectInfo[];
+  filteredProjects!: ProjectInfo[];
+  projectsGroupsValue?: ProjectGroup[];
+  lastPreselectedTag?: string;
 
-  @Output('filtered') filtered = new EventEmitter<ProjectInfo[]>();
+  @Output('filtered') filtered = new EventEmitter<ProjectInfo[] | null>();
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
 
@@ -33,23 +32,32 @@ export class TagFilterComponent implements OnInit {
     this.updateFilter();
   }
 
+  @Input('projects')
+  set projects(projects: ProjectInfo[]) {
+    this.projectsValue = projects;
+    this.updateFilter();
+  }
+
+  @Input('availableTags')
+  set availableTags(tags: string[]) {
+    this.availableTagsValue = tags;
+    this.updateFilter();
+  }
+
   includeTags: string[] = [];
   includeEmpty = false;
   excludeTags: string[] = [];
   excludeEmpty = false;
-  groupsOnTopIsChecked: boolean;
-  GROUPS_ON_TOP_SETTING = 'GROUPS_ON_TOP';
+  groupsOnTopIsChecked!: boolean;
 
 
   constructor(private localStorageService: LocalStorageService) {
   }
 
   ngOnInit() {
-    this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) ?
-      this.groupsOnTopIsChecked = this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) :
-      this.groupsOnTopIsChecked = false;
-    if (this.localStorageService.getSettings(this.SELECTED_CONTEXT) !== '' && this.localStorageService.getSettings(this.SELECTED_CONTEXT) != null) {
-      this.preSelectedTag = 'context::' + this.localStorageService.getSettings(this.SELECTED_CONTEXT);
+    this.groupsOnTopIsChecked = this.localStorageService.getGroupsOnTop() ?? false;
+    if (this.localStorageService.getSelectedContext() !== '' && this.localStorageService.getSelectedContext() != null) {
+      this.preSelectedTag = 'context::' + this.localStorageService.getSelectedContext();
       if (this.preSelectedTag) {
         this.addIncludedTag(this.preSelectedTag);
       }
@@ -98,18 +106,6 @@ export class TagFilterComponent implements OnInit {
       tags.push(tag);
       this.excludeTags = tags; // notify the bindings
     }
-    this.updateFilter();
-  }
-
-  @Input('projects')
-  set projects(projects: ProjectInfo[]) {
-    this.projectsValue = projects;
-    this.updateFilter();
-  }
-
-  @Input('availableTags')
-  set availableTags(tags: string[]) {
-    this.availableTagsValue = tags;
     this.updateFilter();
   }
 
