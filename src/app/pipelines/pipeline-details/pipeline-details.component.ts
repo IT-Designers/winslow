@@ -14,7 +14,7 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
 
   @Input() selectedPipeline!: PipelineDefinitionInfo;
 
-  @Output() pipelineDeleteEmitter = new EventEmitter();
+  @Output() pipelineDeleteEmitter = new EventEmitter<PipelineDefinitionInfo>();
 
   mockGroups = [
     {
