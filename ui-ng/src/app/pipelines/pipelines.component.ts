@@ -21,7 +21,7 @@ export class PipelinesComponent implements OnInit {
 
   longLoading = new LongLoadingDetector();
 
-  selectedPipeline: PipelineDefinitionInfo | undefined;
+  selectedPipeline: PipelineDefinitionInfo | null = null;
 
 
   constructor(
@@ -97,7 +97,7 @@ export class PipelinesComponent implements OnInit {
             let delIndex = this.pipelines.findIndex(tempPipeline => tempPipeline.id === pipeline.id);
             this.pipelines.splice(delIndex, 1);
             this.pipelines = this.pipelines.concat([]);
-            this.selectedPipeline = undefined;
+            this.selectedPipeline = null;
           }
         )
     );

@@ -18,5 +18,5 @@
     Set on other Projects
   </button>
   <button mat-stroked-button color="primary" (click)="save(rawV)">Save</button>
-  <button mat-stroked-button color="primary" (click)="check.emit(rawV); this.layout()">Check</button>
+  <button mat-stroked-button color="primary" (click)="check.emit(rawV ?? ''); this.layout()">Check</button>
 </div>

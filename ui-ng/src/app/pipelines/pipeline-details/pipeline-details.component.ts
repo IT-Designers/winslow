@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {Link, PipelineDefinitionInfo} from "../../api/winslow-api";
+import {Link, ParseError, PipelineDefinitionInfo} from "../../api/winslow-api";
 import {DialogService} from "../../dialog.service";
 import {PipelineApiService} from "../../api/pipeline-api.service";
 import {LongLoadingDetector} from "../../long-loading-detector";
@@ -31,12 +31,14 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
     }
   ];
 
-  rawPipelineDefinition?: string;
-  rawPipelineDefinitionError?: string;
-  rawPipelineDefinitionSuccess?: string;
+  rawPipelineDefinition: string | null = null;
+  rawPipelineDefinitionError: string | null = null;
+  rawPipelineDefinitionSuccess: string | null = null;
 
   longLoading = new LongLoadingDetector();
-  constructor(private dialog: DialogService, private pipelinesApi: PipelineApiService) { }
+
+  constructor(private dialog: DialogService, private pipelinesApi: PipelineApiService) {
+  }
 
   ngOnInit(): void {
     this.loadRawPipelineDefinition();
@@ -47,28 +49,24 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
   }
 
   loadRawPipelineDefinition() {
-    if (this.selectedPipeline != null) {
-      this.dialog.openLoadingIndicator(
-        this.pipelinesApi.getRawPipelineDefinition(this.selectedPipeline.id)
-          .then(result => this.rawPipelineDefinition = result),
-        `Loading Pipeline Definition`,
-        false
-      );
-    }
-
+    this.dialog.openLoadingIndicator(
+      this.pipelinesApi.getRawPipelineDefinition(this.selectedPipeline.id)
+        .then(result => this.rawPipelineDefinition = result),
+      `Loading Pipeline Definition`,
+      false
+    );
   }
 
   checkPipelineDefinition(raw: string) {
     this.dialog.openLoadingIndicator(
       this.pipelinesApi.checkPipelineDefinition(raw)
         .then(result => {
-          if (result != null) {
-            this.rawPipelineDefinitionSuccess = undefined;
-            // @ts-ignore
+          if (result instanceof ParseError) {
+            this.rawPipelineDefinitionSuccess = null;
             this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in project-view
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
-            this.rawPipelineDefinitionError = undefined;
+            this.rawPipelineDefinitionError = null;
           }
         }),
       `Checking Pipeline Definition`,
@@ -112,7 +110,7 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
       'Updating Pipeline with new group')
   }
 
-  onGroupRemove(event: Link): void  {
+  onGroupRemove(event: Link): void {
     const delIndex = this.selectedPipeline.groups.findIndex((group) => group.name === event.name)
     this.selectedPipeline.groups.splice(delIndex, 1);
     this.dialog.openLoadingIndicator(this.pipelinesApi.setPipelineDefinition(this.selectedPipeline),
