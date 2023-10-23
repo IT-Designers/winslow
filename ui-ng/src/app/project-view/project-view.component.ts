@@ -62,9 +62,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     this.projectValue = projectInfo;
 
     if (changed) {
-      this.rawPipelineDefinition = null;
-      this.rawPipelineDefinitionError = null;
-      this.rawPipelineDefinitionSuccess = null;
+      this.rawPipelineDefinition = undefined;
+      this.rawPipelineDefinitionError = undefined;
+      this.rawPipelineDefinitionSuccess = undefined;
 
       this.filesAdditionalRoot = `${projectInfo.name};workspaces/${projectInfo.id}`;
 
@@ -98,50 +98,50 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   overviewTabIndex = ProjectViewTab.Overview;
   selectedTabIndex = ProjectViewTab.Overview;
 
-  @ViewChild('tabGroup') tabGroup: MatTabGroup;
-  @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
+  @ViewChild('tabGroup') tabGroup!: MatTabGroup;
+  @ViewChild('executionSelection') executionSelection!: StageExecutionSelectionComponent;
 
-  projectValue: ProjectInfo;
+  projectValue!: ProjectInfo;
 
   @Output('state') stateEmitter = new EventEmitter<State>();
   @Output('deleted') projectDeletedEmitter = new EventEmitter<string>();
 
-  filesAdditionalRoot: string = null;
-  filesNavigationTarget: string = null;
+  filesAdditionalRoot?: string;
+  filesNavigationTarget?: string;
 
-  stageIdToDisplayLogsFor: string = null;
-  stateValue?: State = null;
+  stageIdToDisplayLogsFor?: string;
+  stateValue?: State;
 
   history: ExecutionGroupInfo[] = [];
-  subscribedProjectId: string = null;
-  historySubscription: Subscription = null;
+  subscribedProjectId?: string;
+  historySubscription?: Subscription;
   historyEnqueued = 0;
-  historyEnqueuedSubscription: Subscription = null;
+  historyEnqueuedSubscription?: Subscription;
   historyExecuting = 0;
-  historyExecutingSubscription: Subscription = null;
+  historyExecutingSubscription?: Subscription;
   historyCanLoadMoreEntries = true;
 
-  paused: boolean = null;
-  pauseReason?: string = null;
+  paused?: boolean;
+  pauseReason?: string;
   progress?: number;
 
   longLoading = new LongLoadingDetector();
 
-  environmentVariables: Map<string, EnvVariable> = null;
-  defaultEnvironmentVariables: Record<string, string> = null;
-  rangedEnvironmentVariables: Record<string, RangedValue> = null;
+  environmentVariables?: Map<string, EnvVariable>;
+  defaultEnvironmentVariables?: Record<string, string>;
+  rangedEnvironmentVariables?: Record<string, RangedValue>;
 
-  rawPipelineDefinition: string = null;
-  rawPipelineDefinitionError: string = null;
-  rawPipelineDefinitionSuccess: string = null;
+  rawPipelineDefinition?: string;
+  rawPipelineDefinitionError?: string;
+  rawPipelineDefinitionSuccess?: string;
 
-  paramsSubscription: Subscription = null;
+  paramsSubscription?: Subscription;
 
   historyListHeight: any;
-  selectedHistoryEntry: ExecutionGroupInfo = null;
-  selectedHistoryEntryNumber: number;
+  selectedHistoryEntry?: ExecutionGroupInfo;
+  selectedHistoryEntryNumber?: number;
   selectedHistoryEntryIndex = 0;
-  selectedHistoryEntryStage: StageInfo;
+  selectedHistoryEntryStage?: StageInfo;
 
   // load more entries, when user is scrolling to the bottom
   // on project history list
@@ -153,7 +153,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   @HostListener('window:resize', ['$event'])
-  getScreenSize(event?) {
+  getScreenSize(_event?: Event) {
     this.setHistoryListHeight(window.innerHeight);
   }
 
@@ -218,10 +218,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
       // reset selectedHistory if another project will be selected
       if (change?.currentValue?.id != change?.previousValue?.id) {
-        this.selectedHistoryEntry = null;
-        this.selectedHistoryEntryNumber = null;
+        this.selectedHistoryEntry = undefined;
+        this.selectedHistoryEntryNumber = undefined;
         this.selectedHistoryEntryIndex = 0;
-        this.selectedHistoryEntryStage = null;
+        this.selectedHistoryEntryStage = undefined;
       }
     }
     this.sortGroups();
@@ -248,7 +248,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private unsubscribe() {
-    this.subscribedProjectId = null;
+    this.subscribedProjectId = undefined;
     this.unsubscribeHistory();
   }
 
@@ -258,19 +258,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private unsubscribeHistory() {
-    if (this.historySubscription != null) {
+    if (this.historySubscription != undefined) {
       this.historySubscription.unsubscribe();
-      this.historySubscription = null;
+      this.historySubscription = undefined;
     }
 
-    if (this.historyExecutingSubscription != null) {
+    if (this.historyExecutingSubscription != undefined) {
       this.historyExecutingSubscription.unsubscribe();
-      this.historyExecutingSubscription = null;
+      this.historyExecutingSubscription = undefined;
     }
 
-    if (this.historyEnqueuedSubscription != null) {
+    if (this.historyEnqueuedSubscription != undefined) {
       this.historyEnqueuedSubscription.unsubscribe();
-      this.historyEnqueuedSubscription = null;
+      this.historyEnqueuedSubscription = undefined;
     }
   }
 
@@ -310,7 +310,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
         .then(result => {
           if (!this.paused) {
             this.stateEmitter.emit(this.stateValue = 'RUNNING');
-            this.pauseReason = null;
+            this.pauseReason = undefined;
           }
         })
         .catch(err => {
@@ -333,12 +333,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     window.open(`${environment.apiLocation}tensorboard/${project.id}/${entry.id}/start`, '_blank');
   }
 
-  openLogs(entry?: StageInfo, watchLatestLogs = false) {
+  openLogs(entry?: StageInfo,) {
     this.stageIdToDisplayLogsFor = entry?.id;
     this.tabGroup.selectedIndex = ProjectViewTab.Logs;
   }
 
-  openAnalysis(entry?: StageInfo, watchLatestLogs = false) {
+  openAnalysis(entry?: StageInfo) {
     this.stageIdToDisplayLogsFor = entry?.id;
     this.tabGroup.selectedIndex = ProjectViewTab.Analysis;
   }
@@ -353,7 +353,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   killAllStages() {
     this.dialog.openAreYouSure(
       `Kill all running stages of project ${this.project.name}`,
-      () => this.api.killStage(this.project.id, null).then()
+      () => this.api.killStage(this.project.id).then()
     );
   }
 
@@ -368,7 +368,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       });
       this.executionSelection.selectedStage = group.stageDefinition;
       this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
-      this.executionSelection.comment = group.comment;
+      this.executionSelection.comment = group.comment ?? null;
       this.environmentVariables = new Map();
       this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.environment;
       this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
@@ -396,6 +396,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
           return -1;
         }
       }
+      return -1;
     });
   }
 
@@ -410,12 +411,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       this.pipelinesApi.checkPipelineDefinition(raw)
         .then(result => {
           if (result != null) {
-            this.rawPipelineDefinitionSuccess = null;
+            this.rawPipelineDefinitionSuccess = undefined;
             // @ts-ignore
             this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in pipeline-details
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
-            this.rawPipelineDefinitionError = null;
+            this.rawPipelineDefinitionError = undefined;
           }
         }),
       `Checking Pipeline Definition`,
@@ -546,9 +547,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   private indexFromTabName(name: string): number | null {
     const lower = name.toLowerCase();
-    for (const key of Object.keys(ProjectViewTab)) {
-      if (typeof key === "string" && key.toLowerCase() === lower) {
-        return ProjectViewTab[key];
+    for (const [key, value] of Object.entries(ProjectViewTab)) {
+      if (key.toLowerCase() == lower && typeof value == "number") {
+        return value;
       }
     }
     return null;

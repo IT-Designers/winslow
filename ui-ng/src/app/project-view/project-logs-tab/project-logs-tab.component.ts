@@ -101,7 +101,7 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set selectedStage(id: string) {
+  set selectedStage(id: string | undefined) {
     this.unsubscribe();
     this.selectedStageId = id;
     if (this.selectedProject) {
