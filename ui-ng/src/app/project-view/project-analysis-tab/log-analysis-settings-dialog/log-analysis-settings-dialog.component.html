@@ -1,7 +1,7 @@
 <h1 mat-dialog-title>Settings</h1>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="input-field">
+  <mat-form-field appearance="outline" class="input-field">
     <mat-label>Limit entries</mat-label>
     <input matInput [(ngModel)]="settings.entryLimit">
   </mat-form-field>
@@ -10,7 +10,7 @@
 </mat-dialog-content>
 
 <mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="fill" class="input-field">
+  <mat-form-field appearance="outline" class="input-field">
     <mat-label>Refresh data</mat-label>
     <input matInput [(ngModel)]="settings.refreshTimerInSeconds">
     <span matSuffix>seconds</span>
@@ -20,6 +20,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions class="dialog-actions">
-  <button mat-button [mat-dialog-close]="">Close</button>
-  <button mat-button [mat-dialog-close]="" (click)="save()">Save</button>
+  <button mat-raised-button [mat-dialog-close]="">Close</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="" (click)="save()">Save</button>
 </mat-dialog-actions>

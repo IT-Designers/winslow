@@ -10,7 +10,7 @@
 
     <mat-icon class="color-icon" [ngStyle]="{'color': stageColor(0)}">trending_up</mat-icon>
 
-    <mat-form-field class="stage-selection">
+    <mat-form-field class="stage-selection" appearance="outline">
       <mat-select
         [(ngModel)]="stageToDisplay"
         (selectionChange)="refreshStages()"
@@ -26,7 +26,7 @@
       Compare with another Stage
     </button>
 
-    <button class="display-settings-button" mat-raised-button (click)="openGlobalSettingsDialog()">
+    <button class="display-settings-button" mat-icon-button (click)="openGlobalSettingsDialog()">
       <mat-icon matTooltip="Display Settings">settings</mat-icon>
     </button>
 
