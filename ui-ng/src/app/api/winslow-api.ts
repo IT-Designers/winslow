@@ -27,9 +27,9 @@ export class UserInfo {
   displayName?: string;
   email?: string;
   active: boolean;
-  password?: string[];
+  password?: string;
 
-  constructor(data: UserInfo) {
+  constructor(data: Raw<UserInfo>) {
     this.name = data.name;
     this.displayName = data.displayName;
     this.email = data.email;
