@@ -2,8 +2,6 @@ import {Component, Input, OnInit} from '@angular/core';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {FilesApiService} from '../../api/files-api.service';
-import {DialogService} from '../../dialog.service';
 import {GroupActionsComponent} from '../../group-actions/group-actions.component';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
@@ -25,9 +23,8 @@ export class ProjectsGroupComponent implements OnInit {
 
   constructor(public route: ActivatedRoute,
               public router: Router,
-              private files: FilesApiService,
               private createDialog: MatDialog,
-              private dialog: DialogService) {
+  ) {
     this.menuPosition.x = this.menuPosition.y = 0;
   }
 
@@ -38,17 +35,6 @@ export class ProjectsGroupComponent implements OnInit {
     this.router.navigate([project.id], {
       relativeTo: this.route.parent
     });
-  }
-
-  thumbnailUrl(project: ProjectInfo) {
-    return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
-  }
-
-  makeImageBigger(imageUrl: string, image: MouseEvent) {
-    if (image.target[`currentSrc`].includes('favicon.png')) {
-      return;
-    }
-    this.dialog.image(imageUrl);
   }
 
   rightClickAction(matMenuTrigger: MatMenuTrigger, event: MouseEvent) {

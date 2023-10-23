@@ -1,56 +1,56 @@
-<mat-expansion-panel class="group">
-    <mat-expansion-panel-header (contextmenu)="rightClickAction(matMenuTrigger, $event)">
-        <mat-panel-title>
-            <div *ngIf="projectGroup.projects.length <= 9">
-                <mat-icon matTooltip="Project group">filter_{{projectGroup.projects.length}}</mat-icon>
-            </div>
-            <div *ngIf="projectGroup.projects.length > 9">
-                <mat-icon matTooltip="Project group">filter_9_plus</mat-icon>
-            </div>
-            <app-tags-with-autocomplete
-                    [readonly]="true"
-                    [tags]="[projectGroup.name]"
-                    (tagActionPrimary)="filter.toggleIncludedTag($event)"
-                    (tagActionSecondary)="filter.addExcludedTag($event)">
-            </app-tags-with-autocomplete>
-        </mat-panel-title>
-        <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
-             [matMenuTriggerFor]="menu"
-             [style.left.px]="menuPosition.x"
-             [style.top.px]="menuPosition.y"
-        ></div>
-        <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)='openGroupAction(projectGroup.name)'>
-                <span>Group action</span>
-            </button>
-            <button mat-menu-item (click)="filter.addExcludedTag(projectGroup.name)">
-                <span>Exclude Group-Tag from list</span>
-            </button>
-          <button mat-menu-item (click)="filter.addIncludedTag(projectGroup.name)">
-            <span>Filter by Group-Tag</span>
-          </button>
-            <button mat-menu-item (click)="openAddToContext()">
-                <span>Add Group to Context</span>
-            </button>
-        </mat-menu>
+<mat-accordion>
+  <mat-expansion-panel (contextmenu)="rightClickAction(matMenuTrigger, $event)" class="group">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div *ngIf="projectGroup.projects.length <= 9">
+          <mat-icon matTooltip="Project group">filter_{{projectGroup.projects.length}}</mat-icon>
+        </div>
+        <div *ngIf="projectGroup.projects.length > 9">
+          <mat-icon matTooltip="Project group">filter_9_plus</mat-icon>
+        </div>
+        <app-tags-with-autocomplete
+          [readonly]="true"
+          [tags]="[projectGroup.name]"
+          (tagActionPrimary)="filter.toggleIncludedTag($event)"
+          (tagActionSecondary)="filter.addExcludedTag($event)">
+        </app-tags-with-autocomplete>
+      </mat-panel-title>
+      <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
+           [matMenuTriggerFor]="menu"
+           [style.left.px]="menuPosition.x"
+           [style.top.px]="menuPosition.y"
+      ></div>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)='openGroupAction(projectGroup.name)'>
+          <span>Group action</span>
+        </button>
+        <button mat-menu-item (click)="filter.addExcludedTag(projectGroup.name)">
+          <span>Exclude Group-Tag from list</span>
+        </button>
+        <button mat-menu-item (click)="filter.addIncludedTag(projectGroup.name)">
+          <span>Filter by Group-Tag</span>
+        </button>
+        <button mat-menu-item (click)="openAddToContext()">
+          <span>Add Group to Context</span>
+        </button>
+      </mat-menu>
     </mat-expansion-panel-header>
     <div>
-        <mat-list-item *ngFor="let project of projectGroup.projects, last as isInnerLast"
-                       class="project-selection-sidebar-item"
-                       (click)="selectProject(project)"
-                       [class.selected]="project.id == selectedProject?.id">
-            <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
-                 (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
-            <app-project-view-header
-                    [project]="project" [filter]="filter"
-                    [iconState]="stateInfo?.get(project.id)?.getState()"
-                    [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
-                    [progress]="stateInfo?.get(project.id)?.stageProgress"
-                    [running]="stateInfo?.get(project.id)?.isRunning()"
-                    [mostRecentStage]="stateInfo?.get(project.id)?.description"
-                    (tagActionPrimary)="filter.toggleIncludedTag($event)"
-                    (tagActionSecondary)="filter.addExcludedTag($event)"
-            ></app-project-view-header>
-        </mat-list-item>
+      <mat-list-item *ngFor="let project of projectGroup.projects, last as isInnerLast"
+                     class="project-selection-sidebar-item"
+                     (click)="selectProject(project)"
+                     [class.selected]="project.id == selectedProject?.id">
+        <app-project-view-header
+          [project]="project" [filter]="filter"
+          [iconState]="stateInfo?.get(project.id)?.state"
+          [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
+          [progress]="stateInfo?.get(project.id)?.stageProgress"
+          [running]="stateInfo?.get(project.id)?.state==='RUNNING'"
+          [mostRecentStage]="stateInfo?.get(project.id)?.description"
+          (tagActionPrimary)="filter.toggleIncludedTag($event)"
+          (tagActionSecondary)="filter.addExcludedTag($event)"
+        ></app-project-view-header>
+      </mat-list-item>
     </div>
-</mat-expansion-panel>
+  </mat-expansion-panel>
+</mat-accordion>
