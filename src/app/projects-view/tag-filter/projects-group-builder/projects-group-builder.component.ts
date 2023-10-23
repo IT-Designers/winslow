@@ -12,27 +12,20 @@ export class ProjectsGroupBuilderComponent implements OnInit {
 
   CONTEXT_PREFIX = 'context::';
   groupsActivated = true;
-  availableTagsValue: string[];
-  projectsValue: ProjectInfo[];
+  availableTagsValue!: string[];
+  projectsValue!: ProjectInfo[];
 
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
   groupsOnTopIsChecked = false;
 
-  GROUPS_ON_TOP_SETTING = 'GROUPS_ON_TOP';
-  GROUPS_ACTIVATED = 'GROUPS_ACTIVATED';
-
   constructor(private localStorageService: LocalStorageService) {
   }
 
   ngOnInit(): void {
-    this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) ?
-      this.groupsOnTopIsChecked = this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING) :
-      this.groupsOnTopIsChecked = false;
+    this.groupsOnTopIsChecked = this.localStorageService.getGroupsOnTop() ?? false;
     this.groupsOnTop.emit(this.groupsOnTopIsChecked);
-    this.localStorageService.getSettings(this.GROUPS_ACTIVATED) ?
-      this.groupsActivated = this.localStorageService.getSettings(this.GROUPS_ACTIVATED) :
-      this.groupsActivated = true;
+    this.groupsActivated = this.localStorageService.getGroupsActivated() ?? true;
     this.updateGroups();
   }
 
@@ -50,8 +43,8 @@ export class ProjectsGroupBuilderComponent implements OnInit {
   }
 
   updateGroups() {
-    if (this.projectsValue.length == null || this.groupsActivated === false || !this.availableTagsValue) {
-      this.projectsGroups.emit(null);
+    if (this.projectsValue.length == null || !this.groupsActivated || !this.availableTagsValue) {
+      this.projectsGroups.emit(undefined);
       return;
     }
     let projectGroups: ProjectGroup[] = [];
@@ -83,7 +76,7 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     }
     projectGroups = this.sortGroups(projectGroups);
     if (projectGroups.length <= 0) {
-      this.projectsGroups.emit(null);
+      this.projectsGroups.emit(undefined);
     } else {
       this.projectsGroups.emit(projectGroups);
     }
@@ -128,7 +121,11 @@ export class ProjectsGroupBuilderComponent implements OnInit {
     });
   }
 
-  updateLocalStorage(key: string, value: boolean) {
-    this.localStorageService.setSettings(key, value);
+  updateGroupsOnTop(): void {
+    this.localStorageService.setGroupsOnTop(this.groupsOnTopIsChecked);
+  }
+
+  updateGroupsActivated(): void {
+    this.localStorageService.setGroupsActivated(this.groupsActivated);
   }
 }
