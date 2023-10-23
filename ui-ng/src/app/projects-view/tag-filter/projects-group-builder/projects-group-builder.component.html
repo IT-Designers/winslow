@@ -2,14 +2,14 @@
   <div>
     <mat-slide-toggle
       [(ngModel)]="groupsActivated"
-      (change)="updateGroups(); updateLocalStorage(this.GROUPS_ACTIVATED, groupsActivated)"
+      (change)="updateGroups(); updateGroupsActivated()"
       [disabled]="projectsValue.length < 1 || availableTagsValue.length <= 0">
       Turn Groups On/Off
     </mat-slide-toggle>
   </div>
   <div>
     <mat-slide-toggle [(ngModel)]="groupsOnTopIsChecked"
-                      (change)="updateGroups(); updateLocalStorage(this.GROUPS_ON_TOP_SETTING, groupsOnTopIsChecked); groupsOnTop.emit(groupsOnTopIsChecked)"
+                      (change)="updateGroups(); updateGroupsOnTop(); groupsOnTop.emit(groupsOnTopIsChecked)"
                       [disabled]="!groupsActivated || (projectsValue.length < 1 || availableTagsValue.length <= 0)">
       Show groups on Top
     </mat-slide-toggle>

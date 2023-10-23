@@ -12,6 +12,7 @@ export class LocalStorageService {
   private readonly KEY_CHART_SETTINGS = 'winslow-chart-settings';
   private readonly KEY_SELECTED_CONTEXT = 'winslow-selected-context';
   private readonly KEY_GROUPS_ON_TOP = 'winslow-groups-on-top';
+  private readonly KEY_GROUPS_ACTIVATED = "winslow-groups-activated";
 
   private get<T>(key: string): T | null {
     const item = localStorage.getItem(key);
@@ -58,11 +59,19 @@ export class LocalStorageService {
   }
 
   getGroupsOnTop(): boolean | null {
-    return this.get<boolean>(this.KEY_SELECTED_CONTEXT);
+    return this.get<boolean>(this.KEY_GROUPS_ON_TOP);
   }
 
   setGroupsOnTop(data: boolean | null): void {
-    return this.set<boolean>(this.KEY_SELECTED_CONTEXT, data);
+    return this.set<boolean>(this.KEY_GROUPS_ON_TOP, data);
+  }
+
+  getGroupsActivated(): boolean | null {
+    return this.get<boolean>(this.KEY_GROUPS_ACTIVATED);
+  }
+
+  setGroupsActivated(data: boolean | null): void {
+    return this.set<boolean>(this.KEY_GROUPS_ACTIVATED, data);
   }
 }
 
