@@ -2,8 +2,6 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ProjectGroup} from '../api/project-api.service';
 import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {FilesApiService} from '../api/files-api.service';
-import {DialogService} from '../dialog.service';
 import {ProjectInfo, StateInfo} from '../api/winslow-api';
 
 @Component({
@@ -27,8 +25,7 @@ export class ProjectsViewComponent implements OnInit {
 
   constructor(public route: ActivatedRoute,
               public router: Router,
-              private files: FilesApiService,
-              private dialog: DialogService) {
+  ) {
   }
 
   ngOnInit(): void {

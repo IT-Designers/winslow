@@ -18,7 +18,6 @@
                               [selectedProject]="selectedProject"
                               [stateInfo]="stateInfo"
           ></app-projects-group>
-          <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
         </div>
         <div *ngIf="isLast && documentGet.getElementById('groups') == null" class="none-defined-yet">
           <i>There are no projects without a group</i>
@@ -30,8 +29,6 @@
           <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
                          (click)="selectProject(project)"
                          [class.selected]="project.id == selectedProject?.id">
-            <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
-                 (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
               [project]="project"
               [filter]="filter"
@@ -44,7 +41,6 @@
               (tagActionSecondary)="filter.addExcludedTag($event)"
             ></app-project-view-header>
           </mat-list-item>
-          <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
         </div>
         <div *ngIf="isLast && documentGet.getElementById('projects') == null" class="none-defined-yet">
           <i>There are no projects without a group</i>
@@ -67,8 +63,6 @@
           <mat-list-item *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
                          (click)="selectProject(project)"
                          [class.selected]="project.id == selectedProject?.id">
-            <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
-                 (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
               [project]="project" [filter]="filter"
               [iconState]="stateInfo?.get(project.id)?.state"
@@ -81,7 +75,6 @@
             ></app-project-view-header>
           </mat-list-item>
         </div>
-        <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
       </div>
     </mat-list>
   </div>
@@ -93,8 +86,6 @@
     <mat-list-item *ngFor="let project of projectsFiltered, last as isLast" class="project-selection-sidebar-item"
                    (click)="selectProject(project)"
                    [class.selected]="project.id == selectedProject?.id">
-      <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}" (error)="avatar.src = 'favicon.png'"
-           (click)="makeImageBigger(thumbnailUrl(project), $event)">
       <app-project-view-header
         [project]="project" [filter]="filter"
         [iconState]="stateInfo?.get(project.id)?.state"
@@ -105,7 +96,6 @@
         (tagActionPrimary)="filter.toggleIncludedTag($event)"
         (tagActionSecondary)="filter.addExcludedTag($event)"
       ></app-project-view-header>
-      <mat-divider class="mat-divider" *ngIf="!isLast" [inset]="true"></mat-divider>
     </mat-list-item>
   </mat-list>
 </div>
