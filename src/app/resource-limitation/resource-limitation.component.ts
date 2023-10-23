@@ -40,10 +40,10 @@ export class ResourceLimitationComponent implements OnInit {
     this.change.emit(this.local);
   }
 
-  toNumberOrNull(text: string) {
+  toNumberOrUndefined(text: string) {
     const num = Number(text);
     if (num <= 0) {
-      return null;
+      return undefined;
     } else {
       return num;
     }
@@ -51,5 +51,26 @@ export class ResourceLimitationComponent implements OnInit {
 
   localRemoteEq() {
     return similarResourceLimitation(this.local, this.remote);
+  }
+
+  setLocalCpu(event: Event) {
+    const target = event.target;
+    if (this.local && target instanceof HTMLInputElement) {
+      this.local.cpu = this.toNumberOrUndefined(target.value);
+    }
+  }
+
+  setLocalMem(event: Event) {
+    const target = event.target;
+    if (this.local && target instanceof HTMLInputElement) {
+      this.local.mem = this.toNumberOrUndefined(target.value);
+    }
+  }
+
+  setLocalGpu(event: Event) {
+    const target = event.target;
+    if (this.local && target instanceof HTMLInputElement) {
+      this.local.gpu = this.toNumberOrUndefined(target.value);
+    }
   }
 }

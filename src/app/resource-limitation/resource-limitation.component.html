@@ -22,8 +22,8 @@
     <input
         #limitCpu matInput type="number"
         [disabled]="!resourceLimit.checked"
-        [value]="local != null ? '' + local.cpu : null"
-        (change)="local.cpu = toNumberOrNull($event.target.value)"
+        [value]="local != null ? '' + local.cpu : ''"
+        (change)="setLocalCpu($event)"
         [min]="0"
     >
   </mat-form-field>
@@ -34,8 +34,8 @@
     <input
         #limitMem matInput type="number"
         [disabled]="!resourceLimit.checked"
-        [value]="local != null ? ''+local.mem : null"
-        (change)="local.mem = toNumberOrNull($event.target.value)"
+        [value]="local != null ? '' + local.mem : ''"
+        (change)="setLocalMem($event)"
         [min]="0"
     >
   </mat-form-field>
@@ -46,8 +46,8 @@
     <input
         #limitGpu matInput type="number"
         [disabled]="!resourceLimit.checked"
-        [value]="local != null ? ''+local.gpu : null"
-        (change)="local.gpu = toNumberOrNull($event.target.value)"
+        [value]="local != null ? '' + local.gpu : ''"
+        (change)="setLocalGpu($event)"
         [min]="0"
     >
   </mat-form-field>
