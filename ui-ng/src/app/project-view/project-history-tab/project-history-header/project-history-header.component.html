@@ -1,21 +1,26 @@
 <div class="history-list-column center-vertically">
   <app-state-icon [state]="state" [configured]="isConfigure"></app-state-icon>
 </div>
+
 <div class="history-list-column history-item-no">{{itemNo}}</div>
-<div
-  class="history-list-column history-item-date">{{toDate(time)}}</div>
+
+<div class="history-list-column history-item-date">{{toDate(time)}}</div>
+
 <div class="history-list-column history-batch">
   <mat-icon *ngIf="groupSize > 1"
             [matTooltip]="'This group contains ' + groupSize + ' executions'">
     batch_prediction
   </mat-icon>
 </div>
+
 <div class="history-list-column">
   {{isConfigure ? '[Configured] ' : ''}}{{stageName}}
 </div>
+
 <div class="history-list-column history-comment" [matTooltip]="comment">
   {{comment}}
 </div>
+
 <div class="history-list-column history-control-icons center-vertically">
   <mat-icon *ngIf="paused && showResumeOnlyThisStage"
             matTooltip="Resume only one stage" class="clickable"
