@@ -5,7 +5,7 @@
 <div class="flex-grow-column control-row">
   <div class="control-button-row" style="margin: 1em auto -1em auto">
     <button mat-stroked-button color="primary"
-            [disabled]="statePaused"
+            [disabled]="!!statePaused"
             (click)="pause()">
       <mat-icon>pause_circle_outlined</mat-icon>
       Pause
@@ -56,13 +56,13 @@
       [showResumeOnlyThisStage]="entry.enqueueIndex == 0"
       [enqueued]="entry.enqueueIndex != null"
       [running]="entry.isMostRecentStateRunning()"
-      [paused]="statePaused"
+      [paused]="!!statePaused"
 
       (clickPauseAfterThis)="clickPause.emit(entry)"
       (clickResumeOnlyThisStage)="clickResumeSingle.emit(entry)"
       (clickResume)="clickResume.emit(entry)"
       (clickDelete)="clickDeleteEnqueued.emit(entry)"
-      (clickUseAsBlueprint)="clickUseAsBlueprint.emit([entry, null])"
+      (clickUseAsBlueprint)="clickUseAsBlueprint.emit([entry, undefined])"
     ></app-project-history-header>
   </ng-container>
 </div>

@@ -30,27 +30,27 @@ export class ProjectOverviewComponent implements OnDestroy {
   @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickPause = new EventEmitter<ExecutionGroupInfo>();
 
-  nodeName: string;
+  nodeName?: string;
 
   schemeCpu = {domain: ['#DD4444']};
   schemeMemory = {domain: ['#44DD44']};
 
-  stateValue: State = null;
-  stateFinished: boolean;
-  stateRunning: boolean;
-  statePaused: boolean;
+  stateValue?: State;
+  stateFinished?: boolean;
+  stateRunning?: boolean;
+  statePaused?: boolean;
 
   lastSuccessfulStatsUpdate = 0;
   seriesInitialized = false;
 
-  mostRecent: ExecutionGroupInfo = null;
-  projectValue: ProjectInfo;
+  mostRecent?: ExecutionGroupInfo;
+  projectValue!: ProjectInfo;
   memory: any[] = [];
   memoryMax = 1;
   cpu: any[] = [];
   cpuMax = 100;
   cpuLimit = 0;
-  subscription: Subscription = null;
+  subscription?: Subscription;
 
   enqueued: ExecutionGroupInfo[] = [];
   pipelineActions: PipelineDefinitionInfo[] = [];
@@ -64,7 +64,7 @@ export class ProjectOverviewComponent implements OnDestroy {
       axisPointer: {
           type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         params = params[0];
         var date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
@@ -88,7 +88,7 @@ export class ProjectOverviewComponent implements OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: (value) => {
+          formatter: (value: any) => {
             const date = new Date(value);
             if (date.getSeconds() === 0) {
               let zero = (date.getMinutes() < 10 ? ":0" : ":")
@@ -125,7 +125,7 @@ export class ProjectOverviewComponent implements OnDestroy {
       axisPointer: {
           type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         params = params[0];
         var date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
@@ -149,7 +149,7 @@ export class ProjectOverviewComponent implements OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: (value) => {
+          formatter: (value: any) => {
             const date = new Date(value);
             if (date.getSeconds() === 0) {
               let zero = (date.getMinutes() < 10 ? ":0" : ":")
@@ -162,7 +162,7 @@ export class ProjectOverviewComponent implements OnDestroy {
     yAxis: {
       type: "value",
       axisLabel: {
-        formatter: function (value, index) {
+        formatter: function (value: any, index: any) {
           return value.toFixed(0) + ' GiB';
         }
       },
@@ -219,7 +219,7 @@ export class ProjectOverviewComponent implements OnDestroy {
 
   @Input()
   set history(history: ExecutionGroupInfo[]) {
-    this.mostRecent = null;
+    this.mostRecent = undefined;
     this.enqueued = [];
     if (history && history.length > 0) {
       this.mostRecent = history[0];
@@ -234,7 +234,7 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   @Input()
-  set state(state: State) {
+  set state(state: State | undefined) {
     this.stateValue = state;
     this.stateFinished = state === 'FAILED' || state === 'SUCCEEDED';
     this.stateRunning = state === 'RUNNING';
@@ -445,9 +445,6 @@ export class ProjectOverviewComponent implements OnDestroy {
   }
 
   private unsubscribe() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-      this.subscription = null;
-    }
+    this.subscription?.unsubscribe();
   }
 }
