@@ -1,5 +1,6 @@
 .content-list {
-  max-height: 50vh;
+  max-height: 75vh;
+  min-height: max-content;
   overflow: auto;
   padding: .5em 2em;
 }
