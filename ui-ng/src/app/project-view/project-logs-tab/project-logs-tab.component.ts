@@ -4,7 +4,9 @@ import {Subscription} from 'rxjs';
 import {LongLoadingDetector} from '../../long-loading-detector';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
-import {RegularExpressionEditorDialogComponent} from '../../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
+import {
+  RegularExpressionEditorDialogComponent
+} from '../../regular-expression-editor-dialog/regular-expression-editor-dialog.component';
 import {LogEntryInfo, LogSource, ProjectInfo} from '../../api/winslow-api';
 
 @Component({
@@ -16,18 +18,18 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
 
   private static readonly LONG_LOADING_FLAG = 'logs';
 
-  @ViewChild('console') htmlConsole: ElementRef<HTMLElement>;
-  @ViewChild('scrollTopTarget') scrollTopTarget: ElementRef<HTMLElement>;
-  @ViewChild('scrollBottomTarget') scrollBottomTarget: ElementRef<HTMLElement>;
+  @ViewChild('console') htmlConsole!: ElementRef<HTMLElement>;
+  @ViewChild('scrollTopTarget') scrollTopTarget!: ElementRef<HTMLElement>;
+  @ViewChild('scrollBottomTarget') scrollBottomTarget!: ElementRef<HTMLElement>;
 
-  selectedProject: ProjectInfo = null;
-  selectedStageId: string = null;
+  selectedProject?: ProjectInfo;
+  selectedStageId?: string;
 
   logs?: LogEntryInfo[] = [];
   displayLatest = false;
 
-  stateSubscription: Subscription = null;
-  logSubscription: Subscription = null;
+  stateSubscription?: Subscription;
+  logSubscription?: Subscription;
   longLoading = new LongLoadingDetector();
 
   stickConsole = true;
@@ -35,7 +37,7 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
   projectHasRunningStage = false;
   scrollCallback: () => void = () => this.onWindowScroll();
 
-  contextMenu: { x: number, y: number, log: LogEntryInfo } = {
+  contextMenu: { x: number, y: number, log: LogEntryInfo | null } = {
     x: 0,
     y: 0,
     log: null,
@@ -53,7 +55,7 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
     window.addEventListener('scroll', this.scrollCallback, true);
     this.stateSubscription = this.api.getProjectStateSubscriptionHandler().subscribe((id, info) => {
       if (id === this.selectedProject?.id && info != null) {
-        this.projectHasRunningStage = info.state === 'RUNNING' ;
+        this.projectHasRunningStage = info.state === 'RUNNING';
       }
     });
   }
@@ -61,10 +63,7 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     window.removeEventListener('scroll', this.scrollCallback, true);
     this.unsubscribe();
-    if (this.stateSubscription) {
-      this.stateSubscription.unsubscribe();
-      this.stateSubscription = null;
-    }
+    this.stateSubscription?.unsubscribe();
   }
 
   onWindowScroll() {
@@ -94,7 +93,7 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
 
     if (changed) {
       this.logs = [];
-      this.selectedStageId = null;
+      this.selectedStageId = undefined;
       this.displayLatest = true;
       this.resubscribe(value.id, this.selectedStageId);
       this.projectHasRunningStage = false;
@@ -114,21 +113,21 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
     return this.longLoading.isLongLoading();
   }
 
-  private resubscribe(projectId: string, stageId = ProjectApiService.LOGS_LATEST) {
+  private resubscribe(projectId: string | undefined, stageId = ProjectApiService.LOGS_LATEST) {
     this.unsubscribe();
     this.logs = [];
-    this.selectedStageId = null;
+    this.selectedStageId = undefined;
     this.subscribeLogs(projectId, stageId);
   }
 
   private unsubscribe() {
-    if (this.logSubscription) {
-      this.logSubscription.unsubscribe();
-      this.logSubscription = null;
-    }
+    this.logSubscription?.unsubscribe();
   }
 
-  private subscribeLogs(projectId: string, stageId = ProjectApiService.LOGS_LATEST) {
+  private subscribeLogs(projectId?: string, stageId?: string) {
+    if (projectId == null) {
+      return;
+    }
     if (stageId == null) {
       stageId = ProjectApiService.LOGS_LATEST;
     }
@@ -153,11 +152,11 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
 
 
   showLatestLogs() {
-    this.resubscribe(this.selectedProject.id);
+    this.resubscribe(this.selectedProject?.id);
   }
 
   forceReloadLogs() {
-    this.resubscribe(this.selectedProject.id, this.displayLatest ? null : this.selectedStageId);
+    this.resubscribe(this.selectedProject?.id, this.displayLatest ? undefined : this.selectedStageId);
   }
 
   scrollConsoleToTop(smooth = true) {
@@ -198,7 +197,7 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
     }
   }
 
-  lineId(index: number, log: LogEntryInfo): string {
+  lineId(_index: number, log: LogEntryInfo): string {
     return log?.stageId + log?.line;
   }
 
@@ -227,10 +226,10 @@ export class ProjectLogsTabComponent implements OnInit, OnDestroy {
   }
 
   contextMenuCopy() {
-    navigator.clipboard.writeText(this.contextMenu.log.message).then();
+    navigator.clipboard.writeText(this.contextMenu.log?.message ?? "").then();
   }
 
   contextMenuOpenEditor() {
-    this.dialog.open(RegularExpressionEditorDialogComponent, {data: this.contextMenu.log.message});
+    this.dialog.open(RegularExpressionEditorDialogComponent, {data: this.contextMenu.log?.message ?? ""});
   }
 }
