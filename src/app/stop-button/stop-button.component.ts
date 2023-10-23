@@ -10,7 +10,7 @@ import {ProjectInfo} from '../api/winslow-api';
 })
 export class StopButtonComponent implements OnInit {
 
-  @Input() project: ProjectInfo = null;
+  @Input() project?: ProjectInfo;
   @Input() disabled: boolean = false;
   @Input() showText: boolean = true;
 
