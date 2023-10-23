@@ -5,6 +5,7 @@ app-project-add-group-dialog > * {
 .add-group-popup-container {
   width: 705px !important;
   height: 400px !important;
+  margin: 1rem;
 }
 .scrollable {
   overflow: scroll !important;
