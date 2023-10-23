@@ -12,7 +12,7 @@ export class ProjectHistoryHeaderComponent implements OnInit {
   @Input() itemNo: number;
   @Input() state: State;
   @Input() isConfigure: boolean;
-  @Input() time: number;
+  @Input() time?: number;
   @Input() stageName: string;
   @Input() comment: string;
   @Input() groupSize: number;
