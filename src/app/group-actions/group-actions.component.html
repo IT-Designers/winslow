@@ -26,7 +26,14 @@
   >
   </app-projects-view>
 
-</mat-card>
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Stage Execution</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="flex-grow-column action-selector">
+      <app-stage-execution-selection #selection
+                                     [pipelines]="pipelines">
+      </app-stage-execution-selection>
 
 <mat-card appearance="outlined">
   <mat-card-title>Stage Execution</mat-card-title>
@@ -52,9 +59,7 @@
           <button [disabled]="!selection.isValid()" mat-stroked-button color="warn">Add by replacing existing queues
           </button>
         </div>
-        <div class="controls"></div>
-      </div>
-    </ng-container>
+      </ng-container>
 
     <app-loading-info
         [error]="actionLoadError != null ? actionLoadError.message : null"
