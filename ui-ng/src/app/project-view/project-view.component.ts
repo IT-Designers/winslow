@@ -125,23 +125,23 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   @Output('state') private stateEmitter = new EventEmitter<State>();
   @Output('deleted') private deletedEmitter = new EventEmitter<boolean>();
 
-  filesAdditionalRoot: string = null;
-  filesNavigationTarget: string = null;
+  filesAdditionalRoot?: string;
+  filesNavigationTarget?: string;
 
-  stageIdToDisplayLogsFor: string = null;
-  stateValue?: State = null;
+  stageIdToDisplayLogsFor?: string;
+  stateValue?: State;
 
   history: ExecutionGroupInfo[] = [];
-  subscribedProjectId: string = null;
-  historySubscription: Subscription = null;
+  subscribedProjectId?: string;
+  historySubscription?: Subscription;
   historyEnqueued = 0;
-  historyEnqueuedSubscription: Subscription = null;
+  historyEnqueuedSubscription?: Subscription;
   historyExecuting = 0;
-  historyExecutingSubscription: Subscription = null;
+  historyExecutingSubscription?: Subscription;
   historyCanLoadMoreEntries = true;
 
-  paused: boolean = null;
-  pauseReason?: string = null;
+  paused?: boolean;
+  pauseReason?: string;
   progress?: number;
 
   deletionPolicyLocal?: DeletionPolicy;
@@ -158,9 +158,9 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   rangedEnvironmentVariables: Record<string, RangedValue> = null;
   workspaceConfigurationMode: WorkspaceMode = null;
 
-  rawPipelineDefinition: string = null;
-  rawPipelineDefinitionError: string = null;
-  rawPipelineDefinitionSuccess: string = null;
+  rawPipelineDefinition?: string;
+  rawPipelineDefinitionError?: string;
+  rawPipelineDefinitionSuccess?: string;
 
   paramsSubscription: Subscription = null;
   selectedTabIndex: number = Tab.Overview;
@@ -169,10 +169,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   authTokens: AuthTokenInfo[] = null;
 
   historyListHeight: any;
-  selectedHistoryEntry: ExecutionGroupInfo = null;
-  selectedHistoryEntryNumber: number;
+  selectedHistoryEntry?: ExecutionGroupInfo;
+  selectedHistoryEntryNumber?: number;
   selectedHistoryEntryIndex = 0;
-  selectedHistoryEntryStage: StageInfo;
+  selectedHistoryEntryStage?: StageInfo;
 
   amIAdmin: boolean;
   projectGroups: Link[];
@@ -192,7 +192,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
 
   @HostListener('window:resize', ['$event'])
-  getScreenSize(event?) {
+  getScreenSize(_event?: Event) {
     this.setHistoryListHeight(window.innerHeight);
   }
 
@@ -266,10 +266,10 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
 
       // reset selectedHistory if another project will be selected
       if (change?.currentValue?.id != change?.previousValue?.id) {
-        this.selectedHistoryEntry = null;
-        this.selectedHistoryEntryNumber = null;
+        this.selectedHistoryEntry = undefined;
+        this.selectedHistoryEntryNumber = undefined;
         this.selectedHistoryEntryIndex = 0;
-        this.selectedHistoryEntryStage = null;
+        this.selectedHistoryEntryStage = undefined;
       }
     }
     this.sortGroups();
@@ -304,7 +304,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   private unsubscribe() {
-    this.subscribedProjectId = null;
+    this.subscribedProjectId = undefined;
     this.unsubscribeHistory();
   }
 
@@ -314,19 +314,19 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   }
 
   private unsubscribeHistory() {
-    if (this.historySubscription != null) {
+    if (this.historySubscription != undefined) {
       this.historySubscription.unsubscribe();
-      this.historySubscription = null;
+      this.historySubscription = undefined;
     }
 
-    if (this.historyExecutingSubscription != null) {
+    if (this.historyExecutingSubscription != undefined) {
       this.historyExecutingSubscription.unsubscribe();
-      this.historyExecutingSubscription = null;
+      this.historyExecutingSubscription = undefined;
     }
 
-    if (this.historyEnqueuedSubscription != null) {
+    if (this.historyEnqueuedSubscription != undefined) {
       this.historyEnqueuedSubscription.unsubscribe();
-      this.historyEnqueuedSubscription = null;
+      this.historyEnqueuedSubscription = undefined;
     }
   }
 
@@ -487,7 +487,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
         .then(result => {
           if (!this.paused) {
             this.stateEmitter.emit(this.stateValue = 'RUNNING');
-            this.pauseReason = null;
+            this.pauseReason = undefined;
           }
         })
         .catch(err => {
@@ -576,7 +576,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
     this.tabs.selectedIndex = Tab.Logs;
   }
 
-  openAnalysis(entry?: StageInfo, watchLatestLogs = false) {
+  openAnalysis(entry?: StageInfo) {
     this.stageIdToDisplayLogsFor = entry?.id;
     this.tabs.selectedIndex = Tab.Analysis;
   }
@@ -611,7 +611,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
   killAllStages() {
     this.dialog.openAreYouSure(
       `Kill all running stages of project ${this.project.name}`,
-      () => this.api.killStage(this.project.id, null).then()
+      () => this.api.killStage(this.project.id).then()
     );
   }
 
@@ -626,7 +626,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       });
       this.executionSelection.selectedStage = group.stageDefinition;
       this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
-      this.executionSelection.comment = group.comment;
+      this.executionSelection.comment = group.comment ?? null;
       this.environmentVariables = new Map();
       this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.environment;
       this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
@@ -665,6 +665,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
           return -1;
         }
       }
+      return -1;
     });
   }
 
@@ -796,12 +797,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges, After
       this.pipelinesApi.checkPipelineDefinition(raw)
         .then(result => {
           if (result != null) {
-            this.rawPipelineDefinitionSuccess = null;
+            this.rawPipelineDefinitionSuccess = undefined;
             // @ts-ignore
             this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in pipeline-details
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
-            this.rawPipelineDefinitionError = null;
+            this.rawPipelineDefinitionError = undefined;
           }
         }),
       `Checking Pipeline Definition`,

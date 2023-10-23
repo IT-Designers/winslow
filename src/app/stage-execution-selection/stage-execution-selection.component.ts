@@ -45,7 +45,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   resources = new ResourceInfo({cpus: 0, gpus: 0, megabytesOfRam: 100});
 
   workspaceConfiguration = createWorkspaceConfiguration();
-  comment = null;
+  comment: string | null = null;
   valid = false;
 
   // env cache
