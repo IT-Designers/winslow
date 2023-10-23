@@ -17,9 +17,9 @@ export class PipelineEditorComponent implements OnInit {
   @ViewChild('editorContainer') container!: ElementRef<HTMLDivElement>;
 
   @Input() pipelineId!: string;
-  @Input() rawV: string | null = null;
-  @Input() errorV: string | null = null;
-  @Input() successV: string | null = null;
+  @Input() rawV?: string;
+  @Input() errorV?: string;
+  @Input() successV?: string;
   @Input() enableOnOthers = false;
 
   @Output() others = new EventEmitter<string>();
@@ -43,8 +43,8 @@ export class PipelineEditorComponent implements OnInit {
   }
 
   @Input()
-  set raw(raw: string | null) {
-    if (raw != null) {
+  set raw(raw: string | undefined) {
+    if (raw != undefined) {
       this.original = raw;
       this.rawV = raw;
       this.updateState();
@@ -52,7 +52,7 @@ export class PipelineEditorComponent implements OnInit {
   }
 
   @Input()
-  set error(error: string | null) {
+  set error(error: string | undefined) {
     this.errorV = error;
     this.updateState();
     if (this.editor != undefined) {
@@ -63,7 +63,7 @@ export class PipelineEditorComponent implements OnInit {
   }
 
   @Input()
-  set success(success: string | null) {
+  set success(success: string | undefined) {
     this.successV = success;
     this.updateState();
     if (this.editor != undefined) {
@@ -121,8 +121,8 @@ export class PipelineEditorComponent implements OnInit {
     }
   }
 
-  save(rawV: string | null) {
-    if (rawV != null) {
+  save(rawV: string | undefined) {
+    if (rawV != undefined) {
       this.raw = rawV;
       this.updateState();
       this.update.emit(rawV);
