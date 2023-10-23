@@ -1,6 +1,9 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {lastValueFrom} from "rxjs";
+
+import {UserInfo} from "./winslow-api";
 
 
 @Injectable({
@@ -16,60 +19,60 @@ export class GroupApiService {
   }
 
   getGroups(): Promise<GroupInfo[]> {
-    return this.client
-      .get<GroupInfo[]>(GroupApiService.getUrl(''))
-      .toPromise();
+    return lastValueFrom(
+      this.client.get<GroupInfo[]>(GroupApiService.getUrl(''))
+    );
   }
 
-  getGroup(groupName): Promise<GroupInfo> {
-    return this.client
-      .get<GroupInfo>(GroupApiService.getUrl(groupName))
-      .toPromise();
+  getGroup(groupName: string): Promise<GroupInfo> {
+    return lastValueFrom(
+      this.client.get<GroupInfo>(GroupApiService.getUrl(groupName))
+    );
   }
 
-  createGroup(group): Promise<GroupInfo> {
-    return this.client
-      .post<GroupInfo>(GroupApiService.getUrl(''), group)
-      .toPromise();
+  createGroup(group: GroupInfo): Promise<GroupInfo> {
+    return lastValueFrom(
+      this.client.post<GroupInfo>(GroupApiService.getUrl(''), group)
+    );
   }
 
-  deleteGroup(name): Promise<void> {
-    return this.client
-      .delete<void>(GroupApiService.getUrl(name))
-      .toPromise();
+  deleteGroup(name: string): Promise<void> {
+    return lastValueFrom(
+      this.client.delete<void>(GroupApiService.getUrl(name))
+    );
   }
 
-  getMemberships(name): Promise<MemberInfo[]> {
-    return this.client
-      .get<MemberInfo[]>(GroupApiService.getUrl(name + '/members'))
-      .toPromise();
+  getMemberships(name: string): Promise<MemberInfo[]> {
+    return lastValueFrom(
+      this.client.get<MemberInfo[]>(GroupApiService.getUrl(name + '/members'))
+    );
   }
 
-  addOrUpdateMembership(groupName, user): Promise<MemberInfo> {
-    return this.client
-      .post<MemberInfo>(GroupApiService.getUrl(groupName + '/members'), user)
-      .toPromise();
+  addOrUpdateMembership(groupName: string, user: UserInfo): Promise<MemberInfo> {
+    return lastValueFrom(
+      this.client.post<MemberInfo>(GroupApiService.getUrl(groupName + '/members'), user)
+    );
   }
 
-  deleteGroupMembership(groupName, userName): Promise<object> {
-    return this.client
-      .delete(GroupApiService.getUrl(groupName + '/members/' + userName))
-      .toPromise();
+  deleteGroupMembership(groupName: string, userName: string): Promise<object> {
+    return lastValueFrom(
+      this.client.delete(GroupApiService.getUrl(groupName + '/members/' + userName))
+    );
   }
 
-  getGroupNameAvailable(groupName): Promise<object> {
-    return this.client
-      .get(GroupApiService.getUrl(groupName + '/available'))
-      .toPromise();
+  getGroupNameAvailable(groupName: string): Promise<object> {
+    return lastValueFrom(
+      this.client.get(GroupApiService.getUrl(groupName + '/available'))
+    );
   }
 }
 
-export class MemberInfo {
+export interface MemberInfo {
   name: string;
   role: string;
 }
 
-export class GroupInfo {
+export interface GroupInfo {
   name: string;
   members: MemberInfo[];
 }
