@@ -15,11 +15,8 @@
          (click)="itemClicked(item)"
          [class.item-clicked]="item.name == selectedItemName">
       {{item.name}}
-      <span matTooltip="{{listItemTooltip}}"
-            matTooltipShowDelay="500"
-            class="material-symbols-outlined item-icon">
-        edit
-      </span>
+      <mat-icon matTooltip="{{listItemTooltip}}"
+      matTooltipShowDelay="500">edit</mat-icon>
     </div>
   </div>
   <div class="btn-container">

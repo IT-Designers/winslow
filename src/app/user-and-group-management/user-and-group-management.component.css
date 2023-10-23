@@ -15,12 +15,15 @@
 }
 /*---------------------------------------------------*/
 .drawer-container {
-  height: 88.2vh;
+  height: 89vh;
 }
 .drawer {
   width: 30vw;
   background-color: whitesmoke;
   overflow-y: auto;
+  @media(prefers-color-scheme: dark) {
+    background-color: #383838;
+  }
 }
 .drawer-content {
   padding: 0.2em;
@@ -37,6 +40,29 @@
   background: white;
   padding: 0 3em;
   height: 100%;
-  margin-left: 30vw;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 
+.button-group {
+  position: absolute;
+  left: 1.25em;
+  bottom: 1.25em;
+  right: 1.25em;
+}
+
+.button-group button {
+  margin: 0.25em;
+}
+
+.show-projects-button {
+  position: fixed;
+  left: 1.5em;
+  bottom: 1.5em;
+  z-index: 99
+}
+
+.hide-projects-button {
+  float: right;
+}
