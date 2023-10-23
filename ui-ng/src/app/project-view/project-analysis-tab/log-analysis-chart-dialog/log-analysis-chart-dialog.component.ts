@@ -52,8 +52,8 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     return snapshot.csvFiles.filter(csvFile => csvFile.content.length == 0);
   }
 
-  isInvalidVariable(variable: string): boolean {
-    if (variable == '') {
+  isInvalidVariable(variable: string | null | undefined): boolean {
+    if (variable == undefined || variable == '') {
       return false; // Empty variable means use default instead
     }
     if (this.latestSnapshot == undefined) {
@@ -62,7 +62,7 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     return !this.latestSnapshot.formatterVariables.includes(variable);
   }
 
-  isInvalidEntryLimit(entryLimit: number | null): boolean {
+  isInvalidEntryLimit(entryLimit: number | null | undefined): boolean {
     if (entryLimit == null) {
       return false;
     }
