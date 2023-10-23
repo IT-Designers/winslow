@@ -67,7 +67,7 @@ app-groups-add-member-dialog {
 }
 
 .username-label {
-  margin-left: 0 1em;
+  margin: 0 1em;
   /*margin-right: 32%;*/
   width: 40%;
 }
