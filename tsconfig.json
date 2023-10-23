@@ -8,6 +8,7 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
+  //  "strict": true,
     "module": "es2020",
     "moduleResolution": "node",
     "importHelpers": true,
@@ -27,7 +28,7 @@
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
-    "fullTemplateTypeCheck": true,
+   // "strictTemplates": true,
     "strictInjectionParameters": true,
 
     "files": [],
