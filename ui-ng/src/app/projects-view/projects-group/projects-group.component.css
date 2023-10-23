@@ -33,38 +33,3 @@
 .group h4 {
   margin: 1.5em auto 0.2em 0.5em;
 }
-
-.mat-expansion-panel-header.mat-expanded {
-  background-color: #eeeeee;
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-  }
-}
-
-.mat-expansion-panel.mat-expanded {
-  background-color: #eeeeee;
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-  }
-}
-
-.mat-divider.mat-divider-inset {
-  margin-left: 0;
-}
-
-.mat-divider {
-  border-top-color: #dadada;
-  @media(prefers-color-scheme: dark) {
-    background-color: black;
-  }
-  border-top-width: 1px;
-  width: 100%;
-}
-
-.icon {
-  max-height: 2em;
-  max-width: 2em;
-  margin-top: 0.1em;
-  margin-left: 1em;
-  margin-right: 0.5em;
-}
