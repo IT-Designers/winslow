@@ -2,7 +2,8 @@
 <div class="console-controls">
   <button mat-raised-button color="accent"
           [disabled]="displayLatest"
-          (click)="showLatestLogs()">Show log of most recent Stage
+          (click)="showLatestLogs()">
+    Show log of most recent Stage
   </button>
 
   <button mat-stroked-button (click)="forceReloadLogs()">
@@ -24,7 +25,7 @@
     </mat-slide-toggle>
   </div>
 
-  <mat-form-field class="reg-exp-field">
+  <mat-form-field class="reg-exp-field" appearance="outline">
     <code>
       <input matInput [(ngModel)]="regularExpressionPattern">
     </code>
@@ -37,10 +38,10 @@
   </button>
 
   <div class="console-scroll-up-down">
-    <button mat-stroked-button (click)="scrollConsoleToTop()">
+    <button mat-icon-button (click)="scrollConsoleToTop()">
       <mat-icon>arrow_upward</mat-icon>
     </button>
-    <button mat-stroked-button (click)="scrollConsoleToBottom(true)">
+    <button mat-icon-button (click)="scrollConsoleToBottom(true)">
       <mat-icon>arrow_downward</mat-icon>
     </button>
   </div>

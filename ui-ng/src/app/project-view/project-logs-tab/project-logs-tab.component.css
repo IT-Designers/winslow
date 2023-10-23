@@ -14,10 +14,11 @@
 .reg-exp-field {
   margin: -12px 0 -2em;
   flex-grow: 1;
+  height: 1.5rem;
 }
 
 .console-controls button {
-  width: min-content;
+  width: max-content;
 }
 
 .console-container {
