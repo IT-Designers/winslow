@@ -39,6 +39,10 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #f6f6f6;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
 }
 
 .delete-group-btn, .delete-user-btn {
