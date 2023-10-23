@@ -4,11 +4,13 @@ import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import {FilesApiService} from '../../api/files-api.service';
 import {LogChart, LogChartDefinition} from './log-chart-definition';
-import {LogAnalysisSettingsDialogComponent} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
-import {PipelineApiService} from '../../api/pipeline-api.service';
+import {
+  LogAnalysisSettingsDialogComponent
+} from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import {generateColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
-import {ExecutionGroupInfo, FileInfo, PipelineDefinitionInfo, ProjectInfo, StageInfo} from '../../api/winslow-api';
+import {ExecutionGroupInfo, FileInfo, ProjectInfo, StageInfo} from '../../api/winslow-api';
+import {lastValueFrom} from "rxjs";
 
 @Component({
   selector: 'app-project-analysis-tab',
@@ -19,45 +21,42 @@ export class ProjectAnalysisTabComponent implements OnInit {
 
   private static readonly PATH_TO_CHARTS = '/resources/.config/charts';
 
-  probablyPipelineId = null;
   isLongLoading = true;
 
   projectHistory: ExecutionGroupInfo[] = [];
-  latestStage: StageInfo = null;
+  latestStage: StageInfo | null = null;
   selectableStages: StageInfo[] = [];
   charts: LogChart[] = [];
 
-  stageToDisplay: StageInfo;
-  stagesToCompare: StageInfo[] = [];
-
-  private projectInfo: ProjectInfo;
+  stageToDisplay: StageInfo | null = null;
+  stagesToCompare: (StageInfo | null)[] = [];
 
   constructor(
     private dialog: MatDialog,
     private projectApi: ProjectApiService,
-    private pipelineApi: PipelineApiService,
     private filesApi: FilesApiService,
     private csvFilesService: CsvFilesService,
   ) {
   }
 
-  @Input() selectedStage: string;
+  @Input() selectedStageId: string | undefined;
 
   @Input() set project(project: ProjectInfo) {
     this.isLongLoading = true;
-    this.projectInfo = project;
+    this._project = project;
     this.resetStagesAndCharts();
 
-    const projectPromise = this.projectApi.getProjectHistory(project.id)
-      .then(projectHistory => this.loadStagesFromHistory(projectHistory));
-
-    const pipelinePromise = this.pipelineApi.getPipelineDefinitions()
-      .then(pipelines => this.findProjectPipeline(pipelines));
-
-    Promise.all([projectPromise, pipelinePromise])
+    this.projectApi.getProjectHistory(project.id)
+      .then(projectHistory => this.loadStagesFromHistory(projectHistory))
       .then(() => this.loadCharts())
       .finally(() => this.isLongLoading = false);
   }
+
+  get project(): ProjectInfo {
+    return this._project;
+  }
+
+  private _project!: ProjectInfo;
 
   ngOnInit(): void {
   }
@@ -67,10 +66,10 @@ export class ProjectAnalysisTabComponent implements OnInit {
       return 'Stage is null!';
     }
 
-    const dateValue = stage.finishTime ?? stage.startTime;
+    const dateValue = stage.finishTime ?? stage.startTime ?? Date.now();
     const dateString = new Date(dateValue).toLocaleString();
 
-    const name = stage.id.slice(this.projectInfo.id.length + 1);
+    const name = stage.id.slice(this.project.id.length + 1);
 
     return `${dateString} · ${name}`;
   }
@@ -87,8 +86,8 @@ export class ProjectAnalysisTabComponent implements OnInit {
     return stageInfo === this.latestStage;
   }
 
-  displayLatestStage() {
-    this.stageToDisplay = this.latestStage;
+  displayStage(stage: StageInfo) {
+    this.stageToDisplay = stage;
     this.refreshStages();
   }
 
@@ -110,8 +109,9 @@ export class ProjectAnalysisTabComponent implements OnInit {
   }
 
   refreshStages() {
-    const stages = [this.stageToDisplay, ...this.stagesToCompare];
-    this.csvFilesService.setStages(stages);
+    const stages: (StageInfo | null)[] = [this.stageToDisplay, ...this.stagesToCompare];
+    const filtered: StageInfo[] = stages.filter((stage): stage is StageInfo => stage != null) ;
+    this.csvFilesService.setStages(filtered);
   }
 
   private resetStagesAndCharts() {
@@ -126,12 +126,17 @@ export class ProjectAnalysisTabComponent implements OnInit {
     return this.selectableStages.slice(-1)[0];
   }
 
-  private loadStagesFromHistory(projectHistory) {
+  private loadStagesFromHistory(projectHistory: ExecutionGroupInfo[]) {
     this.projectHistory = projectHistory;
     this.selectableStages = this.getSelectableStages(projectHistory);
     this.latestStage = this.getLatestStage();
     if (this.hasSelectableStages()) {
-      this.displayLatestStage();
+      const stageToDisplay = this.selectableStages.find(stage => stage.id == this.selectedStageId);
+      if (stageToDisplay != undefined) {
+        this.displayStage(stageToDisplay);
+      } else {
+        this.displayStage(this.latestStage);
+      }
     }
   }
 
@@ -213,9 +218,9 @@ export class ProjectAnalysisTabComponent implements OnInit {
       });
   }
 
-  private loadChart = (file: FileInfo) => {
+  private loadChart(file: FileInfo) {
     console.log(`Loading chart ${file.name}`);
-    return this.filesApi.getFile(file.path).toPromise().then(text => {
+    return lastValueFrom(this.filesApi.getFile(file.path)).then(text => {
       const definition = new LogChartDefinition();
       Object.assign(definition, JSON.parse(text));
       return new LogChart(this.csvFilesService, file.name, definition);
@@ -224,12 +229,12 @@ export class ProjectAnalysisTabComponent implements OnInit {
 
   private saveChart(filename: string, chart: LogChartDefinition) {
     const file = new File([JSON.stringify(chart, null, 2)], filename, {type: 'application/json'});
-    this.filesApi.uploadFile(this.pathToChartsDir(), file).toPromise()
+    lastValueFrom(this.filesApi.uploadFile(this.pathToChartsDir(), file))
       .then(() => console.log(`Uploaded chart ${filename}`));
   }
 
   private pathToChartsDir() {
-    return `${ProjectAnalysisTabComponent.PATH_TO_CHARTS}/${this.probablyPipelineId ?? this.projectInfo.id}`;
+    return `${ProjectAnalysisTabComponent.PATH_TO_CHARTS}/${this.project.pipelineDefinition.id}`;
   }
 
   private deleteChart(chart: LogChart) {
@@ -238,10 +243,5 @@ export class ProjectAnalysisTabComponent implements OnInit {
       alert('Failed to delete chart');
       console.error(error);
     });
-  }
-
-  private findProjectPipeline(pipelines: PipelineDefinitionInfo[]) {
-    const project = this.projectInfo;
-    this.probablyPipelineId = this.projectApi.findProjectPipeline(project, pipelines);
   }
 }
