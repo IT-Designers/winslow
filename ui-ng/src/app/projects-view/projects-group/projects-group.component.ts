@@ -44,8 +44,9 @@ export class ProjectsGroupComponent implements OnInit {
     return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
   }
 
-  makeImageBigger(imageUrl: string, image: MouseEvent) {
-    if (image.target[`currentSrc`].includes('favicon.png')) {
+  makeImageBigger(imageUrl: string, event: MouseEvent) {
+    if (event.target instanceof HTMLImageElement && event.target.currentSrc.includes('favicon.png'))
+    {
       return;
     }
     this.dialog.image(imageUrl);
