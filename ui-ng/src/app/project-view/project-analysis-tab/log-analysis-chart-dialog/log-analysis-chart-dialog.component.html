@@ -43,7 +43,7 @@
   <mat-form-field appearance="fill" class="wide-field">
     <mat-label>Limit Entries</mat-label>
     <input matInput type="number" [(ngModel)]="definition.entryLimit" (ngModelChange)="refresh()">
-    <mat-hint class="mat-error" *ngIf="isInvalidEntryLimit(latestSnapshot.definition.entryLimit)">Should be greater than
+    <mat-hint class="mat-error" *ngIf="isInvalidEntryLimit(latestSnapshot?.definition.entryLimit)">Should be greater than
       1 or empty
     </mat-hint>
   </mat-form-field>
@@ -68,7 +68,7 @@
       <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
                   [value]="variable">{{variable}}</mat-option>
     </mat-autocomplete>
-    <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot.definition.xVariable)">Variable is not part of
+    <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot?.definition.xVariable)">Variable is not part of
       the formatter
     </mat-hint>
   </mat-form-field>
@@ -79,7 +79,7 @@
       <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
                   [value]="variable">{{variable}}</mat-option>
     </mat-autocomplete>
-    <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot.definition.yVariable)">Variable is not part of
+    <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot?.definition.yVariable)">Variable is not part of
       the formatter
     </mat-hint>
   </mat-form-field>
