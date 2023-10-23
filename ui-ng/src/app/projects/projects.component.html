@@ -20,9 +20,9 @@
               [availableTags]="projectApi.cachedTags"
               [projects]="projects"
               [preSelectedTag]="context"
-              (filtered)="projectsFiltered = $event"
-              (projectsGroups)="this.projectsGroups = $event"
-              (groupsOnTop)="this.groupsOnTop = $event"
+              (filtered)="projectsFiltered = $event ?? projects;"
+              (projectsGroups)="projectsGroups = $event"
+              (groupsOnTop)="groupsOnTop = $event"
           ></app-tag-filter>
         </mat-expansion-panel>
       </mat-accordion>

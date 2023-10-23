@@ -28,7 +28,7 @@ import {PipelineApiService} from "../api/pipeline-api.service";
 export class ProjectsComponent implements OnInit, OnDestroy {
 
   projects: ProjectInfo[] = [];
-  projectsFiltered: ProjectInfo[] | null = null;
+  projectsFiltered: ProjectInfo[] = [];
   projectsGroups: ProjectGroup[] = [];
   stateInfo: Map<string, StateInfo> = new Map<string, StateInfo>();
   selectedProject: ProjectInfo | null = null;
