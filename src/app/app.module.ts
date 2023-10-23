@@ -34,7 +34,7 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatSidenavModule} from '@angular/material/sidenav';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {MatFormFieldModule} from '@angular/material/form-field';
 import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
@@ -139,6 +139,7 @@ import {ProjectHistoryComponent} from "./project-view/project-history-tab/projec
 import {
   ProjectHistoryGroupInfoComponent
 } from "./project-view/project-history-tab/project-history-group-info/project-history-group-info.component";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -257,8 +258,8 @@ import {
     ], {}),
     BrowserModule,
     BrowserAnimationsModule,
-    FormsModule,
-    ReactiveFormsModule,
+    MatFormFieldModule,
+
     MatDialogModule,
     MatInputModule,
     MatButtonModule,
@@ -293,6 +294,8 @@ import {
       echarts: {init: echarts.init}
     }),
     MatSliderModule,
+    FormsModule,
+    ReactiveFormsModule,
   ],
   providers: [
     {
