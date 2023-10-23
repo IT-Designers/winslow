@@ -2,3 +2,7 @@
   flex-grow: 1;
   margin: 0 1em;
 }
+
+.tag-field {
+  width: 40%;
+}

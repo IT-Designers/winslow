@@ -1,5 +1,5 @@
 <div class="flex-grow-row tag-filter">
-  <div>
+  <div class="tag-field">
     <mat-card-subtitle>Projects that <strong>include</strong> the following tags</mat-card-subtitle>
     <app-tags-with-autocomplete
       [tags]="includeTags"
@@ -11,7 +11,7 @@
       Include with no Tags
     </mat-slide-toggle>
   </div>
-  <div>
+  <div class="tag-field">
     <mat-card-subtitle>Projects that <strong>exclude</strong> the following tags</mat-card-subtitle>
     <app-tags-with-autocomplete
       [tags]="excludeTags"
