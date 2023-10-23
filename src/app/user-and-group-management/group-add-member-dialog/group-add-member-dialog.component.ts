@@ -1,8 +1,8 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {UserInfo, UserApiService} from '../../api/user-api.service';
+import {UserApiService} from '../../api/user-api.service';
 import {RoleApiService} from '../../api/role-api.service';
-import {Link} from '../../api/winslow-api';
+import {Role, UserInfo} from '../../api/winslow-api';
 
 export interface AddMemberData {
   members: UserInfo[];
@@ -17,11 +17,12 @@ export interface AddMemberData {
 })
 export class GroupAddMemberDialogComponent implements OnInit {
 
-  allUsers: UserInfo[];
-  displayUsers: Link[];
-  allRoles: string[];
+  allUsers: UserInfo[] = [];
+  displayUsers: UserInfo[] = [];
+  allRoles: string[] = [];
   userSearchInput = '';
   showUsersToggle = false;
+  selectedRole: Role = "MEMBER";
 
   constructor(
     public dialogRef: MatDialogRef<GroupAddMemberDialogComponent>,
@@ -80,9 +81,9 @@ export class GroupAddMemberDialogComponent implements OnInit {
     this.displayUsers = Array.from(searchedUsers);
   }
 
-  addUserClicked(user) {
-    this.data.name = user.name;
-    this.data.role = user.role;
+  addUserClicked(name: string, role: Role) {
+    this.data.name = name;
+    this.data.role = role;
     if (this.data.role) {
       this.dialogRef.close(this.data);
     } else {
