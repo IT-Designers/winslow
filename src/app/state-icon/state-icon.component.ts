@@ -8,7 +8,7 @@ import {State} from '../api/winslow-api';
 })
 export class StateIconComponent implements OnInit {
 
-  @Input() state: State;
+  @Input() state!: State;
   @Input() animation = false;
   @Input() configured = false;
 
