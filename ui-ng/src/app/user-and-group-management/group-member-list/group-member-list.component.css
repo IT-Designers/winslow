@@ -36,6 +36,9 @@ app-groups-add-member-dialog {
   display: flex;
   flex-direction: column;
   align-items: center;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 .scrollable {
   width: 97%;
@@ -57,6 +60,9 @@ app-groups-add-member-dialog {
 }
 .dropdown-item:hover {
   background-color: lightgrey;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 .username-label {
   padding-left: 20px;
@@ -67,8 +73,7 @@ app-groups-add-member-dialog {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 17px;
-  height: 45px;
+  margin-top: 1rem;
   min-width: 33%;
   max-width: 33%;
 }
@@ -116,6 +121,7 @@ app-groups-add-member-dialog {
 .mat-input-container {
   width: 97%;
   font-size: 14px;
+  margin-top: 1rem;
 }
 .text-input-mat {
   width: 100%;

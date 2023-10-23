@@ -43,9 +43,15 @@
 }
 .list-item:visited {
   background-color: #5ac8fa;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 .item-clicked {
   background-color: #def3f3;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 .item-icon {
   font-size: 25px;
