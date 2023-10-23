@@ -10,7 +10,7 @@ import {ResourceLimitation} from '../api/winslow-api';
 })
 export class ResourceLimitationComponent implements OnInit {
 
-  @Input() title: string;
+  @Input() title: string = "Resource Limitation";
   @Output('limit') change = new EventEmitter<ResourceLimitation>();
 
   local?: ResourceLimitation;
@@ -23,16 +23,16 @@ export class ResourceLimitationComponent implements OnInit {
   }
 
   @Input()
-  set limit(limit: ResourceLimitation) {
-    this.local = limit != null ? new ResourceLimitation(limit) : null;
+  set limit(limit: ResourceLimitation | undefined) {
+    this.local = limit != undefined ? new ResourceLimitation(limit) : undefined;
     this.remote = limit;
   }
 
   maybeInitLocal(checked: boolean) {
-    if (checked) {
+    if (checked && this.remote) {
       this.local = new ResourceLimitation(this.remote);
     } else {
-      this.local = null;
+      this.local = undefined;
     }
   }
 
