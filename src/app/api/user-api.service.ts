@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {lastValueFrom} from "rxjs";
+import {UserInfo} from "./winslow-api";
 
 @Injectable({
   providedIn: 'root'
@@ -80,11 +81,3 @@ export class UserApiService {
   }
 }
 
-// todo make type without password
-export interface UserInfo {
-  name: string;
-  displayName: string;
-  email: string;
-  active: boolean;
-  password: string;
-}
