@@ -1,6 +1,6 @@
 <div *ngIf="pipelines != null" class="action-row">
   <mat-label class="title">Pipeline</mat-label>
-  <mat-form-field>
+  <mat-form-field appearance="outline">
     <mat-select
       [value]="defaultPipelineIdValue"
       [disabled]="pipelineSelectionDisabled"
@@ -13,7 +13,7 @@
 
 <div *ngIf="selectedPipeline != null" class="action-row">
   <mat-label class="title pipeline-to-stage-indention">Stage</mat-label>
-  <mat-form-field>
+  <mat-form-field appearance="outline">
     <mat-select
       (selectionChange)="loadEnvForStageName($event.value)"
       [value]="selectedStage?.id"> <!-- get triggered when the pipeline changes -->
@@ -32,7 +32,7 @@
   </div>
   <div class="action-row">
     <mat-label class="title">Image Name</mat-label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input #imageName matInput required [value]="selectedStage.image.name"
              (change)="image.name = $event.target.value; updateValid()">
     </mat-form-field>
@@ -46,7 +46,7 @@
   </div>
   <div class="action-row">
     <mat-label class="title">Image Args</mat-label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input #imageArgs matInput required [value]="argvToString(selectedStage.image?.args)"
              (change)="updateImageArgs($event.target.value)">
     </mat-form-field>
@@ -61,7 +61,7 @@
 
   <div class="action-row">
     <mat-label class="title">Comment</mat-label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input matInput [value]="comment" (change)="comment = $event.target.value">
     </mat-form-field>
     <div class="controls">
@@ -99,7 +99,7 @@
 
   <div class="action-row">
     <mat-label class="title">CPUs (cores)</mat-label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input #requiredCpus matInput required [value]="'' +selectedStage.requiredResources.cpus"
              (change)="resources.cpus = toNumber($event.target.value); updateValid()">
     </mat-form-field>
@@ -114,7 +114,7 @@
 
   <div class="action-row">
     <mat-label class="title">RAM (MiB)</mat-label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input #requiredRam matInput required [value]="'' +selectedStage.requiredResources.megabytesOfRam"
              (change)="resources.megabytesOfRam = toNumber($event.target.value); updateValid()">
     </mat-form-field>
@@ -133,7 +133,7 @@
              (change)="requireGpus.value = null; resources.gpus = $event.target.checked ? selectedStage.requiredResources?.gpu.count : null">
       GPUs
     </mat-label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input #requiredGpus matInput required
              [value]="'' +(selectedStage.requiredResources.gpu.count != null ? selectedStage.requiredResources.gpu.count : 0)"
              [disabled]="!requireGpus.checked"
@@ -163,16 +163,16 @@
     <mat-label class="title">{{entry.key}}</mat-label>
 
     <ng-container *ngIf="entry?.value?.DiscreteSteps != null">
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <input matInput placeholder="Start" type="number" step="0.1" value="{{entry?.value?.DiscreteSteps?.min}}"
                (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)"
                #rangeStart>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <input matInput placeholder="End" type="number" step="0.1" value="{{entry?.value?.DiscreteSteps?.max}}"
                (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeEnd>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <input matInput placeholder="Step Size" type="number" step="0.01"
                value="{{entry?.value?.DiscreteSteps?.stepSize}}"
                (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #stepSize>
@@ -196,7 +196,7 @@
     </ng-container>
 
     <ng-container *ngIf="entry?.value?.List != null">
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <input matInput placeholder="Comma separated values" value="{{argvToStringComma(entry?.value?.List?.values)}}"
                (change)="setRangedList(entry.key, values.value)"
                #values>
@@ -223,16 +223,16 @@
     </ng-template>
 
     <ng-container *ngIf="rangeType == rangeTypeRange">
-      <mat-form-field class="title">
+      <mat-form-field class="title"  appearance="outline">
         <input matInput placeholder="Name" type="text" #name>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <input matInput placeholder="Start" type="number" step="0.1" value="0.0" #rangeStart>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <input matInput placeholder="End" type="number" step="0.1" value="1.0" #rangeEnd>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <input matInput placeholder="Step Size" type="number" step="0.01" value="0.15" #stepSize>
       </mat-form-field>
       <div class="controls">
@@ -249,10 +249,10 @@
     </ng-container>
 
     <ng-container *ngIf="rangeType == rangeTypeList">
-      <mat-form-field class="title">
+      <mat-form-field class="title"  appearance="outline">
         <input matInput placeholder="Name" type="text" #name>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field  appearance="outline">
         <input matInput placeholder="Comma separated values" #values>
       </mat-form-field>
       <div class="controls">
@@ -368,7 +368,7 @@
   <div class="action-row">
     <mat-label class="title">
     </mat-label>
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-select #continuationValue
                   [value]="workspaceConfiguration.value"
                   [disabled]="!wsContinuation.checked"

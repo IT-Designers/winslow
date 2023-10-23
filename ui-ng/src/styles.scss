@@ -28,8 +28,7 @@ $dark-theme: mat.define-dark-theme((
     accent: $my-theme-accent,
     warn: $my-theme-warn,
   ),
-  typography: mat.define-typography-config(),
-  density: -1.9,
+  density: -1.9999,
 ));
 
 @mixin darkMode { // this mixin can be used for alternative darkmode settings
@@ -272,7 +271,7 @@ body {
   flex-shrink: 0;
   flex-basis: 10em;
   width: 10em;
-  overflow: auto;
+  overflow: clip;
   padding: 0 1em 0 0;
   margin-right: 1em;
 }
@@ -312,7 +311,7 @@ body {
 
 .data-row {
   display: flex;
-  margin: 0 2em;
+  margin: 0 1.3em 0 2em;
   align-items: center;
 }
 

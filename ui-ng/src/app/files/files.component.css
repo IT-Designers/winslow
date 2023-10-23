@@ -11,6 +11,10 @@
   flex-direction: column;
   margin: 0;
   background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
   overflow: auto;
 }
 
@@ -29,6 +33,10 @@ input.files-browser-path {
   padding: 0;
   margin: 0 1em;
   background-color: whitesmoke;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+    color: white;
+  }
 }
 
 .files-browser {
@@ -175,6 +183,10 @@ ul.files-browser-navigation > li > p {
   border-radius: 0.2em;
   box-shadow: 0.1em 0.1em grey;
   background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
 }
 
 .context-menu ul {

@@ -17,10 +17,11 @@
 }
 .list {
   overflow-y: scroll;
+  overflow-x: clip;
   align-items: center;
   display: flex;
   flex-direction: column;
-  width: 95%;
+  width: 90%;
   /*max-height: 440px;*/
   max-height: 67vh;
   /*height: 570px;*/
@@ -42,9 +43,15 @@
 }
 .list-item:visited {
   background-color: #5ac8fa;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 .item-clicked {
   background-color: #def3f3;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 .item-icon {
   font-size: 25px;

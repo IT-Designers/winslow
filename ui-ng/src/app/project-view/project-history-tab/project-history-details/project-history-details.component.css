@@ -18,6 +18,9 @@
   border: 1px solid darkgrey;
   background-color: white;
   z-index: 999;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 
 .history-item {
@@ -27,6 +30,9 @@
   background-color: white;
   z-index: 999;
   /* margin-top: -1px; */
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 
 .buttons {

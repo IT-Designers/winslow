@@ -26,11 +26,16 @@ app-groups-add-member-dialog {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-left: 290px;
+  margin-left: auto;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
 }
 .mat-input-container {
   width: 97%;
   font-size: 14px;
+  margin-top: 1rem;
 }
 .text-input-mat {
   width: 100%;
