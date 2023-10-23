@@ -101,7 +101,7 @@
     <label>Public Access</label>
     <mat-slide-toggle
       #publicAccess
-      [checked]="this.project?.publicAccess"
+      [checked]="this.project?.publicAccess ?? false"
       [disabled]="!userCanEditProject"
     >
     </mat-slide-toggle>
@@ -168,7 +168,7 @@
     <mat-slide-toggle
       #keep
       [disabled]="(deletionPolicyLocal == null || !custom.checked) || !userCanEditProject"
-      [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage"
+      [checked]="deletionPolicyLocal?.keepWorkspaceOfFailedStage ?? false"
     ></mat-slide-toggle>
     <button
       mat-stroked-button color="primary"
@@ -183,7 +183,7 @@
     <mat-slide-toggle
       #always
       [disabled]="(deletionPolicyLocal == null || !custom.checked) || !userCanEditProject"
-      [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace"
+      [checked]="deletionPolicyLocal?.alwaysKeepMostRecentWorkspace ?? false"
     ></mat-slide-toggle>
     <button
       mat-stroked-button color="primary"
