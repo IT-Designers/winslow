@@ -25,8 +25,8 @@ export class ProjectDiskUsageDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    const projects = [];
-    const promises = [];
+    const projects: [FileInfo, FileInfo[]][] = [];
+    const promises: Promise<any>[] = [];
 
     for (const project of this.data.projects) {
       const path = `/workspaces/${project.id}`;
@@ -37,10 +37,10 @@ export class ProjectDiskUsageDialogComponent implements OnInit {
             name:  project.name,
             directory: true,
             path,
-            fileSize:  r.map(f => f.fileSize).reduce((s1, s2) => s1 + s2, 0),
+            fileSize:  r.map(f => f.fileSize).reduce((s1, s2) => (s1 ?? 0) + (s2 ?? 0), 0),
             attributes: {}
           } as FileInfo);
-          projects.push([info, r.sort((a, b) => a.fileSize < b.fileSize ? 1 : -1)]);
+          projects.push([info, r.sort((a, b) => (a.fileSize ?? 0) < (b.fileSize ?? 0) ? 1 : -1)]);
         }));
     }
 
@@ -55,6 +55,6 @@ export class ProjectDiskUsageDialogComponent implements OnInit {
   }
 
   sortProjects() {
-    this.projects.sort((a, b) => a[0].fileSize < b[0].fileSize ? 1 : -1);
+    this.projects.sort((a, b) => (a[0].fileSize ?? 0) < (b[0].fileSize ?? 0) ? 1 : -1);
   }
 }
