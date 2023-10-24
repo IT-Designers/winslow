@@ -13,13 +13,13 @@ import {ProjectInfo, StateInfo} from '../api/winslow-api';
 })
 export class ProjectsViewComponent implements OnInit {
 
-  @Input() stateInfo!: Map<string, StateInfo>;
-  @Input() selectedProject: ProjectInfo | null = null;
+  @Input() stateInfo?: Map<string, StateInfo>;
+  @Input() selectedProject?: ProjectInfo;
   @Input() projects!: ProjectInfo[];
-  @Input() projectsFiltered!: ProjectInfo[];
+  @Input() projectsFiltered?: ProjectInfo[];
   @Input() projectsGroups!: ProjectGroup[];
   @Input() filter!: TagFilterComponent;
-  @Input() groupsOnTop!: boolean;
+  @Input() groupsOnTop?: boolean;
   documentGet = document;
 
   @Output() tagActionPrimary = new EventEmitter<string>();

@@ -28,7 +28,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   rangeTypes: string[] = [this.rangeTypeRange, this.rangeTypeList];
   rangeType: string = this.rangeTypeRange;
 
-  @Input() pipelines: PipelineDefinitionInfo[];
+  @Input() pipelines?: PipelineDefinitionInfo[];
   @Input() pipelineSelectionDisabled = false;
 
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineDefinitionInfo>();

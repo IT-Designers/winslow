@@ -33,7 +33,8 @@
             <img alt="Project Icon" class="icon" #avatar src="{{thumbnailUrl(project)}}"
                  (error)="avatar.src = 'favicon.png'" (click)="makeImageBigger(thumbnailUrl(project), $event)">
             <app-project-view-header
-              [project]="project" [filter]="filter"
+              [project]="project"
+              [filter]="filter"
               [iconState]="stateInfo?.get(project.id)?.state"
               [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
               [progress]="stateInfo?.get(project.id)?.stageProgress"
