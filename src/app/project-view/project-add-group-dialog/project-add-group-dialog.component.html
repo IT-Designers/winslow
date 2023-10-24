@@ -10,12 +10,12 @@
         <label class="groupname-label-popup">{{group.name}}</label>
         <mat-form-field appearance="fill" class="role-dropdown">
           <mat-label>Choose Role</mat-label>
-          <mat-select [(value)]="group.role">
+          <mat-select [(value)]="selectedRole">
             <mat-option>None</mat-option>
             <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="add-group-round-button"  (click)="addGroupClicked(group)" [disabled]="!group.role">
+        <button class="add-group-round-button"  (click)="addGroupClicked(group.name, selectedRole)" [disabled]="!selectedRole">
           <span class="material-symbols-outlined item-icon">group_add</span>
         </button>
         <!--<span class="material-symbols-outlined item-icon" (click)="addUserClicked(user)">person_add</span>-->
