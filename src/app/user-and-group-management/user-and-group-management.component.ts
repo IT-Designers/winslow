@@ -1,10 +1,10 @@
 import {Component, OnInit} from '@angular/core';
-import {GroupApiService, GroupInfo, MemberInfo} from '../api/group-api.service';
+import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import {RoleApiService} from '../api/role-api.service';
 import {UserApiService} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
-import {UserInfo} from "../api/winslow-api";
+import {Link, UserInfo} from "../api/winslow-api";
 
 @Component({
   selector: 'app-groups-view',
@@ -15,7 +15,7 @@ export class UserAndGroupManagementComponent implements OnInit {
   newGroup: GroupInfo = {name: '', members: []};
   itemSelected = false;
   myName = '';
-  myUser: MemberInfo = {name: '', role: ''};
+  myUser: Link = {name: '', role: 'MEMBER'};
 
   allGroups: GroupInfo[] = [];
   allRoles = [''];
