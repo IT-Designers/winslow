@@ -160,7 +160,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
       }
     });
 
-    return stages;
+    return stages.filter(stage => stage.workspace);
   }
 
   createChart() {
@@ -207,7 +207,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
 
     return this.filesApi.listFiles(filepath)
       .then(files => {
-        return Promise.all(files.map(this.loadChart));
+        return Promise.all(files.map(file => this.loadChart(file)));
       })
       .then(charts => {
         this.charts = charts;
