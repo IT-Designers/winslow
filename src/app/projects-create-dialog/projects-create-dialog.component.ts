@@ -26,7 +26,7 @@ export class ProjectsCreateDialog implements OnInit {
   PipelineOptionEnum = CreateProjectPipelineOption;
 
   pipelineOption: CreateProjectPipelineOption = CreateProjectPipelineOption.UseShared;
-  pipelines: PipelineDefinitionInfo[];
+  pipelines?: PipelineDefinitionInfo[];
   cachedTags: string[];
 
   constructor(
