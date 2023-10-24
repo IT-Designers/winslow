@@ -3,7 +3,7 @@
   <app-tag-filter [availableTags]="availableTags" [projects]="projects" (filtered)="this.filtered = $event">
   </app-tag-filter>
   <div class="project-list-container">
-    <app-project-list [projects]="filtered"></app-project-list>
+    <app-project-list [projects]="filtered ?? projects"></app-project-list>
   </div>
 </div>
 <div mat-dialog-actions class="dialog-actions">
