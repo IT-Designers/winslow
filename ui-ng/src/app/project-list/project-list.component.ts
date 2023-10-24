@@ -8,8 +8,8 @@ import {ProjectInfo, StateInfo} from '../api/winslow-api';
 })
 export class ProjectListComponent implements OnInit {
 
-  @Input() projects: ProjectInfo[];
-  @Input() stateInfo: Map<string, StateInfo>;
+  @Input() projects?: ProjectInfo[];
+  @Input() stateInfo?: Map<string, StateInfo>;
 
   constructor() {
   }

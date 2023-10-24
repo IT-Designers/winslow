@@ -14,8 +14,8 @@ import {ProjectInfo, State} from '../../api/winslow-api';
 export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
 
   @Input() project: ProjectInfo;
-  @Input() pauseReason: string = null;
-  @Input() progress: number = null;
+  @Input() pauseReason?: string;
+  @Input() progress?: number;
   @Input() running = false;
   @Input() filter: TagFilterComponent;
 
