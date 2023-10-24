@@ -16,14 +16,10 @@ import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {StageExecutionSelectionComponent} from '../stage-execution-selection/stage-execution-selection.component';
-import {
-  GroupSettingsDialogComponent,
-  GroupSettingsDialogData
-} from '../group-settings-dialog/group-settings-dialog.component';
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {lastValueFrom, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {
   EnvVariable,

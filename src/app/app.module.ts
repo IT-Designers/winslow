@@ -50,9 +50,7 @@ import {ScrollingModule} from '@angular/cdk/scrolling';
 import {TagsWithAutocompleteComponent} from './projects-view/tags-with-autocomplete/tags-with-autocomplete.component';
 import {ProjectViewHeaderComponent} from './projects-view/project-view-header/project-view-header.component';
 import {StageExecutionSelectionComponent} from './stage-execution-selection/stage-execution-selection.component';
-import {ProjectListComponent} from './project-list/project-list.component';
 import {TagFilterComponent} from './projects-view/tag-filter/tag-filter.component';
-import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settings-dialog.component';
 import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 import {SystemViewComponent} from './system-view/system-view.component';
 import {SystemCfgEnvComponent} from './system-cfg-env/system-cfg-env.component';
@@ -161,8 +159,6 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
     TagsWithAutocompleteComponent,
     ProjectViewHeaderComponent,
     StageExecutionSelectionComponent,
-    GroupSettingsDialogComponent,
-    ProjectListComponent,
     TagFilterComponent,
     SystemViewComponent,
     SystemCfgEnvComponent,
