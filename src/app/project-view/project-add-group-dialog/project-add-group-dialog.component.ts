@@ -3,7 +3,7 @@ import {GroupInfo} from '../../api/group-api.service';
 
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {GroupApiService} from '../../api/group-api.service';
-import {Link} from '../../api/winslow-api';
+import {Link, Role} from '../../api/winslow-api';
 
 export interface AddGroupData {
   alreadyAssigned: GroupInfo[];
@@ -20,9 +20,10 @@ export class ProjectAddGroupDialogComponent implements OnInit {
 
   groupSearchInput = '';
   showGroupsToggle = false;
-  allGroups: GroupInfo[];
-  displayGroups: Link[];
+  allGroups: GroupInfo[] = [];
+  displayGroups: GroupInfo[] = [];
   allRoles = ['OWNER', 'MEMBER'];
+  selectedRole: Role = "MEMBER";
 
   constructor(
     public dialogRef: MatDialogRef<ProjectAddGroupDialogComponent>,
@@ -79,9 +80,9 @@ export class ProjectAddGroupDialogComponent implements OnInit {
     }
   }
 
-  addGroupClicked(group) {
-    this.data.groupName = group.name;
-    this.data.groupRole = group.role;
+  addGroupClicked(name: string, role: Role) {
+    this.data.groupName = name;
+    this.data.groupRole = role;
     if (this.data.groupRole) {
       this.dialogRef.close(this.data);
     } else {
