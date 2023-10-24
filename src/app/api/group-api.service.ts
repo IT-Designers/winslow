@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {lastValueFrom} from "rxjs";
 
-import {UserInfo} from "./winslow-api";
+import {Link} from "./winslow-api";
 
 
 @Injectable({
@@ -42,15 +42,15 @@ export class GroupApiService {
     );
   }
 
-  getMemberships(name: string): Promise<MemberInfo[]> {
+  getMemberships(name: string): Promise<Link[]> {
     return lastValueFrom(
-      this.client.get<MemberInfo[]>(GroupApiService.getUrl(name + '/members'))
+      this.client.get<Link[]>(GroupApiService.getUrl(name + '/members'))
     );
   }
 
-  addOrUpdateMembership(groupName: string, user: UserInfo): Promise<MemberInfo> {
+  addOrUpdateMembership(groupName: string, link: Link): Promise<Link[]> {
     return lastValueFrom(
-      this.client.post<MemberInfo>(GroupApiService.getUrl(groupName + '/members'), user)
+      this.client.post<Link[]>(GroupApiService.getUrl(groupName + '/members'), link)
     );
   }
 
@@ -67,12 +67,7 @@ export class GroupApiService {
   }
 }
 
-export interface MemberInfo {
-  name: string;
-  role: string;
-}
-
 export interface GroupInfo {
   name: string;
-  members: MemberInfo[];
+  members: Link[];
 }
