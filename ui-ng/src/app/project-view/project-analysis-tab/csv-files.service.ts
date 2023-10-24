@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {FilesApiService} from '../../api/files-api.service';
-import {BehaviorSubject, combineLatest, from, Observable, of, timer} from 'rxjs';
+import {BehaviorSubject, combineLatest, from, Observable, of, tap, timer} from 'rxjs';
 import {GlobalChartSettings, LocalStorageService} from '../../api/local-storage.service';
 import {finalize, map, shareReplay, switchMap} from 'rxjs/operators';
 import {CsvFileContent, parseCsv} from './csv-parser';
@@ -47,12 +47,14 @@ export class CsvFilesService {
 
   getCsvFiles$(filepath: string): Observable<CsvFile[]> {
     return this.stages$.pipe(
+      tap(x => console.log(x)),
       switchMap(stages =>
         combineLatest(stages
           .filter(stage => stage.workspace != undefined)
           .map(stage => this.getCsvFile$(<string>stage.workspace, stage.id, filepath))
         )
       ),
+      tap(x => console.log(x)),
     );
   }
 

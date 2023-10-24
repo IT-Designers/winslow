@@ -1,5 +1,7 @@
 .project-selection-sidebar-item {
-  height: 6em !important; /* TODO */
+  height: max-content !important;
+  padding: 0 !important;
+  margin: 0.5rem 0;
 }
 
 .mat-icon-container-auto-align-label label {

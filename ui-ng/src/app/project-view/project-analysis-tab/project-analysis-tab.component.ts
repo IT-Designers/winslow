@@ -82,11 +82,11 @@ export class ProjectAnalysisTabComponent implements OnInit {
     return this.selectableStages.length > 0;
   }
 
-  isLatestStage(stageInfo: StageInfo): boolean {
+  isLatestStage(stageInfo: StageInfo | null): boolean {
     return stageInfo === this.latestStage;
   }
 
-  displayStage(stage: StageInfo) {
+  displayStage(stage: StageInfo | null) {
     this.stageToDisplay = stage;
     this.refreshStages();
   }

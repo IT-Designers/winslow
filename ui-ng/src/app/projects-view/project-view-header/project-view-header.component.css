@@ -12,41 +12,8 @@
   text-overflow: ellipsis;
 }
 
-.title {
-  display: flex;
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: 40vw;
-  max-width: 40vw;
-  min-width: 15em;
-  padding-right: 1em;
-  overflow: hidden;
-  white-space: nowrap;
-  min-height: 2.2em; /* TODO */
-}
-
-.title label {
-  margin: auto 0;
-}
-
 .icon {
-  max-height: 2em;
-  max-width: 2em;
-  margin-top: 0.1em;
-  margin-left: 1em;
-  margin-right: 0.5em;
-}
-
-.description-tags {
-  max-height: 2.5em;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.description-etc {
-  margin-left: auto;
-  margin-top: auto;
-  text-align: center;
+  margin: 0;
 }
 
 .description-progress-bar {
@@ -56,4 +23,9 @@
 
 .right-click-trigger {
   width: 100%;
+}
+
+mat-card-header {
+  padding: 0.5rem;
+  align-items: center;
 }

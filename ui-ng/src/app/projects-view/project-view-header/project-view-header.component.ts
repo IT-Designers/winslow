@@ -5,6 +5,8 @@ import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
 import {ProjectInfo, State} from '../../api/winslow-api';
+import {FilesApiService} from "../../api/files-api.service";
+import {DialogService} from "../../dialog.service";
 
 @Component({
   selector: 'app-project-view-header',
@@ -30,7 +32,12 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   stage: string = null;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
 
-  constructor(public dialog: MatDialog) { }
+  constructor(
+    public dialog: MatDialog,
+    private files: FilesApiService,
+    private customDialog: DialogService,
+  ) {
+  }
 
   @Input()
   set iconState(value: State) {
@@ -62,11 +69,15 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
   }
 
   excludeTags(project: ProjectInfo) {
-    project.tags.forEach( tag => { this.filter.addExcludedTag(tag); });
+    project.tags.forEach(tag => {
+      this.filter.addExcludedTag(tag);
+    });
   }
 
   includeTags(project: ProjectInfo) {
-    project.tags.forEach( tag => { this.filter.addIncludedTag(tag); });
+    project.tags.forEach(tag => {
+      this.filter.addIncludedTag(tag);
+    });
   }
 
   openAddToContext() {
@@ -76,4 +87,14 @@ export class ProjectViewHeaderComponent implements OnInit, AfterViewInit {
     });
   }
 
+  thumbnailUrl(project: ProjectInfo) {
+    return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
+  }
+
+  makeImageBigger(imageUrl: string, image: MouseEvent) {
+    if (image.target[`currentSrc`].includes('winslow_quadratic.svg')) {
+      return;
+    }
+    this.customDialog.image(imageUrl);
+  }
 }

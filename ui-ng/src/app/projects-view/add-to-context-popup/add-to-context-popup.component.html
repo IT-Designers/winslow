@@ -1,19 +1,21 @@
-<div *ngIf="isGroup">
-  <mat-card-title>Add Group <b>{{data.projectGroup.name}}</b> to context</mat-card-title>
-  <app-tags-with-autocomplete #tags [proposals]="proposals"></app-tags-with-autocomplete>
-  <button mat-stroked-button mat-dialog-close="true" color="warn">Cancel</button>
-  <button mat-stroked-button mat-dialog-close="true" color="primary"
-          (click)="setTagsForGroup(data.projectGroup, tags.selectedTags)">
-    Apply
-  </button>
-</div>
+<div class="main-container">
+  <div *ngIf="isGroup">
+    <mat-card-title>Add Group <b>{{data.projectGroup.name}}</b> to context</mat-card-title>
+    <app-tags-with-autocomplete #tags [proposals]="proposals"></app-tags-with-autocomplete>
+    <button mat-stroked-button mat-dialog-close="true" color="warn">Cancel</button>
+    <button mat-stroked-button mat-dialog-close="true" color="primary"
+            (click)="setTagsForGroup(tags.selectedTags)">
+      Apply
+    </button>
+  </div>
 
-<div *ngIf="!isGroup">
-  <mat-card-title>Add <b>{{data.project.name}}</b> to context</mat-card-title>
-  <app-tags-with-autocomplete #tags [tags]="previewTags" [proposals]="proposals"></app-tags-with-autocomplete>
-  <button mat-stroked-button mat-dialog-close="true" color="warn">Cancel</button>
-  <button mat-stroked-button mat-dialog-close="true" color="primary"
-          (click)="setTagsForProject(data.project, tags.selectedTags)">
-    Apply
-  </button>
+  <div *ngIf="!isGroup">
+    <mat-card-title>Add <b>{{data.project.name}}</b> to context</mat-card-title>
+    <app-tags-with-autocomplete #tags [tags]="previewTags" [proposals]="proposals"></app-tags-with-autocomplete>
+    <button mat-stroked-button mat-dialog-close="true" color="warn">Cancel</button>
+    <button mat-stroked-button mat-dialog-close="true" color="primary"
+            (click)="setTagsForProject(data.project, tags.selectedTags)">
+      Apply
+    </button>
+  </div>
 </div>

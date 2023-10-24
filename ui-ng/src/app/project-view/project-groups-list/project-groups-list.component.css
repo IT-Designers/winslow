@@ -42,8 +42,9 @@ app-groups-add-member-dialog {
 }
 .scrollable {
   width: 90%;
+  max-height: 10rem;
+  min-height: min-content;
   overflow-y: scroll;
-  border-bottom: 1px solid lightgray;
 }
 .no-groups-label {
   font-style: italic;
@@ -56,44 +57,31 @@ app-groups-add-member-dialog {
 .list-item {
   cursor: default;
   padding: 3px;
-  border-bottom: 1px solid lightgrey;
-  margin-top: 1px;
+  margin: 1rem 0;
   font-size: 14px;
   display: flex;
   flex-direction: row;
   /*justify-content: space-between;*/
   align-items: center;
+  vertical-align: center;
 }
-.dropdown-item:hover {
-  background-color: lightgrey;
-}
+
 .username-label {
-  margin-left: 1em;
+  margin: 0 1em;
   /*margin-right: 32%;*/
-  margin-right: 27%;
-  width: 4em;
+  width: 40%;
 }
+
 .role-dropdown {
-  width: 8em;
+  width: 40%;
   display: flex;
   align-items: center;
-  margin-top: 17px;
   height: 45px;
 }
-/*.remove-member-button {
-  border: none;
-  background-color: #3f51b5;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  box-shadow: 0 1px 3px gray; !* horizontal shadow | vertical shadow | shadow blur | shadow color*!
-  margin-left: 265px;
-  margin-right: 10px;
-}*/
+
 .remove-member-button {
   /*height: 30px;*/
-  margin-left: 235px;
-  margin-right: 10px;
+  margin: 0 1rem;
 }
 .remove-member-button:enabled {
   cursor: pointer;
