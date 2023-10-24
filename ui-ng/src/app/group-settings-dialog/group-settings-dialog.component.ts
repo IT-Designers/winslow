@@ -11,7 +11,7 @@ export class GroupSettingsDialogComponent implements OnInit {
 
   availableTags: string[];
   projects: ProjectInfo[];
-  filtered: ProjectInfo[];
+  filtered?: ProjectInfo[];
 
   constructor(
     public dialogRef: MatDialogRef<GroupSettingsDialogComponent>,
@@ -32,7 +32,7 @@ export class GroupSettingsDialogComponent implements OnInit {
   }
 }
 
-export class GroupSettingsDialogData {
+export interface GroupSettingsDialogData {
   projects: ProjectInfo[];
   availableTags: string[];
 }
