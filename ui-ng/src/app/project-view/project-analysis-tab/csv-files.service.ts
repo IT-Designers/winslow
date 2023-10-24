@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {FilesApiService} from '../../api/files-api.service';
-import {BehaviorSubject, combineLatest, from, Observable, of, tap, timer} from 'rxjs';
+import {BehaviorSubject, combineLatest, from, Observable, of, timer} from 'rxjs';
 import {GlobalChartSettings, LocalStorageService} from '../../api/local-storage.service';
 import {finalize, map, shareReplay, switchMap} from 'rxjs/operators';
 import {CsvFileContent, parseCsv} from './csv-parser';
@@ -47,13 +47,9 @@ export class CsvFilesService {
 
   getCsvFiles$(filepath: string): Observable<CsvFile[]> {
     return this.stages$.pipe(
-      tap(x => console.log(x)),
-      switchMap(stages =>
-        combineLatest(stages
-          .map(stage => this.getCsvFile$(<string>stage.workspace, stage.id, filepath))
-        )
-      ),
-      tap(x => console.log(x)),
+      switchMap(stages => combineLatest(
+        stages.map(stage => this.getCsvFile$(stage, filepath))
+      )),
     );
   }
 
@@ -110,14 +106,14 @@ export class CsvFilesService {
     return paths;
   }
 
-  private getCsvFile$(stageWorkspace: string, stageId: string, filepath: string): Observable<CsvFile> {
-    const csvFileSource = this.getCsvFileSource(stageWorkspace, filepath);
+  private getCsvFile$(stage: StageInfo, filepath: string): Observable<CsvFile> {
+    const csvFileSource = this.getCsvFileSource(stage.workspace, filepath);
     return csvFileSource.content$.pipe(
       map((content: CsvFileContent): CsvFile => ({
         content: content,
         pathToWorkspace: csvFileSource.pathToWorkspace,
         pathInWorkspace: csvFileSource.pathInWorkspace,
-        stageId: stageId
+        stageId: stage.id
       }))
     );
   }
