@@ -8,11 +8,6 @@ import {
 import {StageExecutionSelectionComponent} from "../../stage-execution-selection/stage-execution-selection.component";
 import {DialogService} from "../../dialog.service";
 import {ProjectApiService} from "../../api/project-api.service";
-import {
-  GroupSettingsDialogComponent,
-  GroupSettingsDialogData
-} from "../../group-settings-dialog/group-settings-dialog.component";
-import {MatDialog} from "@angular/material/dialog";
 
 @Component({
   selector: 'app-project-control-tab',
@@ -21,7 +16,7 @@ import {MatDialog} from "@angular/material/dialog";
 })
 export class ProjectControlTabComponent {
 
-  @ViewChild('executionSelection') executionSelection: StageExecutionSelectionComponent;
+  @ViewChild('executionSelection') executionSelection!: StageExecutionSelectionComponent;
 
   @Input() set project(project: ProjectInfo) {
     this._project = project;
@@ -34,9 +29,9 @@ export class ProjectControlTabComponent {
     return this._project;
   }
 
-  private _project: ProjectInfo;
+  private _project!: ProjectInfo;
 
-  pipelineDefinition: PipelineDefinitionInfo;
+  pipelineDefinition!: PipelineDefinitionInfo;
 
   constructor(
     private dialog: DialogService,
