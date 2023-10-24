@@ -14,7 +14,7 @@ import {GroupApiService} from '../../api/group-api.service';
 })
 export class NewGroupDialogComponent implements OnInit {
 
-  nameInput: string;
+  nameInput: string = '';
   errorMessage = ' ';
   isLoading = false;
 
