@@ -3,13 +3,18 @@
     <mat-card-header>
       <img mat-card-avatar alt="Project Icon" class="icon" #avatar (error)="avatar.src = 'assets/winslow_quadratic.svg'"
            src="{{thumbnailUrl(project)}}" (click)="makeImageBigger(thumbnailUrl(project), $event)"/>
-      <mat-card-title>{{project.name}}</mat-card-title>
+      <mat-card-title>
+      <span class="inline-title">
+        <app-state-icon #icon></app-state-icon>
+        {{project.name}}
+      </span>
+      </mat-card-title>
       <mat-card-subtitle>
         <app-tags-with-autocomplete *ngIf="project.tags"
-          [readonly]="true"
-          [tags]="project.tags"
-          (tagActionPrimary)="tagActionPrimary.emit($event)"
-          (tagActionSecondary)="tagActionSecondary.emit($event)"
+                                    [readonly]="true"
+                                    [tags]="project.tags"
+                                    (tagActionPrimary)="tagActionPrimary.emit($event)"
+                                    (tagActionSecondary)="tagActionSecondary.emit($event)"
         ></app-tags-with-autocomplete>
         <ng-container *ngIf="pauseReason != null || stage != null">
           {{pauseReason}}{{pauseReason != null && stage != null ? ', ' : ''}}{{stage}}
