@@ -49,7 +49,6 @@ export class CsvFilesService {
     return this.stages$.pipe(
       switchMap(stages =>
         combineLatest(stages
-          .filter(stage => stage.workspace != undefined)
           .map(stage => this.getCsvFile$(<string>stage.workspace, stage.id, filepath))
         )
       ),
