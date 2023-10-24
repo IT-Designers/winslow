@@ -12,8 +12,8 @@ import {UserInfo} from "../../api/winslow-api";
 })
 export class UserDetailsComponent implements OnInit, OnChanges {
 
-  @Input() selectedUser!: UserInfo;   // Object should remain constant
-  @Input() myName!: string;
+  @Input() selectedUser?: UserInfo;   // Object should remain constant
+  @Input() myName?: string;
 
   @Output() deletedUserEmitter = new EventEmitter();
 
@@ -30,14 +30,14 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.selectedUser) {
+    if (this.selectedUser && this.myName) {
       this.editableSelectedUser = Object.assign({}, this.selectedUser);
       this.userApi.hasSuperPrivileges(this.myName)
         .then((bool) => {
           if (bool) {
             this.canIEditUser = bool;
           } else {
-            this.canIEditUser = this.myName === this.selectedUser.name;
+            this.canIEditUser = this.myName === this.selectedUser?.name;
           }
         });
     }
@@ -56,10 +56,16 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   onUpdatePassword(password: string) {
-    this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, password)
+    const user = this.selectedUser;
+    if (user == undefined) {
+      this.dialog.error("Cannot update password: No user selected.");
+      return
+    }
+    this.dialog.openLoadingIndicator(this.userApi.setPassword(user.name, password)
         .then(() => {
           this.newPassword = '';
-          this.selectedUser.password = '********';
+          user.password = '********';
+          this.selectedUser = user;
         }),
       'Updating Password');
   }
