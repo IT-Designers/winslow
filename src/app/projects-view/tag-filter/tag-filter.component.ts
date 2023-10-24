@@ -16,12 +16,12 @@ export class TagFilterComponent implements OnInit {
   projectsGroupsValue?: ProjectGroup[];
   lastPreselectedTag?: string;
 
-  @Output('filtered') filtered = new EventEmitter<ProjectInfo[] | null>();
+  @Output('filtered') filtered = new EventEmitter<ProjectInfo[] | undefined>();
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
 
   @Input()
-  set preSelectedTag(tag: string | null) {
+  set preSelectedTag(tag: string | undefined) {
     if (this.lastPreselectedTag) {
       this.removeIncludedTag(this.lastPreselectedTag);
     }
@@ -110,8 +110,8 @@ export class TagFilterComponent implements OnInit {
   }
 
   updateFilter() {
-    if (this.projectsValue == null) {
-      this.filtered.emit(null);
+    if (this.projectsValue == undefined) {
+      this.filtered.emit(undefined);
       return;
     }
     this.filteredProjects = this.getFilteredProjects();
