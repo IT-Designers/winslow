@@ -1,21 +1,17 @@
 .project-selection-sidebar-item {
-  height: 6em !important; /* TODO */
-}
-
-.mat-icon-container-auto-align-label label {
-  padding-left: 1em;
-  margin: auto 0;
+  /* height: 6em !important; /* TODO */
+  padding: 0;
+  height: max-content;
 }
 
 .group {
-  margin: 0.2em;
   border: 0;
   box-shadow: none;
 }
 
 .group mat-expansion-panel-header {
   padding-left: 0;
-  height: 5.4em;
+  height: 3.5em;
 }
 
 .group mat-icon {
@@ -28,4 +24,11 @@
 
 .group h4 {
   margin: 1.5em auto 0.2em 0.5em;
+}
+.compact-list {
+  margin: 0 -0.5rem -0.5rem -0.5rem;
+}
+
+.mat-divider {
+  margin: 0;
 }
