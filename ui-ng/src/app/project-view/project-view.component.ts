@@ -23,7 +23,7 @@ import {
 import {DialogService} from '../dialog.service';
 import {PipelineEditorComponent} from '../pipeline-editor/pipeline-editor.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Subscription} from 'rxjs';
+import {lastValueFrom, Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {
   EnvVariable,
@@ -454,37 +454,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
         ),
       'Updating Pipeline with new definition'
     );
-  }
-
-  updatePipelineDefinitionOnOthers(raw: string) {
-    this.api.listProjects()
-      .then(projects => {
-        return this.matDialog
-          .open(GroupSettingsDialogComponent, {
-            data: {
-              projects,
-              availableTags: this.api.cachedTags,
-            } as GroupSettingsDialogData
-          })
-          .afterClosed()
-          .toPromise()
-          .then((result: ProjectInfo[] | null) => {
-            if (result) {
-              const promises = [];
-              for (const project of result) {
-                promises.push(this.pipelinesApi.setRawPipelineDefinition(
-                  project.pipelineDefinition.id,
-                  raw
-                ).catch(e => 'At least one update failed: ' + e));
-              }
-              this.dialog.openLoadingIndicator(
-                Promise.all(promises),
-                `Updating Projects`,
-                true
-              );
-            }
-          });
-      });
   }
 
   loadMoreHistoryEntries(count: number = 1) {
