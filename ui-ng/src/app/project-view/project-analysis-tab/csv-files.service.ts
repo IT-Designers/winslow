@@ -50,7 +50,6 @@ export class CsvFilesService {
       tap(x => console.log(x)),
       switchMap(stages =>
         combineLatest(stages
-          .filter(stage => stage.workspace != undefined)
           .map(stage => this.getCsvFile$(<string>stage.workspace, stage.id, filepath))
         )
       ),
