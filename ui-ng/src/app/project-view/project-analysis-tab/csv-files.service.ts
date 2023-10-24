@@ -108,14 +108,14 @@ export class CsvFilesService {
     return paths;
   }
 
-  private getCsvFile$(stageWorkspace: string, stageId: string, filepath: string): Observable<CsvFile> {
-    const csvFileSource = this.getCsvFileSource(stageWorkspace, filepath);
+  private getCsvFile$(stage: StageInfo, filepath: string): Observable<CsvFile> {
+    const csvFileSource = this.getCsvFileSource(stage.workspace, filepath);
     return csvFileSource.content$.pipe(
       map((content: CsvFileContent): CsvFile => ({
         content: content,
         pathToWorkspace: csvFileSource.pathToWorkspace,
         pathInWorkspace: csvFileSource.pathInWorkspace,
-        stageId: stageId
+        stageId: stage.id
       }))
     );
   }
