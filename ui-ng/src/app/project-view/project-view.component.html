@@ -185,7 +185,7 @@
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
           (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"
-          (clickOpenWorkspace)="openWorkspace(project, $event)"
+          (clickOpenWorkspace)="openWorkspace($event)"
           (clickOpenLogs)="openLogs($event)"
           (clickOpenAnalysis)="openAnalysis($event)"
           (clickOpenTensorboard)="openTensorboard(project, $event)"
