@@ -15,11 +15,11 @@ import {ProjectGroup} from '../../api/project-api.service';
 })
 export class ProjectsGroupComponent implements OnInit {
 
-  @Input() projectGroup: ProjectGroup;
-  @Input() filter: TagFilterComponent;
+  @Input() projectGroup!: ProjectGroup;
+  @Input() filter!: TagFilterComponent;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
-  @Input() selectedProject: ProjectInfo;
-  @Input() stateInfo: Map<string, StateInfo>;
+  @Input() selectedProject?: ProjectInfo;
+  @Input() stateInfo?: Map<string, StateInfo>;
 
   constructor(
     public route: ActivatedRoute,
