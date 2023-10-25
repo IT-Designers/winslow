@@ -5,6 +5,9 @@
 .dialog-actions-container {
   justify-content: space-between;
 }
+.app-add-pipeline-dialog {
+  overflow: clip;
+}
 .mat-mdc-form-field {
   width: 100%;
   margin-top: 1em;

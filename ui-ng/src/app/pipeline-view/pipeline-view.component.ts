@@ -39,8 +39,6 @@ import {
 } from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
-import {PipelineApiService} from "../api/pipeline-api.service";
-import {DialogService} from "../dialog.service";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -212,9 +210,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         if (createAction.payload.typeId == 'node-normal' || createAction.payload.typeId == 'node-start') {
           let stageData: StageWorkerDefinitionInfo;
           //-------------------- They get new Stage Definitions from the api --------------------
-          this.defaultGetter.getWorkerDefinition().then((data) => {   //get default Stage/Gatewaydata from the api
+          this.defaultGetter.getWorkerDefinition().then((data: StageWorkerDefinitionInfo) => {
             //-------------------- Which are used to update the pipelineDefinitionEdit Object --------------------
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -224,8 +222,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
 
         } else if (createAction.payload.typeId == 'node-and-splitter') {
           let stageData: StageAndGatewayDefinitionInfo;
-          this.defaultGetter.getAndSplitterDefinition().then((data) => {
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+          this.defaultGetter.getAndSplitterDefinition().then((data: StageAndGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -234,8 +232,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
           });
         } else if (createAction.payload.typeId == 'node-if-splitter') {
           let stageData: StageXOrGatewayDefinitionInfo;
-          this.defaultGetter.getIfSplitterDefinition().then((data) => {
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+          this.defaultGetter.getIfSplitterDefinition().then((data: StageXOrGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -244,8 +242,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
           });
         } else if (createAction.payload.typeId == 'node-all-merger') {
           let stageData: StageAndGatewayDefinitionInfo;
-          this.defaultGetter.getAllMergerDefinition().then((data) => {
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+          this.defaultGetter.getAllMergerDefinition().then((data: StageAndGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -254,8 +252,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
           });
         } else if (createAction.payload.typeId == 'node-any-merger') {
           let stageData: StageXOrGatewayDefinitionInfo;
-          this.defaultGetter.getAnyMergerDefinition().then((data) => {
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+          this.defaultGetter.getAnyMergerDefinition().then((data: StageXOrGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
@@ -264,8 +262,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
           });
         }
       } else if (action.type === DiagramMakerActions.EDGE_CREATE) {   //Logic if a Edge can be created or not
-        let edgeDestPossible = true;
-        let edgeSrcPossible = true;
+        let edgeDestPossible: boolean = true;
+        let edgeSrcPossible: boolean = true;
         const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
         const nodeMap = this.diagramMaker.store.getState().nodes;
         let createEdgeAction = action as CreateEdgeAction<{}>;
@@ -300,7 +298,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         }
         if (edgeDestPossible && edgeSrcPossible) {
           this.saveStatus = false;
-          let stageToEdit = this.pipelineDefinitionEdit.stages.find((element) => element.id === createEdgeAction.payload.src);
+          let stageToEdit: StageDefinitionInfoUnion = this.pipelineDefinitionEdit.stages.find((element: StageDefinitionInfoUnion) => element.id === createEdgeAction.payload.src);
           stageToEdit?.nextStages.push(createEdgeAction.payload.dest);
           dispatch(createEdgeAction);
         }
@@ -330,8 +328,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
   constructor(private viewContainerRef: ViewContainerRef,
               private componentFactoryResolver: ComponentFactoryResolver,
               private client: HttpClient,
-              private pipelinesApi: PipelineApiService,
-              private dialog: DialogService
   ) {
     this.pipelineDefinitionEdit = this.pipelineDefinition;
   }

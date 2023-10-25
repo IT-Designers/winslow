@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ProjectControlTabComponent } from './project-control-tab.component';
 
 describe('ProjectControlTabComponent', () => {
