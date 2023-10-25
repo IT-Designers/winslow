@@ -909,14 +909,14 @@ export type StageDefinitionInfoUnion =
   | StageXOrGatewayDefinitionInfo
   | StageAndGatewayDefinitionInfo;
 
-export function stageDefinitionIsWorker(def: StageDefinitionInfoUnion): def is StageWorkerDefinitionInfo {
+export function isStageWorkerDefinitionInfo(def: StageDefinitionInfoUnion): def is StageWorkerDefinitionInfo {
   return (def as StageWorkerDefinitionInfo)["@type"] == "Worker"
 }
 
-export function stageDefinitionIsAndGateway(def: StageDefinitionInfoUnion): def is StageAndGatewayDefinitionInfo {
+export function isStageAndGatewayDefinitionInfo(def: StageDefinitionInfoUnion): def is StageAndGatewayDefinitionInfo {
   return (def as StageAndGatewayDefinitionInfo)["@type"] == "AndGateway"
 }
 
-export function stageDefinitionIsXorGateway(def: StageDefinitionInfoUnion): def is StageXOrGatewayDefinitionInfo {
+export function isStageXorGatewayDefinitionInfo(def: StageDefinitionInfoUnion): def is StageXOrGatewayDefinitionInfo {
   return (def as StageXOrGatewayDefinitionInfo)["@type"] == "XorGateway"
 }
