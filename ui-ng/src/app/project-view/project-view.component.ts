@@ -22,7 +22,7 @@ import {Subscription} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {
   EnvVariable,
-  ExecutionGroupInfo,
+  ExecutionGroupInfo, ParseError,
   PipelineDefinitionInfo,
   ProjectInfo,
   RangedValue,
@@ -408,7 +408,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     this.dialog.openLoadingIndicator(
       this.pipelinesApi.checkPipelineDefinition(raw)
         .then(result => {
-          if (result != null) {
+          if (result instanceof ParseError) {
             this.rawPipelineDefinitionSuccess = undefined;
             this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in pipeline-details
           } else {
