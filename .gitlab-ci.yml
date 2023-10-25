@@ -94,8 +94,8 @@ build-component-html:
   variables:
     NODE_OPTIONS: "--openssl-legacy-provider"
   script:
-    - mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
-    - cd ui-ng
+    #    - mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
+    #    - cd ui-ng
     #    - npm install -g -ng
     - (npm install || (echo "===== eresolve-report.txt =====" && cat /root/.npm/eresolve-report.txt && echo "===== .log =====" && cat /root/.npm/_logs/* && exit 1))
     - npm run build --prod --configuration=production --baseHref=/ --deployUrl=/
