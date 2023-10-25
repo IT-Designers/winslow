@@ -896,6 +896,14 @@ export type WorkspaceMode = 'STANDALONE' | 'INCREMENTAL' | 'CONTINUATION';
 
 export type RangedValueUnion = RangeWithStepSize | RangedList;
 
+export function isRangeWithStepSize(val: RangedValueUnion): val is RangeWithStepSize {
+  return (val as RangeWithStepSize)["@type"] == "DiscreteSteps"
+}
+
+export function isRangedList(val: RangedValueUnion): val is RangedList {
+  return (val as RangedList)["@type"] == "List"
+}
+
 export type StageDefinitionInfoUnion =
   StageWorkerDefinitionInfo
   | StageXOrGatewayDefinitionInfo
