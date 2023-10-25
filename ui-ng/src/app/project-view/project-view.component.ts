@@ -350,7 +350,12 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     );
   }
 
-  useAsBlueprint(group: ExecutionGroupInfo, entry?: StageInfo) {
+  useAsBlueprint(group?: ExecutionGroupInfo, entry?: StageInfo) {
+    if (group == undefined) {
+      this.dialog.error("Cannot use execution group as blueprint: No group selected.");
+      return;
+    }
+
     console.log('useAsBlueprint ' + (group.stageDefinition instanceof StageWorkerDefinitionInfo));
     if (group.stageDefinition instanceof StageWorkerDefinitionInfo) {
       this.executionSelection.image = group.stageDefinition.image;
