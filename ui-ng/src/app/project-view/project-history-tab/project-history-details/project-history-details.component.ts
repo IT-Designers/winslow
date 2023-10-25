@@ -1,5 +1,11 @@
 import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
-import {ExecutionGroupInfo, StageInfo, State} from '../../../api/winslow-api';
+import {
+  ExecutionGroupInfo,
+  isRangeWithStepSize,
+  isStageWorkerDefinitionInfo,
+  StageInfo,
+  State
+} from '../../../api/winslow-api';
 
 @Component({
   selector: 'app-project-history-details',
@@ -8,20 +14,11 @@ import {ExecutionGroupInfo, StageInfo, State} from '../../../api/winslow-api';
 })
 export class ProjectHistoryDetailsComponent implements OnInit {
 
-  @Input() entry: ExecutionGroupInfo;
-  @Input() entryNumber: number;
-  @Input() stageNumber: number;
-  @Input() selectedStage: StageInfo;
-  @Input() projectState: State;
-  @Input() firstEntry = true;
-  @Input() executionGroup: ExecutionGroupInfo;
-  @Input() expanded = false;
-  @Input() pipelineIsPaused: boolean = null;
+  @Input() entry!: ExecutionGroupInfo;
+  @Input() entryNumber!: number;
+  @Input() selectedStage!: StageInfo;
+  @Input() projectState?: State;
 
-  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
@@ -40,7 +37,7 @@ export class ProjectHistoryDetailsComponent implements OnInit {
   }
 
   @HostListener('window:resize', ['$event'])
-  getScreenSize(event?) {
+  getScreenSize(_event?: Event) {
     this.setHistoryDetailsHeight(window.innerHeight);
   }
 
@@ -77,4 +74,7 @@ export class ProjectHistoryDetailsComponent implements OnInit {
       return '';
     }
   }
+
+  protected readonly isStageWorkerDefinitionInfo = isStageWorkerDefinitionInfo;
+  protected readonly isRangeWithStepSize = isRangeWithStepSize;
 }

@@ -2,9 +2,9 @@ import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "di
 import {
   PipelineDefinitionInfo,
   StageDefinitionInfo,
-  stageDefinitionIsAndGateway,
-  stageDefinitionIsWorker,
-  stageDefinitionIsXorGateway
+  isStageAndGatewayDefinitionInfo,
+  isStageWorkerDefinitionInfo,
+  isStageXorGatewayDefinitionInfo
 } from "../api/winslow-api";
 
 export class DiagramInitialData {
@@ -28,15 +28,15 @@ export class DiagramInitialData {
     for (let i = 0; i < pipelineDefinition.stages.length; i++) {    //All other Stages and Gateways
       let nodeType: String = "";
       let stage = pipelineDefinition.stages[i];
-      if (stageDefinitionIsWorker(stage)) {
+      if (isStageWorkerDefinitionInfo(stage)) {
         nodeType = 'node-normal';
-      } else if (stageDefinitionIsAndGateway(stage)) {
+      } else if (isStageAndGatewayDefinitionInfo(stage)) {
         if (stage.gatewaySubType == 'SPLITTER') {
           nodeType = 'node-and-splitter'
         } else {
           nodeType = 'node-all-merger'
         }
-      } else if (stageDefinitionIsXorGateway(stage)) {
+      } else if (isStageXorGatewayDefinitionInfo(stage)) {
         if (stage.gatewaySubType == 'SPLITTER') {
           nodeType = 'node-if-splitter'
         } else {
