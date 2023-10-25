@@ -11,7 +11,6 @@ import {
   ViewChild
 } from '@angular/core';
 import {ProjectApiService,} from '../api/project-api.service';
-import {MatDialog} from '@angular/material/dialog';
 import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
@@ -44,7 +43,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     public api: ProjectApiService,
     private pipelinesApi: PipelineApiService,
-    private matDialog: MatDialog,
     private dialog: DialogService,
     private route: ActivatedRoute,
     private router: Router,
@@ -292,7 +290,6 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
     this.historySubscription = this.api.watchProjectHistory(projectId, executions => {
       const offset = this.historyEnqueued + this.historyExecuting;
-      const length = this.history.length - offset;
       this.history.splice(offset, 0, ...executions.reverse());
     });
   }
@@ -303,7 +300,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     this.dialog.openLoadingIndicator(
       this.api
         .resume(this.project.id, pause, singleStageOnly)
-        .then(result => {
+        .then(_result => {
           if (!this.paused) {
             this.stateEmitter.emit(this.stateValue = 'RUNNING');
             this.pauseReason = undefined;
@@ -320,7 +317,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     return this.longLoading.isLongLoading();
   }
 
-  openWorkspace(project: ProjectInfo, stage: StageInfo) {
+  openWorkspace(stage: StageInfo) {
     this.tabGroup.selectedIndex = ProjectViewTab.Files;
     this.filesNavigationTarget = `/workspaces/${stage.workspace}/`;
   }
@@ -364,7 +361,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
       });
       this.executionSelection.selectedStage = group.stageDefinition;
       this.executionSelection.workspaceConfiguration = group.workspaceConfiguration;
-      this.executionSelection.comment = group.comment ?? null;
+      this.executionSelection.comment = group.comment ?? '';
       this.environmentVariables = new Map();
       this.defaultEnvironmentVariables = entry != null ? entry.env : group.stageDefinition.environment;
       this.rangedEnvironmentVariables = entry == null && group.rangedValues != null ? group.rangedValues : {};
@@ -506,7 +503,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
     return this.api.tryParseGroupNumber(stageId, alt);
   }
 
-  trackHistory(index: number, value: ExecutionGroupInfo): string {
+  trackHistory(_index: number, value: ExecutionGroupInfo): string {
     return value.id;
   }
 
