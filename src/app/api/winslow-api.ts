@@ -327,11 +327,11 @@ export class ExecutionGroupInfo {
     this.enqueueIndex = data.enqueueIndex;
   }
 
-  rangedValuesKeys (): string[] {
+  rangedValuesKeys(): string[] {
     return Object.keys(this.rangedValues);
   };
 
-  hasStagesState (state: State): boolean {
+  hasStagesState(state: State): boolean {
     for (const stage of this.stages) {
       if (stage.state === state) {
         return true;
@@ -340,7 +340,7 @@ export class ExecutionGroupInfo {
     return false;
   };
 
-  getMostRecentStage (): StageInfo | undefined {
+  getMostRecentStage(): StageInfo | undefined {
     for (const stage of [...this.stages].reverse()) {
       if (stage.finishTime != null) {
         return stage;
@@ -351,7 +351,7 @@ export class ExecutionGroupInfo {
     return undefined;
   };
 
-  getMostRecentStartOrFinishTime (): number | undefined {
+  getMostRecentStartOrFinishTime(): number | undefined {
     const stage = this.getMostRecentStage();
     if (stage == undefined) {
       return undefined;
@@ -381,11 +381,11 @@ export class ExecutionGroupInfo {
     }
   };
 
-  isMostRecentStateRunning (): boolean {
+  isMostRecentStateRunning(): boolean {
     return this.getMostRelevantState() === 'RUNNING';
   };
 
-  hasRunningStages (): boolean {
+  hasRunningStages(): boolean {
     for (const stage of this.stages) {
       if (stage.state === 'RUNNING') {
         return true;
@@ -394,7 +394,7 @@ export class ExecutionGroupInfo {
     return false;
   };
 
-  getGroupSize (): number {
+  getGroupSize(): number {
     const rvKeys = Object.keys(this.rangedValues);
 
     if (rvKeys.length > 0) {

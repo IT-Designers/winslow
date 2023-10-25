@@ -6,7 +6,7 @@
         [time]="selectedStage?.startTime"
         [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
         [state]="entry.getMostRelevantState(projectState)"
-        [isConfigure]="entry?.configureOnly"
+        [isConfigure]="entry.configureOnly"
         [showResumeOnlyThisStage]="false"
         [enqueued]="false"
         [running]="selectedStage?.state == 'RUNNING'"
