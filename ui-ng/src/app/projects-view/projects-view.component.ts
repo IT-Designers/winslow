@@ -18,7 +18,6 @@ export class ProjectsViewComponent implements OnInit {
   @Input() projectsGroups!: ProjectGroup[];
   @Input() filter!: TagFilterComponent;
   @Input() groupsOnTop?: boolean;
-  documentGet = document;
 
   @Output() tagActionPrimary = new EventEmitter<string>();
   @Output() tagActionSecondary = new EventEmitter<string>();
