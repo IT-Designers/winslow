@@ -1,6 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NodesApiService} from '../api/nodes-api.service';
 import {StorageApiService} from '../api/storage-api.service';
+import {lastValueFrom} from "rxjs";
+import {StorageInfo} from "../api/winslow-api";
 
 @Component({
   selector: 'app-system-overview',
@@ -9,9 +11,9 @@ import {StorageApiService} from '../api/storage-api.service';
 })
 export class SystemOverviewComponent implements OnInit, OnDestroy {
 
-  storages: any[] = null;
+  storageGraphData?: StorageGraphData[];
   loadError = null;
-  interval = null;
+  interval?: ReturnType<typeof setInterval>;
 
   constructor(private api: NodesApiService, private storageApi: StorageApiService) {
   }
@@ -19,7 +21,7 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this
       .updateStorages()
-      .then(success => {
+      .then(() => {
         this.interval = setInterval(() => this.updateStorages(), 10_000);
       });
   }
@@ -27,22 +29,20 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.interval) {
       clearInterval(this.interval);
-      this.interval = null;
+      this.interval = undefined;
     }
   }
 
   private updateStorages() {
-    return this.storageApi
-      .getAll()
-      .toPromise()
-      .then(result => this.storages = SystemOverviewComponent.convertToNgxDataset(result))
+    return lastValueFrom(this.storageApi.getAll())
+      .then(result => this.storageGraphData = this.toStorageGraphData(result))
       .catch(error => {
-        this.storages = null;
+        this.storageGraphData = undefined;
         this.loadError = error;
       });
   }
 
-  private static convertToNgxDataset(result) {
+  private toStorageGraphData(result: StorageInfo[]): StorageGraphData[] {
     return result.map(entry => {
       return {
         name: entry.name,
@@ -59,4 +59,18 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
       };
     });
   }
+}
+
+interface StorageGraphData {
+  name: string,
+  series: [
+    {
+      name: 'used',
+      value: number
+    },
+    {
+      name: 'free',
+      value: number
+    },
+  ]
 }
