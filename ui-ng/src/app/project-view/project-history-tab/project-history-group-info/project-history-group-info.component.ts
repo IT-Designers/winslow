@@ -10,11 +10,10 @@ import {ExecutionGroupInfo, StageInfo} from '../../../api/winslow-api';
 })
 export class ProjectHistoryGroupInfoComponent implements OnInit {
 
+  @Input() executionGroup!: ExecutionGroupInfo;
+  @Input() selectedStageIndex!: number;
 
-
-  @Input() executionGroup: ExecutionGroupInfo;
   @Input() visibleStages = 10;
-  @Input() selectedStageIndex: number;
   @Output() selectedStageIndexChange = new EventEmitter<number>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
@@ -56,7 +55,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
     return Math.max(a, b);
   }
 
-  getRangeEnvVariableValues(stage: StageInfo): string {
+  getRangeEnvVariableValues(stage: StageInfo): string | undefined {
     if (this.executionGroup.getGroupSize() > 1) {
       return [...this.executionGroup
         .rangedValuesKeys() ]
@@ -64,7 +63,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
         .map(e => e + '=' + stage.env[e])
         .join(', ');
     } else {
-      return null;
+      return undefined;
     }
   }
 
@@ -72,7 +71,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
     return value.id;
   }
 
-  trackStageInfo(value: StageInfo): string {
+  trackStageInfo(_index: number, value: StageInfo): string {
     return value.id;
   }
 
