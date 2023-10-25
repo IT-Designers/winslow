@@ -9,16 +9,18 @@ import {State} from '../../../api/winslow-api';
 })
 export class ProjectHistoryHeaderComponent implements OnInit {
 
-  @Input() itemNo: number;
-  @Input() state: State;
-  @Input() isConfigure: boolean;
+  @Input() itemNo!: number;
+  @Input() isConfigure!: boolean;
+  @Input() stageName!: string;
+  @Input() groupSize!: number;
+  @Input() paused!: boolean;
+  @Input() enqueued!: boolean;
+  @Input() running!: boolean;
+
+  @Input() comment?: string;
   @Input() time?: number;
-  @Input() stageName: string;
-  @Input() comment: string;
-  @Input() groupSize: number;
-  @Input() paused: boolean;
-  @Input() enqueued: boolean;
-  @Input() running: boolean;
+  @Input() state?: State;
+
   @Input() showActiveControls = true;
   @Input() showPassiveControls = true;
   @Input() showResumeOnlyThisStage = true;
