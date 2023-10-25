@@ -42,17 +42,17 @@
     </div>
 
     <div class="button-group">
-      <button mat-mini-fab color="primary" (click)="openCreateProjectDialog()">
+      <button mat-mini-fab color="primary" (click)="openCreateProjectDialog()" matTooltip="Create new Project">
         <mat-icon matTooltip="Create new Project">add</mat-icon>
       </button>
-      <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()">
+      <button mat-mini-fab color="accent" (click)="openProjectDiskUsageDialog()" matTooltip="Show project diskusage">
         <mat-icon matTooltip="Project Diskusage">insert_chart_outlined</mat-icon>
       </button>
-      <button mat-mini-fab color="warn" (click)="openGroupActions()">
+      <button mat-mini-fab color="warn" (click)="openGroupActions()" matTooltip="Start a group action">
         <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
       </button>
 
-      <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()">
+      <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()" matTooltip="Hide Sidebar">
         <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
       </button>
     </div>
@@ -72,7 +72,7 @@
       </app-project-view>
     </ng-container>
 
-    <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab color="white" (click)="drawer.toggle()">
+    <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab color="white" (click)="drawer.toggle()" matTooltip="Show Sidebar">
       <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
     </button>
 

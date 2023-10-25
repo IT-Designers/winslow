@@ -1,5 +1,4 @@
-<mat-accordion>
-  <mat-expansion-panel (contextmenu)="rightClickAction(matMenuTrigger, $event)" class="group">
+  <mat-expansion-panel (contextmenu)="rightClickAction(matMenuTrigger, $event)" class="group" id="group">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div *ngIf="projectGroup.projects.length <= 9">
@@ -35,7 +34,7 @@
         </button>
       </mat-menu>
     </mat-expansion-panel-header>
-    <div>
+    <div class="compact-list">
       <mat-list-item *ngFor="let project of projectGroup.projects, last as isInnerLast"
                      class="project-selection-sidebar-item"
                      (click)="selectProject(project)"
@@ -50,7 +49,7 @@
           (tagActionPrimary)="filter.toggleIncludedTag($event)"
           (tagActionSecondary)="filter.addExcludedTag($event)"
         ></app-project-view-header>
+        <mat-divider class="mat-divider" *ngIf="!isInnerLast" [inset]="true"></mat-divider>
       </mat-list-item>
     </div>
   </mat-expansion-panel>
-</mat-accordion>

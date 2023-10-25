@@ -16,6 +16,11 @@
   margin: 0;
 }
 
+.inline-title {
+  display: inline-flex;
+  align-items: center;
+}
+
 .description-progress-bar {
   width: 10em;
   margin: auto 1em;
