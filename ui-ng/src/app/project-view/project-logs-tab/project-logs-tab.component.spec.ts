@@ -10,7 +10,7 @@ describe('ProjectLogsTabComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ ProjectLogsTabComponent ]
     })
-    .compileComponents();
+      .compileComponents();
   });
 
   beforeEach(() => {
