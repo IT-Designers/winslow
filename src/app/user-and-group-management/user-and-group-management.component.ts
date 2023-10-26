@@ -1,10 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {GroupApiService, GroupInfo} from '../api/group-api.service';
 import {RoleApiService} from '../api/role-api.service';
-import {UserApiService} from '../api/user-api.service';
+import {UserApiService, UserInfo} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
-import {Link, UserInfo} from "../api/winslow-api";
+import {UserAddNameDialogComponent} from "./user-add-name-dialog/user-add-name-dialog.component";
+import {NewGroupDialogComponent} from "./new-group-dialog/new-group-dialog.component";
 
 @Component({
   selector: 'app-groups-view',
@@ -12,21 +13,21 @@ import {Link, UserInfo} from "../api/winslow-api";
   styleUrls: ['./user-and-group-management.component.css']
 })
 export class UserAndGroupManagementComponent implements OnInit {
-  newGroup: GroupInfo = {name: '', members: []};
+  newGroup = {name: '', members: []};
   itemSelected = false;
   myName = '';
-  myUser: Link = {name: '', role: 'MEMBER'};
+  myUser = {name: '', role: ''};
 
-  allGroups: GroupInfo[] = [];
+  allGroups = [];
   allRoles = [''];
 
   userTabTooltip = '';
-  allUsers: UserInfo[] = [];
+  allUsers = [];
   showUserDetail = false;
-  selectedUser?: UserInfo;
+  selectedUser: UserInfo = null;
 
   showGroupDetail = false;
-  selectedGroup?: GroupInfo;
+  selectedGroup: GroupInfo = null;
 
   constructor(
     private groupApi: GroupApiService,
@@ -71,76 +72,33 @@ export class UserAndGroupManagementComponent implements OnInit {
     });
   }*/
 
-  onAddGroupToggle(name: string) {
-    if (name) {
-      const newGroup = {
-        name,
-        members: [this.myUser],
-      };
-      return this.dialog.openLoadingIndicator(this.groupApi.createGroup(newGroup)
-          .then(() => {
-            this.allGroups.push(newGroup);
-            this.allGroups = this.allGroups.concat([]);
-            this.selectedGroup = newGroup;
-            this.showGroupDetail = true;
-          }),
-        'Creating Group');
-    }
-  }
-
-  onAddUserToggle(name: string) {
-    if (name) {
-      const newUser: UserInfo = {
-        name,
-        displayName: undefined,
-        email: undefined,
-        active: true,
-        password: undefined,
-      };
-      return this.dialog.openLoadingIndicator(this.userApi.createUser(newUser)
-          .then(() => {
-            this.allUsers.push(newUser);
-            this.allUsers = this.allUsers.concat([]);
-            this.selectedUser = newUser;
-            this.showUserDetail = true;
-          }),
-        'Creating User');
-      // TODO: actually create user, show progress with LoadingIndicator
-    }
-  }
-
-  groupClicked(group: GroupInfo) {
+  groupClicked(group) {
     this.selectedGroup = group;
     this.showGroupDetail = true;
   }
 
-  userClicked(user: UserInfo) {
+  userClicked(user) {
     this.selectedUser = user;
     this.showUserDetail = true;
   }
 
   onEditCancel() {
-    this.selectedGroup = undefined;
+    this.selectedGroup = null;
     this.showGroupDetail = false;
     this.itemSelected = false;
   }
 
   onUserEditCancel() {
-    this.selectedUser = undefined;
+    this.selectedUser = null;
     this.showUserDetail = false;
   }
 
   onGroupDelete() {
-    const group = this.selectedGroup;
-    if (group == undefined) {
-      this.dialog.error("Cannot delete group: No group selected.");
-      return;
-    }
     this.dialog.openAreYouSure(
-      `Group being deleted: ${group.name}`,
-      () => this.groupApi.deleteGroup(group.name)
+      `Group being deleted: ${this.selectedGroup.name}`,
+      () => this.groupApi.deleteGroup(this.selectedGroup.name)
         .then(() => {
-          const delIndex = this.allGroups.findIndex((tempGroup) => tempGroup.name === group.name);
+          const delIndex = this.allGroups.findIndex((tempGroup) => tempGroup.name === this.selectedGroup.name);
           this.allGroups.splice(delIndex, 1);
           this.allGroups = this.allGroups.concat([]);
           this.onEditCancel();
@@ -149,20 +107,61 @@ export class UserAndGroupManagementComponent implements OnInit {
   }
 
   onUserDelete() {
-    const user = this.selectedUser;
-    if (user == undefined) {
-      this.dialog.error("Cannot delete user: No user selected.");
-      return;
-    }
     this.dialog.openAreYouSure(
-      `User being deleted: ${user.name}`,
-      () => this.userApi.deleteUser(user.name)
+      `User being deleted: ${this.selectedUser.name}`,
+      () => this.userApi.deleteUser(this.selectedUser.name)
         .then(() => {
-          const delIndex = this.allUsers.findIndex((tempUser) => tempUser.name === user.name);
+          const delIndex = this.allUsers.findIndex((tempUser) => tempUser.name === this.selectedUser.name);
           this.allUsers.splice(delIndex, 1);
           this.allUsers = this.allUsers.concat([]);
           this.onUserEditCancel();
         })
     );
+  }
+
+  openNewUserDialog(): void {
+    this.createDialog.open(UserAddNameDialogComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        const newUser = {
+          name,
+          displayName: null,
+          email: null,
+          active: true,
+          password: null,
+        };
+        this.dialog.openLoadingIndicator(this.userApi.createUser(newUser)
+            .then(() => {
+              this.allUsers.push(newUser);
+              this.allUsers = this.allUsers.concat([]);
+              this.selectedUser = newUser;
+              this.showUserDetail = true;
+            }),
+          'Creating User');
+        // TODO: actually create user, show progress with LoadingIndicator
+      });
+  }
+
+  openNewGroupDialog(): void {
+    this.createDialog.open(NewGroupDialogComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        const newGroup = {
+          name,
+          members: [this.myUser],
+        };
+        return this.dialog.openLoadingIndicator(this.groupApi.createGroup(newGroup)
+            .then(() => {
+              this.allGroups.push(newGroup);
+              this.allGroups = this.allGroups.concat([]);
+              this.selectedGroup = newGroup;
+              this.showGroupDetail = true;
+            }),
+          'Creating Group');
+      });
   }
 }

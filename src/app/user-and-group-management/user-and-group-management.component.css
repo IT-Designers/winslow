@@ -18,7 +18,7 @@
   height: 89vh;
 }
 .drawer {
-  width: 30vw;
+  width: 25vw;
   background-color: whitesmoke;
   overflow-y: auto;
   @media(prefers-color-scheme: dark) {
@@ -54,6 +54,10 @@
 
 .button-group button {
   margin: 0.25em;
+}
+
+.add-button {
+  height: 2.5rem;
 }
 
 .show-projects-button {
