@@ -4,7 +4,7 @@ import {RoleApiService} from '../api/role-api.service';
 import {UserApiService, UserInfo} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
-import {UserAddNameDialogComponent} from "./user-add-name-dialog/user-add-name-dialog.component";
+import {AddUserComponent} from "./add-user-dialog/add-user.component";
 import {NewGroupDialogComponent} from "./new-group-dialog/new-group-dialog.component";
 
 @Component({
@@ -120,7 +120,7 @@ export class UserAndGroupManagementComponent implements OnInit {
   }
 
   openNewUserDialog(): void {
-    this.createDialog.open(UserAddNameDialogComponent, {
+    this.createDialog.open(AddUserComponent, {
       data: {} as string
     })
       .afterClosed()

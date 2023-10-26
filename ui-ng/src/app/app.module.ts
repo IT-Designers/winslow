@@ -121,8 +121,8 @@ import {
 } from './project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {SearchableListComponent} from './user-and-group-management/searchable-list/searchable-list.component';
 import {
-  UserAddNameDialogComponent
-} from './user-and-group-management/user-add-name-dialog/user-add-name-dialog.component';
+  AddUserComponent
+} from './user-and-group-management/add-user-dialog/add-user.component';
 import {UserDetailsComponent} from './user-and-group-management/user-details/user-details.component';
 import {GroupDetailsComponent} from './user-and-group-management/group-details/group-details.component';
 import {PasswordDialogComponent} from './user-and-group-management/password-dialog/password-dialog.component';
@@ -205,7 +205,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
     ProjectGroupsListComponent,
     ProjectAddGroupDialogComponent,
     SearchableListComponent,
-    UserAddNameDialogComponent,
+    AddUserComponent,
     UserDetailsComponent,
     GroupDetailsComponent,
     PasswordDialogComponent,
