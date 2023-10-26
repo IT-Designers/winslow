@@ -15,13 +15,14 @@ import {LocalStorageService} from '../../../api/local-storage.service';
 })
 export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
 
-  availableTagsValue: string[] = [];
-  notVisibleTags: string[] = [];
-  selectedContext: string = '';
+  availableTagsValue: string[];
+  notVisibleTags = [];
+  selectedContext: string;
+  SELECTED_CONTEXT: string = 'SELECTED_CONTEXT';
   @Output() outputContext = new EventEmitter<string>();
-  CONTEXT_PREFIX = 'context::';
-  selectedIndex = 0;
-  observer!: IntersectionObserver;
+  CONTEXT_PREFIX: string = 'context::';
+  selectedIndex: number = 0;
+  observer: IntersectionObserver;
 
   constructor(private localStorageService: LocalStorageService) {
   }
@@ -30,9 +31,9 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    const context = this.localStorageService.getSelectedContext();
-    if (context != null && context !== '') {
-      this.changeContext(context);
+    if (this.localStorageService.getSettings(this.SELECTED_CONTEXT) !== '' &&
+      this.localStorageService.getSettings(this.SELECTED_CONTEXT) != null) {
+      this.changeContext(this.localStorageService.getSettings(this.SELECTED_CONTEXT));
     }
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
     this.createTagObserver();
@@ -42,19 +43,21 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   set availableTags(tags: string[]) {
     this.availableTagsValue = tags
       .filter(tag => tag.startsWith(this.CONTEXT_PREFIX))
-      .map(tag => tag.replace(this.CONTEXT_PREFIX, ''));
+      .map(tag => tag.replace(this.CONTEXT_PREFIX, ''), tag => tag.sort());
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
   }
 
   changeContext(selection: string) {
-    if (this.selectedContext === selection || selection === '' || selection === '[No]') {
+    console.log('Auswahl: ', selection)
+    console.log('Before: ', this.selectedContext)
+    if (selection === '' || selection === '[No]') {
       this.selectedContext = '';
-      this.localStorageService.setSelectedContext(selection);
+      this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
       this.outputContext.emit(undefined);
       this.selectedIndex = 0;
     } else {
       this.selectedContext = selection;
-      this.localStorageService.setSelectedContext(selection);
+      this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
       this.outputContext.emit('context::' + this.selectedContext);
       this.availableTagsValue.indexOf(selection);
       this.selectedIndex = this.availableTagsValue.indexOf(selection) + 1;
@@ -66,10 +69,12 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
     this.observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         const tag = entry.target.textContent;
-        if (entry.isIntersecting || tag === this.selectedContext) {
+        if (entry.isIntersecting === true || tag === this.selectedContext) {
           this.notVisibleTags = this.notVisibleTags.filter(name => name !== tag);
-        } else if (tag != null && tag !== this.selectedContext) {
-          this.notVisibleTags.push(tag);
+        } else {
+          if (tag !== this.selectedContext) {
+            this.notVisibleTags.push(tag);
+          }
         }
       }
       this.notVisibleTags = this.notVisibleTags.sort();
