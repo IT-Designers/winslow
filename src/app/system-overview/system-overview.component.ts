@@ -12,7 +12,7 @@ import {StorageInfo} from "../api/winslow-api";
 export class SystemOverviewComponent implements OnInit, OnDestroy {
 
   storageGraphData?: StorageGraphData[];
-  loadError = null;
+  loadError?: Error;
   interval?: ReturnType<typeof setInterval>;
 
   constructor(private api: NodesApiService, private storageApi: StorageApiService) {
