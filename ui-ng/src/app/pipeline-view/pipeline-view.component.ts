@@ -298,7 +298,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         }
         if (edgeDestPossible && edgeSrcPossible) {
           this.saveStatus = false;
-          let stageToEdit: StageDefinitionInfoUnion = this.pipelineDefinitionEdit.stages.find((element: StageDefinitionInfoUnion) => element.id === createEdgeAction.payload.src);
+          let stageToEdit: StageDefinitionInfoUnion | undefined = this.pipelineDefinitionEdit.stages.find((element: StageDefinitionInfoUnion) => element.id === createEdgeAction.payload.src);
           stageToEdit?.nextStages.push(createEdgeAction.payload.dest);
           dispatch(createEdgeAction);
         }
