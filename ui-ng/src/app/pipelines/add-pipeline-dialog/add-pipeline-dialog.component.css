@@ -1,6 +1,13 @@
+:host {
+  @media(prefers-color-scheme: dark) {
+    color: white;
+  }
+}
+
 .pipeline-name-dialog-container {
   width: 35em;
-  height: 195px !important;
+  max-height: 25vh;
+  padding: 1rem;
 }
 .dialog-actions-container {
   justify-content: space-between;

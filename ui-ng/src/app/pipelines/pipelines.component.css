@@ -15,17 +15,20 @@
     margin: 0.2em 1em;
     padding: 0.5em;
 }
+
 .drawer-container {
   height: 94vh;
 }
+
 .drawer {
-  width: 30vw;
+  width: 25vw;
   background-color: whitesmoke;
   @media(prefers-color-scheme: dark) {
     background-color: #383838;
   }
   overflow-y: auto;
 }
+
 .drawer-content {
   padding: 0.2em;
   overflow-y: hidden;
@@ -55,6 +58,10 @@
 
 .button-group button {
   margin: 0.25em;
+}
+
+.add-button {
+  height: 2.5rem;
 }
 
 .show-projects-button {

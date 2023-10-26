@@ -3,9 +3,10 @@
 
   <div class="inputs">
     <!--<label class="error-label">{{errorMessage}}</label>-->
-    <mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Username</mat-label>
       <input matInput
-             placeholder="Username"
+             placeholder="Winslow-User"
              id="nameInput" [(ngModel)]="nameInput"
              (keyup.enter)="createClicked()"
              (keyup)="checkName()">

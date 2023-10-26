@@ -17,7 +17,6 @@ export class SearchableListComponent implements OnInit, OnChanges {
   @Input() listItemTooltip = 'Edit';
 
   @Output() itemEmitter = new EventEmitter();
-  @Output() newItemEmitter = new EventEmitter();
 
   displayItems: object[];
   selectedItemName = '';
@@ -91,34 +90,4 @@ export class SearchableListComponent implements OnInit, OnChanges {
     this.itemEmitter.emit(item);
   }
 
-  newBtnClicked() {
-    if (this.type === 'Group') {
-      this.createDialog.open(NewGroupDialogComponent, {
-        data: {} as string
-      })
-        .afterClosed()
-        .subscribe((name) => {
-          this.selectedItemName = name;
-          this.newItemEmitter.emit(name);
-        });
-    } else if (this.type === 'User') {
-      this.createDialog.open(UserAddNameDialogComponent, {
-        data: {} as string
-      })
-        .afterClosed()
-        .subscribe((name) => {
-          this.selectedItemName = name;
-          this.newItemEmitter.emit(name);
-        });
-    } else if (this.type === 'Pipeline') {
-      this.createDialog.open(AddPipelineDialogComponent, {
-        data: {} as string
-      })
-        .afterClosed()
-        .subscribe((name) => {
-          this.selectedItemName = name;
-          this.newItemEmitter.emit(name);
-        });
-    }
-  }
 }

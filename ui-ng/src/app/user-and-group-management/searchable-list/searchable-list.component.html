@@ -1,4 +1,4 @@
-<div class="list-container scrollable">
+<div class="list-container">
 
   <mat-form-field class="search-container" appearance="outline">
     <mat-label>Search...</mat-label>
@@ -9,6 +9,35 @@
            (keyup)="searchItemFilter()"
            (keyup.backspace)="filterSystemGroups()">
   </mat-form-field>
+
+  <ng-container class="btn-container">
+    <mat-checkbox *ngIf="type === 'Group'"
+                  class="show-usergroups-checkbox"
+                  [(ngModel)]="showSystemGroups"
+                  (change)="filterSystemGroups()">
+      Show System Groups
+    </mat-checkbox>
+  </ng-container>
+
+  <mat-divider></mat-divider>
+
+  <mat-list class="list">
+      <mat-card class="list-item"
+        *ngFor="let item of displayItems"
+        (click)="itemClicked(item)"
+      >
+        <mat-card-header [class.selected]="item.name == selectedItemName" class="list-inline" style="padding: 0.8rem">
+          <mat-card-title>
+            {{item.name}}
+          </mat-card-title>
+          <mat-icon matTooltip="{{listItemTooltip}}">edit</mat-icon>
+
+        </mat-card-header>
+      </mat-card>
+      <mat-icon matTooltip="{{listItemTooltip}}"></mat-icon>
+  </mat-list>
+
+  <!--
   <div class="list">
     <div class="list-item"
          *ngFor="let item of displayItems"
@@ -16,21 +45,10 @@
          [class.item-clicked]="item.name == selectedItemName">
       {{item.name}}
       <mat-icon matTooltip="{{listItemTooltip}}"
-      matTooltipShowDelay="500">edit</mat-icon>
+                matTooltipShowDelay="500">edit
+      </mat-icon>
     </div>
   </div>
-  <div class="btn-container">
-    <button class="mat-raised-button new-btn"
-            color="primary"
-            mat-raised-button=""
-            (click)="newBtnClicked()">
-      New {{type}}
-    </button>
-    <mat-checkbox *ngIf="type === 'Group'"
-                  class="show-usergroups-checkbox"
-                  [(ngModel)]="showSystemGroups"
-                  (change)="filterSystemGroups()">
-      Show System Groups
-    </mat-checkbox>
-  </div>
+  -->
+
 </div>
