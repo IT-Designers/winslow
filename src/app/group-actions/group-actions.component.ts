@@ -22,7 +22,7 @@ export class GroupActionsComponent implements OnInit {
   projectsLongLoading = new LongLoadingDetector();
 
   pipelines?: PipelineDefinitionInfo[];
-  actionLoadError = null;
+  actionLoadError?: Error;
   actionLongLoading = new LongLoadingDetector();
   groupsOnTop?: boolean;
 

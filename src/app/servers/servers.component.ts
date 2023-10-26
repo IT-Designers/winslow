@@ -19,7 +19,7 @@ export class ServersComponent implements OnInit, OnDestroy {
   nodes: NodeInfoExt[] = [];
   node?: NodeInfoExt;
   selectedNodeIndex?: number;
-  loadError = null;
+  loadError?: Error;
   subscription?: Subscription;
   lastTimestamp?: number;
 
