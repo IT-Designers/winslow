@@ -167,7 +167,7 @@ export class UserAndGroupManagementComponent implements OnInit {
   }
 
   openNewUserDialog(): void {
-    this.createDialog.open(UserAddNameDialogComponent, {
+    this.createDialog.open(AddUserComponent, {
       data: {} as string
     })
       .afterClosed()
