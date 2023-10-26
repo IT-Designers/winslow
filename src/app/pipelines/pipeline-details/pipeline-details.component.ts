@@ -31,9 +31,9 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
     }
   ];
 
-  rawPipelineDefinition: string | null = null;
-  rawPipelineDefinitionError: string | null = null;
-  rawPipelineDefinitionSuccess: string | null = null;
+  rawPipelineDefinition?: string;
+  rawPipelineDefinitionError?: string;
+  rawPipelineDefinitionSuccess?: string;
 
   longLoading = new LongLoadingDetector();
 
@@ -62,11 +62,11 @@ export class PipelineDetailsComponent implements OnInit, OnChanges {
       this.pipelinesApi.checkPipelineDefinition(raw)
         .then(result => {
           if (result instanceof ParseError) {
-            this.rawPipelineDefinitionSuccess = null;
+            this.rawPipelineDefinitionSuccess = undefined;
             this.rawPipelineDefinitionError = '' + result.message; //TODO Datatype same as in project-view
           } else {
             this.rawPipelineDefinitionSuccess = 'Looks good!';
-            this.rawPipelineDefinitionError = null;
+            this.rawPipelineDefinitionError = undefined;
           }
         }),
       `Checking Pipeline Definition`,

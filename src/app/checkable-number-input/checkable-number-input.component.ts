@@ -42,7 +42,7 @@ export class CheckableNumberInputComponent implements OnInit {
   }
 
   @Input('value')
-  public set valueSetter(value: number) {
+  public set valueSetter(value: number | undefined) {
     this.value = value;
     this.valueOriginal = value;
   }
