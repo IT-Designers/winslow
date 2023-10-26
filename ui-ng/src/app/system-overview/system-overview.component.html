@@ -1,6 +1,6 @@
 <app-servers></app-servers>
 
-<app-loading-info [error]="loadError ? loadError.message : null" [loading]="!storageGraphData"></app-loading-info>
+<app-loading-info [error]="loadError?.message" [loading]="!storageGraphData"></app-loading-info>
 
 <div class="overview-element" *ngIf="storageGraphData">
   <h3>Storage</h3>

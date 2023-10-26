@@ -18,7 +18,7 @@ export class SystemCfgEnvComponent implements OnInit {
 
   longLoadingValue = new LongLoadingDetector();
   longLoadingExternallySet = false;
-  loadError = null;
+  loadError?: Error;
 
   constructor(private api: SettingsApiService, private dialog: DialogService) {
   }

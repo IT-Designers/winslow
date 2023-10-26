@@ -18,7 +18,7 @@ export class FilesComponent implements OnInit {
 
   files: Map<string, FileInfo[]>;
   longLoading = new LongLoadingDetector();
-  loadError = null;
+  loadError?: Error;
 
   showDirectorySize = false;
   latestPath = '/resources'; // IMPORTANT: starts with a slash, but never ends with one: '/resources/ab/cd/ef'
