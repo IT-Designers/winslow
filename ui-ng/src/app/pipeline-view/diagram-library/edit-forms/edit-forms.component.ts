@@ -17,15 +17,15 @@ import {UntypedFormBuilder, UntypedFormGroup} from "@angular/forms";
 export class EditFormsComponent implements OnInit {
 
 
-  @Input() objPlace;
+  @Input() objPlace: any;
   @Output() onCollectData : EventEmitter<Object> = new EventEmitter();
   @Output() onTriggerSaveData : EventEmitter<Object> = new EventEmitter();
-  editForm: UntypedFormGroup;
+  editForm!: UntypedFormGroup;
   extended: boolean[] = [];
-  formMap$;
-  formObj$;
+  formMap$: any;
+  formObj$: any;
 
-  @ViewChildren('form') childForm:QueryList<EditFormsComponent>;
+  @ViewChildren('form') childForm!: QueryList<EditFormsComponent>;
 
   constructor( private fb: UntypedFormBuilder) { }
 
@@ -34,7 +34,7 @@ export class EditFormsComponent implements OnInit {
   }
 
   @Input()
-  set formObj(formObj){
+  set formObj(formObj: any){
     this.formObj$ = JSON.parse(JSON.stringify(formObj));
     let newFormObj = JSON.parse(JSON.stringify(formObj));   //copy necessary because of read only values
     for(let [key, value] of Object.entries(this.formObj$)){   //Array values get replaced with Array-like Object - necessary for Angular form Group
@@ -44,12 +44,12 @@ export class EditFormsComponent implements OnInit {
     }
     this.editForm = this.fb.group(newFormObj);
     if (this.formMap$) {
-      this.extended = Array(this.formMap$.lenght);    //Array to determine which Abject fields are extended
+      this.extended = Array(this.formMap$.size);    //Array to determine which Abject fields are extended
       this.extended.fill(false);
     }
   };
   @Input()
-  set formMap(formMap){     //Map for the display of the values in html
+  set formMap(formMap: any){     //Map for the display of the values in html
     let formHtmlMap = new Map();
     for (const key of Object.keys(formMap)) {
       formHtmlMap.set(key, formMap[key]);
@@ -58,16 +58,16 @@ export class EditFormsComponent implements OnInit {
 
   };
 
-  public keepOriginalOrder = (a, b) => a.key;
+  public keepOriginalOrder = (a: any, b: any) => a.key;
 
-  isNotObject(prop) : boolean {
+  isNotObject(prop: any) : boolean {
     if (typeof prop == "number" || typeof prop == "string" || typeof prop == "boolean"){
       return true;
     }
     else {return false;}
   }
 
-  collectFormData(collectedFormData){   //puts the received data in the form obj
+  collectFormData(collectedFormData: any){   //puts the received data in the form obj
     this.formObj$ = this.editForm.value;
     this.formObj$[collectedFormData[0]] = collectedFormData[1];
   }
@@ -87,10 +87,10 @@ export class EditFormsComponent implements OnInit {
     this.onTriggerSaveData.emit();
   }
 
-  extendData(index){
+  extendData(index: any){
     this.extended[index] = !this.extended[index];
   }
-  addContent(entry){                                //entered by clicking the plus to add a new entry to an array
+  addContent(entry: any){                                //entered by clicking the plus to add a new entry to an array
     if (entry.value instanceof Array){
       let newArray : Array<String>  = Object.assign([], this.formObj$[entry.key]);
       newArray.push("New Entry");
@@ -100,7 +100,7 @@ export class EditFormsComponent implements OnInit {
       //this.triggerSaveData();
     }
   }
-  deleteContent(entry){                                //entered by clicking the minus to delete the entry from the array
+  deleteContent(entry: any){                                //entered by clicking the minus to delete the entry from the array
     if (this.formObj$.includes(entry.value)){
       let newArray : Array<String>  = Object.assign([], this.formObj$);
       newArray.splice(entry.key, 1);
@@ -111,19 +111,19 @@ export class EditFormsComponent implements OnInit {
       }
     }
   }
-  toDisplayProp(entry){
+  toDisplayProp(entry: any){
     if (entry ==  "id" || entry == "nextStages" || entry == "@type" || entry == "gatewaySubType"){
       return false;
     }
     else{return true;}
   }
-  isArray(entry){
+  isArray(entry: any){
     if (entry instanceof Array){
       return true;
     }
     else{return false;}
   }
-  isInsideArray(entry){
+  isInsideArray(entry: any){
     if (this.formObj$ instanceof Array){
       if(this.formObj$.includes(entry)){
         return true;
