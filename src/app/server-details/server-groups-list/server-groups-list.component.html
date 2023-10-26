@@ -219,7 +219,7 @@
               &nbsp;
             </label>
           </mat-expansion-panel-header>
-          <div class="expansion-content-container">
+          <div *ngIf="editableResourceAllocations.globalLimit" class="expansion-content-container">
             <div class="single-resource-container">
               <label class="resource-label">CPU Cores: </label>
               <mat-form-field class="input-width" appearance="outline">
@@ -229,7 +229,7 @@
                     min="0"
                     max="{{maxCpuCores}}"
                     placeholder="CPU Cores"
-                    [(ngModel)]="editableResourceAllocations.globalLimit?.cpu"
+                    [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
                     [disabled]="userRole === 'MEMBER'"
                 >
                 <mat-error>
@@ -241,7 +241,7 @@
                   min="0"
                   max="{{maxCpuCores}}"
                   step="1"
-                  [(ngModel)]="editableResourceAllocations.globalLimit?.cpu"
+                  [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
                   [disabled]="userRole === 'MEMBER'" #ngSlider
               ><input
                   matSliderThumb
@@ -263,7 +263,7 @@
                     min="0"
                     max="{{maxGpus}}"
                     placeholder="GPUs"
-                    [(ngModel)]="editableResourceAllocations.globalLimit?.gpu"
+                    [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
                     [disabled]="userRole === 'MEMBER'"
                 >
                 <mat-error>
@@ -275,7 +275,7 @@
                   min="0"
                   max="{{maxGpus}}"
                   step="1"
-                  [(ngModel)]="editableResourceAllocations.globalLimit?.gpu"
+                  [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
                   [disabled]="userRole === 'MEMBER'" #ngSlider
               ><input
                   matSliderThumb
@@ -307,7 +307,7 @@
                   min="0"
                   max="{{maxMemory}}"
                   step="256"
-                  [(ngModel)]="editableResourceAllocations.globalLimit?.mem"
+                  [(ngModel)]="editableResourceAllocations.globalLimit.mem"
                   [disabled]="userRole === 'MEMBER'" #ngSlider
               ><input
                   matSliderThumb
