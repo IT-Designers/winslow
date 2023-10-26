@@ -165,4 +165,50 @@ export class UserAndGroupManagementComponent implements OnInit {
         })
     );
   }
+
+  openNewUserDialog(): void {
+    this.createDialog.open(UserAddNameDialogComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        const newUser = {
+          name,
+          displayName: null,
+          email: null,
+          active: true,
+          password: null,
+        };
+        this.dialog.openLoadingIndicator(this.userApi.createUser(newUser)
+            .then(() => {
+              this.allUsers.push(newUser);
+              this.allUsers = this.allUsers.concat([]);
+              this.selectedUser = newUser;
+              this.showUserDetail = true;
+            }),
+          'Creating User');
+        // TODO: actually create user, show progress with LoadingIndicator
+      });
+  }
+
+  openNewGroupDialog(): void {
+    this.createDialog.open(NewGroupDialogComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        const newGroup = {
+          name,
+          members: [this.myUser],
+        };
+        return this.dialog.openLoadingIndicator(this.groupApi.createGroup(newGroup)
+            .then(() => {
+              this.allGroups.push(newGroup);
+              this.allGroups = this.allGroups.concat([]);
+              this.selectedGroup = newGroup;
+              this.showGroupDetail = true;
+            }),
+          'Creating Group');
+      });
+  }
 }

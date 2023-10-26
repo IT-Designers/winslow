@@ -6,6 +6,7 @@ import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-create-dialog/create-pipeline-dialog.component';
 import {ParseError, PipelineDefinitionInfo} from '../api/winslow-api';
 import {DialogService} from "../dialog.service";
+import {AddPipelineDialogComponent} from "./add-pipeline-dialog/add-pipeline-dialog.component";
 
 @Component({
   selector: 'app-pipelines',
@@ -113,16 +114,21 @@ export class PipelinesComponent implements OnInit {
   onPipelineClicked(pipeline) {
     this.selectedPipeline = pipeline;
   }
-  onAddPipeline(name) {
-    if (name) {
-      return this.dialog.openLoadingIndicator(this.api.createPipelineDefinition(name)
-        .then((newPipeline) => {
-          this.pipelines.push(newPipeline);
-          this.pipelines = this.pipelines.concat([]);
-          this.selectedPipeline = newPipeline;
-        }),
-        'Creating Pipeline');
-    }
+
+  openCreatePipelineDialog(): void {
+    this.createDialog.open(AddPipelineDialogComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        this.dialog.openLoadingIndicator(this.api.createPipelineDefinition(name)
+            .then((newPipeline) => {
+              this.pipelines.push(newPipeline);
+              this.pipelines = this.pipelines.concat([]);
+              this.selectedPipeline = newPipeline;
+            }),
+          'Creating Pipeline');
+      });
   }
 
   onDeletePipeline(event) {
@@ -137,25 +143,4 @@ export class PipelinesComponent implements OnInit {
         ));
   }
 
-  openCreatePipelineDialog() {
-    const dialog: MatDialogRef<CreatePipelineDialogComponent, CreatePipelineResult> = this.createDialog.open(CreatePipelineDialogComponent, {});
-    dialog
-      .afterClosed()
-      .subscribe(result => {
-        if (result) {
-          this.longLoading.increase();
-          return this.api
-            .createPipelineDefinition(result.name)
-            .then(info => {
-              if (info) {
-                return this.loadRaw(info.id)
-                  .then(loaded => this.pipelines.push(info));
-              } else {
-                this.notification.error('Request failed');
-              }
-            })
-            .finally(() => this.longLoading.decrease());
-        }
-      });
-  }
 }

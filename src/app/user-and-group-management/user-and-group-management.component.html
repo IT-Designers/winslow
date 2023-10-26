@@ -15,7 +15,6 @@
               searchPlaceholderText="Username..."
               listItemTooltip="Edit User"
               (itemEmitter)="userClicked($event)"
-              (newItemEmitter)="onAddUserToggle($event)"
               class="searchable-list">
             </app-searchable-list>
           </div>
@@ -57,7 +56,6 @@
               searchPlaceholderText="Groupname..."
               listItemTooltip="Edit Group"
               (itemEmitter)="groupClicked($event)"
-              (newItemEmitter)="onAddGroupToggle($event)"
               class="searchable-list">
             </app-searchable-list>
           </div>
