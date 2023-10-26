@@ -79,7 +79,7 @@
     <mat-grid-tile colspan='2'></mat-grid-tile>
   </mat-grid-list>
 
-  <ng-container *ngIf="this.node != null">
-    <app-server-details [nodeName]="this.node?.name" [historyEnabled]="true"></app-server-details>
+  <ng-container *ngIf="this.node">
+    <app-server-details [nodeName]="this.node.name" [historyEnabled]="true"></app-server-details>
   </ng-container>
 </div>
