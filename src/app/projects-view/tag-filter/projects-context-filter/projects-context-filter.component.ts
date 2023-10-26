@@ -47,7 +47,9 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   }
 
   changeContext(selection: string) {
-    if (this.selectedContext === selection || selection === '' || selection === '[No]') {
+    console.log('Auswahl: ', selection)
+    console.log('Before: ', this.selectedContext)
+    if (selection === '' || selection === '[No]') {
       this.selectedContext = '';
       this.localStorageService.setSelectedContext(selection);
       this.outputContext.emit(undefined);
