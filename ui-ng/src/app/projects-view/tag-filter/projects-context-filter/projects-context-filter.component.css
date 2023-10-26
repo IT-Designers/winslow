@@ -2,9 +2,15 @@
   position: absolute;
   right: 0.7em;
   top:0.5em;
-  background-color: whitesmoke;
-  color: #7f7f7f;
-  width: 2em;
+  z-index: 999;
+  background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
+}
+
+.context {
+  margin-bottom: 1rem;
 }
 
 .context deep .mat-tab-label-container {
@@ -16,10 +22,6 @@
 .context deep .mat-tab-label {
   min-width: min-content;
   padding: 0;
-}
-
-.context deep .mat-tab-header-pagination {
-  display: none !important;
 }
 
 .context deep .mat-mdc-tab-header {
