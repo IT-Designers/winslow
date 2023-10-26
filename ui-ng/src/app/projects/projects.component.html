@@ -19,7 +19,7 @@
               #filter
               [availableTags]="projectApi.cachedTags"
               [projects]="projects"
-              [preSelectedTag]="context"
+              [preSelectedTag]="context ?? undefined"
               (filtered)="projectsFiltered = $event ?? projects;"
               (projectsGroups)="projectsGroups = $event"
               (groupsOnTop)="groupsOnTop = $event"
@@ -33,7 +33,7 @@
           [projects]="projects"
           [projectsFiltered]="projectsFiltered"
           [projectsGroups]="projectsGroups"
-          [selectedProject]="selectedProject"
+          [selectedProject]="selectedProject ?? undefined"
           [stateInfo]="stateInfo"
           [groupsOnTop]="groupsOnTop ?? false"
           [filter]="filter"

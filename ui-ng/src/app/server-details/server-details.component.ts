@@ -944,7 +944,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     return bytes / (1024 * 1024 * 1024);
   }
 
-  trackGpu(_index: string, gpuInfo: GpuInfo): string {
+  trackGpu(_index: number, gpuInfo: GpuInfo): string {
     return gpuInfo?.id;
   }
 

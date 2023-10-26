@@ -40,7 +40,7 @@ export class ProjectControlTabComponent {
   }
 
   enqueue(
-    pipeline: PipelineDefinitionInfo,
+    pipeline: PipelineDefinitionInfo | undefined,
     stageDefinitionInfo: StageDefinitionInfo,
     env: any,
     rangedEnv: any,
@@ -51,23 +51,27 @@ export class ProjectControlTabComponent {
     runSingle: boolean,
     resume: boolean,
   ) {
-    if (pipeline.name === this.project.pipelineDefinition.name) {
-      this.dialog.openLoadingIndicator(
-        this.projectApi.enqueue(
-          this.project.id,
-          stageDefinitionInfo.id,
-          env,
-          rangedEnv,
-          image,
-          requiredResources,
-          workspaceConfiguration,
-          comment,
-          runSingle,
-          resume),
-        `Submitting selections`
-      );
-    } else {
-      this.dialog.error('Changing the Pipeline is not yet supported!');
+    if (pipeline == undefined) {
+      this.dialog.error('No pipeline selected!');
+      return
     }
+    if (pipeline.name !== this.project.pipelineDefinition.name) {
+      this.dialog.error('Changing the Pipeline is not yet supported!');
+      return
+    }
+    this.dialog.openLoadingIndicator(
+      this.projectApi.enqueue(
+        this.project.id,
+        stageDefinitionInfo.id,
+        env,
+        rangedEnv,
+        image,
+        requiredResources,
+        workspaceConfiguration,
+        comment,
+        runSingle,
+        resume),
+      `Submitting selections`
+    );
   }
 }

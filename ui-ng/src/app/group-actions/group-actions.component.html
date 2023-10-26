@@ -37,7 +37,7 @@
     <mat-card-content class="flex-grow-column action-selector">
       <app-stage-execution-selection
           #selection
-          [pipelines]="pipelines"
+          [pipelines]="pipelines ?? []"
       >
       </app-stage-execution-selection>
 
