@@ -9,7 +9,7 @@ import {StageDefinitionInfo} from "../../api/winslow-api";
 })
 export class DiagramGatewayComponent implements OnInit {
 
-  @Input() nodeTypeName: String;
+  @Input() nodeTypeName: String = "";
   gatewayName: String = "";
   node$?: DiagramMakerNode<{}>;
   selected$?: boolean = false;

@@ -7,6 +7,7 @@ import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
 import Swal from 'sweetalert2';
 import {StorageApiService} from '../api/storage-api.service';
 import {FileInfo} from '../api/winslow-api';
+import {lastValueFrom} from "rxjs";
 
 @Component({
   selector: 'app-files',
@@ -15,7 +16,7 @@ import {FileInfo} from '../api/winslow-api';
 })
 export class FilesComponent implements OnInit {
 
-  files: Map<string, FileInfo[]> = null;
+  files: Map<string, FileInfo[]>;
   longLoading = new LongLoadingDetector();
   loadError = null;
 
@@ -27,9 +28,10 @@ export class FilesComponent implements OnInit {
   contextMenuY = 0;
   contextMenuVisible = false;
 
-  dataUpload: UploadFilesProgress = null;
-  @ViewChild('swalUpload') swalUpload: SwalComponent;
-  viewHint: string = null;
+  dataUpload!: UploadFilesProgress;
+  viewHint!: string;
+  @ViewChild('swalUpload') swalUpload!: SwalComponent;
+  @ViewChild('decompress') decompress!: HTMLInputElement;
 
 
   constructor(
@@ -42,7 +44,7 @@ export class FilesComponent implements OnInit {
     const directory = true;
     const name = 'resources';
     const path = '/resources';
-    const info = new FileInfo({name, path, directory, fileSize: 0, attributes: {}} as FileInfo);
+    const info = new FileInfo({name, path, directory, fileSize: 0, attributes: {}});
     root.push(info);
     this.files = new Map();
     this.files.set('/', root);
@@ -56,7 +58,7 @@ export class FilesComponent implements OnInit {
         this.insertListResourceResult('/resources', res);
         return this.loadDirectory(this.latestPath);
       })
-      .then(result => {
+      .then(() => {
         if (this.navigationTarget != null) {
           return this.navigateDirectlyTo(this.navigationTarget);
         }
@@ -70,9 +72,9 @@ export class FilesComponent implements OnInit {
     const directory = true;
     const name = value.split(';')[0];
     const path = `/${value.split(';')[1]}`;
-    const additional = new FileInfo({name, directory, path, fileSize: 0, attributes: {}} as FileInfo);
-    this.files.get('/').splice(1);
-    this.files.get('/').push(additional);
+    const additional = new FileInfo({name, directory, path, fileSize: 0, attributes: {}});
+    this.files.get('/')?.splice(1);
+    this.files.get('/')?.push(additional);
     this.files.set(additional.path, []);
     this.navigationTarget = additional.path;
   }
@@ -134,7 +136,7 @@ export class FilesComponent implements OnInit {
   }
 
   currentDirectory(): FileInfo[] {
-    return this.files.has(this.latestPath) ? this.files.get(this.latestPath) : [];
+    return this.files.get(this.latestPath) ?? [];
   }
 
   viewDirectory(path: string) {
@@ -213,10 +215,11 @@ export class FilesComponent implements OnInit {
     this.dialog.createAThing(
       'directory',
       'Name of the directory',
-      name => {
+      async name => {
         if (name != null && name.length > 0) {
           const path = this.absoluteDirectoryPath(this.latestPath + '/' + name);
-          return this.api.createDirectory(path).then(r => this.navigateDirectlyTo(this.latestPath));
+          await this.api.createDirectory(path)
+          await this.navigateDirectlyTo(this.latestPath);
         }
       }
     );
@@ -229,81 +232,86 @@ export class FilesComponent implements OnInit {
 
     const elements = document.getElementsByClassName(CLASS_NAME_SELECTED);
     for (let i = 0; i < elements.length; ++i) {
-      elements.item(i).classList.remove(CLASS_NAME_SELECTED);
+      elements.item(i)?.classList.remove(CLASS_NAME_SELECTED);
     }
     const directories = document.getElementsByClassName(CLASS_NAME);
     for (let i = 0; i < directories.length; ++i) {
-      const value = directories.item(i).attributes.getNamedItem(DATA_ATTRIBUTE).value;
+      const value = directories.item(i)?.attributes.getNamedItem(DATA_ATTRIBUTE)?.value;
       if (value === this.latestPath) {
-        directories.item(i).classList.add(CLASS_NAME_SELECTED);
+        directories.item(i)?.classList.add(CLASS_NAME_SELECTED);
         break;
       }
     }
   }
 
   uploadFile(files: FileList, decompress = false) {
+    if (this.swalUpload == undefined) {
+      this.dialog.error('Failed to upload file: swalUpload is not initialized!')
+      return;
+    }
+
     this.prepareDataUpload(files);
 
     const instance = {
       swal: this.swalUpload.fire(),
-      uploader: null,
-      updater: null
+      uploader: null as any,
+      updater: null as any,
     };
 
     instance.uploader = (index: number): Promise<void> => {
-      if (index < files.length) {
-        const upload = this.api.uploadFile(this.latestPath, files.item(index), decompress);
-        upload.subscribe(event => {
-          if (event.type === HttpEventType.UploadProgress || event.type === HttpEventType.ResponseHeader) {
-
-            const now = new Date();
-
-            if (event.type === HttpEventType.UploadProgress) {
-              const MOVING_AVERAGE_SAMPLES = 20;
-              const timeDiff = now.getTime() - this.dataUpload.uploads[index].currentUploadSpeedLastUpdate.getTime();
-              const byteDiff = event.loaded - this.dataUpload.uploads[index].loaded;
-              const byteSec = byteDiff / (timeDiff / 1000);
-
-              this.dataUpload.uploads[index].loaded = event.loaded;
-              this.dataUpload.uploads[index].total = event.total;
-              this.dataUpload.uploads[index].currentUploadSpeed = (
-                (MOVING_AVERAGE_SAMPLES - 1 + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff)
-                * this.dataUpload.uploads[index].currentUploadSpeed
-                + (byteSec * timeDiff)
-              ) / (MOVING_AVERAGE_SAMPLES + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff + timeDiff);
-              this.dataUpload.uploads[index].currentUploadSpeedLastUpdate = now;
-              this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff = timeDiff;
-            } else {
-              this.dataUpload.uploads[index].completed = true;
-            }
-
-            this.updateProgress(now, this.dataUpload.uploads[index]);
-          }
-        });
-        return upload
-          .toPromise()
-          .then(rr => this.loadDirectory(this.latestPath))
-          .then(rr => instance.uploader(index + 1))
-          .catch(err => {
-            this.dataUpload.err = '' + err;
-            return Promise.reject();
-          });
-      } else {
+      if (index >= files.length) {
         return Promise.resolve();
       }
+      const file = files.item(index);
+      if (file == undefined) {
+        return Promise.reject();
+      }
+      const upload = this.api.uploadFile(this.latestPath, file, decompress);
+      upload.subscribe(event => {
+        if (event.type !== HttpEventType.UploadProgress && event.type !== HttpEventType.ResponseHeader) {
+          return;
+        }
+        const now = new Date();
+        if (event.type !== HttpEventType.UploadProgress || event.total == undefined) {
+          this.dataUpload.uploads[index].completed = true;
+        } else {
+          const MOVING_AVERAGE_SAMPLES = 20;
+          const timeDiff = now.getTime() - this.dataUpload.uploads[index].currentUploadSpeedLastUpdate.getTime();
+          const byteDiff = event.loaded - this.dataUpload.uploads[index].loaded;
+          const byteSec = byteDiff / (timeDiff / 1000);
+
+          this.dataUpload.uploads[index].loaded = event.loaded;
+          this.dataUpload.uploads[index].total = event.total;
+          this.dataUpload.uploads[index].currentUploadSpeed = (
+            (MOVING_AVERAGE_SAMPLES - 1 + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff)
+            * this.dataUpload.uploads[index].currentUploadSpeed
+            + (byteSec * timeDiff)
+          ) / (MOVING_AVERAGE_SAMPLES + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff + timeDiff);
+          this.dataUpload.uploads[index].currentUploadSpeedLastUpdate = now;
+          this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff = timeDiff;
+        }
+        this.updateProgress(now, this.dataUpload.uploads[index]);
+      });
+      return lastValueFrom(upload)
+        .then(_r => this.loadDirectory(this.latestPath))
+        .then(_r => instance.uploader(index + 1))
+        .catch(err => {
+          this.dataUpload.err = '' + err;
+          return Promise.reject();
+        });
     };
 
-    setTimeout(() => Swal.getConfirmButton().setAttribute('disabled', ''));
+    setTimeout(() => Swal.getConfirmButton()?.setAttribute('disabled', ''));
 
     instance.updater = setInterval(() => this.updateOverall(), 1000);
     instance
       .uploader(0)
-      .then(r => this.updateViewHint())
+      .then(() => this.updateViewHint())
       .finally(() => {
         this.dataUpload.closable = true;
         this.swalUpload.showConfirmButton = true;
         clearInterval(instance.updater);
-        Swal.getConfirmButton().removeAttribute('disabled');
+        Swal.getConfirmButton()?.removeAttribute('disabled');
       });
   }
 
@@ -327,17 +335,20 @@ export class FilesComponent implements OnInit {
       err: null,
     };
     for (let i = 0; i < files.length; ++i) {
-      this.dataUpload.uploads.push({
-        name: files.item(i).name,
-        loaded: 0,
-        total: 1,
-        currentUploadSpeed: 0,
-        currentUploadSpeedLastUpdate: new Date(),
-        currentUploadSpeedLastTimeDiff: 0,
-        overallUploadSpeed: 0,
-        overallUploadStarted: new Date(),
-        completed: false
-      });
+      const file = files.item(i);
+      if (file != null) {
+        this.dataUpload.uploads.push({
+          name: file.name,
+          loaded: 0,
+          total: 1,
+          currentUploadSpeed: 0,
+          currentUploadSpeedLastUpdate: new Date(),
+          currentUploadSpeedLastTimeDiff: 0,
+          overallUploadSpeed: 0,
+          overallUploadStarted: new Date(),
+          completed: false
+        });
+      }
     }
   }
 
@@ -352,7 +363,7 @@ export class FilesComponent implements OnInit {
   delete(file: FileInfo) {
     this.dialog.openAreYouSure(
       `Deleting ${file.directory ? 'directory' : 'file'} ${file.name}`,
-      () => this.api.delete(file.path).then(r => this.loadDirectory(this.latestPath))
+      () => this.api.delete(file.path).then(() => this.loadDirectory(this.latestPath))
     );
   }
 
@@ -373,9 +384,9 @@ export class FilesComponent implements OnInit {
     this.dialog.renameAThing(
       file.name,
       'New name',
-      name => {
+      async name => {
         if (name != null && name.length > 0) {
-          return this.api.renameTopLevelPath(file.path, name).then(r => this.navigateDirectlyTo(this.latestPath));
+          await this.api.renameTopLevelPath(file.path, name).then(() => this.navigateDirectlyTo(this.latestPath));
         }
       }
     );
@@ -389,7 +400,7 @@ export class FilesComponent implements OnInit {
         new InputDefinition('Branch', '', 'master')
       ],
       url => {
-        return this.api.cloneGitRepo(this.latestPath, url[0], url[1]).then(r => {
+        return this.api.cloneGitRepo(this.latestPath, url[0], url[1]).then(() => {
           return this.loadDirectory(this.latestPath);
         });
       }
@@ -398,7 +409,7 @@ export class FilesComponent implements OnInit {
 
   pullGitRepo() {
     this.dialog.openLoadingIndicator(
-      this.api.pullGitRepo(this.latestPath).then(r => {
+      this.api.pullGitRepo(this.latestPath).then(() => {
         return this.loadDirectory(this.latestPath);
       }),
       `Pulling Git Repo`,
@@ -410,29 +421,26 @@ export class FilesComponent implements OnInit {
     const fileInfo = this.getCachedFileInfo(this.latestPath);
     this.dialog.multiInput(
       `Git Checkout`,
-      [new InputDefinition(`Branch`, null, fileInfo?.getGitBranch())],
-      inputs => {
+      [new InputDefinition(`Branch`, undefined, fileInfo?.getGitBranch())],
+      async inputs => {
         const branch = inputs[0];
-        return this.api.checkoutGitRepo(this.latestPath, branch).then(r => {
-          fileInfo.setGitBranch(branch);
-          return this.loadDirectory(this.latestPath);
-        });
-      });
+        await this.api.checkoutGitRepo(this.latestPath, branch)
+        fileInfo?.setGitBranch(branch);
+        return await this.loadDirectory(this.latestPath);
+      }
+    );
   }
 
-  getCachedFileInfo(path: string): FileInfo {
+  getCachedFileInfo(path: string): FileInfo | undefined {
     if (path.endsWith('/')) {
-      path = path.substr(0, path.length - 1);
+      path = path.substring(0, path.length - 1);
     }
     const index = path.lastIndexOf('/');
     if (index > 0) {
-      const files = this.files.get(path.substr(0, index));
-      return files?.find(f => {
-        return f.name === path.substr(index + 1);
-      });
-    } else {
-      return null;
+      const files = this.files.get(path.substring(0, index));
+      return files?.find(file => file.name === path.substring(index + 1));
     }
+    return undefined;
   }
 
   isGitRepo(path: string): boolean {
@@ -484,21 +492,30 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  private addLeadingZero(input) {
+  private addLeadingZero(input: number): string {
     if (input < 10) {
       return '0' + input;
     } else {
-      return input;
+      return '' + input;
     }
   }
 
   timeStampToDate(timeStamp: number) {
-   const noFormat = new Date(timeStamp);
-   return noFormat.getFullYear()
-     + '/' + this.addLeadingZero(noFormat.getMonth())
-     + '/' + this.addLeadingZero(noFormat.getDay())
-     + ', ' + this.addLeadingZero(noFormat.getHours())
-     + ':' + this.addLeadingZero(noFormat.getMinutes());
+    const noFormat = new Date(timeStamp);
+    return noFormat.getFullYear()
+      + '/' + this.addLeadingZero(noFormat.getMonth())
+      + '/' + this.addLeadingZero(noFormat.getDay())
+      + ', ' + this.addLeadingZero(noFormat.getHours())
+      + ':' + this.addLeadingZero(noFormat.getMinutes());
+  }
+
+  onFileInputChange(event: Event) : void{
+    const target = event.target;
+    if (target != null && 'files' in target && target.files instanceof FileList) {
+      this.uploadFile(target.files, this.decompress.value.toLowerCase() == 'true')
+    } else {
+      console.error("Cannot upload file as fileUpload target has no file list.");
+    }
   }
 }
 

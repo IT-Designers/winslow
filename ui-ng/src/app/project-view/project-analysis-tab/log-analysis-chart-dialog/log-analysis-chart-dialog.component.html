@@ -41,16 +41,15 @@
     <p>Layout</p>
   </mat-dialog-content>
 
-  <mat-dialog-content class="dialog-content">
-    <mat-form-field appearance="outline" class="wide-field">
-      <mat-label>Limit Entries</mat-label>
-      <input matInput type="number" [(ngModel)]="definition.entryLimit" (ngModelChange)="refresh()">
-      <mat-hint class="mat-error" *ngIf="!isValidEntryLimit(latestSnapshot.definition.entryLimit)">Should be greater
-        than
-        1 or empty
-      </mat-hint>
-    </mat-form-field>
-  </mat-dialog-content>
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="outline" class="wide-field">
+    <mat-label>Limit Entries</mat-label>
+    <input matInput type="number" [(ngModel)]="definition.entryLimit" (ngModelChange)="refresh()">
+    <mat-hint class="mat-error" *ngIf="isValidEntryLimit(latestSnapshot.definition.entryLimit)">Should be greater than
+      1 or empty
+    </mat-hint>
+  </mat-form-field>
+</mat-dialog-content>
 
   <mat-dialog-content class="dialog-content">
     <mat-form-field appearance="outline" class="left-field">
@@ -71,7 +70,7 @@
         <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
                     [value]="variable">{{variable}}</mat-option>
       </mat-autocomplete>
-      <mat-hint class="mat-error" *ngIf="!isValidVariable(latestSnapshot.definition.xVariable)">Variable is not part of
+      <mat-hint class="mat-error" *ngIf="isValidVariable(latestSnapshot.definition.xVariable)">Variable is not part of
         the formatter
       </mat-hint>
     </mat-form-field>
@@ -82,7 +81,7 @@
         <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
                     [value]="variable">{{variable}}</mat-option>
       </mat-autocomplete>
-      <mat-hint class="mat-error" *ngIf="!isValidVariable(latestSnapshot.definition.yVariable)">Variable is not part of
+      <mat-hint class="mat-error" *ngIf="isValidVariable(latestSnapshot.definition.yVariable)">Variable is not part of
         the formatter
       </mat-hint>
     </mat-form-field>
@@ -155,19 +154,19 @@
         The file may be empty or missing.
       </p>
     </div>
-    <div class="warning-message" *ngIf="!isValidEntryLimit(latestSnapshot.definition.entryLimit)">
+    <div class="warning-message" *ngIf="isValidEntryLimit(latestSnapshot.definition.entryLimit)">
       <mat-icon color="warn">warning</mat-icon>
       <p>
         The entry limit should be greater than 1.
       </p>
     </div>
-    <div class="warning-message" *ngIf="!isValidVariable(latestSnapshot.definition.xVariable)">
+    <div class="warning-message" *ngIf="isValidVariable(latestSnapshot.definition.xVariable)">
       <mat-icon color="warn">warning</mat-icon>
       <p>
         Variable for x-Axis <code>{{latestSnapshot.definition.xVariable}}</code> is not part of the formatter.
       </p>
     </div>
-    <div class="warning-message" *ngIf="!isValidVariable(latestSnapshot.definition.yVariable)">
+    <div class="warning-message" *ngIf="isValidVariable(latestSnapshot.definition.yVariable)">
       <mat-icon color="warn">warning</mat-icon>
       <p>
         Variable for y-Axis <code>{{latestSnapshot.definition.yVariable}}</code> is not part of the formatter.

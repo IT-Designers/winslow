@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
+import {lastValueFrom} from "rxjs";
 
 
 @Injectable({
@@ -16,33 +17,33 @@ export class UserApiService {
   }
 
   getUsers(): Promise<UserInfo[]> {
-    return this.client
-      .get<UserInfo[]>(UserApiService.getUrl(''))
-      .toPromise();
+    return lastValueFrom(
+      this.client.get<UserInfo[]>(UserApiService.getUrl(''))
+    );
   }
 
   createUser(newUser: UserInfo): Promise<UserInfo> {
-    return this.client
-      .post<UserInfo>(UserApiService.getUrl(''), newUser)
-      .toPromise();
+    return lastValueFrom(
+      this.client.post<UserInfo>(UserApiService.getUrl(''), newUser)
+    );
   }
 
   updateUser(updatedUser: UserInfo): Promise<UserInfo> {
-    return this.client
-      .put<UserInfo>(UserApiService.getUrl(''), updatedUser)
-      .toPromise();
+    return lastValueFrom(
+      this.client.put<UserInfo>(UserApiService.getUrl(''), updatedUser)
+    );
   }
 
   getUser(userName: string): Promise<UserInfo> {
-    return this.client
-      .get<UserInfo>(UserApiService.getUrl(userName))
-      .toPromise();
+    return lastValueFrom(
+      this.client.get<UserInfo>(UserApiService.getUrl(userName))
+    );
   }
 
   deleteUser(userName: string): Promise<void> {
-    return this.client
-      .delete<void>(UserApiService.getUrl(userName))
-      .toPromise();
+    return lastValueFrom(
+      this.client.delete<void>(UserApiService.getUrl(userName))
+    );
   }
 
   /**
@@ -50,37 +51,38 @@ export class UserApiService {
    * @return Whether the name is available (not used yet).
    */
   getUserNameAvailable(userName: string): Promise<object> {
-    return this.client
-      .get(UserApiService.getUrl(userName + '/available'))
-      .toPromise();
+    return lastValueFrom(
+      this.client.get(UserApiService.getUrl(userName + '/available'))
+    );
   }
 
   setPassword(userName: string, newPassword: string): Promise<void> {
-    return this.client
-      .put<void>(UserApiService.getUrl(userName + '/password'), newPassword)
-      .toPromise();
+    return lastValueFrom(
+      this.client.put<void>(UserApiService.getUrl(userName + '/password'), newPassword)
+    );
   }
 
   removePassword(userName: string): Promise<void> {
-    return  this.client
-      .delete<void>(UserApiService.getUrl(userName + '/password'))
-      .toPromise();
+    return lastValueFrom(
+      this.client.delete<void>(UserApiService.getUrl(userName + '/password'))
+    );
   }
 
   hasSuperPrivileges(userName: string): Promise<boolean> {
-    return this.client
-      .get<boolean>(UserApiService.getUrl(userName + '/super-privileges'))
-      .toPromise();
+    return lastValueFrom(
+      this.client.get<boolean>(UserApiService.getUrl(userName + '/super-privileges'))
+    );
   }
 
   getSelfUserName(): Promise<string> {
-    return this.client
-      .get<string>(UserApiService.getUrl('self/name'))
-      .toPromise();
+    return lastValueFrom(
+      this.client.get<string>(UserApiService.getUrl('self/name'))
+    );
   }
 }
 
-export class UserInfo {
+// todo make type without password
+export interface UserInfo {
   name: string;
   displayName: string;
   email: string;

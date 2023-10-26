@@ -8,15 +8,15 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 export class CheckableNumberInputComponent implements OnInit {
 
   @Input() checkable = true;
-  @Input() revertable = true;
+  @Input() revertible = true;
   @Input() minValue = 1;
   @Input() name?: string;
   @Input() unit?: string;
 
   @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
-  value?: number = null;
-  valueOriginal?: number = null;
+  value?: number;
+  valueOriginal?: number;
 
   constructor() { }
 
@@ -28,7 +28,7 @@ export class CheckableNumberInputComponent implements OnInit {
     if (($event.target as HTMLInputElement).checked) {
       this.value = this.valueOriginal ?? this.minValue;
     } else {
-      this.value = null;
+      this.value = undefined;
     }
     this.onValueUpdate();
   }

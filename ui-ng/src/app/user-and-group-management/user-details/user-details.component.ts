@@ -11,14 +11,14 @@ import {PasswordDialogComponent} from '../password-dialog/password-dialog.compon
 })
 export class UserDetailsComponent implements OnInit, OnChanges {
 
-  @Input() selectedUser: UserInfo = null;   // Object should remain constant
-  @Input() myName: string = null;
+  @Input() selectedUser!: UserInfo;   // Object should remain constant
+  @Input() myName!: string;
 
   @Output() deletedUserEmitter = new EventEmitter();
 
   canIEditUser = false;
   newPassword = '';
-  editableSelectedUser = new UserInfo();
+  editableSelectedUser: UserInfo = {active: false, displayName: "", email: "", name: "", password: ""};
 
   hasAnythingChanged = false;
 
@@ -33,7 +33,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
       this.editableSelectedUser = Object.assign({}, this.selectedUser);
       this.userApi.hasSuperPrivileges(this.myName)
         .then((bool) => {
-          if (bool === true) {
+          if (bool) {
             this.canIEditUser = bool;
           } else {
             this.canIEditUser = this.myName === this.selectedUser.name;
@@ -73,8 +73,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
 
   changePasswordBtnClicked() {
     this.createDialog.open(PasswordDialogComponent, {
-      data: {
-      }
+      data: {}
     })
       .afterClosed()
       .subscribe((password) => {

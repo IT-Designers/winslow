@@ -4,7 +4,7 @@
     <app-tags-with-autocomplete #tags [proposals]="proposals"></app-tags-with-autocomplete>
     <button mat-stroked-button mat-dialog-close="true" color="warn">Cancel</button>
     <button mat-stroked-button mat-dialog-close="true" color="primary"
-            (click)="setTagsForGroup(tags.selectedTags)">
+            (click)="setTagsForGroup(data.projectGroup, tags.selectedTags)">
       Apply
     </button>
   </div>
@@ -14,7 +14,7 @@
     <app-tags-with-autocomplete #tags [tags]="previewTags" [proposals]="proposals"></app-tags-with-autocomplete>
     <button mat-stroked-button mat-dialog-close="true" color="warn">Cancel</button>
     <button mat-stroked-button mat-dialog-close="true" color="primary"
-            (click)="setTagsForProject(tags.selectedTags)">
+            (click)="setTagsForProject(data.project, tags.selectedTags)">
       Apply
     </button>
   </div>

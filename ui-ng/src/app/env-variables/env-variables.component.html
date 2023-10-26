@@ -4,7 +4,7 @@
   <mat-form-field [formGroup]="formGroupEnv" appearance="outline">
     <input #input matInput
            [required]="requiredEnvVariables.has(key)"
-           [value]="valueOf(key)"
+           [value]="valueOf(key) ?? ''"
            (change)="values[key] = input.value; updateValid()"
            [formControlName]="key"
            (keyup)="values[key] = input.value; updateValid()"
@@ -21,7 +21,7 @@
     </button>
     <button mat-icon-button color="warn"
             [disabled]="requiredEnvVariables.has(key) || (formControls[key] != null && formControls[key].value == null)"
-            [matTooltip]="requiredEnvVariables.has(key) ? 'This value is required' : null"
+            [matTooltip]="requiredEnvVariables.has(key) ? 'This value is required' : ''"
             (click)="delete(key)">
       <mat-icon>delete</mat-icon>
     </button>

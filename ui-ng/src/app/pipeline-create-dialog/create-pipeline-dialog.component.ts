@@ -15,10 +15,10 @@ export class CreatePipelineDialogComponent implements OnInit {
     private formBuilder: UntypedFormBuilder,
     private dialogRef: MatDialogRef<CreatePipelineDialogComponent, CreatePipelineResult>
   ) {
+    this.form = this.formBuilder.group(new CreatePipelineResult());
   }
 
   ngOnInit() {
-    this.form = this.formBuilder.group(new CreatePipelineResult());
   }
 
   submit() {
@@ -28,5 +28,5 @@ export class CreatePipelineDialogComponent implements OnInit {
   }
 }
 export class CreatePipelineResult {
-  name: string = undefined;
+  name: string | undefined = undefined;
 }
