@@ -5,7 +5,7 @@
     <mat-icon>expand_more</mat-icon>
   </button>
   <mat-menu #menu="matMenu">
-    <button mat-menu-item disabled>Overhanging tags</button>
+    <button mat-menu-item [disabled]="true">Overhanging tags</button>
     <mat-divider></mat-divider>
     <button *ngFor="let tag of notVisibleTags" mat-menu-item (click)="changeContext(tag)">
       <span *ngIf="tag != selectedContext">{{tag}}</span>
@@ -22,7 +22,7 @@
     <div *ngFor="let tag of availableTagsValue; let i = index">
       <mat-tab>
         <ng-template mat-tab-label>
-          <div id="{{i}}" class="custom-tab" (click)="changeContext(tag)">{{tag}}</div>
+          <div [id]="i" class="custom-tab" (click)="changeContext(tag)">{{tag}}</div>
         </ng-template>
       </mat-tab>
     </div>

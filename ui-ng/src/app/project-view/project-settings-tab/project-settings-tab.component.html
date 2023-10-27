@@ -67,7 +67,7 @@
         *ngFor="let group of project.groups"
         [style.background-color]="getGroupLinkColor(group)"
         [matTooltip]="group.role"
-        matTooltipShowDelay="250"
+        [matTooltipShowDelay]="250"
         (removed)="removeGroup(group)"
         [disabled]="!userCanEditProject"
       >

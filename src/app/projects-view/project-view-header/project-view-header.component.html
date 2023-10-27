@@ -2,7 +2,7 @@
   <mat-card (contextmenu)="rightClickAction(matMenuTrigger, $event)">
     <mat-card-header>
       <img mat-card-avatar alt="Project Icon" class="icon" #avatar (error)="avatar.src = 'assets/winslow_quadratic.svg'"
-           src="{{thumbnailUrl(project)}}" (click)="makeImageBigger(thumbnailUrl(project), $event)"/>
+           [src]="thumbnailUrl(project)" (click)="makeImageBigger(thumbnailUrl(project), $event)"/>
       <mat-card-title>
       <span class="inline-title">
         <app-state-icon #icon></app-state-icon>
