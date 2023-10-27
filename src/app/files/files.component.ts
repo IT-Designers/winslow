@@ -28,7 +28,7 @@ export class FilesComponent implements OnInit {
   contextMenuY = 0;
   contextMenuVisible = false;
 
-  dataUpload!: UploadFilesProgress;
+  dataUpload?: UploadFilesProgress;
   viewHint!: string;
   @ViewChild('swalUpload') swalUpload!: SwalComponent;
   @ViewChild('decompress') decompress!: HTMLInputElement;
@@ -250,6 +250,11 @@ export class FilesComponent implements OnInit {
       return;
     }
 
+    if (this.dataUpload == undefined) {
+      this.dialog.error('Failed to upload file: dataUpload is not initialized!')
+      return;
+    }
+
     this.prepareDataUpload(files);
 
     const instance = {
@@ -257,6 +262,8 @@ export class FilesComponent implements OnInit {
       uploader: null as any,
       updater: null as any,
     };
+
+    const dataUpload = this.dataUpload;
 
     instance.uploader = (index: number): Promise<void> => {
       if (index >= files.length) {
@@ -273,30 +280,30 @@ export class FilesComponent implements OnInit {
         }
         const now = new Date();
         if (event.type !== HttpEventType.UploadProgress || event.total == undefined) {
-          this.dataUpload.uploads[index].completed = true;
+          dataUpload.uploads[index].completed = true;
         } else {
           const MOVING_AVERAGE_SAMPLES = 20;
-          const timeDiff = now.getTime() - this.dataUpload.uploads[index].currentUploadSpeedLastUpdate.getTime();
-          const byteDiff = event.loaded - this.dataUpload.uploads[index].loaded;
+          const timeDiff = now.getTime() - dataUpload.uploads[index].currentUploadSpeedLastUpdate.getTime();
+          const byteDiff = event.loaded - dataUpload.uploads[index].loaded;
           const byteSec = byteDiff / (timeDiff / 1000);
 
-          this.dataUpload.uploads[index].loaded = event.loaded;
-          this.dataUpload.uploads[index].total = event.total;
-          this.dataUpload.uploads[index].currentUploadSpeed = (
-            (MOVING_AVERAGE_SAMPLES - 1 + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff)
-            * this.dataUpload.uploads[index].currentUploadSpeed
+          dataUpload.uploads[index].loaded = event.loaded;
+          dataUpload.uploads[index].total = event.total;
+          dataUpload.uploads[index].currentUploadSpeed = (
+            (MOVING_AVERAGE_SAMPLES - 1 + dataUpload.uploads[index].currentUploadSpeedLastTimeDiff)
+            * dataUpload.uploads[index].currentUploadSpeed
             + (byteSec * timeDiff)
-          ) / (MOVING_AVERAGE_SAMPLES + this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff + timeDiff);
-          this.dataUpload.uploads[index].currentUploadSpeedLastUpdate = now;
-          this.dataUpload.uploads[index].currentUploadSpeedLastTimeDiff = timeDiff;
+          ) / (MOVING_AVERAGE_SAMPLES + dataUpload.uploads[index].currentUploadSpeedLastTimeDiff + timeDiff);
+          dataUpload.uploads[index].currentUploadSpeedLastUpdate = now;
+          dataUpload.uploads[index].currentUploadSpeedLastTimeDiff = timeDiff;
         }
-        this.updateProgress(now, this.dataUpload.uploads[index]);
+        this.updateProgress(now, dataUpload.uploads[index]);
       });
       return lastValueFrom(upload)
         .then(_r => this.loadDirectory(this.latestPath))
         .then(_r => instance.uploader(index + 1))
         .catch(err => {
-          this.dataUpload.err = '' + err;
+          dataUpload.err = '' + err;
           return Promise.reject();
         });
     };
@@ -308,7 +315,7 @@ export class FilesComponent implements OnInit {
       .uploader(0)
       .then(() => this.updateViewHint())
       .finally(() => {
-        this.dataUpload.closable = true;
+        dataUpload.closable = true;
         this.swalUpload.showConfirmButton = true;
         clearInterval(instance.updater);
         Swal.getConfirmButton()?.removeAttribute('disabled');
@@ -316,6 +323,9 @@ export class FilesComponent implements OnInit {
   }
 
   private updateOverall(now: Date = new Date()) {
+    if (this.dataUpload == undefined) {
+      return;
+    }
     for (const progress of this.dataUpload.uploads) {
       if (progress.loaded > 0 && !progress.completed) {
         this.updateProgress(now, progress);
@@ -516,6 +526,18 @@ export class FilesComponent implements OnInit {
     } else {
       console.error("Cannot upload file as fileUpload target has no file list.");
     }
+  }
+
+  protected readonly onkeydown = onkeydown;
+
+  onKeydownEnter(event: Event) {
+    if (event.target instanceof HTMLInputElement) {
+      this.navigateDirectlyTo(event.target.value)
+    }
+  }
+
+  onSwalUploadClosed() {
+    this.dataUpload = undefined;
   }
 }
 
