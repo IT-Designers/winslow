@@ -1,6 +1,15 @@
+:host {
+  background-color: white;
+  color: black;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
+}
+
 :host ::ng-deep .dm-content{
   padding: 1px !important;
 }
 :host ::ng-deep .dm-panel{
-  
+
 }
