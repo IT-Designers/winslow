@@ -49,6 +49,10 @@ input {
   border: hidden;
   border-bottom: 1px solid black;
   width: 115px;
+  color: black;
+  @media(prefers-color-scheme: dark) {
+    color: white;
+  }
 }
 .icon{
   font-size: 20px;
