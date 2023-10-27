@@ -214,6 +214,7 @@
               &nbsp;
             </label>
           </mat-expansion-panel-header>
+
           <div *ngIf="editableResourceAllocations.globalLimit" class="expansion-content-container">
             <div class="single-resource-container">
               <label class="resource-label">CPU Cores: </label>
@@ -225,7 +226,7 @@
                     max="{{maxCpuCores}}"
                     placeholder="CPU Cores"
                     [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
-                    [disabled]="userRole === 'MEMBER'"
+                    [disabled]="userRole === 'MEMBER' || maxCpuCores <= 0"
                 >
                 <mat-error>
                   There are only {{maxCpuCores}} cores available
@@ -236,14 +237,13 @@
                   min="0"
                   max="{{maxCpuCores}}"
                   step="1"
-                  [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
-                  [disabled]="userRole === 'MEMBER'" #ngSlider
+                  showTickMarks discrete
+                  [disabled]="userRole === 'MEMBER'  || maxCpuCores <= 0" #ngSlider
               ><input
                   matSliderThumb
-                  (input)="cpuHasChangedFFA(ngSliderThumb.value)"
+                  [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
                   #ngSliderThumb="matSliderThumb"
               />
-                <input>
               </mat-slider>
             </div>
             <div
@@ -259,7 +259,7 @@
                     max="{{maxGpus}}"
                     placeholder="GPUs"
                     [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
-                    [disabled]="userRole === 'MEMBER'"
+                    [disabled]="userRole === 'MEMBER' || maxGpus <= 0"
                 >
                 <mat-error>
                   There are only {{maxGpus}} GPUs available
@@ -270,14 +270,13 @@
                   min="0"
                   max="{{maxGpus}}"
                   step="1"
-                  [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
-                  [disabled]="userRole === 'MEMBER'" #ngSlider
+                  showTickMarks discrete
+                  [disabled]="userRole === 'MEMBER'  || maxGpus <= 0" #ngSlider
               ><input
                   matSliderThumb
-                  (input)="gpuHasChangedFFA(ngSliderThumb.value)"
+                  [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
                   #ngSliderThumb="matSliderThumb"
               />
-                <input>
               </mat-slider>
             </div>
             <div class="single-resource-container">
@@ -288,10 +287,11 @@
                     matInput
                     min="0"
                     max="{{maxMemory}}"
+                    step="256"
                     placeholder="Memory (MiB)"
                     [ngModel]="editableResourceAllocations.globalLimit?.mem"
                     (change)="memoryInputHasChanged($event)"
-                    [disabled]="userRole === 'MEMBER'"
+                    [disabled]="userRole === 'MEMBER' || maxMemory <= 0"
                 >
                 <mat-error>
                   There are only {{maxMemory / 1024}} GiB of Memory available
@@ -302,17 +302,17 @@
                   min="0"
                   max="{{maxMemory}}"
                   step="256"
-                  [(ngModel)]="editableResourceAllocations.globalLimit.mem"
+                  showTickMarks discrete
                   [disabled]="userRole === 'MEMBER'" #ngSlider
               ><input
                   matSliderThumb
-                  (input)="memorySliderHasChangedFFA(ngSliderThumb.value)"
+                  [(ngModel)]="editableResourceAllocations.globalLimit.mem"
                   #ngSliderThumb="matSliderThumb"
               />
-                <input>
               </mat-slider>
             </div>
           </div>
+
           <button
               mat-raised-button
               class="update-btn"
