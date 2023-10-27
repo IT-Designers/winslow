@@ -2,8 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {NotificationService} from '../notification.service';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {MatDialog, MatDialogRef} from '@angular/material/dialog';
-import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-create-dialog/create-pipeline-dialog.component';
+import {MatDialog} from '@angular/material/dialog';
 import {ParseError, PipelineDefinitionInfo} from '../api/winslow-api';
 import {DialogService} from "../dialog.service";
 import {AddPipelineDialogComponent} from "./add-pipeline-dialog/add-pipeline-dialog.component";
@@ -14,7 +13,7 @@ import {AddPipelineDialogComponent} from "./add-pipeline-dialog/add-pipeline-dia
   styleUrls: ['./pipelines.component.css']
 })
 export class PipelinesComponent implements OnInit {
-  pipelines: PipelineDefinitionInfo[] = null;
+  pipelines: PipelineDefinitionInfo[] = [];
   loadError = null;
 
   raw: Map<string, string> = new Map();
@@ -24,7 +23,7 @@ export class PipelinesComponent implements OnInit {
 
   longLoading = new LongLoadingDetector();
 
-  selectedPipeline: PipelineDefinitionInfo = null;
+  selectedPipeline: PipelineDefinitionInfo | null = null;
 
 
   constructor(
@@ -44,7 +43,7 @@ export class PipelinesComponent implements OnInit {
       .catch(error => this.loadError = error);
   }
 
-  loadRaw(pipeline: string) {
+  loadRaw(pipeline: string): Promise<void> {
     return this.api
       .getRawPipelineDefinition(pipeline)
       .then(raw => {
@@ -73,6 +72,10 @@ export class PipelinesComponent implements OnInit {
       })
       .catch(error => this.notification.error('Request failed: ' + error))
       .finally(() => this.longLoading.decrease());
+  }
+
+  onPipelineClicked(pipeline: PipelineDefinitionInfo): void {
+    this.selectedPipeline = pipeline;
   }
 
   update(pipeline: string, value: string) {
@@ -111,10 +114,6 @@ export class PipelinesComponent implements OnInit {
       .finally(() => this.longLoading.decrease());
   }
 
-  onPipelineClicked(pipeline) {
-    this.selectedPipeline = pipeline;
-  }
-
   openCreatePipelineDialog(): void {
     this.createDialog.open(AddPipelineDialogComponent, {
       data: {} as string
@@ -131,16 +130,18 @@ export class PipelinesComponent implements OnInit {
       });
   }
 
-  onDeletePipeline(event) {
-    this.dialog.openAreYouSure(`Pipeline being deleted ${this.selectedPipeline.name}`,
-      () => this.api.deletePipeline(this.selectedPipeline.id)
+  onDeletePipeline(pipeline: PipelineDefinitionInfo) {
+    this.dialog.openAreYouSure(
+      `Pipeline being deleted ${pipeline.name}`,
+      () => this.api.deletePipeline(pipeline.id)
         .then(() => {
-          let delIndex = this.pipelines.findIndex((tempPipeline) => tempPipeline.id === this.selectedPipeline.id);
-          this.pipelines.splice(delIndex, 1);
-          this.pipelines = this.pipelines.concat([]);
-          this.selectedPipeline = null;
-        }
-        ));
+            let delIndex = this.pipelines.findIndex(tempPipeline => tempPipeline.id === pipeline.id);
+            this.pipelines.splice(delIndex, 1);
+            this.pipelines = this.pipelines.concat([]);
+            this.selectedPipeline = null;
+          }
+        )
+    );
   }
 
 }

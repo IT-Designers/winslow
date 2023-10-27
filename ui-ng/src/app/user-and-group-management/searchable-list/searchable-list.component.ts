@@ -9,15 +9,15 @@ import {MatDialog} from '@angular/material/dialog';
 export class SearchableListComponent implements OnInit, OnChanges {
 
   @Input() type = 'none';
-  @Input() allItems: object[] = [];
+  @Input() allItems: SearchableObject[] = [];
   @Input() searchPlaceholderText = 'Search...';
   @Input() listItemTooltip = 'Edit';
 
   @Output() itemEmitter = new EventEmitter();
 
-  displayItems: object[];
+  displayItems: SearchableObject[] = [];
   selectedItemName = '';
-  itemSearchInput: string;
+  itemSearchInput: string = '';
   showSystemGroups = false;
 
   constructor(private createDialog: MatDialog) {
@@ -28,7 +28,7 @@ export class SearchableListComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.allItems !== null) {
-      this.displayItems = Array.from(this.allItems);
+      this.displayItems = [...this.allItems];
       this.filterSystemGroups();
       this.sortDisplayItemsByName();
     }
@@ -38,13 +38,9 @@ export class SearchableListComponent implements OnInit, OnChanges {
     if (!this.showSystemGroups) {
       let i = 0;
       this.displayItems = Array.from(this.allItems);
-      // this.sortDisplayItemsByName();
       for (const item of this.displayItems) {
-        // @ts-ignore
-        // @ts-ignore
         if (item.name.includes('::')) {
           this.displayItems.splice(i, 1);
-          /*i--;*/
         }
         i++;
       }
@@ -82,9 +78,12 @@ export class SearchableListComponent implements OnInit, OnChanges {
     }
   }
 
-  itemClicked(item) {
+  itemClicked(item: SearchableObject) {
     this.selectedItemName = item.name;
     this.itemEmitter.emit(item);
   }
 
 }
+
+// todo: multiple items may share the same name (for example pipeline definitions)
+type SearchableObject = { name: string }

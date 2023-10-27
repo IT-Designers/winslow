@@ -1,5 +1,5 @@
 <app-loading-info
-  [error]="loadError ? loadError.message : null"
+  [error]="loadError?.message"
   [loading]="files == null || this.longLoading.isLongLoading()">
 </app-loading-info>
 

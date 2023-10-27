@@ -1,22 +1,27 @@
 <ng-container class="outerContainer">
-<div
-    class="drag"
-    data-event-target="true"
-    data-draggable="true"
-    data-type="DiagramMaker.PanelDragHandle"
-    data-id="library"
+  <div
+      class="drag"
+      data-event-target="true"
+      data-draggable="true"
+      data-type="DiagramMaker.PanelDragHandle"
+      data-id="library"
   >
     <mat-icon>drag_indicator</mat-icon>
   </div>
   <div class="library-icons-container">
     <div class="button-container border-right">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Save entire Workflow" [ngClass]="{'saved-data' : savedData, 'unsaved-data' : !savedData }" (click)="onApiCall('save')">save</mat-icon>
+        <mat-icon
+            class="library-icon" title="Save entire Workflow"
+            [ngClass]="{'saved-data' : savedData, 'unsaved-data' : !savedData }" (click)="onApiCall('save')"
+        >save
+        </mat-icon>
       </div>
     </div>
     <div class="button-container">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan</mat-icon>
+        <mat-icon class="library-icon" title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan
+        </mat-icon>
       </div>
     </div>
     <div class="button-container">
@@ -56,23 +61,25 @@
     </div>-->
   </div>
 
-  <div class="scroll">
+  <div class="scroll node-details">
     <h3 class="category">Selected Node
-      <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel</mat-icon>
+      <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel
+      </mat-icon>
     </h3>
     <mat-card appearance="outlined" class="editCard" *ngIf="selectedNode$">
       <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
 
       <form class="editNodeForm" (ngSubmit)="startSave()">
-       <app-edit-forms #form
-                       [formObj]="formObj"
-                       [formMap]="formObj"
-                       (onCollectData)="saveEdit($event)"
-                       (onTriggerSaveData)="startSave()"
-       >
-       </app-edit-forms>
+        <app-edit-forms
+            #form
+            [formObj]="formObj"
+            [formMap]="formObj"
+            (onCollectData)="saveEdit($event)"
+            (onTriggerSaveData)="startSave()"
+        >
+        </app-edit-forms>
       </form>
 
     </mat-card>
-</div>
+  </div>
 </ng-container>

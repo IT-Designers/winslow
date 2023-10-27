@@ -10,7 +10,7 @@ import {ProjectInfo} from '../api/winslow-api';
 })
 export class StopButtonComponent implements OnInit {
 
-  @Input() project: ProjectInfo = null;
+  @Input() project?: ProjectInfo;
   @Input() disabled: boolean = false;
   @Input() showText: boolean = true;
 
@@ -21,23 +21,23 @@ export class StopButtonComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  stop(pause: boolean, stageId: string = null) {
-    if (this.project) {
+  stop(pause: boolean) {
+    const project = this.project;
+    if (project) {
       this.dialog.openAreYouSure(
-        `Halt stage of ${this.project.name}`,
-        () => this.api.stopStage(this.project.id, pause, stageId).then()
+        `Halt stage of ${project.name}`,
+        () => this.api.stopStage(project.id, pause).then()
       );
     }
   }
 
-  kill(stageId: string = null) {
-    if (this.project) {
+  kill() {
+    const project = this.project;
+    if (project) {
       this.dialog.openAreYouSure(
-        `Kill stage of ${this.project.name}`,
-        () => this.api.killStage(this.project.id, stageId).then()
+        `Kill stage of ${project.name}`,
+        () => this.api.killStage(project.id).then()
       );
     }
   }
-
-
 }

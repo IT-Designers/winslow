@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {NodeInfoExt, NodesApiService} from '../api/nodes-api.service';
+import {NodeInfoExt} from '../api/nodes-api.service';
 
 @Component({
   selector: 'app-server-bar',
@@ -11,9 +11,9 @@ export class ServerBarComponent implements OnInit {
 
   static readonly MAX_ENTRIES = 120;
 
-  @Input('node') node: NodeInfoExt;
+  @Input('node') node!: NodeInfoExt;
 
-  constructor(private nodes: NodesApiService) {
+  constructor() {
   }
 
   runningJobs = '';
@@ -298,8 +298,9 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  average = (arr) => arr.reduce((p, c) => p + c, 0) / arr.length;
-
+  average(arr: number[]): number  {
+    return arr.reduce((p, c) => p + c, 0) / arr.length;
+  }
   ngOnInit() {
 
     this.node.update = (node) => {
@@ -424,7 +425,7 @@ export class ServerBarComponent implements OnInit {
   }
 
   private updateGpuStatus() {
-    let gpus: any[] = [];
+    let gpus: number[] = [];
 
     for (const gpu of this.node.gpuInfo) {
       gpus.push(gpu.computeUtilization);

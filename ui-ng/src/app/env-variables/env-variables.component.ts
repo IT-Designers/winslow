@@ -179,7 +179,7 @@ export class EnvVariablesComponent implements OnInit {
       this.environmentVariables = new Map();
     }
     let current = this.environmentVariables.get(key);
-    if (current == undefined) {
+    if (current == null) {
       current = new EnvVariable({
         key,
         value,

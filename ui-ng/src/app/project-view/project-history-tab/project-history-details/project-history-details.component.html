@@ -6,7 +6,7 @@
         [time]="selectedStage?.startTime"
         [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
         [state]="entry.getMostRelevantState(projectState)"
-        [isConfigure]="entry?.configureOnly"
+        [isConfigure]="entry.configureOnly"
         [showResumeOnlyThisStage]="false"
         [enqueued]="false"
         [running]="selectedStage?.state == 'RUNNING'"
@@ -41,7 +41,7 @@
       </mat-button-toggle-group>
     </div>
 
-    <div [style.overflow]="'auto'" [ngStyle]="{'height': historyDetailsHeight + 'px'}">
+    <div *ngIf="isStageWorkerDefinitionInfo(entry.stageDefinition)" [style.overflow]="'auto'" [ngStyle]="{'height': historyDetailsHeight + 'px'}">
 
       <ng-template #detailItem let-key="key" let-value="value">
         <p class="history-item-detail-item mat-highlight-hover">
@@ -55,13 +55,12 @@
 
       <div *ngIf="this.showStageDefinition" class="stage-definition-information">
 
-
         <h4>Stage Definition</h4>
         <div class="history-item-detail">
           <ng-template
             *ngTemplateOutlet="
               detailItem;
-              context: { key: 'Name', value: entry?.stageDefinition.name }
+              context: { key: 'Name', value: entry.stageDefinition.name }
             "
           ></ng-template>
           <ng-template
@@ -69,7 +68,7 @@
               detailItem;
               context: {
                 key: 'Image Name',
-                value: entry?.stageDefinition.image?.name
+                value: entry.stageDefinition.image.name
               }
             "
           ></ng-template>
@@ -78,7 +77,7 @@
               detailItem;
               context: {
                 key: 'Image Arguments',
-                value: entry?.stageDefinition.image?.args | json
+                value: entry.stageDefinition.image.args | json
               }
             "
           ></ng-template>
@@ -87,7 +86,7 @@
               detailItem;
               context: {
                 key: 'Required CPUs',
-                value: entry?.stageDefinition.requiredResources?.cpus
+                value: entry.stageDefinition.requiredResources.cpus
               }
             "
           ></ng-template>
@@ -96,7 +95,7 @@
               detailItem;
               context: {
                 key: 'Required RAM (MiB)',
-                value: entry?.stageDefinition.requiredResources?.megabytesOfRam
+                value: entry.stageDefinition.requiredResources.megabytesOfRam
               }
             "
           ></ng-template>
@@ -105,7 +104,7 @@
               detailItem;
               context: {
                 key: 'Required GPUs',
-                value: entry?.stageDefinition.requiredResources?.gpus
+                value: entry.stageDefinition.requiredResources.gpu
               }
             "
           ></ng-template>
@@ -113,8 +112,8 @@
             *ngTemplateOutlet="
               detailItem;
               context: {
-                key: 'Required EnvVars',
-                value: entry?.stageDefinition.requiredEnvVariables | json
+                key: 'Environment',
+                value: entry.stageDefinition.environment | json
               }
             "
           ></ng-template>
@@ -123,7 +122,7 @@
               detailItem;
               context: {
                 key: 'Workspace Mode',
-                value: entry?.workspaceConfiguration?.mode
+                value: entry.workspaceConfiguration.mode
               }
             "
           ></ng-template>
@@ -132,7 +131,7 @@
               detailItem;
               context: {
                 key: 'Workspace Shared Within Group',
-                value: entry?.workspaceConfiguration?.sharedWithinGroup
+                value: entry.workspaceConfiguration.sharedWithinGroup
               }
             "
           ></ng-template>
@@ -141,7 +140,7 @@
               detailItem;
               context: {
                 key: 'Workspace Nested Within Group',
-                value: entry?.workspaceConfiguration?.nestedWithinGroup
+                value: entry.workspaceConfiguration.nestedWithinGroup
               }
             "
           ></ng-template>
@@ -150,17 +149,17 @@
               detailItem;
               context: {
                 key: 'Workspace Supplement',
-                value: entry?.workspaceConfiguration?.value
+                value: entry.workspaceConfiguration.value
               }
             "
           ></ng-template>
           <ng-container
             *ngFor="
-              let entry of entry?.rangedValues | keyvalue;
+              let entry of entry.rangedValues | keyvalue;
               trackBy: trackKey
             "
           >
-            <ng-container *ngIf="entry.value?.DiscreteSteps != null">
+            <ng-container *ngIf="isRangeWithStepSize(entry.value)">
               <ng-template
                 *ngTemplateOutlet="
                   detailItem;
@@ -168,11 +167,11 @@
                     key: 'Ranged/DiscreteSteps[' + entry.key + ']',
                     value:
                       '[' +
-                      entry.value.DiscreteSteps.min +
+                      entry.value.min +
                       ', ' +
-                      entry.value.DiscreteSteps.max +
+                      entry.value.max +
                       '], ' +
-                      entry.value.DiscreteSteps.stepSize
+                      entry.value.stepSize
                   }
                 "
               >
@@ -181,10 +180,10 @@
           </ng-container>
 
           <h4>Environment Variables</h4>
-          <i *ngIf="entry?.stageDefinition?.env?.size == 0">none</i>
+          <i *ngIf="entry.stageDefinition.environment.size == 0">none</i>
           <ng-container
             *ngFor="
-              let e of entry?.stageDefinition?.env | keyvalue;
+              let e of entry.stageDefinition.environment | keyvalue;
               trackBy: trackKey
             "
           >
@@ -212,41 +211,41 @@
             *ngTemplateOutlet="detailItem; context: { key: 'Finished execution at', value: selectedStage.finishTime != null ? toDate(selectedStage.finishTime) : ' not yet finished' }"></ng-template>
 
           <h4>Stage Environment Variables</h4>
-          <i *ngIf="selectedStage?.env.size == 0">none</i>
-          <ng-container *ngFor="let e of selectedStage?.env | keyvalue; trackBy:trackKey">
+          <i *ngIf="selectedStage.env.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage.env | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>Pipeline Environment Variables</h4>
-          <i *ngIf="selectedStage?.envPipeline.size == 0">none</i>
-          <ng-container *ngFor="let e of selectedStage?.envPipeline | keyvalue; trackBy:trackKey">
+          <i *ngIf="selectedStage.envPipeline.size == 0">none</i>
+          <ng-container *ngFor="let e of selectedStage.env | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>System Environment Variables</h4>
           <i *ngIf="selectedStage?.envSystem.size == 0">none</i>
-          <ng-container *ngFor="let e of selectedStage?.envSystem | keyvalue; trackBy:trackKey">
+          <ng-container *ngFor="let e of selectedStage.envSystem | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>Internal Environment Variables</h4>
           <i *ngIf="selectedStage?.envInternal.size == 0">none</i>
-          <ng-container *ngFor="let e of selectedStage?.envInternal | keyvalue; trackBy:trackKey">
+          <ng-container *ngFor="let e of selectedStage.envInternal | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>Result Variables</h4>
           <i *ngIf="selectedStage?.result.size == 0">none</i>
-          <ng-container *ngFor="let e of selectedStage?.result | keyvalue; trackBy:trackKey">
+          <ng-container *ngFor="let e of selectedStage.result | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
         </div>
-        <div *ngIf="!selectedStage?.id" class="history-item-detail">
+        <div *ngIf="!selectedStage.id" class="history-item-detail">
           No Stage Information available
         </div>
       </div>

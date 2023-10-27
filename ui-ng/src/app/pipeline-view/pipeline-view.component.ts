@@ -1,7 +1,7 @@
 import {
   AfterViewInit,
   Component,
-  ComponentFactoryResolver,
+  ComponentFactoryResolver, ComponentRef,
   ElementRef, EventEmitter,
   Input, OnChanges,
   OnDestroy,
@@ -32,15 +32,13 @@ import {DiagramInitialData} from './diagram-initial-data';
 import {AddToolsComponent} from './add-tools/add-tools.component';
 import {DiagramGatewayComponent} from './diagram-gateway/diagram-gateway.component';
 import {
-  PipelineDefinitionInfo,
+  PipelineDefinitionInfo, Raw,
   StageAndGatewayDefinitionInfo,
   StageDefinitionInfo,
   StageDefinitionInfoUnion, StageWorkerDefinitionInfo, StageXOrGatewayDefinitionInfo,
 } from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
-import {PipelineApiService} from "../api/pipeline-api.service";
-import {DialogService} from "../dialog.service";
 
 @Component({
   selector: 'app-pipeline-view',
@@ -49,31 +47,31 @@ import {DialogService} from "../dialog.service";
 })
 export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
-  @Input() public pipelineDefinition: PipelineDefinitionInfo;
-  @Input() public pipelineDefinitionEdit: PipelineDefinitionInfo;
+  @Input() public pipelineDefinition!: PipelineDefinitionInfo;
+  @Input() public pipelineDefinitionEdit!: PipelineDefinitionInfo;
   @Output() public onSave = new EventEmitter<PipelineDefinitionInfo>();
 
   public diagramMaker!: DiagramMaker;
   public initialData!: DiagramMakerData<StageDefinitionInfo, {}>;
   public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
   public componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
-  public libraryComponent = null;
+  public libraryComponent: ComponentRef<DiagramLibraryComponent> | null = null;
   public configClass = new DiagramConfigHelper();
   public initClass = new DiagramInitialData();
   public defaultGetter = new DefaultApiServiceService(this.client);
-  public saveStatus : boolean = true;
+  public saveStatus: boolean = true;
 
 
   @ViewChild('diagramEditorContainer')
   diagramEditorContainer!: ElementRef;
 
-  config: DiagramMakerConfig<{}, {}> = {
+  config: DiagramMakerConfig<StageDefinitionInfo, unknown> = {
     options: {
       connectorPlacement: ConnectorPlacement.LEFT_RIGHT,
       showArrowhead: true,
     },
     renderCallbacks: {
-      node: (node: DiagramMakerNode<StageDefinitionInfo>, diagramMakerContainer: HTMLElement) => {
+      node: (node: DiagramMakerNode<StageDefinitionInfo>, diagramMakerContainer: HTMLElement): void => {
         diagramMakerContainer.innerHTML = '';
         let componentInstance = undefined;
         if (node.typeId == 'node-normal' || node.typeId == 'node-start') {
@@ -145,7 +143,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
                   this.diagramMaker.store.dispatch({
                     type: 'WORKSPACE_DRAG',
                     payload: {
-                      position:{
+                      position: {
                         x: 0,
                         y: 400
                       }
@@ -210,66 +208,62 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         const createAction = action as CreateNodeAction<any>;
         //-------------------- Differentiated by the typeId of the node --------------------
         if (createAction.payload.typeId == 'node-normal' || createAction.payload.typeId == 'node-start') {
-          let stageData : StageWorkerDefinitionInfo;
+          let stageData: StageWorkerDefinitionInfo;
           //-------------------- They get new Stage Definitions from the api --------------------
-          this.defaultGetter.getWorkerDefinition().then((data) => {   //get default Stage/Gatewaydata from the api
+          this.defaultGetter.getWorkerDefinition().then((data: StageWorkerDefinitionInfo) => {
             //-------------------- Which are used to update the pipelineDefinitionEdit Object --------------------
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
-          }, function (err){
-              console.error("No element created: Error while getting the data for the new element. " + err);
+          }, function (err) {
+            console.error("No element created: Error while getting the data for the new element. " + err);
           });
 
-        }
-        else if (createAction.payload.typeId == 'node-and-splitter') {
-            let stageData : StageAndGatewayDefinitionInfo;
-            this.defaultGetter.getAndSplitterDefinition().then((data) =>{
-              this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
-              stageData = data;
-              dispatch(this.createElement(stageData, createAction));
-              return;
-            }, function (err){
-              console.log("No element created: Error while getting the data for the new element. " + err);
-            });
-        }
-        else if(createAction.payload.typeId == 'node-if-splitter'){
-          let stageData : StageXOrGatewayDefinitionInfo;
-          this.defaultGetter.getIfSplitterDefinition().then((data) =>{
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+        } else if (createAction.payload.typeId == 'node-and-splitter') {
+          let stageData: StageAndGatewayDefinitionInfo;
+          this.defaultGetter.getAndSplitterDefinition().then((data: StageAndGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
-          }, function (err){
+          }, function (err) {
             console.log("No element created: Error while getting the data for the new element. " + err);
           });
-        }
-        else if(createAction.payload.typeId == 'node-all-merger'){
-          let stageData : StageAndGatewayDefinitionInfo;
-          this.defaultGetter.getAllMergerDefinition().then((data) =>{
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+        } else if (createAction.payload.typeId == 'node-if-splitter') {
+          let stageData: StageXOrGatewayDefinitionInfo;
+          this.defaultGetter.getIfSplitterDefinition().then((data: StageXOrGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
-          }, function(err){
+          }, function (err) {
             console.log("No element created: Error while getting the data for the new element. " + err);
           });
-        }
-        else if(createAction.payload.typeId == 'node-any-merger'){
-          let stageData : StageXOrGatewayDefinitionInfo;
-          this.defaultGetter.getAnyMergerDefinition().then((data) => {
-            this.pipelineDefinitionEdit.stages = this.pipelineDefinitionEdit.stages.concat(data);
+        } else if (createAction.payload.typeId == 'node-all-merger') {
+          let stageData: StageAndGatewayDefinitionInfo;
+          this.defaultGetter.getAllMergerDefinition().then((data: StageAndGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
             return;
-          }, function(err){
+          }, function (err) {
+            console.log("No element created: Error while getting the data for the new element. " + err);
+          });
+        } else if (createAction.payload.typeId == 'node-any-merger') {
+          let stageData: StageXOrGatewayDefinitionInfo;
+          this.defaultGetter.getAnyMergerDefinition().then((data: StageXOrGatewayDefinitionInfo) => {
+            this.pipelineDefinitionEdit.stages.push(data);
+            stageData = data;
+            dispatch(this.createElement(stageData, createAction));
+            return;
+          }, function (err) {
             console.log("No element created: Error while getting the data for the new element. " + err);
           });
         }
       } else if (action.type === DiagramMakerActions.EDGE_CREATE) {   //Logic if a Edge can be created or not
-        let edgeDestPossible = true;
-        let edgeSrcPossible = true;
+        let edgeDestPossible: boolean = true;
+        let edgeSrcPossible: boolean = true;
         const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
         const nodeMap = this.diagramMaker.store.getState().nodes;
         let createEdgeAction = action as CreateEdgeAction<{}>;
@@ -304,8 +298,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         }
         if (edgeDestPossible && edgeSrcPossible) {
           this.saveStatus = false;
-          let stageToEdit = this.pipelineDefinitionEdit.stages.find((element) => element.id === createEdgeAction.payload.src);
-          stageToEdit.nextStages.push(createEdgeAction.payload.dest);
+          let stageToEdit: StageDefinitionInfoUnion | undefined = this.pipelineDefinitionEdit.stages.find((element: StageDefinitionInfoUnion) => element.id === createEdgeAction.payload.src);
+          stageToEdit?.nextStages.push(createEdgeAction.payload.dest);
           dispatch(createEdgeAction);
         }
       } else if (action.type === DiagramMakerActions.DELETE_ITEMS) {
@@ -313,35 +307,32 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
         const keyIter = nodeMap.keys()
         console.log(deleteAction.payload.nodeIds);
-        if (deleteAction.payload.nodeIds.includes(keyIter.next().value)){}
-        else {
+        if (deleteAction.payload.nodeIds.includes(keyIter.next().value)) {
+        } else {
           this.saveStatus = false;
           dispatch(deleteAction);
         }
-      }  else if (action.type === DiagramMakerActions.PANEL_DRAG) {         //Interceptor to fix a bug where the panel clips at the top edge
-        let dragAction : DragPanelAction = JSON.parse(JSON.stringify(action));
+      } else if (action.type === DiagramMakerActions.PANEL_DRAG) {         //Interceptor to fix a bug where the panel clips at the top edge
+        let dragAction: DragPanelAction = JSON.parse(JSON.stringify(action));
         dragAction.payload.viewContainerSize.height = 5000;
         dispatch(dragAction);
-      }
-      else {      //Default dispatch action for all actions that get not intercepted
+      } else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
       }
     },
     nodeTypeConfig: this.configClass.getNodeTypes(),
   };
 
-  nodeComponentInstances = [];
+  nodeComponentInstances: any[] = []; // todo if used add proper type else remove
 
   constructor(private viewContainerRef: ViewContainerRef,
               private componentFactoryResolver: ComponentFactoryResolver,
-              private client:  HttpClient,
-              private pipelinesApi: PipelineApiService,
-              private dialog: DialogService
+              private client: HttpClient,
   ) {
     this.pipelineDefinitionEdit = this.pipelineDefinition;
   }
 
-  editState(editForm) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
+  editState(editForm: Raw<PipelineDefinitionInfo>) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -366,10 +357,13 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     }
   }
 
-  createElement(stageData, createAction){ //helper function used for the intercepted createNode Actions
-    let nodeWidth : number;
-    if (createAction.payload.typeId == 'node-normal'){nodeWidth = 200}
-    else {nodeWidth = 150}
+  createElement(stageData: Raw<StageDefinitionInfo>, createAction: CreateNodeAction<StageDefinitionInfo>) { //helper function used for the intercepted createNode Actions
+    let nodeWidth: number;
+    if (createAction.payload.typeId == 'node-normal') {
+      nodeWidth = 200
+    } else {
+      nodeWidth = 150
+    }
     let newAction: CreateNodeAction<{}> = {
       type: DiagramMakerActions.NODE_CREATE,
       payload: {
@@ -472,8 +466,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
   ngOnChanges() {
     //console.dir(this.pipelineDefinition);
     // possibly unsafe
-   /* this.libraryComponent = null;
-    this.initialData = this.initClass.getInitData(this.pipelineDefinition);*/
+    /* this.libraryComponent = null;
+     this.initialData = this.initClass.getInitData(this.pipelineDefinition);*/
     /*setTimeout(() => {
       this.libraryComponent = null;
       this.ngOnDestroy();
@@ -520,19 +514,19 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
     const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
     let i = 0;
-    for (let storeNode of nodeMap.values()){
-      if (i > 0){
+    for (let storeNode of nodeMap.values()) {
+      if (i > 0) {
         let node = JSON.parse(JSON.stringify(storeNode))
         this.pipelineDefinition.stages.push(node.consumerData as StageDefinitionInfoUnion);
-        this.pipelineDefinition.stages[i-1].nextStages = new Array();
+        this.pipelineDefinition.stages[i - 1].nextStages = [];
       }
       i++;
     }
-    for(let edge of edgeMap.values()){
-      let index = this.pipelineDefinition.stages.findIndex(function(stage) {
+    for (let edge of edgeMap.values()) {
+      let index = this.pipelineDefinition.stages.findIndex(function (stage) {
         return stage.id == edge.src
       });
-      if (index >= 0 ) {
+      if (index >= 0) {
         console.log(index);
         this.pipelineDefinition.stages[index].nextStages.push(edge.dest);
       }

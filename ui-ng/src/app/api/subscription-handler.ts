@@ -31,7 +31,7 @@ export class SubscriptionHandler<T, V> {
     });
   }
 
-  public subscribe(handler: (id: T, value?: V) => void): Subscription {
+  public subscribe(handler: (id: T, value: V) => void): Subscription {
     const subscription = this.subscriptions.subscribe((event: ChangeEvent<T, V>) => {
       handler(event.identifier, event.value);
     });

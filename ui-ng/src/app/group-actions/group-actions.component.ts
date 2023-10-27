@@ -13,22 +13,24 @@ import {PipelineDefinitionInfo, ProjectInfo, StateInfo} from '../api/winslow-api
 export class GroupActionsComponent implements OnInit {
 
   projects: ProjectInfo[] = [];
-  projectsFiltered: ProjectInfo[] = null;
+  projectsFiltered?: ProjectInfo[];
   projectsGroups: ProjectGroup[] = [];
-  stateInfo: Map<string, StateInfo> = null;
-  selectedProject: ProjectInfo = null;
+  stateInfo?: Map<string, StateInfo>;
+  selectedProject?: ProjectInfo;
 
   projectsLoadError = null;
   projectsLongLoading = new LongLoadingDetector();
 
-  pipelines: PipelineDefinitionInfo[] = null;
-  actionLoadError = null;
+  pipelines?: PipelineDefinitionInfo[];
+  actionLoadError?: Error;
   actionLongLoading = new LongLoadingDetector();
-  groupsOnTop: boolean;
+  groupsOnTop?: boolean;
 
-  constructor(public api: ProjectApiService,
-              @Inject(MAT_DIALOG_DATA) public data: any,
-              private pipelineApi: PipelineApiService) {
+  constructor(
+    public api: ProjectApiService,
+    @Inject(MAT_DIALOG_DATA) public data: {tag: string},
+    private pipelineApi: PipelineApiService
+  ) {
   }
 
   ngOnInit() {

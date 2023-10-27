@@ -4,7 +4,7 @@
 
 <div class="history-list-column history-item-no">{{itemNo}}</div>
 
-<div class="history-list-column history-item-date">{{toDate(time)}}</div>
+<div class="history-list-column history-item-date">{{time ? toDate(time) : ""}}</div>
 
 <div class="history-list-column history-batch">
   <mat-icon *ngIf="groupSize > 1"
@@ -17,7 +17,7 @@
   {{isConfigure ? '[Configured] ' : ''}}{{stageName}}
 </div>
 
-<div class="history-list-column history-comment" [matTooltip]="comment">
+<div class="history-list-column history-comment" [matTooltip]="comment ?? ''">
   {{comment}}
 </div>
 

@@ -20,23 +20,30 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
 
   static readonly MAX_ENTRIES = 120;
 
-  @Input() nodeName: string;
-  @Input() historyEnabled: boolean;
+  @Input() nodeName!: string;
+  @Input() historyEnabled!: boolean;
   lastNodeName = '';
 
   isLive = true;
   panelOpenState = false;
 
   nodes: NodeInfoExt[] = [];
-  node: NodeInfoExt;
-  selectedNodeIndex: number = null;
+  node?: NodeInfoExt;
+  selectedNodeIndex?: number;
   historyButtonValue = 'live';
   loadError = null;
-  subscription: Subscription = null;
+  subscription?: Subscription;
 
-  date: Date;
-  lastTimestamp: number;
-  formatter: (value) => string;
+  date?: Date;
+  lastTimestamp?: number;
+  formatter: (value: any) => string = (params: any): string => {
+    params = params[0];
+    const date = new Date(params.name);
+    const zero = (date.getMinutes() < 10 ? '0' : '');
+    return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
+      date.getHours() + ':' + zero + date.getMinutes() + '<br>' +
+      params.seriesName + ': ' + params.value[1] + '%';
+  };
 
   unitNetwork = '';
   unitDisk = '';
@@ -60,14 +67,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       axisPointer: {
         type: 'shadow'
       },
-      formatter: (params) => {
-        params = params[0];
-        const date = new Date(params.name);
-        const zero = (date.getMinutes() < 10 ? '0' : '');
-        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
-          date.getHours() + ':' + zero + date.getMinutes() + '<br>' +
-          params.seriesName + ': ' + params.value[1] + '%';
-      },
+      formatter: (value: any) => this.formatter(value),
     },
     calculable: false,
     grid: {
@@ -84,7 +84,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: value => this.formatter(value)
+          formatter: (value: any) => this.formatter(value)
         }
       },
     ],
@@ -114,7 +114,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       axisPointer: {
         type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         const date = new Date(params[0].name);
         const zero = (date.getMinutes() < 10 ? '0' : '');
         return `  ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${zero + date.getMinutes()} <br>
@@ -137,7 +137,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         show: true,
         type: 'time',
         axisLabel: {
-          formatter: value => this.formatter(value)
+          formatter: (value: any) => this.formatter(value)
         },
         splitLine: {
           show: false,
@@ -171,7 +171,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       axisPointer: {
         type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         const date = new Date(params[0].name);
         const zero = (date.getMinutes() < 10 ? '0' : '');
         return `  ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${zero + date.getMinutes()} <br>
@@ -193,7 +193,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         show: true,
         type: 'time',
         axisLabel: {
-          formatter: value => this.formatter(value)
+          formatter: (value: any) => this.formatter(value)
         },
         splitLine: {
           show: false,
@@ -229,7 +229,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       axisPointer: {
         type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         const date = new Date(params[0].name);
         const zero = (date.getMinutes() < 10 ? '0' : '');
         return `  ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${zero + date.getMinutes()} <br>
@@ -251,7 +251,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         show: true,
         type: 'time',
         axisLabel: {
-          formatter: value => this.formatter(value)
+          formatter: (value: any) => this.formatter(value)
         },
         splitLine: {
           show: false,
@@ -277,7 +277,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   };
 
   gpus: any[] = [];
-  gpuName = [];
+  gpuName: string[] = [];
   mergeOptionGpu: any[] = [];
   chartOptionGpu = {
     tooltip: {
@@ -287,7 +287,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       axisPointer: {
         type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         const date = new Date(params[0].name);
         const zero = (date.getMinutes() < 10 ? '0' : '');
         return ` ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}  ${date.getHours()}:${zero + date.getMinutes()} <br>
@@ -310,7 +310,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: value => this.formatter(value)
+          formatter: (value: any) => this.formatter(value)
         }
       },
     ],
@@ -339,21 +339,23 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     }
   ];
 
-  average = (arr) => arr.reduce((p, c) => p + c, 0) / arr.length;
+  average = (arr: number[]) => arr.reduce((p, c) => p + c, 0) / arr.length;
 
-  axisLabelFormatterMinutes(value) {
+  axisLabelFormatterMinutes(value: string | number | Date): string {
     const date = new Date(value);
     if (date.getSeconds() === 0) {
       const zero = (date.getMinutes() < 10 ? ':0' : ':');
       return date.getHours() + zero + date.getMinutes();
     }
+    return ''
   }
 
-  axisLabelFormatterDays(value) {
+  axisLabelFormatterDays(value: string | number | Date): string {
     const date = new Date(value);
     if (date.getSeconds() === 0) {
       return date.getDate() + '.' + (date.getMonth() + 1);
     }
+    return ''
   }
 
   ngOnInit() {
@@ -494,7 +496,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       this.gpus.forEach((gpu) => {
         gpu.series.unshift({
           name: date.toString(),
-          value: [date, ]
+          value: [date,]
         });
       });
     }
@@ -507,55 +509,59 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
 
       this.cpus.unshift({
         name: date.toString(),
-        value: [date, ],
+        value: [date,],
       });
 
       this.network[0].series.unshift({
         name: date.toString(),
-        value: [date, ],
+        value: [date,],
       });
       this.network[1].series.unshift({
         name: date.toString(),
-        value: [date, ],
+        value: [date,],
       });
 
       this.memory[0].series.unshift({
         name: date.toString(),
-        value: [date, ]
+        value: [date,]
       });
       this.memory[1].series.unshift({
         name: date.toString(),
-        value: [date, ]
+        value: [date,]
       });
       this.memory[2].series.unshift({
         name: date.toString(),
-        value: [date, ]
+        value: [date,]
       });
       this.memory = [this.memory[0], this.memory[1], this.memory[2]];
 
       this.disk[0].series.unshift({
         name: date.toString(),
-        value: [date, ]
+        value: [date,]
       });
       this.disk[1].series.unshift({
         name: date.toString(),
-        value: [date, ]
+        value: [date,]
       });
 
       this.gpus.forEach((gpu) => {
         gpu[0].series.unshift({
           name: date.toString(),
-          value: [date, ]
+          value: [date,]
         });
         gpu[1].series.unshift({
           name: date.toString(),
-          value: [date, ]
+          value: [date,]
         });
       });
     }
   }
 
   private updateCpuStatus() {
+    if (this.node == undefined) {
+      console.error("Cannot update CPU status: Node is not initialised.");
+      return;
+    }
 
     if (this.isLive) {
       this.cpuUsage = +(
@@ -563,7 +569,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       ).toFixed(0);
 
       this.cpus.push({
-        name: this.date.toString(),
+        name: this.date?.toString(),
         value: [
           this.date,
           (this.average(this.node.cpuInfo.utilization) * 100).toFixed(0),
@@ -591,6 +597,10 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   }
 
   private updateMemoryStatus() {
+    if (this.node == undefined) {
+      console.error("Cannot update memory status: Node is not initialised.");
+      return;
+    }
 
     if (this.isLive) {
 
@@ -602,21 +612,21 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       this.memoryUsed = (+heap + +cache + +swap).toFixed(2);
 
       this.memory[0].series.push({
-        name: this.date.toString(),
+        name: this.date?.toString(),
         value: [
           this.date,
           heap
         ],
       });
       this.memory[1].series.push({
-        name: this.date.toString(),
+        name: this.date?.toString(),
         value: [
           this.date,
           cache,
         ],
       });
       this.memory[2].series.push({
-        name: this.date.toString(),
+        name: this.date?.toString(),
         value: [
           this.date,
           swap,
@@ -676,7 +686,11 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private updateNetworkSeries(date: Date = null) {
+  private updateNetworkSeries(date: Date) {
+    if (this.node == undefined) {
+      console.error("Cannot update network series: Node is not initialised.");
+      return;
+    }
     this.rawNetwork.push([
       date,
       [this.node.netInfo.transmitting, this.node.netInfo.receiving],
@@ -726,6 +740,14 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   }
 
   private updateDiskSeries() {
+    if (this.node == undefined) {
+      console.error("Cannot update disk series: Node is not initialised.");
+      return;
+    }
+    if (this.date == undefined) {
+      console.error("Cannot update disk series: Date is not initialised.");
+      return;
+    }
     this.rawDisk.push([
       this.date,
       [this.node.diskInfo.writing, this.node.diskInfo.reading],
@@ -736,6 +758,10 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   }
 
   private updateDiskStatus() {
+    if (this.node == undefined) {
+      console.error("Cannot update disk status: Node is not initialised.");
+      return;
+    }
     this.diskTotal = this.bytesToGigabyte(this.node.diskInfo.used + this.node.diskInfo.free).toFixed(0);
     this.diskFree = this.bytesToGigabyte(this.node.diskInfo.free).toFixed(0);
 
@@ -775,14 +801,18 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   }
 
   private updateGpuSeries() {
+    if (this.node == undefined) {
+      console.error("Cannot update GPU series: Node is not initialised.");
+      return;
+    }
     let counter = 0;
     for (const gpu of this.node.gpuInfo) {
       this.gpus[counter++].series.push({
-        name: this.date.toString(),
+        name: this.date?.toString(),
         value: [this.date, Number(Math.max(0, Math.min(100, gpu.computeUtilization)))]
       });
       this.gpus[counter++].series.push({
-        name: this.date.toString(),
+        name: this.date?.toString(),
         value: [this.date, Number(Math.max(0, Math.min(100, (gpu.memoryUsedMegabytes / gpu.memoryTotalMegabytes) * 100))).toFixed(0)]
       });
     }
@@ -796,7 +826,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     }
 
     if (this.gpuName.length === 0) {
-      this.node.gpuInfo.forEach(gpu => {
+      this.node?.gpuInfo.forEach(gpu => {
         this.gpuName.push(gpu.name + ' (' + gpu.id + ')');
       });
     }
@@ -902,7 +932,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
-      this.subscription = null;
+      this.subscription = undefined;
     }
   }
 
@@ -914,7 +944,7 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     return bytes / (1024 * 1024 * 1024);
   }
 
-  trackGpu(gpuInfo: GpuInfo): string {
+  trackGpu(_index: number, gpuInfo: GpuInfo): string {
     return gpuInfo?.id;
   }
 
@@ -952,10 +982,10 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
     this.historyButtonValue = value;
   }
 
-  getHistory(hours) {
+  getHistory(hours: number) {
     this.isLive = false;
 
-    const node: NodeInfoExt = this.nodes[this.selectedNodeIndex];
+    const node: NodeInfoExt = this.nodes[this.selectedNodeIndex ?? 0];
     const to = new Date();
     const from = new Date().setHours(to.getHours() - hours);
     let chunkSpanMillis;

@@ -11,7 +11,6 @@ import {ProjectInfo} from "../../api/winslow-api";
 })
 export class AddToContextPopupComponent implements OnInit {
 
-  isGroup: boolean;
   proposals: string[] = [];
   cachedTags: string[];
   previewTags: string[] = [];
@@ -23,10 +22,7 @@ export class AddToContextPopupComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: AddToContextDialogData
   ) {
     this.cachedTags = this.api.cachedTags;
-    this.isGroup = false;
-    if (this.data.projectGroup) {
-      this.isGroup = true;
-    } else if (this.data.project) {
+    if (this.data.project) {
       this.previewTags = this.data.project.tags
         .filter(tag => tag.startsWith(this.CONTEXT_PREFIX));
     }
@@ -69,7 +65,6 @@ export class AddToContextPopupComponent implements OnInit {
         });
     });
   }
-
 }
 
 type AddToContextDialogData = {

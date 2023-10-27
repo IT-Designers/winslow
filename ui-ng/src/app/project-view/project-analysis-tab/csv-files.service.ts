@@ -47,12 +47,11 @@ export class CsvFilesService {
 
   getCsvFiles$(filepath: string): Observable<CsvFile[]> {
     return this.stages$.pipe(
-      switchMap(stages => {
-        const file$s = stages
-          .filter(stage => stage.workspace != undefined)
-          .map(stage => this.getCsvFile$(<string>stage.workspace, stage.id, filepath));
-        return combineLatest(file$s);
-      }),
+      switchMap(stages =>
+        combineLatest(stages
+            .filter(stage => stage.workspace)
+            .map(stage => this.getCsvFile$(stage.id, <string>stage.workspace, filepath))
+        )),
     );
   }
 
@@ -109,14 +108,14 @@ export class CsvFilesService {
     return paths;
   }
 
-  private getCsvFile$(stageWorkspace: string, stageId: string, filepath: string): Observable<CsvFile> {
-    const csvFileSource = this.getCsvFileSource(stageWorkspace, filepath);
+  private getCsvFile$(workspace: string, stageId: string, filepath: string): Observable<CsvFile> {
+    const csvFileSource = this.getCsvFileSource(workspace, filepath);
     return csvFileSource.content$.pipe(
       map((content: CsvFileContent): CsvFile => ({
         content: content,
         pathToWorkspace: csvFileSource.pathToWorkspace,
         pathInWorkspace: csvFileSource.pathInWorkspace,
-        stageId: stageId
+        stageId: stageId,
       }))
     );
   }

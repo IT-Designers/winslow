@@ -2,8 +2,9 @@ import {Component, EventEmitter, OnInit, OnChanges, Input, Output, SimpleChanges
 import {RoleApiService} from '../../api/role-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
-import {AddMemberData, GroupAddMemberDialogComponent} from '../group-add-member-dialog/group-add-member-dialog.component';
-import {GroupApiService} from '../../api/group-api.service';
+import {GroupAddMemberDialogComponent} from '../group-add-member-dialog/group-add-member-dialog.component';
+import {GroupApiService, GroupInfo} from '../../api/group-api.service';
+import {Link} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-group-member-list',
@@ -12,16 +13,16 @@ import {GroupApiService} from '../../api/group-api.service';
 })
 export class GroupMemberListComponent implements OnInit, OnChanges {
 
-  @Input() group = {name: '', members: []};
-  @Input() myUser = {name: 'No Name', role: 'NO ROLE'};
+  @Input() group!: GroupInfo;
+  @Input() myUser!: Link;
 
   @Output() memberEmitter = new EventEmitter();
   @Output() removeMember = new EventEmitter();
 
-  allRoles = [''];
-  userSearchInput = '';
-  displayMembers = [];
-  disabledUser: { name: '', role: '' };
+  allRoles: string[] = [''];
+  userSearchInput: string = '';
+  displayMembers: Link[] = [];
+  disabledUser?: Link;
 
   constructor(
     private roleApi: RoleApiService,
@@ -41,7 +42,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
   }
 
   sortMembers() {
-    this.displayMembers.sort((a, b) => {
+    this.displayMembers.sort((a: Link, b: Link) => {
       if (a.role < b.role) {
         return 1;
       } else if (a.role === b.role) {
@@ -51,6 +52,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
           return -1;
         }
       }
+      return -1;
     });
   }
 
@@ -67,7 +69,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     }
   }
 
-  onRemoveItemClick(item) {
+  onRemoveItemClick(item: Link) {
     this.removeMember.emit(item);
     const delIndex = this.group.members.findIndex((tempUser) => tempUser.name === item.name);
     this.group.members.splice(delIndex, 1);
@@ -81,7 +83,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
       .open(GroupAddMemberDialogComponent, {
         data: {
           members: this.displayMembers
-        } as AddMemberData
+        }
       })
       .afterClosed()
       .subscribe((result) => {
@@ -93,7 +95,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
       });
   }
 
-  roleChanged(user) {
+  roleChanged(user: Link) {
     this.checkSelects();
     this.sortMembers();
     return this.dialog.openLoadingIndicator(
@@ -114,7 +116,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
         }
       }
       if (ownerCount > 1) {
-        this.disabledUser = {name: '', role: ''};
+        this.disabledUser = undefined;
       }
     }
   }
@@ -127,7 +129,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     }
   }
 
-  getTooltipSelect(user) {
+  getTooltipSelect(user: Link) {
     if (!this.amIOwner()) {
       return 'Only OWNERs can edit roles';
     } else if (user === this.disabledUser) {
@@ -135,7 +137,7 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     }
   }
 
-  getTooltipRemove(user) {
+  getTooltipRemove(user: Link) {
     if (!this.amIOwner()) {
       return 'Only OWNERs can remove members';
     } else if (user === this.disabledUser) {

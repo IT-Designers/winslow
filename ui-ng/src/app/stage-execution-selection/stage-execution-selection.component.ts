@@ -1,11 +1,10 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {MatDialog} from '@angular/material/dialog';
 import {createRangedList, createRangeWithStepSize, createWorkspaceConfiguration, ProjectApiService,} from '../api/project-api.service';
-import {parseArgsStringToArgv} from 'string-argv';
+
 import {
   EnvVariable,
   ExecutionGroupInfo,
-  ImageInfo,
+  ImageInfo, isRangedList, isRangeWithStepSize,
   PipelineDefinitionInfo,
   RangedValueUnion,
   ResourceInfo,
@@ -14,6 +13,7 @@ import {
   WorkspaceConfiguration,
   WorkspaceMode
 } from '../api/winslow-api';
+import {parseArgsStringToArgv} from "string-argv";
 
 
 @Component({
@@ -28,34 +28,34 @@ export class StageExecutionSelectionComponent implements OnInit {
   rangeTypes: string[] = [this.rangeTypeRange, this.rangeTypeList];
   rangeType: string = this.rangeTypeRange;
 
-  @Input() pipelines: PipelineDefinitionInfo[];
+  @Input() pipelines: PipelineDefinitionInfo[] = [];
   @Input() pipelineSelectionDisabled = false;
 
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineDefinitionInfo>();
   @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageDefinitionInfo>();
   @Output('valid') private validEmitter = new EventEmitter<boolean>();
 
-  defaultPipelineIdValue: string;
-  executionHistoryValue: ExecutionGroupInfo[] = null;
+  defaultPipelineIdValue?: string;
+  executionHistoryValue?: ExecutionGroupInfo[];
 
-  selectedPipeline: PipelineDefinitionInfo = null;
-  selectedStage: StageWorkerDefinitionInfo = null;
+  selectedPipeline?: PipelineDefinitionInfo;
+  selectedStage?: StageWorkerDefinitionInfo;
   image = new ImageInfo({name: '', args: [], shmMegabytes: 0});
 
   resources = new ResourceInfo({cpus: 0, gpus: 0, megabytesOfRam: 100});
 
   workspaceConfiguration = createWorkspaceConfiguration();
-  comment = null;
+  comment: string = "";
   valid = false;
 
   // env cache
-  environmentVariablesValue: Map<string, EnvVariable> = null;
+  environmentVariablesValue?: Map<string, EnvVariable>;
   defaultEnvironmentVariablesValue = new Map<string, string>();
-  requiredEnvironmentVariables: string[];
+  requiredEnvironmentVariables?: string[];
   envSubmitValue: any = null;
   envValid = false;
-  rangedEnvironmentVariablesValue: Map<string, RangedValueUnion> = null;
-  rangedEnvironmentVariablesUpdated: Map<string, RangedValueUnion> = null;
+  rangedEnvironmentVariablesValue?: Map<string, RangedValueUnion>;
+  rangedEnvironmentVariablesUpdated?: Map<string, RangedValueUnion>;
 
 
   static deepClone(image: object) {
@@ -76,7 +76,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   @Input()
-  set environmentVariables(map: Map<string, EnvVariable>) {
+  set environmentVariables(map: Map<string, EnvVariable> | undefined) {
     this.environmentVariablesValue = map;
     this.updateValid();
   }
@@ -104,7 +104,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   @Input()
   set workspaceConfigurationMode(mode: WorkspaceMode) {
     if (mode != null) {
-      let value = null;
+      let value = undefined;
       if (mode === 'CONTINUATION' && this.executionHistoryValue != null && this.executionHistoryValue.length > 0) {
         value = this.executionHistoryValue[0].id;
       }
@@ -133,7 +133,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   getRangedEnv() {
-    const fakeMap = {};
+    const fakeMap: Record<string, RangedValueUnion | undefined> = {};
     if (this.rangedEnvironmentVariablesValue != null) {
       for (const key of this.rangedEnvironmentVariablesValue.keys()) {
         fakeMap[key] = this.rangedEnvironmentVariablesValue.get(key);
@@ -160,23 +160,23 @@ export class StageExecutionSelectionComponent implements OnInit {
   }
 
   getComment(): string {
-    return this.comment;
+    return this.comment ?? "";
   }
 
   loadStagesForPipeline(pipelineId: string) {
-    this.selectedPipeline = null;
-    this.selectedPipelineEmitter.emit(null);
-    this.selectedStage = null;
-    this.selectedStageEmitter.emit(null);
-    this.environmentVariables = null;
-    this.comment = null;
+    this.selectedPipeline = undefined;
+    this.selectedPipelineEmitter.emit(undefined);
+    this.selectedStage = undefined;
+    this.selectedStageEmitter.emit(undefined);
+    this.environmentVariables = undefined;
+    this.comment = "";
 
     for (const pipeline of this.pipelines) {
       if (pipeline.id === pipelineId) {
         this.selectedPipeline = pipeline;
         this.selectedPipelineEmitter.emit(pipeline);
-        this.selectedStage = null;
-        this.selectedStageEmitter.emit(null);
+        this.selectedStage = undefined;
+        this.selectedStageEmitter.emit(undefined);
         break;
       }
     }
@@ -192,7 +192,7 @@ export class StageExecutionSelectionComponent implements OnInit {
             this.image = StageExecutionSelectionComponent.deepClone(stage.image);
             this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : null;
 
-            const requiredEnvironmentVariables = [];
+            const requiredEnvironmentVariables: string[] = [];
             this.selectedPipeline.userInput.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
             stage.userInput.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
 
@@ -205,26 +205,17 @@ export class StageExecutionSelectionComponent implements OnInit {
     }
   }
 
-  updateImageArgs(value: string) {
-    this.image.args = parseArgsStringToArgv(value);
-    this.updateValid();
-  }
-
   updateValidEnv(valid: boolean) {
     this.envValid = valid;
     this.updateValid();
   }
 
-  toNumber(value: string): number {
-    return Number(value);
-  }
-
   setWorkspaceMode(
     update: boolean,
-    mode: WorkspaceMode,
-    value: string = null,
-    sharedWithinGroup: boolean = null,
-    nestedWithinGroup: boolean = null
+    mode?: WorkspaceMode,
+    value?: string,
+    sharedWithinGroup?: boolean,
+    nestedWithinGroup?: boolean
   ) {
     if (update) {
       this.workspaceConfiguration = createWorkspaceConfiguration(
@@ -253,7 +244,7 @@ export class StageExecutionSelectionComponent implements OnInit {
       stepSize.value.trim()
     );
 
-    name.value = null;
+    name.value = '';
     name.focus();
   }
 
@@ -262,8 +253,8 @@ export class StageExecutionSelectionComponent implements OnInit {
     values: HTMLInputElement,
   ) {
     this.setRangedList(name.value.trim(), values.value.trim());
-    values.value = null;
-    name.value = null;
+    values.value = '';
+    name.value = '';
     name.focus();
   }
 
@@ -327,7 +318,7 @@ export class StageExecutionSelectionComponent implements OnInit {
         })
         .join(' ');
     } else {
-      return null;
+      return '';
     }
   }
 
@@ -335,9 +326,62 @@ export class StageExecutionSelectionComponent implements OnInit {
     if (args != null) {
       return args.join(', ');
     } else {
-      return null;
+      return '';
     }
   }
 
 
+  onImageValueChanged(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) {
+      this.image.name = target.value
+    }
+    this.updateValid();
+  }
+
+  onImageArgsChanged(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) {
+      this.image.args = parseArgsStringToArgv(target.value);
+    }
+    this.updateValid();
+  }
+
+  onCommentChanged(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) {
+      this.comment = target.value;
+    }
+  }
+
+  onCpusChanged(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) {
+      this.resources.cpus = Number(target.value);
+    }
+    this.updateValid();
+  }
+
+  onRamChanged(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) {
+      this.resources.megabytesOfRam = Number(target.value);
+    }
+    this.updateValid();
+  }
+
+  onGpusChanged(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) {
+      this.resources.gpus = Number(target.value);
+    }
+    this.updateValid();
+  }
+
+  getZerothExecutionHistoryValue() {
+    return this.executionHistoryValue ? this.executionHistoryValue[0] : undefined;
+  }
+
+  protected readonly isRangeWithStepSize = isRangeWithStepSize;
+  protected readonly isRangedList = isRangedList;
 }
