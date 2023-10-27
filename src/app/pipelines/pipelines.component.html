@@ -54,12 +54,14 @@
                 #drawer>
       <div class="drawer-content">
         <div class="drawer-element">
-          <app-searchable-list type="Pipeline"
-                               [allItems]="pipelines"
-                               searchPlaceholderText="Pipeline Name..."
-                               listItemTooltip="Edit Pipeline"
-                               (itemEmitter)="onPipelineClicked($event)"
-                               (newItemEmitter)="onAddPipeline($event)">
+          <app-searchable-list
+            type="Pipeline"
+            [allItems]="pipelines"
+            searchPlaceholderText="Pipeline Name..."
+            listItemTooltip="Edit Pipeline"
+            (itemEmitter)="onPipelineClicked($event)"
+            (newItemEmitter)="onAddPipeline($event)"
+          >
 
           </app-searchable-list>
 
@@ -68,22 +70,22 @@
       </div>
 
       <div class="button-group">
-        <button class="hide-projects-button" mat-mini-fab color="white" (click)="drawer.toggle()">
+        <button class="hide-projects-button" mat-mini-fab (click)="drawer.toggle()">
           <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
         </button>
       </div>
 
     </mat-drawer>
     <mat-drawer-content class="detail-container">
-      <app-pipeline-details [selectedPipeline]="selectedPipeline"
-                            (pipelineDeleteEmitter)="onDeletePipeline($event)">
-
-      </app-pipeline-details>
-
-      <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab color="white" (click)="drawer.toggle()">
+      <app-pipeline-details
+        *ngIf="selectedPipeline"
+        [selectedPipeline]="selectedPipeline"
+        (pipelineDeleteEmitter)="onDeletePipeline($event)"
+      ></app-pipeline-details>
+      <span *ngIf="selectedPipeline === null" class="nothing-selected">No pipeline selected</span>
+      <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab (click)="drawer.toggle()">
         <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
       </button>
-
     </mat-drawer-content>
   </mat-drawer-container>
 
