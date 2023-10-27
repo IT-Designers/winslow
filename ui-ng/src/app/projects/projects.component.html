@@ -52,7 +52,7 @@
         <mat-icon matTooltip="Group Actions">play_arrow</mat-icon>
       </button>
 
-      <button class="hide-projects-button" mat-mini-fab (click)="drawer.toggle()" matTooltip="Hide Sidebar">
+      <button class="hide-projects-button" mat-mini-fab [color]="$any('white')" (click)="drawer.toggle()" matTooltip="Hide Sidebar">
         <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
       </button>
     </div>
@@ -72,7 +72,7 @@
       </app-project-view>
     </ng-container>
 
-    <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab (click)="drawer.toggle()" matTooltip="Show Sidebar">
+    <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab [color]="$any('white')"  (click)="drawer.toggle()" matTooltip="Show Sidebar">
       <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
     </button>
 
