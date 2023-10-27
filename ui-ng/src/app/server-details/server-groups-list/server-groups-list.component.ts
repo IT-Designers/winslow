@@ -187,19 +187,6 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
     }
   }
 
-
-  cpuHasChanged(value: number, group: GroupResourceLimitEntry) {
-    group.resourceLimitation.cpu = value;
-  }
-
-  gpuHasChanged(value: number, group: GroupResourceLimitEntry) {
-    group.resourceLimitation.gpu = value;
-  }
-
-  memorySliderHasChanged(value: number, group: GroupResourceLimitEntry) {
-    group.resourceLimitation.mem = value;
-  }
-
   memoryInputHasChanged(event: Event) {
     if (!this.editableResourceAllocations.globalLimit) {
       console.error("Global limit is not defined!");
