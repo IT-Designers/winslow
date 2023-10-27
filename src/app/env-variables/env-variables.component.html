@@ -8,7 +8,7 @@
            (change)="values[key] = input.value; updateValid()"
            [formControlName]="key"
            (keyup)="values[key] = input.value; updateValid()"
-           name="{{key}}">
+           [name]="key">
   </mat-form-field>
   <div class="controls">
     <button mat-icon-button color="primary" (click)="browseForValue(input)">

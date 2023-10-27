@@ -23,10 +23,10 @@
           <mat-select class="role-select"
                       [(value)]="user.role"
                       (selectionChange)="roleChanged(user)"
-                      matTooltipShowDelay="500"
+                      [matTooltipShowDelay]="500"
                       [matTooltip]="getTooltipSelect(user)"
                       [disabled]="user == disabledUser || !amIOwner()">
-            <mat-option *ngFor="let role of allRoles" value="{{role}}">
+            <mat-option *ngFor="let role of allRoles" [value]="role">
               {{role}}
             </mat-option>
           </mat-select>
@@ -34,7 +34,7 @@
         <div class="btn-container">
           <button class="remove-member-button"
                   (click)="onRemoveItemClick(user)"
-                  matTooltipShowDelay="500"
+                  [matTooltipShowDelay]="500"
                   [matTooltip]="getTooltipRemove(user)"
                   [disabled]="user == disabledUser || !amIOwner()">
             <mat-icon>person_remove</mat-icon>

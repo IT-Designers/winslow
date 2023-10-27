@@ -8,7 +8,7 @@
               (click)="deleteContent(entry)"
           > remove_circle </mat-icon>
             {{entry.key}} </td>
-          <td> <input (focusout)="triggerSaveData()" formControlName="{{entry.key}}"> </td>
+          <td> <input (focusout)="triggerSaveData()" [formControlName]="entry.key"> </td>
         </span>
       </tr>
       <tr *ngIf="!isNotObject(entry.value) && toDisplayProp(entry.key)">

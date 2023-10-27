@@ -2,7 +2,7 @@
   <h1 mat-dialog-title>Create a new Pipeline</h1>
   <mat-dialog-content class="dialog-content">
     <mat-form-field class="dialog-form-field">
-      <input matInput required formControlName="name" placeholder="The name of the new pipeline">
+      <input matInput [required]="true" formControlName="name" placeholder="The name of the new pipeline">
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions class="dialog-actions">
