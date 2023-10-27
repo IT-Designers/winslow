@@ -16,7 +16,7 @@
           <mat-label>Choose Role</mat-label>
           <mat-select [(value)]="selectedRole">
             <mat-option>None</mat-option>
-            <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
+            <mat-option *ngFor="let role of allRoles" [value]="role">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
         <button class="add-member-round-button"  (click)="addUserClicked(user.name, selectedRole)" [disabled]="!selectedRole">
