@@ -33,7 +33,9 @@
               "node_modules/diagram-maker/dist/diagramMaker.css",
               "src/styles.scss"
             ],
-            "scripts": [],
+            "scripts": [
+              "node_modules/echarts/dist/echarts.min.js"
+            ],
             "allowedCommonJsDependencies": [
               "@stomp/stompjs",
               "@stomp/rx-stomp",
