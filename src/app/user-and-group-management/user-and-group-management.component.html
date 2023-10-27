@@ -22,7 +22,7 @@
         </div>
 
         <div class="button-group">
-          <button class="hide-projects-button" mat-mini-fab color="white" (click)="userDrawer.toggle()">
+          <button class="hide-projects-button" mat-mini-fab (click)="userDrawer.toggle()">
             <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
           </button>
         </div>
@@ -34,7 +34,7 @@
                           (deletedUserEmitter)="onUserDelete()"
                           class="details">
         </app-user-details>
-        <button class="show-projects-button" *ngIf="!userDrawer.opened" mat-mini-fab color="white" (click)="userDrawer.toggle()">
+        <button class="show-projects-button" *ngIf="!userDrawer.opened" mat-mini-fab (click)="userDrawer.toggle()">
           <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
         </button>
       </mat-drawer-content>
@@ -64,7 +64,7 @@
         </div>
 
         <div class="button-group">
-          <button class="hide-projects-button" mat-mini-fab color="white" (click)="groupsDrawer.toggle()">
+          <button class="hide-projects-button" mat-mini-fab (click)="groupsDrawer.toggle()">
             <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
           </button>
         </div>
@@ -76,7 +76,7 @@
                            (groupDeleteEmitter)="onGroupDelete()"
                            class="details">
         </app-group-details>
-        <button class="show-projects-button" *ngIf="!groupsDrawer.opened" mat-mini-fab color="white" (click)="groupsDrawer.toggle()">
+        <button class="show-projects-button" *ngIf="!groupsDrawer.opened" mat-mini-fab (click)="groupsDrawer.toggle()">
           <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
         </button>
       </mat-drawer-content>
