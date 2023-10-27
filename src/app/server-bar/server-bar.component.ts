@@ -1,5 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {NodeInfoExt} from '../api/nodes-api.service';
+import {EChartsOption} from "echarts";
 
 @Component({
   selector: 'app-server-bar',
@@ -18,8 +19,8 @@ export class ServerBarComponent implements OnInit {
 
   runningJobs = '';
 
-  mergeOptionCpu = {};
-  chartOptionCpu = {
+  mergeOptionCpu: EChartsOption = {};
+  chartOptionCpu: EChartsOption = {
 
     series: [
       {
@@ -78,8 +79,8 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  mergeOptionMemory = {};
-  chartOptionMemory = {
+  mergeOptionMemory: EChartsOption = {};
+  chartOptionMemory: EChartsOption = {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -112,7 +113,7 @@ export class ServerBarComponent implements OnInit {
         },
         itemStyle: {
           color: '#007aff',
-          barBorderRadius: [3, 0, 0, 3]
+          borderRadius: [3, 0, 0, 3]
         },
         data: [],
       },
@@ -137,7 +138,7 @@ export class ServerBarComponent implements OnInit {
         },
         itemStyle: {
           color: '#003876',
-          barBorderRadius: [0, 3, 3, 0]
+          borderRadius: [0, 3, 3, 0]
         },
         data: [],
       },
@@ -145,8 +146,8 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  mergeOptionNetwork = {};
-  chartOptionNetwork = {
+  mergeOptionNetwork: EChartsOption = {};
+  chartOptionNetwork: EChartsOption = {
     grid: {
       top: '5%',
       bottom: '5%'
@@ -193,8 +194,8 @@ export class ServerBarComponent implements OnInit {
   };
 
 
-  mergeOptionDisk = {};
-  chartOptionDisk = {
+  mergeOptionDisk: EChartsOption = {};
+  chartOptionDisk: EChartsOption = {
     grid: {
       top: '5%',
       bottom: '5%'
@@ -240,8 +241,8 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  mergeOptionGpu = {};
-  chartOptionGpu = {
+  mergeOptionGpu: EChartsOption = {};
+  chartOptionGpu: EChartsOption = {
     series: [
       {
         name: 'GPU',
@@ -298,9 +299,10 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  average(arr: number[]): number  {
+  average(arr: number[]): number {
     return arr.reduce((p, c) => p + c, 0) / arr.length;
   }
+
   ngOnInit() {
 
     this.node.update = (node) => {
