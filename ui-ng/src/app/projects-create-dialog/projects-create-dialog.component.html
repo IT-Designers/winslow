@@ -4,7 +4,7 @@
   <div class="inputs">
     <mat-form-field appearance="outline">
       <mat-label>Name of the new project</mat-label>
-      <input matInput required placeholder="Aaron"
+      <input matInput [required]="true" placeholder="Aaron"
              [(ngModel)]="data.name">
     </mat-form-field>
 
@@ -15,7 +15,7 @@
     </mat-radio-group>
 
     <mat-form-field *ngIf="needsPipelineId()" appearance="outline">
-      <mat-select required placeholder="Pipeline to use"
+      <mat-select [required]="true" placeholder="Pipeline to use"
                   [(ngModel)]="data.pipelineId">
         <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
       </mat-select>

@@ -40,13 +40,15 @@
 
 <ng-template #template>
   <mat-chip-grid #chipList aria-label="Tag selection">
-    <mat-chip-row *ngFor="let tag of selectedTags"
-                  [removable]="!readonly && removable"
-                  (removed)="remove(tag)"
-                  (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
-                  (auxclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
-                  (dblclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
-                  [style.background-color]="colorful ? bgColor(tag) : ''">
+    <mat-chip-row
+      *ngFor="let tag of selectedTags"
+      [removable]="!readonly && removable"
+      (removed)="remove(tag)"
+      (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
+      (auxclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
+      (dblclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
+      [style.background-color]="colorful ? bgColor(tag) : ''"
+    >
       {{tag}}
       <mat-icon matChipRemove *ngIf="!readonly && removable" [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
     </mat-chip-row>
@@ -58,11 +60,15 @@
       [matChipInputFor]="chipList"
       [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
       [matChipInputAddOnBlur]="addOnBlur"
-      (matChipInputTokenEnd)="add($event)">
+      (matChipInputTokenEnd)="add($event)"
+    >
   </mat-chip-grid>
-  <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
-                    [hidden]="readonly"
-                    (optionSelected)="selected($event)">
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    [autoActiveFirstOption]="true"
+    [hidden]="readonly"
+    (optionSelected)="selected($event)"
+  >
     <mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
       {{tag}}
     </mat-option>

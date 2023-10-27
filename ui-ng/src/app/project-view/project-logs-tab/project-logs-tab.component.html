@@ -55,7 +55,7 @@
           <code *ngIf="logs != null" class="console"
           ><ng-container *ngFor="let log of logs; trackBy:lineId"
           ><span (contextmenu)="rightClickAction(matMenuTrigger, $event, log)"
-          ><span class="line-number no-word-wrap" matTooltip="{{toDate(log.time)}}">{{log.line}}</span
+          ><span class="line-number no-word-wrap" [matTooltip]="toDate(log.time)">{{log.line}}</span
           ><span *ngIf="isPatternMatching()"
                  [class.console-err]="log.error"
                  [class.console-mgmt]="sourceIsManagement(log.source)"
