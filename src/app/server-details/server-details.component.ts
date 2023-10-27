@@ -3,6 +3,7 @@ import {Subscription} from 'rxjs';
 import {ChangeType} from '../api/api.service';
 import {NodeInfoExt, NodesApiService} from '../api/nodes-api.service';
 import {GpuInfo} from '../api/winslow-api';
+import {EChartsOption} from "echarts";
 
 @Component({
   selector: 'app-server-details',
@@ -58,8 +59,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
 
   cpus: any[] = [];
   cpuUsage = 0;
-  mergeOptionCpu = {};
-  chartOptionCpu = {
+  mergeOptionCpu: EChartsOption = {};
+  chartOptionCpu: EChartsOption = {
     tooltip: {
       position: 'top',
       confine: true,
@@ -105,8 +106,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
   };
 
   memory: any[] = [];
-  mergeOptionMemory = {};
-  chartOptionMemory = {
+  mergeOptionMemory: EChartsOption = {};
+  chartOptionMemory: EChartsOption = {
     tooltip: {
       position: 'top',
       confine: true,
@@ -162,8 +163,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
 
   rawNetwork: [Date, number[]][] = [];
   network: any[] = [];
-  mergeOptionNetwork = {};
-  chartOptionNetwork = {
+  mergeOptionNetwork: EChartsOption = {};
+  chartOptionNetwork: EChartsOption = {
     tooltip: {
       position: 'top',
       confine: true,
@@ -220,8 +221,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
 
   rawDisk: [Date, number[]][] = [];
   disk: any[] = [];
-  mergeOptionDisk = {};
-  chartOptionDisk = {
+  mergeOptionDisk: EChartsOption = {};
+  chartOptionDisk: EChartsOption = {
     tooltip: {
       position: 'top',
       confine: true,
@@ -278,8 +279,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
 
   gpus: any[] = [];
   gpuName: string[] = [];
-  mergeOptionGpu: any[] = [];
-  chartOptionGpu = {
+  mergeOptionGpu: EChartsOption[] = [];
+  chartOptionGpu: EChartsOption = {
     tooltip: {
       position: 'top',
       confine: true,
@@ -586,10 +587,8 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         {
           name: 'CPU',
           type: 'line',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#5ac8fa',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.cpus,
         },
       ],
@@ -656,30 +655,24 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
           name: 'Heap',
           type: 'line',
           stack: 'mem',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#007aff',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.memory[0].series,
         },
         {
           name: 'Cache',
           type: 'line',
           stack: 'mem',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#5ac8fa',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.memory[1].series,
         },
         {
           name: 'Swap',
           type: 'line',
           stack: 'mem',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#5856d6',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.memory[2].series,
         },
       ],
@@ -720,19 +713,15 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         {
           name: 'Tx',
           type: 'line',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#007aff',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.network[0].series,
         },
         {
           name: 'Rx',
           type: 'line',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#5ac8fa',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.network[1].series,
         },
       ],
@@ -781,19 +770,15 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
         {
           name: 'Write',
           type: 'line',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#007aff',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.disk[0].series,
         },
         {
           name: 'Read',
           type: 'line',
-          hoverAnimation: false,
           showSymbol: false,
           color: '#5ac8fa',
-          itemStyle: {normal: {areaStyle: {type: 'default'}}},
           data: this.disk[1].series,
         },
       ],
@@ -846,19 +831,15 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
           {
             name: 'Compute',
             type: 'line',
-            hoverAnimation: false,
             showSymbol: false,
             color: '#007aff',
-            itemStyle: {normal: {areaStyle: {type: 'default'}}},
             data: this.gpus[counter]?.series,
           },
           {
             name: 'Memory Usage',
             type: 'line',
-            hoverAnimation: false,
             showSymbol: false,
             color: '#5ac8fa',
-            itemStyle: {normal: {areaStyle: {type: 'default'}}},
             data: this.gpus[counter + 1]?.series,
           },
         ],
