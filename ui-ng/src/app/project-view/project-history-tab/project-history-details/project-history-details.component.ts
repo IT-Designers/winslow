@@ -75,6 +75,10 @@ export class ProjectHistoryDetailsComponent implements OnInit {
     }
   }
 
+  isEmpty(record: Record<string, unknown>): boolean {
+    return Object.keys(record).length == 0;
+  }
+
   protected readonly isStageWorkerDefinitionInfo = isStageWorkerDefinitionInfo;
   protected readonly isRangeWithStepSize = isRangeWithStepSize;
 }
