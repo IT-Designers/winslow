@@ -1,5 +1,5 @@
 <form [formGroup]="editForm">
-  <table>
+  <table *ngIf="formMap$">
     <ng-container *ngFor="let entry of formMap$ | keyvalue:keepOriginalOrder ; index as i">
       <tr>
         <span *ngIf="toDisplayProp(entry.key) && isNotObject(entry.value)" class="val-string">
