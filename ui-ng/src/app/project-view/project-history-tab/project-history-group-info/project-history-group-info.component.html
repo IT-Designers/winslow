@@ -23,8 +23,8 @@
         [running]="stage.state == 'RUNNING'"
         [paused]="stage.state == 'PAUSED'"
         [comment]="getRangeEnvVariableValues(stage)"
-        [sharedWorkspace]="!executionGroup?.workspaceConfiguration?.sharedWithinGroup"
-        [nestedWorkspace]="!executionGroup?.workspaceConfiguration?.nestedWithinGroup"
+        [sharedWorkspace]="!executionGroup.workspaceConfiguration.sharedWithinGroup"
+        [nestedWorkspace]="!executionGroup.workspaceConfiguration.nestedWithinGroup"
 
         (click)="emitStageAndSetIndex(stage, i)"
 
