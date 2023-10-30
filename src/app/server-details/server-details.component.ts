@@ -1083,5 +1083,4 @@ export class ServerDetailsComponent implements OnInit, OnDestroy {
       this.updateGpuStatus();
     });
   }
-
 }
