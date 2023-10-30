@@ -8,7 +8,7 @@
 
 <mat-accordion>
   <div
-      *ngFor="let stage of executionGroup?.stages?.slice(max(0, executionGroup.stages.length - visibleStages)).reverse(); index as i; trackBy:trackStageInfo"
+      *ngFor="let stage of stagesToDisplay(); index as i; trackBy:trackStageInfo"
   >
     <app-project-history-header
         class="history-header"

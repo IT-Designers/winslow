@@ -23,7 +23,8 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
   @Output() clickGetStage = new EventEmitter<StageInfo>();
 
-  constructor(private api: ProjectApiService) { }
+  constructor(private api: ProjectApiService) {
+  }
 
   ngOnInit(): void {
 
@@ -58,7 +59,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   getRangeEnvVariableValues(stage: StageInfo): string | undefined {
     if (this.executionGroup.getGroupSize() > 1) {
       return [...this.executionGroup
-        .rangedValuesKeys() ]
+        .rangedValuesKeys()]
         .sort()
         .map(e => e + '=' + stage.env[e])
         .join(', ');
@@ -79,4 +80,7 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
     return keyValue.key;
   }
 
+  stagesToDisplay() {
+    return this.executionGroup?.stages?.slice(this.max(0, this.executionGroup.stages.length - this.visibleStages)).reverse();
+  }
 }
