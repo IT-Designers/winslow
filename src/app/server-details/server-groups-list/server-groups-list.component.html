@@ -22,7 +22,7 @@
             <mat-chip-option
                 [style.background-color]="getChipColor(group)"
                 [matTooltip]="getTooltip(group)"
-                matTooltipShowDelay="250"
+                [matTooltipShowDelay]="250"
                 class="username-chip"
                 [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
             >
@@ -38,7 +38,7 @@
                 (selectionChange)="roleChanged(group)"
                 [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
             >
-              <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
+              <mat-option *ngFor="let role of roles" [value]="role">{{role}}</mat-option>
             </mat-select>
           </mat-form-field>
 
@@ -61,8 +61,8 @@
                     <input
                         type="number"
                         matInput
-                        min="0"
-                        max="{{maxCpuCores}}"
+                        [min]="0"
+                        [max]="maxCpuCores"
                         [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
                         [(ngModel)]="group.resourceLimitation.cpu"
                     >
@@ -72,9 +72,9 @@
                   </mat-form-field>
                   <mat-slider
                       class="slider"
-                      min="0"
-                      max="{{maxCpuCores}}"
-                      step="1"
+                      [min]="0"
+                      [max]="maxCpuCores"
+                      [step]="1"
                       [(ngModel)]="group.resourceLimitation.cpu"
                       [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'" #ngSlider
                   ><input
@@ -92,8 +92,8 @@
                     <input
                         type="number"
                         matInput
-                        min="0"
-                        max="{{maxGpus}}"
+                        [min]="0"
+                        [max]="maxGpus"
                         placeholder="GPUs"
                         [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
                         [(ngModel)]="group.resourceLimitation.gpu"
@@ -104,9 +104,9 @@
                   </mat-form-field>
                   <mat-slider
                       class="slider"
-                      min="0"
-                      max="{{maxGpus}}"
-                      step="1"
+                      [min]="0"
+                      [max]="maxGpus"
+                      [step]="1"
                       [(ngModel)]="group.resourceLimitation.gpu"
                       [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'" #ngSlider
                   ><input
@@ -121,8 +121,8 @@
                     <input
                         type="number"
                         matInput
-                        min="0"
-                        max="{{maxMemory}}"
+                        [min]="0"
+                        [max]="maxMemory"
                         placeholder="Memory (MiB)"
                         (change)="memoryInputHasChanged($event)"
                         [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
@@ -134,9 +134,9 @@
                   </mat-form-field>
                   <mat-slider
                       class="slider"
-                      min="0"
-                      max="{{maxMemory}}"
-                      step="256"
+                      [min]="0"
+                      [max]="maxMemory"
+                      [step]="256"
                       [(ngModel)]="group.resourceLimitation.mem"
                       [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'" #ngSlider
                   >
@@ -226,8 +226,8 @@
                 <input
                     type="number"
                     matInput
-                    min="0"
-                    max="{{maxCpuCores}}"
+                    [min]="0"
+                    [max]="maxCpuCores"
                     placeholder="CPU Cores"
                     [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
                     [disabled]="userRole === 'MEMBER'"
@@ -238,9 +238,9 @@
               </mat-form-field>
               <mat-slider
                   class="slider"
-                  min="0"
-                  max="{{maxCpuCores}}"
-                  step="1"
+                  [min]="0"
+                  [max]="maxCpuCores"
+                  [step]="1"
                   [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
                   [disabled]="userRole === 'MEMBER'" #ngSlider
               ><input
@@ -260,8 +260,8 @@
                 <input
                     type="number"
                     matInput
-                    min="0"
-                    max="{{maxGpus}}"
+                    [min]="0"
+                    [max]="maxGpus"
                     placeholder="GPUs"
                     [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
                     [disabled]="userRole === 'MEMBER'"
@@ -272,9 +272,9 @@
               </mat-form-field>
               <mat-slider
                   class="slider"
-                  min="0"
-                  max="{{maxGpus}}"
-                  step="1"
+                  [min]="0"
+                  [max]="maxGpus"
+                  [step]="1"
                   [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
                   [disabled]="userRole === 'MEMBER'" #ngSlider
               ><input
@@ -291,8 +291,8 @@
                 <input
                     type="number"
                     matInput
-                    min="0"
-                    max="{{maxMemory}}"
+                    [min]="0"
+                    [max]="maxMemory"
                     placeholder="Memory (MiB)"
                     [ngModel]="editableResourceAllocations.globalLimit?.mem"
                     (change)="memoryInputHasChanged($event)"
@@ -304,9 +304,9 @@
               </mat-form-field>
               <mat-slider
                   class="slider"
-                  min="0"
-                  max="{{maxMemory}}"
-                  step="256"
+                  [min]="0"
+                  [max]="maxMemory"
+                  [step]="256"
                   [(ngModel)]="editableResourceAllocations.globalLimit.mem"
                   [disabled]="userRole === 'MEMBER'" #ngSlider
               ><input
