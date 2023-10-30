@@ -3,14 +3,14 @@
     <div class="selected-history-item-header">
       <app-project-history-header class="history-header"
         [itemNo]="entryNumber"
-        [time]="selectedStage?.startTime"
+        [time]="selectedStage.startTime"
         [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
         [state]="entry.getMostRelevantState(projectState)"
         [isConfigure]="entry.configureOnly"
         [showResumeOnlyThisStage]="false"
         [enqueued]="false"
-        [running]="selectedStage?.state == 'RUNNING'"
-        [paused]="selectedStage?.state == 'PAUSED'"
+        [running]="selectedStage.state == 'RUNNING'"
+        [paused]="selectedStage.state == 'PAUSED'"
 
 
         (clickKillCurrentStage)="clickKillStage.emit(selectedStage)"
@@ -199,7 +199,7 @@
       </div>
 
       <div *ngIf="!this.showStageDefinition" class="stage-definition-information">
-        <div *ngIf="selectedStage?.id" class="history-item-detail">
+        <div *ngIf="selectedStage.id" class="history-item-detail">
 
           <h4>General Information</h4>
           <ng-template *ngTemplateOutlet="detailItem; context: { key: 'Unique Id', value: selectedStage.id }"></ng-template>
