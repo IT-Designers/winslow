@@ -180,7 +180,7 @@
           </ng-container>
 
           <h4>Environment Variables</h4>
-          <i *ngIf="entry.stageDefinition.environment.size == 0">none</i>
+          <i *ngIf="isEmpty(entry.stageDefinition.environment)">none</i>
           <ng-container
             *ngFor="
               let e of entry.stageDefinition.environment | keyvalue;
@@ -211,35 +211,35 @@
             *ngTemplateOutlet="detailItem; context: { key: 'Finished execution at', value: selectedStage.finishTime != null ? toDate(selectedStage.finishTime) : ' not yet finished' }"></ng-template>
 
           <h4>Stage Environment Variables</h4>
-          <i *ngIf="selectedStage.env.size == 0">none</i>
+          <i *ngIf="isEmpty(selectedStage.env)">none</i>
           <ng-container *ngFor="let e of selectedStage.env | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>Pipeline Environment Variables</h4>
-          <i *ngIf="selectedStage.envPipeline.size == 0">none</i>
+          <i *ngIf="isEmpty(selectedStage.envPipeline)">none</i>
           <ng-container *ngFor="let e of selectedStage.env | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>System Environment Variables</h4>
-          <i *ngIf="selectedStage?.envSystem.size == 0">none</i>
+          <i *ngIf="isEmpty(selectedStage.envSystem)">none</i>
           <ng-container *ngFor="let e of selectedStage.envSystem | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>Internal Environment Variables</h4>
-          <i *ngIf="selectedStage?.envInternal.size == 0">none</i>
+          <i *ngIf="isEmpty(selectedStage.envInternal)">none</i>
           <ng-container *ngFor="let e of selectedStage.envInternal | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
           </ng-container>
 
           <h4>Result Variables</h4>
-          <i *ngIf="selectedStage?.result.size == 0">none</i>
+          <i *ngIf="isEmpty(selectedStage.result)">none</i>
           <ng-container *ngFor="let e of selectedStage.result | keyvalue; trackBy:trackKey">
             <ng-template *ngTemplateOutlet="detailItem; context: { key: e.key, value: e.value }">
             </ng-template>
