@@ -25,7 +25,8 @@
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
-  //  "strictTemplates": true,
+    "strictTemplates": true,
+    "fullTemplateCheck": true,
     "strictInjectionParameters": true,
 
     "files": [],
