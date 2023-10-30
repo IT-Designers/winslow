@@ -294,7 +294,7 @@
                     [min]="0"
                     [max]="maxMemory"
                     placeholder="Memory (MiB)"
-                    [ngModel]="editableResourceAllocations.globalLimit?.mem"
+                    [ngModel]="editableResourceAllocations.globalLimit.mem"
                     (change)="memoryInputHasChanged($event)"
                     [disabled]="userRole === 'MEMBER'"
                 >
