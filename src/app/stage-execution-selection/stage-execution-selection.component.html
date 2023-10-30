@@ -54,15 +54,15 @@
     <mat-label class="title">Image Args</mat-label>
     <mat-form-field appearance="outline">
       <input
-        #imageArgs matInput [required]="true" [value]="argvToString(selectedStage.image?.args)"
+        #imageArgs matInput [required]="true" [value]="argvToString(selectedStage.image.args)"
         (change)="onImageArgsChanged($event)"
       >
     </mat-form-field>
     <div class="controls">
       <button
         dense mat-stroked-button color="primary"
-        [disabled]="imageArgs.value == selectedStage.image?.args?.join(' ')"
-        (click)="imageArgs.value = selectedStage.image?.args?.join(' ') ?? ''"
+        [disabled]="imageArgs.value == selectedStage.image.args.join(' ')"
+        (click)="imageArgs.value = selectedStage.image.args.join(' ')"
       >
         Reset
       </button>
@@ -72,7 +72,7 @@
   <div class="action-row">
     <mat-label class="title">Comment</mat-label>
     <mat-form-field appearance="outline">
-      <input matInput [value]="comment ?? ''" (change)="onCommentChanged($event)">
+      <input matInput [value]="comment" (change)="onCommentChanged($event)">
     </mat-form-field>
     <div class="controls">
     </div>
@@ -111,7 +111,7 @@
     <mat-label class="title">CPUs (cores)</mat-label>
     <mat-form-field appearance="outline">
       <input
-        #requiredCpus matInput [required]="true" [value]="stageResources.cpus.toString() ?? ''"
+        #requiredCpus matInput [required]="true" [value]="stageResources.cpus.toString()"
         (change)="onCpusChanged($event)"
       >
     </mat-form-field>
@@ -325,8 +325,8 @@
     <mat-label class="title">
       <input
         name="ws-config-shared-nested" type="radio"
-        [checked]="workspaceConfiguration?.nestedWithinGroup != false"
-        (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, true)"
+        [checked]="workspaceConfiguration.nestedWithinGroup"
+        (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, false, true)"
       >
       Nested
     </mat-label>
@@ -339,8 +339,8 @@
     <mat-label class="title">
       <input
         name="ws-config-shared-nested" type="radio"
-        [checked]="workspaceConfiguration?.nestedWithinGroup != true && workspaceConfiguration?.sharedWithinGroup != true"
-        (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, false)"
+        [checked]="!workspaceConfiguration.nestedWithinGroup && !workspaceConfiguration.sharedWithinGroup"
+        (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, false, false)"
       >
       Separate
     </mat-label>
@@ -353,8 +353,8 @@
     <mat-label class="title">
       <input
         name="ws-config-shared-nested" type="radio"
-        [checked]="workspaceConfiguration?.sharedWithinGroup != false"
-        (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, true, false)"
+        [checked]="workspaceConfiguration.sharedWithinGroup"
+        (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, true, false)"
       >
       Shared
     </mat-label>
@@ -372,7 +372,7 @@
       <input
         #workspaceStandalone
         name="ws-config" type="radio"
-        [checked]="workspaceConfiguration?.mode == 'STANDALONE'"
+        [checked]="workspaceConfiguration.mode == 'STANDALONE'"
         (change)="setWorkspaceMode(workspaceStandalone.checked,'STANDALONE')"
       >
       Standalone
@@ -387,7 +387,7 @@
       <input
         #workspaceIncrement
         name="ws-config" type="radio" value="increment"
-        [checked]="workspaceConfiguration?.mode == 'INCREMENTAL'"
+        [checked]="workspaceConfiguration.mode == 'INCREMENTAL'"
         (change)="setWorkspaceMode(workspaceIncrement.checked, 'INCREMENTAL')"
       >
       Increment
@@ -403,7 +403,7 @@
         #workspaceContinuation
         name="ws-config" type="radio" value="continuation"
         [disabled]="!executionHistoryValue || executionHistoryValue.length == 0"
-        [checked]="workspaceConfiguration?.mode == 'CONTINUATION'"
+        [checked]="workspaceConfiguration.mode == 'CONTINUATION'"
         (change)="setWorkspaceMode(workspaceContinuation.checked,'CONTINUATION', getZerothExecutionHistoryValue()?.id)"
       >
       Continuation
