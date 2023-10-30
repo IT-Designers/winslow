@@ -4,7 +4,7 @@
       <app-project-history-header class="history-header"
         [itemNo]="entryNumber"
         [time]="selectedStage.startTime"
-        [stageName]="entry.stageDefinition?.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
+        [stageName]="entry.stageDefinition.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
         [state]="entry.getMostRelevantState(projectState)"
         [isConfigure]="entry.configureOnly"
         [showResumeOnlyThisStage]="false"
