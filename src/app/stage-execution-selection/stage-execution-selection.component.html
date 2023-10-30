@@ -36,7 +36,7 @@
     <mat-label class="title">Image Name</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #imageName matInput required [value]="selectedStage.image.name"
+          #imageName matInput [required]="true" [value]="selectedStage.image.name"
           (change)="onImageValueChanged($event)"
       >
     </mat-form-field>
@@ -54,7 +54,7 @@
     <mat-label class="title">Image Args</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #imageArgs matInput required [value]="argvToString(selectedStage.image?.args)"
+          #imageArgs matInput [required]="true" [value]="argvToString(selectedStage.image?.args)"
           (change)="onImageArgsChanged($event)"
       >
     </mat-form-field>
@@ -111,7 +111,7 @@
     <mat-label class="title">CPUs (cores)</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #requiredCpus matInput required [value]="selectedStage?.requiredResources.cpus.toString() ?? ''"
+          #requiredCpus matInput [required]="true" [value]="selectedStage?.requiredResources.cpus.toString() ?? ''"
           (change)="onCpusChanged($event)"
       >
     </mat-form-field>
@@ -130,7 +130,7 @@
     <mat-label class="title">RAM (MiB)</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #requiredRam matInput required [value]="'' +selectedStage.requiredResources.megabytesOfRam"
+          #requiredRam matInput [required]="true" [value]="'' +selectedStage.requiredResources.megabytesOfRam"
           (change)="onRamChanged($event)"
       >
     </mat-form-field>
@@ -149,7 +149,7 @@
     <mat-label class="title">GPUs</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #requiredGpus matInput required [value]="'' + selectedStage.requiredResources.gpu.count"
+          #requiredGpus matInput [required]="true" [value]="'' + selectedStage.requiredResources.gpu.count"
           (change)="onGpusChanged($event)"
       >
     </mat-form-field>
@@ -181,21 +181,21 @@
       <ng-container *ngIf="isRangeWithStepSize(entry.value)">
         <mat-form-field appearance="outline">
           <input
-              matInput placeholder="Start" type="number" step="0.1" value="{{entry.value.min}}"
+              matInput placeholder="Start" type="number" step="0.1" [value]="entry.value.min.toString()"
               (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)"
               #rangeStart
           >
         </mat-form-field>
         <mat-form-field appearance="outline">
           <input
-              matInput placeholder="End" type="number" step="0.1" value="{{entry.value.max}}"
+              matInput placeholder="End" type="number" step="0.1" [value]="entry.value.max.toString()"
               (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeEnd
           >
         </mat-form-field>
         <mat-form-field appearance="outline">
           <input
               matInput placeholder="Step Size" type="number" step="0.01"
-              value="{{entry.value.stepSize}}"
+              [value]="entry.value.stepSize.toString()"
               (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #stepSize
           >
         </mat-form-field>
@@ -223,7 +223,7 @@
       <ng-container *ngIf="isRangedList(entry.value)">
         <mat-form-field appearance="outline">
           <input
-              matInput placeholder="Comma separated values" value="{{argvToStringComma(entry.value.values)}}"
+              matInput placeholder="Comma separated values" [value]="argvToStringComma(entry.value.values)"
               (change)="setRangedList(entry.key, values.value)"
               #values
           >
@@ -250,7 +250,7 @@
   <div class="action-row">
     <ng-template #rangeSelection>
       <mat-select value="{{rangeType}}" (valueChange)="rangeType = $event">
-        <mat-option *ngFor="let type of rangeTypes" value="{{type}}">{{type}}</mat-option>
+        <mat-option *ngFor="let type of rangeTypes" [value]="type">{{type}}</mat-option>
       </mat-select>
     </ng-template>
 
