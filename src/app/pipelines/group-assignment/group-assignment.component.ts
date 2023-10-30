@@ -85,12 +85,13 @@ export class GroupAssignmentComponent implements OnInit {
     }
   }
 
-  getTooltip(group: Link) {
+  getTooltip(group: Link): string {
     if (group.role === 'OWNER') {
       return 'OWNER';
     } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
+    return '';
   }
 
   changeGroupListBtnTextAndIcon() {
