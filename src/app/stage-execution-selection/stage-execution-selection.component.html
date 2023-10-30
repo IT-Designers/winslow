@@ -2,9 +2,9 @@
   <mat-label class="title">Pipeline</mat-label>
   <mat-form-field appearance="outline">
     <mat-select
-        [value]="defaultPipelineIdValue"
-        [disabled]="pipelineSelectionDisabled"
-        (valueChange)="loadStagesForPipeline($event)"
+      [value]="defaultPipelineIdValue"
+      [disabled]="pipelineSelectionDisabled"
+      (valueChange)="loadStagesForPipeline($event)"
     >
       <mat-option *ngFor="let pipeline of pipelines" [value]="pipeline.id">{{pipeline.name}}</mat-option>
     </mat-select>
@@ -16,8 +16,8 @@
   <mat-label class="title pipeline-to-stage-indention">Stage</mat-label>
   <mat-form-field appearance="outline">
     <mat-select
-        (selectionChange)="loadEnvForStageName($event.value)"
-        [value]="selectedStage?.id"
+      (selectionChange)="loadEnvForStageName($event.value)"
+      [value]="selectedStage?.id"
     > <!-- get triggered when the pipeline changes -->
       <mat-option *ngFor="let stage of selectedPipeline.stages" [value]="stage.id">{{stage.name}}</mat-option>
     </mat-select>
@@ -36,15 +36,15 @@
     <mat-label class="title">Image Name</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #imageName matInput [required]="true" [value]="selectedStage.image.name"
-          (change)="onImageValueChanged($event)"
+        #imageName matInput [required]="true" [value]="selectedStage.image.name"
+        (change)="onImageValueChanged($event)"
       >
     </mat-form-field>
     <div class="controls">
       <button
-          dense mat-stroked-button color="primary"
-          [disabled]="imageName.value == selectedStage.image.name"
-          (click)="imageName.value = selectedStage.image.name"
+        dense mat-stroked-button color="primary"
+        [disabled]="imageName.value == selectedStage.image.name"
+        (click)="imageName.value = selectedStage.image.name"
       >
         Reset
       </button>
@@ -54,15 +54,15 @@
     <mat-label class="title">Image Args</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #imageArgs matInput [required]="true" [value]="argvToString(selectedStage.image?.args)"
-          (change)="onImageArgsChanged($event)"
+        #imageArgs matInput [required]="true" [value]="argvToString(selectedStage.image?.args)"
+        (change)="onImageArgsChanged($event)"
       >
     </mat-form-field>
     <div class="controls">
       <button
-          dense mat-stroked-button color="primary"
-          [disabled]="imageArgs.value == selectedStage.image?.args?.join(' ')"
-          (click)="imageArgs.value = selectedStage.image?.args?.join(' ') ?? ''"
+        dense mat-stroked-button color="primary"
+        [disabled]="imageArgs.value == selectedStage.image?.args?.join(' ')"
+        (click)="imageArgs.value = selectedStage.image?.args?.join(' ') ?? ''"
       >
         Reset
       </button>
@@ -88,17 +88,17 @@
     <mat-card-subtitle>Environment Variables</mat-card-subtitle>
   </div>
   <app-env-variables
-      [env]="environmentVariablesValue"
-      [defaults]="defaultEnvironmentVariablesValue"
-      [required]="requiredEnvironmentVariables"
-      (valid)="updateValidEnv($event)"
-      (value)="envSubmitValue = $event; updateValid();"
+    [env]="environmentVariablesValue"
+    [defaults]="defaultEnvironmentVariablesValue"
+    [required]="requiredEnvironmentVariables"
+    (valid)="updateValidEnv($event)"
+    (value)="envSubmitValue = $event; updateValid();"
   >
   </app-env-variables>
 </ng-container>
 
 
-<ng-container *ngIf="selectedStage?.requiredResources">
+<ng-container *ngIf="selectedStage?.requiredResources as stageResources">
   <div>
     <mat-divider></mat-divider>
   </div>
@@ -111,15 +111,15 @@
     <mat-label class="title">CPUs (cores)</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #requiredCpus matInput [required]="true" [value]="selectedStage?.requiredResources.cpus.toString() ?? ''"
-          (change)="onCpusChanged($event)"
+        #requiredCpus matInput [required]="true" [value]="stageResources.cpus.toString() ?? ''"
+        (change)="onCpusChanged($event)"
       >
     </mat-form-field>
     <div class="controls">
       <button
-          dense mat-stroked-button color="primary"
-          [disabled]="requiredCpus.value == '' + selectedStage.requiredResources.cpus"
-          (click)="requiredCpus.value = '' + selectedStage.requiredResources.cpus; resources.cpus = selectedStage.requiredResources.cpus"
+        dense mat-stroked-button color="primary"
+        [disabled]="requiredCpus.value == '' + stageResources.cpus"
+        (click)="requiredCpus.value = '' + stageResources.cpus; resources.cpus = stageResources.cpus"
       >
         Reset
       </button>
@@ -130,15 +130,15 @@
     <mat-label class="title">RAM (MiB)</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #requiredRam matInput [required]="true" [value]="'' +selectedStage.requiredResources.megabytesOfRam"
-          (change)="onRamChanged($event)"
+        #requiredRam matInput [required]="true" [value]="'' + stageResources.megabytesOfRam"
+        (change)="onRamChanged($event)"
       >
     </mat-form-field>
     <div class="controls">
       <button
-          dense mat-stroked-button color="primary"
-          [disabled]="requiredRam.value == '' +selectedStage.requiredResources.megabytesOfRam"
-          (click)="requiredRam.value = '' +selectedStage.requiredResources.megabytesOfRam; resources.megabytesOfRam = selectedStage.requiredResources.megabytesOfRam"
+        dense mat-stroked-button color="primary"
+        [disabled]="requiredRam.value == '' + stageResources.megabytesOfRam"
+        (click)="requiredRam.value = '' + stageResources.megabytesOfRam; resources.megabytesOfRam = stageResources.megabytesOfRam"
       >
         Reset
       </button>
@@ -149,15 +149,15 @@
     <mat-label class="title">GPUs</mat-label>
     <mat-form-field appearance="outline">
       <input
-          #requiredGpus matInput [required]="true" [value]="'' + selectedStage.requiredResources.gpu.count"
-          (change)="onGpusChanged($event)"
+        #requiredGpus matInput [required]="true" [value]="'' + stageResources.gpu.count"
+        (change)="onGpusChanged($event)"
       >
     </mat-form-field>
     <div class="controls">
       <button
-          dense mat-stroked-button color="primary"
-          [disabled]="requiredGpus.value == '' + selectedStage.requiredResources.gpu.count"
-          (click)="requiredGpus.value = '' + selectedStage.requiredResources.gpu.count; resources.gpus = selectedStage.requiredResources.gpu.count"
+        dense mat-stroked-button color="primary"
+        [disabled]="requiredGpus.value == '' + stageResources.gpu.count"
+        (click)="requiredGpus.value = '' + stageResources.gpu.count; resources.gpus = stageResources.gpu.count"
       >
         Reset
       </button>
@@ -181,39 +181,39 @@
       <ng-container *ngIf="isRangeWithStepSize(entry.value)">
         <mat-form-field appearance="outline">
           <input
-              matInput placeholder="Start" type="number" step="0.1" [value]="entry.value.min.toString()"
-              (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)"
-              #rangeStart
+            matInput placeholder="Start" type="number" step="0.1" [value]="entry.value.min.toString()"
+            (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)"
+            #rangeStart
           >
         </mat-form-field>
         <mat-form-field appearance="outline">
           <input
-              matInput placeholder="End" type="number" step="0.1" [value]="entry.value.max.toString()"
-              (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeEnd
+            matInput placeholder="End" type="number" step="0.1" [value]="entry.value.max.toString()"
+            (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #rangeEnd
           >
         </mat-form-field>
         <mat-form-field appearance="outline">
           <input
-              matInput placeholder="Step Size" type="number" step="0.01"
-              [value]="entry.value.stepSize.toString()"
-              (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #stepSize
+            matInput placeholder="Step Size" type="number" step="0.01"
+            [value]="entry.value.stepSize.toString()"
+            (change)="setRangedWithStepSize(entry.key, rangeStart.value, rangeEnd.value, stepSize.value)" #stepSize
           >
         </mat-form-field>
         <div class="controls">
           <button
-              mat-icon-button color="primary"
-              [disabled]="rangeStart.value.trim() == entry.value.min
-                      && rangeEnd.value.trim() == entry.value.max
-                      && stepSize.value.trim() == entry.value.stepSize"
-              (click)="rangeStart.value = '' + entry.value.min;
+            mat-icon-button color="primary"
+            [disabled]="+rangeStart.value.trim() == entry.value.min
+                      && +rangeEnd.value.trim() == entry.value.max
+                      && +stepSize.value.trim() == entry.value.stepSize"
+            (click)="rangeStart.value = '' + entry.value.min;
                       rangeEnd.value = '' + entry.value.max;
                       stepSize.value = '' + entry.value.stepSize"
           >
             <mat-icon class="material-icons-outlined">undo</mat-icon>
           </button>
           <button
-              mat-icon-button color="warn"
-              (click)="removeRangedEnvironmentVariable(entry.key)"
+            mat-icon-button color="warn"
+            (click)="removeRangedEnvironmentVariable(entry.key)"
           >
             <mat-icon>delete</mat-icon>
           </button>
@@ -223,22 +223,22 @@
       <ng-container *ngIf="isRangedList(entry.value)">
         <mat-form-field appearance="outline">
           <input
-              matInput placeholder="Comma separated values" [value]="argvToStringComma(entry.value.values)"
-              (change)="setRangedList(entry.key, values.value)"
-              #values
+            matInput placeholder="Comma separated values" [value]="argvToStringComma(entry.value.values)"
+            (change)="setRangedList(entry.key, values.value)"
+            #values
           >
         </mat-form-field>
         <div class="controls">
           <button
-              mat-icon-button color="primary"
-              [disabled]="values.value.trim() == argvToStringComma(entry.value.values)"
-              (click)="values.value = argvToStringComma(entry.value.values)"
+            mat-icon-button color="primary"
+            [disabled]="values.value.trim() == argvToStringComma(entry.value.values)"
+            (click)="values.value = argvToStringComma(entry.value.values)"
           >
             <mat-icon class="material-icons-outlined">undo</mat-icon>
           </button>
           <button
-              mat-icon-button color="warn"
-              (click)="removeRangedEnvironmentVariable(entry.key)"
+            mat-icon-button color="warn"
+            (click)="removeRangedEnvironmentVariable(entry.key)"
           >
             <mat-icon>delete</mat-icon>
           </button>
@@ -269,12 +269,12 @@
       </mat-form-field>
       <div class="controls">
         <button
-            dense mat-raised-button color="primary" #button
-            [disabled]="name.value.trim().length == 0
+          dense mat-raised-button color="primary" #button
+          [disabled]="name.value.trim().length == 0
                       || rangeStart.value.trim().length == 0
                       || rangeEnd.value.trim().length == 0
                       || stepSize.value.trim().length == 0"
-            (click)="addRangedEnvironmentVariable(name, rangeStart, rangeEnd, stepSize)"
+          (click)="addRangedEnvironmentVariable(name, rangeStart, rangeEnd, stepSize)"
         >Add
         </button>
         <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
@@ -290,9 +290,9 @@
       </mat-form-field>
       <div class="controls">
         <button
-            dense mat-raised-button color="primary"
-            [disabled]="name.value.trim().length == 0 || values.value.trim().length == 0"
-            (click)="addRangedList(name, values)"
+          dense mat-raised-button color="primary"
+          [disabled]="name.value.trim().length == 0 || values.value.trim().length == 0"
+          (click)="addRangedList(name, values)"
         >Add
         </button>
         <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
@@ -324,9 +324,9 @@
   <div class="action-row">
     <mat-label class="title">
       <input
-          name="ws-config-shared-nested" type="radio"
-          [checked]="workspaceConfiguration?.nestedWithinGroup != false"
-          (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, true)"
+        name="ws-config-shared-nested" type="radio"
+        [checked]="workspaceConfiguration?.nestedWithinGroup != false"
+        (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, true)"
       >
       Nested
     </mat-label>
@@ -338,9 +338,9 @@
   <div class="action-row">
     <mat-label class="title">
       <input
-          name="ws-config-shared-nested" type="radio"
-          [checked]="workspaceConfiguration?.nestedWithinGroup != true && workspaceConfiguration?.sharedWithinGroup != true"
-          (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, false)"
+        name="ws-config-shared-nested" type="radio"
+        [checked]="workspaceConfiguration?.nestedWithinGroup != true && workspaceConfiguration?.sharedWithinGroup != true"
+        (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, false, false)"
       >
       Separate
     </mat-label>
@@ -352,9 +352,9 @@
   <div class="action-row">
     <mat-label class="title">
       <input
-          name="ws-config-shared-nested" type="radio"
-          [checked]="workspaceConfiguration?.sharedWithinGroup != false"
-          (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, true, false)"
+        name="ws-config-shared-nested" type="radio"
+        [checked]="workspaceConfiguration?.sharedWithinGroup != false"
+        (change)="setWorkspaceMode(true, workspaceConfiguration?.mode, workspaceConfiguration?.value, true, false)"
       >
       Shared
     </mat-label>
@@ -370,10 +370,10 @@
   <div class="action-row">
     <mat-label class="title">
       <input
-          #workspaceStandalone
-          name="ws-config" type="radio"
-          [checked]="workspaceConfiguration?.mode == 'STANDALONE'"
-          (change)="setWorkspaceMode(workspaceStandalone.checked,'STANDALONE')"
+        #workspaceStandalone
+        name="ws-config" type="radio"
+        [checked]="workspaceConfiguration?.mode == 'STANDALONE'"
+        (change)="setWorkspaceMode(workspaceStandalone.checked,'STANDALONE')"
       >
       Standalone
     </mat-label>
@@ -385,10 +385,10 @@
   <div class="action-row">
     <mat-label class="title">
       <input
-          #workspaceIncrement
-          name="ws-config" type="radio" value="increment"
-          [checked]="workspaceConfiguration?.mode == 'INCREMENTAL'"
-          (change)="setWorkspaceMode(workspaceIncrement.checked, 'INCREMENTAL')"
+        #workspaceIncrement
+        name="ws-config" type="radio" value="increment"
+        [checked]="workspaceConfiguration?.mode == 'INCREMENTAL'"
+        (change)="setWorkspaceMode(workspaceIncrement.checked, 'INCREMENTAL')"
       >
       Increment
     </mat-label>
@@ -400,11 +400,11 @@
   <div class="action-row">
     <mat-label class="title">
       <input
-          #workspaceContinuation
-          name="ws-config" type="radio" value="continuation"
-          [disabled]="!executionHistoryValue || executionHistoryValue.length == 0"
-          [checked]="workspaceConfiguration?.mode == 'CONTINUATION'"
-          (change)="setWorkspaceMode(workspaceContinuation.checked,'CONTINUATION', getZerothExecutionHistoryValue().id)"
+        #workspaceContinuation
+        name="ws-config" type="radio" value="continuation"
+        [disabled]="!executionHistoryValue || executionHistoryValue.length == 0"
+        [checked]="workspaceConfiguration?.mode == 'CONTINUATION'"
+        (change)="setWorkspaceMode(workspaceContinuation.checked,'CONTINUATION', getZerothExecutionHistoryValue()?.id)"
       >
       Continuation
     </mat-label>
@@ -418,17 +418,18 @@
     </mat-label>
     <mat-form-field appearance="outline">
       <mat-select
-          #continuationValue
-          [value]="workspaceConfiguration.value"
-          [disabled]="!workspaceContinuation.checked"
-          (valueChange)="setWorkspaceMode(true, 'CONTINUATION', $event)"
+        #continuationValue
+        [value]="workspaceConfiguration.value"
+        [disabled]="!workspaceContinuation.checked"
+        (valueChange)="setWorkspaceMode(true, 'CONTINUATION', $event)"
       >
-        <ng-container *ngFor="let h of executionHistoryValue; let i = index">
-          <mat-option
+        <ng-container *ngIf="executionHistoryValue != undefined">
+          <ng-container *ngFor="let h of executionHistoryValue; let i = index">
+            <mat-option
               *ngFor="let s of h.stages; let n = index"
               [value]="s.id"
-          >[{{tryParseStageNumber(h.id, executionHistoryValue?.length - i)}}
-            ] {{s.workspace}}</mat-option>
+            >[{{tryParseStageNumber(h.id, executionHistoryValue.length - i)}}] {{s.workspace}}</mat-option>
+          </ng-container>
         </ng-container>
       </mat-select>
     </mat-form-field>
