@@ -41,12 +41,13 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
       return '#d88bca';
     }
   }
-  getTooltip(group: Link) {
+  getTooltip(group: Link): string {
     if (group.role === 'OWNER') {
       return 'OWNER';
     } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
+    return '';
   }
   filterFunction() {
     this.displayGroups = Array.from(this.project.groups);
