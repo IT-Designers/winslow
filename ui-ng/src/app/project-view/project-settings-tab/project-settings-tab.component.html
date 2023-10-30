@@ -157,7 +157,7 @@
     </mat-form-field>
     <button
       mat-stroked-button color="primary"
-      [disabled]="(deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ? deletionPolicyLocal.numberOfWorkspacesOfSucceededStagesToKeep : '') == limit.value || !custom.checked) || !userCanEditProject"
+      [disabled]="(deletionPolicyLocal === deletionPolicyRemote && (deletionPolicyLocal?.numberOfWorkspacesOfSucceededStagesToKeep ?? '') == limit.value || !custom.checked) || !userCanEditProject"
       (click)="updateDeletionPolicy(custom.checked, limit.value, keep.checked, always.checked)"
     >
       Update
