@@ -50,11 +50,11 @@
           Delete Failed
         </button>
       </div>
-      <div *ngIf="history?.length > 0">
+      <div *ngIf="history.length > 0">
         <div
           [style.overflow]="'auto'"
 
-          [ngStyle]="history?.length < 7 ? {'height': history.length * 50 } :  {'height': historyListHeight + 'px' }"
+          [ngStyle]="history.length < 7 ? {'height': history.length * 50 } :  {'height': historyListHeight + 'px' }"
           (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null"
         >
 
@@ -87,7 +87,7 @@
         </div>
       </div>
 
-      <div *ngIf="history?.length > 0">
+      <div *ngIf="history.length > 0">
         <app-project-history-details
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
           [entryNumber]="selectedHistoryEntryNumber ?? tryParseStageNumber(history[0].id, history.length)"
@@ -103,7 +103,7 @@
         >
         </app-project-history-details>
       </div>
-      <div *ngIf="history?.length == 0" class="empty-project-history">
+      <div *ngIf="history.length == 0" class="empty-project-history">
         This project has no history yet
       </div>
 
