@@ -179,12 +179,13 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
     }
   }
 
-  getTooltip(group: GroupResourceLimitEntry) {
+  getTooltip(group: GroupResourceLimitEntry): string {
     if (group.role === 'OWNER') {
       return 'OWNER';
     } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
+    return ''
   }
 
 

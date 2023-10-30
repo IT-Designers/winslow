@@ -59,9 +59,11 @@
       </mat-grid-list>
 
       <mat-grid-list [cols]="4" rowHeight="200px" gutterSize="0px">
-        <mat-grid-tile *ngFor="let node of nodes[this.selectedNodeIndex]; index as i; trackBy:trackGpu">
+        <!-- todo
+        <mat-grid-tile *ngFor="let node of nodes[selectedNodeIndex]; index as i; trackBy:trackGpu">
           <div echarts [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu[i]"></div>
         </mat-grid-tile>
+        -->
       </mat-grid-list>
       <div class="center" [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
         <svg width="10" height="10">

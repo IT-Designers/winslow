@@ -16,7 +16,7 @@
       >
     </mat-form-field>
     <div class="scrollable">
-      <div *ngIf="displayGroups?.length > 0">
+      <div *ngIf="displayGroups != undefined && displayGroups.length > 0">
         <div class="list-item" *ngFor="let group of editableResourceAllocations.groupLimits">
           <div class="username-label">
             <mat-chip-option
