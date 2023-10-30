@@ -22,7 +22,7 @@ export class EditFormsComponent implements OnInit {
   @Output() onTriggerSaveData : EventEmitter<Object> = new EventEmitter();
   editForm!: UntypedFormGroup;
   extended: boolean[] = [];
-  formMap$: any;
+  formMap$?: Map<string, unknown>;
   formObj$: any;
 
   @ViewChildren('form') childForm!: QueryList<EditFormsComponent>;
@@ -95,7 +95,7 @@ export class EditFormsComponent implements OnInit {
       let newArray : Array<String>  = Object.assign([], this.formObj$[entry.key]);
       newArray.push("New Entry");
       this.formObj$[entry.key] = newArray as Array<String>;
-      this.formMap$.set(entry.key , newArray);
+      this.formMap$?.set(entry.key , newArray);
       //this.editForm.patchValue({entry.key: })
       //this.triggerSaveData();
     }
