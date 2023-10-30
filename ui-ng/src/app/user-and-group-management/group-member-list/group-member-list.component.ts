@@ -129,19 +129,21 @@ export class GroupMemberListComponent implements OnInit, OnChanges {
     }
   }
 
-  getTooltipSelect(user: Link) {
+  getTooltipSelect(user: Link): string {
     if (!this.amIOwner()) {
       return 'Only OWNERs can edit roles';
     } else if (user === this.disabledUser) {
       return 'Not enough OWNERs to change this role';
     }
+    return ""
   }
 
-  getTooltipRemove(user: Link) {
+  getTooltipRemove(user: Link): string {
     if (!this.amIOwner()) {
       return 'Only OWNERs can remove members';
     } else if (user === this.disabledUser) {
       return 'Not enough OWNERs to remove this member';
     }
+    return ""
   }
 }
