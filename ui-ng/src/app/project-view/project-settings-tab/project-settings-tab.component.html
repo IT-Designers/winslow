@@ -101,13 +101,13 @@
     <label>Public Access</label>
     <mat-slide-toggle
       #publicAccess
-      [checked]="this.project?.publicAccess ?? false"
+      [checked]="project.publicAccess"
       [disabled]="!userCanEditProject"
     >
     </mat-slide-toggle>
     <button
       mat-stroked-button color="primary"
-      [disabled]="(publicAccess.checked === this.project?.publicAccess) || !userCanEditProject"
+      [disabled]="publicAccess.checked === project.publicAccess || !userCanEditProject"
       (click)="setPublicAccess(publicAccess.checked)"
     >
       Update
