@@ -6,14 +6,11 @@
   display: flex;
   flex-direction: row;
 }
+
 app-groups-add-member-dialog {
   overflow: clip;
 }
 
-/*.list-container {
-  display:flex;
-  flex-direction: row;
-}*/
 .list-content {
   position: relative;
   padding-bottom: 5px;
@@ -32,26 +29,31 @@ app-groups-add-member-dialog {
     color: white;
   }
 }
+
 .mat-input-container {
   width: 97%;
   font-size: 14px;
   margin-top: 1rem;
 }
+
 .text-input-mat {
   width: 100%;
 }
+
 .scrollable {
-  width: 90%;
-  max-height: 10rem;
-  min-height: min-content;
-  overflow-y: scroll;
+  width: 95%;
+  max-height: 20vh;
+  overflow-y: auto;
+  overflow-x: clip;
 }
+
 .no-groups-label {
   font-style: italic;
   text-align: center;
   width: 100%;
   padding: 10px;
 }
+
 /* ---------- List Item Styling ---------- */
 /* ----- Version with seperate remove button ------ */
 .list-item {
@@ -61,14 +63,12 @@ app-groups-add-member-dialog {
   font-size: 14px;
   display: flex;
   flex-direction: row;
-  /*justify-content: space-between;*/
   align-items: center;
   vertical-align: center;
 }
 
 .username-label {
-  margin: 0 1em;
-  /*margin-right: 32%;*/
+  margin: 0 1em 0 0;
   width: 40%;
 }
 
@@ -81,61 +81,27 @@ app-groups-add-member-dialog {
 
 .remove-member-button {
   /*height: 30px;*/
-  margin: 0 1rem;
+  margin: 0 0 0 1rem;
 }
+
 .remove-member-button:enabled {
   cursor: pointer;
 }
+
 .remove-member-button:enabled:hover {
   scale: 1.1;
 }
+
 .remove-member-button:disabled {
   background-color: grey;
   cursor: default;
 }
+
 .item-icon {
   font-size: 30px;
   color: white;
   margin-left: 3px;
   margin-top: 2px;
-}
-.text-input {
-  width: 90%;
-  padding: 2px;
-  padding-left: 5px;
-  border: 1px solid lightgrey;
-  border-bottom: 1px solid grey;
-  border-radius: 3px;
-  font-size: 15px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-/* ----- Version with removable chips ------ */
-/*.list-item {
-  cursor: default;
-  padding: 3px;
-  border-bottom: 1px solid lightgrey;
-  margin-top: 1px;
-  font-size: 14px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-.dropdown-item:hover {
-  background-color: lightgrey;
-}
-.username-label {
-  margin-left: 45px;
-  width: 4em;
-}
-.role-dropdown {
-  width: 8em;
-  display: flex;
-  align-items: center;
-  margin-top: 17px;
-  margin-right: 140px;
-  height: 45px;
 }
 
 .text-input {
@@ -148,148 +114,7 @@ app-groups-add-member-dialog {
   font-size: 15px;
   margin-top: 5px;
   margin-bottom: 5px;
-}*/
-/* ----- Version with dropdown and button on right ------ */
-/*.list-item {
-  cursor: default;
-  padding: 3px;
-  border-bottom: 1px solid lightgrey;
-  margin-top: 1px;
-  font-size: 14px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
 }
-.dropdown-and-button {
-  display: flex;
-  align-items: center;
-  margin-left: 230px;
-}
-.dropdown-item:hover {
-  background-color: lightgrey;
-}
-.username-label {
-  margin-left: 1em;
-  width: 4em;
-  min-width: 30%;
-  max-width: 30%;
-  text-align: center;
-}
-
-.role-dropdown {
-  width: 8em;
-  display: flex;
-  align-items: center;
-  margin-top: 17px;
-  !*margin-left: 265px;*!
-  height: 45px;
-}
-.remove-member-button {
-  border: none;
-  background-color: #3f51b5;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  box-shadow: 0 1px 3px gray;
-  margin-left: 100px;
-  margin-right: 10px;
-}
-.remove-member-button:enabled {
-  cursor: pointer;
-}
-.remove-member-button:enabled:hover {
-  scale: 1.1;
-}
-.remove-member-button:disabled {
-  background-color: grey;
-  cursor: default;
-}
-.item-icon {
-  font-size: 30px;
-  color: white;
-  margin-left: 3px;
-  margin-top: 2px;
-}
-.text-input {
-  width: 90%;
-  padding: 2px;
-  padding-left: 5px;
-  border: 1px solid lightgrey;
-  border-bottom: 1px solid grey;
-  border-radius: 3px;
-  font-size: 15px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}*/
-/* ----- Version with name in middle ------ */
-/*.list-item-section {
-  width: 277px;
-  text-align: center;
-}
-.list-item {
-  cursor: default;
-  padding: 3px;
-  border-bottom: 1px solid lightgrey;
-  margin-top: 1px;
-  font-size: 14px;
-  display: flex;
-  flex-direction: row;
-  !*justify-content: space-between;*!
-  align-items: center;
-}
-.dropdown-item:hover {
-  background-color: lightgrey;
-}
-.username-label {
-  margin-left: 1em;
-  margin-right: 32%;
-  width: 4em;
-}
-.role-dropdown {
-  width: 8em;
-  display: flex;
-  align-items: center;
-  margin-top: 17px;
-  height: 45px;
-}
-.remove-member-button {
-  border: none;
-  background-color: #3f51b5;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  box-shadow: 0 1px 3px gray; !* horizontal shadow | vertical shadow | shadow blur | shadow color*!
-  !*margin-left: 265px;*!
-  margin-right: 10px;
-  float: right;
-}
-.remove-member-button:enabled {
-  cursor: pointer;
-}
-.remove-member-button:enabled:hover {
-  scale: 1.1;
-}
-.remove-member-button:disabled {
-  background-color: grey;
-  cursor: default;
-}
-.item-icon {
-  font-size: 30px;
-  color: white;
-  margin-left: 3px;
-  margin-top: 2px;
-}
-.text-input {
-  width: 90%;
-  padding: 2px;
-  padding-left: 5px;
-  border: 1px solid lightgrey;
-  border-bottom: 1px solid grey;
-  border-radius: 3px;
-  font-size: 15px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}*/
 
 .add-member-button-container {
   text-align: center;
