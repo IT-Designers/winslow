@@ -34,7 +34,7 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatSidenavModule} from '@angular/material/sidenav';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {DragDropDirectiveDirective} from './drag-drop-directive.directive';
 import {ProjectsComponent} from './projects/projects.component';
 import {ProjectsCreateDialog} from './projects-create-dialog/projects-create-dialog.component';
@@ -50,7 +50,9 @@ import {ScrollingModule} from '@angular/cdk/scrolling';
 import {TagsWithAutocompleteComponent} from './projects-view/tags-with-autocomplete/tags-with-autocomplete.component';
 import {ProjectViewHeaderComponent} from './projects-view/project-view-header/project-view-header.component';
 import {StageExecutionSelectionComponent} from './stage-execution-selection/stage-execution-selection.component';
+import {ProjectListComponent} from './project-list/project-list.component';
 import {TagFilterComponent} from './projects-view/tag-filter/tag-filter.component';
+import {GroupSettingsDialogComponent} from './group-settings-dialog/group-settings-dialog.component';
 import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 import {SystemViewComponent} from './system-view/system-view.component';
 import {SystemCfgEnvComponent} from './system-cfg-env/system-cfg-env.component';
@@ -69,7 +71,7 @@ import {CheckableNumberInputComponent} from './checkable-number-input/checkable-
 import {ResourceLimitationComponent} from './resource-limitation/resource-limitation.component';
 import {ServersComponent} from './servers/servers.component';
 import {NgxEchartsModule} from 'ngx-echarts';
-
+import * as echarts from 'echarts';
 import {ServerBarComponent} from './server-bar/server-bar.component';
 import {ServerDetailsComponent} from './server-details/server-details.component';
 import {
@@ -119,8 +121,8 @@ import {
 } from './project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {SearchableListComponent} from './user-and-group-management/searchable-list/searchable-list.component';
 import {
-  AddUserComponent
-} from './user-and-group-management/add-user-dialog/add-user.component';
+  UserAddNameDialogComponent
+} from './user-and-group-management/user-add-name-dialog/user-add-name-dialog.component';
 import {UserDetailsComponent} from './user-and-group-management/user-details/user-details.component';
 import {GroupDetailsComponent} from './user-and-group-management/group-details/group-details.component';
 import {PasswordDialogComponent} from './user-and-group-management/password-dialog/password-dialog.component';
@@ -137,10 +139,8 @@ import {ProjectHistoryComponent} from "./project-view/project-history-tab/projec
 import {
   ProjectHistoryGroupInfoComponent
 } from "./project-view/project-history-tab/project-history-group-info/project-history-group-info.component";
-import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import * as echarts from 'echarts';
-import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/project-thumbnail.component';
-
+import { ProjectControlViewTabComponent } from './project-view/project-control-view-tab/project-control-view-tab.component';
+import { ControlViewLibraryComponent } from './project-view/project-control-view-tab/control-view-library/control-view-library.component';
 
 @NgModule({
   declarations: [
@@ -162,6 +162,8 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
     TagsWithAutocompleteComponent,
     ProjectViewHeaderComponent,
     StageExecutionSelectionComponent,
+    GroupSettingsDialogComponent,
+    ProjectListComponent,
     TagFilterComponent,
     SystemViewComponent,
     SystemCfgEnvComponent,
@@ -204,7 +206,7 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
     ProjectGroupsListComponent,
     ProjectAddGroupDialogComponent,
     SearchableListComponent,
-    AddUserComponent,
+    UserAddNameDialogComponent,
     UserDetailsComponent,
     GroupDetailsComponent,
     PasswordDialogComponent,
@@ -216,7 +218,8 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
     ProjectSettingsTabComponent,
     ProjectHistoryComponent,
     ProjectHistoryGroupInfoComponent,
-    ProjectThumbnailComponent,
+    ProjectControlViewTabComponent,
+    ControlViewLibraryComponent,
   ],
   imports: [
     SweetAlert2Module.forRoot(),
@@ -258,8 +261,8 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
     ], {}),
     BrowserModule,
     BrowserAnimationsModule,
-    MatFormFieldModule,
-
+    FormsModule,
+    ReactiveFormsModule,
     MatDialogModule,
     MatInputModule,
     MatButtonModule,
@@ -294,8 +297,6 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
       echarts: {init: echarts.init}
     }),
     MatSliderModule,
-    FormsModule,
-    ReactiveFormsModule,
   ],
   providers: [
     {
