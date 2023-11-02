@@ -1,6 +1,6 @@
 .node {
   max-width: 200px;
-  height: 75px;
+  height: 7em;
   overflow: hidden;
 }
 
@@ -10,6 +10,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  padding: 5px;
 }
 
 .subtitle {
