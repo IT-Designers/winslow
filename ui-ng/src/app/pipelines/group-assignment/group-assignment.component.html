@@ -30,7 +30,7 @@
                    placeholder="Search.."
                    (keyup)="filterFunction()">
           </mat-form-field>
-          <div class="scrollable">
+          <mat-list class="scrollable">
             <div *ngIf="displayGroups.length > 0">
               <div class="list-item" *ngFor="let group of displayGroups">
                 <div class="username-label">
@@ -61,7 +61,7 @@
               <label class="no-groups-label">No groups assigned</label>
             </div>
 
-          </div>
+          </mat-list>
           <div class="add-member-button-container">
             <button class="mat-raised-button"
                     mat-raised-button=""

@@ -8,21 +8,21 @@
              (keyup)="filterFunction()">
     </mat-form-field>
 
-    <div class="scrollable">
-      <!-- ---------- Version with separate remove button ---------- -->
+    <mat-list class="scrollable">
+      <!-- ---------- Version with seperate remove button ---------- -->
       <div *ngIf="displayGroups.length > 0">
         <div class="list-item" *ngFor="let group of displayGroups">
           <div class="username-label">
             <mat-chip-option [style.background-color]="getColor(group)"
                              [matTooltip]="getTooltip(group)"
-                             [matTooltipShowDelay]="250">
+                             matTooltipShowDelay="250">
               {{group.name}}
             </mat-chip-option>
           </div>
           <mat-form-field appearance="outline" class="role-dropdown">
             <mat-label>Choose Role</mat-label>
             <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
-              <mat-option *ngFor="let role of roles" [value]="role">{{role}}</mat-option>
+              <mat-option *ngFor="let role of roles" value="{{role}}">{{role}}</mat-option>
             </mat-select>
           </mat-form-field>
           <button mat-raised-button
@@ -38,7 +38,7 @@
         <label class="no-groups-label">No groups assigned</label>
       </div>
 
-    </div>
+    </mat-list>
     <div class="add-member-button-container">
       <button class="mat-raised-button"
               mat-raised-button=""

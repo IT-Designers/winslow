@@ -7,6 +7,7 @@
   display: flex;
   flex-direction: row;
 }
+
 .list-label {
   font-weight: bold;
   display: inline-block;
@@ -15,14 +16,11 @@
   max-width: 13%;
   margin-top: 7px;
 }
+
 app-groups-add-member-dialog {
   overflow: clip;
 }
 
-/*.list-container {
-  display:flex;
-  flex-direction: row;
-}*/
 .list-content {
   position: relative;
   padding-bottom: 5px;
@@ -40,10 +38,11 @@ app-groups-add-member-dialog {
     background-color: #303030;
   }
 }
+
 .scrollable {
   width: 97%;
-  overflow-y: scroll;
-  border-bottom: 1px solid lightgray;
+  overflow-y: auto;
+  overflow-x: clip;
 }
 
 /* ---------- List Item Styling ---------- */
@@ -58,17 +57,20 @@ app-groups-add-member-dialog {
   justify-content: space-between;
   align-items: center;
 }
+
 .dropdown-item:hover {
   background-color: lightgrey;
   @media(prefers-color-scheme: dark) {
     background-color: #303030;
   }
 }
+
 .username-label {
   padding-left: 20px;
   min-width: calc(33% - 20px);
   max-width: calc(33% - 20px);
 }
+
 .role-dropdown {
   display: flex;
   align-items: center;
@@ -77,11 +79,13 @@ app-groups-add-member-dialog {
   min-width: 33%;
   max-width: 33%;
 }
+
 .btn-container {
   padding-right: 20px;
   min-width: calc(33% - 20px);
   max-width: calc(33% - 20px);
 }
+
 .remove-member-button {
   border: none;
   background-color:  #F44336;
@@ -91,22 +95,27 @@ app-groups-add-member-dialog {
   box-shadow: 0 1px 3px rgb(128, 128, 128); /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
   float: right;
 }
+
 .remove-member-button:enabled {
   cursor: pointer;
 }
+
 .remove-member-button:enabled:hover {
   scale: 1.1;
 }
+
 .remove-member-button:disabled {
   background-color: grey;
   cursor: default;
 }
+
 .item-icon {
   font-size: 30px;
   color: white;
   margin-left: 5px;
   margin-top: 2px;
 }
+
 .text-input {
   width: 96%;
   padding: 2px 2px 2px 5px;
@@ -123,6 +132,7 @@ app-groups-add-member-dialog {
   font-size: 14px;
   margin-top: 1rem;
 }
+
 .text-input-mat {
   width: 100%;
 }
