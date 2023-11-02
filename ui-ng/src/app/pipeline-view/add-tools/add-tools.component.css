@@ -5,7 +5,14 @@
   margin: 0;
   padding: 0;
   overflow: clip;
+  background-color: white;
+  color: black;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+    color: white;
+  }
 }
+
 .addToolBar li{
   font-size: 0.95em;
   font-weight: lighter;
@@ -18,23 +25,29 @@
   border-right: 1px solid black;
   width: 83px;
 }
+
 mat-icon{
   transform: rotate(90deg);
 }
+
 .sub-font{
   font-size: 0.8em;
   color: #7f7f7f;
 }
+
 .last-li{
   border-right: none !important;
 }
+
 .first-li{
   width: 110px !important;
   padding: 4px !important;
 }
+
 .drag-icon{
   transform: rotate(180deg) !important;
 }
+
 .drag-li{
   width: 24px !important;
   padding: 0 !important;

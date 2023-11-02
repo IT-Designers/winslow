@@ -1,11 +1,11 @@
 <div class="add-group-popup-container">
   <h2>Add a group</h2>
   <div class="inputs">
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input matInput placeholder="Search for a group..." id="searchInput" [(ngModel)]="groupSearchInput" (keyup)="onKeyUp()">
     </mat-form-field>
 
-    <div id="list" class="list-container" *ngIf="showGroupsToggle">
+    <mat-list id="list" class="list-container" *ngIf="showGroupsToggle">
       <div class="group-item-from-dialog" *ngFor="let group of displayGroups">
         <label class="groupname-label-popup">{{group.name}}</label>
         <mat-form-field appearance="outline" class="role-dropdown">
@@ -15,11 +15,11 @@
             <mat-option *ngFor="let role of allRoles" [value]="role">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="add-group-round-button" (click)="addGroupClicked(group.name, selectedRole)" [disabled]="!selectedRole">
-          <mat-icon >group_add</mat-icon>
+        <button mat-fab color="primary" class="add-group-round-button" (click)="addGroupClicked(group.name, selectedRole)" [disabled]="!selectedRole">
+          <mat-icon>group_add</mat-icon>
         </button>
       </div>
-    </div>
+    </mat-list>
 
     <div mat-dialog-actions align="end">
       <button mat-raised-button color="primary" (click)="dialogRef.close()">Cancel</button>

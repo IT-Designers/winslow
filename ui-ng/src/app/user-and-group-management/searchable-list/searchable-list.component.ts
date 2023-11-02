@@ -1,8 +1,5 @@
 import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {NewGroupDialogComponent} from '../new-group-dialog/new-group-dialog.component';
-import {UserAddNameDialogComponent} from '../user-add-name-dialog/user-add-name-dialog.component';
-import {AddPipelineDialogComponent} from "../../pipelines/add-pipeline-dialog/add-pipeline-dialog.component";
 
 @Component({
   selector: 'app-searchable-list',
@@ -17,7 +14,6 @@ export class SearchableListComponent implements OnInit, OnChanges {
   @Input() listItemTooltip = 'Edit';
 
   @Output() itemEmitter = new EventEmitter();
-  @Output() newItemEmitter = new EventEmitter();
 
   displayItems: SearchableObject[] = [];
   selectedItemName = '';
@@ -87,36 +83,6 @@ export class SearchableListComponent implements OnInit, OnChanges {
     this.itemEmitter.emit(item);
   }
 
-  newBtnClicked() {
-    if (this.type === 'Group') {
-      this.createDialog.open(NewGroupDialogComponent, {
-        data: {} as string
-      })
-        .afterClosed()
-        .subscribe((name) => {
-          this.selectedItemName = name;
-          this.newItemEmitter.emit(name);
-        });
-    } else if (this.type === 'User') {
-      this.createDialog.open(UserAddNameDialogComponent, {
-        data: {} as string
-      })
-        .afterClosed()
-        .subscribe((name) => {
-          this.selectedItemName = name;
-          this.newItemEmitter.emit(name);
-        });
-    } else if (this.type === 'Pipeline') {
-      this.createDialog.open(AddPipelineDialogComponent, {
-        data: {} as string
-      })
-        .afterClosed()
-        .subscribe((name) => {
-          this.selectedItemName = name;
-          this.newItemEmitter.emit(name);
-        });
-    }
-  }
 }
 
 // todo: multiple items may share the same name (for example pipeline definitions)

@@ -2,8 +2,10 @@ import {Component, OnInit} from '@angular/core';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {NotificationService} from '../notification.service';
 import {LongLoadingDetector} from '../long-loading-detector';
+import {MatDialog} from '@angular/material/dialog';
 import {ParseError, PipelineDefinitionInfo} from '../api/winslow-api';
 import {DialogService} from "../dialog.service";
+import {AddPipelineDialogComponent} from "./add-pipeline-dialog/add-pipeline-dialog.component";
 
 @Component({
   selector: 'app-pipelines',
@@ -27,6 +29,7 @@ export class PipelinesComponent implements OnInit {
   constructor(
     private api: PipelineApiService,
     private notification: NotificationService,
+    private createDialog: MatDialog,
     private dialog: DialogService) {
   }
 
@@ -75,18 +78,56 @@ export class PipelinesComponent implements OnInit {
     this.selectedPipeline = pipeline;
   }
 
-  onAddPipeline(name: string): void {
-    if (name) {
-      return this.dialog.openLoadingIndicator(
-        this.api.createPipelineDefinition(name)
-          .then((newPipeline) => {
-            this.pipelines.push(newPipeline);
-            this.pipelines = this.pipelines.concat([]);
-            this.selectedPipeline = newPipeline;
-          }),
-        'Creating Pipeline'
-      );
-    }
+  update(pipeline: string, value: string) {
+    this.longLoading.increase();
+    this.api
+      .updatePipelineDefinition(pipeline, value)
+      .then(result => {
+        this.success.delete(pipeline);
+        this.error.delete(pipeline);
+        this.parseError.set(pipeline, []);
+
+        if (result != null) {
+          if (typeof result === typeof '') {
+            this.error.set(pipeline, result as string);
+          } else {
+            this.error.set(pipeline, 'There is at least one error!');
+            this.parseError.set(pipeline, [result as ParseError]);
+          }
+        } else {
+          this.success.set(pipeline, 'Saved!');
+          return this.api
+            .getPipelineDefinition(pipeline)
+            .then(def => {
+              for (const pipe of this.pipelines) {
+                if (pipeline === pipe.id) {
+                  // migrate values without replacing the object to avoid the list of pipelines to be rebuilt
+                  Object.keys(def).forEach(key => pipe[key] = def[key]);
+                  this.raw.set(pipeline, value);
+                  break;
+                }
+              }
+            });
+        }
+      })
+      .catch(error => this.notification.error('Request failed: ' + error))
+      .finally(() => this.longLoading.decrease());
+  }
+
+  openCreatePipelineDialog(): void {
+    this.createDialog.open(AddPipelineDialogComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        this.dialog.openLoadingIndicator(this.api.createPipelineDefinition(name)
+            .then((newPipeline) => {
+              this.pipelines.push(newPipeline);
+              this.pipelines = this.pipelines.concat([]);
+              this.selectedPipeline = newPipeline;
+            }),
+          'Creating Pipeline');
+      });
   }
 
   onDeletePipeline(pipeline: PipelineDefinitionInfo) {
@@ -102,4 +143,5 @@ export class PipelinesComponent implements OnInit {
         )
     );
   }
+
 }

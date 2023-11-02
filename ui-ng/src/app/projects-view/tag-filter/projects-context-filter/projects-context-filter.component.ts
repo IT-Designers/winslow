@@ -19,8 +19,8 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   notVisibleTags: string[] = [];
   selectedContext: string = '';
   @Output() outputContext = new EventEmitter<string>();
-  CONTEXT_PREFIX = 'context::';
-  selectedIndex = 0;
+  CONTEXT_PREFIX: string = 'context::';
+  selectedIndex: number = 0;
   observer!: IntersectionObserver;
 
   constructor(private localStorageService: LocalStorageService) {
@@ -47,7 +47,7 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   }
 
   changeContext(selection: string) {
-    if (this.selectedContext === selection || selection === '' || selection === '[No]') {
+    if (selection === '' || selection === '[No]') {
       this.selectedContext = '';
       this.localStorageService.setSelectedContext(selection);
       this.outputContext.emit(undefined);

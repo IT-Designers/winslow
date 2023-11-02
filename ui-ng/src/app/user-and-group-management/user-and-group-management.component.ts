@@ -5,6 +5,8 @@ import {UserApiService} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../dialog.service';
 import {Link, UserInfo} from "../api/winslow-api";
+import {AddUserComponent} from "./add-user-dialog/add-user.component";
+import {NewGroupDialogComponent} from "./new-group-dialog/new-group-dialog.component";
 
 @Component({
   selector: 'app-groups-view',
@@ -71,44 +73,6 @@ export class UserAndGroupManagementComponent implements OnInit {
     });
   }*/
 
-  onAddGroupToggle(name: string) {
-    if (name) {
-      const newGroup = {
-        name,
-        members: [this.myUser],
-      };
-      return this.dialog.openLoadingIndicator(this.groupApi.createGroup(newGroup)
-          .then(() => {
-            this.allGroups.push(newGroup);
-            this.allGroups = this.allGroups.concat([]);
-            this.selectedGroup = newGroup;
-            this.showGroupDetail = true;
-          }),
-        'Creating Group');
-    }
-  }
-
-  onAddUserToggle(name: string) {
-    if (name) {
-      const newUser: UserInfo = {
-        name,
-        displayName: undefined,
-        email: undefined,
-        active: true,
-        password: undefined,
-      };
-      return this.dialog.openLoadingIndicator(this.userApi.createUser(newUser)
-          .then(() => {
-            this.allUsers.push(newUser);
-            this.allUsers = this.allUsers.concat([]);
-            this.selectedUser = newUser;
-            this.showUserDetail = true;
-          }),
-        'Creating User');
-      // TODO: actually create user, show progress with LoadingIndicator
-    }
-  }
-
   groupClicked(group: GroupInfo) {
     this.selectedGroup = group;
     this.showGroupDetail = true;
@@ -164,5 +128,51 @@ export class UserAndGroupManagementComponent implements OnInit {
           this.onUserEditCancel();
         })
     );
+  }
+
+  openNewUserDialog(): void {
+    this.createDialog.open(AddUserComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        const newUser: UserInfo = {
+          name,
+          displayName: undefined,
+          email: undefined,
+          active: true,
+          password: undefined,
+        };
+        this.dialog.openLoadingIndicator(this.userApi.createUser(newUser)
+            .then(() => {
+              this.allUsers.push(newUser);
+              this.allUsers = this.allUsers.concat([]);
+              this.selectedUser = newUser;
+              this.showUserDetail = true;
+            }),
+          'Creating User');
+        // TODO: actually create user, show progress with LoadingIndicator
+      });
+  }
+
+  openNewGroupDialog(): void {
+    this.createDialog.open(NewGroupDialogComponent, {
+      data: {} as string
+    })
+      .afterClosed()
+      .subscribe((name) => {
+        const newGroup = {
+          name,
+          members: [this.myUser],
+        };
+        return this.dialog.openLoadingIndicator(this.groupApi.createGroup(newGroup)
+            .then(() => {
+              this.allGroups.push(newGroup);
+              this.allGroups = this.allGroups.concat([]);
+              this.selectedGroup = newGroup;
+              this.showGroupDetail = true;
+            }),
+          'Creating Group');
+      });
   }
 }
