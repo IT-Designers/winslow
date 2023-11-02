@@ -139,6 +139,8 @@ import {ProjectHistoryComponent} from "./project-view/project-history-tab/projec
 import {
   ProjectHistoryGroupInfoComponent
 } from "./project-view/project-history-tab/project-history-group-info/project-history-group-info.component";
+import { ProjectControlViewTabComponent } from './project-view/project-control-view-tab/project-control-view-tab.component';
+import { ControlViewLibraryComponent } from './project-view/project-control-view-tab/control-view-library/control-view-library.component';
 
 @NgModule({
   declarations: [
@@ -216,6 +218,8 @@ import {
     ProjectSettingsTabComponent,
     ProjectHistoryComponent,
     ProjectHistoryGroupInfoComponent,
+    ProjectControlViewTabComponent,
+    ControlViewLibraryComponent,
   ],
   imports: [
     SweetAlert2Module.forRoot(),
