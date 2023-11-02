@@ -81,7 +81,7 @@
     [isConfigure]="executionGroup.configureOnly"
     [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
     [showActiveControls]="firstEntry || executionGroup.active"
-    [showPassiveControls]="true"
+    [showPassiveControls]="executionGroup.stages[0].workspace != undefined"
     [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
     [showKillCurrentStage]="executionGroup.active"
     [enqueued]="executionGroup.enqueueIndex != null"
