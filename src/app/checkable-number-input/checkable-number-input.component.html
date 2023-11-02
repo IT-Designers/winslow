@@ -1,9 +1,9 @@
 <input type="checkbox" class="vertical-center-with-margin"
        *ngIf="checkable"
        [checked]="value != null"
-       (change)="onCheckedUpdate($event)">
+       (change)="onCheckedUpdate($event)"/>
 <span class="vertical-center-with-margin flex-grow-normal">{{name}}</span>
-<mat-form-field class="flex-grow-a-lot">
+<mat-form-field class="flex-grow-a-lot" appearance="outline">
   <input matInput
          [placeholder]="unit ?? ''"
          [disabled]="value == undefined && checkable"
