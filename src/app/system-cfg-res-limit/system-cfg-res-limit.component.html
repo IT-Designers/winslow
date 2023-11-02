@@ -2,12 +2,12 @@
                   [loading]="!longLoadingExternallySet && longLoadingValue.isLongLoading()"></app-loading-info>
 
 <ng-container *ngIf="loadError == null">
-  <div class="header">
+  <mat-card-header>
     <mat-card-title>System Resource Limitations</mat-card-title>
     <button mat-raised-button color="primary" class="align-right-using-margin" #saveBtn (click)="save()">
       Save
     </button>
-  </div>
+  </mat-card-header>
 
   <div class="whitespace-separator-top list">
     <h4>Limitation per User</h4>

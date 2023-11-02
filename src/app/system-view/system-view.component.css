@@ -3,9 +3,23 @@
   display: flex;
 }
 
+.main-container {
+  @media(prefers-color-scheme: dark) {
+    color: white;
+  }
+  height: 100%;
+  width: 100vw;
+  padding: 1rem;
+}
+
+.vmenu-container {
+  margin: 1rem 0;
+}
+
 .vmenu-container-selection {
   display: flex;
   flex-direction: column;
+  padding: 1rem;
 }
 
 .vmenu-container-selection > * {
