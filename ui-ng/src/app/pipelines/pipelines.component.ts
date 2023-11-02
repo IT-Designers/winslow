@@ -78,34 +78,32 @@ export class PipelinesComponent implements OnInit {
     this.selectedPipeline = pipeline;
   }
 
-  update(pipeline: string, value: string) {
+  update(pipelineId: string, value: string) {
     this.longLoading.increase();
     this.api
-      .updatePipelineDefinition(pipeline, value)
+      .updatePipelineDefinition(pipelineId, value)
       .then(result => {
-        this.success.delete(pipeline);
-        this.error.delete(pipeline);
-        this.parseError.set(pipeline, []);
+        this.success.delete(pipelineId);
+        this.error.delete(pipelineId);
+        this.parseError.set(pipelineId, []);
 
         if (result != null) {
           if (typeof result === typeof '') {
-            this.error.set(pipeline, result as string);
+            this.error.set(pipelineId, result as string);
           } else {
-            this.error.set(pipeline, 'There is at least one error!');
-            this.parseError.set(pipeline, [result as ParseError]);
+            this.error.set(pipelineId, 'There is at least one error!');
+            this.parseError.set(pipelineId, [result as ParseError]);
           }
         } else {
-          this.success.set(pipeline, 'Saved!');
+          this.success.set(pipelineId, 'Saved!');
           return this.api
-            .getPipelineDefinition(pipeline)
-            .then(def => {
-              for (const pipe of this.pipelines) {
-                if (pipeline === pipe.id) {
-                  // migrate values without replacing the object to avoid the list of pipelines to be rebuilt
-                  Object.keys(def).forEach(key => pipe[key] = def[key]);
-                  this.raw.set(pipeline, value);
-                  break;
-                }
+            .getPipelineDefinition(pipelineId)
+            .then(source => {
+              const target = this.pipelines.find(def => def.id == pipelineId)
+              if (target != undefined) {
+                // migrate values without replacing the object to avoid the list of pipelines to be rebuilt
+                copyPropertiesInto(source, target);
+                this.raw.set(pipelineId, value);
               }
             });
         }
@@ -144,4 +142,12 @@ export class PipelinesComponent implements OnInit {
     );
   }
 
+}
+
+function copyPropertiesInto<T extends Object>(source: T, target: T): void {
+  for (const key in source) {
+    if (source.hasOwnProperty(key)) {
+      target[key] = source[key];
+    }
+  }
 }
