@@ -1,7 +1,7 @@
 <div class="add-user-popup-container">
   <h2>Add a user</h2>
   <div class="inputs">
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input matInput
              placeholder="Search for a name..."
              id="searchInput"
@@ -9,7 +9,7 @@
              (keyup)="onKeyUp()">
     </mat-form-field>
 
-    <div id="list" class="list-container" *ngIf="showUsersToggle">
+    <mat-list id="list" class="list-container">
       <div class="user-item-from-dialog" *ngFor="let user of displayUsers">
         <label class="username-label-popup">{{user.name}}</label>
         <mat-form-field appearance="fill" class="role-dropdown">
@@ -19,12 +19,12 @@
             <mat-option *ngFor="let role of allRoles" [value]="role">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="add-member-round-button"  (click)="addUserClicked(user.name, selectedRole)" [disabled]="!selectedRole">
-          <span class="material-symbols-outlined item-icon">person_add</span>
+        <button mat-fab class="add-member-round-button"  (click)="addUserClicked(user.name, selectedRole)" [disabled]="!selectedRole">
+          <mat-icon>person_add</mat-icon>
         </button>
         <!--<span class="material-symbols-outlined item-icon" (click)="addUserClicked(user)">person_add</span>-->
       </div>
-    </div>
+    </mat-list>
 
     <div mat-dialog-actions align="end">
       <button mat-raised-button color="primary" (click)="dialogRef.close()">Cancel</button>

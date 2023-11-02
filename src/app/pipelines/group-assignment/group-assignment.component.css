@@ -1,15 +1,18 @@
 .group-panel {
   width: 100%;
 }
+
 .expansion-header {
   height: auto;
 }
+
 .expansion-title {
   min-width: 150px;
   max-width: 15%;
   display: flex;
   align-items: center;
 }
+
 .group-chip-list {
   margin: 10px;
 }
@@ -18,30 +21,31 @@
 .group-assignment-container {
   width: 100%;
 }
+
 .list-and-label-container {
   width: 100%;
 }
+
 .label-and-chiplist-container {
   display: flex;
 }
+
 .chiplist-container {
   width: 80%;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .chiplist-label {
   width: 20%;
   align-self: center;
 }
+
 app-groups-add-member-dialog {
   overflow: clip;
 }
 
-/*.list-container {
-  display:flex;
-  flex-direction: row;
-}*/
 .list-content {
   position: relative;
   padding-bottom: 5px;
@@ -54,16 +58,21 @@ app-groups-add-member-dialog {
   flex-direction: column;
   align-items: center;
 }
+
 .scrollable {
-  width: 90%;
-  overflow-y: scroll;
+  width: 95%;
+  max-height: 20vh;
+  overflow-y: auto;
+  overflow-x: clip;
 }
+
 .no-groups-label {
   font-style: italic;
   text-align: center;
   width: 100%;
   padding: 10px;
 }
+
 /* ---------- List Item Styling ---------- */
 /* ----- Version with seperate remove button ------ */
 .list-item {
@@ -76,45 +85,51 @@ app-groups-add-member-dialog {
   justify-content: space-between;
   align-items: center;
 }
+
 .dropdown-item:hover {
   background-color: lightgrey;
 }
+
 .username-label {
-  padding-left: 20px;
   min-width: calc(33% - 20px);
   max-width: calc(33% - 20px);
 }
+
 .role-dropdown {
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 17px;
-  height: 45px;
-  min-width: 33%;
-  max-width: 33%;
+  width: 40%;
 }
+
 .btn-container {
-  padding-right: 20px;
   min-width: calc(33% - 20px);
   max-width: calc(33% - 20px);
 }
+
 .remove-member-button {
   float: right;
 }
+
 .remove-member-button:enabled {
   cursor: pointer;
 }
+
 .remove-member-button:enabled:hover {
   scale: 1.1;
 }
+
 .remove-member-button:disabled {
   cursor: default;
 }
+
 .item-icon {
   font-size: 30px;
   margin-left: 3px;
   margin-top: 2px;
 }
+
 .text-input {
   width: 90%;
   padding: 2px 2px 2px 5px;
@@ -127,9 +142,11 @@ app-groups-add-member-dialog {
   width: 97%;
   margin: 1rem;
 }
+
 .text-input-mat {
   width: 100%;
 }
+
 .add-member-button-container {
   text-align: center;
   margin-top: 4px;
