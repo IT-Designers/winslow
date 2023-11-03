@@ -20,11 +20,12 @@ export class ProjectViewHeaderComponent implements OnInit {
   @Input() running = false;
   @Input() filter!: TagFilterComponent;
 
+  @Input() state?: State;
+  @Input() stage?: string;
+
   @Output() tagActionPrimary = new EventEmitter<string>();
   @Output() tagActionSecondary = new EventEmitter<string>();
 
-  state?: State;
-  stage?: string;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
 
   constructor(
@@ -32,20 +33,6 @@ export class ProjectViewHeaderComponent implements OnInit {
     private files: FilesApiService,
     private customDialog: DialogService,
   ) {
-  }
-
-  @Input()
-  set iconState(value: State | undefined) {
-    this.state = value;
-    // todo represent project state in icon again
-    // if (this.icon != null) {
-    //   this.icon.state = value;
-    // }
-  }
-
-  @Input()
-  set mostRecentStage(stage: string | undefined) {
-    this.stage = stage;
   }
 
   ngOnInit() {

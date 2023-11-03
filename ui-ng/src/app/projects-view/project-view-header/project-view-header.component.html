@@ -5,7 +5,7 @@
            [src]="thumbnailUrl(project)" (click)="makeImageBigger(thumbnailUrl(project), $event)"/>
       <mat-card-title>
       <span class="inline-title">
-        <app-state-icon #icon></app-state-icon>
+        <app-state-icon #icon [state]="state"></app-state-icon>
         {{project.name}}
       </span>
       </mat-card-title>

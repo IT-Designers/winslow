@@ -41,11 +41,11 @@
                      [class.selected]="project.id == selectedProject?.id">
         <app-project-view-header
           [project]="project" [filter]="filter"
-          [iconState]="stateInfo?.get(project.id)?.state"
+          [state]="stateInfo?.get(project.id)?.state"
           [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
           [progress]="stateInfo?.get(project.id)?.stageProgress"
           [running]="stateInfo?.get(project.id)?.state==='RUNNING'"
-          [mostRecentStage]="stateInfo?.get(project.id)?.description"
+          [stage]="stateInfo?.get(project.id)?.description"
           (tagActionPrimary)="filter.toggleIncludedTag($event)"
           (tagActionSecondary)="filter.addExcludedTag($event)"
         ></app-project-view-header>
