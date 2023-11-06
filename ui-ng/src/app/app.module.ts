@@ -115,6 +115,7 @@ import {
 } from "./project-view/project-history-tab/project-history-group-info/project-history-group-info.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import * as echarts from 'echarts';
+import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/project-thumbnail.component';
 
 
 @NgModule({

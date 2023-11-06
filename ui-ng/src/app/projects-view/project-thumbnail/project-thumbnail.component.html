@@ -1,0 +1,7 @@
+<ng-container *ngIf="image">
+  <img [src]="image.src" alt="Thumbnail" (click)="showFullThumbnail(image.src)">
+</ng-container>
+
+<ng-container *ngIf="!image">
+  <span class="alternative-text">{{alternativeText}}</span>
+</ng-container>
