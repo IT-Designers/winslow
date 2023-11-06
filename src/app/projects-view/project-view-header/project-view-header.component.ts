@@ -30,8 +30,6 @@ export class ProjectViewHeaderComponent implements OnInit {
 
   constructor(
     public dialog: MatDialog,
-    private files: FilesApiService,
-    private customDialog: DialogService,
   ) {
   }
 
@@ -62,17 +60,5 @@ export class ProjectViewHeaderComponent implements OnInit {
       position: {top: `${this.menuPosition.y + 20}px`, left: `${this.menuPosition.x}px`},
       data: {project: this.project},
     });
-  }
-
-  thumbnailUrl(project: ProjectInfo) {
-    return this.files.workspaceUrl(`${project.id}/output/thumbnail.jpg`);
-  }
-
-  makeImageBigger(imageUrl: string, event: MouseEvent) {
-    const target = event.target;
-    if (target instanceof HTMLImageElement && target.currentSrc.includes('winslow_quadratic.svg')) {
-      return;
-    }
-    this.customDialog.image(imageUrl);
   }
 }

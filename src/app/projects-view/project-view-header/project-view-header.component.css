@@ -12,10 +12,6 @@
   text-overflow: ellipsis;
 }
 
-.icon {
-  margin: 0;
-}
-
 .inline-title {
   display: inline-flex;
   align-items: center;
