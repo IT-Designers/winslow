@@ -1,8 +1,9 @@
 <div class="right-click-trigger" (contextmenu)="rightClickAction(matMenuTrigger, $event)">
   <mat-card (contextmenu)="rightClickAction(matMenuTrigger, $event)">
     <mat-card-header>
-      <img mat-card-avatar alt="Project Icon" class="icon" #avatar (error)="avatar.src = 'assets/winslow_quadratic.svg'"
-           [src]="thumbnailUrl(project)" (click)="makeImageBigger(thumbnailUrl(project), $event)"/>
+      <app-project-avatar mat-card-avatar
+        [project]="project"
+      ></app-project-avatar>
       <mat-card-title>
       <span class="inline-title">
         <app-state-icon #icon [state]="state"></app-state-icon>
