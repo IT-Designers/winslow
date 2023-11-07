@@ -1,7 +1,16 @@
 <ng-container *ngIf="image">
-  <img [src]="image.src" alt="Thumbnail" (click)="showFullThumbnail(image.src)">
+  <img
+    [src]="image.src"
+    alt="Thumbnail"
+    (click)="showFullThumbnail(image.src)"
+  >
 </ng-container>
 
 <ng-container *ngIf="!image">
-  <span class="alternative-text">{{alternativeText}}</span>
+  <div
+    class="alternative-text"
+    [ngStyle]="alternativeStyle"
+  >
+    <span>{{alternativeText}}</span>
+  </div>
 </ng-container>
