@@ -3,18 +3,18 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {UserApiService} from '../../api/user-api.service';
 
 @Component({
-  selector: 'app-user-add-name-dialog',
-  templateUrl: './user-add-name-dialog.component.html',
-  styleUrls: ['./user-add-name-dialog.component.css']
+  selector: 'app-add-user-name-dialog',
+  templateUrl: './add-user.component.html',
+  styleUrls: ['./add-user.component.css']
 })
-export class UserAddNameDialogComponent implements OnInit {
+export class AddUserComponent implements OnInit {
 
-  nameInput: string;
-  errorMessage = ' ';
+  nameInput: string = '';
+  errorMessage = '';
   isLoading = false;
 
   constructor(
-    public dialogRef: MatDialogRef<UserAddNameDialogComponent>,
+    public dialogRef: MatDialogRef<AddUserComponent>,
     @Inject(MAT_DIALOG_DATA) public data: string,
     private userApi: UserApiService
   ) { }

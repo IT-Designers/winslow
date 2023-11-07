@@ -17,11 +17,11 @@
         [showKillCurrentStage]="executionGroup.active"
         [enqueued]="executionGroup.enqueueIndex != null"
         [running]="executionGroup.active || executionGroup.isMostRecentStateRunning()"
-        [paused]="pipelineIsPaused == true"
-        [comment]="executionGroup?.comment"
+        [paused]="pipelineIsPaused"
+        [comment]="executionGroup.comment"
         [groupSize]="executionGroup.getGroupSize()"
-        [sharedWorkspace]="executionGroup?.workspaceConfiguration?.sharedWithinGroup"
-        [nestedWorkspace]="executionGroup?.workspaceConfiguration?.nestedWithinGroup"
+        [sharedWorkspace]="executionGroup.workspaceConfiguration.sharedWithinGroup"
+        [nestedWorkspace]="executionGroup.workspaceConfiguration.nestedWithinGroup"
 
 
         (click)="setSelectedStageIndexAndEmitStage()"
@@ -29,8 +29,8 @@
         (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(executionGroup)"
         (clickDelete)="executionGroup.enqueueIndex != null ? clickDelete.emit(executionGroup) : null"
         (clickPauseAfterThis)="clickPauseAfterThis.emit(executionGroup)"
-        (clickKillCurrentStage)="clickKillStage.emit(null)"
-        (clickUseAsBlueprint)="clickUseAsBlueprint.emit(null)"
+        (clickKillCurrentStage)="clickKillStage.emit(undefined)"
+        (clickUseAsBlueprint)="clickUseAsBlueprint.emit(undefined)"
       ></app-project-history-header>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -72,22 +72,22 @@
   </div>
 </mat-expansion-panel>
 
-<div *ngIf="executionGroup.stages.length <= 1" class="history-header header" [class.active]="active">
+<div *ngIf="executionGroup.stages.length == 1" class="history-header header" [class.active]="active">
   <app-project-history-header
     [itemNo]="entryNumber"
-    [time]="executionGroup?.getMostRecentStartOrFinishTime()"
-    [stageName]="executionGroup?.stageDefinition.name + (executionGroup?.enqueueIndex != null ? ' ('+executionGroup?.enqueueIndex+')' : '')"
-    [state]="executionGroup?.getMostRelevantState(projectState)"
-    [isConfigure]="executionGroup?.configureOnly"
+    [time]="executionGroup.getMostRecentStartOrFinishTime()"
+    [stageName]="executionGroup.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
+    [state]="executionGroup.getMostRelevantState(projectState)"
+    [isConfigure]="executionGroup.configureOnly"
     [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
     [showActiveControls]="firstEntry || executionGroup.active"
-    [showPassiveControls]="firstEntry || executionGroup.active || executionGroup.stages.length == 1"
+    [showPassiveControls]="executionGroup.stages[0].workspace != undefined"
     [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
     [showKillCurrentStage]="executionGroup.active"
     [enqueued]="executionGroup.enqueueIndex != null"
-    [running]="executionGroup?.stages[0]?.state == 'RUNNING'"
-    [paused]="executionGroup?.stages[0]?.state == 'PAUSED'"
-    [comment]="executionGroup?.comment"
+    [running]="executionGroup.stages[0].state == 'RUNNING'"
+    [paused]="executionGroup.stages[0].state == 'PAUSED'"
+    [comment]="executionGroup.comment"
 
     (clickOpenWorkspace)="clickOpenWorkspace.emit(executionGroup.stages[0])"
     (clickOpenLogs)="clickOpenLogs.emit(executionGroup.stages[0])"
@@ -100,5 +100,36 @@
     (clickPauseAfterThis)="clickPauseAfterThis.emit(executionGroup)"
     (clickKillCurrentStage)="clickKillStage.emit(executionGroup.stages[0])"
     (clickUseAsBlueprint)="clickUseAsBlueprint.emit(executionGroup.stages[0])"
+  ></app-project-history-header>
+</div>
+
+<div *ngIf="executionGroup.stages.length == 0" class="history-header header" [class.active]="active">
+  <app-project-history-header
+    [itemNo]="entryNumber"
+    [time]="executionGroup.getMostRecentStartOrFinishTime()"
+    [stageName]="executionGroup.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
+    [state]="executionGroup.getMostRelevantState(projectState)"
+    [isConfigure]="executionGroup.configureOnly"
+    [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
+    [showActiveControls]="false"
+    [showPassiveControls]="false"
+    [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
+    [showKillCurrentStage]="executionGroup.active"
+    [enqueued]="executionGroup.enqueueIndex != null"
+    [running]="false"
+    [paused]="false"
+    [comment]="executionGroup.comment"
+
+    (clickOpenWorkspace)="clickOpenWorkspace.emit(undefined)"
+    (clickOpenLogs)="clickOpenLogs.emit(undefined)"
+    (clickOpenAnalysis)="clickOpenAnalysis.emit(undefined)"
+    (clickOpenTensorboard)="clickOpenTensorboard.emit(undefined)"
+
+    (clickResume)="clickResume.emit(executionGroup)"
+    (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(executionGroup)"
+    (clickDelete)="executionGroup.enqueueIndex != null ? clickDelete.emit(executionGroup) : null"
+    (clickPauseAfterThis)="clickPauseAfterThis.emit(executionGroup)"
+    (clickKillCurrentStage)="clickKillStage.emit(undefined)"
+    (clickUseAsBlueprint)="clickUseAsBlueprint.emit(undefined)"
   ></app-project-history-header>
 </div>

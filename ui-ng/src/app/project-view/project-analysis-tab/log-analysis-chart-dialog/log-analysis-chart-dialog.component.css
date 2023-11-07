@@ -1,13 +1,22 @@
+.main-container {
+  overflow: auto;
+  @media(prefers-color-scheme: dark) {
+    color: white;
+  }
+  min-height: max-content;
+  max-height: 75vh;
+}
+
 .dialog-content {
   display: block;
-  padding: 0;
-  margin: 0;
+  padding: 0.5rem 0 0;
+  margin: 0 1rem;
   width: 720px;
 }
 
 .dialog-actions {
   padding: 0;
-  margin: 0;
+  margin: 0 1rem;
 }
 
 .wide-field {

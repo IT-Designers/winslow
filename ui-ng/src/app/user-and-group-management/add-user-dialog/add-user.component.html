@@ -3,9 +3,10 @@
 
   <div class="inputs">
     <!--<label class="error-label">{{errorMessage}}</label>-->
-    <mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Username</mat-label>
       <input matInput
-             placeholder="Username"
+             placeholder="Winslow-User"
              id="nameInput" [(ngModel)]="nameInput"
              (keyup.enter)="createClicked()"
              (keyup)="checkName()">
@@ -14,8 +15,8 @@
     <div mat-dialog-actions class="dialog-actions-container">
       <div class="spinner-container">
         <mat-spinner *ngIf="isLoading"
-                     diameter="25"
-                     strokeWidth="3">
+                     [diameter]="25"
+                     [strokeWidth]="3">
         </mat-spinner>
         <label *ngIf="isLoading" class="loading-label">
           Checking User Name...

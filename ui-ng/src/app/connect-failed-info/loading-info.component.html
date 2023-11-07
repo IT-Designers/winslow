@@ -1,8 +1,8 @@
 <div class="container">
-  <i *ngIf="loading && error == null">
+  <i *ngIf="loading && error == undefined">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   </i>
-  <div *ngIf="error != null" class="on-error">
+  <div *ngIf="error != undefined" class="on-error">
     <div class="error-container">
       <div class="error-focus">ⓘ</div>
       Failed to connect to the server

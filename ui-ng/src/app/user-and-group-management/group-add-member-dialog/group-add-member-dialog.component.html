@@ -14,12 +14,12 @@
         <label class="username-label-popup">{{user.name}}</label>
         <mat-form-field appearance="fill" class="role-dropdown">
           <mat-label>Choose Role</mat-label>
-          <mat-select [(value)]="user.role">
+          <mat-select [(value)]="selectedRole">
             <mat-option>None</mat-option>
-            <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
+            <mat-option *ngFor="let role of allRoles" [value]="role">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="add-member-round-button"  (click)="addUserClicked(user)" [disabled]="!user.role">
+        <button class="add-member-round-button"  (click)="addUserClicked(user.name, selectedRole)" [disabled]="!selectedRole">
           <span class="material-symbols-outlined item-icon">person_add</span>
         </button>
         <!--<span class="material-symbols-outlined item-icon" (click)="addUserClicked(user)">person_add</span>-->

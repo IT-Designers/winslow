@@ -2,6 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {SettingsApiService} from '../api/settings-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService} from '../dialog.service';
+import {EnvVariable} from "../api/winslow-api";
 
 @Component({
   selector: 'app-system-cfg-env',
@@ -11,13 +12,13 @@ import {DialogService} from '../dialog.service';
 export class SystemCfgEnvComponent implements OnInit {
 
   // env cache
-  environmentVariables: Map<string, [boolean, string]> = null;
+  environmentVariables?: Map<string, EnvVariable>;
   defaultEnvironmentVariablesValue = new Map<string, string>();
   envSubmitValue: any = null;
 
   longLoadingValue = new LongLoadingDetector();
   longLoadingExternallySet = false;
-  loadError = null;
+  loadError?: Error;
 
   constructor(private api: SettingsApiService, private dialog: DialogService) {
   }

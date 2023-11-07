@@ -1,16 +1,16 @@
 <app-loading-info
-  [error]="loadError ? loadError.message : null"
-  [loading]="files == null || this.longLoading.isLongLoading()">
+  [error]="loadError?.message"
+  [loading]="this.longLoading.isLongLoading()">
 </app-loading-info>
 
-<div class="container height" *ngIf="files != null && loadError == null">
+<div class="container height" *ngIf="loadError == undefined">
   <div class="files-browser-path">
-    <input type="text" class="files-browser-path" value="{{this.latestPath}}/"
-           (keydown.enter)="navigateDirectlyTo($event.target.value)">
+    <input type="text" class="files-browser-path" [value]="this.latestPath + '/'"
+           (keydown.enter)="onKeydownEnter($event)">
     <i class="material-icons-outlined action-area" (click)="fileInput.click()">cloud_upload</i>
     <i class="material-icons-outlined action-area" (click)="createDirectory()">create_new_folder</i>
     <input hidden #decompress value="false"/>
-    <input hidden #fileInput accept="*/*" type="file" (change)="uploadFile($event.target.files, decompress.value.toLowerCase() == 'true')">
+    <input hidden #fileInput accept="*/*" type="file" (change)="onFileInputChange($event)">
   </div>
 
   <ng-template #gitLogo let-file="file">
@@ -27,11 +27,11 @@
         <li *ngFor="let file of directories(path)">
           <p class="directory" [attr.data-path]="file.path">
             <i
-              class="material-icons-outlined directory-toggle directory-{{directories(file.path) != null ? 'close' : 'open'}}"
+              [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
               (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right'}}
             </i>
             <i
-              class="material-icons-outlined directory-toggle directory-{{directories(file.path) != null ? 'close' : 'open'}}"
+              [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
               (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'folder_open' : 'folder'}}
               <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
             </i>
@@ -63,7 +63,7 @@
           <label class="action-area file-size file-size-human-readable">{{ file.getFileSizeHumanReadable() }}</label>
           <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
           <i class="material-icons-outlined action-area">
-            <a href="{{downloadUrl(file)}}" target="_blank" (click)="downloadFile(file)">
+            <a [href]="downloadUrl(file)" target="_blank" (click)="downloadFile(file)">
               cloud_download
             </a>
           </i>
@@ -84,15 +84,16 @@
       <li (click)="decompress.value = 'false'; fileInput.click(); contextMenuVisible = false">Upload a File</li>
     </ul>
   </div>
-  <swal #swalUpload title="Uploading your files"
-        [icon]="dataUpload != null ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
-        (didClose)="dataUpload = null"
+  <swal #swalUpload
+        [title]="'Uploading your files'"
+        [icon]="dataUpload != undefined ? (dataUpload.err != null ? 'error' : dataUpload.closable ? 'success' : 'info') : 'info'"
+        (didClose)="onSwalUploadClosed()"
         [allowOutsideClick]="false"
         [showCancelButton]="false"
         [showConfirmButton]="true"
         [showCloseButton]="false">
     <div *swalPortal="swalTargets.content">
-      <mat-list *ngIf="dataUpload != null">
+      <mat-list *ngIf="dataUpload != undefined">
         <mat-list *ngFor="let upload of dataUpload.uploads">
           <ng-container>
             <p>{{upload.name}}</p>
@@ -100,7 +101,7 @@
               <div>Overall: {{getSpeed(upload.overallUploadSpeed)}} - {{getRemaining(upload.overallUploadSpeed, upload.loaded, upload.total)}} </div>
               <div *ngIf="!upload.completed">Current: {{getSpeed(upload.currentUploadSpeed)}} - {{getRemaining(upload.currentUploadSpeed, upload.loaded, upload.total)}}</div>
             </div>
-            <mat-progress-bar mode="determinate" value="{{ upload.loaded / upload.total * 100 }}"></mat-progress-bar>
+            <mat-progress-bar mode="determinate" [value]="upload.loaded / upload.total * 100"></mat-progress-bar>
           </ng-container>
         </mat-list>
       </mat-list>

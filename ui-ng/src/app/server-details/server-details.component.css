@@ -22,6 +22,10 @@ mat-grid-tile {
   text-align: center;
   vertical-align: middle;
   line-height: 30px;
+  @media(prefers-color-scheme: dark) {
+    background-color: #383838;
+    color: white;
+  }
 }
 
 .selected-server-body {
@@ -32,6 +36,10 @@ mat-grid-tile {
   margin-top: -1px;
   /* height: 300px; */
   padding-bottom: 10px;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+    color: white;
+  }
 }
 
 .selected-server-footer {
@@ -42,6 +50,10 @@ mat-grid-tile {
   z-index: 999;
   margin-top: -1px;
   /* height: 50px; */
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+    color: white;
+  }
 }
 
 .text-inside-grid {
@@ -124,6 +136,10 @@ mat-grid-tile {
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   padding: 10px;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+    color: white;
+  }
 }
 
 .attribute-label {

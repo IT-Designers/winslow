@@ -9,4 +9,7 @@
   height: 70vh;
   display: flex;
   flex-direction: column;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }

@@ -1,8 +1,9 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {UserApiService, UserInfo} from '../../api/user-api.service';
+import {UserApiService} from '../../api/user-api.service';
 import {DialogService} from '../../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
+import {UserInfo} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-user-details',
@@ -11,14 +12,14 @@ import {PasswordDialogComponent} from '../password-dialog/password-dialog.compon
 })
 export class UserDetailsComponent implements OnInit, OnChanges {
 
-  @Input() selectedUser: UserInfo = null;   // Object should remain constant
-  @Input() myName: string = null;
+  @Input() selectedUser?: UserInfo;   // Object should remain constant
+  @Input() myName?: string;
 
   @Output() deletedUserEmitter = new EventEmitter();
 
   canIEditUser = false;
   newPassword = '';
-  editableSelectedUser = new UserInfo();
+  editableSelectedUser: UserInfo = {active: false, displayName: "", email: "", name: "", password: ""};
 
   hasAnythingChanged = false;
 
@@ -29,14 +30,14 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.selectedUser) {
+    if (this.selectedUser && this.myName) {
       this.editableSelectedUser = Object.assign({}, this.selectedUser);
       this.userApi.hasSuperPrivileges(this.myName)
         .then((bool) => {
-          if (bool === true) {
+          if (bool) {
             this.canIEditUser = bool;
           } else {
-            this.canIEditUser = this.myName === this.selectedUser.name;
+            this.canIEditUser = this.myName === this.selectedUser?.name;
           }
         });
     }
@@ -55,10 +56,16 @@ export class UserDetailsComponent implements OnInit, OnChanges {
   }
 
   onUpdatePassword(password: string) {
-    this.dialog.openLoadingIndicator(this.userApi.setPassword(this.selectedUser.name, password)
+    const user = this.selectedUser;
+    if (user == undefined) {
+      this.dialog.error("Cannot update password: No user selected.");
+      return
+    }
+    this.dialog.openLoadingIndicator(this.userApi.setPassword(user.name, password)
         .then(() => {
           this.newPassword = '';
-          this.selectedUser.password = '********';
+          user.password = '********';
+          this.selectedUser = user;
         }),
       'Updating Password');
   }
@@ -73,8 +80,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
 
   changePasswordBtnClicked() {
     this.createDialog.open(PasswordDialogComponent, {
-      data: {
-      }
+      data: {}
     })
       .afterClosed()
       .subscribe((password) => {

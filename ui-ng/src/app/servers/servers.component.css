@@ -5,6 +5,15 @@
 
 .servers-header {
   margin-bottom: 1em;
+  @media(prefers-color-scheme: dark) {
+    color: white;
+  }
+}
+
+.legend {
+  @media(prefers-color-scheme: dark) {
+    color: white;
+  }
 }
 
 mat-grid-tile {

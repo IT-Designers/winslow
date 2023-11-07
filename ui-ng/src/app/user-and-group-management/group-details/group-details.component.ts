@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {GroupApiService, GroupInfo, MemberInfo} from '../../api/group-api.service';
+import {GroupApiService, GroupInfo} from '../../api/group-api.service';
 import {DialogService} from '../../dialog.service';
 import {Link} from "../../api/winslow-api";
 
@@ -10,8 +10,8 @@ import {Link} from "../../api/winslow-api";
 })
 export class GroupDetailsComponent implements OnInit {
 
-  @Input() selectedGroup: GroupInfo = null;
-  @Input() myUser: Link = null;
+  @Input() selectedGroup?: GroupInfo;
+  @Input() myUser?: Link;
 
   @Output() groupDeleteEmitter = new EventEmitter();
 
@@ -20,18 +20,29 @@ export class GroupDetailsComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  onMemberAdded(event) {
+  onMemberAdded(user: Link) {
+    const group = this.selectedGroup;
+    if (group == undefined) {
+      this.dialog.error("Cannot add member to group: No group selected.");
+      return;
+    }
     return this.dialog.openLoadingIndicator(
-      this.groupApi.addOrUpdateMembership(this.selectedGroup.name, event)
+      this.groupApi.addOrUpdateMembership(group.name, user)
         .then(() => {
-          this.selectedGroup.members.push(event);
+          group.members.push(user);
+          this.selectedGroup = group;
         }),
       'Adding Member to group'
     );
   }
-  onRemoveMember(event) {
+  onRemoveMember(link: Link) {
+    const group = this.selectedGroup;
+    if (group == undefined) {
+      this.dialog.error("Cannot remove member from group: No group selected.");
+      return;
+    }
     return this.dialog.openLoadingIndicator(
-      this.groupApi.deleteGroupMembership(this.selectedGroup.name, event.name),
+      this.groupApi.deleteGroupMembership(group.name, link.name),
       'Removing Member from Group'
     );
   }

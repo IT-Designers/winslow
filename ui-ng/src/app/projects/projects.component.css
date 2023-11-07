@@ -11,8 +11,11 @@
 }
 
 .drawer {
-  width: 30vw;
+  width: 25vw;
   background-color: whitesmoke;
+  @media(prefers-color-scheme: dark) {
+    background-color: #383838;
+  }
   overflow-y: auto;
 }
 
@@ -56,6 +59,9 @@
 
 .project-container {
   background: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
   padding: 0 1em;
   height: 100%;
 }
@@ -63,21 +69,4 @@
 .section {
   font-weight: bold;
   margin: 0.2em;
-}
-
-.group {
-  background: #f5f5f5;
-  margin: 0.2em;
-  border: 0;
-  box-shadow: none;
-}
-
-.group mat-expansion-panel-header {
-  padding-left: 0;
-}
-
-.group mat-icon {
-  max-height: 1.5em;
-  max-width: 1.5em;
-  margin: auto 1em;
 }

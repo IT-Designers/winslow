@@ -1,64 +1,20 @@
-<link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0"/>
 <div>
-
-
-  <!--<div *ngIf="this.pipelines != null" class="flex-grow-row control-button-row">
-    <div class="flex-grow"></div>
-    <button class="create-button" mat-raised-button color="primary"
-          (click)="openCreatePipelineDialog()">
-      Create Pipeline
-    </button>
-  </div>
-
-
-  <div class="none-defined-yet" *ngIf="pipelines != null && pipelines.length == 0">
-    <i>There are no pipelines defined yet</i>
-  </div>
-
-  <app-loading-info [error]="loadError ? loadError.message : null" [loading]="pipelines == null"></app-loading-info>
-
-  <mat-accordion>
-    <mat-expansion-panel *ngFor="let pipeline of pipelines" (expandedChange)="editor.layout()">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon class="title-icon">timeline</mat-icon>{{pipeline.name}}
-        </mat-panel-title>
-        <mat-panel-description>
-          {{pipeline.desc}}
-        </mat-panel-description>
-      </mat-expansion-panel-header>
-      <app-group-assignment [currentlyAssignedGroups]="mockGroups"
-                            (groupAssignmentRemovedEmitter)="null">
-      </app-group-assignment>
-      <div class="toml-pipeline">
-        <h5>Definition</h5>
-        <app-pipeline-editor #editor
-          [pipelineId]="pipeline.id"
-          [raw]="raw.get(pipeline.id)"
-          [error]="error.get(pipeline.id)"
-          [success]="success.get(pipeline.id)"
-          [parseError]="parseError.get(pipeline.id)"
-          (update)="update(pipeline.id, $event)"
-          (check)="check(pipeline.id, $event)">
-        </app-pipeline-editor>
-      </div>
-    </mat-expansion-panel>
-  </mat-accordion>-->
 
   <mat-drawer-container class="drawer-container">
     <mat-drawer mode="side"
                 class="drawer"
                 [opened]="true"
-                [disableClose]="true">
+                [disableClose]="true"
+                #drawer>
       <div class="drawer-content">
         <div class="drawer-element">
-          <app-searchable-list type="Pipeline"
-                               [allItems]="pipelines"
-                               searchPlaceholderText="Pipeline Name..."
-                               listItemTooltip="Edit Pipeline"
-                               (itemEmitter)="onPipelineClicked($event)"
-                               (newItemEmitter)="onAddPipeline($event)">
+          <app-searchable-list
+            type="Pipeline"
+            [allItems]="pipelines"
+            searchPlaceholderText="Pipeline Name..."
+            listItemTooltip="Edit Pipeline"
+            (itemEmitter)="onPipelineClicked($event)"
+          >
 
           </app-searchable-list>
 
@@ -66,12 +22,29 @@
 
       </div>
 
+      <div class="button-group">
+        <button mat-fab [extended]="true" class="add-button" color="primary" (click)="openCreatePipelineDialog()" matTooltip="Create new Pipeline">
+          <mat-icon matTooltip="Create new Pipeline">add</mat-icon>
+          New Pipeline
+        </button>
+
+        <button class="hide-projects-button" mat-mini-fab [color]="$any('white')" (click)="drawer.toggle()">
+          <mat-icon matTooltip="Hide projects">keyboard_arrow_left</mat-icon>
+        </button>
+      </div>
+
     </mat-drawer>
     <mat-drawer-content class="detail-container">
-      <app-pipeline-details [selectedPipeline]="selectedPipeline"
-                            (pipelineDeleteEmitter)="onDeletePipeline($event)">
+      <app-pipeline-details
+        *ngIf="selectedPipeline"
+        [selectedPipeline]="selectedPipeline"
+        (pipelineDeleteEmitter)="onDeletePipeline($event)"
+      ></app-pipeline-details>
+      <span *ngIf="selectedPipeline === null" class="nothing-selected">No pipeline selected</span>
+      <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab [color]="$any('white')" (click)="drawer.toggle()">
+        <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
+      </button>
 
-      </app-pipeline-details>
     </mat-drawer-content>
   </mat-drawer-container>
 

@@ -4,9 +4,15 @@
 
 mat-expansion-panel-header {
   background-color: white;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 mat-expansion-panel-header.mat-expanded:hover {
   background-color: rgba(255, 255, 255, 0.8);
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 
 mat-expansion-panel div {
@@ -31,7 +37,7 @@ mat-expansion-panel div {
   /* border-radius: 5px;
   border: 1px solid darkgrey; */
   border-bottom: 1px solid darkgrey;
-  border-radius: 0px !important;
+  border-radius: 0 !important;
   z-index: 999;
 }
 
@@ -54,10 +60,16 @@ mat-expansion-panel div {
   font-size: 15px;
   font-weight: 400;
   cursor: pointer;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
 }
 
 .header:hover {
-  background-color: aliceblue !important;
+  background-color: aliceblue;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 
 .mat-expansion-panel:not([class*='mat-elevation-z']) {
@@ -65,8 +77,11 @@ mat-expansion-panel div {
 }
 
 .active {
-  background-color: aliceblue !important;
+  background-color: aliceblue;
   font-weight: bold;
+  @media(prefers-color-scheme: dark) {
+    background-color: #424242;
+  }
 }
 
 .mat-expansion-panel-header {

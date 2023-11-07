@@ -1,5 +1,9 @@
 :host {
-  overflow: auto;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  overflow-y: hidden;
+  height: 98vh;
 }
 
 .title-icon {
@@ -11,14 +15,20 @@
     margin: 0.2em 1em;
     padding: 0.5em;
 }
+
 .drawer-container {
-  height: 88.2vh;
+  height: 94vh;
 }
+
 .drawer {
-  width: 30vw;
+  width: 25vw;
   background-color: whitesmoke;
+  @media(prefers-color-scheme: dark) {
+    background-color: #383838;
+  }
   overflow-y: auto;
 }
+
 .drawer-content {
   padding: 0.2em;
   overflow-y: hidden;
@@ -32,8 +42,44 @@
 
 .detail-container {
   background: white;
-  padding: 0;
+  @media(prefers-color-scheme: dark) {
+    background-color: #303030;
+  }
+  padding: 0 1em;
   height: 100%;
-  margin-left: 30vw;
+}
+.nothing-selected {
+  width: 54em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  text-align: center;
+  padding: 3em;
+  font-style: italic;
 }
 
+.button-group {
+  position: absolute;
+  left: 1.25em;
+  bottom: 1.25em;
+  right: 1.25em;
+}
+
+.button-group button {
+  margin: 0.25em;
+}
+
+.add-button {
+  height: 2.5rem;
+}
+
+.show-projects-button {
+  position: fixed;
+  left: 1.5em;
+  bottom: 1.5em;
+  z-index: 99
+}
+
+.hide-projects-button {
+  float: right;
+}

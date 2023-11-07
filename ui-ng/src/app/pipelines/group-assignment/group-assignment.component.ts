@@ -1,11 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
-
-export interface AssignedGroupInfo {
-  name: string;
-  role: string;
-}
+import {Link} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-group-assignment',
@@ -14,30 +10,30 @@ export interface AssignedGroupInfo {
 })
 export class GroupAssignmentComponent implements OnInit {
 
-  @Input() currentlyAssignedGroups: AssignedGroupInfo[] = null;
+  @Input() currentlyAssignedGroups!: Link[];
 
-  @Output() groupAssignmentRemovedEmitter = new EventEmitter();
-  @Output() groupAddedEmitter = new EventEmitter();
+  @Output() groupAssignmentRemovedEmitter: EventEmitter<Link> = new EventEmitter();
+  @Output() groupAddedEmitter: EventEmitter<Link> = new EventEmitter();
 
   showGroupList = false;
   groupListBtnText = 'Expand';
   groupListBtnIcon = 'expand_more';
 
   groupSearchInput = '';
-  displayGroups: AssignedGroupInfo[] = null;
+  displayGroups!: Link[];
   roles = ['OWNER', 'MEMBER'];
 
   constructor(private createDialog: MatDialog) { }
 
   ngOnInit(): void {
-    this.displayGroups = Array.from(this.currentlyAssignedGroups);
+    this.displayGroups = [...this.currentlyAssignedGroups];
   }
 
-  remove(group) {
+  remove(group: Link) {
     this.groupAssignmentRemovedEmitter.emit(group);
   }
 
-  onRemoveItemClick(item) {
+  onRemoveItemClick(item: Link) {
     this.groupAssignmentRemovedEmitter.emit(item);
     const delIndex = this.currentlyAssignedGroups.findIndex((group) => group.name === item.name);
     this.currentlyAssignedGroups.splice(delIndex, 1);
@@ -65,7 +61,7 @@ export class GroupAssignmentComponent implements OnInit {
         }
       });
   }
-  roleChanged(group) {
+  roleChanged(group: Link) {
     console.log('Role changed to ' + group.role);
   }
   filterFunction() {
@@ -81,7 +77,7 @@ export class GroupAssignmentComponent implements OnInit {
     }
   }
 
-  getChipColor(group) {
+  getChipColor(group: Link) {
     if (group.role === 'OWNER') {
       return '#8ed69b';
     } else {
@@ -89,12 +85,13 @@ export class GroupAssignmentComponent implements OnInit {
     }
   }
 
-  getTooltip(group) {
+  getTooltip(group: Link): string {
     if (group.role === 'OWNER') {
       return 'OWNER';
     } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
+    return '';
   }
 
   changeGroupListBtnTextAndIcon() {

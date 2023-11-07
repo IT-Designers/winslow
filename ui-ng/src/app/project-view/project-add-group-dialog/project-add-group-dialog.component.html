@@ -1,26 +1,25 @@
 <div class="add-group-popup-container">
   <h2>Add a group</h2>
   <div class="inputs">
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <input matInput placeholder="Search for a group..." id="searchInput" [(ngModel)]="groupSearchInput" (keyup)="onKeyUp()">
     </mat-form-field>
 
-    <div id="list" class="list-container" *ngIf="showGroupsToggle">
+    <mat-list id="list" class="list-container" *ngIf="showGroupsToggle">
       <div class="group-item-from-dialog" *ngFor="let group of displayGroups">
         <label class="groupname-label-popup">{{group.name}}</label>
-        <mat-form-field appearance="fill" class="role-dropdown">
+        <mat-form-field appearance="outline" class="role-dropdown">
           <mat-label>Choose Role</mat-label>
-          <mat-select [(value)]="group.role">
+          <mat-select [(value)]="selectedRole">
             <mat-option>None</mat-option>
-            <mat-option *ngFor="let role of allRoles" value="{{role}}">{{role}}</mat-option>
+            <mat-option *ngFor="let role of allRoles" [value]="role">{{role}}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="add-group-round-button"  (click)="addGroupClicked(group)" [disabled]="!group.role">
-          <span class="material-symbols-outlined item-icon">group_add</span>
+        <button mat-fab color="primary" class="add-group-round-button" (click)="addGroupClicked(group.name, selectedRole)" [disabled]="!selectedRole">
+          <mat-icon>group_add</mat-icon>
         </button>
-        <!--<span class="material-symbols-outlined item-icon" (click)="addUserClicked(user)">person_add</span>-->
       </div>
-    </div>
+    </mat-list>
 
     <div mat-dialog-actions align="end">
       <button mat-raised-button color="primary" (click)="dialogRef.close()">Cancel</button>

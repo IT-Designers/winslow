@@ -1,14 +1,13 @@
-<label *ngIf="selectedPipeline === null" class="nothing-selected">No pipeline selected</label>
-<mat-tab-group #tabGroup class="fill-height" *ngIf="selectedPipeline != null">
+<mat-tab-group #tabGroup class="fill-height">
 
   <mat-tab label="Diagram View">
     <ng-template matTabContent>
       <div class="flex-grow flex-grow-column max-height">
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
         <app-pipeline-view
-          [pipelineDefinition]="selectedPipeline"
-          [pipelineDefinitionEdit]="selectedPipeline"
-          (onSave)="setPipelineDefinition($event)"
+            [pipelineDefinition]="selectedPipeline"
+            [pipelineDefinitionEdit]="selectedPipeline"
+            (onSave)="setPipelineDefinition($event)"
         ></app-pipeline-view>
       </div>
     </ng-template>
@@ -18,13 +17,15 @@
     <ng-template matTabContent>
       <div class="flex-grow flex-grow-column max-height">
         <app-loading-info [loading]="isLongLoading()"></app-loading-info>
-        <app-pipeline-editor #editor
-                             [pipelineId]="selectedPipeline.id"
-                             [raw]="rawPipelineDefinition"
-                             [error]="rawPipelineDefinitionError"
-                             [success]="rawPipelineDefinitionSuccess"
-                             (check)="checkPipelineDefinition($event)"
-                             (update)="updatePipelineDefinition($event, editor)">
+        <app-pipeline-editor
+            #editor
+            [pipelineId]="selectedPipeline.id"
+            [raw]="rawPipelineDefinition"
+            [error]="rawPipelineDefinitionError"
+            [success]="rawPipelineDefinitionSuccess"
+            (check)="checkPipelineDefinition($event)"
+            (update)="updatePipelineDefinition($event, editor)"
+        >
         </app-pipeline-editor>
       </div>
     </ng-template>
@@ -37,27 +38,31 @@
 
       <div class="stage-control-item">
         <label>Pipeline Name</label>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <input #nameEntered matInput name="name" [value]="selectedPipeline.name">
         </mat-form-field>
-        <button mat-stroked-button
-                [disabled]="(nameEntered.value == selectedPipeline.name)"
-                color="primary"
-                (click)="setName(nameEntered.value)">
+        <button
+            mat-stroked-button
+            [disabled]="(nameEntered.value == selectedPipeline.name)"
+            color="primary"
+            (click)="setName(nameEntered.value)"
+        >
           Update
         </button>
       </div>
 
       <div class="stage-control-item">
         <label>Description</label>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <input #descriptionEntered matInput name="description" [value]="selectedPipeline.description">
         </mat-form-field>
 
-        <button mat-stroked-button
-                color="primary"
-                [disabled]="(descriptionEntered.value == selectedPipeline.description)"
-                (click)="setDescription(descriptionEntered.value)">
+        <button
+            mat-stroked-button
+            color="primary"
+            [disabled]="(descriptionEntered.value == selectedPipeline.description)"
+            (click)="setDescription(descriptionEntered.value)"
+        >
           Update
         </button>
       </div>
@@ -65,10 +70,12 @@
       <h3 [ngStyle]="{'color':'grey', 'margin-left':'20px'}">Group Access</h3>
       <div class="stage-control-item">
         <label>Group Assignment</label>
-        <app-group-assignment [currentlyAssignedGroups]="selectedPipeline.groups"
-                              (groupAssignmentRemovedEmitter)="onGroupRemove($event)"
-                              (groupAddedEmitter)="onGroupAdd($event)"
-                              [ngStyle]="{'width': '80%'}">
+        <app-group-assignment
+            [currentlyAssignedGroups]="selectedPipeline.groups"
+            (groupAssignmentRemovedEmitter)="onGroupRemove($event)"
+            (groupAddedEmitter)="onGroupAdd($event)"
+            [ngStyle]="{'width': '80%'}"
+        >
         </app-group-assignment>
 
       </div>
@@ -79,7 +86,7 @@
           <mat-checkbox [(ngModel)]="selectedPipeline.publicAccess" [style]="{'margin-left':'10em'}">
           </mat-checkbox>
         </div>
-        </div>
+      </div>
 
 
       <div class="whitespace-separator whitespace-separator-top separator-line"></div>
@@ -87,10 +94,12 @@
 
       <div class="stage-control-item whitespace-separator-top"><!--Delete Button-->
         <label>Delete Pipeline</label>
-        <button class="delete-btn"
-                mat-raised-button
-                color="warn"
-                (click)="delete()">
+        <button
+            class="delete-btn"
+            mat-raised-button
+            color="warn"
+            (click)="delete()"
+        >
           Delete Pipeline
         </button>
       </div><!--Delete Button-->

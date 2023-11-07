@@ -1,4 +1,6 @@
-
+:host {
+  margin-top: 1rem;
+}
 
 .stage-control-item {
   display: flex;

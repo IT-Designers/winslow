@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {
   CreateProjectData,
   CreateProjectPipelineOption,
@@ -28,38 +28,36 @@ import {PipelineApiService} from "../api/pipeline-api.service";
 })
 export class ProjectsComponent implements OnInit, OnDestroy {
 
-  @ViewChildren(ProjectViewComponent) views!: QueryList<ProjectViewComponent>;
-
   projects: ProjectInfo[] = [];
-  projectsFiltered: ProjectInfo[] = null;
+  projectsFiltered: ProjectInfo[] = [];
   projectsGroups: ProjectGroup[] = [];
-  stateInfo: Map<string, StateInfo> = null;
-  selectedProject: ProjectInfo = null;
-  selectedProjectId: string = null;
+  stateInfo: Map<string, StateInfo> = new Map<string, StateInfo>();
+  selectedProject: ProjectInfo | null = null;
+  selectedProjectId: string | null = null;
 
-  paramsSubscription: Subscription = null;
-  projectSubscription: Subscription = null;
-  projectStateSubscription: Subscription = null;
-  effects: Effects = null;
-  groupsOnTop: boolean;
-  GROUPS_ON_TOP_SETTING = 'GROUPS_ON_TOP';
-  context: string;
-  SELECTED_CONTEXT = 'SELECTED_CONTEXT';
+  paramsSubscription?: Subscription;
+  projectSubscription?: Subscription;
+  projectStateSubscription?: Subscription;
+  effects: Effects | null = null;
+  groupsOnTop: boolean | null;
+  context: string | null;
 
 
-  constructor(readonly projectApi: ProjectApiService,
-              readonly pipelineApi: PipelineApiService,
-              readonly users: UserApiService,
-              private createDialog: MatDialog,
-              private dialog: DialogService,
-              public route: ActivatedRoute,
-              public router: Router,
-              private localStorageService: LocalStorageService) {
+  constructor(
+    readonly projectApi: ProjectApiService,
+    readonly pipelineApi: PipelineApiService,
+    readonly users: UserApiService,
+    private createDialog: MatDialog,
+    private dialog: DialogService,
+    public route: ActivatedRoute,
+    public router: Router,
+    private localStorageService: LocalStorageService
+  ) {
+    this.groupsOnTop = this.localStorageService.getGroupsOnTop();
+    this.context = this.localStorageService.getSelectedContext();
   }
 
   ngOnInit() {
-    this.groupsOnTop = this.localStorageService.getSettings(this.GROUPS_ON_TOP_SETTING);
-    this.context = this.localStorageService.getSettings(this.SELECTED_CONTEXT);
     this.createEffects();
 
     this.projectSubscription = this.createProjectSubscription();
@@ -107,7 +105,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   private createProjectStateSubscription() {
     return this.projectApi.getProjectStateSubscriptionHandler().subscribe((id, value) => {
-      const stateInfo = this.stateInfo == null ? new Map() : new Map(this.stateInfo);
+      const stateInfo = new Map(this.stateInfo);
       if (stateInfo.has(id) && value == null) {
         stateInfo.delete(id);
       } else {
@@ -132,18 +130,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.paramsSubscription) {
-      this.paramsSubscription.unsubscribe();
-      this.paramsSubscription = null;
-    }
-    if (this.projectSubscription) {
-      this.projectSubscription.unsubscribe();
-      this.projectSubscription = null;
-    }
-    if (this.projectStateSubscription) {
-      this.projectStateSubscription.unsubscribe();
-      this.projectStateSubscription = null;
-    }
+    this.paramsSubscription?.unsubscribe();
+    this.projectSubscription?.unsubscribe();
+    this.projectStateSubscription?.unsubscribe();
   }
 
   openCreateProjectDialog() {
@@ -152,7 +141,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         data: {
           pipelineOption: CreateProjectPipelineOption.UseShared,
           tags: [],
-        } as CreateProjectData
+        }
       })
       .afterClosed()
       .subscribe((result: CreateProjectData) => {
@@ -217,7 +206,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
   }
 
-  openGroupActions(name: string) {
+  openGroupActions() : void{
+    const name = this.context;
     this.createDialog
       .open(GroupActionsComponent, {
         data: {tag: name}
@@ -233,8 +223,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
 
 class Effects {
-  audio: HTMLAudioElement;
-  prev: StateInfo;
+  audio?: HTMLAudioElement;
+  prev?: StateInfo;
   username = '';
 
 

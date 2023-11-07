@@ -17,7 +17,7 @@
       <app-checkable-number-input
         name="Limit CPU"
         unit="Cores"
-        [value]="limitServer?.cpu"
+        [value]="limitServer.cpu"
         [minValue]="1"
         (valueChange)="cpuLimitChanged($event)"
       ></app-checkable-number-input>
@@ -28,7 +28,7 @@
       <app-checkable-number-input
         name="Limit MEM"
         unit="Megabytes"
-        [value]="limitServer?.mem"
+        [value]="limitServer.mem"
         [minValue]="100"
         (valueChange)="memLimitChanged($event)"
       ></app-checkable-number-input>
@@ -39,7 +39,7 @@
       <app-checkable-number-input
         name="Limit GPU"
         unit="Cards"
-        [value]="limitServer?.gpu"
+        [value]="limitServer.gpu"
         [minValue]="1"
         (valueChange)="gpuLimitChanged($event)"
       ></app-checkable-number-input>

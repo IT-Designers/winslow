@@ -14,9 +14,6 @@
   <pre *ngSwitchCase="State.Success" class="check check-success">{{this.successV}}</pre>
 </ng-container>
 <div class="controls">
-  <button *ngIf="enableOnOthers" mat-stroked-button color="warn" (click)="others.emit(rawV)">
-    Set on other Projects
-  </button>
   <button mat-stroked-button color="primary" (click)="save(rawV)">Save</button>
-  <button mat-stroked-button color="primary" (click)="check.emit(rawV); this.layout()">Check</button>
+  <button mat-stroked-button color="primary" (click)="check.emit(rawV ?? ''); this.layout()">Check</button>
 </div>

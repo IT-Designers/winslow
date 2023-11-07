@@ -2,10 +2,10 @@ import {Component, OnInit} from '@angular/core';
 import {PipelineApiService} from '../api/pipeline-api.service';
 import {NotificationService} from '../notification.service';
 import {LongLoadingDetector} from '../long-loading-detector';
-import {MatDialog, MatDialogRef} from '@angular/material/dialog';
-import {CreatePipelineDialogComponent, CreatePipelineResult} from '../pipeline-create-dialog/create-pipeline-dialog.component';
+import {MatDialog} from '@angular/material/dialog';
 import {ParseError, PipelineDefinitionInfo} from '../api/winslow-api';
 import {DialogService} from "../dialog.service";
+import {AddPipelineDialogComponent} from "./add-pipeline-dialog/add-pipeline-dialog.component";
 
 @Component({
   selector: 'app-pipelines',
@@ -13,7 +13,7 @@ import {DialogService} from "../dialog.service";
   styleUrls: ['./pipelines.component.css']
 })
 export class PipelinesComponent implements OnInit {
-  pipelines: PipelineDefinitionInfo[] = null;
+  pipelines: PipelineDefinitionInfo[] = [];
   loadError = null;
 
   raw: Map<string, string> = new Map();
@@ -23,7 +23,7 @@ export class PipelinesComponent implements OnInit {
 
   longLoading = new LongLoadingDetector();
 
-  selectedPipeline: PipelineDefinitionInfo = null;
+  selectedPipeline: PipelineDefinitionInfo | null = null;
 
 
   constructor(
@@ -43,7 +43,7 @@ export class PipelinesComponent implements OnInit {
       .catch(error => this.loadError = error);
   }
 
-  loadRaw(pipeline: string) {
+  loadRaw(pipeline: string): Promise<void> {
     return this.api
       .getRawPipelineDefinition(pipeline)
       .then(raw => {
@@ -74,34 +74,36 @@ export class PipelinesComponent implements OnInit {
       .finally(() => this.longLoading.decrease());
   }
 
-  update(pipeline: string, value: string) {
+  onPipelineClicked(pipeline: PipelineDefinitionInfo): void {
+    this.selectedPipeline = pipeline;
+  }
+
+  update(pipelineId: string, value: string) {
     this.longLoading.increase();
     this.api
-      .updatePipelineDefinition(pipeline, value)
+      .updatePipelineDefinition(pipelineId, value)
       .then(result => {
-        this.success.delete(pipeline);
-        this.error.delete(pipeline);
-        this.parseError.set(pipeline, []);
+        this.success.delete(pipelineId);
+        this.error.delete(pipelineId);
+        this.parseError.set(pipelineId, []);
 
         if (result != null) {
           if (typeof result === typeof '') {
-            this.error.set(pipeline, result as string);
+            this.error.set(pipelineId, result as string);
           } else {
-            this.error.set(pipeline, 'There is at least one error!');
-            this.parseError.set(pipeline, [result as ParseError]);
+            this.error.set(pipelineId, 'There is at least one error!');
+            this.parseError.set(pipelineId, [result as ParseError]);
           }
         } else {
-          this.success.set(pipeline, 'Saved!');
+          this.success.set(pipelineId, 'Saved!');
           return this.api
-            .getPipelineDefinition(pipeline)
-            .then(def => {
-              for (const pipe of this.pipelines) {
-                if (pipeline === pipe.id) {
-                  // migrate values without replacing the object to avoid the list of pipelines to be rebuilt
-                  Object.keys(def).forEach(key => pipe[key] = def[key]);
-                  this.raw.set(pipeline, value);
-                  break;
-                }
+            .getPipelineDefinition(pipelineId)
+            .then(source => {
+              const target = this.pipelines.find(def => def.id == pipelineId)
+              if (target != undefined) {
+                // migrate values without replacing the object to avoid the list of pipelines to be rebuilt
+                copyProperties(source, target);
+                this.raw.set(pipelineId, value);
               }
             });
         }
@@ -110,52 +112,42 @@ export class PipelinesComponent implements OnInit {
       .finally(() => this.longLoading.decrease());
   }
 
-  onPipelineClicked(pipeline) {
-    this.selectedPipeline = pipeline;
-  }
-  onAddPipeline(name) {
-    if (name) {
-      return this.dialog.openLoadingIndicator(this.api.createPipelineDefinition(name)
-        .then((newPipeline) => {
-          this.pipelines.push(newPipeline);
-          this.pipelines = this.pipelines.concat([]);
-          this.selectedPipeline = newPipeline;
-        }),
-        'Creating Pipeline');
-    }
-  }
-
-  onDeletePipeline(event) {
-    this.dialog.openAreYouSure(`Pipeline being deleted ${this.selectedPipeline.name}`,
-      () => this.api.deletePipeline(this.selectedPipeline.id)
-        .then(() => {
-          let delIndex = this.pipelines.findIndex((tempPipeline) => tempPipeline.id === this.selectedPipeline.id);
-          this.pipelines.splice(delIndex, 1);
-          this.pipelines = this.pipelines.concat([]);
-          this.selectedPipeline = null;
-        }
-        ));
-  }
-
-  openCreatePipelineDialog() {
-    const dialog: MatDialogRef<CreatePipelineDialogComponent, CreatePipelineResult> = this.createDialog.open(CreatePipelineDialogComponent, {});
-    dialog
+  openCreatePipelineDialog(): void {
+    this.createDialog.open(AddPipelineDialogComponent, {
+      data: {} as string
+    })
       .afterClosed()
-      .subscribe(result => {
-        if (result) {
-          this.longLoading.increase();
-          return this.api
-            .createPipelineDefinition(result.name)
-            .then(info => {
-              if (info) {
-                return this.loadRaw(info.id)
-                  .then(loaded => this.pipelines.push(info));
-              } else {
-                this.notification.error('Request failed');
-              }
-            })
-            .finally(() => this.longLoading.decrease());
-        }
+      .subscribe((name) => {
+        this.dialog.openLoadingIndicator(this.api.createPipelineDefinition(name)
+            .then((newPipeline) => {
+              this.pipelines.push(newPipeline);
+              this.pipelines = this.pipelines.concat([]);
+              this.selectedPipeline = newPipeline;
+            }),
+          'Creating Pipeline');
       });
+  }
+
+  onDeletePipeline(pipeline: PipelineDefinitionInfo) {
+    this.dialog.openAreYouSure(
+      `Pipeline being deleted ${pipeline.name}`,
+      () => this.api.deletePipeline(pipeline.id)
+        .then(() => {
+            let delIndex = this.pipelines.findIndex(tempPipeline => tempPipeline.id === pipeline.id);
+            this.pipelines.splice(delIndex, 1);
+            this.pipelines = this.pipelines.concat([]);
+            this.selectedPipeline = null;
+          }
+        )
+    );
+  }
+
+}
+
+function copyProperties<T extends object>(source: T, target: T): void {
+  for (const key in source) {
+    if (source.hasOwnProperty(key)) {
+      target[key] = source[key];
+    }
   }
 }

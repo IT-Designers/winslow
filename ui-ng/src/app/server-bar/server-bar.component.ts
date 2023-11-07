@@ -1,5 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {NodeInfoExt, NodesApiService} from '../api/nodes-api.service';
+import {NodeInfoExt} from '../api/nodes-api.service';
+import {EChartsOption} from "echarts";
 
 @Component({
   selector: 'app-server-bar',
@@ -11,15 +12,15 @@ export class ServerBarComponent implements OnInit {
 
   static readonly MAX_ENTRIES = 120;
 
-  @Input('node') node: NodeInfoExt;
+  @Input('node') node!: NodeInfoExt;
 
-  constructor(private nodes: NodesApiService) {
+  constructor() {
   }
 
   runningJobs = '';
 
-  mergeOptionCpu = {};
-  chartOptionCpu = {
+  mergeOptionCpu: EChartsOption = {};
+  chartOptionCpu: EChartsOption = {
 
     series: [
       {
@@ -78,8 +79,8 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  mergeOptionMemory = {};
-  chartOptionMemory = {
+  mergeOptionMemory: EChartsOption = {};
+  chartOptionMemory: EChartsOption = {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -112,7 +113,7 @@ export class ServerBarComponent implements OnInit {
         },
         itemStyle: {
           color: '#007aff',
-          barBorderRadius: [3, 0, 0, 3]
+          borderRadius: [3, 0, 0, 3]
         },
         data: [],
       },
@@ -137,7 +138,7 @@ export class ServerBarComponent implements OnInit {
         },
         itemStyle: {
           color: '#003876',
-          barBorderRadius: [0, 3, 3, 0]
+          borderRadius: [0, 3, 3, 0]
         },
         data: [],
       },
@@ -145,8 +146,8 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  mergeOptionNetwork = {};
-  chartOptionNetwork = {
+  mergeOptionNetwork: EChartsOption = {};
+  chartOptionNetwork: EChartsOption = {
     grid: {
       top: '5%',
       bottom: '5%'
@@ -193,8 +194,8 @@ export class ServerBarComponent implements OnInit {
   };
 
 
-  mergeOptionDisk = {};
-  chartOptionDisk = {
+  mergeOptionDisk: EChartsOption = {};
+  chartOptionDisk: EChartsOption = {
     grid: {
       top: '5%',
       bottom: '5%'
@@ -240,8 +241,8 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  mergeOptionGpu = {};
-  chartOptionGpu = {
+  mergeOptionGpu: EChartsOption = {};
+  chartOptionGpu: EChartsOption = {
     series: [
       {
         name: 'GPU',
@@ -298,7 +299,9 @@ export class ServerBarComponent implements OnInit {
     ],
   };
 
-  average = (arr) => arr.reduce((p, c) => p + c, 0) / arr.length;
+  average(arr: number[]): number {
+    return arr.reduce((p, c) => p + c, 0) / arr.length;
+  }
 
   ngOnInit() {
 
@@ -424,7 +427,7 @@ export class ServerBarComponent implements OnInit {
   }
 
   private updateGpuStatus() {
-    let gpus: any[] = [];
+    let gpus: number[] = [];
 
     for (const gpu of this.node.gpuInfo) {
       gpus.push(gpu.computeUtilization);

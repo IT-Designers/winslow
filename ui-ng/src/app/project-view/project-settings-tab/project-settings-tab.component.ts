@@ -24,31 +24,27 @@ export class ProjectSettingsTabComponent {
   @Output() projectDeleted = new EventEmitter<string>();
 
   @Input() set project(projectInfo: ProjectInfo) {
-    if (projectInfo == null) {
-      return;
-    }
-
     this._project = projectInfo;
 
-    this.projectApi.getDeletionPolicy(this.project.id)
+    this.projectApi.getDeletionPolicy(projectInfo.id)
       .then(policy => {
         this.deletionPolicyLocal = policy;
         this.deletionPolicyRemote = policy;
       });
 
-    this.projectApi.getAuthTokens(this.project.id)
+    this.projectApi.getAuthTokens(projectInfo.id)
       .then(tokens => {
         this.authTokens = tokens;
       });
 
 
-    this.projectApi.getWorkspaceConfigurationMode(this.project.id)
+    this.projectApi.getWorkspaceConfigurationMode(projectInfo.id)
       .then(mode => {
         this.workspaceMode = mode;
       });
 
 
-    this.projectApi.getResourceLimitation(this.project.id)
+    this.projectApi.getResourceLimitation(projectInfo.id)
       .then(limit => {
         this.resourceLimit = limit;
       });
@@ -62,7 +58,7 @@ export class ProjectSettingsTabComponent {
       })
 
     this.groupApi.getGroups()
-      .then(userGroups => this.project.groups.forEach(projectGroup => {
+      .then(userGroups => projectInfo.groups.forEach(projectGroup => {
         if (projectGroup.role !== 'OWNER' && userGroups.some(userGroup => userGroup.name == projectGroup.name)) {
           this.userCanEditProject = true;
         }
@@ -70,7 +66,7 @@ export class ProjectSettingsTabComponent {
 
     this.pipelineApi.getPipelineDefinitions()
       .then(usablePipelines => this.pipelines = usablePipelines.filter(
-        pipeline => pipeline.belongsToProject == null || pipeline.belongsToProject == this.project.id)
+        pipeline => pipeline.belongsToProject == null || pipeline.belongsToProject == projectInfo.id)
       )
   };
 
@@ -78,7 +74,7 @@ export class ProjectSettingsTabComponent {
     return this._project;
   }
 
-  private _project: ProjectInfo | null = null;
+  private _project!: ProjectInfo;
 
   userCanEditProject: boolean = false;
   cachedTags: string[] = [];
@@ -87,7 +83,7 @@ export class ProjectSettingsTabComponent {
   authTokens: AuthTokenInfo[] = [];
   deletionPolicyLocal: DeletionPolicy | null = null;
   deletionPolicyRemote: DeletionPolicy | null = null;
-  resourceLimit: ResourceLimitation | null = null;
+  resourceLimit?: ResourceLimitation;
   workspaceMode: WorkspaceMode | null = null;
 
   constructor(
@@ -142,9 +138,13 @@ export class ProjectSettingsTabComponent {
       this.projectApi.createAuthToken(this.project.id, name)
         .then(authTokenInfo => {
           this.authTokens.push(authTokenInfo);
+          const secret = authTokenInfo.secret;
+          if (secret == undefined) {
+            throw new Error("Failed to retrieve token secret.");
+          }
           // weird
           setTimeout(
-            () => this.dialog.info(authTokenInfo.secret, 'The secret value is'),
+            () => this.dialog.info(secret, 'The secret value is'),
             100
           );
         }),
@@ -180,10 +180,11 @@ export class ProjectSettingsTabComponent {
   updateDeletionPolicy(set: boolean, limitStr: string, keep: boolean, always: boolean): void {
     let promise: Promise<void>;
     if (set) {
-      const policy = new DeletionPolicy();
-      policy.numberOfWorkspacesOfSucceededStagesToKeep = Number(limitStr) > 0 ? Number(limitStr) : null;
-      policy.keepWorkspaceOfFailedStage = keep;
-      policy.alwaysKeepMostRecentWorkspace = always;
+      const policy =  new DeletionPolicy({
+        numberOfWorkspacesOfSucceededStagesToKeep: Number(limitStr) > 0 ? Number(limitStr) : undefined,
+        keepWorkspaceOfFailedStage: keep,
+        alwaysKeepMostRecentWorkspace: always,
+      });
       promise = this.projectApi.updateDeletionPolicy(this.project.id, policy)
         .then(result => {
           this.deletionPolicyLocal = result;

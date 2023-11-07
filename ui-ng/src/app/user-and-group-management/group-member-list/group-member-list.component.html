@@ -1,9 +1,7 @@
-<link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0"/>
 <div class="list-and-label-container">
   <label for="list-content" class="list-label">Members:</label>
   <div class="list-content" id="list-content">
-    <mat-form-field class="mat-input-container">
+    <mat-form-field class="mat-input-container" appearance="outline">
       <mat-label>Search...</mat-label>
       <input matInput
              type="text"
@@ -25,10 +23,10 @@
           <mat-select class="role-select"
                       [(value)]="user.role"
                       (selectionChange)="roleChanged(user)"
-                      matTooltipShowDelay="500"
+                      [matTooltipShowDelay]="500"
                       [matTooltip]="getTooltipSelect(user)"
                       [disabled]="user == disabledUser || !amIOwner()">
-            <mat-option *ngFor="let role of allRoles" value="{{role}}">
+            <mat-option *ngFor="let role of allRoles" [value]="role">
               {{role}}
             </mat-option>
           </mat-select>
@@ -36,10 +34,10 @@
         <div class="btn-container">
           <button class="remove-member-button"
                   (click)="onRemoveItemClick(user)"
-                  matTooltipShowDelay="500"
+                  [matTooltipShowDelay]="500"
                   [matTooltip]="getTooltipRemove(user)"
                   [disabled]="user == disabledUser || !amIOwner()">
-            <span class="material-symbols-outlined item-icon">person_remove</span>
+            <mat-icon>person_remove</mat-icon>
           </button>
         </div>
       </div>

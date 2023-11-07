@@ -1,4 +1,4 @@
-<div *ngIf="this.node != null">
+<div *ngIf="this.node != undefined">
   <div class="selected-server-header">
     {{ this.node.name }}
   </div>
@@ -6,8 +6,10 @@
   <div class="selected-server-body">
 
     <div *ngIf="this.historyEnabled" class="history">
-      <mat-button-toggle-group #group="matButtonToggleGroup" [value]="historyButtonValue" (change)="onHistoryButtonValueChange(group.value)">
-        <mat-button-toggle value="live" (click)="setNode(this.selectedNodeIndex)">Live</mat-button-toggle>
+      <mat-button-toggle-group
+          #group="matButtonToggleGroup" [value]="historyButtonValue" (change)="onHistoryButtonValueChange(group.value)"
+      >
+        <mat-button-toggle value="live" (click)="setNode(this.selectedNodeIndex ?? 0)">Live</mat-button-toggle>
         <mat-button-toggle value="last6h" (click)="getHistory(6)">last 6 hours</mat-button-toggle>
         <mat-button-toggle value="last24h" (click)="getHistory(24)">last 24 hours</mat-button-toggle>
         <mat-button-toggle value="last7d" (click)="getHistory(24 * 7)">last 7 days</mat-button-toggle>
@@ -15,7 +17,7 @@
       </mat-button-toggle-group>
     </div>
 
-    <mat-grid-list cols="4" rowHeight="50px" gutterSize="0px">
+    <mat-grid-list [cols]="4" rowHeight="50px" gutterSize="0px">
       <mat-grid-tile>
         <div class="text-inside-grid">CPU</div>
         <div *ngIf="cpuUsage < 30" class="cpu-status-green">{{ cpuUsage }}%</div>
@@ -33,9 +35,9 @@
       </mat-grid-tile>
     </mat-grid-list>
 
-    <mat-grid-list cols="4" rowHeight="200px" gutterSize="0px">
+    <mat-grid-list [cols]="4" rowHeight="200px" gutterSize="0px">
       <mat-grid-tile>
-          <div echarts [options]="chartOptionCpu" class="chart" [merge]="mergeOptionCpu"></div>
+        <div echarts [options]="chartOptionCpu" class="chart" [merge]="mergeOptionCpu"></div>
       </mat-grid-tile>
       <mat-grid-tile>
         <div echarts [options]="chartOptionMemory" class="chart" [merge]="mergeOptionMemory"></div>
@@ -50,16 +52,18 @@
 
 
     <div *ngIf="this.node.gpuInfo.length > 0">
-      <mat-grid-list cols="4" rowHeight="50px" gutterSize="0px">
+      <mat-grid-list [cols]="4" rowHeight="50px" gutterSize="0px">
         <mat-grid-tile>
           <div class="text-inside-grid">GPU</div>
         </mat-grid-tile>
       </mat-grid-list>
 
-      <mat-grid-list cols="4" rowHeight="200px" gutterSize="0px">
-        <mat-grid-tile *ngFor="let node of nodes[this.selectedNodeIndex]?.gpuInfo; index as i; trackBy:trackGpu">
-            <div echarts [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu[i]"></div>
+      <mat-grid-list [cols]="4" rowHeight="200px" gutterSize="0px">
+        <!-- todo
+        <mat-grid-tile *ngFor="let node of nodes[selectedNodeIndex]; index as i; trackBy:trackGpu">
+          <div echarts [options]="chartOptionGpu" class="chart" [merge]="mergeOptionGpu[i]"></div>
         </mat-grid-tile>
+        -->
       </mat-grid-list>
       <div class="center" [ngStyle]="{'font-size': 12 + 'px', 'font-weight': 'normal'}">
         <svg width="10" height="10">
@@ -76,10 +80,10 @@
 
 
   <div class="selected-server-footer">
-    <mat-grid-list cols="10" rowHeight="90px" gutterSize="0px">
-      <mat-grid-tile colspan='5'>
+    <mat-grid-list [cols]="10" rowHeight="90px" gutterSize="0px">
+      <mat-grid-tile [colspan]='5'>
         <div class="intMatGrid">
-          <mat-grid-list cols="1" rowHeight="30px">
+          <mat-grid-list [cols]="1" rowHeight="30px">
             <mat-grid-tile>
               <div class="text-inside-grid-first">CPU:</div>
               <div class="text-inside-grid-second">{{ this.node.cpuInfo.modelName }}</div>
@@ -95,19 +99,23 @@
           </mat-grid-list>
         </div>
       </mat-grid-tile>
-      <mat-grid-tile colspan='5'>
+      <mat-grid-tile [colspan]='5'>
         <div class="intMatGrid">
-          <mat-grid-list cols="1" rowHeight="30px">
+          <mat-grid-list [cols]="1" rowHeight="30px">
             <mat-grid-tile>
               <div *ngIf="node?.uptime" class="text-inside-grid-first">Uptime:</div>
-              <div *ngIf="node?.uptime" class="text-inside-grid-second">{{ uptimeToDateTime(this.node.time, this.node?.uptime) }}</div>
+              <div
+                  *ngIf="node?.uptime" class="text-inside-grid-second"
+              >{{ uptimeToDateTime(this.node.time, this.node.uptime) }}</div>
             </mat-grid-tile>
             <mat-grid-tile>
-              <div *ngIf="node.buildInfo" class="text-inside-grid-other">{{ this.node.buildInfo.commitHashShort }}</div>
-              </mat-grid-tile>
+              <div
+                  *ngIf="node?.buildInfo" class="text-inside-grid-other"
+              >{{ this.node.buildInfo.commitHashShort }}</div>
+            </mat-grid-tile>
             <mat-grid-tile>
-              <div *ngIf="node.buildInfo" class="text-inside-grid-other">{{ this.node.buildInfo.date }}</div>
-              </mat-grid-tile>
+              <div *ngIf="node?.buildInfo" class="text-inside-grid-other">{{ this.node.buildInfo.date }}</div>
+            </mat-grid-tile>
           </mat-grid-list>
         </div>
       </mat-grid-tile>
@@ -117,9 +125,12 @@
   <div class="selected-server-groups">
     <label class="attribute-label">Server Administration: </label>
     <div class="attribute-value-container">
-      <app-server-groups-list [assignedGroups]="mockGroups"
-                              [node]="node"
-                              [ngStyle]="{'width':'100%'}">
+      <app-server-groups-list
+          *ngIf="node"
+          [assignedGroups]="mockGroups"
+          [node]="node"
+          [ngStyle]="{'width':'100%'}"
+      >
       </app-server-groups-list>
     </div>
   </div>

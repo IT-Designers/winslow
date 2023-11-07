@@ -7,8 +7,8 @@ import {
   ProjectDiskUsageDialogData
 } from '../../project-disk-usage-dialog/project-disk-usage-dialog.component';
 import {Subscription} from 'rxjs';
-import {Action, ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../../api/winslow-api';
-
+import {ExecutionGroupInfo, ProjectInfo, StageInfo, State, StatsInfo} from '../../api/winslow-api';
+import {EChartsOption} from "echarts";
 
 @Component({
   selector: 'app-project-overview-tab',
@@ -21,52 +21,52 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   private static readonly UPDATE_INTERVAL = 1_000;
   private static readonly GRAPH_ENTRIES = 180;
 
-  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo?]>();
+  @Output() clickUseAsBlueprint = new EventEmitter<[ExecutionGroupInfo, StageInfo | undefined]>();
   @Output() clickDeleteEnqueued = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickResumeSingle = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
   @Output() clickPause = new EventEmitter<ExecutionGroupInfo>();
 
-  nodeName: string;
+  nodeName?: string;
 
   schemeCpu = {domain: ['#DD4444']};
   schemeMemory = {domain: ['#44DD44']};
 
-  stateValue: State = null;
-  stateFinished: boolean;
-  stateRunning: boolean;
-  statePaused: boolean;
+  stateValue?: State;
+  stateFinished?: boolean;
+  stateRunning?: boolean;
+  statePaused?: boolean;
 
   lastSuccessfulStatsUpdate = 0;
   seriesInitialized = false;
 
-  mostRecent: ExecutionGroupInfo = null;
-  projectValue: ProjectInfo;
+  mostRecent?: ExecutionGroupInfo;
+  projectValue!: ProjectInfo;
   memory: any[] = [];
   memoryMax = 1;
   cpu: any[] = [];
   cpuMax = 100;
   cpuLimit = 0;
-  subscription: Subscription = null;
+  subscription?: Subscription;
 
   enqueued: ExecutionGroupInfo[] = [];
 
-  mergeOptionCpu = {};
-  chartOptionCpu = {
+  mergeOptionCpu: EChartsOption = {};
+  chartOptionCpu: EChartsOption = {
     tooltip: {
       position: 'top',
       confine: true,
       trigger: 'axis',
       axisPointer: {
-          type: 'shadow'
+        type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         params = params[0];
         let date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
         return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
-               date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
-               params.seriesName + ": " + params.value[1] + " Mhz";
+          date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
+          params.seriesName + ": " + params.value[1] + " Mhz";
       },
     },
     calculable: false,
@@ -84,12 +84,13 @@ export class ProjectOverviewTabComponent implements OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: (value) => {
+          formatter: (value: number) => {
             const date = new Date(value);
             if (date.getSeconds() === 0) {
               let zero = (date.getMinutes() < 10 ? ":0" : ":")
               return date.getHours() + zero + date.getMinutes();
             }
+            return "Something went wrong."
           }
         }
       },
@@ -99,12 +100,12 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       axisLabel: {
         formatter: "{value} Mhz",
       },
-      scale : true,
-      max : 4000,
-      min : 0,
+      scale: true,
+      max: 4000,
+      min: 0,
       name: "Mhz",
 
-      splitNumber : 5,
+      splitNumber: 5,
       splitLine: {
         show: true,
       },
@@ -112,22 +113,22 @@ export class ProjectOverviewTabComponent implements OnDestroy {
     series: [],
   };
 
-  mergeOptionMemory = {};
-  chartOptionMemory = {
+  mergeOptionMemory: EChartsOption = {};
+  chartOptionMemory: EChartsOption = {
     tooltip: {
       position: 'top',
       confine: true,
       trigger: 'axis',
       axisPointer: {
-          type: 'shadow'
+        type: 'shadow'
       },
-      formatter: (params) => {
+      formatter: (params: any) => {
         params = params[0];
         let date = new Date(params.name);
         let zero = (date.getMinutes() < 10 ? "0" : "")
         return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' +
-               date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
-               params.seriesName + ": " + params.value[1] + " GiB";
+          date.getHours() + ":" + zero + date.getMinutes() + "<br>" +
+          params.seriesName + ": " + params.value[1] + " GiB";
       },
     },
     calculable: false,
@@ -145,12 +146,13 @@ export class ProjectOverviewTabComponent implements OnDestroy {
         },
         show: true,
         axisLabel: {
-          formatter: (value) => {
+          formatter: (value: any) => {
             const date = new Date(value);
             if (date.getSeconds() === 0) {
               let zero = (date.getMinutes() < 10 ? ":0" : ":")
               return date.getHours() + zero + date.getMinutes();
             }
+            return "Something went wrong."
           }
         }
       },
@@ -158,14 +160,14 @@ export class ProjectOverviewTabComponent implements OnDestroy {
     yAxis: {
       type: "value",
       axisLabel: {
-        formatter: function (value, index) {
+        formatter: function (value: any, _index: any) {
           return value.toFixed(0) + ' GiB';
         }
       },
-      scale : true,
-      max : 8,
-      min : 0,
-      splitNumber : 5,
+      scale: true,
+      max: 8,
+      min: 0,
+      splitNumber: 5,
       splitLine: {
         show: true,
       },
@@ -207,7 +209,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
 
   @Input()
   set history(history: ExecutionGroupInfo[]) {
-    this.mostRecent = null;
+    this.mostRecent = undefined;
     this.enqueued = [];
     if (history && history.length > 0) {
       this.mostRecent = history[0];
@@ -222,7 +224,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   }
 
   @Input()
-  set state(state: State) {
+  set state(state: State | undefined) {
     this.stateValue = state;
     this.stateFinished = state === 'FAILED' || state === 'SUCCEEDED';
     this.stateRunning = state === 'RUNNING';
@@ -240,7 +242,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       const date = new Date(now.getTime() - (i * ProjectOverviewTabComponent.UPDATE_INTERVAL));
       zeroes.push({
         name: date.toString(),
-        value:[date, 0]
+        value: [date, 0]
       });
     }
 
@@ -284,25 +286,23 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       return c;
     });
 
-    if(stats.cpuMaximum != 0) {
+    if (stats.cpuMaximum != 0) {
       this.cpuLimit = stats.cpuMaximum;
     }
 
     this.mergeOptionCpu = {
       yAxis: {
-        max : this.cpuMax
+        max: this.cpuMax
       },
       series: [
         {
           name: "CPU",
           type: "line",
-          hoverAnimation: false,
           showSymbol: false,
           color: "#5ac8fa",
-          itemStyle: { normal: { areaStyle: { type: "default" } } },
           data: this.cpu[0].series,
           markLine: {
-            data: [{ yAxis: this.cpuLimit}],
+            data: [{yAxis: this.cpuLimit}],
             symbol: "none",
           }
         },
@@ -326,16 +326,14 @@ export class ProjectOverviewTabComponent implements OnDestroy {
 
     this.mergeOptionMemory = {
       yAxis: {
-        max : this.memoryMax
+        max: this.memoryMax
       },
       series: [
         {
           name: "Memory",
           type: "line",
-          hoverAnimation: false,
           showSymbol: false,
           color: "#5ac8fa",
-          itemStyle: { normal: { areaStyle: { type: "default" } } },
           data: this.memory[0].series,
         },
       ],
@@ -351,7 +349,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       this.dialog.openLoadingIndicator(
         this.api
           .pause(this.projectValue.id)
-          .then(r => this.statePaused = true),
+          .then(_r => this.statePaused = true),
         `Pausing pipeline...`
       );
     }
@@ -362,7 +360,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
       this.dialog.openLoadingIndicator(
         this.api
           .resume(this.projectValue.id)
-          .then(r => this.statePaused = false),
+          .then(_r => this.statePaused = false),
         `Resuming pipeline...`
       );
     }
@@ -376,6 +374,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
         } as ProjectDiskUsageDialogData
       });
   }
+
   private subscribe() {
     this.unsubscribe();
     this.subscription = this.api.watchProjectStats(this.projectValue.id, stats => {
@@ -384,9 +383,6 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   }
 
   private unsubscribe() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-      this.subscription = null;
-    }
+    this.subscription?.unsubscribe();
   }
 }

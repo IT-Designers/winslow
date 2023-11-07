@@ -1,3 +1,14 @@
+.main-container {
+  overflow: auto;
+  @media(prefers-color-scheme: dark) {
+    color: white;
+  }
+  min-height: max-content;
+  max-height: 75vh;
+  padding: 1rem;
+}
+
+
 button {
   margin-right: 1em;
 }

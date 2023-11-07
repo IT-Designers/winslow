@@ -1,27 +1,74 @@
+<!--
+<form>
+  <mat-form-field appearance="outline" class="chip-list">
+    <mat-chip-grid #chipGrid aria-label="Tag selection">
+      <mat-chip-row *ngFor="let tag of selectedTags"
+                    [removable]="!readonly && removable"
+                    (removed)="remove(tag)"
+                    (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
+                    (auxclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
+                    (dblclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
+                    [style.background-color]="colorful ? bgColor(tag) : ''"
+      >
+        {{tag}}
+        <button *ngIf="!readonly && removable" matChipRemove [attr.aria-label]="'remove ' + tag">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip-row>
+    </mat-chip-grid>
+    <ng-container *ngIf="!readonly">
+      <input *ngIf="!readonly" placeholder="Search for tag..."
+             [hidden]="readonly"
+             [formControl]="tagsCtrl"
+             [matAutocomplete]="auto"
+             [matChipInputFor]="chipGrid"
+             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+             [matChipInputAddOnBlur]="addOnBlur"
+             (matChipInputTokenEnd)="add($event)"
+      />
+      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="selected($event)">
+        <mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
+          {{tag}}
+        </mat-option>
+      </mat-autocomplete>
+    </ng-container>
+  </mat-form-field>
+
+</form>
+-->
+
+
 <ng-template #template>
   <mat-chip-grid #chipList aria-label="Tag selection">
-    <mat-chip-row *ngFor="let tag of selectedTags"
-              [removable]="!readonly && removable"
-              (removed)="remove(tag)"
-              (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
-              (auxclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
-              (dblclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
-              [style.background-color]="colorful ? bgColor(tag) : ''">
+    <mat-chip-row
+      *ngFor="let tag of selectedTags"
+      [removable]="!readonly && removable"
+      (removed)="remove(tag)"
+      (click)="$event.preventDefault(); tagActionPrimary.emit(tag)"
+      (auxclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
+      (dblclick)="$event.preventDefault(); tagActionSecondary.emit(tag)"
+      [style.background-color]="colorful ? bgColor(tag) : ''"
+    >
       {{tag}}
-      <mat-icon matChipRemove *ngIf="!readonly && removable">cancel</mat-icon>
+      <mat-icon matChipRemove *ngIf="!readonly && removable" [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
     </mat-chip-row>
     <input
+      placeholder="Search tag..."
       [hidden]="readonly"
       [formControl]="tagsCtrl"
       [matAutocomplete]="auto"
       [matChipInputFor]="chipList"
       [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
       [matChipInputAddOnBlur]="addOnBlur"
-      (matChipInputTokenEnd)="add($event)">
+      (matChipInputTokenEnd)="add($event)"
+    >
   </mat-chip-grid>
-  <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
-                    [hidden]="readonly"
-                    (optionSelected)="selected($event)">
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    [autoActiveFirstOption]="true"
+    [hidden]="readonly"
+    (optionSelected)="selected($event)"
+  >
     <mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
       {{tag}}
     </mat-option>
@@ -29,9 +76,9 @@
 </ng-template>
 
 
-<mat-form-field *ngIf="!readonly" style="width: 100%;">
+<mat-form-field *ngIf="!readonly" style="width: 100%;" appearance="outline">
   <ng-container *ngTemplateOutlet="template"></ng-container>
-  <input hidden matInput>
+  <input hidden matInput style="display: none">
 </mat-form-field>
 <ng-container *ngIf="readonly">
   <ng-container *ngTemplateOutlet="template"></ng-container>

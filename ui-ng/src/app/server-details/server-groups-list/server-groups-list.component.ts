@@ -1,13 +1,17 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {AddGroupData, ProjectAddGroupDialogComponent} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
+import {
+  AddGroupData,
+  ProjectAddGroupDialogComponent
+} from '../../project-view/project-add-group-dialog/project-add-group-dialog.component';
 import {ErrorStateMatcher} from '@angular/material/core';
 import {UntypedFormControl, FormGroupDirective, NgForm} from '@angular/forms';
-import {NodeResourceUsageConfiguration} from '../../api/winslow-api';
+import {GroupResourceLimitEntry, NodeResourceUsageConfiguration} from '../../api/winslow-api';
 import {NodeInfoExt, NodesApiService} from '../../api/nodes-api.service';
 import {DialogService} from '../../dialog.service';
 import {UserApiService} from '../../api/user-api.service';
 import {GroupApiService} from '../../api/group-api.service';
+import {MatCheckboxChange} from "@angular/material/checkbox";
 
 export interface AssignedGroupInfo {
   name: string;
@@ -29,11 +33,11 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 })
 export class ServerGroupsListComponent implements OnInit, OnChanges {
 
-  @Input() assignedGroups: AssignedGroupInfo[] = null;
-  @Input() node: NodeInfoExt;
+  @Input() assignedGroups!: AssignedGroupInfo[];
+  @Input() node!: NodeInfoExt;
 
   userIsAdmin = false;
-  userGroups: string[];
+  userGroups?: string[];
   userRole = 'MEMBER';
 
   defaultResourceObject = {
@@ -55,7 +59,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
   matcher = new MyErrorStateMatcher();
 
   groupSearchInput = '';
-  displayGroups: AssignedGroupInfo[] = null;
+  displayGroups?: AssignedGroupInfo[];
   roles = ['OWNER', 'MEMBER'];
 
   isServerFFA = false;
@@ -135,6 +139,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       this.displayGroups = Array.from(searchedMembers);
     }
   }
+
   openAddGroupDialog() {
     this.createDialog
       .open(ProjectAddGroupDialogComponent, {
@@ -149,7 +154,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
           const groupToAdd = {
             name: data.groupName,
             role: data.groupRole,
-            resourceLimitation : {
+            resourceLimitation: {
               cpu: 0,
               mem: 0,
               gpu: 0
@@ -166,7 +171,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       });
   }
 
-  getChipColor(group) {
+  getChipColor(group: GroupResourceLimitEntry) {
     if (group.role === 'OWNER') {
       return '#8ed69b';
     } else {
@@ -174,47 +179,34 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
     }
   }
 
-  getTooltip(group) {
+  getTooltip(group: GroupResourceLimitEntry): string {
     if (group.role === 'OWNER') {
       return 'OWNER';
     } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
+    return ''
   }
 
-
-  cpuHasChanged(event, group) {
-    group.resourceLimitation.cpu = event.value;
-  }
-  cpuHasChangedFFA(event) {
-    this.editableResourceAllocations.globalLimit.cpu = event.value;
-  }
-
-  gpuHasChanged(event, group) {
-    group.resourceLimitation.gpu = event.value;
-  }
-  gpuHasChangedFFA(event) {
-    this.editableResourceAllocations.globalLimit.gpu = event.value;
-  }
-
-  memorySliderHasChanged(event, group) {
-    group.resourceLimitation.mem = event.value;
-  }
-  memorySliderHasChangedFFA(event) {
-    this.editableResourceAllocations.globalLimit.mem = event.value;
-  }
-  memoryInputHasChanged(event) {
-    if (0 <= event.target.value && event.target.value <= this.maxMemory) {
-      this.editableResourceAllocations.globalLimit.mem = event.target.value;
+  memoryInputHasChanged(event: Event) {
+    if (!this.editableResourceAllocations.globalLimit) {
+      console.error("Global limit is not defined!");
+      return;
+    }
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) {
+      return;
+    }
+    const value = Number(target.value);
+    if (0 <= value && value <= this.maxMemory) {
+      this.editableResourceAllocations.globalLimit.mem = value;
     }
   }
-  memoryInputHasChangedFFA(event) {
-    if (0 <= event.target.value && event.target.value <= this.maxMemory) {
-      this.editableResourceAllocations.globalLimit.mem = event.target.value;
-    }
-  }
-  getMemoryString(mem) {
-    if (mem >= 1024) {
+
+  getMemoryString(mem: number | undefined) {
+    if (mem == undefined) {
+      return "???"
+    } else if (mem >= 1024) {
       return (mem / 1024).toFixed(2) + ' GiB';
     } else {
       return mem + ' MiB';
@@ -222,7 +214,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
   }
 
 
-  roleChanged(group) {
+  roleChanged(group: GroupResourceLimitEntry) {
     const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     const groupIndex: number = this.findGroupIndex(updateObject, group);
     updateObject.groupLimits[groupIndex].role = group.role;
@@ -232,7 +224,8 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
         }),
       'Changing groups role');
   }
-  updateGroup(group) {
+
+  updateGroup(group: GroupResourceLimitEntry) {
     const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     const groupIndex: number = this.findGroupIndex(updateObject, group);
     updateObject.groupLimits[groupIndex] = group;
@@ -254,7 +247,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       'Updating Global Resource Limit');
   }
 
-  onRemoveItemClick(group) {
+  onRemoveItemClick(group: GroupResourceLimitEntry) {
 
     const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     const groupIndex = this.findGroupIndex(updateObject, group);
@@ -267,7 +260,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       'Updating Group Resource Allocations');
   }
 
-  findGroupIndex(object: NodeResourceUsageConfiguration, group) {
+  findGroupIndex(object: NodeResourceUsageConfiguration, group: GroupResourceLimitEntry) {
     let groupIndex = 0;
     object.groupLimits.find((g, i) => {
       if (g.name === group.name) {
@@ -277,7 +270,7 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
     return groupIndex;
   }
 
-  ffaHasChanged(event) {
+  ffaHasChanged(event: MatCheckboxChange) {
     const updateObject: NodeResourceUsageConfiguration = JSON.parse(JSON.stringify(this.nodeResourceAllocations));
     updateObject.freeForAll = event.checked;
     return this.dialog.openLoadingIndicator(this.nodeApi.setNodeResourceUsageConfiguration(this.node.name, updateObject)

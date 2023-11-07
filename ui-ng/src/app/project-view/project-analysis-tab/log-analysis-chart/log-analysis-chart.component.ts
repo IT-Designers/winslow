@@ -1,6 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ChartGraph, ChartDisplaySettings, LogChart} from "../log-chart-definition";
 import {Subscription} from "rxjs";
+import {EChartsOption, SeriesOption} from 'echarts'
 
 @Component({
   selector: 'app-log-analysis-chart',
@@ -9,15 +10,19 @@ import {Subscription} from "rxjs";
 })
 export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
-  options: {}
-  subscription: Subscription;
+  options: EChartsOption = {};
+  subscription?: Subscription;
 
-  @Input() chart: LogChart
+  @Input() chart?: LogChart
 
   constructor() {
   }
 
   ngOnInit() {
+    if (this.chart == undefined) {
+      console.error("Cannot display chart: Input is not initialized.");
+      return;
+    }
     this.subscription = this.chart.snapshot$.subscribe({
       next: snapshot => {
         this.settings(snapshot.definition.displaySettings)
@@ -31,7 +36,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   }
 
   settings(settings: ChartDisplaySettings) {
-    const newOptions = {
+    const newOptions: EChartsOption = {
       title: {
         text: settings.name,
       },
@@ -46,7 +51,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
         type: settings.xAxisType,
         min: settings.xAxisMinValue ?? 'dataMin',
         max: settings.xAxisMaxValue ?? 'dataMax',
-        nameLocation: 'center',
+        nameLocation: 'middle',
         nameGap: 25,
       },
       yAxis: {
@@ -54,7 +59,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
         type: settings.yAxisType,
         min: settings.yAxisMinValue ?? 'dataMin',
         max: settings.yAxisMaxValue ?? 'dataMax',
-        nameLocation: 'center',
+        nameLocation: 'middle',
         nameGap: 25,
       },
       tooltip: {
@@ -66,7 +71,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   };
 
   data(graphs: ChartGraph[]) {
-    const series = graphs.map(graph => ({
+    const series: SeriesOption[] = graphs.map(graph => ({
       type: 'line',
       showSymbol: false,
       data: graph.data,
@@ -79,7 +84,8 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     this.updateOptions(newOptions);
   }
 
-  private updateOptions(newOptions) {
+  private updateOptions(newOptions: EChartsOption) {
     this.options = {...this.options, ...newOptions}
   }
 }
+

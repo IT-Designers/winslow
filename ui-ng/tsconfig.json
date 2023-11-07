@@ -8,6 +8,7 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
+    "strict": true,
     "module": "es2020",
     "moduleResolution": "node",
     "importHelpers": true,
@@ -20,14 +21,12 @@
       "dom"
     ],
     "paths": {
-      "echarts": [
-        "node_modules/echarts/dist/echarts.min.js"
-      ]
     },
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
-    "fullTemplateTypeCheck": true,
+    "strictTemplates": true,
+    "fullTemplateCheck": true,
     "strictInjectionParameters": true,
 
     "files": [],

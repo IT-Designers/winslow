@@ -1,44 +1,40 @@
 
 <mat-toolbar color="primary">
-  <mat-toolbar-row style="max-height: 55px;">
+  <mat-toolbar-row>
+
     <a [routerLink]="['']">
       <img
         [class.ws-connected]="connected"
         [class.ws-disconnected]="!connected"
         src="assets/winslow_quadratic.svg" alt="Winslow Icon" style="height: 2.75em; padding: 0; max-height: 100%; vertical-align: bottom; margin-right: 20px;">
     </a>
+
     <div>
-      <a mat-button [routerLink]="['projects']" routerLinkActive="active">
-        <i class="material-icons material-icons-outlined">book</i> Projects
-      </a>
-      <a mat-button [routerLink]="['pipelines']" routerLinkActive="active">
-        <i class="material-icons">low_priority</i> Pipelines
-      </a>
-      <a mat-button [routerLink]="['files']" routerLinkActive="active">
-        <i class="material-icons">folder_open</i> Files
-      </a>
-      <a mat-button [routerLink]="['servers']" routerLinkActive="active">
-        <i class="material-icons">storage</i> Servers
-      </a>
+      <button mat-button class="left-buttons" [routerLink]="['projects']" routerLinkActive="active">
+        <mat-icon>book</mat-icon>
+        Projects
+      </button>
+      <button mat-button class="left-buttons" [routerLink]="['pipelines']" routerLinkActive="active">
+        <mat-icon>low_priority</mat-icon>
+        Pipelines
+      </button>
+      <button mat-button class="left-buttons" [routerLink]="['files']" routerLinkActive="active">
+        <mat-icon>folder_open</mat-icon>
+        Files
+      </button>
+      <button mat-button class="left-buttons" [routerLink]="['servers']" routerLinkActive="active">
+        <mat-icon>storage</mat-icon>
+        Servers
+      </button>
     </div>
 
-    <div class="username-and-settings" style="margin-left: auto">
-      <button mat-icon-button [matMenuTriggerFor]="settingsMenu" style="float: right">
-        <mat-icon>settings</mat-icon>
+    <div class="username-and-settings">
+      <button mat-fab [extended]="true" class="person-pill" color="primary" matTooltip="Personal settings" [matMenuTriggerFor]="settingsMenu">
+        {{myUserName}}
+        <mat-icon iconPositionEnd>person</mat-icon>
       </button>
-      <div class="user-label-and-icon">
-        <div class="username-label">
-          <label>
-            {{myUserName}}
-          </label>
-        </div>
-        <a mat-icon-button [routerLink]="['groups']">
-          <mat-icon style="scale: 1.15">
-            <i class="material-icons">person</i>
-          </mat-icon>
-        </a>
-      </div>
     </div>
+
   </mat-toolbar-row>
 </mat-toolbar>
 

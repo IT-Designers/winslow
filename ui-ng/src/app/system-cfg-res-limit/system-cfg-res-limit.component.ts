@@ -15,7 +15,7 @@ export class SystemCfgResLimitComponent implements OnInit {
 
   longLoadingValue = new LongLoadingDetector();
   longLoadingExternallySet = false;
-  loadError = null;
+  loadError?: Error;
 
   limitServer = createResourceLimitation();
   limitUpdate = createResourceLimitation();

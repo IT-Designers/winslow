@@ -3,9 +3,10 @@
 
   <div class="inputs">
     <!--<label class="error-label">{{errorMessage}}</label>-->
-    <mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Groupname</mat-label>
       <input matInput
-             placeholder="Groupname"
+             placeholder="Winslow-Group"
              id="nameInput"
              [(ngModel)]="nameInput"
              (keyup.enter)="createClicked()"
@@ -14,7 +15,7 @@
 
     <div mat-dialog-actions class="dialog-actions-container">
       <div class="spinner-container">
-        <mat-spinner *ngIf="isLoading" diameter="25" strokeWidth="3"></mat-spinner>
+        <mat-spinner *ngIf="isLoading" [diameter]="25" [strokeWidth]="3"></mat-spinner>
         <label *ngIf="isLoading" class="loading-label">Checking Group Name...</label>
         <label *ngIf="!isLoading" class="error-label">{{errorMessage}}</label>
       </div>

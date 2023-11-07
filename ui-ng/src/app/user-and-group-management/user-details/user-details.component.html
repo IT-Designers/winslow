@@ -1,11 +1,11 @@
-<label *ngIf="selectedUser === null" class="nothing-selected">No user selected</label>
-<div *ngIf="selectedUser != null" class="detail-container">
+<label *ngIf="!selectedUser" class="nothing-selected">No user selected</label>
+<div *ngIf="selectedUser" class="detail-container">
   <h2>User Details</h2>
   <div class="user-name-container">
 
     <div class="detail-item">
       <label class="attribute-label">  Username: </label>
-      <mat-form-field class="input-width">
+      <mat-form-field class="input-width" appearance="outline">
         <input matInput
                placeholder="Username"
                [defaultValue]="editableSelectedUser.name"
@@ -17,7 +17,7 @@
 
     <div class="detail-item">
       <label class="attribute-label"> Display Name: </label>
-      <mat-form-field class="input-width">
+      <mat-form-field class="input-width" appearance="outline">
         <input matInput
                placeholder="Display Name"
                [defaultValue]="editableSelectedUser.displayName"
@@ -29,7 +29,7 @@
 
     <div class="detail-item">
       <label class="attribute-label"> E-Mail: </label>
-      <mat-form-field class="input-width">
+      <mat-form-field class="input-width" appearance="outline">
         <input matInput
                placeholder="Email"
                [defaultValue]="editableSelectedUser.email"
@@ -41,15 +41,15 @@
 
     <div class="detail-item">
       <label class="attribute-label"> Password: </label>
-      <label class="alt-width password-status-label" *ngIf="selectedUser.password != null">
+      <label class="alt-width password-status-label" *ngIf="selectedUser.password != undefined">
         User already has a Password
       </label>
-      <label class="alt-width password-status-label" *ngIf="selectedUser.password === null">
+      <label class="alt-width password-status-label" *ngIf="!selectedUser.password == undefined">
         User has no password and cannot log in
       </label>
       <button mat-raised-button
               color="primary"
-              *ngIf="selectedUser.password != null"
+              *ngIf="selectedUser.password != undefined"
               (click)="changePasswordBtnClicked()"
               class="update-btn"
               [disabled]="!canIEditUser">
@@ -57,7 +57,7 @@
       </button>
       <button mat-raised-button
               color="primary"
-              *ngIf="selectedUser.password === null"
+              *ngIf="selectedUser.password == undefined"
               (click)="changePasswordBtnClicked()"
               class="update-btn"
               [disabled]="!canIEditUser">

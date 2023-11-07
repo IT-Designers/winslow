@@ -12,13 +12,13 @@ import {AddGroupData, ProjectAddGroupDialogComponent} from '../project-add-group
 })
 export class ProjectGroupsListComponent implements OnInit, OnChanges {
 
-  @Input() project: ProjectInfo;
+  @Input() project!: ProjectInfo;
 
   @Output() newGroupEmitter = new EventEmitter();
 
   roles = ['OWNER', 'MEMBER'];
   groupSearchInput = '';
-  displayGroups: Link[];
+  displayGroups: Link[] = [];
 
 
   constructor(
@@ -34,19 +34,20 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
     this.displayGroups = Array.from(this.project.groups);
   }
 
-  getColor(group) {
+  getColor(group: Link) {
     if (group.role === 'OWNER') {
       return '#8ed69b';
     } else {
       return '#d88bca';
     }
   }
-  getTooltip(group) {
+  getTooltip(group: Link): string {
     if (group.role === 'OWNER') {
       return 'OWNER';
     } else if (group.role === 'MEMBER') {
       return 'MEMBER';
     }
+    return '';
   }
   filterFunction() {
     this.displayGroups = Array.from(this.project.groups);
@@ -84,7 +85,7 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
         }
       });
   }
-  onRemoveItemClick(item) {
+  onRemoveItemClick(item: Link) {
     const delIndex = this.project.groups.findIndex((group) => group.name === item.name);
     this.project.groups.splice(delIndex, 1);
     const delIndex2 = this.displayGroups.findIndex((group) => group.name === item.name);
@@ -94,7 +95,7 @@ export class ProjectGroupsListComponent implements OnInit, OnChanges {
       'Removing Group from Project'
     );
   }
-  roleChanged(group) {
+  roleChanged(group: Link) {
     this.dialog.openLoadingIndicator(
       this.projectApi.addOrUpdateGroup(this.project.id, group),
       'Changing Group Role'

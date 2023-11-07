@@ -1,11 +1,15 @@
 <form [formGroup]="editForm">
-  <table>
+  <table *ngIf="formMap$">
     <ng-container *ngFor="let entry of formMap$ | keyvalue:keepOriginalOrder ; index as i">
       <tr>
-    <span *ngIf="toDisplayProp(entry.key) && isNotObject(entry.value)" class="val-string">
-      <td> <mat-icon *ngIf="isInsideArray(entry.value)" title="Delete Entity from Array" class="delete-icon" (click)="deleteContent(entry)"> remove_circle </mat-icon> {{entry.key}} </td>
-      <td> <input (focusout)="triggerSaveData()" formControlName="{{entry.key}}"> </td>
-    </span>
+        <span *ngIf="toDisplayProp(entry.key) && isNotObject(entry.value)" class="val-string">
+          <td> <mat-icon
+              *ngIf="isInsideArray(entry.value)" title="Delete Entity from Array" class="delete-icon"
+              (click)="deleteContent(entry)"
+          > remove_circle </mat-icon>
+            {{entry.key}} </td>
+          <td> <input (focusout)="triggerSaveData()" [formControlName]="entry.key"> </td>
+        </span>
       </tr>
       <tr *ngIf="!isNotObject(entry.value) && toDisplayProp(entry.key)">
         <td class="nestedField">
@@ -17,12 +21,12 @@
           </span>
           <div *ngIf="entry.value != null" [hidden]="!extended[i]">
             <app-edit-forms
-              #form
-              [formObj]="entry.value"
-              [formMap]="entry.value"
-              [objPlace]="entry.key"
-              (onTriggerSaveData)="triggerSaveData()"
-              (onCollectData)="collectFormData($event)"
+                #form
+                [formObj]="entry.value"
+                [formMap]="entry.value"
+                [objPlace]="entry.key"
+                (onTriggerSaveData)="triggerSaveData()"
+                (onCollectData)="collectFormData($event)"
             >
             </app-edit-forms>
           </div>

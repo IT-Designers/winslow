@@ -17,11 +17,11 @@ export class ServersComponent implements OnInit, OnDestroy {
   static readonly MAX_SERVERS = 7;
 
   nodes: NodeInfoExt[] = [];
-  node: NodeInfoExt;
-  selectedNodeIndex: number = null;
-  loadError = null;
-  subscription: Subscription = null;
-  lastTimestamp: number;
+  node?: NodeInfoExt;
+  selectedNodeIndex?: number;
+  loadError?: Error;
+  subscription?: Subscription;
+  lastTimestamp?: number;
 
   constructor(private api: NodesApiService) {
   }
@@ -36,8 +36,9 @@ export class ServersComponent implements OnInit, OnDestroy {
               (value) => value.name === update.identifier
             );
             if (indexUpdate >= 0) {
-              if (this.nodes[indexUpdate]?.update != null) {
-                this.nodes[indexUpdate]?.update(update.value);
+              const nodeInfoExt = this.nodes[indexUpdate];
+              if (nodeInfoExt?.update != undefined) {
+                nodeInfoExt.update(update.value);
               }
             } else {
               this.nodes.push(update.value);
@@ -80,13 +81,10 @@ export class ServersComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-      this.subscription = null;
-    }
+    this.subscription?.unsubscribe();
   }
 
-  public trackNodeInfo(nodeInfo: NodeInfoExt): string {
+  public trackNodeInfo(_index: number, nodeInfo: NodeInfoExt): string {
     return nodeInfo?.name;
   }
 

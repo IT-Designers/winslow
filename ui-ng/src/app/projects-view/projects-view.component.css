@@ -1,5 +1,7 @@
 .project-selection-sidebar-item {
-  height: 6em !important; /* TODO */
+  height: max-content !important;
+  padding: 0 !important;
+  margin: 0.5rem 0;
 }
 
 .mat-icon-container-auto-align-label label {
@@ -24,14 +26,12 @@
 
 .group {
   background: #f5f5f5;
+  @media(prefers-color-scheme: dark) {
+    background-color: #383838;
+  }
   margin: 0.2em;
   border: 0;
   box-shadow: none;
-}
-
-.group-on-top {
-  background: #f5f5f5;
-  margin: 0.2em;
 }
 
 .group mat-expansion-panel-header {
@@ -49,24 +49,6 @@
 
 .group h4 {
   margin: 1.5em auto 0.2em 0.5em;
-}
-
-.mat-expansion-panel-header.mat-expanded {
-  background-color: #eeeeee;
-}
-
-.mat-expansion-panel.mat-expanded {
-  background-color: #eeeeee;
-}
-
-.mat-divider.mat-divider-inset {
-  margin-left: 0;
-}
-
-.mat-divider {
-  border-top-color: #dadada;
-  border-top-width: 1px;
-  width: 100%;
 }
 
 .icon {

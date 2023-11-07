@@ -6,6 +6,10 @@
 @import "./styles-diagram-maker.scss";
 
 
+
+/*
+Global Material Theming
+ */
 $my-theme-primary: mat.define-palette(mat.$indigo-palette);
 $my-theme-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 $my-theme-warn: mat.define-palette(mat.$red-palette); //mat-palette($mat-deep-orange, A200);
@@ -28,8 +32,7 @@ $dark-theme: mat.define-dark-theme((
     accent: $my-theme-accent,
     warn: $my-theme-warn,
   ),
-  typography: mat.define-typography-config(),
-  density: -1.9,
+  density: -1.9999,
 ));
 
 @mixin darkMode { // this mixin can be used for alternative darkmode settings
@@ -44,6 +47,13 @@ $dark-theme: mat.define-dark-theme((
   @include mat.all-component-themes($dark-theme); //TODO
 }
 
+:root {
+  --color-background: #ffffff;
+  @media(prefers-color-scheme: dark) {
+    --color-background: #303030;
+  }
+}
+
 a {
   cursor: pointer;
   color: inherit;
@@ -53,6 +63,11 @@ a {
 .fancy-button > * {
   padding: 0.2em
 }
+
+
+/*
+custom element styling
+ */
 
 html, body {
   padding: 0;
@@ -132,7 +147,6 @@ body {
   }
 }
 
-
 .none-defined-yet {
   background-color: white;
   @include darkMode {
@@ -180,7 +194,22 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-/* --- Mat-Design Fixes --- */
+a {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.fancy-button > * {
+  padding: 0.2em
+}
+
+
+
+/*
+--- Mat-Design Fixes ---
+TODO deprecated?
+*/
 .mat-expansion-panel-header-description {
   flex-grow: 0 !important;
 }
@@ -188,9 +217,6 @@ body {
 .mat-list-base .mat-list-item {
   font-size: 14px !important;
 }
-
-/* --- Mat-Design Fixes --- */
-
 
 .fill-height .mat-tab-body-wrapper {
   flex: 1 1 100% !important;
@@ -232,7 +258,7 @@ body {
 
 .selected {
   background-color: #6495ED20;
-  border-left: 1px solid cornflowerblue;
+  border-left: 2px solid cornflowerblue;
 }
 
 
@@ -272,7 +298,7 @@ body {
   flex-shrink: 0;
   flex-basis: 10em;
   width: 10em;
-  overflow: auto;
+  overflow: clip;
   padding: 0 1em 0 0;
   margin-right: 1em;
 }
@@ -312,7 +338,7 @@ body {
 
 .data-row {
   display: flex;
-  margin: 0 2em;
+  margin: 0 1.3em 0 2em;
   align-items: center;
 }
 

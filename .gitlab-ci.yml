@@ -88,13 +88,13 @@ build-component-html:
   needs:
     - job: build-component-server
       artifacts: true
-  image: node
+  image: node:20
   tags:
     - docker
   variables:
     NODE_OPTIONS: "--openssl-legacy-provider"
   script:
-    - mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
+    #    - mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
     - cd ui-ng
     #    - npm install -g -ng
     - (npm install || (echo "===== eresolve-report.txt =====" && cat /root/.npm/eresolve-report.txt && echo "===== .log =====" && cat /root/.npm/_logs/* && exit 1))

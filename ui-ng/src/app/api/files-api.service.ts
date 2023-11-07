@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {FileInfo} from './winslow-api';
+import {lastValueFrom} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -12,9 +13,9 @@ export class FilesApiService {
   }
 
   static getUrl(more?: string) {
-    if (more != null) {
-      while (more.startsWith('/')) {
-        more = more.substr(1);
+    if (more != undefined) {
+      while (more?.startsWith('/')) {
+        more = more?.substring(1);
       }
       more = more.split(';').join('%3B');
     }
@@ -22,17 +23,16 @@ export class FilesApiService {
   }
 
   listFiles(path: string, aggregateSizeForDirectories: boolean = false) {
-    return this.client
-      .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
-      .toPromise()
-      .then(files => files.map(f => loadFileInfo(f)));
+    return lastValueFrom(
+      this.client
+        .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
+    ).then(files => files.map(f => loadFileInfo(f)));
   }
 
   createDirectory(path: string): Promise<any> {
-    return this
-      .client
-      .post(FilesApiService.getUrl(path), null)
-      .toPromise();
+    return lastValueFrom(
+      this.client.post(FilesApiService.getUrl(path), null)
+    );
   }
 
   uploadFile(pathToDirectory: string, file: File, decompress = false) {
@@ -70,7 +70,7 @@ export class FilesApiService {
 
   filesUrl(pathToFile: string): string {
     while (pathToFile.startsWith('/')) {
-      pathToFile = pathToFile.substr(1);
+      pathToFile = pathToFile.substring(1);
     }
     return FilesApiService.getUrl(pathToFile);
   }
@@ -88,42 +88,47 @@ export class FilesApiService {
   }
 
   delete(path: string) {
-    return this
-      .client
-      .delete(FilesApiService.getUrl(path))
-      .toPromise();
+    return lastValueFrom(
+      this.client.delete(FilesApiService.getUrl(path))
+    );
   }
 
   renameTopLevelPath(path: string, newName: string): Promise<string> {
-    return this.client
-      .patch<string>(FilesApiService.getUrl(path), {
+    return lastValueFrom(
+      this.client.patch<string>(FilesApiService.getUrl(path), {
         'rename-to': newName,
       })
-      .toPromise();
+    );
   }
 
   cloneGitRepo(path: string, gitUrl: string, gitBranch?: string): Promise<string> {
-    return this.client.patch<string>(FilesApiService.getUrl(path), {
-      'git-clone': gitUrl,
-      'git-branch': gitBranch,
-    }).toPromise();
+    return lastValueFrom(
+      this.client.patch<string>(FilesApiService.getUrl(path), {
+        'git-clone': gitUrl,
+        'git-branch': gitBranch,
+      })
+    );
   }
 
   pullGitRepo(path: string): Promise<string> {
-    return this.client.patch<string>(FilesApiService.getUrl(path), {
-      'git-pull': ``
-    }).toPromise();
+    return lastValueFrom(
+      this.client.patch<string>(FilesApiService.getUrl(path), {
+        'git-pull': ``
+      })
+    );
   }
 
   checkoutGitRepo(path: string, branch: string): Promise<void> {
-    return this.client.patch<void>(FilesApiService.getUrl(path), {
-      'git-checkout': branch
-    }).toPromise();
+    return lastValueFrom(
+      this.client.patch<void>(FilesApiService.getUrl(path), {
+        'git-checkout': branch
+      })
+    );
   }
 }
 
-export function humanReadableFileSize(fileSize?: number): string {
-  if (fileSize != null) {
+export function humanReadableFileSize(fileSize?: number): string | undefined {
+  if (fileSize != undefined) {
     let suffix = 0;
     let value = fileSize;
 
@@ -149,7 +154,7 @@ export function humanReadableFileSize(fileSize?: number): string {
         return fileSize + ' bytes';
     }
   } else {
-    return null;
+    return undefined;
   }
 }
 
@@ -161,50 +166,4 @@ export function loadFileInfo(origin: FileInfo): FileInfo {
   });
 }
 
-declare module './winslow-api' {
-  export interface FileInfo {
-    fileSizeHumanReadableCached?: string;
-    getAttribute(key: FileInfoAttribute): any;
-    getFileSizeHumanReadable(): string;
-    hasAttribute(key: FileInfoAttribute): boolean;
-    isGitRepository(): boolean;
-    getGitBranch(): string;
-    setGitBranch(branch: string);
-  }
-}
 
-
-FileInfo.prototype.getAttribute = function(key: FileInfoAttribute): any {
-  return this.attributes != null ? this.attributes[key] : null;
-};
-
-FileInfo.prototype.getFileSizeHumanReadable = function(): string {
-  if (this.fileSizeHumanReadableCached == null) {
-    this.fileSizeHumanReadableCached = humanReadableFileSize(this.fileSize);
-  }
-  return this.fileSizeHumanReadableCached;
-};
-
-FileInfo.prototype.hasAttribute = function(key: FileInfoAttribute): boolean {
-  return this.attributes != null && this.attributes[key] != null;
-};
-
-FileInfo.prototype.isGitRepository = function(): boolean {
-  return this.hasAttribute('git-branch');
-};
-
-FileInfo.prototype.getGitBranch = function(): string {
-  const attr = this.getAttribute('git-branch');
-  if (typeof attr === typeof '') {
-    return attr as string;
-  } else {
-    return null;
-  }
-};
-
-FileInfo.prototype.setGitBranch = function(branch: string) {
-  if (this.attributes == null) {
-    this.attributes = new Map<string, unknown>();
-  }
-  this.attributes['git-branch'] = branch;
-};

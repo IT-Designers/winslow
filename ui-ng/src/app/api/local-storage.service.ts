@@ -1,4 +1,5 @@
 import {Injectable} from '@angular/core';
+import {Raw} from "./winslow-api";
 
 @Injectable({
   providedIn: 'root'
@@ -9,31 +10,77 @@ export class LocalStorageService {
   }
 
   private readonly KEY_CHART_SETTINGS = 'winslow-chart-settings';
+  private readonly KEY_SELECTED_CONTEXT = 'winslow-selected-context';
+  private readonly KEY_GROUPS_ON_TOP = 'winslow-groups-on-top';
+  private readonly KEY_GROUPS_ACTIVATED = "winslow-groups-activated";
 
-  getChartSettings() {
-    const item = JSON.parse(localStorage.getItem(this.KEY_CHART_SETTINGS));
-    return item ?? new GlobalChartSettings();
+  private get<T>(key: string): T | null {
+    const item = localStorage.getItem(key);
+    if (item == null) {
+      return null;
+    }
+    return JSON.parse(item);
   }
 
-  setChartSettings(item: GlobalChartSettings) {
+  private set<T>(key: string, data: T | null): void {
+    if (data == null) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+  }
+
+  getChartSettings(): GlobalChartSettings {
+    const item = localStorage.getItem(this.KEY_CHART_SETTINGS);
+    if (item != null) {
+      const parsed = JSON.parse(item);
+      if (parsed != null) {
+        return new GlobalChartSettings(parsed);
+      }
+    }
+    return new GlobalChartSettings({
+      enableEntryLimit: false,
+      enableRefreshing: false,
+      entryLimit: 50,
+      refreshTimerInSeconds: 5
+    });
+  }
+
+  setChartSettings(item: GlobalChartSettings): void {
     localStorage.setItem(this.KEY_CHART_SETTINGS, JSON.stringify(item));
   }
 
-  getSettings(KEY: string) {
-    return JSON.parse(localStorage.getItem(KEY));
+  getSelectedContext(): string | null {
+    return this.get<string>(this.KEY_SELECTED_CONTEXT);
   }
 
-  setSettings(KEY: string, data: any) {
-    localStorage.setItem(KEY, JSON.stringify(data));
+  setSelectedContext(data: string | null): void {
+    return this.set<string>(this.KEY_SELECTED_CONTEXT, data);
+  }
+
+  getGroupsOnTop(): boolean | null {
+    return this.get<boolean>(this.KEY_GROUPS_ON_TOP);
+  }
+
+  setGroupsOnTop(data: boolean | null): void {
+    return this.set<boolean>(this.KEY_GROUPS_ON_TOP, data);
+  }
+
+  getGroupsActivated(): boolean | null {
+    return this.get<boolean>(this.KEY_GROUPS_ACTIVATED);
+  }
+
+  setGroupsActivated(data: boolean | null): void {
+    return this.set<boolean>(this.KEY_GROUPS_ACTIVATED, data);
   }
 }
 
 export class GlobalChartSettings {
-  constructor() {
-    this.enableEntryLimit = false;
-    this.entryLimit = 50;
-    this.enableRefreshing = true;
-    this.refreshTimerInSeconds = 5;
+  constructor(data: Raw<GlobalChartSettings>) {
+    this.enableEntryLimit = data.enableEntryLimit;
+    this.entryLimit = data.entryLimit;
+    this.enableRefreshing = data.enableRefreshing;
+    this.refreshTimerInSeconds = data.refreshTimerInSeconds;
   }
 
   enableEntryLimit: boolean;

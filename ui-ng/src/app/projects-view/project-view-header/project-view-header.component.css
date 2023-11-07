@@ -7,46 +7,39 @@
   text-overflow: ellipsis;
 }
 
-:host label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.title {
-  display: flex;
+.project-container {
   flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: 40vw;
-  max-width: 40vw;
-  min-width: 15em;
-  padding-right: 1em;
-  overflow: hidden;
-  white-space: nowrap;
-  min-height: 2.2em; /* TODO */
+  flex-direction: row;
+  display: flex;
+  padding: 0.5rem;
+  gap: 0.5rem;
+  place-items: center;
+
+  background-color: var(--color-background);
 }
 
-.title label {
-  margin: auto 0;
+.project-info-column {
+  flex-grow: 1;
+  flex-direction: column;
+  display: flex;
+  gap: 0.25rem;
+  text-wrap: wrap;
 }
 
-.icon {
-  max-height: 2em;
-  max-width: 2em;
-  margin-top: 0.1em;
-  margin-left: 1em;
-  margin-right: 0.5em;
+.project-title-row {
+  flex-grow: 1;
+  flex-direction: row;
+  display: flex;
+  place-items: center;
 }
 
-.description-tags {
-  max-height: 2.5em;
-  overflow: hidden;
-  white-space: nowrap;
+.project-title {
+  flex-grow: 1;
+  margin: 0;
 }
 
-.description-etc {
-  margin-left: auto;
-  margin-top: auto;
-  text-align: center;
+.project-pause-reason {
+
 }
 
 .description-progress-bar {

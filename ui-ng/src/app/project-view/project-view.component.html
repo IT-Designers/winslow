@@ -56,24 +56,24 @@
           Delete Failed
         </button>
       </div>
-      <div *ngIf="history?.length > 0">
+      <div *ngIf="history.length > 0">
         <div
           [style.overflow]="'auto'"
 
-          [ngStyle]="history?.length < 7 ? {'height': history.length * 50 } :  {'height': historyListHeight + 'px' }"
+          [ngStyle]="history.length < 7 ? {'height': history.length * 50 } :  {'height': historyListHeight + 'px' }"
           (scroll)="historyCanLoadMoreEntries ? onScroll($event) : null"
         >
 
           <app-project-history
             *ngFor="let entry of history; index as i; trackBy:trackHistory"
-            [active]="selectedHistoryEntryIndex === i"
             class="history-list-item"
+            [active]="selectedHistoryEntryIndex === i"
 
             [executionGroup]="entry"
             [firstEntry]="i == 0"
             [entryNumber]="tryParseStageNumber(entry.id, history.length - i)"
             [expanded]="selectedHistoryEntry === entry"
-            [pipelineIsPaused]="paused"
+            [pipelineIsPaused]="paused ?? false"
             [projectState]="stateValue"
 
             (click)="setHistoryEntry(entry, i)"
@@ -85,7 +85,7 @@
             (clickPauseAfterThis)="updateRequestPause(true)"
             (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
             (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
-            (clickOpenWorkspace)="openWorkspace(project, $event)"
+            (clickOpenWorkspace)="openWorkspace($event)"
             (clickOpenLogs)="openLogs($event)"
             (clickOpenAnalysis)="openAnalysis($event)"
             (clickOpenTensorboard)="openTensorboard(project, $event)"
@@ -93,23 +93,23 @@
         </div>
       </div>
 
-      <div *ngIf="history?.length > 0">
+      <div *ngIf="history.length > 0">
         <app-project-history-details
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
-          [entryNumber]="selectedHistoryEntryNumber ? selectedHistoryEntryNumber : tryParseStageNumber(history[0]?.id, history?.length)"
-          [selectedStage]="selectedHistoryEntryStage ? selectedHistoryEntryStage : history[0]?.stages[history[0]?.stages.length-1]"
+          [entryNumber]="selectedHistoryEntryNumber ?? tryParseStageNumber(history[0].id, history.length)"
+          [selectedStage]="selectedHistoryEntryStage ??  history[0].stages[history[0].stages.length-1]"
           [projectState]="stateValue"
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
           (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"
-          (clickOpenWorkspace)="openWorkspace(project, $event)"
+          (clickOpenWorkspace)="openWorkspace($event)"
           (clickOpenLogs)="openLogs($event)"
           (clickOpenAnalysis)="openAnalysis($event)"
           (clickOpenTensorboard)="openTensorboard(project, $event)"
         >
         </app-project-history-details>
       </div>
-      <div *ngIf="history?.length == 0" class="empty-project-history">
+      <div *ngIf="history.length == 0" class="empty-project-history">
         This project has no history yet
       </div>
 
@@ -142,7 +142,7 @@
       <app-project-analysis-tab
         class="flex-grow flex-grow-column max-height"
         [project]="project"
-        [selectedStage]="stageIdToDisplayLogsFor"
+        [selectedStageId]="stageIdToDisplayLogsFor"
       ></app-project-analysis-tab>
     </ng-template>
   </mat-tab>
@@ -154,8 +154,6 @@
         [raw]="rawPipelineDefinition"
         [error]="rawPipelineDefinitionError"
         [success]="rawPipelineDefinitionSuccess"
-        [enableOnOthers]="true"
-        (others)="updatePipelineDefinitionOnOthers($event)"
         (check)="checkPipelineDefinition($event)"
         (update)="updatePipelineDefinition($event, editor)"
       ></app-pipeline-editor>

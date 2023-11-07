@@ -47,10 +47,11 @@ export class CsvFilesService {
 
   getCsvFiles$(filepath: string): Observable<CsvFile[]> {
     return this.stages$.pipe(
-      switchMap(stages => {
-        const file$s = stages.map(stage => this.getCsvFile$(stage, filepath));
-        return combineLatest(file$s);
-      }),
+      switchMap(stages =>
+        combineLatest(stages
+            .filter(stage => stage.workspace)
+            .map(stage => this.getCsvFile$(stage.id, <string>stage.workspace, filepath))
+        )),
     );
   }
 
@@ -61,8 +62,11 @@ export class CsvFilesService {
   }
 
   private async getFileSuggestions(stages: StageInfo[], currentPath: string): Promise<string[]> {
-    const combined_suggestions = []
+    const combined_suggestions: string[] = []
     const workspace_suggestion_lists = (await Promise.all(stages.map(stage => {
+      if (stage.workspace == undefined) {
+        return [];
+      }
       return this.getFileSuggestionsForWorkspace(stage.workspace, currentPath);
     })))
     for (const workspace_suggestions of workspace_suggestion_lists) {
@@ -85,7 +89,7 @@ export class CsvFilesService {
 
     async function walk(fileInfos: FileInfo[]) {
       for (const fileInfo of fileInfos) {
-        const relativePath = fileInfo.path.substr(topLevelPath.length);
+        const relativePath = fileInfo.path.substring(topLevelPath.length);
         if (fileInfo.directory) {
           await walk(await api.listFiles(fileInfo.path));
           continue;
@@ -104,39 +108,36 @@ export class CsvFilesService {
     return paths;
   }
 
-  private getCsvFile$(stage: StageInfo, filepath: string): Observable<CsvFile> {
-    const csvFileSource = this.getCsvFileSource(stage, filepath);
+  private getCsvFile$(workspace: string, stageId: string, filepath: string): Observable<CsvFile> {
+    const csvFileSource = this.getCsvFileSource(workspace, filepath);
     return csvFileSource.content$.pipe(
       map((content: CsvFileContent): CsvFile => ({
         content: content,
         pathToWorkspace: csvFileSource.pathToWorkspace,
         pathInWorkspace: csvFileSource.pathInWorkspace,
-        stageId: stage.id
+        stageId: stageId,
       }))
     );
   }
 
-  private getCsvFileSource(stage: StageInfo, filepath: string): CsvFileSource {
-    let csvFileSource = this.csvFileSources.find(csvFile => csvFile.pathInWorkspace == filepath && csvFile.pathToWorkspace == stage.workspace);
+  private getCsvFileSource(stageWorkspace: string, filepath: string): CsvFileSource {
+    let csvFileSource = this.csvFileSources
+      .find(csvFile => csvFile.pathInWorkspace == filepath && csvFile.pathToWorkspace == stageWorkspace);
+
     if (csvFileSource == null) {
-      csvFileSource = this.createCsvFileSource(stage, filepath);
+      csvFileSource = this.createCsvFileSource(stageWorkspace, filepath);
     }
+
     return csvFileSource;
   }
 
-  private createCsvFileSource(stage: StageInfo, relativePathToFile: string): CsvFileSource {
-    const fullPathToFile = CsvFilesService.fullPathToFile(stage.workspace, relativePathToFile);
+  private createCsvFileSource(stageWorkspace: string, relativePathToFile: string): CsvFileSource {
+    const fullPathToFile = CsvFilesService.fullPathToFile(stageWorkspace, relativePathToFile);
 
-    const csvFileSource: CsvFileSource = {
-      content$: undefined,
-      pathToWorkspace: stage.workspace,
-      pathInWorkspace: relativePathToFile,
-    }
-
-    csvFileSource.content$ = this.globalChartSettings$.pipe(
+    const content$ = this.globalChartSettings$.pipe(
       switchMap(globalSettings => {
         console.log(`Watching file ${fullPathToFile}.`);
-        if (globalSettings.enableRefreshing == false) return of(1); // Emit an arbitrary value once, so that the file is loaded at least once.
+        if (!globalSettings.enableRefreshing) return of(1); // Emit an arbitrary value once, so that the file is loaded at least once.
         const millis = globalSettings.refreshTimerInSeconds * 1000;
         return timer(0, millis); // Emit a value periodically to trigger the reloading of the file.
       }),
@@ -157,6 +158,12 @@ export class CsvFilesService {
         refCount: true // Stop files from being loaded when all observers have unsubscribed.
       }),
     );
+
+    const csvFileSource: CsvFileSource = {
+      content$: content$,
+      pathToWorkspace: stageWorkspace,
+      pathInWorkspace: relativePathToFile,
+    }
 
     this.csvFileSources.push(csvFileSource);
     return csvFileSource;
