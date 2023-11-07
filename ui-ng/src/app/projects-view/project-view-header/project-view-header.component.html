@@ -8,7 +8,7 @@
   <div class="project-info-column">
     <div class="project-title-row">
       <app-state-icon #icon [state]="state"></app-state-icon>
-      <h4 class="project-title">{{project.name}}</h4>
+      <span mat-card-title class="project-title">{{project.name}}</span>
     </div>
     <app-tags-with-autocomplete
       *ngIf="project.tags"
