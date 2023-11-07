@@ -2,10 +2,11 @@ import {Component, Input, OnInit} from '@angular/core';
 import {ProjectInfo} from "../../api/winslow-api";
 import {FilesApiService} from "../../api/files-api.service";
 import {DialogService} from "../../dialog.service";
-import {lastValueFrom} from "rxjs";
+
+const DEFAULT_THUMBNAIL_TEXT = '?'
 
 @Component({
-  selector: 'app-project-avatar',
+  selector: 'app-project-thumbnail',
   templateUrl: './project-thumbnail.component.html',
   styleUrls: ['./project-thumbnail.component.css']
 })
@@ -14,7 +15,7 @@ export class ProjectThumbnailComponent implements OnInit {
 
   image?: HTMLImageElement;
 
-  alternativeText: string = '?';
+  alternativeText: string = DEFAULT_THUMBNAIL_TEXT;
 
   constructor(
     private filesApi: FilesApiService,
@@ -50,10 +51,10 @@ export class ProjectThumbnailComponent implements OnInit {
   }
 
   private getAlternativeText(name: string) {
-    const words = name.trim().split(" ");
+    const words = name.trim().split(" ").filter(word => word.trim() != "");
     switch (words.length) {
       case 0:
-        return "?"
+        return DEFAULT_THUMBNAIL_TEXT;
       case 1:
         return words[0].substring(0, 1).toUpperCase();
       default:
