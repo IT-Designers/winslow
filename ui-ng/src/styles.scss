@@ -47,6 +47,13 @@ $dark-theme: mat.define-dark-theme((
   @include mat.all-component-themes($dark-theme); //TODO
 }
 
+:root {
+  --color-background: #ffffff;
+  @media(prefers-color-scheme: dark) {
+    --color-background: #303030;
+  }
+}
+
 a {
   cursor: pointer;
   color: inherit;

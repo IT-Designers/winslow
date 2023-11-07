@@ -1,7 +1,17 @@
 :host {
   display: contents;
+  --thumbnail-size: 4.5rem;
+}
+
+:host > * {
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
 }
 
 :host > img {
   object-fit: cover;
+}
+
+:host > span {
+  align-items: center;
 }
