@@ -4,6 +4,10 @@ import {FilesApiService} from "../../api/files-api.service";
 import {DialogService} from "../../dialog.service";
 
 const DEFAULT_THUMBNAIL_TEXT = '?'
+const DEFAULT_THUMBNAIL_STYLE = {
+  'color':  'hsl(0, 0, 25%)',
+  'background-color': 'hsl(0, 0, 75%)',
+};
 
 @Component({
   selector: 'app-project-thumbnail',
@@ -16,6 +20,7 @@ export class ProjectThumbnailComponent implements OnInit {
   image?: HTMLImageElement;
 
   alternativeText: string = DEFAULT_THUMBNAIL_TEXT;
+  alternativeStyle = DEFAULT_THUMBNAIL_STYLE;
 
   constructor(
     private filesApi: FilesApiService,
@@ -26,6 +31,11 @@ export class ProjectThumbnailComponent implements OnInit {
   ngOnInit() {
     const filepath = `${this.project.id}/output/thumbnail.jpg`; // Can be any image type supported by HTMLImageElements, not just JPGs
     const url = this.filesApi.workspaceUrl(filepath);
+    const hue = this.hash(this.project.name) % 360;
+    this.alternativeStyle = {
+      'color': `hsl(${hue}, 50%, 30%)`,
+      'background-color': `hsl(${hue}, 50%, 70%)`,
+    }
     this.alternativeText = this.getAlternativeText(this.project.name);
     this.getThumbnailImage(url).then(image => this.image = image);
   }
@@ -60,5 +70,14 @@ export class ProjectThumbnailComponent implements OnInit {
       default:
         return (words[0].substring(0, 1) + words[1].substring(0, 1)).toUpperCase();
     }
+  }
+
+  private hash(str: string) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+    }
+    return hash;
   }
 }
