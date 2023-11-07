@@ -1,12 +1,18 @@
 import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "diagram-maker";
-import {PipelineDefinitionInfo, StageDefinitionInfo} from "../../api/winslow-api";
+import {
+  PipelineDefinitionInfo,
+  StageDefinitionInfo,
+  isStageAndGatewayDefinitionInfo,
+  isStageWorkerDefinitionInfo,
+  isStageXorGatewayDefinitionInfo
+} from "../../api/winslow-api";
 
 export class ControlDiagramInitialData {
 
-  getInitData(pipelineDefinition) {
+  getInitData(pipelineDefinition: PipelineDefinitionInfo) {
     let edges: { [id: string]: DiagramMakerEdge<{}> } = {};
     let nodes: { [id: string]: DiagramMakerNode<StageDefinitionInfo> } = {};
-    let pipelineInfo = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
+    let pipelineInfo: any = new PipelineDefinitionInfo(Object.assign({}, pipelineDefinition));
     // HELPER: deletes unnecessary parts of the object
     delete pipelineInfo.stages;
     nodes[pipelineInfo.id] = {    //first node - PipelineDefInfo
@@ -20,15 +26,23 @@ export class ControlDiagramInitialData {
       consumerData: pipelineInfo
     };
     for (let i = 0; i < pipelineDefinition.stages.length; i++) {    //All other Stages and Gateways
-      let nodeType : String;
-      if (pipelineDefinition.stages[i]['@type'] == 'Worker'){nodeType = 'node-normal';}
-      else if(pipelineDefinition.stages[i]['@type'] == 'AndGateway'){
-        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-and-splitter'}
+      let nodeType: String = "";
+      let stage = pipelineDefinition.stages[i];
+      // @ts-ignore
+      delete stage.description;
+      if (isStageWorkerDefinitionInfo(stage)) {
+        nodeType = 'node-normal';
+      } else if(isStageAndGatewayDefinitionInfo(stage)){
+        if (stage.gatewaySubType == 'SPLITTER') {
+          nodeType = 'node-and-splitter'
+        }
         else{ nodeType = 'node-all-merger'}
-      }
-      else if(pipelineDefinition.stages[i]['@type'] == 'XorGateway'){
-        if (pipelineDefinition.stages[i].gatewaySubType == 'SPLITTER') { nodeType = 'node-if-splitter' }
-        else{nodeType = 'node-any-merger'}
+      } else if(isStageXorGatewayDefinitionInfo(stage)){
+        if (stage.gatewaySubType == 'SPLITTER') {
+          nodeType = 'node-if-splitter'
+        } else {
+          nodeType = 'node-any-merger'
+        }
       }
       nodes[pipelineDefinition.stages[i].id] = {
         id: pipelineDefinition.stages[i].id,
@@ -58,7 +72,7 @@ export class ControlDiagramInitialData {
     }
     /*console.log(edges);*/
 
-    let initialData = {
+    return {
       nodes,
       edges,
       panels: {
@@ -79,7 +93,6 @@ export class ControlDiagramInitialData {
         },
       },
       editor: {mode: EditorMode.SELECT},
-    }
-    return initialData;
+    };
   }
 }

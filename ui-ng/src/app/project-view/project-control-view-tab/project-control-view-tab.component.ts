@@ -8,11 +8,11 @@ import {
   OnInit,
   AfterViewInit,
   OnChanges,
-  OnDestroy
+  OnDestroy, ComponentRef
 } from '@angular/core';
 import {
   PipelineDefinitionInfo,
-  ProjectInfo,
+  ProjectInfo, Raw,
   StageDefinitionInfo,
   StageDefinitionInfoUnion,
 } from "../../api/winslow-api";
@@ -28,12 +28,12 @@ import {
 } from "diagram-maker";
 import {DiagramLibraryComponent} from "../../pipeline-view/diagram-library/diagram-library.component";
 import {DiagramConfigHelper} from "../../pipeline-view/diagram-config-helper";
-import {DiagramInitialData} from "../../pipeline-view/diagram-initial-data";
 import {ControlDiagramInitialData} from "./control-diagram-initial-data";
 import {DefaultApiServiceService} from "../../api/default-api-service.service";
 import {DiagramNodeComponent} from "../../pipeline-view/diagram-node/diagram-node.component";
 import {DiagramGatewayComponent} from "../../pipeline-view/diagram-gateway/diagram-gateway.component";
 import {HttpClient} from "@angular/common/http";
+import {ControlViewLibraryComponent} from "./control-view-library/control-view-library.component";
 
 @Component({
   selector: 'app-project-control-view-tab',
@@ -42,31 +42,31 @@ import {HttpClient} from "@angular/common/http";
 })
 export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
-  @Input() project: ProjectInfo;
+  @Input() public project!: ProjectInfo;
   //@Input() pipelineDefinition: PipelineDefinitionInfo;
 
 
   public diagramMaker!: DiagramMaker;
   public initialData!: DiagramMakerData<StageDefinitionInfo, {}>;
   public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
-  public componentFactory = this.componentFactoryResolver.resolveComponentFactory(DiagramLibraryComponent);
-  public libraryComponent = null;
+  public componentFactory = this.componentFactoryResolver.resolveComponentFactory(ControlViewLibraryComponent);
+  public libraryComponent: ComponentRef<DiagramLibraryComponent> | null = null;
   public configClass = new DiagramConfigHelper();
   public initClass = new ControlDiagramInitialData();
   public defaultGetter = new DefaultApiServiceService(this.client);
-  public saveStatus : boolean = true;
+  public saveStatus: boolean = true;
 
 
   @ViewChild('diagramEditorContainer')
   diagramEditorContainer!: ElementRef;
 
-  config: DiagramMakerConfig<{}, {}> = {
+  config: DiagramMakerConfig<StageDefinitionInfo, unknown> = {
     options: {
       connectorPlacement: ConnectorPlacement.LEFT_RIGHT,
       showArrowhead: true,
     },
     renderCallbacks: {
-      node: (node: DiagramMakerNode<StageDefinitionInfo>, diagramMakerContainer: HTMLElement) => {
+      node: (node: DiagramMakerNode<StageDefinitionInfo>, diagramMakerContainer: HTMLElement): void => {
         diagramMakerContainer.innerHTML = '';
         let componentInstance = undefined;
         if (node.typeId == 'node-normal' || node.typeId == 'node-start') {
@@ -97,7 +97,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
         library: (panel: any, state: any, diagramMakerContainer: HTMLElement) => {  //panel to edit Stages
           if (this.libraryComponent == null) {
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
-            this.libraryComponent.instance.editNode.subscribe(editForm => { //edit Form is what is stored in Diagram Maker of the definition of the node
+            this.libraryComponent.instance.editNode.subscribe(editForm => { //edit Form is what is stored in Diagram Maker of the node definition
               this.editState(editForm);
             });
             this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
@@ -142,7 +142,6 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
                 default:
                   break;
               }
-              // this.configClass.getApiSwitch(action, this.diagramMaker);   // is the same switch as above
             });
             diagramMakerContainer.appendChild(this.libraryComponent.location.nativeElement);
           }
@@ -167,7 +166,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
     nodeTypeConfig: this.configClass.getNodeTypes(),
   };
 
-  nodeComponentInstances = [];
+  nodeComponentInstances: any[] = [];
 
   constructor(private viewContainerRef: ViewContainerRef,
               private componentFactoryResolver: ComponentFactoryResolver,
@@ -178,7 +177,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
 */
   }
 
-  editState(editForm) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
+  editState(editForm: Raw<PipelineDefinitionInfo>) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -254,7 +253,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
       if (i > 0){
         let node = JSON.parse(JSON.stringify(storeNode))
         this.project.pipelineDefinition.stages.push(node.consumerData as StageDefinitionInfoUnion);
-        this.project.pipelineDefinition.stages[i-1].nextStages = new Array();
+        this.project.pipelineDefinition.stages[i-1].nextStages = [];
       }
       i++;
     }
