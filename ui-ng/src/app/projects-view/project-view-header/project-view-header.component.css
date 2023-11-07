@@ -23,6 +23,7 @@
   flex-direction: column;
   display: flex;
   gap: 0.25rem;
+  text-wrap: wrap;
 }
 
 .project-title-row {
