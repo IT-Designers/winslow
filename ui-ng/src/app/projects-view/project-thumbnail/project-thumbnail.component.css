@@ -1,11 +1,10 @@
 :host {
   display: contents;
-  --thumbnail-size: 4.5rem;
 }
 
 :host > * {
-  width: var(--thumbnail-size);
-  height: var(--thumbnail-size);
+  width: 4rem;
+  height: 4rem;
 }
 
 :host > img {
@@ -16,6 +15,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 2.5rem;
+  font-size: 2rem;
   overflow: hidden;
 }
