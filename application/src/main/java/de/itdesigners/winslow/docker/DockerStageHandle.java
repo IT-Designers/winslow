@@ -4,7 +4,6 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.*;
-import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.LogEntry;
 import de.itdesigners.winslow.StageHandle;
 import de.itdesigners.winslow.api.pipeline.LogSource;
@@ -54,14 +53,14 @@ public class DockerStageHandle implements StageHandle {
         runAndCatchRuntimeExceptionsInNewThread(() -> {
             runAndCatchRuntimeExceptions(() ->  pullImage(createContainerCmd.getImage()));
             containerId = createContainer(createContainerCmd);
-
-            LOG.info(stageId + ": setupLogListener");
-            setupLogListener(containerId);
             LOG.info(stageId + ": setupStatsListener");
             setupStatsListener(containerId);
 
             LOG.info(stageId + ": startContainer");
             startContainer(containerId);
+
+            LOG.info(stageId + ": setupLogListener");
+            setupLogListener(containerId);
 
             LOG.info(stageId + ": setupExecutionResultListener");
             setupExecutionResultListener(containerId);
