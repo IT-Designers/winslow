@@ -102,7 +102,7 @@ export class PipelinesComponent implements OnInit {
               const target = this.pipelines.find(def => def.id == pipelineId)
               if (target != undefined) {
                 // migrate values without replacing the object to avoid the list of pipelines to be rebuilt
-                copyProperties(source, target);
+                Object.assign(source, target);
                 this.raw.set(pipelineId, value);
               }
             });
@@ -144,10 +144,3 @@ export class PipelinesComponent implements OnInit {
 
 }
 
-function copyProperties<T extends object>(source: T, target: T): void {
-  for (const key in source) {
-    if (source.hasOwnProperty(key)) {
-      target[key] = source[key];
-    }
-  }
-}
