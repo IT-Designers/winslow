@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartGraph, ChartDisplaySettings, LogChart} from "../log-chart-definition";
+import {ChartGraph, LogChart, LogChartDefinition} from "../log-chart-definition";
 import {Subscription} from "rxjs";
 import {EChartsOption, SeriesOption} from 'echarts'
 
@@ -25,7 +25,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     }
     this.subscription = this.chart.snapshot$.subscribe({
       next: snapshot => {
-        this.settings(snapshot.definition.displaySettings)
+        this.settings(snapshot.definition)
         this.data(snapshot.graphs)
       }
     })
@@ -35,7 +35,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe()
   }
 
-  settings(settings: ChartDisplaySettings) {
+  settings(settings: LogChartDefinition) {
     const newOptions: EChartsOption = {
       title: {
         text: settings.name,
