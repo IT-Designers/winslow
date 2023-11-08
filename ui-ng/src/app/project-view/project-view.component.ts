@@ -563,6 +563,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 enum ProjectViewTab {
   Overview,
   Control,
+  PipelineControl,
   History,
   Files,
   Logs,
