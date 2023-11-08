@@ -52,7 +52,7 @@ public class DockerStageHandle implements StageHandle {
         this.stageId = stageId;
 
         runAndCatchRuntimeExceptionsInNewThread(() -> {
-            pullImage(createContainerCmd.getImage());
+            runAndCatchRuntimeExceptions(() ->  pullImage(createContainerCmd.getImage()));
             containerId = createContainer(createContainerCmd);
 
             LOG.info(stageId + ": setupLogListener");
