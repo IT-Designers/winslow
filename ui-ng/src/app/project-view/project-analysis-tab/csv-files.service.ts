@@ -49,8 +49,8 @@ export class CsvFilesService {
     return this.stages$.pipe(
       switchMap(stages =>
         combineLatest(stages
-            .filter(stage => stage.workspace)
-            .map(stage => this.getCsvFile$(stage.id, <string>stage.workspace, filepath))
+            .filter(stage => stage.workspace != undefined)
+            .map(stage => this.getCsvFile$(<string>stage.workspace, stage.id, filepath))
         )),
     );
   }
