@@ -48,15 +48,12 @@ export class ProjectThumbnailComponent implements OnInit {
     return new Promise<HTMLImageElement | undefined>(resolve => {
       const image = new Image();
       image.onload = () => {
-        console.log(image)
         resolve(image);
       };
       image.onerror = () => {
-        console.log("FAILURE")
         resolve(undefined);
       };
       image.src = url;
-      console.log(image)
     })
   }
 
