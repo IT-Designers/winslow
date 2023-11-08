@@ -28,7 +28,6 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     this.chart = new LogChart(this.csvFilesService, undefined, definition);
 
     this.definition = {...definition};
-    this.definition.displaySettings = {...definition.displaySettings};
     this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot);
 
     this.fileSuggestions = csvFilesService.getFileSuggestions$(this.chart.definition$.pipe(map(definition => definition.file)))
@@ -41,7 +40,6 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
   }
 
   refresh() {
-    this.definition.displaySettings = Object.assign({}, this.definition.displaySettings);
     this.chart.definition$.next(this.definition);
   }
 

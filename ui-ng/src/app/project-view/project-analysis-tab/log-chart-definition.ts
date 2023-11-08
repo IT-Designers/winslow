@@ -102,16 +102,23 @@ export class LogChart {
 }
 
 export class LogChartDefinition {
-  displaySettings: ChartDisplaySettings;
   file: string;
   formatterFromHeaderRow: boolean;
   customFormatter: string;
   xVariable: string;
-  yVariable: string;
   entryLimit: null | number;
+  name: string = 'Unnamed chart';
+  yVariable: string;
+  xAxisName: string = 'x-Axis';
+  xAxisMinValue?: number;
+  xAxisMaxValue?: number;
+  xAxisType: ChartAxisType = ChartAxisType.VALUE;
+  yAxisName: string = 'y-Axis';
+  yAxisMinValue?: number;
+  yAxisMaxValue?: number;
+  yAxisType: ChartAxisType = ChartAxisType.VALUE;
 
   constructor() {
-    this.displaySettings = new ChartDisplaySettings();
     this.file = 'logfile.csv';
     this.formatterFromHeaderRow = true;
     this.customFormatter = '$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID';
@@ -119,20 +126,6 @@ export class LogChartDefinition {
     this.yVariable = '$1';
     this.entryLimit = null;
   }
-}
-
-export class ChartDisplaySettings {
-  name: string = 'Unnamed chart';
-
-  xAxisName: string = 'x-Axis';
-  xAxisMinValue?: number;
-  xAxisMaxValue?: number;
-  xAxisType: ChartAxisType = ChartAxisType.VALUE;
-
-  yAxisName: string = 'y-Axis';
-  yAxisMinValue?: number;
-  yAxisMaxValue?: number;
-  yAxisType: ChartAxisType = ChartAxisType.VALUE;
 }
 
 // used by echarts

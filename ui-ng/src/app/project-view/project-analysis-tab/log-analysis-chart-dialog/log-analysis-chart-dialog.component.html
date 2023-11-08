@@ -8,7 +8,7 @@
   <mat-dialog-content class="dialog-content">
     <mat-form-field appearance="outline" class="wide-field">
       <mat-label>Title</mat-label>
-      <input matInput [(ngModel)]="definition.displaySettings.name" (ngModelChange)="refresh()">
+      <input matInput [(ngModel)]="definition.name" (ngModelChange)="refresh()">
     </mat-form-field>
   </mat-dialog-content>
 
@@ -54,11 +54,11 @@
   <mat-dialog-content class="dialog-content">
     <mat-form-field appearance="outline" class="left-field">
       <mat-label>x-Axis Label</mat-label>
-      <input matInput [(ngModel)]="definition.displaySettings.xAxisName" (ngModelChange)="refresh()">
+      <input matInput [(ngModel)]="definition.xAxisName" (ngModelChange)="refresh()">
     </mat-form-field>
     <mat-form-field appearance="outline" class="right-field">
       <mat-label>y-Axis Label</mat-label>
-      <input matInput [(ngModel)]="definition.displaySettings.yAxisName" (ngModelChange)="refresh()">
+      <input matInput [(ngModel)]="definition.yAxisName" (ngModelChange)="refresh()">
     </mat-form-field>
   </mat-dialog-content>
 
@@ -90,13 +90,13 @@
   <mat-dialog-content class="dialog-content">
     <mat-form-field appearance="outline" class="left-field">
       <mat-label>x-Axis Type</mat-label>
-      <mat-select [(ngModel)]="definition.displaySettings.xAxisType" (ngModelChange)="refresh()">
+      <mat-select [(ngModel)]="definition.xAxisType" (ngModelChange)="refresh()">
         <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType | titlecase}}</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="outline" class="right-field">
       <mat-label>y-Axis Type</mat-label>
-      <mat-select [(ngModel)]="definition.displaySettings.yAxisType" (ngModelChange)="refresh()">
+      <mat-select [(ngModel)]="definition.yAxisType" (ngModelChange)="refresh()">
         <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType | titlecase}}</mat-option>
       </mat-select>
     </mat-form-field>
@@ -106,14 +106,14 @@
     <mat-form-field appearance="outline" class="left-field">
       <mat-label>Custom x-Axis Minimum</mat-label>
       <code>
-        <input matInput type="number" [(ngModel)]="definition.displaySettings.xAxisMinValue"
+        <input matInput type="number" [(ngModel)]="definition.xAxisMinValue"
                (ngModelChange)="refresh()">
       </code>
     </mat-form-field>
     <mat-form-field appearance="outline" class="right-field">
       <mat-label>Custom y-Axis Minimum</mat-label>
       <code>
-        <input matInput type="number" [(ngModel)]="definition.displaySettings.yAxisMinValue"
+        <input matInput type="number" [(ngModel)]="definition.yAxisMinValue"
                (ngModelChange)="refresh()">
       </code>
     </mat-form-field>
@@ -123,14 +123,14 @@
     <mat-form-field appearance="outline" class="left-field">
       <mat-label>Custom x-Axis Maximum</mat-label>
       <code>
-        <input matInput type="number" [(ngModel)]="definition.displaySettings.xAxisMaxValue"
+        <input matInput type="number" [(ngModel)]="definition.xAxisMaxValue"
                (ngModelChange)="refresh()">
       </code>
     </mat-form-field>
     <mat-form-field appearance="outline" class="right-field">
       <mat-label>Custom y-Axis Maximum</mat-label>
       <code>
-        <input matInput type="number" [(ngModel)]="definition.displaySettings.yAxisMaxValue"
+        <input matInput type="number" [(ngModel)]="definition.yAxisMaxValue"
                (ngModelChange)="refresh()">
       </code>
     </mat-form-field>
@@ -173,7 +173,6 @@
       </p>
     </div>
   </mat-dialog-content>
->>>>>>>>> Temporary merge branch 2
 
   <mat-dialog-actions class="dialog-actions">
     <button mat-button [mat-dialog-close]="null">Cancel</button>
