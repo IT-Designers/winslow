@@ -141,6 +141,8 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import * as echarts from 'echarts';
 import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/project-thumbnail.component';
 
+import { ProjectControlViewTabComponent } from './project-view/project-control-view-tab/project-control-view-tab.component';
+import { ControlViewLibraryComponent } from './project-view/project-control-view-tab/control-view-library/control-view-library.component';
 
 @NgModule({
   declarations: [
@@ -216,6 +218,8 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
     ProjectSettingsTabComponent,
     ProjectHistoryComponent,
     ProjectHistoryGroupInfoComponent,
+    ProjectControlViewTabComponent,
+    ControlViewLibraryComponent,
     ProjectThumbnailComponent,
   ],
   imports: [
