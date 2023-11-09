@@ -25,7 +25,7 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
   ) {
     const definition: ChartDefinition = dialogData;
 
-    this.chart = new AnalysisChart(this.csvFilesService, undefined, definition);
+    this.chart = new AnalysisChart(this.csvFilesService, definition);
 
     this.definition = {...definition};
     this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot);
