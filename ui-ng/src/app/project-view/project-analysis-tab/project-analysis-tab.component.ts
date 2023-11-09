@@ -221,8 +221,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
   private loadChart(file: FileInfo) {
     console.log(`Loading chart ${file.name}`);
     return lastValueFrom(this.filesApi.getFile(file.path)).then(text => {
-      const definition = new ChartDefinition();
-      Object.assign(definition, JSON.parse(text));
+      const definition = new ChartDefinition(JSON.parse(text));
       return new AnalysisChart(this.csvFilesService, file.name, definition);
     });
   }
