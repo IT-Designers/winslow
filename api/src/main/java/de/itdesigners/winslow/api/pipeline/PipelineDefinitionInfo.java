@@ -16,6 +16,7 @@ public record PipelineDefinitionInfo(
         @Nonnull Map<String, String> environment,
         @Nonnull DeletionPolicy deletionPolicy,
         @Nonnull List<Link> groups,
+        @Nonnull List<ChartDefinition> charts,
         @Nullable String belongsToProject,
         boolean publicAccess) {
 
@@ -28,6 +29,7 @@ public record PipelineDefinitionInfo(
             @Nonnull Map<String, String> environment,
             @Nonnull DeletionPolicy deletionPolicy,
             @Nonnull List<Link> groups,
+            @Nonnull List<ChartDefinition> charts,
             @Nullable String belongsToProject,
             boolean publicAccess) {
         this.id               = id;
@@ -38,6 +40,7 @@ public record PipelineDefinitionInfo(
         this.environment      = environment;
         this.deletionPolicy   = deletionPolicy;
         this.groups           = groups;
+        this.charts           = charts;
         this.belongsToProject = belongsToProject;
         this.publicAccess     = publicAccess;
     }
