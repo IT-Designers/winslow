@@ -3,6 +3,8 @@ package de.itdesigners.winslow.config;
 import de.itdesigners.winslow.BaseRepository;
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
+import de.itdesigners.winslow.api.pipeline.ChartAxisType;
+import de.itdesigners.winslow.api.pipeline.ChartDefinition;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import org.junit.Test;
 
@@ -81,6 +83,25 @@ public class PipelineDefinitionTests {
                 List.of(
                         new Link("OwnerBaer", Role.OWNER),
                         new Link("MemberBaer", Role.MEMBER)
+                ),
+                List.of(
+                        new ChartDefinition(
+                                "Example Chart",
+                                ".log_parser_output/blubb.csv",
+                                false,
+                                "$TIMESTAMP;$1;$0;$SOURCE;$ERROR;!;$WINSLOW_PIPELINE_ID",
+                                "$1",
+                                "Example Value",
+                                ChartAxisType.VALUE,
+                                0,
+                                100,
+                                "$TIMESTAMP",
+                                "Time",
+                                ChartAxisType.TIME,
+                                null,
+                                null,
+                                50
+                        )
                 ),
                 null,
                 true

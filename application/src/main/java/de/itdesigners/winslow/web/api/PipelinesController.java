@@ -340,6 +340,7 @@ public class PipelinesController {
                                             user.name(),
                                             Role.OWNER
                                     )),
+                                    Collections.emptyList(),
                                     null,
                                     false
                             );
