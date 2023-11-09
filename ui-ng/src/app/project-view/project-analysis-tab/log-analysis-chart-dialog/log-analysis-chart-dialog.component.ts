@@ -1,6 +1,6 @@
 import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
-import {ChartAxisType, LogChart, LogChartDefinition, LogChartSnapshot} from '../log-chart-definition';
+import {ChartAxisType, AnalysisChart, ChartDefinition, ChartSnapShot} from '../chart-definition';
 import {Observable, Subscription} from 'rxjs';
 import {CsvFile, CsvFilesService} from '../csv-files.service';
 import {map} from "rxjs/operators";
@@ -13,19 +13,19 @@ import {map} from "rxjs/operators";
 export class LogAnalysisChartDialogComponent implements OnDestroy {
 
   AxisTypes = Object.values(ChartAxisType);
-  chart: LogChart;
-  definition: LogChartDefinition;
-  latestSnapshot: LogChartSnapshot | undefined;
+  chart: AnalysisChart;
+  definition: ChartDefinition;
+  latestSnapshot: ChartSnapShot | undefined;
   subscription: Subscription;
   fileSuggestions: Observable<string[]>;
 
   constructor(
     private csvFilesService: CsvFilesService,
-    @Inject(MAT_DIALOG_DATA) dialogData: LogChartDefinition,
+    @Inject(MAT_DIALOG_DATA) dialogData: ChartDefinition,
   ) {
-    const definition: LogChartDefinition = dialogData;
+    const definition: ChartDefinition = dialogData;
 
-    this.chart = new LogChart(this.csvFilesService, undefined, definition);
+    this.chart = new AnalysisChart(this.csvFilesService, undefined, definition);
 
     this.definition = {...definition};
     this.subscription = this.chart.snapshot$.subscribe(snapshot => this.latestSnapshot = snapshot);
@@ -43,7 +43,7 @@ export class LogAnalysisChartDialogComponent implements OnDestroy {
     this.chart.definition$.next(this.definition);
   }
 
-  findEmptyCsvFiles(snapshot: LogChartSnapshot): CsvFile[] {
+  findEmptyCsvFiles(snapshot: ChartSnapShot): CsvFile[] {
     if (snapshot == null) {
       return [];
     }

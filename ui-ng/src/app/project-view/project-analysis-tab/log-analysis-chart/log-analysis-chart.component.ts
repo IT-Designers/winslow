@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartAxisType, ChartGraph, LogChart, LogChartDefinition} from "../log-chart-definition";
+import {ChartAxisType, ChartGraph, AnalysisChart, ChartDefinition} from "../chart-definition";
 import {Subscription} from "rxjs";
 import {EChartsOption, SeriesOption} from 'echarts'
 
@@ -13,7 +13,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   options: EChartsOption = {};
   subscription?: Subscription;
 
-  @Input() chart?: LogChart
+  @Input() chart?: AnalysisChart
 
   constructor() {
   }
@@ -35,7 +35,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe()
   }
 
-  settings(settings: LogChartDefinition) {
+  settings(settings: ChartDefinition) {
     const newOptions: EChartsOption = {
       title: {
         text: settings.name,

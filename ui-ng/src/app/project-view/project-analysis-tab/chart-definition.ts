@@ -5,25 +5,25 @@ import {GlobalChartSettings} from '../../api/local-storage.service';
 import {generateColor} from './colors';
 import {CsvFile, CsvFilesService} from './csv-files.service';
 
-export class LogChartSnapshot {
+export class ChartSnapShot {
 
-  constructor(definition: LogChartDefinition, csvFiles: CsvFile[], globalChartSettings: GlobalChartSettings) {
+  constructor(definition: ChartDefinition, csvFiles: CsvFile[], globalChartSettings: GlobalChartSettings) {
     this.definition = definition;
     this.csvFiles = csvFiles;
-    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles);
+    this.formatterVariables = ChartSnapShot.getFormatterVariables(definition, csvFiles);
     this.graphs = csvFiles.map((file, index) => ({
-      data: LogChartSnapshot.getDataSet(definition, file.content, this.formatterVariables, globalChartSettings),
+      data: ChartSnapShot.getDataSet(definition, file.content, this.formatterVariables, globalChartSettings),
       name: file.stageId,
       color: generateColor(index)
     }));
   }
 
-  readonly definition: LogChartDefinition;
+  readonly definition: ChartDefinition;
   readonly csvFiles: CsvFile[];
   readonly graphs: ChartGraph[];
   readonly formatterVariables: string[];
 
-  private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFile[]): string[] {
+  private static getFormatterVariables(definition: ChartDefinition, csvFiles: CsvFile[]): string[] {
     if (!definition.formatterFromHeaderRow) {
       // formatter can be treated as a CSV file with 1 row
       let parsedFormatter = parseCsv(definition.customFormatter);
@@ -49,9 +49,9 @@ export class LogChartSnapshot {
     return variables;
   }
 
-  private static getDataSet(definition: LogChartDefinition, csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
+  private static getDataSet(definition: ChartDefinition, csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
     const rowLimit = globalChartSettings?.enableEntryLimit ? globalChartSettings.entryLimit : definition.entryLimit;
-    const rows = LogChartSnapshot.getLatestRows(csvContent, rowLimit ?? 0);
+    const rows = ChartSnapShot.getLatestRows(csvContent, rowLimit ?? 0);
     const xIndex = formatterVariables.findIndex(variableName => variableName == definition.xVariable);
     const yIndex = formatterVariables.findIndex(variableName => variableName == definition.yVariable);
 
@@ -74,15 +74,15 @@ export class LogChartSnapshot {
   }
 }
 
-export class LogChart {
+export class AnalysisChart {
 
-  readonly snapshot$: Observable<LogChartSnapshot>;
+  readonly snapshot$: Observable<ChartSnapShot>;
   readonly filename: string;
-  readonly definition$: BehaviorSubject<LogChartDefinition>;
+  readonly definition$: BehaviorSubject<ChartDefinition>;
 
-  constructor(service: CsvFilesService, id?: string, definition?: LogChartDefinition) {
-    this.filename = id ?? LogChart.generateUniqueId();
-    this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
+  constructor(service: CsvFilesService, id?: string, definition?: ChartDefinition) {
+    this.filename = id ?? AnalysisChart.generateUniqueId();
+    this.definition$ = new BehaviorSubject(definition ?? new ChartDefinition());
 
     const csvFileInfos$ = this.definition$.pipe(
       switchMap(definition => service.getCsvFiles$(definition.file)),
@@ -90,7 +90,7 @@ export class LogChart {
 
     this.snapshot$ = combineLatest([this.definition$, csvFileInfos$, service.globalChartSettings$]).pipe(
       map(([definition, csvFileInfos, globalChartSettings]) => {
-        return new LogChartSnapshot(definition, csvFileInfos, globalChartSettings);
+        return new ChartSnapShot(definition, csvFileInfos, globalChartSettings);
       }),
     );
   }
@@ -101,7 +101,7 @@ export class LogChart {
   }
 }
 
-export class LogChartDefinition {
+export class ChartDefinition {
   name: string = 'Unnamed chart';
   file: string;
   formatterFromHeaderRow: boolean;
