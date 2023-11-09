@@ -20,8 +20,7 @@
 
 .top-bar .stage-selection {
   grid-column: 3/4;
-  margin: -0.5em 0 -2em;
-  height: 0.5em;
+  margin: -0.5em 0 -1.5em;
 }
 
 .top-bar .compare-stage-button {
