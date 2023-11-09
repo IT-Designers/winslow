@@ -3,7 +3,7 @@ import {ProjectApiService} from '../../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import {FilesApiService} from '../../api/files-api.service';
-import {LogChart, LogChartDefinition} from './log-chart-definition';
+import {AnalysisChart, ChartDefinition} from './chart-definition';
 import {
   LogAnalysisSettingsDialogComponent
 } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
@@ -26,7 +26,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
   projectHistory: ExecutionGroupInfo[] = [];
   latestStage: StageInfo | null = null;
   selectableStages: StageInfo[] = [];
-  charts: LogChart[] = [];
+  charts: AnalysisChart[] = [];
 
   stageToDisplay: StageInfo | null = null;
   stagesToCompare: (StageInfo | null)[] = [];
@@ -164,7 +164,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
   }
 
   createChart() {
-    const chart = new LogChart(this.csvFilesService);
+    const chart = new AnalysisChart(this.csvFilesService);
     this.charts.push(chart);
     this.openEditChartDialog(chart);
   }
@@ -185,7 +185,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
     });
   }
 
-  openEditChartDialog(chart: LogChart) {
+  openEditChartDialog(chart: AnalysisChart) {
     const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
       data: chart.definition$.getValue(),
     });
@@ -221,13 +221,13 @@ export class ProjectAnalysisTabComponent implements OnInit {
   private loadChart(file: FileInfo) {
     console.log(`Loading chart ${file.name}`);
     return lastValueFrom(this.filesApi.getFile(file.path)).then(text => {
-      const definition = new LogChartDefinition();
+      const definition = new ChartDefinition();
       Object.assign(definition, JSON.parse(text));
-      return new LogChart(this.csvFilesService, file.name, definition);
+      return new AnalysisChart(this.csvFilesService, file.name, definition);
     });
   }
 
-  private saveChart(filename: string, chart: LogChartDefinition) {
+  private saveChart(filename: string, chart: ChartDefinition) {
     const file = new File([JSON.stringify(chart, null, 2)], filename, {type: 'application/json'});
     lastValueFrom(this.filesApi.uploadFile(this.pathToChartsDir(), file))
       .then(() => console.log(`Uploaded chart ${filename}`));
@@ -237,7 +237,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
     return `${ProjectAnalysisTabComponent.PATH_TO_CHARTS}/${this.project.pipelineDefinition.id}`;
   }
 
-  private deleteChart(chart: LogChart) {
+  private deleteChart(chart: AnalysisChart) {
     const filepath = this.pathToChartsDir();
     this.filesApi.delete(`${filepath}/${chart.filename}`).catch(error => {
       alert('Failed to delete chart');
