@@ -78,11 +78,9 @@ export class ChartSnapShot {
 export class AnalysisChart {
 
   readonly snapshot$: Observable<ChartSnapShot>;
-  readonly filename: string;
   readonly definition$: BehaviorSubject<ChartDefinition>;
 
-  constructor(service: CsvFilesService, id?: string, definition?: ChartDefinition) {
-    this.filename = id ?? AnalysisChart.generateUniqueId();
+  constructor(service: CsvFilesService, definition?: ChartDefinition) {
     this.definition$ = new BehaviorSubject(definition ?? ChartDefinition.default());
 
     const csvFileInfos$ = this.definition$.pipe(
@@ -94,11 +92,6 @@ export class AnalysisChart {
         return new ChartSnapShot(definition, csvFileInfos, globalChartSettings);
       }),
     );
-  }
-
-  private static generateUniqueId() {
-    const id = `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}`;
-    return `${id}.json`;
   }
 }
 
@@ -158,7 +151,6 @@ export class ChartDefinition {
   }
 }
 
-// used by echarts
 export enum ChartAxisType {
   VALUE = 'VALUE',
   LOG = 'LOG',
