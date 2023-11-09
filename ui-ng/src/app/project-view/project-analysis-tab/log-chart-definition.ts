@@ -102,17 +102,17 @@ export class LogChart {
 }
 
 export class LogChartDefinition {
+  name: string = 'Unnamed chart';
   file: string;
   formatterFromHeaderRow: boolean;
   customFormatter: string;
+  entryLimit?: number;
   xVariable: string;
-  entryLimit: null | number;
-  name: string = 'Unnamed chart';
-  yVariable: string;
   xAxisName: string = 'x-Axis';
   xAxisMinValue?: number;
   xAxisMaxValue?: number;
   xAxisType: ChartAxisType = ChartAxisType.VALUE;
+  yVariable: string;
   yAxisName: string = 'y-Axis';
   yAxisMinValue?: number;
   yAxisMaxValue?: number;
@@ -124,15 +124,15 @@ export class LogChartDefinition {
     this.customFormatter = '$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID';
     this.xVariable = '';
     this.yVariable = '$1';
-    this.entryLimit = null;
+    this.entryLimit = undefined;
   }
 }
 
 // used by echarts
 export enum ChartAxisType {
-  VALUE = 'value',
-  LOG = 'log',
-  TIME = 'time',
+  VALUE = 'VALUE',
+  LOG = 'LOG',
+  TIME = 'TIME',
 }
 
 export type ChartDataSet = ChartDataPoint[];
