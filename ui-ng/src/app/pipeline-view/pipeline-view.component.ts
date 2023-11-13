@@ -126,14 +126,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
                 }
 
               }
-              /*console.log("Edit Form in pipeline view: ");
-              console.dir(editForm);
-              console.log("Complete Pipeline Definition in pipeline view: ");
-              console.dir(this.pipelineDefinition);
-              console.log("Complete Pipeline Edit Definition in pipeline view: ");
-              console.dir(this.pipelineDefinitionEdit);*/
               this.editState(editForm);
-              /*console.dir(this.diagramMaker.store.getState());*/
             });
             this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
             this.libraryComponent.instance.diagramApiCall.subscribe((event) => {   //these are calls made by the buttons in the node menu
@@ -208,9 +201,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         const createAction = action as CreateNodeAction<any>;
         //-------------------- Differentiated by the typeId of the node --------------------
         if (createAction.payload.typeId == 'node-normal' || createAction.payload.typeId == 'node-start') {
-          let stageData: StageWorkerDefinitionInfo;
+          let stageData: StageDefinitionInfoUnion;
           //-------------------- They get new Stage Definitions from the api --------------------
-          this.defaultGetter.getWorkerDefinition().then((data: StageWorkerDefinitionInfo) => {
+          this.defaultGetter.getWorkerDefinition().then((data: StageDefinitionInfoUnion) => {
             //-------------------- Which are used to update the pipelineDefinitionEdit Object --------------------
             this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
@@ -221,8 +214,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
           });
 
         } else if (createAction.payload.typeId == 'node-and-splitter') {
-          let stageData: StageAndGatewayDefinitionInfo;
-          this.defaultGetter.getAndSplitterDefinition().then((data: StageAndGatewayDefinitionInfo) => {
+          let stageData: StageDefinitionInfoUnion;
+          this.defaultGetter.getAndSplitterDefinition().then((data: StageDefinitionInfoUnion) => {
             this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
@@ -231,8 +224,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
             console.log("No element created: Error while getting the data for the new element. " + err);
           });
         } else if (createAction.payload.typeId == 'node-if-splitter') {
-          let stageData: StageXOrGatewayDefinitionInfo;
-          this.defaultGetter.getIfSplitterDefinition().then((data: StageXOrGatewayDefinitionInfo) => {
+          let stageData: StageDefinitionInfoUnion;
+          this.defaultGetter.getIfSplitterDefinition().then((data: StageDefinitionInfoUnion) => {
             this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
@@ -241,8 +234,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
             console.log("No element created: Error while getting the data for the new element. " + err);
           });
         } else if (createAction.payload.typeId == 'node-all-merger') {
-          let stageData: StageAndGatewayDefinitionInfo;
-          this.defaultGetter.getAllMergerDefinition().then((data: StageAndGatewayDefinitionInfo) => {
+          let stageData: StageDefinitionInfoUnion;
+          this.defaultGetter.getAllMergerDefinition().then((data: StageDefinitionInfoUnion) => {
             this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
@@ -251,8 +244,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
             console.log("No element created: Error while getting the data for the new element. " + err);
           });
         } else if (createAction.payload.typeId == 'node-any-merger') {
-          let stageData: StageXOrGatewayDefinitionInfo;
-          this.defaultGetter.getAnyMergerDefinition().then((data: StageXOrGatewayDefinitionInfo) => {
+          let stageData: StageDefinitionInfoUnion;
+          this.defaultGetter.getAnyMergerDefinition().then((data: StageDefinitionInfoUnion) => {
             this.pipelineDefinitionEdit.stages.push(data);
             stageData = data;
             dispatch(this.createElement(stageData, createAction));
@@ -393,11 +386,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         edgeIds: edgeIdsToDelete,
       }
     }
-    console.dir(this.diagramMaker.store.getState());
-    /*let deleteAction: DeleteNodeAction = {
-      type: DiagramMakerActions.NODE_DELETE,
-      payload: node,
-    }*/
     this.diagramMaker.api.dispatch(deleteAction)
     return deleteAction;
   }
@@ -451,17 +439,8 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
 
   ngOnInit() {
     this.initialData = this.initClass.getInitData(this.pipelineDefinition);
-    console.log("Full Pipeline Definition: ");
-    console.dir(this.pipelineDefinition);
 
   }
-
-  /*
-  ngOnInit() {
-    this.initialData = this.initClass.getInitData(this.objectDefinition);
-
-  }
-  * */
 
   ngOnChanges() {
     //console.dir(this.pipelineDefinition);
@@ -509,7 +488,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnDestroy(): void {     //code to save the workflow (in the frontend) e.g. while switching tabs
-    //console.dir('Diagram onDestroy');
     this.pipelineDefinition.stages = [];
     const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
     const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
