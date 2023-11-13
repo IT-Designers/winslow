@@ -21,7 +21,6 @@ export class GroupAddMemberDialogComponent implements OnInit {
   displayUsers: UserInfo[] = [];
   allRoles: string[] = [];
   userSearchInput = '';
-  showUsersToggle = false;
   selectedRole: Role = "MEMBER";
 
   constructor(
@@ -41,6 +40,7 @@ export class GroupAddMemberDialogComponent implements OnInit {
         }
         return true;
       });
+      this.displayUsers = this.allUsers;
     });
     this.roleApi.getRoles().then((roles) => this.allRoles = roles);
   }
@@ -57,10 +57,6 @@ export class GroupAddMemberDialogComponent implements OnInit {
 
   onKeyUp() {
     if (this.userSearchInput.length >= 2) {
-      this.showUsersToggle = true;
-      this.filterFunction();
-    }
-    if (this.showUsersToggle) {
       this.filterFunction();
     }
   }

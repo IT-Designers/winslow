@@ -8,8 +8,8 @@
              (keyup)="filterFunction()">
     </mat-form-field>
 
-    <div class="scrollable">
-      <!-- ---------- Version with separate remove button ---------- -->
+    <mat-list class="scrollable">
+      <!-- ---------- Version with seperate remove button ---------- -->
       <div *ngIf="displayGroups.length > 0">
         <div class="list-item" *ngFor="let group of displayGroups">
           <div class="username-label">
@@ -38,7 +38,7 @@
         <label class="no-groups-label">No groups assigned</label>
       </div>
 
-    </div>
+    </mat-list>
     <div class="add-member-button-container">
       <button class="mat-raised-button"
               mat-raised-button=""

@@ -9,13 +9,7 @@
              [(ngModel)]="userSearchInput"
              (keyup)="filterFunction()">
     </mat-form-field>
-    <!--<input matInput
-           type="text"
-           class="text-input"
-           [(ngModel)]="userSearchInput"
-           placeholder="Search.."
-           (keyup)="filterFunction()">-->
-    <div class="scrollable">
+    <mat-list class="scrollable">
       <div class="list-item" *ngFor="let user of displayMembers">
         <label class="username-label">{{user.name}}</label>
         <mat-form-field appearance="fill" class="role-dropdown">
@@ -41,7 +35,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </mat-list>
     <div class="add-member-button-container">
       <button class="mat-raised-button"
               mat-raised-button=""
