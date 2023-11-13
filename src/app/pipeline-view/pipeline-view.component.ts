@@ -33,9 +33,8 @@ import {AddToolsComponent} from './add-tools/add-tools.component';
 import {DiagramGatewayComponent} from './diagram-gateway/diagram-gateway.component';
 import {
   PipelineDefinitionInfo, Raw,
-  StageAndGatewayDefinitionInfo,
   StageDefinitionInfo,
-  StageDefinitionInfoUnion, StageWorkerDefinitionInfo, StageXOrGatewayDefinitionInfo,
+  StageDefinitionInfoUnion,
 } from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
@@ -292,17 +291,32 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         if (edgeDestPossible && edgeSrcPossible) {
           this.saveStatus = false;
           let stageToEdit: StageDefinitionInfoUnion | undefined = this.pipelineDefinitionEdit.stages.find((element: StageDefinitionInfoUnion) => element.id === createEdgeAction.payload.src);
-          stageToEdit?.nextStages.push(createEdgeAction.payload.dest);
+          if (stageToEdit) {
+            stageToEdit.nextStages.push(createEdgeAction.payload.dest);
+          }
           dispatch(createEdgeAction);
         }
       } else if (action.type === DiagramMakerActions.DELETE_ITEMS) {
         let deleteAction = action as DeleteItemsAction;
         const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
         const keyIter = nodeMap.keys()
-        console.log(deleteAction.payload.nodeIds);
         if (deleteAction.payload.nodeIds.includes(keyIter.next().value)) {
         } else {
           this.saveStatus = false;
+          // delete stage from edit object
+          let delIndex = this.pipelineDefinitionEdit.stages.findIndex((stage) => stage.id === deleteAction.payload.nodeIds[0]);
+          if (delIndex) {
+            this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
+          }
+          // delete stage as nextStage if it was used
+          for (let stage of this.pipelineDefinitionEdit.stages) {
+            if (stage.nextStages.includes(deleteAction.payload.nodeIds[0])) {
+              let delIndexNext = stage.nextStages.findIndex(s => s === deleteAction.payload.nodeIds[0]);
+              if (delIndexNext != undefined) {
+                stage.nextStages.splice(delIndexNext, 1);
+              }
+            }
+          }
           dispatch(deleteAction);
         }
       } else if (action.type === DiagramMakerActions.PANEL_DRAG) {         //Interceptor to fix a bug where the panel clips at the top edge
