@@ -4,26 +4,27 @@ import {CsvFileContent, parseCsv} from './csv-parser';
 import {GlobalChartSettings} from '../../api/local-storage.service';
 import {generateColor} from './colors';
 import {CsvFile, CsvFilesService} from './csv-files.service';
+import {Raw} from "../../api/winslow-api";
 
-export class LogChartSnapshot {
+export class ChartSnapShot {
 
-  constructor(definition: LogChartDefinition, csvFiles: CsvFile[], globalChartSettings: GlobalChartSettings) {
+  constructor(definition: ChartDefinition, csvFiles: CsvFile[], globalChartSettings: GlobalChartSettings) {
     this.definition = definition;
     this.csvFiles = csvFiles;
-    this.formatterVariables = LogChartSnapshot.getFormatterVariables(definition, csvFiles);
+    this.formatterVariables = ChartSnapShot.getFormatterVariables(definition, csvFiles);
     this.graphs = csvFiles.map((file, index) => ({
-      data: LogChartSnapshot.getDataSet(definition, file.content, this.formatterVariables, globalChartSettings),
+      data: ChartSnapShot.getDataSet(definition, file.content, this.formatterVariables, globalChartSettings),
       name: file.stageId,
       color: generateColor(index)
     }));
   }
 
-  readonly definition: LogChartDefinition;
+  readonly definition: ChartDefinition;
   readonly csvFiles: CsvFile[];
   readonly graphs: ChartGraph[];
   readonly formatterVariables: string[];
 
-  private static getFormatterVariables(definition: LogChartDefinition, csvFiles: CsvFile[]): string[] {
+  private static getFormatterVariables(definition: ChartDefinition, csvFiles: CsvFile[]): string[] {
     if (!definition.formatterFromHeaderRow) {
       // formatter can be treated as a CSV file with 1 row
       let parsedFormatter = parseCsv(definition.customFormatter);
@@ -49,9 +50,9 @@ export class LogChartSnapshot {
     return variables;
   }
 
-  private static getDataSet(definition: LogChartDefinition, csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
+  private static getDataSet(definition: ChartDefinition, csvContent: CsvFileContent, formatterVariables: string[], globalChartSettings: GlobalChartSettings): ChartDataSet {
     const rowLimit = globalChartSettings?.enableEntryLimit ? globalChartSettings.entryLimit : definition.entryLimit;
-    const rows = LogChartSnapshot.getLatestRows(csvContent, rowLimit ?? 0);
+    const rows = ChartSnapShot.getLatestRows(csvContent, rowLimit ?? 0);
     const xIndex = formatterVariables.findIndex(variableName => variableName == definition.xVariable);
     const yIndex = formatterVariables.findIndex(variableName => variableName == definition.yVariable);
 
@@ -74,15 +75,13 @@ export class LogChartSnapshot {
   }
 }
 
-export class LogChart {
+export class AnalysisChart {
 
-  readonly snapshot$: Observable<LogChartSnapshot>;
-  readonly filename: string;
-  readonly definition$: BehaviorSubject<LogChartDefinition>;
+  readonly snapshot$: Observable<ChartSnapShot>;
+  readonly definition$: BehaviorSubject<ChartDefinition>;
 
-  constructor(service: CsvFilesService, id?: string, definition?: LogChartDefinition) {
-    this.filename = id ?? LogChart.generateUniqueId();
-    this.definition$ = new BehaviorSubject(definition ?? new LogChartDefinition());
+  constructor(service: CsvFilesService, definition?: ChartDefinition) {
+    this.definition$ = new BehaviorSubject(definition ?? ChartDefinition.default());
 
     const csvFileInfos$ = this.definition$.pipe(
       switchMap(definition => service.getCsvFiles$(definition.file)),
@@ -90,56 +89,72 @@ export class LogChart {
 
     this.snapshot$ = combineLatest([this.definition$, csvFileInfos$, service.globalChartSettings$]).pipe(
       map(([definition, csvFileInfos, globalChartSettings]) => {
-        return new LogChartSnapshot(definition, csvFileInfos, globalChartSettings);
+        return new ChartSnapShot(definition, csvFileInfos, globalChartSettings);
       }),
     );
   }
-
-  private static generateUniqueId() {
-    const id = `${Date.now().toString().slice(5)}${Math.random().toString().slice(2)}`;
-    return `${id}.json`;
-  }
 }
 
-export class LogChartDefinition {
-  displaySettings: ChartDisplaySettings;
+export class ChartDefinition {
+  name: string;
   file: string;
   formatterFromHeaderRow: boolean;
   customFormatter: string;
   xVariable: string;
-  yVariable: string;
-  entryLimit: null | number;
-
-  constructor() {
-    this.displaySettings = new ChartDisplaySettings();
-    this.file = 'logfile.csv';
-    this.formatterFromHeaderRow = true;
-    this.customFormatter = '$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID';
-    this.xVariable = '';
-    this.yVariable = '$1';
-    this.entryLimit = null;
-  }
-}
-
-export class ChartDisplaySettings {
-  name: string = 'Unnamed chart';
-
-  xAxisName: string = 'x-Axis';
+  xAxisName: string;
   xAxisMinValue?: number;
   xAxisMaxValue?: number;
   xAxisType: ChartAxisType = ChartAxisType.VALUE;
-
-  yAxisName: string = 'y-Axis';
+  yVariable: string;
+  yAxisName: string;
   yAxisMinValue?: number;
   yAxisMaxValue?: number;
   yAxisType: ChartAxisType = ChartAxisType.VALUE;
+  entryLimit?: number;
+
+  constructor(data: Raw<ChartDefinition>) {
+    this.name = data.name;
+    this.file = data.file;
+    this.formatterFromHeaderRow = data.formatterFromHeaderRow;
+    this.customFormatter = data.customFormatter;
+    this.entryLimit = data.entryLimit;
+    this.xVariable = data.xVariable;
+    this.xAxisName = data.xAxisName;
+    this.xAxisMinValue = data.xAxisMinValue;
+    this.xAxisMaxValue = data.xAxisMaxValue;
+    this.xAxisType = data.xAxisType;
+    this.yVariable = data.yVariable;
+    this.yAxisName = data.yAxisName;
+    this.yAxisMinValue = data.yAxisMinValue;
+    this.yAxisMaxValue = data.yAxisMaxValue;
+    this.yAxisType = data.yAxisType;
+  }
+
+  static default() {
+    return new ChartDefinition({
+      customFormatter: '$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID',
+      entryLimit: undefined,
+      file: '.log_parser_output/example.csv',
+      formatterFromHeaderRow: true,
+      name: 'Unnamed Chart',
+      xAxisMaxValue: undefined,
+      xAxisMinValue: undefined,
+      xAxisName: "x-Axis",
+      xAxisType: ChartAxisType.VALUE,
+      xVariable: "",
+      yAxisMaxValue: 0,
+      yAxisMinValue: 100,
+      yAxisName: "y-Axis",
+      yAxisType: ChartAxisType.VALUE,
+      yVariable: "$1"
+    });
+  }
 }
 
-// used by echarts
 export enum ChartAxisType {
-  VALUE = 'value',
-  LOG = 'log',
-  TIME = 'time',
+  VALUE = 'VALUE',
+  LOG = 'LOG',
+  TIME = 'TIME',
 }
 
 export type ChartDataSet = ChartDataPoint[];

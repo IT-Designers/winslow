@@ -1,4 +1,5 @@
 import {FileInfoAttribute, humanReadableFileSize} from "./files-api.service";
+import {ChartDefinition} from "../project-view/project-analysis-tab/chart-definition";
 
 /*
  * Represents the properties of a class, excluding its methods.
@@ -494,6 +495,7 @@ export class PipelineDefinitionInfo {
   environment: Record<string, string>;
   deletionPolicy: DeletionPolicy;
   groups: Link[];
+  charts: ChartDefinition[];
   belongsToProject: string | null;
   publicAccess: boolean;
 
@@ -506,6 +508,7 @@ export class PipelineDefinitionInfo {
     this.environment = data.environment;
     this.deletionPolicy = data.deletionPolicy;
     this.groups = data.groups;
+    this.charts = data.charts;
     this.belongsToProject = data.belongsToProject;
     this.publicAccess = data.publicAccess;
   }

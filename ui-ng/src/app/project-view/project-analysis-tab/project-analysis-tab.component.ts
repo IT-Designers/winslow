@@ -1,16 +1,18 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ProjectApiService} from '../../api/project-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
 import {FilesApiService} from '../../api/files-api.service';
-import {LogChart, LogChartDefinition} from './log-chart-definition';
+import {AnalysisChart, ChartDefinition} from './chart-definition';
 import {
   LogAnalysisSettingsDialogComponent
 } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import {generateColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
-import {ExecutionGroupInfo, FileInfo, ProjectInfo, StageInfo} from '../../api/winslow-api';
+import {ExecutionGroupInfo, ProjectInfo, StageInfo} from '../../api/winslow-api';
 import {lastValueFrom} from "rxjs";
+import {PipelineApiService} from "../../api/pipeline-api.service";
+import {DialogService} from "../../dialog.service";
+import {ProjectApiService} from "../../api/project-api.service";
 
 @Component({
   selector: 'app-project-analysis-tab',
@@ -26,15 +28,16 @@ export class ProjectAnalysisTabComponent implements OnInit {
   projectHistory: ExecutionGroupInfo[] = [];
   latestStage: StageInfo | null = null;
   selectableStages: StageInfo[] = [];
-  charts: LogChart[] = [];
+  charts: AnalysisChart[] = [];
 
   stageToDisplay: StageInfo | null = null;
   stagesToCompare: (StageInfo | null)[] = [];
 
   constructor(
-    private dialog: MatDialog,
+    private matDialog: MatDialog,
+    private customDialog: DialogService,
+    private pipelineApi: PipelineApiService,
     private projectApi: ProjectApiService,
-    private filesApi: FilesApiService,
     private csvFilesService: CsvFilesService,
   ) {
   }
@@ -42,14 +45,18 @@ export class ProjectAnalysisTabComponent implements OnInit {
   @Input() selectedStageId: string | undefined;
 
   @Input() set project(project: ProjectInfo) {
-    this.isLongLoading = true;
     this._project = project;
-    this.resetStagesAndCharts();
 
+    this.resetStagesAndCharts();
+    this.charts = project
+      .pipelineDefinition
+      .charts
+      .map(definition => new AnalysisChart(this.csvFilesService, definition));
+
+    this.isLongLoading = true;
     this.projectApi.getProjectHistory(project.id)
       .then(projectHistory => this.loadStagesFromHistory(projectHistory))
-      .then(() => this.loadCharts())
-      .finally(() => this.isLongLoading = false);
+      .then(_ => this.isLongLoading = false);
   }
 
   get project(): ProjectInfo {
@@ -110,7 +117,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
 
   refreshStages() {
     const stages: (StageInfo | null)[] = [this.stageToDisplay, ...this.stagesToCompare];
-    const filtered: StageInfo[] = stages.filter((stage): stage is StageInfo => stage != null) ;
+    const filtered: StageInfo[] = stages.filter((stage): stage is StageInfo => stage != null);
     this.csvFilesService.setStages(filtered);
   }
 
@@ -164,7 +171,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
   }
 
   createChart() {
-    const chart = new LogChart(this.csvFilesService);
+    const chart = new AnalysisChart(this.csvFilesService);
     this.charts.push(chart);
     this.openEditChartDialog(chart);
   }
@@ -172,25 +179,25 @@ export class ProjectAnalysisTabComponent implements OnInit {
   removeChart(chartIndex: number) {
     const chart = this.charts[chartIndex];
     if (!chart) {
-      throw new Error('Chart index is out of range!');
+      this.customDialog.error('Cannot delete chart: Index is out of range.');
     }
-    this.deleteChart(chart);
     this.charts.splice(chartIndex, 1);
+    this.saveCharts();
   }
 
   saveCharts() {
-    this.charts.forEach(chart => {
-      const filename = chart.filename;
-      this.saveChart(filename, chart.definition$.getValue());
-    });
+    this.project.pipelineDefinition.charts = this.charts.map(chart => chart.definition$.getValue());
+    this.pipelineApi.setPipelineDefinition(this.project.pipelineDefinition).catch(_ => {
+      this.customDialog.error("Failed to save charts.");
+    })
   }
 
-  openEditChartDialog(chart: LogChart) {
-    const dialogRef = this.dialog.open(LogAnalysisChartDialogComponent, {
+  openEditChartDialog(chart: AnalysisChart) {
+    const dialogRef = this.matDialog.open(LogAnalysisChartDialogComponent, {
       data: chart.definition$.getValue(),
     });
 
-    dialogRef.afterClosed().subscribe(definition => {
+    dialogRef.afterClosed().subscribe((definition: ChartDefinition | null) => {
       if (definition != null) {
         chart.definition$.next(definition);
         this.saveCharts();
@@ -199,49 +206,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
   }
 
   openGlobalSettingsDialog() {
-    this.dialog.open(LogAnalysisSettingsDialogComponent);
+    this.matDialog.open(LogAnalysisSettingsDialogComponent);
   }
 
-  private loadCharts() {
-    const filepath = this.pathToChartsDir();
-
-    return this.filesApi.listFiles(filepath)
-      .then(files => {
-        return Promise.all(files.map(file => this.loadChart(file)));
-      })
-      .then(charts => {
-        this.charts = charts;
-      })
-      .catch(error => {
-        alert('Failed to load charts');
-        console.error(error);
-      });
-  }
-
-  private loadChart(file: FileInfo) {
-    console.log(`Loading chart ${file.name}`);
-    return lastValueFrom(this.filesApi.getFile(file.path)).then(text => {
-      const definition = new LogChartDefinition();
-      Object.assign(definition, JSON.parse(text));
-      return new LogChart(this.csvFilesService, file.name, definition);
-    });
-  }
-
-  private saveChart(filename: string, chart: LogChartDefinition) {
-    const file = new File([JSON.stringify(chart, null, 2)], filename, {type: 'application/json'});
-    lastValueFrom(this.filesApi.uploadFile(this.pathToChartsDir(), file))
-      .then(() => console.log(`Uploaded chart ${filename}`));
-  }
-
-  private pathToChartsDir() {
-    return `${ProjectAnalysisTabComponent.PATH_TO_CHARTS}/${this.project.pipelineDefinition.id}`;
-  }
-
-  private deleteChart(chart: LogChart) {
-    const filepath = this.pathToChartsDir();
-    this.filesApi.delete(`${filepath}/${chart.filename}`).catch(error => {
-      alert('Failed to delete chart');
-      console.error(error);
-    });
-  }
 }

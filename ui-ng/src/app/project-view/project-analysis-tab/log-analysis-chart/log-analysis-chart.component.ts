@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartGraph, ChartDisplaySettings, LogChart} from "../log-chart-definition";
+import {ChartAxisType, ChartGraph, AnalysisChart, ChartDefinition} from "../chart-definition";
 import {Subscription} from "rxjs";
 import {EChartsOption, SeriesOption} from 'echarts'
 
@@ -13,7 +13,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   options: EChartsOption = {};
   subscription?: Subscription;
 
-  @Input() chart?: LogChart
+  @Input() chart?: AnalysisChart
 
   constructor() {
   }
@@ -25,7 +25,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     }
     this.subscription = this.chart.snapshot$.subscribe({
       next: snapshot => {
-        this.settings(snapshot.definition.displaySettings)
+        this.settings(snapshot.definition)
         this.data(snapshot.graphs)
       }
     })
@@ -35,7 +35,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe()
   }
 
-  settings(settings: ChartDisplaySettings) {
+  settings(settings: ChartDefinition) {
     const newOptions: EChartsOption = {
       title: {
         text: settings.name,
@@ -48,7 +48,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
       },
       xAxis: {
         name: settings.xAxisName,
-        type: settings.xAxisType,
+        type: this.toEchartsAxisType(settings.xAxisType),
         min: settings.xAxisMinValue ?? 'dataMin',
         max: settings.xAxisMaxValue ?? 'dataMax',
         nameLocation: 'middle',
@@ -56,7 +56,7 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
       },
       yAxis: {
         name: settings.yAxisName,
-        type: settings.yAxisType,
+        type: this.toEchartsAxisType(settings.yAxisType),
         min: settings.yAxisMinValue ?? 'dataMin',
         max: settings.yAxisMaxValue ?? 'dataMax',
         nameLocation: 'middle',
@@ -86,6 +86,18 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
 
   private updateOptions(newOptions: EChartsOption) {
     this.options = {...this.options, ...newOptions}
+  }
+
+  private toEchartsAxisType(original: ChartAxisType) {
+    //return original.toLowerCase(); // TypeScript does not like this
+    switch (original) {
+      case ChartAxisType.VALUE:
+        return "value"
+      case ChartAxisType.LOG:
+        return "log"
+      case ChartAxisType.TIME:
+        return "time"
+    }
   }
 }
 

@@ -47,7 +47,7 @@
 
       <mat-icon class="color-icon" [ngStyle]="{'color': stageColor(i + 1)}">trending_up</mat-icon>
 
-      <mat-form-field class="stage-selection">
+      <mat-form-field class="stage-selection" appearance="outline">
         <mat-select
             [(ngModel)]="stagesToCompare[i]"
             (selectionChange)="refreshStages()"

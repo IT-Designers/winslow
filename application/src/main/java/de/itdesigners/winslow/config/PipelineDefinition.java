@@ -2,6 +2,7 @@ package de.itdesigners.winslow.config;
 
 import de.itdesigners.winslow.api.auth.Link;
 import de.itdesigners.winslow.api.auth.Role;
+import de.itdesigners.winslow.api.pipeline.ChartDefinition;
 import de.itdesigners.winslow.api.pipeline.DeletionPolicy;
 import de.itdesigners.winslow.auth.ACL;
 import de.itdesigners.winslow.auth.User;
@@ -23,6 +24,7 @@ public record PipelineDefinition (
         @Nonnull Map<String, String> environment,
         @Nonnull DeletionPolicy deletionPolicy,
         @Nonnull List<Link> groups,
+        @Nonnull List<ChartDefinition> charts,
         @Nullable String belongsToProject, // A pipeline can either be shared or owned by a single project
         boolean publicAccess) {
 
@@ -35,6 +37,7 @@ public record PipelineDefinition (
                 Collections.emptyList(),
                 Collections.emptyMap(),
                 new DeletionPolicy(),
+                Collections.emptyList(),
                 Collections.emptyList(),
                 null,
                 false
@@ -50,6 +53,7 @@ public record PipelineDefinition (
             "requiredEnvVariables",
             "deletionPolicy",
             "groups",
+            "charts",
             "belongsToProject",
             "publicAccess",
     })
@@ -63,6 +67,7 @@ public record PipelineDefinition (
             @Nullable Map<String, String> environment,
             @Nullable DeletionPolicy deletionPolicy,
             @Nullable List<Link> groups,
+            @Nullable List<ChartDefinition> charts,
             @Nullable String belongsToProject,
             boolean publicAccess
     ) {
@@ -78,6 +83,7 @@ public record PipelineDefinition (
         this.environment = environment != null ? environment : Collections.emptyMap();
         this.deletionPolicy = deletionPolicy != null ? deletionPolicy : new DeletionPolicy();
         this.groups = groups != null ? groups : Collections.emptyList();
+        this.charts = charts != null ? charts : Collections.emptyList();
         this.belongsToProject = belongsToProject;
         this.publicAccess = publicAccess;
         this.check();
@@ -130,6 +136,7 @@ public record PipelineDefinition (
                         .stream()
                         .filter(link -> !Objects.equals(link.name(), groupName))
                         .toList(),
+                charts(),
                 belongsToProject(),
                 publicAccess()
         );
@@ -151,6 +158,7 @@ public record PipelineDefinition (
                                 .stream()
                                 .filter(link -> !Objects.equals(link.name(), group))
                 ).toList(),
+                charts(),
                 belongsToProject(),
                 publicAccess()
         );
@@ -167,6 +175,7 @@ public record PipelineDefinition (
                 environment(),
                 deletionPolicy(),
                 groups(),
+                charts(),
                 projectId,
                 publicAccess()
         );
