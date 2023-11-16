@@ -85,10 +85,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "winslow-ui-ng:build:production"
+              "buildTarget": "winslow-ui-ng:build:production"
             },
             "development": {
-              "browserTarget": "winslow-ui-ng:build:development"
+              "buildTarget": "winslow-ui-ng:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -96,7 +96,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "winslow-ui-ng:build"
+            "buildTarget": "winslow-ui-ng:build"
           }
         },
         "test": {
