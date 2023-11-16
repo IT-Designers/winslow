@@ -15,9 +15,9 @@
       <div *ngFor="let projectGroup of projectsGroups, last as isLast">
         <div *ngIf="projectGroup.projects.length > 1" id="groups">
           <app-projects-group
-              [projectGroup]="projectGroup" [filter]="filter"
-              [selectedProject]="selectedProject"
-              [stateInfo]="stateInfo"
+            [projectGroup]="projectGroup" [filter]="filter"
+            [selectedProject]="selectedProject"
+            [stateInfo]="stateInfo"
           ></app-projects-group>
         </div>
       </div>
@@ -25,20 +25,20 @@
       <div *ngFor="let projectGroup of projectsGroups, let i = index, last as isLast">
         <div *ngIf="projectGroup.projects.length <= 1" id="projects">
           <mat-list-item
-              *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
-              (click)="selectProject(project)"
-              [class.selected]="project.id == selectedProject?.id"
+            *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
+            (click)="selectProject(project)"
+            [class.selected]="project.id == selectedProject?.id"
           >
             <app-project-view-header
-                [project]="project"
-                [filter]="filter"
-                [state]="stateInfo?.get(project.id)?.state"
-                [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
-                [progress]="stateInfo?.get(project.id)?.stageProgress"
-                [running]="stateInfo?.get(project.id)?.state === 'RUNNING'"
-                [stage]="stateInfo?.get(project.id)?.description"
-                (tagActionPrimary)="filter.toggleIncludedTag($event)"
-                (tagActionSecondary)="filter.addExcludedTag($event)"
+              [project]="project"
+              [filter]="filter"
+              [state]="stateInfo?.get(project.id)?.state"
+              [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
+              [progress]="stateInfo?.get(project.id)?.stageProgress"
+              [running]="stateInfo?.get(project.id)?.state === 'RUNNING'"
+              [stage]="stateInfo?.get(project.id)?.description"
+              (tagActionPrimary)="filter.toggleIncludedTag($event)"
+              (tagActionSecondary)="filter.addExcludedTag($event)"
             ></app-project-view-header>
           </mat-list-item>
         </div>
@@ -52,26 +52,26 @@
       <div *ngFor="let projectGroup of projectsGroups, last as isLast">
         <div *ngIf="projectGroup.projects.length > 1">
           <app-projects-group
-              [projectGroup]="projectGroup" [filter]="filter"
-              [selectedProject]="selectedProject"
-              [stateInfo]="stateInfo"
+            [projectGroup]="projectGroup" [filter]="filter"
+            [selectedProject]="selectedProject"
+            [stateInfo]="stateInfo"
           ></app-projects-group>
         </div>
         <div *ngIf="projectGroup.projects.length <= 1">
           <mat-list-item
-              *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
-              (click)="selectProject(project)"
-              [class.selected]="project.id == selectedProject?.id"
+            *ngFor="let project of projectGroup.projects" class="project-selection-sidebar-item"
+            (click)="selectProject(project)"
+            [class.selected]="project.id == selectedProject?.id"
           >
             <app-project-view-header
-                [project]="project" [filter]="filter"
-                [state]="stateInfo?.get(project.id)?.state"
-                [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
-                [progress]="stateInfo?.get(project.id)?.stageProgress"
-                [running]="stateInfo?.get(project.id)?.state==='RUNNING'"
-                [stage]="stateInfo?.get(project.id)?.description"
-                (tagActionPrimary)="filter.toggleIncludedTag($event)"
-                (tagActionSecondary)="filter.addExcludedTag($event)"
+              [project]="project" [filter]="filter"
+              [state]="stateInfo?.get(project.id)?.state"
+              [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
+              [progress]="stateInfo?.get(project.id)?.stageProgress"
+              [running]="stateInfo?.get(project.id)?.state==='RUNNING'"
+              [stage]="stateInfo?.get(project.id)?.description"
+              (tagActionPrimary)="filter.toggleIncludedTag($event)"
+              (tagActionSecondary)="filter.addExcludedTag($event)"
             ></app-project-view-header>
           </mat-list-item>
         </div>
@@ -80,15 +80,38 @@
   </div>
 </div>
 
-<!-- Section for Normal-View -->
+<!-- Section for Normal-View
 <div *ngIf="!projectsGroups">
   <mat-list>
     <mat-list-item
-        *ngFor="let project of projectsFiltered, last as isLast" class="project-selection-sidebar-item"
-        (click)="selectProject(project)"
-        [class.selected]="project.id == selectedProject?.id"
+      *ngFor="let project of projectsFiltered, last as isLast" class="project-selection-sidebar-item"
+      (click)="selectProject(project)"
+      [class.selected]="project.id == selectedProject?.id"
     >
       <app-project-view-header
+        [project]="project" [filter]="filter"
+        [state]="stateInfo?.get(project.id)?.state"
+        [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
+        [progress]="stateInfo?.get(project.id)?.stageProgress"
+        [running]="stateInfo?.get(project.id)?.state === 'RUNNING'"
+        [stage]="stateInfo?.get(project.id)?.description"
+        (tagActionPrimary)="filter.toggleIncludedTag($event)"
+        (tagActionSecondary)="filter.addExcludedTag($event)"
+      ></app-project-view-header>
+    </mat-list-item>
+  </mat-list>
+</div>
+-->
+
+@if (!projectsGroups) {
+  <mat-list>
+    @for (project of projectsFiltered; track project.id) {
+      <mat-list-item
+        class="project-selection-sidebar-item"
+        (click)="selectProject(project)"
+        [class.selected]="project.id == selectedProject?.id"
+      >
+        <app-project-view-header
           [project]="project" [filter]="filter"
           [state]="stateInfo?.get(project.id)?.state"
           [pauseReason]="stateInfo?.get(project.id)?.pauseReason"
@@ -97,7 +120,9 @@
           [stage]="stateInfo?.get(project.id)?.description"
           (tagActionPrimary)="filter.toggleIncludedTag($event)"
           (tagActionSecondary)="filter.addExcludedTag($event)"
-      ></app-project-view-header>
-    </mat-list-item>
+        ></app-project-view-header>
+      </mat-list-item>
+    }
   </mat-list>
-</div>
+}
+
