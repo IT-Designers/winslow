@@ -1,4 +1,4 @@
-import 'zone.js/dist/zone-error';
+import 'zone.js';
 
 export const environment = {
   production: false,
