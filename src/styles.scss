@@ -35,7 +35,7 @@ $dark-theme: mat.define-dark-theme((
   density: -1.9999,
 ));
 
-@mixin darkMode { // this mixin can be used for alternative darkmode settings
+@mixin darkMode { // this mixin can be used for alternative dark mode settings
     @media(prefers-color-scheme: dark) {
       @content;
     }
@@ -43,14 +43,24 @@ $dark-theme: mat.define-dark-theme((
 
 //default light-theme
 @include mat.all-component-themes($light-theme);
-@include darkMode { // usage example for darkmode mixin
-  @include mat.all-component-themes($dark-theme); //TODO
+@include darkMode { // usage example for dark mode mixin
+  @include mat.all-component-themes($dark-theme);
 }
 
 :root {
-  --color-background: #ffffff;
+  --color-background-light: #ffffff;
   @media(prefers-color-scheme: dark) {
-    --color-background: #303030;
+    --color-background-light: #424242;
+  }
+
+  --color-background-middle: #ffffff;
+  @media(prefers-color-scheme: dark) {
+    --color-background-middle: #383838;
+  }
+
+  --color-background-dark: #ffffff;
+  @media(prefers-color-scheme: dark) {
+    --color-background-dark: #303030;
   }
 }
 
