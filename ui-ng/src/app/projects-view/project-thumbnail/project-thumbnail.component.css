@@ -3,8 +3,9 @@
 }
 
 :host > * {
-  width: 4rem;
-  height: 4rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
 }
 
 :host > img {
