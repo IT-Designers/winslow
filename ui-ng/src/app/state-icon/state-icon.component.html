@@ -1,15 +1,53 @@
-<div class="state-icon" ngSwitch="{{stateString()}}">
-  <mat-icon *ngSwitchCase="'preparing'" matTooltip="Preparing" fontSet="material-icons-outlined" class="state-icon-preparing">hourglass_empty</mat-icon>
-  <ng-container *ngSwitchCase="'running'" >
-    <mat-icon *ngIf="!animation" matTooltip="Running" fontSet="material-icons-outlined" class="state-icon-running">network_check</mat-icon>
-    <mat-progress-spinner *ngIf="animation" matTooltip="Running" [diameter]="20" mode="indeterminate"></mat-progress-spinner>
-  </ng-container>
-  <mat-icon *ngSwitchCase="'succeeded'" matTooltip="Success" fontSet="material-icons-outlined" class="state-icon-success">offline_pin</mat-icon>
-  <mat-icon *ngSwitchCase="'failed'" matTooltip="Failure" fontSet="material-icons-outlined" class="state-icon-failure">highlight_off</mat-icon>
-  <mat-icon *ngSwitchCase="'paused'" matTooltip="Paused" fontSet="material-icons-outlined" class="state-icon-paused">pause_circle_outline</mat-icon>
-  <mat-icon *ngSwitchCase="'warning'" matTooltip="Warning" fontSet="material-icons-outlined" class="state-icon-paused">warning</mat-icon>
-  <mat-icon *ngSwitchCase="'enqueued'" matTooltip="Enqueued" fontSet="material-icons-outlined" class="state-icon-paused">alarm</mat-icon>
-  <mat-icon *ngSwitchCase="'configured'" matTooltip="Configured" fontSet="material-icons-outlined" class="state-icon-configured">build</mat-icon>
-  <mat-icon *ngSwitchCase="'skipped'" matTooltip="Skipped" fontSet="material-icons-outlined" class="state-icon-skipped">redo</mat-icon>
-  <mat-icon *ngSwitchDefault [matTooltip]="stateString() ?? ''" fontSet="material-icons-outlined" class="state-icon-unknown">help_outline</mat-icon>
-</div>
+@switch (stateString()) {
+  @case ('preparing') {
+    <mat-icon matTooltip="Preparing" fontSet="material-icons-outlined" class="state-icon-preparing">hourglass_empty
+    </mat-icon>
+  }
+  @case ('running') {
+    <mat-icon *ngIf="!animation" matTooltip="Running" fontSet="material-icons-outlined" class="state-icon-running">
+      network_check
+    </mat-icon>
+    <mat-progress-spinner *ngIf="animation" matTooltip="Running" [diameter]="20"
+                          mode="indeterminate"></mat-progress-spinner>
+  }
+  @case ('succeeded') {
+    <mat-icon matTooltip="Success" fontSet="material-icons-outlined"
+              class="state-icon-success">offline_pin
+    </mat-icon>
+  }
+  @case ('failed') {
+    <mat-icon matTooltip="Failure" fontSet="material-icons-outlined" class="state-icon-failure">
+      highlight_off
+    </mat-icon>
+  }
+  @case ('paused') {
+    <mat-icon matTooltip="Paused" fontSet="material-icons-outlined" class="state-icon-paused">
+      pause_circle_outline
+    </mat-icon>
+  }
+  @case ('warning') {
+    <mat-icon matTooltip="Warning" fontSet="material-icons-outlined" class="state-icon-paused">
+      warning
+    </mat-icon>
+  }
+  @case ('enqueued') {
+    <mat-icon matTooltip="Enqueued" fontSet="material-icons-outlined"
+              class="state-icon-paused">alarm
+    </mat-icon>
+  }
+  @case ('configured') {
+    <mat-icon matTooltip="Configured" fontSet="material-icons-outlined"
+              class="state-icon-configured">build
+    </mat-icon>
+  }
+  @case ('skipped') {
+    <mat-icon matTooltip="Skipped" fontSet="material-icons-outlined"
+              class="state-icon-skipped">redo
+    </mat-icon>
+  }
+  @default {
+    <mat-icon [matTooltip]="stateString() ?? 'State unknown'" fontSet="material-icons-outlined"
+              class="state-icon-unknown">help_outline
+    </mat-icon>
+  }
+}

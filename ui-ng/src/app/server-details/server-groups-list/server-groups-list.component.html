@@ -13,167 +13,171 @@
     </mat-form-field>
     <mat-list class="scrollable">
       <div *ngIf="displayGroups != undefined && displayGroups.length > 0">
-        <div class="list-item" *ngFor="let group of editableResourceAllocations.groupLimits">
-          <div class="username-label">
-            <mat-chip-option
-              [style.background-color]="getChipColor(group)"
-              [matTooltip]="getTooltip(group)"
-              [matTooltipShowDelay]="250"
-              class="username-chip"
-              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
-            >
-              {{group.name}}
-            </mat-chip-option>
-          </div>
-
-          <mat-form-field appearance="outline" class="role-dropdown">
-            <mat-label>Choose Role</mat-label>
-            <mat-select
-              class="role-select"
-              [(value)]="group.role"
-              (selectionChange)="roleChanged(group)"
-              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
-            >
-              <mat-option *ngFor="let role of roles" [value]="role">{{role}}</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-accordion class="big-accordion">
-            <mat-expansion-panel [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'">
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  Resources:
-                </mat-panel-title>
-                <label class="resource-title-value">
-                  {{group.resourceLimitation.cpu}}/{{maxCpuCores}} CPU Cores
-                  {{group.resourceLimitation.gpu}}/{{maxGpus}} GPUs &nbsp;
-                  {{getMemoryString(group.resourceLimitation.mem)}}/{{(maxMemory / 1024).toFixed()}} GiB &nbsp;
-                </label>
-              </mat-expansion-panel-header>
-              <div class="expansion-content-container">
-                <div class="single-resource-container">
-                  <label class="resource-label">CPU Cores: </label>
-                  <mat-form-field class="input-width" appearance="outline">
-                    <input
-                      type="number"
-                      matInput
-                      [min]="0"
-                      [max]="maxCpuCores"
-                      [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxCpuCores <= 0"
-                      [(ngModel)]="group.resourceLimitation.cpu"
-                    >
-                    <mat-error>
-                      There are only {{maxCpuCores}} cores available
-                    </mat-error>
-                  </mat-form-field>
-                  <mat-slider
-                    class="slider"
-                    [discrete]="true"
-                    [showTickMarks]="true"
-                    [min]="0"
-                    [max]="maxCpuCores"
-                    [step]="1"
-                    [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxCpuCores <= 0"
-                    #ngSlider
-                  ><input
-                    matSliderThumb #ngSliderThumb="matSliderThumb"
-                    [(ngModel)]="group.resourceLimitation.cpu"
-                  />
-                  </mat-slider>
-                </div>
-                <div
-                  class="single-resource-container"
-                  [ngStyle]="{'border-left':'1px solid darkgrey', 'border-right':'1px solid darkgrey'}"
-                >
-                  <label class="resource-label">GPUs: </label>
-                  <mat-form-field class="input-width" appearance="outline">
-                    <input
-                      type="number"
-                      matInput
-                      [min]="0"
-                      [max]="maxGpus"
-                      placeholder="GPUs"
-                      [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER' || maxGpus <= 0"
-                      [(ngModel)]="group.resourceLimitation.gpu"
-                    >
-                    <mat-error>
-                      There are only {{maxGpus}} GPUs available
-                    </mat-error>
-                  </mat-form-field>
-                  <mat-slider
-                    class="slider"
-                    [discrete]="true"
-                    [showTickMarks]="true"
-                    [min]="0"
-                    [max]="maxGpus"
-                    [step]="1"
-                    [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxGpus <= 0"
-                    #ngSlider
-                  ><input
-                    matSliderThumb #ngSliderThumb="matSliderThumb"
-                    [(ngModel)]="group.resourceLimitation.gpu"
-                  />
-                  </mat-slider>
-                </div>
-                <div class="single-resource-container">
-                  <label class="resource-label">Memory: </label>
-                  <mat-form-field class="input-width" appearance="outline">
-                    <input
-                      type="number"
-                      matInput
-                      [min]="0"
-                      [max]="maxMemory"
-                      placeholder="Memory (MiB)"
-                      (change)="memoryInputHasChanged($event)"
-                      [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER' || maxMemory <= 0"
-                      [ngModel]="group.resourceLimitation.mem"
-                    >
-                    <mat-error>
-                      There are only {{maxMemory / 1024}} GiB of Memory available
-                    </mat-error>
-                  </mat-form-field>
-                  <mat-slider
-                    class="slider"
-                    [discrete]="true"
-                    [showTickMarks]="true"
-                    [min]="0"
-                    [max]="maxMemory"
-                    [step]="256"
-                    [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxMemory <= 0"
-                    #ngSlider
-                  >
-                    <input
-                      matSliderThumb
-                      [(ngModel)]="group.resourceLimitation.mem"
-                      #ngSliderThumb="matSliderThumb"
-                    />
-                  </mat-slider>
-                </div>
-              </div>
-              <button
-                mat-raised-button
-                class="update-btn"
-                color="primary"
-                (click)="updateGroup(group)"
+        @for (group of editableResourceAllocations.groupLimits;track $index) {
+          <div class="list-item">
+            <div class="username-label">
+              <mat-chip-option
+                [style.background-color]="getChipColor(group)"
+                [matTooltip]="getTooltip(group)"
+                [matTooltipShowDelay]="250"
+                class="username-chip"
                 [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
               >
-                Update
-              </button>
-            </mat-expansion-panel>
-          </mat-accordion>
+                {{ group.name }}
+              </mat-chip-option>
+            </div>
 
-          <div class="btn-container">
-            <button
-              mat-raised-button
-              class="remove-member-button"
-              color="warn"
-              (click)="onRemoveItemClick(group)"
-              [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
-            >
-              Remove
-            </button>
+            <mat-form-field appearance="outline" class="role-dropdown">
+              <mat-label>Choose Role</mat-label>
+              <mat-select
+                class="role-select"
+                [(value)]="group.role"
+                (selectionChange)="roleChanged(group)"
+                [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
+              >
+                @for (role of roles;track $index) {
+                  <mat-option [value]="role">{{ role }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-accordion class="big-accordion">
+              <mat-expansion-panel [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    Resources:
+                  </mat-panel-title>
+                  <label class="resource-title-value">
+                    {{ group.resourceLimitation.cpu }}/{{ maxCpuCores }} CPU Cores
+                    {{ group.resourceLimitation.gpu }}/{{ maxGpus }} GPUs &nbsp;
+                    {{ getMemoryString(group.resourceLimitation.mem) }}/{{ (maxMemory / 1024).toFixed() }} GiB &nbsp;
+                  </label>
+                </mat-expansion-panel-header>
+                <div class="expansion-content-container">
+                  <div class="single-resource-container">
+                    <label class="resource-label">CPU Cores: </label>
+                    <mat-form-field class="input-width" appearance="outline">
+                      <input
+                        type="number"
+                        matInput
+                        [min]="0"
+                        [max]="maxCpuCores"
+                        [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxCpuCores <= 0"
+                        [(ngModel)]="group.resourceLimitation.cpu"
+                      >
+                      <mat-error>
+                        There are only {{ maxCpuCores }} cores available
+                      </mat-error>
+                    </mat-form-field>
+                    <mat-slider
+                      class="slider"
+                      [discrete]="true"
+                      [showTickMarks]="true"
+                      [min]="0"
+                      [max]="maxCpuCores"
+                      [step]="1"
+                      [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxCpuCores <= 0"
+                      #ngSlider
+                    ><input
+                      matSliderThumb #ngSliderThumb="matSliderThumb"
+                      [(ngModel)]="group.resourceLimitation.cpu"
+                    />
+                    </mat-slider>
+                  </div>
+                  <div
+                    class="single-resource-container"
+                    [ngStyle]="{'border-left':'1px solid darkgrey', 'border-right':'1px solid darkgrey'}"
+                  >
+                    <label class="resource-label">GPUs: </label>
+                    <mat-form-field class="input-width" appearance="outline">
+                      <input
+                        type="number"
+                        matInput
+                        [min]="0"
+                        [max]="maxGpus"
+                        placeholder="GPUs"
+                        [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER' || maxGpus <= 0"
+                        [(ngModel)]="group.resourceLimitation.gpu"
+                      >
+                      <mat-error>
+                        There are only {{ maxGpus }} GPUs available
+                      </mat-error>
+                    </mat-form-field>
+                    <mat-slider
+                      class="slider"
+                      [discrete]="true"
+                      [showTickMarks]="true"
+                      [min]="0"
+                      [max]="maxGpus"
+                      [step]="1"
+                      [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxGpus <= 0"
+                      #ngSlider
+                    ><input
+                      matSliderThumb #ngSliderThumb="matSliderThumb"
+                      [(ngModel)]="group.resourceLimitation.gpu"
+                    />
+                    </mat-slider>
+                  </div>
+                  <div class="single-resource-container">
+                    <label class="resource-label">Memory: </label>
+                    <mat-form-field class="input-width" appearance="outline">
+                      <input
+                        type="number"
+                        matInput
+                        [min]="0"
+                        [max]="maxMemory"
+                        placeholder="Memory (MiB)"
+                        (change)="memoryInputHasChanged($event)"
+                        [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER' || maxMemory <= 0"
+                        [ngModel]="group.resourceLimitation.mem"
+                      >
+                      <mat-error>
+                        There are only {{ maxMemory / 1024 }} GiB of Memory available
+                      </mat-error>
+                    </mat-form-field>
+                    <mat-slider
+                      class="slider"
+                      [discrete]="true"
+                      [showTickMarks]="true"
+                      [min]="0"
+                      [max]="maxMemory"
+                      [step]="256"
+                      [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'  || maxMemory <= 0"
+                      #ngSlider
+                    >
+                      <input
+                        matSliderThumb
+                        [(ngModel)]="group.resourceLimitation.mem"
+                        #ngSliderThumb="matSliderThumb"
+                      />
+                    </mat-slider>
+                  </div>
+                </div>
+                <button
+                  mat-raised-button
+                  class="update-btn"
+                  color="primary"
+                  (click)="updateGroup(group)"
+                  [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
+                >
+                  Update
+                </button>
+              </mat-expansion-panel>
+            </mat-accordion>
+
+            <div class="btn-container">
+              <button
+                mat-raised-button
+                class="remove-member-button"
+                color="warn"
+                (click)="onRemoveItemClick(group)"
+                [disabled]="editableResourceAllocations.freeForAll || userRole === 'MEMBER'"
+              >
+                Remove
+              </button>
+            </div>
           </div>
-        </div>
+        }
       </div>
 
       <div *ngIf="displayGroups && displayGroups.length <= 0" class="list-item">
@@ -215,9 +219,9 @@
               Max. Resources per User:
             </mat-panel-title>
             <label class="resource-title-value">
-              {{editableResourceAllocations.globalLimit?.cpu}}/{{maxCpuCores}} CPU Cores &nbsp;
-              {{editableResourceAllocations.globalLimit?.gpu}}/{{maxGpus}} GPUs &nbsp;
-              {{getMemoryString(editableResourceAllocations.globalLimit?.mem)}}/{{(maxMemory / 1024).toFixed()}} GiB
+              {{ editableResourceAllocations.globalLimit?.cpu }}/{{ maxCpuCores }} CPU Cores &nbsp;
+              {{ editableResourceAllocations.globalLimit?.gpu }}/{{ maxGpus }} GPUs &nbsp;
+              {{ getMemoryString(editableResourceAllocations.globalLimit?.mem) }}/{{ (maxMemory / 1024).toFixed() }} GiB
               &nbsp;
             </label>
           </mat-expansion-panel-header>
@@ -236,7 +240,7 @@
                   [disabled]="userRole === 'MEMBER' || maxCpuCores <= 0"
                 >
                 <mat-error>
-                  There are only {{maxCpuCores}} cores available
+                  There are only {{ maxCpuCores }} cores available
                 </mat-error>
               </mat-form-field>
               <mat-slider
@@ -270,7 +274,7 @@
                   [disabled]="userRole === 'MEMBER' || maxGpus <= 0"
                 >
                 <mat-error>
-                  There are only {{maxGpus}} GPUs available
+                  There are only {{ maxGpus }} GPUs available
                 </mat-error>
               </mat-form-field>
               <mat-slider
@@ -303,7 +307,7 @@
                   [disabled]="userRole === 'MEMBER' || maxMemory <= 0"
                 >
                 <mat-error>
-                  There are only {{maxMemory / 1024}} GiB of Memory available
+                  There are only {{ maxMemory / 1024 }} GiB of Memory available
                 </mat-error>
               </mat-form-field>
               <mat-slider

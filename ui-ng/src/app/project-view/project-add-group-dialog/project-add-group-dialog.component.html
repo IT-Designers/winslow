@@ -2,23 +2,29 @@
   <h2>Add a group</h2>
   <div class="inputs">
     <mat-form-field appearance="outline">
-      <input matInput placeholder="Search for a group..." id="searchInput" [(ngModel)]="groupSearchInput" (keyup)="onKeyUp()">
+      <input matInput placeholder="Search for a group..." id="searchInput" [(ngModel)]="groupSearchInput"
+             (keyup)="onKeyUp()">
     </mat-form-field>
 
     <mat-list id="list" class="list-container" *ngIf="showGroupsToggle">
-      <div class="group-item-from-dialog" *ngFor="let group of displayGroups">
-        <label class="groupname-label-popup">{{group.name}}</label>
-        <mat-form-field appearance="outline" class="role-dropdown">
-          <mat-label>Choose Role</mat-label>
-          <mat-select [(value)]="selectedRole">
-            <mat-option>None</mat-option>
-            <mat-option *ngFor="let role of allRoles" [value]="role">{{role}}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-fab color="primary" class="add-group-round-button" (click)="addGroupClicked(group.name, selectedRole)" [disabled]="!selectedRole">
-          <mat-icon>group_add</mat-icon>
-        </button>
-      </div>
+      @for (group of displayGroups;track group.name) {
+        <div class="group-item-from-dialog">
+          <label class="groupname-label-popup">{{ group.name }}</label>
+          <mat-form-field appearance="outline" class="role-dropdown">
+            <mat-label>Choose Role</mat-label>
+            <mat-select [(value)]="selectedRole">
+              <mat-option>None</mat-option>
+              @for (role of allRoles;track $index) {
+                <mat-option [value]="role">{{ role }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-fab color="primary" class="add-group-round-button"
+                  (click)="addGroupClicked(group.name, selectedRole)" [disabled]="!selectedRole">
+            <mat-icon>group_add</mat-icon>
+          </button>
+        </div>
+      }
     </mat-list>
 
     <div mat-dialog-actions align="end">

@@ -11,27 +11,31 @@
     <mat-list class="scrollable">
       <!-- ---------- Version with seperate remove button ---------- -->
       <div *ngIf="displayGroups.length > 0">
-        <div class="list-item" *ngFor="let group of displayGroups">
-          <div class="username-label">
-            <mat-chip-option [style.background-color]="getColor(group)"
-                             [matTooltip]="getTooltip(group)"
-                             [matTooltipShowDelay]="250">
-              {{group.name}}
-            </mat-chip-option>
+        @for (group of displayGroups;track $index) {
+          <div class="list-item">
+            <div class="username-label">
+              <mat-chip-option [style.background-color]="getColor(group)"
+                               [matTooltip]="getTooltip(group)"
+                               [matTooltipShowDelay]="250">
+                {{ group.name }}
+              </mat-chip-option>
+            </div>
+            <mat-form-field appearance="outline" class="role-dropdown">
+              <mat-label>Choose Role</mat-label>
+              <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
+                @for (role of roles; track $index) {
+                  <mat-option [value]="role">{{ role }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-raised-button
+                    class="remove-member-button"
+                    color="warn"
+                    (click)="onRemoveItemClick(group)">
+              Remove
+            </button>
           </div>
-          <mat-form-field appearance="outline" class="role-dropdown">
-            <mat-label>Choose Role</mat-label>
-            <mat-select class="role-select" [(value)]="group.role" (selectionChange)="roleChanged(group)">
-              <mat-option *ngFor="let role of roles" [value]="role">{{role}}</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <button mat-raised-button
-                  class="remove-member-button"
-                  color="warn"
-                  (click)="onRemoveItemClick(group)">
-            Remove
-          </button>
-        </div>
+        }
       </div>
 
       <div *ngIf="displayGroups.length === 0" class="list-item">

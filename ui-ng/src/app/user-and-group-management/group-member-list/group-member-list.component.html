@@ -10,31 +10,35 @@
              (keyup)="filterFunction()">
     </mat-form-field>
     <mat-list class="scrollable">
-      <div class="list-item" *ngFor="let user of displayMembers">
-        <label class="username-label">{{user.name}}</label>
-        <mat-form-field appearance="fill" class="role-dropdown">
-          <mat-label>Choose Role</mat-label>
-          <mat-select class="role-select"
-                      [(value)]="user.role"
-                      (selectionChange)="roleChanged(user)"
-                      [matTooltipShowDelay]="500"
-                      [matTooltip]="getTooltipSelect(user)"
-                      [disabled]="user == disabledUser || !amIOwner()">
-            <mat-option *ngFor="let role of allRoles" [value]="role">
-              {{role}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <div class="btn-container">
-          <button class="remove-member-button"
-                  (click)="onRemoveItemClick(user)"
-                  [matTooltipShowDelay]="500"
-                  [matTooltip]="getTooltipRemove(user)"
-                  [disabled]="user == disabledUser || !amIOwner()">
-            <mat-icon>person_remove</mat-icon>
-          </button>
+      @for (user of displayMembers;track $index) {
+        <div class="list-item">
+          <label class="username-label">{{ user.name }}</label>
+          <mat-form-field appearance="fill" class="role-dropdown">
+            <mat-label>Choose Role</mat-label>
+            <mat-select class="role-select"
+                        [(value)]="user.role"
+                        (selectionChange)="roleChanged(user)"
+                        [matTooltipShowDelay]="500"
+                        [matTooltip]="getTooltipSelect(user)"
+                        [disabled]="user == disabledUser || !amIOwner()">
+              @for (role of allRoles;track $index) {
+                <mat-option [value]="role">
+                  {{ role }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="btn-container">
+            <button class="remove-member-button"
+                    (click)="onRemoveItemClick(user)"
+                    [matTooltipShowDelay]="500"
+                    [matTooltip]="getTooltipRemove(user)"
+                    [disabled]="user == disabledUser || !amIOwner()">
+              <mat-icon>person_remove</mat-icon>
+            </button>
+          </div>
         </div>
-      </div>
+      }
     </mat-list>
     <div class="add-member-button-container">
       <button class="mat-raised-button"

@@ -1,37 +1,37 @@
 <form [formGroup]="editForm">
   <table *ngIf="formMap$">
-    <ng-container *ngFor="let entry of formMap$ | keyvalue:keepOriginalOrder ; index as i">
+    @for (entry of formMap$ | keyvalue:keepOriginalOrder;track entry.key) {
       <tr>
         <span *ngIf="toDisplayProp(entry.key) && isNotObject(entry.value)" class="val-string">
           <td> <mat-icon
-              *ngIf="isInsideArray(entry.value)" title="Delete Entity from Array" class="delete-icon"
-              (click)="deleteContent(entry)"
+            *ngIf="isInsideArray(entry.value)" title="Delete Entity from Array" class="delete-icon"
+            (click)="deleteContent(entry)"
           > remove_circle </mat-icon>
-            {{entry.key}} </td>
+            {{ entry.key }} </td>
           <td> <input (focusout)="triggerSaveData()" [formControlName]="entry.key"> </td>
         </span>
       </tr>
       <tr *ngIf="!isNotObject(entry.value) && toDisplayProp(entry.key)">
         <td class="nestedField">
           <span class="sub-object">
-            <mat-icon class="icon" (click)="extendData(i)" *ngIf="!extended[i]">keyboard_arrow_right</mat-icon>
-            <mat-icon class="icon" (click)="extendData(i)" *ngIf="extended[i]">keyboard_arrow_down</mat-icon>
-            <div (click)="extendData(i)">{{entry.key}} </div>
+            <mat-icon class="icon" (click)="extendData($index)" *ngIf="!extended[$index]">keyboard_arrow_right</mat-icon>
+            <mat-icon class="icon" (click)="extendData($index)" *ngIf="extended[$index]">keyboard_arrow_down</mat-icon>
+            <div (click)="extendData($index)">{{ entry.key }} </div>
             <mat-icon title="Add Entity to Array" *ngIf="isArray(entry.value)" class="icon" (click)="addContent(entry)">add_box</mat-icon>
           </span>
-          <div *ngIf="entry.value != null" [hidden]="!extended[i]">
+          <div *ngIf="entry.value != null" [hidden]="!extended[$index]">
             <app-edit-forms
-                #form
-                [formObj]="entry.value"
-                [formMap]="entry.value"
-                [objPlace]="entry.key"
-                (onTriggerSaveData)="triggerSaveData()"
-                (onCollectData)="collectFormData($event)"
+              #form
+              [formObj]="entry.value"
+              [formMap]="entry.value"
+              [objPlace]="entry.key"
+              (onTriggerSaveData)="triggerSaveData()"
+              (onCollectData)="collectFormData($event)"
             >
             </app-edit-forms>
           </div>
         </td>
       </tr>
-    </ng-container>
+    }
   </table>
 </form>

@@ -7,15 +7,13 @@
 </ng-template>
 
 <mat-accordion>
-  <div
-      *ngFor="let stage of stagesToDisplay(); index as i; trackBy:trackStageInfo"
-  >
+  @for (stage of stagesToDisplay(); track trackStageInfo) {
     <app-project-history-header
         class="history-header"
-        [class.active]="selectedStageIndex === i"
+        [class.active]="selectedStageIndex === $index"
         [state]="stage.state"
         [isConfigure]="executionGroup.configureOnly"
-        [itemNo]="tryParseStageNumber(stage.id, min(visibleStages, executionGroup.stages.length) - i)"
+        [itemNo]="tryParseStageNumber(stage.id, min(visibleStages, executionGroup.stages.length) - $index)"
         [time]="stage.finishTime != null ? stage.startTime : stage.finishTime"
         [stageName]="executionGroup.stageDefinition.name"
         [showResumeOnlyThisStage]="false"
@@ -26,13 +24,13 @@
         [sharedWorkspace]="!executionGroup.workspaceConfiguration.sharedWithinGroup"
         [nestedWorkspace]="!executionGroup.workspaceConfiguration.nestedWithinGroup"
 
-        (click)="emitStageAndSetIndex(stage, i)"
+        (click)="emitStageAndSetIndex(stage, $index)"
 
         (clickKillCurrentStage)="clickKillStage.emit(stage)"
         (clickUseAsBlueprint)="clickUseAsBlueprint.emit(stage)"
         (clickOpenLogs)="clickOpenLogs.emit(stage)"
         (clickOpenAnalysis)="clickOpenAnalysis.emit(stage)"
     ></app-project-history-header>
-  </div>
+  }
 
 </mat-accordion>

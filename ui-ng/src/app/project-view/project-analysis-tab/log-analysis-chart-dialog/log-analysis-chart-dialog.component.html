@@ -17,7 +17,9 @@
       <mat-label>CSV Source</mat-label>
       <input matInput [(ngModel)]="definition.file" (ngModelChange)="refresh()" [matAutocomplete]="suggestedFiles">
       <mat-autocomplete #suggestedFiles="matAutocomplete">
-        <mat-option *ngFor="let filepath of fileSuggestions | async" [value]="filepath">{{filepath}}</mat-option>
+        @for (filepath of fileSuggestions | async;track $index) {
+          <mat-option [value]="filepath">{{ filepath }}</mat-option>
+        }
       </mat-autocomplete>
     </mat-form-field>
   </mat-dialog-content>
@@ -45,7 +47,8 @@
     <mat-form-field appearance="outline" class="wide-field">
       <mat-label>Limit Entries</mat-label>
       <input matInput type="number" [(ngModel)]="definition.entryLimit" (ngModelChange)="refresh()">
-      <mat-hint class="mat-error" *ngIf="isInvalidEntryLimit(latestSnapshot?.definition?.entryLimit)">Should be greater than
+      <mat-hint class="mat-error" *ngIf="isInvalidEntryLimit(latestSnapshot?.definition?.entryLimit)">Should be greater
+        than
         1 or empty
       </mat-hint>
     </mat-form-field>
@@ -67,10 +70,13 @@
       <mat-label>x-Axis Variable</mat-label>
       <input matInput [(ngModel)]="definition.xVariable" (ngModelChange)="refresh()" [matAutocomplete]="xAxisVariables">
       <mat-autocomplete #xAxisVariables="matAutocomplete">
-        <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
-                    [value]="variable">{{variable}}</mat-option>
+        @for (variable of latestSnapshot?.formatterVariables;track $index) {
+          <mat-option [value]="variable">{{ variable }}
+          </mat-option>
+        }
       </mat-autocomplete>
-      <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot?.definition?.xVariable)">Variable is not part of
+      <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot?.definition?.xVariable)">Variable is not part
+        of
         the formatter
       </mat-hint>
     </mat-form-field>
@@ -78,10 +84,13 @@
       <mat-label>y-Axis Variable</mat-label>
       <input matInput [(ngModel)]="definition.yVariable" (ngModelChange)="refresh()" [matAutocomplete]="yAxisVariables">
       <mat-autocomplete #yAxisVariables="matAutocomplete">
-        <mat-option *ngFor="let variable of latestSnapshot?.formatterVariables"
-                    [value]="variable">{{variable}}</mat-option>
+        @for (variable of latestSnapshot?.formatterVariables;track $index) {
+          <mat-option [value]="variable">{{ variable }}
+          </mat-option>
+        }
       </mat-autocomplete>
-      <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot?.definition?.yVariable)">Variable is not part of
+      <mat-hint class="mat-error" *ngIf="isInvalidVariable(latestSnapshot?.definition?.yVariable)">Variable is not part
+        of
         the formatter
       </mat-hint>
     </mat-form-field>
@@ -91,13 +100,17 @@
     <mat-form-field appearance="outline" class="left-field">
       <mat-label>x-Axis Type</mat-label>
       <mat-select [(ngModel)]="definition.xAxisType" (ngModelChange)="refresh()">
-        <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType | titlecase}}</mat-option>
+        @for (axisType of AxisTypes;track $index) {
+          <mat-option [value]="axisType">{{ axisType | titlecase }}</mat-option>
+        }
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="outline" class="right-field">
       <mat-label>y-Axis Type</mat-label>
       <mat-select [(ngModel)]="definition.yAxisType" (ngModelChange)="refresh()">
-        <mat-option *ngFor="let axisType of AxisTypes" [value]="axisType">{{axisType | titlecase}}</mat-option>
+        @for (axisType of AxisTypes;track $index) {
+          <mat-option [value]="axisType">{{ axisType | titlecase }}</mat-option>
+        }
       </mat-select>
     </mat-form-field>
   </mat-dialog-content>
@@ -147,13 +160,15 @@
   </mat-dialog-content>
 
   <mat-dialog-content class="dialog-content" *ngIf="latestSnapshot">
-    <div class="warning-message" *ngFor="let csvFile of findEmptyCsvFiles(latestSnapshot)">
-      <mat-icon color="warn">warning</mat-icon>
-      <p>
-        No data for file <code>{{csvFile.pathInWorkspace}}</code> for stage <code>{{csvFile.stageId}}</code>.
-        The file may be empty or missing.
-      </p>
-    </div>
+    @for (csvFile of findEmptyCsvFiles(latestSnapshot); track $index) {
+      <div class="warning-message">
+        <mat-icon color="warn">warning</mat-icon>
+        <p>
+          No data for file <code>{{ csvFile.pathInWorkspace }}</code> for stage <code>{{ csvFile.stageId }}</code>.
+          The file may be empty or missing.
+        </p>
+      </div>
+    }
     <div class="warning-message" *ngIf="isInvalidEntryLimit(latestSnapshot.definition.entryLimit)">
       <mat-icon color="warn">warning</mat-icon>
       <p>
@@ -163,13 +178,13 @@
     <div class="warning-message" *ngIf="isInvalidVariable(latestSnapshot.definition.xVariable)">
       <mat-icon color="warn">warning</mat-icon>
       <p>
-        Variable for x-Axis <code>{{latestSnapshot.definition.xVariable}}</code> is not part of the formatter.
+        Variable for x-Axis <code>{{ latestSnapshot.definition.xVariable }}</code> is not part of the formatter.
       </p>
     </div>
     <div class="warning-message" *ngIf="isInvalidVariable(latestSnapshot.definition.yVariable)">
       <mat-icon color="warn">warning</mat-icon>
       <p>
-        Variable for y-Axis <code>{{latestSnapshot.definition.yVariable}}</code> is not part of the formatter.
+        Variable for y-Axis <code>{{ latestSnapshot.definition.yVariable }}</code> is not part of the formatter.
       </p>
     </div>
   </mat-dialog-content>

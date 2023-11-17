@@ -1,5 +1,6 @@
 <div class="context" *ngIf="availableTagsValue.length > 0">
-  <button *ngIf="notVisibleTags.length > 0" class="expansion-button" color="white" mat-mini-fab [matMenuTriggerFor]="menu"
+  <button *ngIf="notVisibleTags.length > 0" class="expansion-button" color="white" mat-mini-fab
+          [matMenuTriggerFor]="menu"
           aria-label="Example icon-button with a menu"
           matTooltip="Show all Context"
           [disabled]="false">
@@ -8,10 +9,12 @@
   <mat-menu #menu="matMenu">
     <button mat-menu-item [disabled]="true">Overhanging tags</button>
     <mat-divider></mat-divider>
-    <button *ngFor="let tag of notVisibleTags" mat-menu-item (click)="changeContext(tag)">
-      <span *ngIf="tag != selectedContext">{{tag}}</span>
-      <span *ngIf="tag == selectedContext"><b>{{tag}}</b></span>
-    </button>
+    @for (tag of notVisibleTags;track $index) {
+      <button mat-menu-item (click)="changeContext(tag)">
+        <span *ngIf="tag != selectedContext">{{ tag }}</span>
+        <span *ngIf="tag == selectedContext"><b>{{ tag }}</b></span>
+      </button>
+    }
   </mat-menu>
 
   <mat-tab-group cdkScrollable="false" mat-align-tabs="start" disablePagination="true" [selectedIndex]="selectedIndex">
@@ -20,12 +23,12 @@
         <div class="custom-tab" (click)="changeContext('')">[No]</div>
       </ng-template>
     </mat-tab>
-    <div *ngFor="let tag of availableTagsValue; let i = index">
+    @for (tag of availableTagsValue;track $index) {
       <mat-tab>
         <ng-template mat-tab-label>
-          <div [id]="i" class="custom-tab" (click)="changeContext(tag)">{{tag}}</div>
+          <div [id]="$index" class="custom-tab" (click)="changeContext(tag)">{{ tag }}</div>
         </ng-template>
       </mat-tab>
-    </div>
+    }
   </mat-tab-group>
 </div>

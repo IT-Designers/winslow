@@ -1,44 +1,45 @@
-  <mat-expansion-panel (contextmenu)="rightClickAction(matMenuTrigger, $event)" class="group" id="group">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div *ngIf="projectGroup.projects.length <= 9">
-          <mat-icon matTooltip="Project group">filter_{{projectGroup.projects.length}}</mat-icon>
-        </div>
-        <div *ngIf="projectGroup.projects.length > 9">
-          <mat-icon matTooltip="Project group">filter_9_plus</mat-icon>
-        </div>
-        <app-tags-with-autocomplete
-          [readonly]="true"
-          [tags]="[projectGroup.name]"
-          (tagActionPrimary)="filter.toggleIncludedTag($event)"
-          (tagActionSecondary)="filter.addExcludedTag($event)">
-        </app-tags-with-autocomplete>
-      </mat-panel-title>
-      <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
-           [matMenuTriggerFor]="menu"
-           [style.left.px]="menuPosition.x"
-           [style.top.px]="menuPosition.y"
-      ></div>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)='openGroupAction(projectGroup.name)'>
-          <span>Group action</span>
-        </button>
-        <button mat-menu-item (click)="filter.addExcludedTag(projectGroup.name)">
-          <span>Exclude Group-Tag from list</span>
-        </button>
-        <button mat-menu-item (click)="filter.addIncludedTag(projectGroup.name)">
-          <span>Filter by Group-Tag</span>
-        </button>
-        <button mat-menu-item (click)="openAddToContext()">
-          <span>Add Group to Context</span>
-        </button>
-      </mat-menu>
-    </mat-expansion-panel-header>
-    <div class="compact-list">
-      <mat-list-item *ngFor="let project of projectGroup.projects, last as isInnerLast"
-                     class="project-selection-sidebar-item"
-                     (click)="selectProject(project)"
-                     [class.selected]="project.id == selectedProject?.id">
+<mat-expansion-panel (contextmenu)="rightClickAction(matMenuTrigger, $event)" class="group" id="group">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      @if (projectGroup.projects.length <= 9) {
+        <mat-icon matTooltip="Project group">filter_{{ projectGroup.projects.length }}</mat-icon>
+      } @else if (projectGroup.projects.length > 9) {
+        <mat-icon matTooltip="Project group">filter_9_plus</mat-icon>
+      }
+      <app-tags-with-autocomplete
+        [readonly]="true"
+        [tags]="[projectGroup.name]"
+        (tagActionPrimary)="filter.toggleIncludedTag($event)"
+        (tagActionSecondary)="filter.addExcludedTag($event)">
+      </app-tags-with-autocomplete>
+    </mat-panel-title>
+    <div #matMenuTrigger='matMenuTrigger' style="visibility: hidden; position: fixed;"
+         [matMenuTriggerFor]="menu"
+         [style.left.px]="menuPosition.x"
+         [style.top.px]="menuPosition.y"
+    ></div>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)='openGroupAction(projectGroup.name)'>
+        <span>Group action</span>
+      </button>
+      <button mat-menu-item (click)="filter.addExcludedTag(projectGroup.name)">
+        <span>Exclude Group-Tag from list</span>
+      </button>
+      <button mat-menu-item (click)="filter.addIncludedTag(projectGroup.name)">
+        <span>Filter by Group-Tag</span>
+      </button>
+      <button mat-menu-item (click)="openAddToContext()">
+        <span>Add Group to Context</span>
+      </button>
+    </mat-menu>
+  </mat-expansion-panel-header>
+  <div class="compact-list">
+    @for (project of projectGroup.projects;track project) {
+
+      <mat-list-item
+        class="project-selection-sidebar-item"
+        (click)="selectProject(project)"
+        [class.selected]="project.id == selectedProject?.id">
         <app-project-view-header
           [project]="project" [filter]="filter"
           [state]="stateInfo?.get(project.id)?.state"
@@ -49,7 +50,10 @@
           (tagActionPrimary)="filter.toggleIncludedTag($event)"
           (tagActionSecondary)="filter.addExcludedTag($event)"
         ></app-project-view-header>
-        <mat-divider class="mat-divider" *ngIf="!isInnerLast" [inset]="true"></mat-divider>
+        @if (!$last) {
+          <mat-divider class="mat-divider" [inset]="true"></mat-divider>
+        }
       </mat-list-item>
-    </div>
-  </mat-expansion-panel>
+    }
+  </div>
+</mat-expansion-panel>

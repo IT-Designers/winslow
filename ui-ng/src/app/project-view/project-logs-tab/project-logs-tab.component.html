@@ -52,24 +52,24 @@
   <div #console class="dark-console window-mode" (scroll)="onConsoleScroll($event)">
     <div #scrollTopTarget></div>
     <pre class="console-container">
-          <code *ngIf="logs != null" class="console"
-          ><ng-container *ngFor="let log of logs; trackBy:lineId"
-          ><span (contextmenu)="rightClickAction(matMenuTrigger, $event, log)"
-          ><span class="line-number no-word-wrap" [matTooltip]="toDate(log.time)">{{log.line}}</span
-          ><span *ngIf="isPatternMatching()"
-                 [class.console-err]="log.error"
-                 [class.console-mgmt]="sourceIsManagement(log.source)"
-          ><app-regular-expression-visualiser
-            [text]="log.message"
-            [pattern]="regularExpressionPattern">
-          </app-regular-expression-visualiser></span
-          ><span *ngIf="!isPatternMatching()"
-                 [class.console-err]="log.error"
-                 [class.console-mgmt]="sourceIsManagement(log.source)"
-          >{{log.message}}</span
-          ></span
-          ></ng-container
-          ></code>
+          <code *ngIf="logs != null" class="console">
+            @for (log of logs;track lineId) {
+              <span (contextmenu)="rightClickAction(matMenuTrigger, $event, log)">
+                <span class="line-number no-word-wrap" [matTooltip]="toDate(log.time)">{{ log.line }}</span>
+                <span *ngIf="isPatternMatching()"
+                      [class.console-err]="log.error"
+                      [class.console-mgmt]="sourceIsManagement(log.source)">
+                  <app-regular-expression-visualiser
+                    [text]="log.message"
+                    [pattern]="regularExpressionPattern">
+          </app-regular-expression-visualiser></span>
+                <span *ngIf="!isPatternMatching()"
+                      [class.console-err]="log.error"
+                      [class.console-mgmt]="sourceIsManagement(log.source)">
+                  {{ log.message }}</span>
+              </span>
+            }
+          </code>
         </pre>
     <div #scrollBottomTarget></div>
   </div>

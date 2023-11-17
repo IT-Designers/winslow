@@ -10,19 +10,23 @@
     </mat-form-field>
 
     <mat-list id="list" class="list-container">
-      <div class="user-item-from-dialog" *ngFor="let user of displayUsers">
-        <label class="username-label-popup">{{user.name}}</label>
-        <mat-form-field appearance="fill" class="role-dropdown">
-          <mat-label>Choose Role</mat-label>
-          <mat-select [(value)]="selectedRole">
-            <mat-option>None</mat-option>
-            <mat-option *ngFor="let role of allRoles" [value]="role">{{role}}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-fab class="add-member-round-button"  (click)="addUserClicked(user.name, selectedRole)" [disabled]="!selectedRole">
-          <mat-icon>person_add</mat-icon>
-        </button>
-        <!--<span class="material-symbols-outlined item-icon" (click)="addUserClicked(user)">person_add</span>-->
+      <div class="user-item-from-dialog">
+        @for (user of displayUsers;track $index) {
+          <label class="username-label-popup">{{ user.name }}</label>
+          <mat-form-field appearance="fill" class="role-dropdown">
+            <mat-label>Choose Role</mat-label>
+            <mat-select [(value)]="selectedRole">
+              <mat-option>None</mat-option>
+              @for (role of allRoles;track $index) {
+                <mat-option [value]="role">{{ role }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-fab class="add-member-round-button" (click)="addUserClicked(user.name, selectedRole)"
+                  [disabled]="!selectedRole">
+            <mat-icon>person_add</mat-icon>
+          </button>
+        }
       </div>
     </mat-list>
 

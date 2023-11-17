@@ -26,14 +26,17 @@
 
     <div class="vmenu-container">
       <mat-card class="vmenu-container-selection">
-        <ng-container [ngSwitch]="selection">
-          <app-system-cfg-env *ngSwitchCase="'env'" [longLoading]="longLoading"></app-system-cfg-env>
-          <app-system-cfg-res-limit *ngSwitchCase="'resource-limits'"
-                                    [longLoading]="longLoading"></app-system-cfg-res-limit>
-          <ng-container *ngSwitchDefault>
+        @switch (selection) {
+          @case ('env') {
+            <app-system-cfg-env [longLoading]="longLoading"></app-system-cfg-env>
+          }
+          @case ('resource-limits') {
+            <app-system-cfg-res-limit [longLoading]="longLoading"></app-system-cfg-res-limit>
+          }
+          @default {
             <i>Nothing selected</i>
-          </ng-container>
-        </ng-container>
+          }
+        }
       </mat-card>
     </div>
   </div>
