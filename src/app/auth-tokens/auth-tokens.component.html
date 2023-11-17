@@ -2,16 +2,16 @@
   <label>Authorized Tokens</label>
 
   <div class="flex-grow">
-    <div *ngFor="let token of tokens; trackBy:trackToken">
+    @for (token of tokens;track trackToken) {
       <button mat-icon-button
               color="warn"
               class="align-right-using-margin"
               (click)="deleteToken(token)"
               [disabled]="!canUserEdit">
-          <mat-icon>delete</mat-icon>
+        <mat-icon>delete</mat-icon>
       </button>
-      {{token.name}}
-    </div>
+      {{ token.name }}
+    }
   </div>
 
   <button mat-mini-fab

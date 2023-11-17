@@ -15,9 +15,11 @@
         [(ngModel)]="stageToDisplay"
         (selectionChange)="refreshStages()"
       >
-        <mat-option *ngFor="let stage of selectableStages" [value]="stage">
-          {{stageLabel(stage)}}
-        </mat-option>
+        @for (stage of selectableStages;track $index) {
+          <mat-option [value]="stage">
+            {{ stageLabel(stage) }}
+          </mat-option>
+        }
       </mat-select>
     </mat-form-field>
 
@@ -40,16 +42,18 @@
         Show most recent Stage
       </button>
 
-      <mat-icon class="color-icon" [ngStyle]="{'color': stageColor(i + 1)}">trending_up</mat-icon>
+      <mat-icon class="color-icon" [ngStyle]="{'color': stageColor($index + 1)}">trending_up</mat-icon>
 
       <mat-form-field class="stage-selection" appearance="outline">
         <mat-select
           [(ngModel)]="stagesToCompare[i]"
           (selectionChange)="refreshStages()"
         >
-          <mat-option *ngFor="let stage of selectableStages" [value]="stage">
-            {{stageLabel(stage)}}
-          </mat-option>
+          @for (stage of selectableStages;track $index) {
+            <mat-option [value]="stage">
+              {{ stageLabel(stage) }}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
 
@@ -57,7 +61,7 @@
               (click)="removeStageToCompare(i)">
         Remove
       </button>
-    </ng-container>
+    }
 
   </div>
 
@@ -66,7 +70,7 @@
   </div>
 
   <div class="chart-grid">
-    <ng-container *ngFor="let chart of charts; let i = index">
+    @for (chart of charts;track $index) {
       <mat-card appearance="outlined" class="chart-card">
         <mat-card-content class="chart-card-content">
           <app-log-analysis-chart
@@ -75,10 +79,10 @@
         </mat-card-content>
         <mat-card-actions>
           <button mat-button (click)="openEditChartDialog(chart)">Edit</button>
-          <button mat-button (click)="removeChart(i)">Remove</button>
+          <button mat-button (click)="removeChart($index)">Remove</button>
         </mat-card-actions>
       </mat-card>
-    </ng-container>
+    }
   </div>
 </div>
 

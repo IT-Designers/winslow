@@ -1,16 +1,14 @@
-<ng-container *ngIf="image">
+@if (image) {
   <img
     [src]="image.src"
     alt="Thumbnail"
     (click)="showFullThumbnail(image.src)"
   >
-</ng-container>
-
-<ng-container *ngIf="!image">
+} @else {
   <div
     class="alternative-text"
     [ngStyle]="alternativeStyle"
   >
-    <span>{{alternativeText}}</span>
+    <span>{{ alternativeText }}</span>
   </div>
-</ng-container>
+}

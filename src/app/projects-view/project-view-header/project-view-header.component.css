@@ -15,7 +15,7 @@
   gap: 0.5rem;
   place-items: center;
 
-  background-color: var(--color-background);
+  background-color: var(--color-background-light);
 }
 
 .project-info-column {

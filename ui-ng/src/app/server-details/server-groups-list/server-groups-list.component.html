@@ -134,7 +134,7 @@
               Remove
             </button>
           </div>
-        </div>
+        }
       </div>
 
       <div *ngIf="displayGroups.length === 0" class="list-item">
@@ -187,7 +187,7 @@
                        [(ngModel)]="editableResourceAllocations.globalLimit.cpu"
                        [disabled]="userRole === 'MEMBER'">
                 <mat-error>
-                  There are only {{maxCpuCores}} cores available
+                  There are only {{ maxCpuCores }} cores available
                 </mat-error>
               </mat-form-field>
               <mat-slider class="slider"
@@ -210,7 +210,7 @@
                        [(ngModel)]="editableResourceAllocations.globalLimit.gpu"
                        [disabled]="userRole === 'MEMBER'">
                 <mat-error>
-                  There are only {{maxGpus}} GPUs available
+                  There are only {{ maxGpus }} GPUs available
                 </mat-error>
               </mat-form-field>
               <mat-slider class="slider"
@@ -234,7 +234,7 @@
                        (change)="memoryInputHasChangedFFA($event)"
                        [disabled]="userRole === 'MEMBER'">
                 <mat-error>
-                  There are only {{maxMemory / 1024}} GiB of Memory available
+                  There are only {{ maxMemory / 1024 }} GiB of Memory available
                 </mat-error>
               </mat-form-field>
               <mat-slider class="slider"

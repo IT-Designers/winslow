@@ -24,24 +24,26 @@
 
     <ul class="files-browser-navigation">
       <ng-template #fileTree let-path="path">
-        <li *ngFor="let file of directories(path)">
-          <p class="directory" [attr.data-path]="file.path">
-            <i
-              [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
-              (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right'}}
-            </i>
-            <i
-              [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
-              (click)="toggleLoadDirectory(file.path)">{{directories(file.path) != null ? 'folder_open' : 'folder'}}
-              <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
-            </i>
-            <label (click)="viewDirectory(file.path)">{{ file.name + formatGitBranch(file) }}</label>
-          </p>
-          <ul>
-            <ng-container
-              *ngTemplateOutlet="fileTree; context:{ path: file.path }"></ng-container>
-          </ul>
-        </li>
+        @for (file of directories(path);track $index) {
+          <li>
+            <p class="directory" [attr.data-path]="file.path">
+              <i
+                [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
+                (click)="toggleLoadDirectory(file.path)">{{ directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right' }}
+              </i>
+              <i
+                [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
+                (click)="toggleLoadDirectory(file.path)">{{ directories(file.path) != null ? 'folder_open' : 'folder' }}
+                <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
+              </i>
+              <label (click)="viewDirectory(file.path)">{{ file.name + formatGitBranch(file) }}</label>
+            </p>
+            <ul>
+              <ng-container
+                *ngTemplateOutlet="fileTree; context:{ path: file.path }"></ng-container>
+            </ul>
+          </li>
+        }
       </ng-template>
       <ng-container *ngTemplateOutlet="fileTree; context:{ path: '/' }"></ng-container>
     </ul>
@@ -54,29 +56,33 @@
           appDragDrop=""
           (onFileDropped)="uploadFile($event)"
       >
-        <li class="file" *ngFor="let file of this.currentDirectory()" (click)="onItemSelected(file)">
-          <i class="material-icons-outlined">{{file.directory ? 'folder' : 'description'}}
-            <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
-          </i>
-          <label class="file-name">{{ file.name }}</label>
-          <label class="last-modified">{{timeStampToDate(file.attributes['last-modified'])}}</label>
-          <label class="action-area file-size file-size-human-readable">{{ file.getFileSizeHumanReadable() }}</label>
-          <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
-          <i class="material-icons-outlined action-area">
-            <a [href]="downloadUrl(file)" target="_blank" (click)="downloadFile(file)">
-              cloud_download
-            </a>
-          </i>
-          <i class="material-icons-outlined action-area" (click)="delete(file)">delete</i>
-        </li>
+        @for (file of this.currentDirectory();track $index) {
+          <li class="file" (click)="onItemSelected(file)">
+            <i class="material-icons-outlined">{{ file.directory ? 'folder' : 'description' }}
+              <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
+            </i>
+            <label class="file-name">{{ file.name }}</label>
+            <label class="last-modified">{{ timeStampToDate(file.attributes['last-modified']) }}</label>
+            <label class="action-area file-size file-size-human-readable">{{ file.getFileSizeHumanReadable() }}</label>
+            <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
+            <i class="material-icons-outlined action-area">
+              <a [href]="downloadUrl(file)" target="_blank" (click)="downloadFile(file)">
+                cloud_download
+              </a>
+            </i>
+            <i class="material-icons-outlined action-area" (click)="delete(file)">delete</i>
+          </li>
+        }
       </ul>
-      <div *ngIf="viewHint != null && viewHint.length > 0" class="hint">{{viewHint}}</div>
+      <div *ngIf="viewHint != null && viewHint.length > 0" class="hint">{{ viewHint }}</div>
     </div>
   </div>
   <div *ngIf="contextMenuVisible" class="context-menu" [ngStyle]="{'left.px': contextMenuX, 'top.px': contextMenuY}">
     <ul>
       <li (click)="createDirectory(); contextMenuVisible = false">New Directory</li>
-      <li (click)="toggleShowDirectorySize(); contextMenuVisible = false">{{showDirectorySize ? 'Hide Directory Size' : 'Show Directory Size'}}</li>
+      <li
+        (click)="toggleShowDirectorySize(); contextMenuVisible = false">{{ showDirectorySize ? 'Hide Directory Size' : 'Show Directory Size' }}
+      </li>
       <li *ngIf="!isGitRepo(this.latestPath)" (click)="cloneGitRepo(); contextMenuVisible = false">Git Clone</li>
       <li *ngIf="isGitRepo(this.latestPath)" (click)="pullGitRepo(); contextMenuVisible = false">Git Pull</li>
       <li *ngIf="isGitRepo(this.latestPath)" (click)="checkoutGitRepo(); contextMenuVisible = false">Git Checkout</li>
@@ -94,16 +100,22 @@
         [showCloseButton]="false">
     <div *swalPortal="swalTargets.content">
       <mat-list *ngIf="dataUpload != undefined">
-        <mat-list *ngFor="let upload of dataUpload.uploads">
-          <ng-container>
-            <p>{{upload.name}}</p>
-            <div>
-              <div>Overall: {{getSpeed(upload.overallUploadSpeed)}} - {{getRemaining(upload.overallUploadSpeed, upload.loaded, upload.total)}} </div>
-              <div *ngIf="!upload.completed">Current: {{getSpeed(upload.currentUploadSpeed)}} - {{getRemaining(upload.currentUploadSpeed, upload.loaded, upload.total)}}</div>
-            </div>
-            <mat-progress-bar mode="determinate" [value]="upload.loaded / upload.total * 100"></mat-progress-bar>
-          </ng-container>
-        </mat-list>
+        @for (upload of dataUpload.uploads;track $index) {
+          <mat-list>
+            <ng-container>
+              <p>{{ upload.name }}</p>
+              <div>
+                <div>Overall: {{ getSpeed(upload.overallUploadSpeed) }}
+                  - {{ getRemaining(upload.overallUploadSpeed, upload.loaded, upload.total) }}
+                </div>
+                <div *ngIf="!upload.completed">Current: {{ getSpeed(upload.currentUploadSpeed) }}
+                  - {{ getRemaining(upload.currentUploadSpeed, upload.loaded, upload.total) }}
+                </div>
+              </div>
+              <mat-progress-bar mode="determinate" [value]="upload.loaded / upload.total * 100"></mat-progress-bar>
+            </ng-container>
+          </mat-list>
+        }
       </mat-list>
     </div>
   </swal>

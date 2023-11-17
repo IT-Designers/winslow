@@ -22,13 +22,13 @@
   <mat-divider></mat-divider>
 
   <mat-list class="list">
+    @for (item of displayItems;track $index) {
       <mat-card class="list-item"
-        *ngFor="let item of displayItems"
-        (click)="itemClicked(item)"
+                (click)="itemClicked(item)"
       >
         <mat-card-header [class.selected]="item.name == selectedItemName" class="list-inline" style="padding: 0.8rem">
           <mat-card-title>
-            {{item.name}}
+            {{ item.name }}
           </mat-card-title>
           <mat-icon matTooltip="{{listItemTooltip}}">edit</mat-icon>
 

@@ -26,9 +26,11 @@
     [hidden]="readonly"
     (optionSelected)="selected($event)"
   >
-    <mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
-      {{tag}}
-    </mat-option>
+    @for (tag of filteredTags | async; track tag) {
+      <mat-option [value]="tag">
+        {{tag}}
+      </mat-option>
+    }
   </mat-autocomplete>
 </ng-template>
 

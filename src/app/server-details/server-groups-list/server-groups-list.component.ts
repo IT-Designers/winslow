@@ -281,4 +281,5 @@ export class ServerGroupsListComponent implements OnInit, OnChanges {
       'Updating Servers FFA status');
   }
 
+  protected readonly indexedDB = indexedDB;
 }
