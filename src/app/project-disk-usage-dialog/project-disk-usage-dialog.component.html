@@ -1,19 +1,24 @@
 <div style="padding: 1rem">
   <mat-accordion>
-    <mat-expansion-panel *ngFor="let project of projects" [expanded]="this.data.projects.length == 1">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          {{project[0].name}}
-        </mat-panel-title>
-        <mat-panel-description>
-          {{project[0].getFileSizeHumanReadable()}}
-        </mat-panel-description>
-      </mat-expansion-panel-header>
-      <div class="content-list">
-        <div *ngFor="let entry of project[1]" class="content-item">
-          <span>{{entry.name}}</span><span class="align-right-using-margin">{{entry.getFileSizeHumanReadable()}}</span>
+    @for (project of projects;track $index) {
+      <mat-expansion-panel [expanded]="this.data.projects.length == 1">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ project[0].name }}
+          </mat-panel-title>
+          <mat-panel-description>
+            {{ project[0].getFileSizeHumanReadable() }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="content-list">
+          @for (entry of project[1];track $index) {
+            <div class="content-item">
+              <span>{{ entry.name }}</span><span
+              class="align-right-using-margin">{{ entry.getFileSizeHumanReadable() }}</span>
+            </div>
+          }
         </div>
-      </div>
-    </mat-expansion-panel>
+      </mat-expansion-panel>
+    }
   </mat-accordion>
 </div>

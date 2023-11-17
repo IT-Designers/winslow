@@ -92,4 +92,5 @@ export class ServersComponent implements OnInit, OnDestroy {
     this.selectedNodeIndex = index;
   }
 
+    protected readonly indexedDB = indexedDB;
 }

@@ -1,5 +1,4 @@
 .project-selection-sidebar-item {
-  /* height: 6em !important; /* TODO */
   padding: 0;
   height: max-content;
 }
@@ -7,11 +6,12 @@
 .group {
   border: 0;
   box-shadow: none;
+  margin-bottom: 0.5rem;
 }
 
 .group mat-expansion-panel-header {
   padding-left: 0;
-  height: 3.5em;
+  height: 3em;
 }
 
 .group mat-icon {
