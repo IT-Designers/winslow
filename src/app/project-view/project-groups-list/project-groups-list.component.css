@@ -15,6 +15,7 @@ app-groups-add-member-dialog {
   position: relative;
   padding-bottom: 5px;
   background-color: #f6f6f6;
+  color: var(--font-color);
   min-width: 830px;
   max-height: 440px;
   border: 1px solid #ddd;
@@ -26,7 +27,6 @@ app-groups-add-member-dialog {
   margin-left: auto;
   @media(prefers-color-scheme: dark) {
     background-color: #303030;
-    color: white;
   }
 }
 

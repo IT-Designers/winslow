@@ -3,10 +3,7 @@
   right: 0.7em;
   top:0.5em;
   z-index: 999;
-  background-color: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-  }
+  background-color: var(--color-background-light);
 }
 
 .context {

@@ -23,12 +23,9 @@
   border: 2px dashed black;
 }
 .selected {
-  background-color: #f5f5f5;
+  background-color: var(--color-background-dark);
+  color: var(--font-color);
   border: 2px solid #007aff;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-    color: white;
-  }
 }
 
 

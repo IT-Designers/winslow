@@ -1,8 +1,6 @@
 .main-container {
   overflow: auto;
-  @media(prefers-color-scheme: dark) {
-    color: white;
-  }
+  color: var(--font-color);
   min-height: max-content;
   max-height: 75vh;
 }

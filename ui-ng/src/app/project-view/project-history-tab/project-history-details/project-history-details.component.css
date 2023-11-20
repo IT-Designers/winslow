@@ -16,7 +16,7 @@
   margin-top: 1.5em !important;
   border-radius: 5px;
   border: 1px solid darkgrey;
-  background-color: white;
+  background-color: var(--color-background-light);
   z-index: 999;
 }
 
@@ -24,9 +24,8 @@
   border-top-left-radius: 5px !important;
   border-top-right-radius: 5px !important;
   border: 1px solid darkgrey;
-  background-color: white;
+  background-color: var(--color-background-light);
   z-index: 999;
-  /* margin-top: -1px; */
 }
 
 .buttons {

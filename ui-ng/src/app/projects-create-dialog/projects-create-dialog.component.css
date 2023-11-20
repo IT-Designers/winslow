@@ -1,3 +1,9 @@
+.container {
+  margin: 1rem;
+  width: max-content;
+  color: var(--font-color);
+}
+
 .inputs {
   display: flex;
   flex-direction: column;

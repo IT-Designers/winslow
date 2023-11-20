@@ -22,7 +22,7 @@
 .history-header {
   border-radius: 5px;
   border: 1px solid darkgrey;
-  background-color: white;
+  background-color: var(--color-background-light);
   z-index: 999;
   font-family: Roboto, "Helvetica Neue", sans-serif;
   font-size: 15px;
