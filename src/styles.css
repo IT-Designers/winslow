@@ -84,18 +84,12 @@ body {
   border: 1px solid silver;
   border-radius: 1em;
   padding: 1em;
-  background-color: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-  }
+  background-color: var(--color-background-dark);
 }
 
 
 .none-defined-yet {
-  background-color: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-  }
+  background-color: var(--color-background-dark);
   text-align: center;
   padding: 3em;
 }

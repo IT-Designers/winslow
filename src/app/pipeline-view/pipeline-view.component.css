@@ -1,10 +1,6 @@
 :host {
-  background-color: white;
-  color: black;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-    color: white;
-  }
+  background-color: var(--color-background-dark);
+  color: var(--font-color);
 }
 
 :host ::ng-deep .dm-content{

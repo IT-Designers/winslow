@@ -1,13 +1,9 @@
 .bar {
   border-radius: 5px;
   border: 1px solid darkgrey;
-  background-color: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-    color: white;
-  }
+  background-color: var(--color-background-light);
+  color: var(--font-color);
   z-index: 999;
-  /* margin-top: -1px; */
 }
 
 .chart {
@@ -21,8 +17,8 @@
 
 :host-context(.active) .bar {
   background-color: aliceblue;
+  color: var(--font-color);
   @media(prefers-color-scheme: dark) {
     background-color: #424242;
-    color: white;
   }
 }

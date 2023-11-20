@@ -3,10 +3,7 @@
 } */
 
 mat-expansion-panel-header {
-  background-color: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-  }
+  background-color: var(--color-background-dark);
 }
 mat-expansion-panel-header.mat-expanded:hover {
   background-color: rgba(255, 255, 255, 0.8);
@@ -50,7 +47,7 @@ mat-expansion-panel div {
   /* border-radius: 5px;
   border: 1px solid darkgrey; */
   border-bottom: 1px solid darkgrey;
-  background-color: white;
+  background-color: var(--color-background-dark);
   z-index: 999;
   padding-left: 24px;
   padding-right: 24px;
@@ -60,9 +57,6 @@ mat-expansion-panel div {
   font-size: 15px;
   font-weight: 400;
   cursor: pointer;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-  }
 }
 
 .header:hover {
