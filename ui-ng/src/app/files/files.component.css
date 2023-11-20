@@ -10,11 +10,8 @@
   flex-grow: 1;
   flex-direction: column;
   margin: 0;
-  background-color: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-    color: white;
-  }
+  background-color: var(--color-background-dark);
+  color: var(--font-color);
   overflow: auto;
 }
 
@@ -32,11 +29,7 @@ input.files-browser-path {
   border: none;
   padding: 0;
   margin: 0 1em;
-  background-color: whitesmoke;
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-    color: white;
-  }
+  background-color: var(--color-background-light);
 }
 
 .files-browser {
@@ -182,11 +175,7 @@ ul.files-browser-navigation > li > p {
   border: 1px solid silver;
   border-radius: 0.2em;
   box-shadow: 0.1em 0.1em grey;
-  background-color: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-    color: white;
-  }
+  background-color: var(--color-background-dark);
 }
 
 .context-menu ul {

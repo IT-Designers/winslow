@@ -29,31 +29,22 @@ mat-grid-tile {
 }
 
 .selected-server-body {
-  /* border-radius: 5px; */
   border: 1px solid darkgrey;
-  background-color: white;
+  background-color: var(--color-background-light);
+  color: var(--font-color);
   z-index: 999;
   margin-top: -1px;
-  /* height: 300px; */
   padding-bottom: 10px;
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-    color: white;
-  }
 }
 
 .selected-server-footer {
   /*border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;*/
   border: 1px solid darkgrey;
-  background-color: white;
+  background-color: var(--color-background-light);
+  color: var(--font-color);
   z-index: 999;
   margin-top: -1px;
-  /* height: 50px; */
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-    color: white;
-  }
 }
 
 .text-inside-grid {
@@ -132,14 +123,11 @@ mat-grid-tile {
 
 .selected-server-groups {
   border: 1px solid darkgrey;
-  background-color: white;
+  background-color: var(--color-background-light);
+  color: var(--font-color);
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   padding: 10px;
-  @media(prefers-color-scheme: dark) {
-    background-color: #424242;
-    color: white;
-  }
 }
 
 .attribute-label {

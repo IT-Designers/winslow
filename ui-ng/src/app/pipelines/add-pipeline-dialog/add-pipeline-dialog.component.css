@@ -1,7 +1,5 @@
 :host {
-  @media(prefers-color-scheme: dark) {
-    color: white;
-  }
+  color: var(--font-color);
 }
 
 .pipeline-name-dialog-container {

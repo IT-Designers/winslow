@@ -11,7 +11,8 @@
 .list-content {
   position: relative;
   padding-bottom: 5px;
-  background-color: whitesmoke;
+  background-color: var(--color-background-middle);
+  color: var(--font-color);
   width: 100%;
   min-width: 50%;
   max-width: 100%;
@@ -22,10 +23,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  @media (prefers-color-scheme: dark) {
-    background-color: #424242;
-    color: white;
-  }
 }
 
 .mat-input-container {

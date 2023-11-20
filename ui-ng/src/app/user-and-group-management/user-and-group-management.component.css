@@ -19,11 +19,8 @@
 }
 .drawer {
   width: 25vw;
-  background-color: whitesmoke;
+  background-color: var(--color-background-middle);
   overflow-y: auto;
-  @media(prefers-color-scheme: dark) {
-    background-color: #383838;
-  }
 }
 .drawer-content {
   padding: 0.2em;
@@ -37,12 +34,9 @@
 }
 
 .detail-container {
-  background: white;
+  background: var(--color-background-dark);
   padding: 0 3em;
   height: 100%;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-  }
 }
 
 .button-group {

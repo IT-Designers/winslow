@@ -57,12 +57,8 @@
   max-height: 50vh;
   width: 50vw;
   padding: 1rem;
-  background-color: white;
-  color: black;
+  background-color: var(--color-background-dark);
+  color: var(--font-color);
   overflow-y: auto;
   overflow-x: clip;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-    color: white;
-  }
 }

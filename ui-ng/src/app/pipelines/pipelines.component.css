@@ -22,10 +22,7 @@
 
 .drawer {
   width: 25vw;
-  background-color: whitesmoke;
-  @media(prefers-color-scheme: dark) {
-    background-color: #383838;
-  }
+  background-color: var(--color-background-middle);
   overflow-y: auto;
 }
 
@@ -41,10 +38,7 @@
 }
 
 .detail-container {
-  background: white;
-  @media(prefers-color-scheme: dark) {
-    background-color: #303030;
-  }
+  background: var(--color-background-dark);
   padding: 0 1em;
   height: 100%;
 }

@@ -2,10 +2,8 @@
   width: 705px !important;
   height: 25vh;
   margin: 1rem;
-  @media (prefers-color-scheme: dark) {
-    background-color: #424242;
-    color: white;
-  }
+  background-color: var(--color-background-light);
+  color: var(--font-color);
 }
 
 .list-container {
