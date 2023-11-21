@@ -199,3 +199,8 @@ ul.files-browser-navigation > li > p {
 .action-area {
   cursor: pointer;
 }
+
+.upload_dialog_list {
+  max-height: 20vh;
+  overflow: auto;
+}

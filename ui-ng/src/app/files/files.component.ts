@@ -245,17 +245,25 @@ export class FilesComponent implements OnInit {
   }
 
   uploadFile(files: FileList, decompress = false) {
+
+    console.log(files);
+
     if (this.swalUpload == undefined) {
       this.dialog.error('Failed to upload file: swalUpload is not initialized!')
       return;
     }
 
-    if (this.dataUpload == undefined) {
-      this.dialog.error('Failed to upload file: dataUpload is not initialized!')
+    if (files == undefined) {
+      this.dialog.error('Failed to upload file: no file detected!')
       return;
     }
 
     this.prepareDataUpload(files);
+
+    if (this.dataUpload == undefined) {
+      this.dialog.error('Failed to upload file: dataUpload is not initialized!')
+      return;
+    }
 
     const instance = {
       swal: this.swalUpload.fire(),

@@ -99,7 +99,7 @@
         [showConfirmButton]="true"
         [showCloseButton]="false">
     <div *swalPortal="swalTargets.content">
-      <mat-list *ngIf="dataUpload != undefined">
+      <mat-list *ngIf="dataUpload != undefined" class="upload_dialog_list">
         @for (upload of dataUpload.uploads;track $index) {
           <mat-list>
             <ng-container>
