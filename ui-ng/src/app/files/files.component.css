@@ -28,7 +28,8 @@ input.files-browser-path {
   flex-grow: 1;
   border: none;
   padding: 0;
-  margin: 0 1em;
+  margin: 0 1em 0 0;
+  color: var(--font-color);
   background-color: var(--color-background-light);
 }
 
