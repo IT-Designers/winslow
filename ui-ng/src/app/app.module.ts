@@ -312,7 +312,6 @@ import {ArgumentListComponent} from "./pipeline-view/diagram-library/argument-li
         MatSliderModule,
         FormsModule,
         ReactiveFormsModule,
-        ProjectsViewFilterComponent,
     ],
   providers: [
     {
