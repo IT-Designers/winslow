@@ -1,0 +1,22 @@
+<div class="main-container">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search...</mat-label>
+    <input
+      matInput
+      placeholder=""
+      [formControl]="myControl"
+      [matAutocomplete]="autocomplete"
+    >
+    <mat-icon matSuffix>search</mat-icon>
+    <mat-autocomplete #autocomplete="matAutocomplete">
+      @for (option of filteredOptions | async; track option) {
+        <mat-option [value]="option">{{option}}</mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <button mat-icon-button matTooltip="Advanced filter and help menu.">
+    <mat-icon>tune</mat-icon>
+  </button>
+
+</div>
