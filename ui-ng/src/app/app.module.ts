@@ -302,7 +302,6 @@ import {ProjectsViewFilterComponent} from "./projects-view/projects-view-filter/
         MatSliderModule,
         FormsModule,
         ReactiveFormsModule,
-        ProjectsViewFilterComponent,
     ],
   providers: [
     {
