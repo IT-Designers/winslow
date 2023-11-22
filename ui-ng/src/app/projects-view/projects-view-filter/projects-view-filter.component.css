@@ -1,0 +1,12 @@
+.main-container {
+  height: 3.5rem;
+  border-radius: 5px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.search-field {
+  flex-grow: 1;
+  padding-top: 20px;
+}
