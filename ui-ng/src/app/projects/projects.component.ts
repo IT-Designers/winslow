@@ -6,7 +6,6 @@ import {
 } from '../projects-create-dialog/projects-create-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {ProjectApiService, ProjectGroup} from '../api/project-api.service';
-import {ProjectViewComponent} from '../project-view/project-view.component';
 import {DialogService} from '../dialog.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
