@@ -143,6 +143,7 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
 
 import { ProjectControlViewTabComponent } from './project-view/project-control-view-tab/project-control-view-tab.component';
 import { ControlViewLibraryComponent } from './project-view/project-control-view-tab/control-view-library/control-view-library.component';
+import {ProjectsViewFilterComponent} from "./projects-view/projects-view-filter/projects-view-filter.component";
 import {WorkerSettingsComponent} from "./pipeline-view/diagram-library/worker-settings/worker-settings.component";
 import {PipelineHeadSettingsComponent} from "./pipeline-view/diagram-library/pipeline-head-settings/pipeline-head-settings.component";
 import {XorSettingsComponent} from "./pipeline-view/diagram-library/xor-settings/xor-settings.component";
@@ -226,91 +227,93 @@ import {ArgumentListComponent} from "./pipeline-view/diagram-library/argument-li
     ProjectControlViewTabComponent,
     ControlViewLibraryComponent,
     ProjectThumbnailComponent,
+    ProjectsViewFilterComponent,
     WorkerSettingsComponent,
     PipelineHeadSettingsComponent,
     XorSettingsComponent,
     AndSettingsComponent,
     ArgumentListComponent
   ],
-  imports: [
-    SweetAlert2Module.forRoot(),
-    MonacoEditorModule.forRoot(),
-    HttpClientModule,
-    HttpClientXsrfModule.withOptions({
-      cookieName: 'XSRF-TOKEN',
-      headerName: 'X-XSRF-TOKEN'
-    }),
-    RouterModule.forRoot([
-      {path: '', redirectTo: 'projects/', pathMatch: 'full'},
-      {path: 'actions', component: GroupActionsComponent},
-      {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
-      {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
-      {
-        path: 'projects',
-        children: [{
-          path: ':id',
-          component: ProjectsComponent,
-          children: [{
-            path: ':tab',
-            component: ProjectViewComponent,
-          }]
-        }]
-      },
-      {path: 'pipelines', component: PipelinesComponent},
-      {path: 'files', component: FilesComponent},
-      {path: 'servers', component: ServersComponent},
-      {path: 'about', component: AboutComponent},
-      {path: 'groups', component: UserAndGroupManagementComponent},
-      {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
-      {
-        path: 'system',
-        children: [{
-          path: ':cfg',
-          component: SystemViewComponent
-        }]
-      },
-    ], {}),
-    BrowserModule,
-    BrowserAnimationsModule,
-    MatFormFieldModule,
+    imports: [
+        SweetAlert2Module.forRoot(),
+        MonacoEditorModule.forRoot(),
+        HttpClientModule,
+        HttpClientXsrfModule.withOptions({
+            cookieName: 'XSRF-TOKEN',
+            headerName: 'X-XSRF-TOKEN'
+        }),
+        RouterModule.forRoot([
+            {path: '', redirectTo: 'projects/', pathMatch: 'full'},
+            {path: 'actions', component: GroupActionsComponent},
+            {path: 'projects', redirectTo: 'projects/', pathMatch: 'full'},
+            {path: 'projects/:id', redirectTo: 'projects/:id/', pathMatch: 'full'},
+            {
+                path: 'projects',
+                children: [{
+                    path: ':id',
+                    component: ProjectsComponent,
+                    children: [{
+                        path: ':tab',
+                        component: ProjectViewComponent,
+                    }]
+                }]
+            },
+            {path: 'pipelines', component: PipelinesComponent},
+            {path: 'files', component: FilesComponent},
+            {path: 'servers', component: ServersComponent},
+            {path: 'about', component: AboutComponent},
+            {path: 'groups', component: UserAndGroupManagementComponent},
+            {path: 'system', redirectTo: 'system/', pathMatch: 'full'},
+            {
+                path: 'system',
+                children: [{
+                    path: ':cfg',
+                    component: SystemViewComponent
+                }]
+            },
+        ], {}),
+        BrowserModule,
+        BrowserAnimationsModule,
+        MatFormFieldModule,
 
-    MatDialogModule,
-    MatInputModule,
-    MatButtonModule,
-    MatListModule,
-    MatProgressBarModule,
-    MatButtonToggleModule,
-    MatExpansionModule,
-    MatStepperModule,
-    MatSelectModule,
-    MatTableModule,
-    MatGridListModule,
-    MatSnackBarModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
-    MatSlideToggleModule,
-    MatTabsModule,
-    MatCheckboxModule,
-    MatToolbarModule,
-    MatSidenavModule,
-    MatListModule,
-    MatButtonModule,
-    MatIconModule,
-    NgxChartsModule,
-    MatCardModule,
-    ScrollingModule,
-    MatAutocompleteModule,
-    MatChipsModule,
-    MatMenuModule,
-    MatRadioModule,
-    NgxEchartsModule.forRoot({
-      echarts: {init: echarts.init}
-    }),
-    MatSliderModule,
-    FormsModule,
-    ReactiveFormsModule,
-  ],
+        MatDialogModule,
+        MatInputModule,
+        MatButtonModule,
+        MatListModule,
+        MatProgressBarModule,
+        MatButtonToggleModule,
+        MatExpansionModule,
+        MatStepperModule,
+        MatSelectModule,
+        MatTableModule,
+        MatGridListModule,
+        MatSnackBarModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatTooltipModule,
+        MatSlideToggleModule,
+        MatTabsModule,
+        MatCheckboxModule,
+        MatToolbarModule,
+        MatSidenavModule,
+        MatListModule,
+        MatButtonModule,
+        MatIconModule,
+        NgxChartsModule,
+        MatCardModule,
+        ScrollingModule,
+        MatAutocompleteModule,
+        MatChipsModule,
+        MatMenuModule,
+        MatRadioModule,
+        NgxEchartsModule.forRoot({
+            echarts: {init: echarts.init}
+        }),
+        MatSliderModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ProjectsViewFilterComponent,
+    ],
   providers: [
     {
       provide: MatDialogRef,
