@@ -8,7 +8,7 @@ import {
   PipelineDefinitionInfo,
   RangedValueUnion,
   ResourceInfo,
-  StageDefinitionInfo,
+  StageDefinitionInfo, StageDefinitionInfoUnion,
   StageWorkerDefinitionInfo,
   WorkspaceConfiguration,
   WorkspaceMode
@@ -30,6 +30,16 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   @Input() pipelines: PipelineDefinitionInfo[] = [];
   @Input() pipelineSelectionDisabled = false;
+  @Input()
+  set stageDefinition(stageDefinition: StageWorkerDefinitionInfo | undefined) {
+    if (stageDefinition) {
+      this.selectedStage = stageDefinition;
+      this.loadEnvForStageName(stageDefinition.id);
+      this.updateValid();
+      console.dir(this.valid);
+    }
+  };
+  @Input() stageSelectionDisabled: boolean = false;
 
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineDefinitionInfo>();
   @Output('selectedStage') private selectedStageEmitter = new EventEmitter<StageDefinitionInfo>();

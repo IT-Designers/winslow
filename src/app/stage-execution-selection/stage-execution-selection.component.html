@@ -1,4 +1,4 @@
-<div *ngIf="pipelines" class="action-row">
+<div *ngIf="pipelines && !stageSelectionDisabled" class="action-row">
   <mat-label class="title">Pipeline</mat-label>
   <mat-form-field appearance="outline">
     <mat-select
@@ -14,7 +14,7 @@
   <div class="controls"></div>
 </div>
 
-<div *ngIf="selectedPipeline" class="action-row">
+<div *ngIf="selectedPipeline && !stageSelectionDisabled" class="action-row">
   <mat-label class="title pipeline-to-stage-indention">Stage</mat-label>
   <mat-form-field appearance="outline">
     <mat-select
@@ -29,7 +29,7 @@
   <div class="controls"></div>
 </div>
 
-<ng-container *ngIf="selectedPipeline && selectedStage && selectedStage.image">
+<ng-container *ngIf="(selectedPipeline && selectedStage && selectedStage.image) || (stageSelectionDisabled && selectedStage && selectedStage.image)">
   <div>
     <mat-divider></mat-divider>
   </div>
