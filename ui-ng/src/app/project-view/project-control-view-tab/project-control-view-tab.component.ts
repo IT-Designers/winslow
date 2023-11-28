@@ -50,7 +50,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
   public initialData!: DiagramMakerData<StageDefinitionInfo, {}>;
   public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
   public componentFactory = this.componentFactoryResolver.resolveComponentFactory(ControlViewLibraryComponent);
-  public libraryComponent: ComponentRef<DiagramLibraryComponent> | null = null;
+  public libraryComponent: ComponentRef<ControlViewLibraryComponent> | null = null;
   public configClass = new DiagramConfigHelper();
   public initClass = new ControlDiagramInitialData();
   public defaultGetter = new DefaultApiServiceService(this.client);
@@ -149,6 +149,8 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
           if (this.currentNode) {
             this.libraryComponent.instance.selectedNode = this.currentNode;
           }
+          this.libraryComponent.instance.pipelineDefinition = this.project.pipelineDefinition;
+          this.libraryComponent.instance.project = this.project;
         },
       },
     },
@@ -172,9 +174,6 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
               private componentFactoryResolver: ComponentFactoryResolver,
               private client:  HttpClient,
   ) {
-/*
-    this.pipelineDefinitionEdit = this.pipelineDefinition;
-*/
   }
 
   editState(editForm: Raw<PipelineDefinitionInfo>) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
@@ -270,6 +269,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
       this.diagramMaker.destroy();
       console.log("destroyed")
     }
+    this.libraryComponent?.destroy();
     this.nodeComponentInstances.forEach(instance => instance.destroy());
   }
 }
