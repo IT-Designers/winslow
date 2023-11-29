@@ -344,9 +344,6 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
       let editData = JSON.parse(JSON.stringify(editNode.consumerData));
-      //let i = this.pipelineDefinition.stages.map(function(stage) {
-      //  return stage.name;
-      //}).indexOf(`${editData.name}`);
       editData = editForm;
       editNode = Object.assign({}, editNode, {
         consumerData: editData,
@@ -457,18 +454,14 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnChanges() {
-    //console.dir(this.pipelineDefinition);
-    // possibly unsafe
-    /* this.libraryComponent = null;
-     this.initialData = this.initClass.getInitData(this.pipelineDefinition);*/
-    /*setTimeout(() => {
-      this.libraryComponent = null;
+    setTimeout(() => {
       this.ngOnDestroy();
+      this.libraryComponent?.instance.cancelEdit();
+      this.libraryComponent = null;
       this.initialData = this.initClass.getInitData(this.pipelineDefinition);
       this.ngAfterViewInit();
-    }, 1000);
+    }, 100);
 
-    console.log("---------------------------------- ON CHANGE ----------------------------------");*/
   }
 
 
@@ -501,32 +494,9 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
 
   }
 
-  ngOnDestroy(): void {     //code to save the workflow (in the frontend) e.g. while switching tabs
-    this.pipelineDefinition.stages = [];
-    const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
-    const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
-    let i = 0;
-    for (let storeNode of nodeMap.values()) {
-      if (i > 0) {
-        let node = JSON.parse(JSON.stringify(storeNode))
-        this.pipelineDefinition.stages.push(node.consumerData as StageDefinitionInfoUnion);
-        this.pipelineDefinition.stages[i - 1].nextStages = [];
-      }
-      i++;
-    }
-    for (let edge of edgeMap.values()) {
-      let index = this.pipelineDefinition.stages.findIndex(function (stage) {
-        return stage.id == edge.src
-      });
-      if (index >= 0) {
-        console.log(index);
-        this.pipelineDefinition.stages[index].nextStages.push(edge.dest);
-      }
-    }
-    if (this.diagramEditorContainer.nativeElement != null) {    //diagrammaker unload/destroy
-      this.diagramMaker.destroy();
-      console.log("destroyed")
-    }
+  ngOnDestroy(): void {
+    this.diagramMaker.destroy();
+    this.libraryComponent?.destroy();
     this.nodeComponentInstances.forEach(instance => instance.destroy());
   }
 
