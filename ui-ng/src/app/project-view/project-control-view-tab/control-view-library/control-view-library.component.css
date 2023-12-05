@@ -24,77 +24,41 @@ app-stage-execution-selection {
   padding: 1em;
 }
 
-.scroll {
-   margin: auto;
-   overflow-y: scroll;
- }
-
-.node-details {
-  width: 100%;
-  max-height: 310px;
-  background-color: #f5f5f5;
-}
-
-.editCard {
-  margin: auto;
-  margin-top: 10px;
-  height: 100%;
-  width: 98%;
-}
-
-.control-category {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-content: center;
-  vertical-align: center;
-  padding: 4px;
-  border-top: 2px solid #dadada;
-  border-bottom: 2px solid #dadada;
-}
-
-.control-item {
-  width: 100%;
-  padding: 0.2em;
+.control-library-top-bar {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-content: center;
-  align-items: center;
 }
 
-.title {
-  font-weight: bold;
-}
 
 .title-container {
-  width: 20%;
   font-weight: bold;
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+  height: 3em;
   align-items: center;
-  justify-content: left;
-
-}
-
-.input-container {
   width: 70%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-around;
+  padding-right: 3em;
 }
+.library-icons-container {
+  width: 30%;
+  display: flex;
+  justify-content: space-around;
+  border-radius: 4px;
+  box-shadow: 1px 1px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--color-background-middle);
+}
+
 
 .button-container {
-  width: 10%;
   display: flex;
-  flex-direction: row;
+  justify-content: center;
   align-items: center;
   justify-content: space-around;
-}
-
-.text-input {
-  width: 80%;
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
 }
 
 
@@ -118,18 +82,9 @@ app-stage-execution-selection {
   color: #69B34C;
 }
 
-.library-icons-container {
-  display: flex;
-  justify-content: space-around;
-  padding-bottom: 1em;
-}
 
-.button-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 0.2em;
-  margin-bottom: 0.2em;
-}
+
+
 
 .library-button {
   display: flex;
@@ -162,11 +117,9 @@ app-stage-execution-selection {
 }
 
 .border-right {
-  padding-right: 0.5em;
   border-right: 1px solid grey;
 }
 .border-left {
   border-left: 1px solid grey;
-  padding-left: 0.5em;
 }
 

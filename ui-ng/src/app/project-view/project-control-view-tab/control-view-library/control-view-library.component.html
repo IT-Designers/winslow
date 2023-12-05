@@ -1,9 +1,17 @@
-<ng-container class="outerContainer">
-  <div class="library-icons-container">
-    <div class="button-container" *ngIf="executionSelection.selectedStage != null">
-      <button class="enqueue-button"
-              [disabled]="!executionSelection.valid"
-              (click)="enqueue(
+<div class="outer-container">
+  <div *ngIf="isNodeStageWorker(selectedNode$?.consumerData)" >
+    <div class="control-library-top-bar">
+      <div class="title-container">
+        <h3> Selected Node: {{selectedNode$?.consumerData?.name}} </h3>
+        <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel
+        </mat-icon>
+      </div>
+      <div class="library-icons-container">
+        <div class="button-container border-right" [ngStyle]="{'width':'40%'}"  *ngIf="executionSelection.selectedStage != null">
+          <button mat-flat-button
+                  color="primary"
+                  [disabled]="!executionSelection.valid"
+                  (click)="enqueue(
               executionSelection.selectedPipeline,
               executionSelection.selectedStage,
               executionSelection.getEnv(),
@@ -15,31 +23,39 @@
               false,
               false
             )">
-        <mat-icon class="library-icon" [ngStyle]="{'color':'#6ac904'}" title="Enqueue stage">send</mat-icon>
-      </button>
-    </div>
-    <div class="button-container">
-      <div class="library-button">
-        <mat-icon class="library-icon" title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan</mat-icon>
+            <mat-icon class="library-icon" [ngStyle]="{'color':'#6ac904'}" title="Enqueue stage">send</mat-icon>
+            Enqueue
+          </button>
+        </div>
+        <div class="button-container border-right" [ngStyle]="{'width':'25%'}">
+          <button class="library-button">
+            <mat-icon class="library-icon" title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan</mat-icon>
+          </button>
+        </div>
+        <div class="button-container" [ngStyle]="{'width':'17%'}">
+          <div class="library-button">
+            <mat-icon class="library-icon" title="Zoom Out" (click)="onApiCall('zoomOut')">zoom_out</mat-icon>
+          </div>
+        </div>
+        <div class="button-container" [ngStyle]="{'width':'17%'}">
+          <div class="library-button">
+            <mat-icon class="library-icon" title="Zoom in" (click)="onApiCall('zoomIn')">zoom_in</mat-icon>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="button-container">
-      <div class="library-button">
-        <mat-icon class="library-icon" title="Zoom in" (click)="onApiCall('zoomIn')">zoom_in</mat-icon>
-      </div>
-    </div>
-    <div class="button-container">
-      <div class="library-button">
-        <mat-icon class="library-icon" title="Zoom Out" (click)="onApiCall('zoomOut')">zoom_out</mat-icon>
-      </div>
-    </div>
-  </div>
-  <app-stage-execution-selection #executionSelection
-                                 [pipelines]="getPipelineDefWithCorrectType(pipelineDef)"
-                                 [pipelineSelectionDisabled]="true"
-                                 [defaultPipelineId]="getPipelineIdAsString(pipelineDef)"
-                                 [stageDefinition]="isNodeStageWorker(selectedNode$?.consumerData)"
-                                 [stageSelectionDisabled]="true">
 
-  </app-stage-execution-selection>
-</ng-container>
+    <app-stage-execution-selection #executionSelection
+                                   [pipelines]="getPipelineDefWithCorrectType(pipelineDef)"
+                                   [pipelineSelectionDisabled]="true"
+                                   [defaultPipelineId]="getPipelineIdAsString(pipelineDef)"
+                                   [stageDefinition]="isNodeStageWorker(selectedNode$?.consumerData)"
+                                   [stageSelectionDisabled]="true">
+
+    </app-stage-execution-selection>
+  </div>
+  <div *ngIf="!isNodeStageWorker(selectedNode$?.consumerData)">
+    No executable stage selected.
+  </div>
+
+</div>
