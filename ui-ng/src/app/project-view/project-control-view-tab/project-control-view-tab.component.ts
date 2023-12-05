@@ -141,13 +141,9 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
     },
     actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {  //Intercepts actions before diagramMaker saves them into the store
       //console.log(action);
-      if (action.type === DiagramMakerActions.DELETE_ITEMS) {  //Makes all delete calls empty => deleting node impossible
-        let deleteAction: DeleteItemsAction = action as DeleteItemsAction;
-        deleteAction.payload.nodeIds = [];
-        deleteAction.payload.edgeIds = [];
-        dispatch(action);
+      if (action.type === DiagramMakerActions.DELETE_ITEMS) {
+        console.error('Cant delete nodes in Control View');
       } else if (action.type === DiagramMakerActions.NODE_DRAG) {
-        console.dir(action);
       }
       else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
@@ -234,7 +230,9 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
   }
 
   ngOnDestroy(): void {
-    this.diagramMaker.destroy();
+    if (this.diagramMaker) {
+      this.diagramMaker.destroy();
+    }
     this.libraryComponent?.destroy();
     this.nodeComponentInstances.forEach(instance => instance.destroy());
   }
