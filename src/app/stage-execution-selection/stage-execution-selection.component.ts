@@ -8,7 +8,7 @@ import {
   PipelineDefinitionInfo,
   RangedValueUnion,
   ResourceInfo,
-  StageDefinitionInfo, StageDefinitionInfoUnion,
+  StageDefinitionInfo,
   StageWorkerDefinitionInfo,
   WorkspaceConfiguration,
   WorkspaceMode
