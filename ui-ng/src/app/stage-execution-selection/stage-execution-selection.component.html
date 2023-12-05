@@ -29,159 +29,134 @@
   <div class="controls"></div>
 </div>
 
-<ng-container *ngIf="(selectedPipeline && selectedStage && selectedStage.image) || (stageSelectionDisabled && selectedStage && selectedStage.image)">
-  <div>
-    <mat-divider></mat-divider>
-  </div>
-  <div class="whitespace-separator-top">
-    <mat-card-subtitle>Image Information</mat-card-subtitle>
-  </div>
-  <div class="action-row">
-    <mat-label class="title">Image Name</mat-label>
-    <mat-form-field appearance="outline">
-      <input
-        #imageName matInput [required]="true" [value]="selectedStage.image.name"
-        (change)="onImageValueChanged($event)"
-      >
-    </mat-form-field>
-    <div class="controls">
-      <button
-        dense mat-stroked-button color="primary"
-        [disabled]="imageName.value == selectedStage.image.name"
-        (click)="imageName.value = selectedStage.image.name"
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-  <div class="action-row">
-    <mat-label class="title">Image Args</mat-label>
-    <mat-form-field appearance="outline">
-      <input
-        #imageArgs matInput [required]="true" [value]="argvToString(selectedStage.image.args)"
-        (change)="onImageArgsChanged($event)"
-      >
-    </mat-form-field>
-    <div class="controls">
-      <button
-        dense mat-stroked-button color="primary"
-        [disabled]="imageArgs.value == selectedStage.image.args.join(' ')"
-        (click)="imageArgs.value = selectedStage.image.args.join(' ')"
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">Comment</mat-label>
-    <mat-form-field appearance="outline">
-      <input matInput [value]="comment" (change)="onCommentChanged($event)">
-    </mat-form-field>
-    <div class="controls">
-    </div>
-  </div>
-</ng-container>
-
-<ng-container *ngIf="environmentVariablesValue && requiredEnvironmentVariables">
-  <div>
-    <mat-divider></mat-divider>
-  </div>
-
-  <div class="whitespace-separator-top">
-    <mat-card-subtitle>Environment Variables</mat-card-subtitle>
-  </div>
-  <app-env-variables
-    [env]="environmentVariablesValue"
-    [defaults]="defaultEnvironmentVariablesValue"
-    [required]="requiredEnvironmentVariables"
-    (valid)="updateValidEnv($event)"
-    (value)="envSubmitValue = $event; updateValid();"
-  >
-  </app-env-variables>
-</ng-container>
-
-
-<ng-container *ngIf="selectedStage?.requiredResources as stageResources">
-  <div>
-    <mat-divider></mat-divider>
-  </div>
-
-  <div class="whitespace-separator-top">
-    <mat-card-subtitle>Minimum Resource Requirements</mat-card-subtitle>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">CPUs (cores)</mat-label>
-    <mat-form-field appearance="outline">
-      <input
-        #requiredCpus matInput [required]="true" [value]="stageResources.cpus.toString()"
-        (change)="onCpusChanged($event)"
-      >
-    </mat-form-field>
-    <div class="controls">
-      <button
-        dense mat-stroked-button color="primary"
-        [disabled]="requiredCpus.value == '' + stageResources.cpus"
-        (click)="requiredCpus.value = '' + stageResources.cpus; resources.cpus = stageResources.cpus"
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">RAM (MiB)</mat-label>
-    <mat-form-field appearance="outline">
-      <input
-        #requiredRam matInput [required]="true" [value]="'' + stageResources.megabytesOfRam"
-        (change)="onRamChanged($event)"
-      >
-    </mat-form-field>
-    <div class="controls">
-      <button
-        dense mat-stroked-button color="primary"
-        [disabled]="requiredRam.value == '' + stageResources.megabytesOfRam"
-        (click)="requiredRam.value = '' + stageResources.megabytesOfRam; resources.megabytesOfRam = stageResources.megabytesOfRam"
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">GPUs</mat-label>
-    <mat-form-field appearance="outline">
-      <input
-        #requiredGpus matInput [required]="true" [value]="'' + stageResources.gpu.count"
-        (change)="onGpusChanged($event)"
-      >
-    </mat-form-field>
-    <div class="controls">
-      <button
-        dense mat-stroked-button color="primary"
-        [disabled]="requiredGpus.value == '' + stageResources.gpu.count"
-        (click)="requiredGpus.value = '' + stageResources.gpu.count; resources.gpus = stageResources.gpu.count"
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-</ng-container>
-
-<ng-container *ngIf="selectedStage">
-  <div>
-    <mat-divider></mat-divider>
-  </div>
-
-  <div class="whitespace-separator-top">
-    <mat-card-subtitle>Ranged Environment Values</mat-card-subtitle>
-  </div>
-
-  <ng-container *ngIf="rangedEnvironmentVariablesValue">
-    @for (entry of rangedEnvironmentVariablesValue | keyvalue;track $index) {
+<mat-tab-group>
+  <mat-tab label="Image Information">
+    <div *ngIf="(selectedPipeline && selectedStage && selectedStage.image) || (stageSelectionDisabled && selectedStage && selectedStage.image)" class="tab-container">
       <div class="action-row">
-        <mat-label class="title">{{ entry.key }}</mat-label>
+        <mat-label class="title">Image Name</mat-label>
+        <mat-form-field appearance="outline">
+          <input
+            #imageName matInput [required]="true" [value]="selectedStage.image.name"
+            (change)="onImageValueChanged($event)"
+          >
+        </mat-form-field>
+        <div class="controls">
+          <button
+            dense mat-stroked-button color="primary"
+            [disabled]="imageName.value == selectedStage.image.name"
+            (click)="imageName.value = selectedStage.image.name"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+      <div class="action-row">
+        <mat-label class="title">Image Args</mat-label>
+        <mat-form-field appearance="outline">
+          <input
+            #imageArgs matInput [required]="true" [value]="argvToString(selectedStage.image.args)"
+            (change)="onImageArgsChanged($event)"
+          >
+        </mat-form-field>
+        <div class="controls">
+          <button
+            dense mat-stroked-button color="primary"
+            [disabled]="imageArgs.value == selectedStage.image.args.join(' ')"
+            (click)="imageArgs.value = selectedStage.image.args.join(' ')"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">Comment</mat-label>
+        <mat-form-field appearance="outline">
+          <input matInput [value]="comment" (change)="onCommentChanged($event)">
+        </mat-form-field>
+        <div class="controls">
+        </div>
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="Environment Variables">
+    <div *ngIf="environmentVariablesValue && requiredEnvironmentVariables" class="tab-container">
+      <app-env-variables
+        [env]="environmentVariablesValue"
+        [defaults]="defaultEnvironmentVariablesValue"
+        [required]="requiredEnvironmentVariables"
+        (valid)="updateValidEnv($event)"
+        (value)="envSubmitValue = $event; updateValid();"
+      >
+      </app-env-variables>
+    </div>
+  </mat-tab>
+  <mat-tab label="Minimum Resource Requirements">
+    <div *ngIf="selectedStage?.requiredResources as stageResources" class="tab-container">
+      <div class="action-row">
+        <mat-label class="title">CPUs (cores)</mat-label>
+        <mat-form-field appearance="outline">
+          <input
+            #requiredCpus matInput [required]="true" [value]="stageResources.cpus.toString()"
+            (change)="onCpusChanged($event)"
+          >
+        </mat-form-field>
+        <div class="controls">
+          <button
+            dense mat-stroked-button color="primary"
+            [disabled]="requiredCpus.value == '' + stageResources.cpus"
+            (click)="requiredCpus.value = '' + stageResources.cpus; resources.cpus = stageResources.cpus"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">RAM (MiB)</mat-label>
+        <mat-form-field appearance="outline">
+          <input
+            #requiredRam matInput [required]="true" [value]="'' + stageResources.megabytesOfRam"
+            (change)="onRamChanged($event)"
+          >
+        </mat-form-field>
+        <div class="controls">
+          <button
+            dense mat-stroked-button color="primary"
+            [disabled]="requiredRam.value == '' + stageResources.megabytesOfRam"
+            (click)="requiredRam.value = '' + stageResources.megabytesOfRam; resources.megabytesOfRam = stageResources.megabytesOfRam"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">GPUs</mat-label>
+        <mat-form-field appearance="outline">
+          <input
+            #requiredGpus matInput [required]="true" [value]="'' + stageResources.gpu.count"
+            (change)="onGpusChanged($event)"
+          >
+        </mat-form-field>
+        <div class="controls">
+          <button
+            dense mat-stroked-button color="primary"
+            [disabled]="requiredGpus.value == '' + stageResources.gpu.count"
+            (click)="requiredGpus.value = '' + stageResources.gpu.count; resources.gpus = stageResources.gpu.count"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="Ranged Environment Values">
+    <div *ngIf="selectedStage" class="tab-container">
+      <ng-container *ngIf="rangedEnvironmentVariablesValue">
+        @for (entry of rangedEnvironmentVariablesValue | keyvalue;track $index) {
+        <div class="action-row">
+          <mat-label class="title">{{ entry.key }}</mat-label>
 
         <ng-container *ngIf="isRangeWithStepSize(entry.value)">
           <mat-form-field appearance="outline">
@@ -250,199 +225,198 @@
           </div>
         </ng-container>
       </div>
-    }
-  </ng-container>
-
-  <div class="action-row">
-    <ng-template #rangeSelection>
-      <mat-select value="{{rangeType}}" (valueChange)="rangeType = $event">
-        @for (type of rangeTypes;track $index) {
-          <mat-option [value]="type">{{ type }}</mat-option>
         }
-      </mat-select>
-    </ng-template>
+      </ng-container>
 
-    <ng-container *ngIf="rangeType == rangeTypeRange">
-      <mat-form-field class="title" appearance="outline">
-        <input matInput placeholder="Name" type="text" #name>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <input matInput placeholder="Start" type="number" step="0.1" value="0.0" #rangeStart>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <input matInput placeholder="End" type="number" step="0.1" value="1.0" #rangeEnd>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <input matInput placeholder="Step Size" type="number" step="0.01" value="0.15" #stepSize>
-      </mat-form-field>
-      <div class="controls">
-        <button
-          dense mat-raised-button color="primary" #button
-          [disabled]="name.value.trim().length == 0
+      <div class="action-row">
+        <ng-template #rangeSelection>
+          <mat-select value="{{rangeType}}" (valueChange)="rangeType = $event">
+            @for (type of rangeTypes;track $index) {
+            <mat-option [value]="type">{{ type }}</mat-option>
+            }
+          </mat-select>
+        </ng-template>
+
+        <ng-container *ngIf="rangeType == rangeTypeRange">
+          <mat-form-field class="title" appearance="outline">
+            <input matInput placeholder="Name" type="text" #name>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <input matInput placeholder="Start" type="number" step="0.1" value="0.0" #rangeStart>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <input matInput placeholder="End" type="number" step="0.1" value="1.0" #rangeEnd>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <input matInput placeholder="Step Size" type="number" step="0.01" value="0.15" #stepSize>
+          </mat-form-field>
+          <div class="controls">
+            <button
+              dense mat-raised-button color="primary" #button
+              [disabled]="name.value.trim().length == 0
                       || rangeStart.value.trim().length == 0
                       || rangeEnd.value.trim().length == 0
                       || stepSize.value.trim().length == 0"
-          (click)="addRangedEnvironmentVariable(name, rangeStart, rangeEnd, stepSize)"
-        >Add
-        </button>
-        <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
-      </div>
-    </ng-container>
-
-    <ng-container *ngIf="rangeType == rangeTypeList">
-      <mat-form-field class="title" appearance="outline">
-        <input matInput placeholder="Name" type="text" #name>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <input matInput placeholder="Comma separated values" #values>
-      </mat-form-field>
-      <div class="controls">
-        <button
-          dense mat-raised-button color="primary"
-          [disabled]="name.value.trim().length == 0 || values.value.trim().length == 0"
-          (click)="addRangedList(name, values)"
-        >Add
-        </button>
-        <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
-      </div>
-    </ng-container>
-
-
-  </div>
-  <div class="action-row">
-    <div class="title"></div>
-    <div>
-      This configuration will result in <b>{{ expectedNumberOfStages() }}</b>
-      stage{{ expectedNumberOfStages() > 1 ? 's' : '' }}.
-    </div>
-    <div class="controls"></div>
-  </div>
-</ng-container>
-
-
-<ng-container *ngIf="selectedStage">
-  <div>
-    <mat-divider></mat-divider>
-  </div>
-
-  <div class="whitespace-separator-top">
-    <mat-card-subtitle>Workspace Mode for Ranged Variable Runs</mat-card-subtitle>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">
-      <input
-        name="ws-config-shared-nested" type="radio"
-        [checked]="workspaceConfiguration.nestedWithinGroup"
-        (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, false, true)"
-      >
-      Nested
-    </mat-label>
-    <div>
-      All stages of this group have their own workspace directory within a common group workspace
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">
-      <input
-        name="ws-config-shared-nested" type="radio"
-        [checked]="!workspaceConfiguration.nestedWithinGroup && !workspaceConfiguration.sharedWithinGroup"
-        (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, false, false)"
-      >
-      Separate
-    </mat-label>
-    <div>
-      All stages have their own workspace directory directly within the project directory
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">
-      <input
-        name="ws-config-shared-nested" type="radio"
-        [checked]="workspaceConfiguration.sharedWithinGroup"
-        (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, true, false)"
-      >
-      Shared
-    </mat-label>
-    <div>
-      All stages within this group share the same workspace
-    </div>
-  </div>
-
-  <div class="whitespace-separator-top">
-    <mat-card-subtitle>Workspace Files</mat-card-subtitle>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">
-      <input
-        #workspaceStandalone
-        name="ws-config" type="radio"
-        [checked]="workspaceConfiguration.mode == 'STANDALONE'"
-        (change)="setWorkspaceMode(workspaceStandalone.checked,'STANDALONE')"
-      >
-      Standalone
-    </mat-label>
-    <div>
-      Start execution in an empty workspace
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">
-      <input
-        #workspaceIncrement
-        name="ws-config" type="radio" value="increment"
-        [checked]="workspaceConfiguration.mode == 'INCREMENTAL'"
-        (change)="setWorkspaceMode(workspaceIncrement.checked, 'INCREMENTAL')"
-      >
-      Increment
-    </mat-label>
-    <div>
-      Start execution in a self contained copy of the previous workspace
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">
-      <input
-        #workspaceContinuation
-        name="ws-config" type="radio" value="continuation"
-        [disabled]="!executionHistoryValue || executionHistoryValue.length == 0"
-        [checked]="workspaceConfiguration.mode == 'CONTINUATION'"
-        (change)="setWorkspaceMode(workspaceContinuation.checked,'CONTINUATION', getZerothExecutionHistoryValue()?.id)"
-      >
-      Continuation
-    </mat-label>
-    <div>
-      Start execution in a workspace that already exists:
-    </div>
-  </div>
-
-  <div class="action-row">
-    <mat-label class="title">
-    </mat-label>
-    <mat-form-field appearance="outline">
-      <mat-select
-        #continuationValue
-        [value]="workspaceConfiguration.value"
-        [disabled]="!workspaceContinuation.checked"
-        (valueChange)="setWorkspaceMode(true, 'CONTINUATION', $event)"
-      >
-        <ng-container *ngIf="executionHistoryValue != undefined">
-          @for (h of executionHistoryValue;track $index) {
-            <mat-option
-              *ngFor="let s of h.stages"
-              [value]="s.id"
-            >[{{ tryParseStageNumber(h.id, executionHistoryValue.length - $index) }}] {{ s.workspace }}
-            </mat-option>
-          }
+              (click)="addRangedEnvironmentVariable(name, rangeStart, rangeEnd, stepSize)"
+            >Add
+            </button>
+            <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
+          </div>
         </ng-container>
-      </mat-select>
-    </mat-form-field>
-    <div class="controls"></div>
-  </div>
-</ng-container>
+
+        <ng-container *ngIf="rangeType == rangeTypeList">
+          <mat-form-field class="title" appearance="outline">
+            <input matInput placeholder="Name" type="text" #name>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <input matInput placeholder="Comma separated values" #values>
+          </mat-form-field>
+          <div class="controls">
+            <button
+              dense mat-raised-button color="primary"
+              [disabled]="name.value.trim().length == 0 || values.value.trim().length == 0"
+              (click)="addRangedList(name, values)"
+            >Add
+            </button>
+            <ng-container *ngTemplateOutlet="rangeSelection"></ng-container>
+          </div>
+        </ng-container>
+
+
+      </div>
+      <div class="action-row">
+        <div class="title"></div>
+        <div>
+          This configuration will result in <b>{{ expectedNumberOfStages() }}</b>
+          stage{{ expectedNumberOfStages() > 1 ? 's' : '' }}.
+        </div>
+        <div class="controls"></div>
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="Workspace Settings">
+    <div *ngIf="selectedStage" class="tab-container">
+      <div class="action-row">
+        <mat-label class="title">
+          <input
+            name="ws-config-shared-nested" type="radio"
+            [checked]="workspaceConfiguration.nestedWithinGroup"
+            (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, false, true)"
+          >
+          Nested
+        </mat-label>
+        <div>
+          All stages of this group have their own workspace directory within a common group workspace
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">
+          <input
+            name="ws-config-shared-nested" type="radio"
+            [checked]="!workspaceConfiguration.nestedWithinGroup && !workspaceConfiguration.sharedWithinGroup"
+            (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, false, false)"
+          >
+          Separate
+        </mat-label>
+        <div>
+          All stages have their own workspace directory directly within the project directory
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">
+          <input
+            name="ws-config-shared-nested" type="radio"
+            [checked]="workspaceConfiguration.sharedWithinGroup"
+            (change)="setWorkspaceMode(true, workspaceConfiguration.mode, workspaceConfiguration.value, true, false)"
+          >
+          Shared
+        </mat-label>
+        <div>
+          All stages within this group share the same workspace
+        </div>
+      </div>
+
+      <div class="whitespace-separator-top">
+        <mat-card-subtitle>Workspace Files</mat-card-subtitle>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">
+          <input
+            #workspaceStandalone
+            name="ws-config" type="radio"
+            [checked]="workspaceConfiguration.mode == 'STANDALONE'"
+            (change)="setWorkspaceMode(workspaceStandalone.checked,'STANDALONE')"
+          >
+          Standalone
+        </mat-label>
+        <div>
+          Start execution in an empty workspace
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">
+          <input
+            #workspaceIncrement
+            name="ws-config" type="radio" value="increment"
+            [checked]="workspaceConfiguration.mode == 'INCREMENTAL'"
+            (change)="setWorkspaceMode(workspaceIncrement.checked, 'INCREMENTAL')"
+          >
+          Increment
+        </mat-label>
+        <div>
+          Start execution in a self contained copy of the previous workspace
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">
+          <input
+            #workspaceContinuation
+            name="ws-config" type="radio" value="continuation"
+            [disabled]="!executionHistoryValue || executionHistoryValue.length == 0"
+            [checked]="workspaceConfiguration.mode == 'CONTINUATION'"
+            (change)="setWorkspaceMode(workspaceContinuation.checked,'CONTINUATION', getZerothExecutionHistoryValue()?.id)"
+          >
+          Continuation
+        </mat-label>
+        <div>
+          Start execution in a workspace that already exists:
+        </div>
+      </div>
+
+      <div class="action-row">
+        <mat-label class="title">
+        </mat-label>
+        <mat-form-field appearance="outline">
+          <mat-select
+            #continuationValue
+            [value]="workspaceConfiguration.value"
+            [disabled]="!workspaceContinuation.checked"
+            (valueChange)="setWorkspaceMode(true, 'CONTINUATION', $event)"
+          >
+            <ng-container *ngIf="executionHistoryValue != undefined">
+              @for (h of executionHistoryValue;track $index) {
+              <mat-option
+                *ngFor="let s of h.stages"
+                [value]="s.id"
+              >[{{ tryParseStageNumber(h.id, executionHistoryValue.length - $index) }}] {{ s.workspace }}
+              </mat-option>
+              }
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+        <div class="controls"></div>
+      </div>
+    </div>
+  </mat-tab>
+</mat-tab-group>
+
+
+
+
+
 
