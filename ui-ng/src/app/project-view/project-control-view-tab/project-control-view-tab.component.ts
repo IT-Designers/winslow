@@ -17,13 +17,13 @@ import {
 } from "../../api/winslow-api";
 import {
   Action,
-  ConnectorPlacement,
+  ConnectorPlacement, DeleteItemsAction,
   DiagramMaker,
   DiagramMakerActions,
   DiagramMakerConfig,
   DiagramMakerData,
   DiagramMakerNode,
-  DiagramMakerPotentialNode, Dispatch, DragPanelAction, Layout, WorkflowLayoutDirection
+  DiagramMakerPotentialNode, Dispatch, Layout, WorkflowLayoutDirection
 } from "diagram-maker";
 import {DiagramConfigHelper} from "../../pipeline-view/diagram-config-helper";
 import {ControlDiagramInitialData} from "./control-diagram-initial-data";
@@ -99,7 +99,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
             this.libraryComponent.instance.diagramApiCall.subscribe((event) => {   //these are calls made by the buttons in the node menu
               switch (event.action) {
                 case 'fit':
-                  this.diagramMaker.api.focusNode(Object.keys(this.diagramMaker.store.getState().nodes)[0]);
+                  //this.diagramMaker.api.focusNode(Object.keys(this.diagramMaker.store.getState().nodes)[0]);
                   this.diagramMaker.store.dispatch({
                     type: 'WORKSPACE_DRAG',
                     payload: {
@@ -124,16 +124,6 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
                 case 'zoomOut':
                   this.diagramMaker.api.zoomOut(100);
                   break;
-                case 'undo':
-                  this.diagramMaker.api.undo();
-                  break;
-                case 'redo':
-                  this.diagramMaker.api.redo();
-                  break;
-                case 'save':
-                  this.saveStatus = true;
-                  console.log("---------------------------------- SAVE ----------------------------------");
-                  break;
                 default:
                   break;
               }
@@ -151,10 +141,13 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
     },
     actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {  //Intercepts actions before diagramMaker saves them into the store
       //console.log(action);
-      if (action.type === DiagramMakerActions.PANEL_DRAG) {         //Interceptor to fix a bug where the panel clips at the top edge
-        let dragAction : DragPanelAction = JSON.parse(JSON.stringify(action));
-        dragAction.payload.viewContainerSize.height = 5000;
-        dispatch(dragAction);
+      if (action.type === DiagramMakerActions.DELETE_ITEMS) {  //Makes all delete calls empty => deleting node impossible
+        let deleteAction: DeleteItemsAction = action as DeleteItemsAction;
+        deleteAction.payload.nodeIds = [];
+        deleteAction.payload.edgeIds = [];
+        dispatch(action);
+      } else if (action.type === DiagramMakerActions.NODE_DRAG) {
+        console.dir(action);
       }
       else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);

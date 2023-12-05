@@ -4,9 +4,8 @@ import {
   StageDefinitionInfo,
   isStageAndGatewayDefinitionInfo,
   isStageWorkerDefinitionInfo,
-  isStageXorGatewayDefinitionInfo, StageWorkerDefinitionInfo
+  isStageXorGatewayDefinitionInfo
 } from "../../api/winslow-api";
-import {calculateViewDimensions} from "@swimlane/ngx-charts";
 
 export class ControlDiagramInitialData {
 
@@ -20,7 +19,7 @@ export class ControlDiagramInitialData {
       id: pipelineInfo.id,
       typeId: "node-start",
       diagramMakerData: {
-        position: {x: 50, y: 500},
+        position: {x: 50, y: 600},
         size: {width: 200, height: 75},
       },
       // @ts-ignore
