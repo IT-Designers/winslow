@@ -36,7 +36,6 @@ export class StageExecutionSelectionComponent implements OnInit {
       this.selectedStage = stageDefinition;
       this.loadEnvForStageName(stageDefinition.id);
       this.updateValid();
-      console.dir(this.valid);
     }
   };
   @Input() stageSelectionDisabled: boolean = false;
