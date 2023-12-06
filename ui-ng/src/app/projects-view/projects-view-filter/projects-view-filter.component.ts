@@ -10,6 +10,11 @@ import {MatChipInputEvent} from "@angular/material/chips";
 import {Observable, of} from "rxjs";
 import {TagFilterComponent} from "../tag-filter/tag-filter.component";
 
+export class SelectedTags {
+  includedTags: string[] = []
+  excludedTags: string[] = []
+}
+
 @Component({
   selector: 'app-projects-view-filter',
   templateUrl: './projects-view-filter.component.html',
@@ -44,18 +49,17 @@ export class ProjectsViewFilterComponent implements OnInit {
     this._availableTagsValue = of(tags);
     this.updateProjectsList();
   }
+
   // ---
 
   // Variables
   CONTEXT_PREFIX = 'context::';
   TAG_PREFIX = '#';
-  selectedTags: string[] = [];
+  selectedTags: SelectedTags = new SelectedTags();
   _availableTagsValue: Observable<string[]> = new Observable<string[]>();
   availableTagsValue: string[] = [];
   lastPreselectedTag?: string;
-  includeTags: string[] = [];
   includeEmpty: boolean = false;
-  excludeTags: string[] = [];
   excludeEmpty: boolean = false;
   searchInputCtrl = new FormControl('');
   separatorKeysCodes: number[] = [ENTER, COMMA];
@@ -69,13 +73,15 @@ export class ProjectsViewFilterComponent implements OnInit {
   @Output('filtered') filteredProjectsOutput = new EventEmitter<ProjectInfo[] | undefined>();
   @Output('projectsGroups') projectsGroups = new EventEmitter<ProjectGroup[]>();
   @Output('groupsOnTop') groupsOnTop = new EventEmitter<boolean>();
+
   // ---
 
 
   constructor(
     private dialog: MatDialog,
     private localStorageService: LocalStorageService,
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this.groupsOnTopIsChecked = this.localStorageService.getGroupsOnTop() ?? false;
@@ -90,69 +96,86 @@ export class ProjectsViewFilterComponent implements OnInit {
 
   // tag functions from old component
   toggleIncludedTag(tag: string) {
-    if (this.includeTags != null) {
-      const index = this.includeTags.indexOf(tag);
+    if (this.selectedTags.includedTags != null) {
+      const index = this.selectedTags.includedTags.indexOf(tag);
       if (index < 0) {
-        const tags = this.includeTags.map(t => t);
+        const tags = this.selectedTags.includedTags.map(t => t);
         tags.push(tag);
-        this.includeTags = tags; // notify the bindings
+        this.selectedTags.includedTags = tags; // notify the bindings
       } else {
-        const tags = this.includeTags.map(t => t);
+        const tags = this.selectedTags.includedTags.map(t => t);
         tags.splice(index, 1);
-        this.includeTags = tags; // notify the bindings
+        this.selectedTags.includedTags = tags; // notify the bindings
       }
       this.updateProjectsList();
     }
   }
 
   addIncludedTag(tag: string) {
-    if (this.includeTags != null && this.includeTags.indexOf(tag) < 0) {
-      const tags = this.includeTags.map(t => t);
+    if (this.selectedTags.includedTags != null && this.selectedTags.includedTags.indexOf(tag) < 0) {
+      const tags = this.selectedTags.includedTags.map(t => t);
       tags.push(tag);
-      this.includeTags = tags; // notify the bindings
+      this.selectedTags.includedTags = tags; // notify the bindings
     }
     this.updateProjectsList();
   }
 
   removeIncludedTag(tag: string) {
-    if (this.includeTags != null) {
-      const index = this.includeTags.indexOf(tag);
-      const tags = this.includeTags.map(t => t);
+    if (this.selectedTags.includedTags != null) {
+      const index = this.selectedTags.includedTags.indexOf(tag);
+      const tags = this.selectedTags.includedTags.map(t => t);
       tags.splice(index, 1);
-      this.includeTags = tags; // notify the bindings
+      this.selectedTags.includedTags = tags; // notify the bindings
     }
     this.updateProjectsList();
   }
 
   addExcludedTag(tag: string) {
-    if (this.excludeTags != null && this.excludeTags.indexOf(tag) < 0) {
-      const tags = this.excludeTags.map(t => t);
+    if (this.selectedTags.excludedTags != null && this.selectedTags.excludedTags.indexOf(tag) < 0) {
+      const tags = this.selectedTags.excludedTags.map(t => t);
       tags.push(tag);
-      this.excludeTags = tags; // notify the bindings
+      this.selectedTags.excludedTags = tags; // notify the bindings
     }
     this.updateProjectsList();
   }
 
-  removeFromSelectedTag(tag: string) {
-    const index = this.selectedTags.indexOf(tag);
-    if (index >= 0) {
-      this.selectedTags.splice(index, 1);
+  removeFromSelectedIncludedTag(tag: string) {
+    const indexInclude = this.selectedTags.includedTags.indexOf(tag);
+    if (indexInclude >= 0) {
+      this.selectedTags.includedTags.splice(indexInclude, 1);
     }
+    this.updateProjectsList();
   }
+
+  removeFromSelectedExcludedTag(tag: string) {
+    const indexExclude = this.selectedTags.excludedTags.indexOf(tag);
+    if (indexExclude >= 0) {
+      this.selectedTags.excludedTags.splice(indexExclude, 1);
+    }
+    this.updateProjectsList();
+  }
+
   // ---
 
 
   processInput() {
     console.log(this.searchInputCtrl.getRawValue());
     const input = this.searchInputCtrl.getRawValue();
-    let lowercaseInput = input ? input.toLowerCase() : '';
-    if(lowercaseInput.startsWith(this.TAG_PREFIX)) {
+    let lowercaseInput = input ? input.toLowerCase().trim() : '';
+    if (lowercaseInput.startsWith(this.TAG_PREFIX)) {
       lowercaseInput = lowercaseInput.replace(this.TAG_PREFIX, '');
       this._availableTagsValue = of(this.availableTagsValue.filter(value => {
         return value.toLowerCase().includes(lowercaseInput) || value.startsWith(lowercaseInput);
       }));
     } else {
-
+      this.filteredProjects = this.filteredProjects.filter(project => {
+        return project.name.toLowerCase().includes(lowercaseInput) || project.name.toLowerCase().startsWith(lowercaseInput);
+      })
+      console.log(this.filteredProjects)
+      this.filteredProjectsOutput.emit(this.filteredProjects);
+      console.log(this.filteredProjects)
+      //this.filteredProjects = this.getFilteredProjects();
+      console.log(this.filteredProjects)
     }
   }
 
@@ -162,6 +185,7 @@ export class ProjectsViewFilterComponent implements OnInit {
       return;
     }
     this.filteredProjects = this.getFilteredProjects();
+    console.log("updateProjectList() emitted new List");
     this.filteredProjectsOutput.emit(this.filteredProjects);
   }
 
@@ -175,12 +199,12 @@ export class ProjectsViewFilterComponent implements OnInit {
         }
       }
 
-      for (const tag of this.includeTags) {
+      for (const tag of this.selectedTags.includedTags) {
         if (project.tags.indexOf(tag) < 0) {
           return false;
         }
       }
-      for (const tag of this.excludeTags) {
+      for (const tag of this.selectedTags.excludedTags) {
         if (project.tags.indexOf(tag) >= 0) {
           return false;
         }
@@ -189,13 +213,12 @@ export class ProjectsViewFilterComponent implements OnInit {
     });
   }
 
-
-
   applyFilterMiddleware(value: string) {
-    if ((value || '').trim() && (this.selectedTags.indexOf(value.trim()) < 0)) {
-      this.selectedTags.push(value.trim());
-      this.selectedTags = this.selectedTags.sort((a, b) => a.localeCompare(b));
+    if ((value || '').trim() && (this.selectedTags.includedTags.indexOf(value.trim()) < 0)) {
+      this.selectedTags.includedTags.push(value.trim());
+      this.selectedTags.includedTags = this.selectedTags.includedTags.sort((a, b) => a.localeCompare(b));
     }
+    this.updateProjectsList();
   }
 
   selectFromAutocomplete($event: MatAutocompleteSelectedEvent) {
@@ -204,12 +227,9 @@ export class ProjectsViewFilterComponent implements OnInit {
   }
 
   selectFromInput($event: MatChipInputEvent) {
-    if (!this.matAutocomplete.isOpen) {
-      const input = $event.input;
-      const value = $event.value;
-      if(!value.startsWith(this.TAG_PREFIX)) {
-        this.applyFilterMiddleware(value);
-      }
+    const input = $event.input;
+    const value = $event.value;
+    if(value.startsWith(this.TAG_PREFIX)) {
       if (input) {
         input.value = '';
       }
