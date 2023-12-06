@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ProjectGroup} from '../api/project-api.service';
-import {TagFilterComponent} from './tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ProjectInfo, StateInfo} from '../api/winslow-api';
+import {ProjectsViewFilterComponent} from "./projects-view-filter/projects-view-filter.component";
 
 @Component({
   selector: 'app-projects-view',
@@ -16,7 +16,7 @@ export class ProjectsViewComponent implements OnInit {
   @Input() projects!: ProjectInfo[];
   @Input() projectsFiltered?: ProjectInfo[];
   @Input() projectsGroups!: ProjectGroup[];
-  @Input() filter!: TagFilterComponent;
+  @Input() filter!: ProjectsViewFilterComponent;
   @Input() groupsOnTop?: boolean;
 
   @Output() tagActionPrimary = new EventEmitter<string>();

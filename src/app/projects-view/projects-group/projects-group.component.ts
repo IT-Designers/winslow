@@ -1,12 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MatMenuTrigger} from '@angular/material/menu';
-import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {GroupActionsComponent} from '../../group-actions/group-actions.component';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
 import {ProjectInfo, StateInfo} from '../../api/winslow-api';
 import {ProjectGroup} from '../../api/project-api.service';
+import {ProjectsViewFilterComponent} from "../projects-view-filter/projects-view-filter.component";
 
 @Component({
   selector: 'app-projects-group',
@@ -16,7 +16,7 @@ import {ProjectGroup} from '../../api/project-api.service';
 export class ProjectsGroupComponent implements OnInit {
 
   @Input() projectGroup!: ProjectGroup;
-  @Input() filter!: TagFilterComponent;
+  @Input() filter!: ProjectsViewFilterComponent;
   menuPosition: { x: number; y: number } = {x: 0, y: 0};
   @Input() selectedProject?: ProjectInfo;
   @Input() stateInfo?: Map<string, StateInfo>;

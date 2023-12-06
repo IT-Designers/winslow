@@ -1,11 +1,9 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {TagFilterComponent} from '../tag-filter/tag-filter.component';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {MatDialog} from '@angular/material/dialog';
 import {AddToContextPopupComponent} from '../add-to-context-popup/add-to-context-popup.component';
 import {ProjectInfo, State} from '../../api/winslow-api';
-import {FilesApiService} from "../../api/files-api.service";
-import {DialogService} from "../../dialog.service";
+import {ProjectsViewFilterComponent} from "../projects-view-filter/projects-view-filter.component";
 
 @Component({
   selector: 'app-project-view-header',
@@ -18,7 +16,7 @@ export class ProjectViewHeaderComponent implements OnInit {
   @Input() pauseReason?: string;
   @Input() progress?: number;
   @Input() running = false;
-  @Input() filter!: TagFilterComponent;
+  @Input() filter!: ProjectsViewFilterComponent;
 
   @Input() state?: State;
   @Input() stage?: string;
