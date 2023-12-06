@@ -1,16 +1,25 @@
 <div class="main-container">
   <mat-form-field appearance="outline" class="search-field">
     <mat-chip-grid #chipList aria-label="Tag selection">
-      @for (tag of selectedTags;track tag) {
+      @for (tag of selectedTags.includedTags;track tag) {
         <mat-chip-row
           [removable]=true
-          (removed)="removeFromSelectedTag(tag)"
-          (click)="$event.preventDefault(); toggleIncludedTag(tag)"
-          (auxclick)="$event.preventDefault(); addExcludedTag(tag)"
-          (dblclick)="$event.preventDefault(); addExcludedTag(tag)"
+          (removed)="removeFromSelectedIncludedTag(tag)"
+          (click)="$event.preventDefault(); removeFromSelectedIncludedTag(tag)"
           [style.background-color]=""
         >
-          {{ tag }}
+          in: {{ tag }}
+          <mat-icon matChipRemove [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
+        </mat-chip-row>
+      }
+      @for (tag of selectedTags.excludedTags;track tag) {
+        <mat-chip-row
+          [removable]=true
+          (removed)="removeFromSelectedExcludedTag(tag)"
+          (click)="$event.preventDefault(); removeFromSelectedExcludedTag(tag)"
+          [style.background-color]=""
+        >
+          ex: {{ tag }}
           <mat-icon matChipRemove [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
         </mat-chip-row>
       }
