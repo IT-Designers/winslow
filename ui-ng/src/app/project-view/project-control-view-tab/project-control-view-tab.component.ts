@@ -17,7 +17,7 @@ import {
 } from "../../api/winslow-api";
 import {
   Action,
-  ConnectorPlacement, DeleteItemsAction,
+  ConnectorPlacement,
   DiagramMaker,
   DiagramMakerActions,
   DiagramMakerConfig,
@@ -230,9 +230,10 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
   }
 
   ngOnDestroy(): void {
-    if (this.diagramMaker) {
+    /*if (this.diagramMaker) {
       this.diagramMaker.destroy();
-    }
+    }*/
+    this.diagramMaker.destroy();
     this.libraryComponent?.destroy();
     this.nodeComponentInstances.forEach(instance => instance.destroy());
   }
