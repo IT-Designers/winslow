@@ -8,7 +8,14 @@
       ></app-projects-context-filter>
 
       <!-- New Filter -->
-      <app-projects-view-filter>
+      <app-projects-view-filter
+        #newFilter
+        [availableTags]="projectApi.cachedTags"
+        [projects]="projects"
+        [preSelectedTag]="context ?? undefined"
+        (filtered)="projectsFiltered = $event ?? projects;"
+        (projectsGroups)="projectsGroups = $event"
+        (groupsOnTop)="groupsOnTop = $event">
       </app-projects-view-filter>
 
       <!-- Old Filter -->
@@ -41,7 +48,7 @@
           [selectedProject]="selectedProject ?? undefined"
           [stateInfo]="stateInfo"
           [groupsOnTop]="groupsOnTop ?? false"
-          [filter]="filter"
+          [filter]="newFilter"
       >
       </app-projects-view>
     </div>
