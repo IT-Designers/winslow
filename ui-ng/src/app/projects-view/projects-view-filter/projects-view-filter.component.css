@@ -10,3 +10,9 @@
   flex-grow: 1;
   padding-top: 20px;
 }
+
+.button-group {
+  display: inline-flex;
+  width: auto;
+  padding-right: 0;
+}

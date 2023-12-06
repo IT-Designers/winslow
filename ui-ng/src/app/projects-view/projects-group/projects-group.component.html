@@ -1,4 +1,4 @@
-<mat-expansion-panel (contextmenu)="rightClickAction(matMenuTrigger, $event)" class="group" id="group">
+<mat-expansion-panel (contextmenu)="rightClickAction(matMenuTrigger, $event)" class="group" id="group" #group>
   <mat-expansion-panel-header>
     <mat-panel-title>
       @if (projectGroup.projects.length <= 9) {
@@ -9,7 +9,7 @@
       <app-tags-with-autocomplete
         [readonly]="true"
         [tags]="[projectGroup.name]"
-        (tagActionPrimary)="filter.toggleIncludedTag($event)"
+        (tagActionPrimary)="filter.toggleIncludedTag($event); group.toggle()"
         (tagActionSecondary)="filter.addExcludedTag($event)">
       </app-tags-with-autocomplete>
     </mat-panel-title>
