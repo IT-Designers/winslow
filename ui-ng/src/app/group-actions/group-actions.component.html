@@ -1,19 +1,6 @@
 <div class="container">
 
-  <!-- New Filter -->
-  <mat-card>
-    <app-projects-view-filter
-      #newFilter
-      [availableTags]="api.cachedTags"
-      [projects]="projects"
-      [preSelectedTag]="data.tag"
-      (filtered)="projectsFiltered = $event ?? projects;"
-      (projectsGroups)="projectsGroups = $event"
-      (groupsOnTop)="groupsOnTop = $event">
-    </app-projects-view-filter>
-  </mat-card>
-
-  <!-- Old Filter -->
+  <!-- Old Filter
   <mat-card>
     <mat-card-header>
       <mat-card-title>Filter</mat-card-title>
@@ -30,6 +17,7 @@
       ></app-tag-filter>
     </mat-card-content>
   </mat-card>
+  -->
 
   <mat-card class="drawer-content">
     <app-projects-view class="drawer-element"
