@@ -196,7 +196,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
       this.libraryComponent = null;
       this.initialData = this.initClass.getInitData(this.project.pipelineDefinition);
       this.ngAfterViewInit();
-    }, 100);
+    }, 200);
   }
 
 
