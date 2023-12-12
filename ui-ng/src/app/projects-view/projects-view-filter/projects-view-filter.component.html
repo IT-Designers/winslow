@@ -6,9 +6,9 @@
           [removable]=true
           (removed)="removeFromSelectedIncludedTag(tag)"
           (click)="$event.preventDefault(); removeFromSelectedIncludedTag(tag)"
-          [style.background-color]=""
+          [style.background-color]="'green'"
         >
-          in: {{ tag }}
+          +#{{ tag }}
           <mat-icon matChipRemove [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
         </mat-chip-row>
       }
@@ -17,9 +17,9 @@
           [removable]=true
           (removed)="removeFromSelectedExcludedTag(tag)"
           (click)="$event.preventDefault(); removeFromSelectedExcludedTag(tag)"
-          [style.background-color]=""
+          [style.background-color]="'red'"
         >
-          ex: {{ tag }}
+          -#{{ tag }}
           <mat-icon matChipRemove [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
         </mat-chip-row>
       }
@@ -42,17 +42,21 @@
       (optionSelected)="selectFromAutocomplete($event)"
     >
       @if (searchInputCtrl.value?.startsWith(this.TAG_PREFIX)) {
-        @for (name of _availableTagsValue | async;track name) {
+        @for (name of _availableInTagsValue | async;track name) {
+          <mat-option [value]="name">{{ name }}</mat-option>
+        }
+      }
+      @if (searchInputCtrl.value?.startsWith(this.TAG_EXCLUDE_PREFIX)) {
+        @for (name of _availableExTagsValue | async;track name) {
           <mat-option [value]="name">{{ name }}</mat-option>
         }
       }
     </mat-autocomplete>
   </mat-form-field>
 
-  <button class="button-group" mat-icon-button matTooltip="More filters and help menu."
+  <button mat-icon-button matTooltip="More filters and help menu."
           (click)="openAdvancedFilterOptions()">
     <mat-icon>tune</mat-icon>
-    <mat-icon>help_outline</mat-icon>
   </button>
 
   <app-projects-group-builder

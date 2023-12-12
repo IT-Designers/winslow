@@ -46,7 +46,10 @@ export class ProjectsViewFilterComponent implements OnInit {
   @Input('availableTags')
   set availableTags(tags: string[]) {
     this.availableTagsValue = tags;
-    this._availableTagsValue = of(tags);
+    this._availableInTagsValue = of(tags);
+    this._availableExTagsValue = of(tags);
+    this.selectedTags.includedTags.forEach(tag => this.addIncludedTag(tag));
+    this.selectedTags.excludedTags.forEach(tag => this.addExcludedTag(tag));
     this.updateProjectsList();
   }
 
@@ -55,8 +58,10 @@ export class ProjectsViewFilterComponent implements OnInit {
   // Variables
   CONTEXT_PREFIX = 'context::';
   TAG_PREFIX = '#';
+  TAG_EXCLUDE_PREFIX = '-#';
   selectedTags: SelectedTags = new SelectedTags();
-  _availableTagsValue: Observable<string[]> = new Observable<string[]>();
+  _availableInTagsValue: Observable<string[]> = new Observable<string[]>();
+  _availableExTagsValue: Observable<string[]> = new Observable<string[]>();
   availableTagsValue: string[] = [];
   lastPreselectedTag?: string;
   includeEmpty: boolean = false;
@@ -113,8 +118,9 @@ export class ProjectsViewFilterComponent implements OnInit {
 
   addIncludedTag(tag: string) {
     if (this.selectedTags.includedTags != null && this.selectedTags.includedTags.indexOf(tag) < 0) {
-      const tags = this.selectedTags.includedTags.map(t => t);
+      let tags = this.selectedTags.includedTags.map(t => t);
       tags.push(tag);
+      tags = tags.sort((a, b) => a.localeCompare(b));
       this.selectedTags.includedTags = tags; // notify the bindings
     }
     this.updateProjectsList();
@@ -132,8 +138,9 @@ export class ProjectsViewFilterComponent implements OnInit {
 
   addExcludedTag(tag: string) {
     if (this.selectedTags.excludedTags != null && this.selectedTags.excludedTags.indexOf(tag) < 0) {
-      const tags = this.selectedTags.excludedTags.map(t => t);
+      let tags = this.selectedTags.excludedTags.map(t => t);
       tags.push(tag);
+      tags = tags.sort((a, b) => a.localeCompare(b));
       this.selectedTags.excludedTags = tags; // notify the bindings
     }
     this.updateProjectsList();
@@ -154,7 +161,6 @@ export class ProjectsViewFilterComponent implements OnInit {
     }
     this.updateProjectsList();
   }
-
   // ---
 
 
@@ -162,19 +168,34 @@ export class ProjectsViewFilterComponent implements OnInit {
     console.log(this.searchInputCtrl.getRawValue());
     const input = this.searchInputCtrl.getRawValue();
     let lowercaseInput = input ? input.toLowerCase().trim() : '';
-    if (lowercaseInput.startsWith(this.TAG_PREFIX)) {
+    if (lowercaseInput.startsWith(this.TAG_EXCLUDE_PREFIX)) {
+      lowercaseInput = lowercaseInput.replace(this.TAG_EXCLUDE_PREFIX, '');
+      this._availableExTagsValue = of(this.availableTagsValue
+        .filter(value => {
+          if (this.selectedTags.excludedTags.indexOf(value) < 0) { // isn't selected
+            return value.toLowerCase().includes(lowercaseInput);
+          }
+        })
+        .map(value => `-#${value}`)
+      );
+    } else if (lowercaseInput.startsWith(this.TAG_PREFIX)) {
       lowercaseInput = lowercaseInput.replace(this.TAG_PREFIX, '');
-      this._availableTagsValue = of(this.availableTagsValue.filter(value => {
-        return value.toLowerCase().includes(lowercaseInput) || value.startsWith(lowercaseInput);
-      }));
+      this._availableInTagsValue = of(this.availableTagsValue
+        .filter(value => {
+          if (this.selectedTags.includedTags.indexOf(value) < 0) { // isn't selected
+            return value.toLowerCase().includes(lowercaseInput);
+          }
+        })
+        .map(value => `#${value}`)
+      );
     } else {
+      this.filteredProjects = this.getFilteredProjects();
+      console.log(this.filteredProjects)
       this.filteredProjects = this.filteredProjects.filter(project => {
         return project.name.toLowerCase().includes(lowercaseInput) || project.name.toLowerCase().startsWith(lowercaseInput);
       })
       console.log(this.filteredProjects)
       this.filteredProjectsOutput.emit(this.filteredProjects);
-      console.log(this.filteredProjects)
-      //this.filteredProjects = this.getFilteredProjects();
       console.log(this.filteredProjects)
     }
   }
@@ -214,9 +235,13 @@ export class ProjectsViewFilterComponent implements OnInit {
   }
 
   applyFilterMiddleware(value: string) {
-    if ((value || '').trim() && (this.selectedTags.includedTags.indexOf(value.trim()) < 0)) {
-      this.selectedTags.includedTags.push(value.trim());
-      this.selectedTags.includedTags = this.selectedTags.includedTags.sort((a, b) => a.localeCompare(b));
+    let tag = value.trim() || '';
+    if (tag.startsWith(this.TAG_PREFIX) && (this.selectedTags.includedTags.indexOf(tag) < 0)) {
+      tag = tag.replace(this.TAG_PREFIX, '');
+      this.addIncludedTag(tag);
+    } else if (tag.startsWith(this.TAG_EXCLUDE_PREFIX) && (this.selectedTags.excludedTags.indexOf(tag) < 0)) {
+      tag = tag.replace(this.TAG_EXCLUDE_PREFIX, '');
+      this.addExcludedTag(tag);
     }
     this.updateProjectsList();
   }
@@ -229,7 +254,7 @@ export class ProjectsViewFilterComponent implements OnInit {
   selectFromInput($event: MatChipInputEvent) {
     const input = $event.input;
     const value = $event.value;
-    if(value.startsWith(this.TAG_PREFIX)) {
+    if (value.startsWith(this.TAG_PREFIX) || value.startsWith(this.TAG_EXCLUDE_PREFIX)) {
       if (input) {
         input.value = '';
       }
