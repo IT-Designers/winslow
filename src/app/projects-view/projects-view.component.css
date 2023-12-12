@@ -18,3 +18,7 @@
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
+
+mat-list {
+  padding-top: 0;
+}
