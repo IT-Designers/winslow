@@ -64,8 +64,6 @@ export class ProjectsViewFilterComponent implements OnInit {
   _availableExTagsValue: Observable<string[]> = new Observable<string[]>();
   availableTagsValue: string[] = [];
   lastPreselectedTag?: string;
-  includeEmpty: boolean = false;
-  excludeEmpty: boolean = false;
   searchInputCtrl = new FormControl('');
   separatorKeysCodes: number[] = [ENTER, COMMA];
   projectsValue!: ProjectInfo[];
@@ -161,9 +159,11 @@ export class ProjectsViewFilterComponent implements OnInit {
     }
     this.updateProjectsList();
   }
+
   // ---
 
 
+  // gets called with every keyup of the searchbar
   processInput() {
     console.log(this.searchInputCtrl.getRawValue());
     const input = this.searchInputCtrl.getRawValue();
@@ -198,6 +198,7 @@ export class ProjectsViewFilterComponent implements OnInit {
       this.filteredProjectsOutput.emit(this.filteredProjects);
       console.log(this.filteredProjects)
     }
+    this.updateProjectsList();
   }
 
   updateProjectsList() {
@@ -213,23 +214,23 @@ export class ProjectsViewFilterComponent implements OnInit {
   getFilteredProjects() {
     return this.projectsValue.filter(project => {
       if (project.tags.length === 0) {
-        if (this.includeEmpty) {
-          return true;
-        } else if (this.excludeEmpty) {
+        return true;
+      }
+
+      if (this.selectedTags.includedTags.length > 0) {
+        const hasIncludedTag = project.tags.some(tag => this.selectedTags.includedTags.includes(tag));
+        if (!hasIncludedTag) {
           return false;
         }
       }
 
-      for (const tag of this.selectedTags.includedTags) {
-        if (project.tags.indexOf(tag) < 0) {
+      if (this.selectedTags.excludedTags.length > 0) {
+        const hasExcludedTag = project.tags.some(tag => this.selectedTags.excludedTags.includes(tag));
+        if (hasExcludedTag) {
           return false;
         }
       }
-      for (const tag of this.selectedTags.excludedTags) {
-        if (project.tags.indexOf(tag) >= 0) {
-          return false;
-        }
-      }
+
       return true;
     });
   }
