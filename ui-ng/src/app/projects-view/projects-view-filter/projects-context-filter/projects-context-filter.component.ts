@@ -1,5 +1,5 @@
 import {
-  AfterViewInit,
+  AfterViewInit, ApplicationRef,
   Component,
   EventEmitter,
   Input,
@@ -7,6 +7,7 @@ import {
   Output,
 } from '@angular/core';
 import {LocalStorageService} from '../../../api/local-storage.service';
+import {MatTabChangeEvent} from "@angular/material/tabs";
 
 @Component({
   selector: 'app-projects-context-filter',
@@ -23,7 +24,10 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   selectedIndex: number = 0;
   observer!: IntersectionObserver;
 
-  constructor(private localStorageService: LocalStorageService) {
+  constructor(
+    private localStorageService: LocalStorageService,
+    private appRef: ApplicationRef,
+    ) {
   }
 
   ngOnInit(): void {
@@ -44,6 +48,12 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
       .filter(tag => tag.startsWith(this.CONTEXT_PREFIX))
       .map(tag => tag.replace(this.CONTEXT_PREFIX, ''));
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
+    this.ngAfterViewInit();
+  }
+
+  changeContextWithId($event: MatTabChangeEvent) {
+    const tag = this.availableTagsValue[$event.index - 1];
+    this.changeContext(tag || '');
   }
 
   changeContext(selection: string) {
@@ -68,11 +78,11 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
         const tag = entry.target.textContent;
         if (entry.isIntersecting || tag === this.selectedContext) {
           this.notVisibleTags = this.notVisibleTags.filter(name => name !== tag);
-        } else if (tag != null && tag !== this.selectedContext) {
+        } else if (tag != null && tag !== this.selectedContext && this.notVisibleTags.indexOf(tag) < 0) {
           this.notVisibleTags.push(tag);
         }
       }
       this.notVisibleTags = this.notVisibleTags.sort();
-    }, {threshold: [0.8]}); // percent how much an element should visible. 1 if the element must be completely visible
+    }, {threshold: [0.9]}); // percent how much an element should visible. 1 if the element must be completely visible
   }
 }
