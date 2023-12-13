@@ -14,7 +14,7 @@ export class SelectedTags {
 }
 
 @Component({
-  selector: 'app-projects-view-filter',
+  selector: './app-projects-view-filter',
   templateUrl: './projects-view-filter.component.html',
   styleUrl: './projects-view-filter.component.css'
 })
