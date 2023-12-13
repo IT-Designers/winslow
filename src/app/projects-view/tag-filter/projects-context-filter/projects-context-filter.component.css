@@ -6,10 +6,6 @@
   background-color: var(--color-background-light);
 }
 
-.context {
-  margin-bottom: 1rem;
-}
-
 .context deep .mat-tab-label-container {
   flex-wrap: nowrap;
   overflow-x: clip;
