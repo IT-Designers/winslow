@@ -170,7 +170,7 @@ export class ProjectsViewFilterComponent implements OnInit {
       lowercaseInput = lowercaseInput.replace(this.TAG_EXCLUDE_PREFIX, '');
       this._availableExTagsValue = of(this.availableTagsValue
         .filter(value => {
-          if (this.selectedTags.excludedTags.indexOf(value) < 0) { // isn't selected
+          if (this.selectedTags.excludedTags.indexOf(value) < 0 && !value.startsWith(this.CONTEXT_PREFIX)) {
             return value.toLowerCase().includes(lowercaseInput);
           }
         })
@@ -180,7 +180,7 @@ export class ProjectsViewFilterComponent implements OnInit {
       lowercaseInput = lowercaseInput.replace(this.TAG_PREFIX, '');
       this._availableInTagsValue = of(this.availableTagsValue
         .filter(value => {
-          if (this.selectedTags.includedTags.indexOf(value) < 0) { // isn't selected
+          if (this.selectedTags.includedTags.indexOf(value) < 0 && !value.startsWith(this.CONTEXT_PREFIX)) {
             return value.toLowerCase().includes(lowercaseInput);
           }
         })
@@ -264,6 +264,9 @@ export class ProjectsViewFilterComponent implements OnInit {
 
   // used for dynamic height of the search bar
   isSearchEmpty() {
-    return this.selectedTags.includedTags.length <= 0 && this.selectedTags.excludedTags.length <= 0;
+    return (
+      this.selectedTags.includedTags.filter(tag => !tag.startsWith(this.CONTEXT_PREFIX)).length <= 0 &&
+      this.selectedTags.excludedTags.length <= 0
+    );
   }
 }
