@@ -1,5 +1,5 @@
 import {
-  AfterViewInit,
+  AfterViewInit, ApplicationRef,
   Component,
   EventEmitter,
   Input,
@@ -7,6 +7,7 @@ import {
   Output,
 } from '@angular/core';
 import {LocalStorageService} from '../../../api/local-storage.service';
+import {MatTabChangeEvent} from "@angular/material/tabs";
 
 @Component({
   selector: 'app-projects-context-filter',
@@ -15,25 +16,27 @@ import {LocalStorageService} from '../../../api/local-storage.service';
 })
 export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
 
-  availableTagsValue: string[];
-  notVisibleTags = [];
-  selectedContext: string;
-  SELECTED_CONTEXT: string = 'SELECTED_CONTEXT';
+  availableTagsValue: string[] = [];
+  notVisibleTags: string[] = [];
+  selectedContext: string = '';
   @Output() outputContext = new EventEmitter<string>();
   CONTEXT_PREFIX: string = 'context::';
   selectedIndex: number = 0;
-  observer: IntersectionObserver;
+  observer!: IntersectionObserver;
 
-  constructor(private localStorageService: LocalStorageService) {
+  constructor(
+    private localStorageService: LocalStorageService,
+    private appRef: ApplicationRef,
+    ) {
   }
 
   ngOnInit(): void {
   }
 
   ngAfterViewInit() {
-    if (this.localStorageService.getSettings(this.SELECTED_CONTEXT) !== '' &&
-      this.localStorageService.getSettings(this.SELECTED_CONTEXT) != null) {
-      this.changeContext(this.localStorageService.getSettings(this.SELECTED_CONTEXT));
+    const context = this.localStorageService.getSelectedContext();
+    if (context != null && context !== '') {
+      this.changeContext(context);
     }
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
     this.createTagObserver();
@@ -43,19 +46,25 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   set availableTags(tags: string[]) {
     this.availableTagsValue = tags
       .filter(tag => tag.startsWith(this.CONTEXT_PREFIX))
-      .map(tag => tag.replace(this.CONTEXT_PREFIX, ''), tag => tag.sort());
+      .map(tag => tag.replace(this.CONTEXT_PREFIX, ''));
     document.querySelectorAll('.custom-tab').forEach(tab => this.observer.observe(tab));
+    this.ngAfterViewInit();
+  }
+
+  changeContextWithId($event: MatTabChangeEvent) {
+    const tag = this.availableTagsValue[$event.index - 1];
+    this.changeContext(tag || '');
   }
 
   changeContext(selection: string) {
     if (selection === '' || selection === '[No]') {
       this.selectedContext = '';
-      this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
+      this.localStorageService.setSelectedContext(selection);
       this.outputContext.emit(undefined);
       this.selectedIndex = 0;
     } else {
       this.selectedContext = selection;
-      this.localStorageService.setSettings(this.SELECTED_CONTEXT, selection);
+      this.localStorageService.setSelectedContext(selection);
       this.outputContext.emit('context::' + this.selectedContext);
       this.availableTagsValue.indexOf(selection);
       this.selectedIndex = this.availableTagsValue.indexOf(selection) + 1;
@@ -67,15 +76,13 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
     this.observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         const tag = entry.target.textContent;
-        if (entry.isIntersecting === true || tag === this.selectedContext) {
+        if (entry.isIntersecting || tag === this.selectedContext) {
           this.notVisibleTags = this.notVisibleTags.filter(name => name !== tag);
-        } else {
-          if (tag !== this.selectedContext) {
-            this.notVisibleTags.push(tag);
-          }
+        } else if (tag != null && tag !== this.selectedContext && this.notVisibleTags.indexOf(tag) < 0) {
+          this.notVisibleTags.push(tag);
         }
       }
       this.notVisibleTags = this.notVisibleTags.sort();
-    }, {threshold: [0.8]}); // percent how much an element should visible. 1 if the element must be completely visible
+    }, {threshold: [0.9]}); // percent how much an element should visible. 1 if the element must be completely visible
   }
 }
