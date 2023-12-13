@@ -19,8 +19,8 @@ export class ProjectsContextFilterComponent implements OnInit, AfterViewInit {
   notVisibleTags: string[] = [];
   selectedContext: string = '';
   @Output() outputContext = new EventEmitter<string>();
-  CONTEXT_PREFIX = 'context::';
-  selectedIndex = 0;
+  CONTEXT_PREFIX: string = 'context::';
+  selectedIndex: number = 0;
   observer!: IntersectionObserver;
 
   constructor(private localStorageService: LocalStorageService) {
