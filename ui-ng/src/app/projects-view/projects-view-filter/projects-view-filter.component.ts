@@ -27,6 +27,7 @@ export class ProjectsViewFilterComponent implements OnInit {
   set preSelectedTag(tag: string | undefined) {
     if (this.lastPreselectedTag) {
       this.removeIncludedTag(this.lastPreselectedTag);
+      this.lastPreselectedTag = undefined;
     }
     if (tag) {
       this.addIncludedTag(tag);
@@ -207,25 +208,28 @@ export class ProjectsViewFilterComponent implements OnInit {
 
   getFilteredProjects() {
     return this.projectsValue.filter(project => {
-      if (project.tags.length === 0) {
+      if(this.selectedTags.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX)).length > 0) {
+        const contextFilter = this.selectedTags.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX))[0];
+        console.log("Context from getFiltered", contextFilter);
+        return  project.tags.some(tag => tag == contextFilter);
+      } else {
+        if (project.tags.length === 0) {
+          return true;
+        }
+        if (this.selectedTags.includedTags.length > 0) {
+          const hasIncludedTag = project.tags.some(tag => this.selectedTags.includedTags.includes(tag));
+          if (!hasIncludedTag) {
+            return false;
+          }
+        }
+        if (this.selectedTags.excludedTags.length > 0) {
+          const hasExcludedTag = project.tags.some(tag => this.selectedTags.excludedTags.includes(tag));
+          if (hasExcludedTag) {
+            return false;
+          }
+        }
         return true;
       }
-
-      if (this.selectedTags.includedTags.length > 0) {
-        const hasIncludedTag = project.tags.some(tag => this.selectedTags.includedTags.includes(tag));
-        if (!hasIncludedTag) {
-          return false;
-        }
-      }
-
-      if (this.selectedTags.excludedTags.length > 0) {
-        const hasExcludedTag = project.tags.some(tag => this.selectedTags.excludedTags.includes(tag));
-        if (hasExcludedTag) {
-          return false;
-        }
-      }
-
-      return true;
     });
   }
 
