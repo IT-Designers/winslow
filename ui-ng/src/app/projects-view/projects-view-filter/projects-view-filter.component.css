@@ -7,6 +7,10 @@
   align-items: center;
 }
 
+.empty-search {
+  max-height: 3.5rem;
+}
+
 .search-field {
   flex-grow: 1;
   padding-top: 20px;
@@ -27,4 +31,8 @@
 
 .search-input {
   width: 100%;
+}
+
+.extendedSettings {
+  margin: 0.5rem;
 }

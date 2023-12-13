@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild} from '@angular/core';
+import {ApplicationRef, Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild} from '@angular/core';
 import {MatDialog} from "@angular/material/dialog";
 import {ProjectInfo} from "../../api/winslow-api";
 import {ProjectGroup} from "../../api/project-api.service";
@@ -8,7 +8,6 @@ import {MatAutocomplete, MatAutocompleteSelectedEvent} from "@angular/material/a
 import {COMMA, ENTER} from "@angular/cdk/keycodes";
 import {MatChipInputEvent} from "@angular/material/chips";
 import {Observable, of} from "rxjs";
-import {ProjectsGroupBuilderComponent} from "../tag-filter/projects-group-builder/projects-group-builder.component";
 
 export class SelectedTags {
   includedTags: string[] = []
@@ -70,6 +69,7 @@ export class ProjectsViewFilterComponent implements OnInit {
   filteredProjects!: ProjectInfo[];
   projectsGroupsValue?: ProjectGroup[];
   groupsOnTopIsChecked!: boolean;
+  showExtendedOptions: boolean = true;
   // ---
 
   // Output
@@ -81,8 +81,9 @@ export class ProjectsViewFilterComponent implements OnInit {
 
 
   constructor(
-    private dialog: MatDialog,
     private localStorageService: LocalStorageService,
+    private appRef: ApplicationRef,
+    private ngZone: NgZone,
   ) {
   }
 
@@ -165,7 +166,6 @@ export class ProjectsViewFilterComponent implements OnInit {
 
   // gets called with every keyup of the searchbar
   processInput() {
-    console.log(this.searchInputCtrl.getRawValue());
     const input = this.searchInputCtrl.getRawValue();
     let lowercaseInput = input ? input.toLowerCase().trim() : '';
     if (lowercaseInput.startsWith(this.TAG_EXCLUDE_PREFIX)) {
@@ -190,13 +190,11 @@ export class ProjectsViewFilterComponent implements OnInit {
       );
     } else {
       this.filteredProjects = this.getFilteredProjects();
-      console.log(this.filteredProjects)
       this.filteredProjects = this.filteredProjects.filter(project => {
         return project.name.toLowerCase().includes(lowercaseInput) || project.name.toLowerCase().startsWith(lowercaseInput);
       })
-      console.log(this.filteredProjects)
       this.filteredProjectsOutput.emit(this.filteredProjects);
-      console.log(this.filteredProjects)
+      this.appRef.tick();
     }
   }
 
@@ -206,7 +204,6 @@ export class ProjectsViewFilterComponent implements OnInit {
       return;
     }
     this.filteredProjects = this.getFilteredProjects();
-    console.log("updateProjectList() emitted new List");
     this.filteredProjectsOutput.emit(this.filteredProjects);
   }
 
@@ -262,12 +259,13 @@ export class ProjectsViewFilterComponent implements OnInit {
     }
   }
 
-  openAdvancedFilterOptions() {
-    this.dialog.open(ProjectsGroupBuilderComponent);
-  }
-
   emitGroups() {
     this.projectsGroups.emit(this.projectsGroupsValue);
     this.groupsOnTop.emit(this.groupsOnTopIsChecked);
+  }
+
+  // used for dynamic height of the search bar
+  isSearchEmpty() {
+    return this.selectedTags.includedTags.length <= 0 && this.selectedTags.excludedTags.length <= 0;
   }
 }
