@@ -1,5 +1,4 @@
-import {ApplicationRef, Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild} from '@angular/core';
-import {MatDialog} from "@angular/material/dialog";
+import {ApplicationRef, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {ProjectInfo} from "../../api/winslow-api";
 import {ProjectGroup} from "../../api/project-api.service";
 import {LocalStorageService} from "../../api/local-storage.service";
@@ -83,7 +82,6 @@ export class ProjectsViewFilterComponent implements OnInit {
   constructor(
     private localStorageService: LocalStorageService,
     private appRef: ApplicationRef,
-    private ngZone: NgZone,
   ) {
   }
 
