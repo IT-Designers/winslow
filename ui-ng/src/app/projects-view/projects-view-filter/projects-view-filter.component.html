@@ -1,4 +1,4 @@
-<div class="main-container">
+<div class="main-container" [ngClass]="{'empty-search': isSearchEmpty()}">
   <mat-form-field appearance="outline" class="search-field">
     <input
       class="search-input"
@@ -55,17 +55,19 @@
     </mat-autocomplete>
   </mat-form-field>
 
-  <button mat-icon-button matTooltip="More filters and help menu."
-          (click)="openAdvancedFilterOptions()">
+  <button mat-icon-button matTooltip="Extended Settings."
+          (click)="showExtendedOptions = !showExtendedOptions">
     <mat-icon>tune</mat-icon>
   </button>
 
+
+
+</div>
+
   <app-projects-group-builder
-    style="display: none"
+    [hidden]="showExtendedOptions"
     [projects]="this.filteredProjects"
     [availableTags]="this.availableTagsValue"
     (projectsGroups)="projectsGroupsValue = $event; emitGroups()"
     (groupsOnTop)="groupsOnTopIsChecked = $event; emitGroups()">
   </app-projects-group-builder>
-
-</div>
