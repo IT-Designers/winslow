@@ -7,7 +7,6 @@
           (outputContext)="changeContext($event)"
       ></app-projects-context-filter>
 
-      <!-- New Filter -->
       <app-projects-view-filter
         #newFilter
         [availableTags]="projectApi.cachedTags"
@@ -17,28 +16,6 @@
         (projectsGroups)="projectsGroups = $event"
         (groupsOnTop)="groupsOnTop = $event">
       </app-projects-view-filter>
-
-      <!-- Old Filter
-      <mat-accordion class="drawer-element">
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title class="mat-icon-container-auto-align-label">
-              <mat-icon>filter_list</mat-icon>
-              <label>Filter</label>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <app-tag-filter
-              #filter
-              [availableTags]="projectApi.cachedTags"
-              [projects]="projects"
-              [preSelectedTag]="context ?? undefined"
-              (filtered)="projectsFiltered = $event ?? projects;"
-              (projectsGroups)="projectsGroups = $event"
-              (groupsOnTop)="groupsOnTop = $event"
-          ></app-tag-filter>
-        </mat-expansion-panel>
-      </mat-accordion>
-      -->
 
       <!-- Project view -->
       <app-projects-view
