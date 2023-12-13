@@ -17,16 +17,17 @@
     }
   </mat-menu>
 
-  <mat-tab-group cdkScrollable="false" mat-align-tabs="start" disablePagination="true" [selectedIndex]="selectedIndex">
+  <mat-tab-group (selectedTabChange)="changeContextWithId($event)" cdkScrollable="false" mat-align-tabs="start"
+                 disablePagination="true" [selectedIndex]="selectedIndex">
     <mat-tab>
       <ng-template mat-tab-label>
-        <div class="custom-tab" (click)="changeContext('')">[No]</div>
+        <div class="custom-tab">[All]</div>
       </ng-template>
     </mat-tab>
     @for (tag of availableTagsValue;track $index) {
       <mat-tab>
         <ng-template mat-tab-label>
-          <div [id]="$index" class="custom-tab" (click)="changeContext(tag)">{{ tag }}</div>
+          <div [id]="$index" class="custom-tab">{{ tag }}</div>
         </ng-template>
       </mat-tab>
     }

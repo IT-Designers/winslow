@@ -11,17 +11,3 @@
   overflow-x: clip;
   white-space: nowrap;
 }
-
-.context deep .mat-tab-label {
-  min-width: min-content;
-  padding: 0;
-}
-
-.context deep .mat-mdc-tab-header {
-  margin-left: 0.5em;
-  margin-right: 3em;
-}
-
-.custom-tab {
-  padding: 0.5em 0.5em 0.5em 0.5em;
-}
