@@ -50,7 +50,6 @@ import {ScrollingModule} from '@angular/cdk/scrolling';
 import {TagsWithAutocompleteComponent} from './projects-view/tags-with-autocomplete/tags-with-autocomplete.component';
 import {ProjectViewHeaderComponent} from './projects-view/project-view-header/project-view-header.component';
 import {StageExecutionSelectionComponent} from './stage-execution-selection/stage-execution-selection.component';
-import {TagFilterComponent} from './projects-view/tag-filter/tag-filter.component';
 import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 import {SystemViewComponent} from './system-view/system-view.component';
 import {SystemCfgEnvComponent} from './system-cfg-env/system-cfg-env.component';
@@ -78,7 +77,7 @@ import {
 import {AuthTokensComponent} from './auth-tokens/auth-tokens.component';
 import {
   ProjectsGroupBuilderComponent
-} from './projects-view/tag-filter/projects-group-builder/projects-group-builder.component';
+} from './projects-view/projects-view-filter/projects-group-builder/projects-group-builder.component';
 import {ProjectsViewComponent} from './projects-view/projects-view.component';
 import {ProjectAnalysisTabComponent} from './project-view/project-analysis-tab/project-analysis-tab.component';
 import {
@@ -96,7 +95,7 @@ import {
 import {ProjectsGroupComponent} from './projects-view/projects-group/projects-group.component';
 import {
   ProjectsContextFilterComponent
-} from './projects-view/tag-filter/projects-context-filter/projects-context-filter.component';
+} from './projects-view/projects-view-filter/projects-context-filter/projects-context-filter.component';
 import {AddToContextPopupComponent} from './projects-view/add-to-context-popup/add-to-context-popup.component';
 import {
   RegularExpressionEditorDialogComponent
@@ -165,7 +164,6 @@ import {ProjectsViewFilterComponent} from "./projects-view/projects-view-filter/
     TagsWithAutocompleteComponent,
     ProjectViewHeaderComponent,
     StageExecutionSelectionComponent,
-    TagFilterComponent,
     SystemViewComponent,
     SystemCfgEnvComponent,
     EnvVariablesComponent,
