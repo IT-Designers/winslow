@@ -208,11 +208,21 @@ export class ProjectsViewFilterComponent implements OnInit {
 
   getFilteredProjects() {
     return this.projectsValue.filter(project => {
+      // handle context view
       if(this.selectedTags.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX)).length > 0) {
         const contextFilter = this.selectedTags.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX))[0];
         console.log("Context from getFiltered", contextFilter);
-        return  project.tags.some(tag => tag == contextFilter);
+        const isInContext = project.tags.some(tag => tag == contextFilter);
+        if (!isInContext) return false;
+        if (this.selectedTags.excludedTags.length > 0) {
+          const hasExcludedTag = project.tags.some(tag => this.selectedTags.excludedTags.includes(tag));
+          if (hasExcludedTag) {
+            return false;
+          }
+        }
+        return true;
       } else {
+        // handle [All] projects view (or no context at all)
         if (project.tags.length === 0) {
           return true;
         }
