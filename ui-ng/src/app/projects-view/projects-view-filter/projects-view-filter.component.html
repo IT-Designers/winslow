@@ -1,6 +1,18 @@
 <div class="main-container">
   <mat-form-field appearance="outline" class="search-field">
-    <mat-chip-grid #chipList aria-label="Tag selection">
+    <input
+      class="search-input"
+      matInput
+      placeholder="Search..."
+      [formControl]="searchInputCtrl"
+      (keyup)="processInput()"
+      [matAutocomplete]="auto"
+      [matChipInputFor]="chipList"
+      [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+      [matChipInputAddOnBlur]=true
+      (matChipInputTokenEnd)="selectFromInput($event)"
+    >
+    <mat-chip-grid class="search-chip-list" #chipList aria-label="Tag selection">
       @for (tag of selectedTags.includedTags;track tag) {
         <mat-chip-row
           [removable]=true
@@ -23,17 +35,6 @@
           <mat-icon matChipRemove [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
         </mat-chip-row>
       }
-      <input
-        matInput
-        placeholder="Search..."
-        [formControl]="searchInputCtrl"
-        (keyup)="processInput()"
-        [matAutocomplete]="auto"
-        [matChipInputFor]="chipList"
-        [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-        [matChipInputAddOnBlur]=true
-        (matChipInputTokenEnd)="selectFromInput($event)"
-      >
     </mat-chip-grid>
 
     <mat-autocomplete

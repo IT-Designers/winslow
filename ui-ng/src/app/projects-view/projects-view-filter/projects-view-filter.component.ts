@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, NgZone, OnInit, Output, ViewChild} from '@angular/core';
 import {MatDialog} from "@angular/material/dialog";
 import {ProjectInfo} from "../../api/winslow-api";
 import {ProjectGroup} from "../../api/project-api.service";
@@ -8,7 +8,7 @@ import {MatAutocomplete, MatAutocompleteSelectedEvent} from "@angular/material/a
 import {COMMA, ENTER} from "@angular/cdk/keycodes";
 import {MatChipInputEvent} from "@angular/material/chips";
 import {Observable, of} from "rxjs";
-import {TagFilterComponent} from "../tag-filter/tag-filter.component";
+import {ProjectsGroupBuilderComponent} from "../tag-filter/projects-group-builder/projects-group-builder.component";
 
 export class SelectedTags {
   includedTags: string[] = []
@@ -198,7 +198,6 @@ export class ProjectsViewFilterComponent implements OnInit {
       this.filteredProjectsOutput.emit(this.filteredProjects);
       console.log(this.filteredProjects)
     }
-    this.updateProjectsList();
   }
 
   updateProjectsList() {
@@ -264,7 +263,7 @@ export class ProjectsViewFilterComponent implements OnInit {
   }
 
   openAdvancedFilterOptions() {
-    this.dialog.open(TagFilterComponent);
+    this.dialog.open(ProjectsGroupBuilderComponent);
   }
 
   emitGroups() {
