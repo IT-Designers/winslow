@@ -1,5 +1,5 @@
-<div class="flex-grow-row tag-filter">
-  <div>
+<div class="flex-grow-row tag-filter main-container">
+  <div class="toggle-button">
     <mat-slide-toggle
       [(ngModel)]="groupsActivated"
       (change)="updateGroups(); updateGroupsActivated()"
@@ -7,7 +7,7 @@
       Turn Groups On/Off
     </mat-slide-toggle>
   </div>
-  <div>
+  <div class="toggle-button">
     <mat-slide-toggle [(ngModel)]="groupsOnTopIsChecked"
                       (change)="updateGroups(); updateGroupsOnTop(); groupsOnTop.emit(groupsOnTopIsChecked)"
                       [disabled]="!groupsActivated || (projectsValue.length < 1 || availableTagsValue.length <= 0)">
