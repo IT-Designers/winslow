@@ -1,13 +1,14 @@
 .main-container {
   min-height: 3.5rem;
-  max-height: 5.5rem;
+  max-height: 10rem;
   border-radius: 5px;
-  padding: 0.5rem 0.5rem 0 0.5rem;
+  padding: 0 0.5rem 0 0.5rem;
   display: flex;
   align-items: center;
 }
 
 .empty-search {
+  padding: 0.5rem 0.5rem 0 0.5rem;
   max-height: 3.5rem;
 }
 
@@ -15,16 +16,18 @@
   flex-grow: 1;
   padding-top: 20px;
   min-height: 3.5rem;
-  max-height: 5.5rem;
+  max-height: 7rem;
+  .mat-mdc-text-field-wrapper {
+    padding: 0 0.2rem 0 0.2rem;
+  }
 }
 
 .search-chip-list {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-y: auto;
-  .mdc-evolution-chip-set__chips{
+  .mdc-evolution-chip-set__chips {
     display: flex;
-    flex-wrap: nowrap;
+    max-height: 4rem;
+    margin: 0 0 -0.5rem 0;
+    overflow-x: hidden;
     overflow-y: auto;
   }
 }
