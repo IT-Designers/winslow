@@ -1,58 +1,61 @@
-<ng-container class="outerContainer">
-  <div
-    class="drag"
-    data-event-target="true"
-    data-draggable="true"
-    data-type="DiagramMaker.PanelDragHandle"
-    data-id="library"
-  >
-    <mat-icon>drag_indicator</mat-icon>
+<div class="outer-container">
+  <div *ngIf="isNodeStageWorker(selectedNode$?.consumerData)" >
+    <div class="control-library-top-bar">
+      <div class="title-container">
+        <h3> Selected Node: {{selectedNode$?.consumerData?.name}} </h3>
+        <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel
+        </mat-icon>
+      </div>
+      <div class="library-icons-container">
+        <div class="button-container border-right" [ngStyle]="{'width':'40%'}"  *ngIf="executionSelection.selectedStage != null">
+          <button mat-flat-button
+                  color="primary"
+                  [disabled]="!executionSelection.valid"
+                  (click)="enqueue(
+              executionSelection.selectedPipeline,
+              executionSelection.selectedStage,
+              executionSelection.getEnv(),
+              executionSelection.getRangedEnv(),
+              executionSelection.getImage(),
+              executionSelection.getResourceRequirements(),
+              executionSelection.getWorkspaceConfiguration(),
+              executionSelection.getComment(),
+              false,
+              false
+            )">
+            <mat-icon class="library-icon" [ngStyle]="{'color':'#6ac904'}" title="Enqueue stage">send</mat-icon>
+            Enqueue
+          </button>
+        </div>
+        <div class="button-container border-right" [ngStyle]="{'width':'25%'}">
+          <button class="library-button">
+            <mat-icon class="library-icon" title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan</mat-icon>
+          </button>
+        </div>
+        <div class="button-container" [ngStyle]="{'width':'17%'}">
+          <div class="library-button">
+            <mat-icon class="library-icon" title="Zoom Out" (click)="onApiCall('zoomOut')">zoom_out</mat-icon>
+          </div>
+        </div>
+        <div class="button-container" [ngStyle]="{'width':'17%'}">
+          <div class="library-button">
+            <mat-icon class="library-icon" title="Zoom in" (click)="onApiCall('zoomIn')">zoom_in</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <app-stage-execution-selection #executionSelection
+                                   [pipelines]="getPipelineDefWithCorrectType(pipelineDef)"
+                                   [pipelineSelectionDisabled]="true"
+                                   [defaultPipelineId]="getPipelineIdAsString(pipelineDef)"
+                                   [stageDefinition]="isNodeStageWorker(selectedNode$?.consumerData)"
+                                   [stageSelectionDisabled]="true">
+
+    </app-stage-execution-selection>
   </div>
-  <div class="library-icons-container">
-    <div class="button-container">
-      <div class="enqueue-button">
-        <mat-icon class="library-icon" [ngStyle]="{'color':'#6ac904'}" title="Enqueue stage">send</mat-icon>
-      </div>
-    </div>
-    <div class="button-container">
-      <div class="library-button">
-        <mat-icon class="library-icon" title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan</mat-icon>
-      </div>
-    </div>
-    <div class="button-container">
-      <div class="library-button">
-        <mat-icon class="library-icon" title="Zoom in" (click)="onApiCall('zoomIn')">zoom_in</mat-icon>
-      </div>
-    </div>
-    <div class="button-container">
-      <div class="library-button">
-        <mat-icon class="library-icon" title="Zoom Out" (click)="onApiCall('zoomOut')">zoom_out</mat-icon>
-      </div>
-    </div>
-    <!--<div class="button-container" (click)="onApiCall('deep-delete')">
-      <div class="library-button">
-        <mat-icon class="library-icon" title="Delete all attached nodes">delete_forever</mat-icon>
-      </div>
-    </div>-->
+  <div *ngIf="!isNodeStageWorker(selectedNode$?.consumerData)">
+    No executable stage selected.
   </div>
 
-  <div class="scroll node-details">
-    <h3 class="category">Selected Node
-      <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel</mat-icon>
-    </h3>
-    <mat-card appearance="outlined" class="editCard" *ngIf="selectedNode$">
-      <mat-card-subtitle>Stage: {{selectedNode$.consumerData?.name}}</mat-card-subtitle>
-
-      <form class="editNodeForm" (ngSubmit)="startSave()">
-        <app-edit-forms #form
-                        [formObj]="formObj"
-                        [formMap]="formObj"
-                        (onCollectData)="saveEdit($event)"
-                        (onTriggerSaveData)="startSave()"
-        >
-        </app-edit-forms>
-      </form>
-
-    </mat-card>
-  </div>
-</ng-container>
+</div>

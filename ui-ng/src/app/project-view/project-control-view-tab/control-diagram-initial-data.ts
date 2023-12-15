@@ -19,7 +19,7 @@ export class ControlDiagramInitialData {
       id: pipelineInfo.id,
       typeId: "node-start",
       diagramMakerData: {
-        position: {x: 50, y: 500},
+        position: {x: 50, y: 600},
         size: {width: 200, height: 75},
       },
       // @ts-ignore
@@ -79,8 +79,8 @@ export class ControlDiagramInitialData {
         library: {    //edit-board data
           id: 'library',
           position: {x: 10, y: 10},
-          size: {width: 350, height: 500},
-          positionAnchor: PositionAnchor.TOP_RIGHT,
+          size: {width: 1385, height: 450},
+          positionAnchor: PositionAnchor.TOP_LEFT,
         }
       },
       workspace: {
@@ -92,7 +92,7 @@ export class ControlDiagramInitialData {
           height: window.innerHeight,
         },
       },
-      editor: {mode: EditorMode.SELECT},
+      editor: {mode: EditorMode.DRAG},
     };
   }
 }

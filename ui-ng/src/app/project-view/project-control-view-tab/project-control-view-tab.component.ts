@@ -14,7 +14,6 @@ import {
   PipelineDefinitionInfo,
   ProjectInfo, Raw,
   StageDefinitionInfo,
-  StageDefinitionInfoUnion,
 } from "../../api/winslow-api";
 import {
   Action,
@@ -24,12 +23,10 @@ import {
   DiagramMakerConfig,
   DiagramMakerData,
   DiagramMakerNode,
-  DiagramMakerPotentialNode, Dispatch, DragPanelAction, Layout, WorkflowLayoutDirection
+  DiagramMakerPotentialNode, Dispatch, Layout, WorkflowLayoutDirection
 } from "diagram-maker";
-import {DiagramLibraryComponent} from "../../pipeline-view/diagram-library/diagram-library.component";
 import {DiagramConfigHelper} from "../../pipeline-view/diagram-config-helper";
 import {ControlDiagramInitialData} from "./control-diagram-initial-data";
-import {DefaultApiServiceService} from "../../api/default-api-service.service";
 import {DiagramNodeComponent} from "../../pipeline-view/diagram-node/diagram-node.component";
 import {DiagramGatewayComponent} from "../../pipeline-view/diagram-gateway/diagram-gateway.component";
 import {HttpClient} from "@angular/common/http";
@@ -43,17 +40,15 @@ import {ControlViewLibraryComponent} from "./control-view-library/control-view-l
 export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
   @Input() public project!: ProjectInfo;
-  //@Input() pipelineDefinition: PipelineDefinitionInfo;
 
 
   public diagramMaker!: DiagramMaker;
   public initialData!: DiagramMakerData<StageDefinitionInfo, {}>;
   public currentNode?: DiagramMakerNode<StageDefinitionInfo>;
   public componentFactory = this.componentFactoryResolver.resolveComponentFactory(ControlViewLibraryComponent);
-  public libraryComponent: ComponentRef<DiagramLibraryComponent> | null = null;
+  public libraryComponent: ComponentRef<ControlViewLibraryComponent> | null = null;
   public configClass = new DiagramConfigHelper();
   public initClass = new ControlDiagramInitialData();
-  public defaultGetter = new DefaultApiServiceService(this.client);
   public saveStatus: boolean = true;
 
 
@@ -104,7 +99,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
             this.libraryComponent.instance.diagramApiCall.subscribe((event) => {   //these are calls made by the buttons in the node menu
               switch (event.action) {
                 case 'fit':
-                  this.diagramMaker.api.focusNode(Object.keys(this.diagramMaker.store.getState().nodes)[0]);
+                  //this.diagramMaker.api.focusNode(Object.keys(this.diagramMaker.store.getState().nodes)[0]);
                   this.diagramMaker.store.dispatch({
                     type: 'WORKSPACE_DRAG',
                     payload: {
@@ -129,16 +124,6 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
                 case 'zoomOut':
                   this.diagramMaker.api.zoomOut(100);
                   break;
-                case 'undo':
-                  this.diagramMaker.api.undo();
-                  break;
-                case 'redo':
-                  this.diagramMaker.api.redo();
-                  break;
-                case 'save':
-                  this.saveStatus = true;
-                  console.log("---------------------------------- SAVE ----------------------------------");
-                  break;
                 default:
                   break;
               }
@@ -149,15 +134,16 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
           if (this.currentNode) {
             this.libraryComponent.instance.selectedNode = this.currentNode;
           }
+          this.libraryComponent.instance.pipelineDefinition = this.project.pipelineDefinition;
+          this.libraryComponent.instance.project = this.project;
         },
       },
     },
     actionInterceptor: (action: Action, dispatch: Dispatch<Action>) => {  //Intercepts actions before diagramMaker saves them into the store
       //console.log(action);
-      if (action.type === DiagramMakerActions.PANEL_DRAG) {         //Interceptor to fix a bug where the panel clips at the top edge
-        let dragAction : DragPanelAction = JSON.parse(JSON.stringify(action));
-        dragAction.payload.viewContainerSize.height = 5000;
-        dispatch(dragAction);
+      if (action.type === DiagramMakerActions.DELETE_ITEMS) {
+        console.error('Cant delete nodes in Control View');
+      } else if (action.type === DiagramMakerActions.NODE_DRAG) {
       }
       else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
@@ -172,9 +158,6 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
               private componentFactoryResolver: ComponentFactoryResolver,
               private client:  HttpClient,
   ) {
-/*
-    this.pipelineDefinitionEdit = this.pipelineDefinition;
-*/
   }
 
   editState(editForm: Raw<PipelineDefinitionInfo>) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
@@ -182,9 +165,6 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
       let editData = JSON.parse(JSON.stringify(editNode.consumerData));
-      //let i = this.pipelineDefinition.stages.map(function(stage) {
-      //  return stage.name;
-      //}).indexOf(`${editData.name}`);
       editData = editForm;
       editNode = Object.assign({}, editNode, {
         consumerData: editData,
@@ -210,7 +190,13 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
 
 
   ngOnChanges() {
-    console.dir(this.project.pipelineDefinition);
+    setTimeout(() => {
+      this.ngOnDestroy();
+      this.libraryComponent?.instance.cancelEdit();
+      this.libraryComponent = null;
+      this.initialData = this.initClass.getInitData(this.project.pipelineDefinition);
+      this.ngAfterViewInit();
+    }, 100);
   }
 
 
@@ -243,33 +229,12 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
 
   }
 
-  ngOnDestroy(): void {     //code to save the workflow (in the frontend) e.g. while switching tabs
-    //console.dir('Diagram onDestroy');
-    this.project.pipelineDefinition.stages = [];
-    const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
-    const edgeMap = new Map(Object.entries(this.diagramMaker.store.getState().edges));
-    let i = 0;
-    for (let storeNode of nodeMap.values()){
-      if (i > 0){
-        let node = JSON.parse(JSON.stringify(storeNode))
-        this.project.pipelineDefinition.stages.push(node.consumerData as StageDefinitionInfoUnion);
-        this.project.pipelineDefinition.stages[i-1].nextStages = [];
-      }
-      i++;
-    }
-    for(let edge of edgeMap.values()){
-      let index = this.project.pipelineDefinition.stages.findIndex(function(stage) {
-        return stage.id == edge.src
-      });
-      if (index >= 0 ) {
-        console.log(index);
-        this.project.pipelineDefinition.stages[index].nextStages.push(edge.dest);
-      }
-    }
-    if (this.diagramEditorContainer.nativeElement != null) {    //diagrammaker unload/destroy
+  ngOnDestroy(): void {
+    /*if (this.diagramMaker) {
       this.diagramMaker.destroy();
-      console.log("destroyed")
-    }
+    }*/
+    this.diagramMaker.destroy();
+    this.libraryComponent?.destroy();
     this.nodeComponentInstances.forEach(instance => instance.destroy());
   }
 }
