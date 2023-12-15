@@ -249,58 +249,43 @@ export class ProjectsViewFilterComponent implements OnInit {
       return;
     }
     this.filteredProjects = this.getFilteredProjects();
-    console.log(this.filteredProjects);
     this.filteredProjectsOutput.emit(this.filteredProjects);
   }
 
   getFilteredProjects() {
     return this.projectsValue.filter(project => {
-      // handle context view
       if (this.selectedFilters.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX)).length > 0) {
         const contextFilter = this.selectedFilters.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX))[0];
         const isInContext = project.tags.some(tag => tag == contextFilter);
-        if (!isInContext) return false;
-        if (this.selectedFilters.excludedTags.length > 0) {
-          const hasExcludedTag = project.tags.some(tag => this.selectedFilters.excludedTags.includes(tag));
-          if (hasExcludedTag) {
-            return false;
-          }
+        if (!isInContext) return false; // project must be in context
+      }
+      if (this.selectedFilters.includedPipelines.length > 0) {
+        const hasIncludedPipeline = this.selectedFilters.includedPipelines.includes(project.pipelineDefinition.name);
+        if (!hasIncludedPipeline) {
+          return false;
         }
-        return true;
-      } else {
-        // handle [All] projects view (or no context at all)
-        if (this.selectedFilters.includedPipelines.length > 0) {
-          console.log(project.name);
-          console.log(project.pipelineDefinition.name);
-          console.log(this.selectedFilters.includedPipelines.includes(project.pipelineDefinition.name));
-          const hasIncludedPipeline = this.selectedFilters.includedPipelines.includes(project.pipelineDefinition.name);
-          if (!hasIncludedPipeline) {
-            return false;
-          }
-        }
-        if (project.tags.length === 0) {
-          return true;
-        }
-        if (this.selectedFilters.includedTags.length > 0) {
-          const hasIncludedTag = project.tags.some(tag => this.selectedFilters.includedTags.includes(tag));
-          if (!hasIncludedTag) {
-            return false;
-          }
-        }
-        if (this.selectedFilters.excludedTags.length > 0) {
-          const hasExcludedTag = project.tags.some(tag => this.selectedFilters.excludedTags.includes(tag));
-          if (hasExcludedTag) {
-            return false;
-          }
-        }
+      }
+      if (project.tags.length === 0) {
         return true;
       }
+      if (this.selectedFilters.includedTags.length > 0) {
+        const hasIncludedTag = project.tags.some(tag => this.selectedFilters.includedTags.includes(tag));
+        if (!hasIncludedTag) {
+          return false;
+        }
+      }
+      if (this.selectedFilters.excludedTags.length > 0) {
+        const hasExcludedTag = project.tags.some(tag => this.selectedFilters.excludedTags.includes(tag));
+        if (hasExcludedTag) {
+          return false;
+        }
+      }
+      return true;
     });
   }
 
   applyFilterMiddleware(value: string) {
     let input = value.trim() || '';
-    console.log(input)
     if (input.startsWith(this.TAG_PREFIX) && (this.selectedFilters.includedTags.indexOf(input) < 0)) {
       input = input.replace(this.TAG_PREFIX, '');
       this.addIncludedTag(input);
@@ -335,7 +320,7 @@ export class ProjectsViewFilterComponent implements OnInit {
     this.groupsOnTop.emit(this.groupsOnTopIsChecked);
   }
 
-  // used for dynamic height of the search bar
+// used for dynamic height of the search bar
   isSearchEmpty() {
     return (
       this.selectedFilters.includedTags.filter(tag => !tag.startsWith(this.CONTEXT_PREFIX)).length <= 0 &&
