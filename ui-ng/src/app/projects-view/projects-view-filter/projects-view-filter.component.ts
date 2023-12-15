@@ -47,8 +47,6 @@ export class ProjectsViewFilterComponent implements OnInit {
     this.availableTagsValue = tags;
     this._availableInTagsValue = of(tags);
     this._availableExTagsValue = of(tags);
-    this.selectedTags.includedTags.forEach(tag => this.addIncludedTag(tag));
-    this.selectedTags.excludedTags.forEach(tag => this.addExcludedTag(tag));
     this.updateProjectsList();
   }
 
@@ -94,6 +92,7 @@ export class ProjectsViewFilterComponent implements OnInit {
         this.addIncludedTag(this.preSelectedTag);
       }
     }
+    this.selectedTags = this.localStorageService.getSelectedTags();
     this.updateProjectsList();
   }
 
@@ -111,6 +110,7 @@ export class ProjectsViewFilterComponent implements OnInit {
         this.selectedTags.includedTags = tags; // notify the bindings
       }
       this.updateProjectsList();
+      this.localStorageService.setSelectedTags(this.selectedTags);
     }
   }
 
@@ -120,6 +120,7 @@ export class ProjectsViewFilterComponent implements OnInit {
       tags.push(tag);
       tags = tags.sort((a, b) => a.localeCompare(b));
       this.selectedTags.includedTags = tags; // notify the bindings
+      this.localStorageService.setSelectedTags(this.selectedTags);
     }
     this.updateProjectsList();
   }
@@ -130,6 +131,7 @@ export class ProjectsViewFilterComponent implements OnInit {
       const tags = this.selectedTags.includedTags.map(t => t);
       tags.splice(index, 1);
       this.selectedTags.includedTags = tags; // notify the bindings
+      this.localStorageService.setSelectedTags(this.selectedTags);
     }
     this.updateProjectsList();
   }
@@ -140,6 +142,7 @@ export class ProjectsViewFilterComponent implements OnInit {
       tags.push(tag);
       tags = tags.sort((a, b) => a.localeCompare(b));
       this.selectedTags.excludedTags = tags; // notify the bindings
+      this.localStorageService.setSelectedTags(this.selectedTags);
     }
     this.updateProjectsList();
   }
@@ -148,6 +151,7 @@ export class ProjectsViewFilterComponent implements OnInit {
     const indexInclude = this.selectedTags.includedTags.indexOf(tag);
     if (indexInclude >= 0) {
       this.selectedTags.includedTags.splice(indexInclude, 1);
+      this.localStorageService.setSelectedTags(this.selectedTags);
     }
     this.updateProjectsList();
   }
@@ -156,6 +160,7 @@ export class ProjectsViewFilterComponent implements OnInit {
     const indexExclude = this.selectedTags.excludedTags.indexOf(tag);
     if (indexExclude >= 0) {
       this.selectedTags.excludedTags.splice(indexExclude, 1);
+      this.localStorageService.setSelectedTags(this.selectedTags);
     }
     this.updateProjectsList();
   }
@@ -211,7 +216,6 @@ export class ProjectsViewFilterComponent implements OnInit {
       // handle context view
       if(this.selectedTags.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX)).length > 0) {
         const contextFilter = this.selectedTags.includedTags.filter(tag => tag.startsWith(this.CONTEXT_PREFIX))[0];
-        console.log("Context from getFiltered", contextFilter);
         const isInContext = project.tags.some(tag => tag == contextFilter);
         if (!isInContext) return false;
         if (this.selectedTags.excludedTags.length > 0) {

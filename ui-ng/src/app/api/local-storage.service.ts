@@ -10,6 +10,7 @@ export class LocalStorageService {
   }
 
   private readonly KEY_CHART_SETTINGS = 'winslow-chart-settings';
+  private readonly KEY_SELECTED_PROJECT_TAGS = 'winslow-selected-project-tags';
   private readonly KEY_SELECTED_CONTEXT = 'winslow-selected-context';
   private readonly KEY_GROUPS_ON_TOP = 'winslow-groups-on-top';
   private readonly KEY_GROUPS_ACTIVATED = "winslow-groups-activated";
@@ -73,6 +74,24 @@ export class LocalStorageService {
   setGroupsActivated(data: boolean | null): void {
     return this.set<boolean>(this.KEY_GROUPS_ACTIVATED, data);
   }
+
+  getSelectedTags(): SelectedTags {
+    const item = localStorage.getItem(this.KEY_SELECTED_PROJECT_TAGS);
+    if (item != null) {
+      const parsed = JSON.parse(item);
+      if (parsed != null) {
+        return new SelectedTags(parsed);
+      }
+    }
+    return new SelectedTags({
+      includedTags: [],
+      excludedTags: []
+    });
+  }
+
+  setSelectedTags(item: SelectedTags): void {
+    localStorage.setItem(this.KEY_SELECTED_PROJECT_TAGS, JSON.stringify(item));
+  }
 }
 
 export class GlobalChartSettings {
@@ -87,4 +106,13 @@ export class GlobalChartSettings {
   entryLimit: number;
   enableRefreshing: boolean;
   refreshTimerInSeconds: number;
+}
+
+export class SelectedTags {
+  constructor(data: Raw<SelectedTags>) {
+    this.includedTags = data.includedTags;
+    this.excludedTags = data.excludedTags;
+  }
+  includedTags: string[] = []
+  excludedTags: string[] = []
 }
