@@ -12,6 +12,7 @@
         [availableTags]="projectApi.cachedTags"
         [projects]="projects"
         [preSelectedTag]="context ?? undefined"
+        [stateInfo]="stateInfo"
         (filtered)="projectsFiltered = $event ?? projects;"
         (projectsGroups)="projectsGroups = $event"
         (groupsOnTop)="groupsOnTop = $event">
