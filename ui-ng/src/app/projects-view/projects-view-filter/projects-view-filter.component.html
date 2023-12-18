@@ -37,6 +37,17 @@
           <mat-icon matChipRemove [attr.aria-label]="'remove ' + tag">cancel</mat-icon>
         </mat-chip-row>
       }
+      @for (state of selectedFilters.includedStates;track state) {
+        <mat-chip-row
+          [removable]=true
+          (removed)="removeFromSelectedIncludedState(state)"
+          (click)="$event.preventDefault(); removeFromSelectedIncludedState(state)"
+          [style.background-color]="'green'"
+        >
+          state:{{ state }}
+          <mat-icon matChipRemove [attr.aria-label]="'remove ' + state">cancel</mat-icon>
+        </mat-chip-row>
+      }
       @for (pipeline of selectedFilters.includedPipelines;track pipeline) {
         <mat-chip-row
           [removable]=true
@@ -68,6 +79,11 @@
       @if (searchInputCtrl.value?.startsWith(this.PIPELINE_PREFIX)) {
         @for (pipeline of _availablePipelinesValue | async;track pipeline) {
           <mat-option [value]="pipeline">{{ pipeline }}</mat-option>
+        }
+      }
+      @if (searchInputCtrl.value?.startsWith(this.STATE_PREFIX)) {
+        @for (state of _availableStatesValue | async;track state) {
+          <mat-option [value]="state">{{ state }}</mat-option>
         }
       }
     </mat-autocomplete>

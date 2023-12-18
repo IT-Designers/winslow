@@ -7,7 +7,7 @@
   ></app-project-thumbnail>
   <div class="project-info-column">
     <div class="project-title-row">
-      <app-state-icon #icon [state]="state"></app-state-icon>
+      <app-state-icon (click)="filter.toggleIncludedState(state || 'UNKNOWN')" #icon [state]="state"></app-state-icon>
       <span mat-card-title class="project-title">{{project.name}}</span>
     </div>
     @if (project.tags) {
