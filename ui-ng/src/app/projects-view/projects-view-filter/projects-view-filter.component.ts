@@ -1,5 +1,5 @@
 import {ApplicationRef, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {ProjectInfo} from "../../api/winslow-api";
+import {ProjectInfo, StateInfo} from "../../api/winslow-api";
 import {ProjectGroup} from "../../api/project-api.service";
 import {LocalStorageService} from "../../api/local-storage.service";
 import {FormControl} from "@angular/forms";
@@ -12,6 +12,7 @@ export class SelectedFilters {
   includedTags: string[] = []
   excludedTags: string[] = []
   includedPipelines: string[] = []
+  includedStates: string[] = []
 }
 
 @Component({
@@ -24,6 +25,20 @@ export class ProjectsViewFilterComponent implements OnInit {
   @ViewChild('auto') matAutocomplete!: MatAutocomplete;
 
   // Inputs
+  @Input()
+  set stateInfo(stateInfo: Map<string, StateInfo>) {
+    stateInfo.forEach((stateInfo, id) => {
+      if (stateInfo.state != undefined && !this.availableStatesValue.includes(stateInfo.state)) {
+        this.availableStatesValue.push(stateInfo.state);
+      } else if (stateInfo.state == undefined && !this.availableStatesValue.includes(this.STATE_UNKNOWN)) {
+        this.availableStatesValue.push(this.STATE_UNKNOWN);
+      }
+      this.availableStatesValue.sort();
+    })
+    this.stateInfoValue = stateInfo;
+    this.updateProjectsList();
+  }
+
   @Input()
   set preSelectedTag(tag: string | undefined) {
     if (this.lastPreselectedTag) {
@@ -65,12 +80,17 @@ export class ProjectsViewFilterComponent implements OnInit {
   TAG_PREFIX = '#';
   TAG_EXCLUDE_PREFIX = '-#';
   PIPELINE_PREFIX = 'pipeline:';
+  STATE_PREFIX = 'state:';
+  STATE_UNKNOWN = 'UNKNOWN';
   selectedFilters: SelectedFilters = new SelectedFilters();
   _availableInTagsValue: Observable<string[]> = new Observable<string[]>();
   _availableExTagsValue: Observable<string[]> = new Observable<string[]>();
   _availablePipelinesValue: Observable<string[]> = new Observable<string[]>();
+  _availableStatesValue: Observable<string[]> = new Observable<string[]>();
   availablePipelinesValue: string [] = [];
   availableTagsValue: string[] = [];
+  availableStatesValue: string[] = [];
+  stateInfoValue: Map<string, StateInfo> = new Map<string, StateInfo>();
   lastPreselectedTag?: string;
   searchInputCtrl = new FormControl('');
   separatorKeysCodes: number[] = [ENTER, COMMA];
@@ -196,6 +216,43 @@ export class ProjectsViewFilterComponent implements OnInit {
     this.updateProjectsList();
   }
 
+  toggleIncludedState(state: string) {
+    if (this.selectedFilters.includedStates != null) {
+      const index = this.selectedFilters.includedStates.indexOf(state);
+      if (index < 0) {
+        const tags = this.selectedFilters.includedStates.map(t => t);
+        tags.push(state);
+        this.selectedFilters.includedStates = tags; // notify the bindings
+      } else {
+        const states = this.selectedFilters.includedStates.map(t => t);
+        states.splice(index, 1);
+        this.selectedFilters.includedStates = states; // notify the bindings
+      }
+      this.updateProjectsList();
+      this.localStorageService.setSelectedFilters(this.selectedFilters);
+    }
+  }
+
+  addIncludedState(state: string) {
+    if (this.selectedFilters.includedStates != null && this.selectedFilters.includedStates.indexOf(state) < 0) {
+      let states = this.selectedFilters.includedStates.map(t => t);
+      states.push(state);
+      states = states.sort((a, b) => a.localeCompare(b));
+      this.selectedFilters.includedStates = states; // notify the bindings
+      this.localStorageService.setSelectedFilters(this.selectedFilters);
+    }
+    this.updateProjectsList();
+  }
+
+  removeFromSelectedIncludedState(state: string) {
+    const indexInclude = this.selectedFilters.includedStates.indexOf(state);
+    if (indexInclude >= 0) {
+      this.selectedFilters.includedStates.splice(indexInclude, 1);
+      this.localStorageService.setSelectedFilters(this.selectedFilters);
+    }
+    this.updateProjectsList();
+  }
+
   // ---
 
 
@@ -233,6 +290,16 @@ export class ProjectsViewFilterComponent implements OnInit {
         })
         .map(value => `pipeline:${value}`)
       );
+    } else if (lowercaseInput.startsWith(this.STATE_PREFIX)) {
+      lowercaseInput = lowercaseInput.replace(this.STATE_PREFIX, '');
+      this._availableStatesValue = of(this.availableStatesValue
+        .filter(value => {
+          if (this.selectedFilters.includedStates.indexOf(value) < 0 && !value.startsWith(this.STATE_PREFIX)) {
+            return value.toLowerCase().includes(lowercaseInput);
+          }
+        })
+        .map(value => `state:${value}`)
+      );
     } else {
       this.filteredProjects = this.getFilteredProjects();
       this.filteredProjects = this.filteredProjects.filter(project => {
@@ -265,6 +332,20 @@ export class ProjectsViewFilterComponent implements OnInit {
           return false;
         }
       }
+      if (this.selectedFilters.includedStates.length > 0) {
+        const projectState = this.stateInfoValue.get(project.id);
+        if (projectState?.state == undefined) {
+          const hasIncludedStates = this.selectedFilters.includedStates.includes(this.STATE_UNKNOWN);
+          if (!hasIncludedStates) {
+            return false;
+          }
+        } else {
+          const hasIncludedStates = this.selectedFilters.includedStates.includes(projectState.state);
+          if (!hasIncludedStates) {
+            return false;
+          }
+        }
+      }
       if (project.tags.length === 0) {
         return true;
       }
@@ -295,6 +376,9 @@ export class ProjectsViewFilterComponent implements OnInit {
     } else if (input.startsWith(this.PIPELINE_PREFIX) && (this.selectedFilters.includedPipelines.indexOf(input) < 0)) {
       input = input.replace(this.PIPELINE_PREFIX, '');
       this.addIncludedPipeline(input);
+    } else if (input.startsWith(this.STATE_PREFIX) && (this.selectedFilters.includedStates.indexOf(input) < 0)) {
+      input = input.replace(this.STATE_PREFIX, '');
+      this.addIncludedState(input);
     }
     this.updateProjectsList();
   }
@@ -307,7 +391,10 @@ export class ProjectsViewFilterComponent implements OnInit {
   selectFromInput($event: MatChipInputEvent) {
     const input = $event.input;
     const value = $event.value;
-    if (value.startsWith(this.TAG_PREFIX) || value.startsWith(this.TAG_EXCLUDE_PREFIX) || value.startsWith(this.PIPELINE_PREFIX)) {
+    if (
+      value.startsWith(this.TAG_PREFIX) || value.startsWith(this.TAG_EXCLUDE_PREFIX) || value.startsWith(this.PIPELINE_PREFIX) || value.startsWith(this.STATE_PREFIX) &&
+      (value.charAt(value.indexOf('#') + 1) != '' || value.charAt(value.indexOf(':') + 1) != '')
+    ) {
       if (input) {
         input.value = '';
       }
@@ -325,7 +412,8 @@ export class ProjectsViewFilterComponent implements OnInit {
     return (
       this.selectedFilters.includedTags.filter(tag => !tag.startsWith(this.CONTEXT_PREFIX)).length <= 0 &&
       this.selectedFilters.excludedTags.length <= 0 &&
-      this.selectedFilters.includedPipelines.length <= 0
+      this.selectedFilters.includedPipelines.length <= 0 &&
+      this.selectedFilters.includedStates.length <= 0
     );
   }
 }
