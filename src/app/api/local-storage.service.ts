@@ -10,7 +10,7 @@ export class LocalStorageService {
   }
 
   private readonly KEY_CHART_SETTINGS = 'winslow-chart-settings';
-  private readonly KEY_PROJECT_FILTERS = 'winslow-selected-project-tags';
+  private readonly KEY_PROJECT_FILTERS = 'winslow-projects-filters';
   private readonly KEY_SELECTED_CONTEXT = 'winslow-selected-context';
   private readonly KEY_GROUPS_ON_TOP = 'winslow-groups-on-top';
   private readonly KEY_GROUPS_ACTIVATED = "winslow-groups-activated";
@@ -87,6 +87,7 @@ export class LocalStorageService {
       includedTags: [],
       excludedTags: [],
       includedPipelines: [],
+      includedStates: []
     });
   }
 
@@ -114,8 +115,10 @@ export class SelectedTags {
     this.includedTags = data.includedTags;
     this.excludedTags = data.excludedTags;
     this.includedPipelines = data.includedPipelines;
+    this.includedStates = data.includedStates;
   }
   includedTags: string[] = []
   excludedTags: string[] = []
   includedPipelines: string[] = []
+  includedStates: string [] = []
 }
