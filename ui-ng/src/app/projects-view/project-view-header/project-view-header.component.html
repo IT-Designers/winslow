@@ -7,8 +7,14 @@
   ></app-project-thumbnail>
   <div class="project-info-column">
     <div class="project-title-row">
-      <app-state-icon (click)="filter.toggleIncludedState(state || 'UNKNOWN')" #icon [state]="state"></app-state-icon>
-      <span mat-card-title class="project-title">{{project.name}}</span>
+      <app-state-icon
+        (auxclick)="$event.preventDefault(); filter.addExcludedState(state || 'UNKNOWN')"
+        (dblclick)="$event.preventDefault(); filter.addExcludedState(state || 'UNKNOWN')"
+        (click)="$event.preventDefault(); filter.toggleIncludedState(state || 'UNKNOWN')"
+        #icon
+        [state]="state"
+      ></app-state-icon>
+      <span mat-card-title class="project-title">{{ project.name }}</span>
     </div>
     @if (project.tags) {
       <app-tags-with-autocomplete
@@ -19,7 +25,8 @@
       ></app-tags-with-autocomplete>
     }
     @if (pauseReason != null || stage != null) {
-      <span class="project-pause-reason">{{pauseReason}}{{pauseReason != null && stage != null ? ', ' : ''}}{{stage}}</span>
+      <span
+        class="project-pause-reason">{{ pauseReason }}{{ pauseReason != null && stage != null ? ', ' : '' }}{{ stage }}</span>
       @if (progress != null && running) {
         <mat-progress-bar
           class="description-progress-bar"
