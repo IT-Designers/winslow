@@ -87,7 +87,9 @@ export class LocalStorageService {
       includedTags: [],
       excludedTags: [],
       includedPipelines: [],
-      includedStates: []
+      excludedPipelines: [],
+      includedStates: [],
+      excludedStates: [],
     });
   }
 
@@ -115,10 +117,14 @@ export class SelectedTags {
     this.includedTags = data.includedTags;
     this.excludedTags = data.excludedTags;
     this.includedPipelines = data.includedPipelines;
+    this.excludedPipelines = data.excludedPipelines;
     this.includedStates = data.includedStates;
+    this.excludedStates = data.excludedStates;
   }
   includedTags: string[] = []
   excludedTags: string[] = []
   includedPipelines: string[] = []
-  includedStates: string [] = []
+  excludedPipelines: string[] = []
+  includedStates: string[] = []
+  excludedStates: string[] = []
 }

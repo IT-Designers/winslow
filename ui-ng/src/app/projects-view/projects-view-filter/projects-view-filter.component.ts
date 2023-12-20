@@ -12,7 +12,9 @@ export class SelectedFilters {
   includedTags: string[] = []
   excludedTags: string[] = []
   includedPipelines: string[] = []
+  excludedPipelines: string[] = []
   includedStates: string[] = []
+  excludedStates: string[] = []
 }
 
 @Component({
@@ -61,7 +63,7 @@ export class ProjectsViewFilterComponent implements OnInit {
         this.availablePipelinesValue.push(project.pipelineDefinition.name)
       }
     });
-    this._availablePipelinesValue = of(this.availablePipelinesValue);
+    this._availableInPipelinesValue = of(this.availablePipelinesValue);
     this.updateProjectsList();
   }
 
@@ -79,14 +81,18 @@ export class ProjectsViewFilterComponent implements OnInit {
   CONTEXT_PREFIX = 'context::';
   TAG_PREFIX = '#';
   TAG_EXCLUDE_PREFIX = '-#';
-  PIPELINE_PREFIX = 'pipeline:';
-  STATE_PREFIX = 'state:';
+  PIPELINE_INCLUDE_PREFIX = 'pipeline:';
+  PIPELINE_EXCLUDE_PREFIX = '-pipeline:';
+  STATE_INCLUDE_PREFIX = 'state:';
+  STATE_EXCLUDE_PREFIX = '-state:';
   STATE_UNKNOWN = 'UNKNOWN';
   selectedFilters: SelectedFilters = new SelectedFilters();
   _availableInTagsValue: Observable<string[]> = new Observable<string[]>();
   _availableExTagsValue: Observable<string[]> = new Observable<string[]>();
-  _availablePipelinesValue: Observable<string[]> = new Observable<string[]>();
-  _availableStatesValue: Observable<string[]> = new Observable<string[]>();
+  _availableInPipelinesValue: Observable<string[]> = new Observable<string[]>();
+  _availableExPipelinesValue: Observable<string[]> = new Observable<string[]>();
+  _availableInStatesValue: Observable<string[]> = new Observable<string[]>();
+  _availableExStatesValue: Observable<string[]> = new Observable<string[]>();
   availablePipelinesValue: string [] = [];
   availableTagsValue: string[] = [];
   availableStatesValue: string[] = [];
@@ -207,10 +213,30 @@ export class ProjectsViewFilterComponent implements OnInit {
     this.updateProjectsList();
   }
 
+  addExcludedPipeline(pipeline: string) {
+    if (this.selectedFilters.excludedPipelines != null && this.selectedFilters.excludedPipelines.indexOf(pipeline) < 0) {
+      let pipelines = this.selectedFilters.excludedPipelines.map(t => t);
+      pipelines.push(pipeline);
+      pipelines = pipelines.sort((a, b) => a.localeCompare(b));
+      this.selectedFilters.excludedPipelines = pipelines; // notify the bindings
+      this.localStorageService.setSelectedFilters(this.selectedFilters);
+    }
+    this.updateProjectsList();
+  }
+
   removeFromSelectedIncludedPipeline(pipeline: string) {
     const indexInclude = this.selectedFilters.includedPipelines.indexOf(pipeline);
     if (indexInclude >= 0) {
       this.selectedFilters.includedPipelines.splice(indexInclude, 1);
+      this.localStorageService.setSelectedFilters(this.selectedFilters);
+    }
+    this.updateProjectsList();
+  }
+
+  removeFromSelectedExcludedPipeline(pipeline: string) {
+    const indexInclude = this.selectedFilters.excludedPipelines.indexOf(pipeline);
+    if (indexInclude >= 0) {
+      this.selectedFilters.excludedPipelines.splice(indexInclude, 1);
       this.localStorageService.setSelectedFilters(this.selectedFilters);
     }
     this.updateProjectsList();
@@ -244,10 +270,30 @@ export class ProjectsViewFilterComponent implements OnInit {
     this.updateProjectsList();
   }
 
+  addExcludedState(state: string) {
+    if (this.selectedFilters.excludedStates != null && this.selectedFilters.excludedStates.indexOf(state) < 0) {
+      let states = this.selectedFilters.excludedStates.map(t => t);
+      states.push(state);
+      states = states.sort((a, b) => a.localeCompare(b));
+      this.selectedFilters.excludedStates = states; // notify the bindings
+      this.localStorageService.setSelectedFilters(this.selectedFilters);
+    }
+    this.updateProjectsList();
+  }
+
   removeFromSelectedIncludedState(state: string) {
     const indexInclude = this.selectedFilters.includedStates.indexOf(state);
     if (indexInclude >= 0) {
       this.selectedFilters.includedStates.splice(indexInclude, 1);
+      this.localStorageService.setSelectedFilters(this.selectedFilters);
+    }
+    this.updateProjectsList();
+  }
+
+  removeFromSelectedExcludedState(state: string) {
+    const indexInclude = this.selectedFilters.excludedStates.indexOf(state);
+    if (indexInclude >= 0) {
+      this.selectedFilters.excludedStates.splice(indexInclude, 1);
       this.localStorageService.setSelectedFilters(this.selectedFilters);
     }
     this.updateProjectsList();
@@ -280,21 +326,41 @@ export class ProjectsViewFilterComponent implements OnInit {
         })
         .map(value => `#${value}`)
       );
-    } else if (lowercaseInput.startsWith(this.PIPELINE_PREFIX)) {
-      lowercaseInput = lowercaseInput.replace(this.PIPELINE_PREFIX, '');
-      this._availablePipelinesValue = of(this.availablePipelinesValue
+    } else if (lowercaseInput.startsWith(this.PIPELINE_INCLUDE_PREFIX)) {
+      lowercaseInput = lowercaseInput.replace(this.PIPELINE_INCLUDE_PREFIX, '');
+      this._availableInPipelinesValue = of(this.availablePipelinesValue
         .filter(value => {
-          if (this.selectedFilters.includedPipelines.indexOf(value) < 0 && !value.startsWith(this.PIPELINE_PREFIX)) {
+          if (this.selectedFilters.includedPipelines.indexOf(value) < 0 && !value.startsWith(this.PIPELINE_INCLUDE_PREFIX)) {
             return value.toLowerCase().includes(lowercaseInput);
           }
         })
         .map(value => `pipeline:${value}`)
       );
-    } else if (lowercaseInput.startsWith(this.STATE_PREFIX)) {
-      lowercaseInput = lowercaseInput.replace(this.STATE_PREFIX, '');
-      this._availableStatesValue = of(this.availableStatesValue
+    } else if (lowercaseInput.startsWith(this.PIPELINE_EXCLUDE_PREFIX)) {
+      lowercaseInput = lowercaseInput.replace(this.PIPELINE_EXCLUDE_PREFIX, '');
+      this._availableExPipelinesValue = of(this.availablePipelinesValue
         .filter(value => {
-          if (this.selectedFilters.includedStates.indexOf(value) < 0 && !value.startsWith(this.STATE_PREFIX)) {
+          if (this.selectedFilters.excludedPipelines.indexOf(value) < 0 && !value.startsWith(this.PIPELINE_EXCLUDE_PREFIX)) {
+            return value.toLowerCase().includes(lowercaseInput);
+          }
+        })
+        .map(value => `-pipeline:${value}`)
+      );
+    } else if (lowercaseInput.startsWith(this.STATE_INCLUDE_PREFIX)) {
+      lowercaseInput = lowercaseInput.replace(this.STATE_INCLUDE_PREFIX, '');
+      this._availableInStatesValue = of(this.availableStatesValue
+        .filter(value => {
+          if (this.selectedFilters.includedStates.indexOf(value) < 0 && !value.startsWith(this.STATE_INCLUDE_PREFIX)) {
+            return value.toLowerCase().includes(lowercaseInput);
+          }
+        })
+        .map(value => `state:${value}`)
+      );
+    } else if (lowercaseInput.startsWith(this.STATE_EXCLUDE_PREFIX)) {
+      lowercaseInput = lowercaseInput.replace(this.STATE_EXCLUDE_PREFIX, '');
+      this._availableExStatesValue = of(this.availableStatesValue
+        .filter(value => {
+          if (this.selectedFilters.excludedStates.indexOf(value) < 0 && !value.startsWith(this.STATE_EXCLUDE_PREFIX)) {
             return value.toLowerCase().includes(lowercaseInput);
           }
         })
@@ -332,6 +398,12 @@ export class ProjectsViewFilterComponent implements OnInit {
           return false;
         }
       }
+      if (this.selectedFilters.excludedPipelines.length > 0) {
+        const hasExcludedPipeline = this.selectedFilters.excludedPipelines.includes(project.pipelineDefinition.name);
+        if (hasExcludedPipeline) {
+          return false;
+        }
+      }
       if (this.selectedFilters.includedStates.length > 0) {
         const projectState = this.stateInfoValue.get(project.id);
         if (projectState?.state == undefined) {
@@ -342,6 +414,20 @@ export class ProjectsViewFilterComponent implements OnInit {
         } else {
           const hasIncludedStates = this.selectedFilters.includedStates.includes(projectState.state);
           if (!hasIncludedStates) {
+            return false;
+          }
+        }
+      }
+      if (this.selectedFilters.excludedStates.length > 0) {
+        const projectState = this.stateInfoValue.get(project.id);
+        if (projectState?.state == undefined) {
+          const hasExcludedStates = this.selectedFilters.excludedStates.includes(this.STATE_UNKNOWN);
+          if (hasExcludedStates) {
+            return false;
+          }
+        } else {
+          const hasExcludedStates = this.selectedFilters.excludedStates.includes(projectState.state);
+          if (hasExcludedStates) {
             return false;
           }
         }
@@ -373,12 +459,18 @@ export class ProjectsViewFilterComponent implements OnInit {
     } else if (input.startsWith(this.TAG_EXCLUDE_PREFIX) && (this.selectedFilters.excludedTags.indexOf(input) < 0)) {
       input = input.replace(this.TAG_EXCLUDE_PREFIX, '');
       this.addExcludedTag(input);
-    } else if (input.startsWith(this.PIPELINE_PREFIX) && (this.selectedFilters.includedPipelines.indexOf(input) < 0)) {
-      input = input.replace(this.PIPELINE_PREFIX, '');
+    } else if (input.startsWith(this.PIPELINE_INCLUDE_PREFIX) && (this.selectedFilters.includedPipelines.indexOf(input) < 0)) {
+      input = input.replace(this.PIPELINE_INCLUDE_PREFIX, '');
       this.addIncludedPipeline(input);
-    } else if (input.startsWith(this.STATE_PREFIX) && (this.selectedFilters.includedStates.indexOf(input) < 0)) {
-      input = input.replace(this.STATE_PREFIX, '');
+    } else if (input.startsWith(this.PIPELINE_EXCLUDE_PREFIX) && (this.selectedFilters.excludedPipelines.indexOf(input) < 0)) {
+      input = input.replace(this.PIPELINE_EXCLUDE_PREFIX, '');
+      this.addExcludedPipeline(input);
+    } else if (input.startsWith(this.STATE_INCLUDE_PREFIX) && (this.selectedFilters.includedStates.indexOf(input) < 0)) {
+      input = input.replace(this.STATE_INCLUDE_PREFIX, '');
       this.addIncludedState(input);
+    } else if (input.startsWith(this.STATE_EXCLUDE_PREFIX) && (this.selectedFilters.excludedStates.indexOf(input) < 0)) {
+      input = input.replace(this.STATE_EXCLUDE_PREFIX, '');
+      this.addExcludedState(input);
     }
     this.updateProjectsList();
   }
@@ -392,7 +484,8 @@ export class ProjectsViewFilterComponent implements OnInit {
     const input = $event.input;
     const value = $event.value;
     if (
-      value.startsWith(this.TAG_PREFIX) || value.startsWith(this.TAG_EXCLUDE_PREFIX) || value.startsWith(this.PIPELINE_PREFIX) || value.startsWith(this.STATE_PREFIX) &&
+      value.startsWith(this.TAG_PREFIX) || value.startsWith(this.TAG_EXCLUDE_PREFIX) || value.startsWith(this.STATE_EXCLUDE_PREFIX) || value.startsWith(this.PIPELINE_EXCLUDE_PREFIX) ||
+      value.startsWith(this.PIPELINE_INCLUDE_PREFIX) || value.startsWith(this.STATE_INCLUDE_PREFIX) &&
       (value.charAt(value.indexOf('#') + 1) != '' || value.charAt(value.indexOf(':') + 1) != '')
     ) {
       if (input) {
@@ -413,7 +506,9 @@ export class ProjectsViewFilterComponent implements OnInit {
       this.selectedFilters.includedTags.filter(tag => !tag.startsWith(this.CONTEXT_PREFIX)).length <= 0 &&
       this.selectedFilters.excludedTags.length <= 0 &&
       this.selectedFilters.includedPipelines.length <= 0 &&
-      this.selectedFilters.includedStates.length <= 0
+      this.selectedFilters.excludedPipelines.length <= 0 &&
+      this.selectedFilters.includedStates.length <= 0 &&
+      this.selectedFilters.excludedStates.length <= 0
     );
   }
 }
