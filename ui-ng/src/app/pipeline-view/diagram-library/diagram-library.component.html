@@ -12,7 +12,7 @@
     <div class="button-container border-right">
       <div class="library-button">
         <mat-icon
-            class="library-icon" title="Save entire Workflow"
+            title="Save entire Workflow"
             [ngClass]="{'saved-data' : savedData, 'unsaved-data' : !savedData }" (click)="onApiCall('save')"
         >save
         </mat-icon>
@@ -20,38 +20,38 @@
     </div>
     <div class="button-container">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan
+        <mat-icon title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan
         </mat-icon>
       </div>
     </div>
     <div class="button-container">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Do workflow layout" (click)="onApiCall('layout')">repeat</mat-icon>
+        <mat-icon title="Do workflow layout" (click)="onApiCall('layout')">repeat</mat-icon>
       </div>
     </div>
     <div class="button-container">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Zoom in" (click)="onApiCall('zoomIn')">zoom_in</mat-icon>
+        <mat-icon title="Zoom in" (click)="onApiCall('zoomIn')">zoom_in</mat-icon>
       </div>
     </div>
     <div class="button-container border-right">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Zoom Out" (click)="onApiCall('zoomOut')">zoom_out</mat-icon>
+        <mat-icon title="Zoom Out" (click)="onApiCall('zoomOut')">zoom_out</mat-icon>
       </div>
     </div>
     <div class="button-container">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Undo action" (click)="onApiCall('undo')">undo</mat-icon>
+        <mat-icon title="Undo action" (click)="onApiCall('undo')">undo</mat-icon>
       </div>
     </div>
     <div class="button-container border-right">
       <div class="library-button">
-        <mat-icon class="library-icon" title="Redo action" (click)="onApiCall('redo')">redo</mat-icon>
+        <mat-icon title="Redo action" (click)="onApiCall('redo')">redo</mat-icon>
       </div>
     </div>
     <div class="button-container">
       <div class="library-button" (click)="onApiCall('flat-delete')">
-        <mat-icon class="library-icon" title="Delete this node">delete_outline</mat-icon>
+        <mat-icon title="Delete this node">delete_outline</mat-icon>
       </div>
     </div>
     <!--<div class="button-container" (click)="onApiCall('deep-delete')">
@@ -62,14 +62,27 @@
   </div>
 
   <div class="scroll node-details">
-    <h3 class="category">Selected Node
-      <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel
+    <div class="selection-header">Selected Node:
+      <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">
+        cancel
       </mat-icon>
-    </h3>
-    <mat-card appearance="outlined" class="editCard" *ngIf="selectedNode$">
-      <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
+    </div>
+    <!--
+      will return empty object if selectedNodeData is not a stage worker
+      so any property of the return object will be undefined if of the wrong type
+      => the existence of any property of the object can be used to check the type
+    -->
+    @if (isStageWorker(selectedNodeData).name) {  <!-- return of isStageWorker() is empty object if wrong type-->
+      <app-worker-settings [selectedNodeData]="isStageWorker(selectedNodeData)" (editNode)="emitSave($event)"></app-worker-settings>
+    } @else if (isPipelineDefinition(selectedNodeData).name) {
+      Pipeline Head
+    } @else if (isAndGateway(selectedNodeData).name) {
+      And Gateway
+    } @else if (isXOrGateway(selectedNodeData).name) {
+      XOR Gateway
+    }
 
-      <form class="editNodeForm" (ngSubmit)="startSave()">
+      <!--<form class="editNodeForm" (ngSubmit)="startSave()">
         <app-edit-forms
             #form
             [formObj]="formObj"
@@ -78,8 +91,7 @@
             (onTriggerSaveData)="startSave()"
         >
         </app-edit-forms>
-      </form>
+      </form>-->
 
-    </mat-card>
   </div>
 </ng-container>
