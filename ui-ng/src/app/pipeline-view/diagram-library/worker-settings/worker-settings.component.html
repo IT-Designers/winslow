@@ -1,0 +1,50 @@
+<mat-tab-group>
+
+  <mat-tab label="General">
+    <div class="tab-container">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput name="name" [value]="selectedNodeData.name" (change)="setName($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Description</mat-label>
+        <input matInput name="description" [value]="selectedNodeData.description" (change)="setDescription($event)">
+      </mat-form-field>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="Requirements">
+    <div class="tab-container">
+      <mat-form-field appearance="outline">
+        <mat-label>CPUs</mat-label>
+        <input matInput type="number" name="required-cpus" [value]="selectedNodeData.requiredResources.cpus.toString()" (change)="setRequiredCPUs($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Megabytes of RAM</mat-label>
+        <input matInput type="number" name="required-ram" [value]="selectedNodeData.requiredResources.megabytesOfRam.toString()" (change)="setRequiredRAM($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>GPU Count</mat-label>
+        <input matInput type="number" name="required-gpus" [value]="selectedNodeData.requiredResources.gpu.count.toString()" (change)="setRequiredGPUs($event)">
+      </mat-form-field>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="Image">
+    <div class="tab-container">
+      <mat-form-field appearance="outline">
+        <mat-label>Image Name</mat-label>
+        <input matInput name="image-name" [value]="selectedNodeData.image.name" (change)="setImageName($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Image Args</mat-label>
+        <input matInput name="image-args" [value]="selectedNodeData.image.args.toString()" (change)="setImageArgs($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Image shmSizeMegabytes</mat-label>
+        <input matInput name="image-megabytes" type="number" [value]="selectedNodeData.image.shmMegabytes.toString()" (change)="setImageMegabytes($event)">
+      </mat-form-field>
+    </div>
+  </mat-tab>
+
+</mat-tab-group>
