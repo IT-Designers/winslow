@@ -5,7 +5,7 @@ import {
   ElementRef, EventEmitter,
   Input, OnChanges,
   OnDestroy,
-  OnInit, Output,
+  OnInit, Output, SimpleChanges,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
@@ -103,6 +103,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
             this.libraryComponent = this.viewContainerRef.createComponent(this.componentFactory);
             this.libraryComponent.instance.editNode.subscribe(editForm => { //edit Form is what is stored in Diagram Maker of the definition of the stage / pipeline
               //gets triggered when value is changed
+              console.dir(editForm);
 
               //---------- All stages have the @type attribute, but not the pipeline itself ----------
               if (!editForm["@type"]) {//---------- catches changes in the pipeline def ----------
@@ -453,13 +454,17 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
 
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes:SimpleChanges) {
     setTimeout(() => {
-      this.ngOnDestroy();
-      this.libraryComponent?.instance.cancelEdit();
-      this.libraryComponent = null;
-      this.initialData = this.initClass.getInitData(this.pipelineDefinition);
-      this.ngAfterViewInit();
+      if (changes.pipelineDefinition) {
+        if (changes.pipelineDefinition.currentValue.id !== changes.pipelineDefinition.previousValue.id) {
+          this.ngOnDestroy();
+          this.libraryComponent?.instance.cancelEdit();
+          this.libraryComponent = null;
+          this.initialData = this.initClass.getInitData(this.pipelineDefinition);
+          this.ngAfterViewInit();
+        }
+      }
     }, 100);
 
   }
