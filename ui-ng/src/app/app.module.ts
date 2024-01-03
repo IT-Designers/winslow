@@ -143,6 +143,7 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
 
 import { ProjectControlViewTabComponent } from './project-view/project-control-view-tab/project-control-view-tab.component';
 import { ControlViewLibraryComponent } from './project-view/project-control-view-tab/control-view-library/control-view-library.component';
+import {WorkerSettingsComponent} from "./pipeline-view/diagram-library/worker-settings/worker-settings.component";
 
 @NgModule({
   declarations: [
@@ -221,6 +222,7 @@ import { ControlViewLibraryComponent } from './project-view/project-control-view
     ProjectControlViewTabComponent,
     ControlViewLibraryComponent,
     ProjectThumbnailComponent,
+    WorkerSettingsComponent,
   ],
   imports: [
     SweetAlert2Module.forRoot(),
