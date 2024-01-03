@@ -19,11 +19,23 @@
     <h3 class="category">Selected Node
       <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">cancel
       </mat-icon>
-    </h3>
-    <mat-card appearance="outlined" class="editCard" *ngIf="selectedNode$">
-      <mat-card-subtitle>ID: {{selectedNode$.id}}</mat-card-subtitle>
+    </div>
+    <!--
+      will return empty object if selectedNodeData is not a stage worker
+      so any property of the return object will be undefined if of the wrong type
+      => the existence of any property of the object can be used to check the type
+    -->
+    @if (isStageWorker(selectedNodeData).name) {  <!-- return of isStageWorker() is empty object if wrong type-->
+      <app-worker-settings [selectedNodeData]="isStageWorker(selectedNodeData)" (editNode)="emitSave($event)"></app-worker-settings>
+    } @else if (isPipelineDefinition(selectedNodeData).name) {
+      Pipeline Head
+    } @else if (isAndGateway(selectedNodeData).name) {
+      And Gateway
+    } @else if (isXOrGateway(selectedNodeData).name) {
+      XOR Gateway
+    }
 
-      <form class="editNodeForm" (ngSubmit)="startSave()">
+      <!--<form class="editNodeForm" (ngSubmit)="startSave()">
         <app-edit-forms
             #form
             [formObj]="formObj"
@@ -32,8 +44,7 @@
             (onTriggerSaveData)="startSave()"
         >
         </app-edit-forms>
-      </form>
+      </form>-->
 
-    </mat-card>
   </div>
 </ng-container>
