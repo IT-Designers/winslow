@@ -39,12 +39,8 @@ export class WorkerSettingsComponent {
     }
   }
   setImageArgs(event: any) {
-    if (this.selectedNodeData instanceof StageWorkerDefinitionInfo) {
-      if (this.selectedNodeData.image) {
-        this.selectedNodeData.image.args = event.target.value;
-        this.editNode.emit(this.selectedNodeData);
-      }
-    }
+    this.selectedNodeData.image.args = event
+    this.editNode.emit(this.selectedNodeData);
   }
   setImageMegabytes(event: any) {
     if (this.selectedNodeData instanceof StageWorkerDefinitionInfo) {

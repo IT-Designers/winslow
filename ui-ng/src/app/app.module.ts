@@ -147,6 +147,7 @@ import {WorkerSettingsComponent} from "./pipeline-view/diagram-library/worker-se
 import {PipelineHeadSettingsComponent} from "./pipeline-view/diagram-library/pipeline-head-settings/pipeline-head-settings.component";
 import {XorSettingsComponent} from "./pipeline-view/diagram-library/xor-settings/xor-settings.component";
 import {AndSettingsComponent} from "./pipeline-view/diagram-library/and-settings/and-settings.component";
+import {ArgumentListComponent} from "./pipeline-view/diagram-library/argument-list/argument-list.component";
 
 @NgModule({
   declarations: [
@@ -229,6 +230,7 @@ import {AndSettingsComponent} from "./pipeline-view/diagram-library/and-settings
     PipelineHeadSettingsComponent,
     XorSettingsComponent,
     AndSettingsComponent,
+    ArgumentListComponent
   ],
   imports: [
     SweetAlert2Module.forRoot(),

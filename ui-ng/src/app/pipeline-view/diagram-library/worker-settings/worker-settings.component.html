@@ -36,15 +36,27 @@
         <mat-label>Image Name</mat-label>
         <input matInput name="image-name" [value]="selectedNodeData.image.name" (change)="setImageName($event)">
       </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Image Args</mat-label>
-        <input matInput name="image-args" [value]="selectedNodeData.image.args.toString()" (change)="setImageArgs($event)">
-      </mat-form-field>
-      <mat-form-field appearance="outline">
+      <app-argument-list [argList]="selectedNodeData.image.args" (changeEmitter)="setImageArgs($event)" argName="Image Arg">
+      </app-argument-list>
+       <!-- <input matInput name="image-args" [value]="selectedNodeData.image.args.toString()" (change)="setImageArgs($event)">-->
+
+      <mat-form-field appearance="outline" class="whitespace-separator-top">
         <mat-label>Image shmSizeMegabytes</mat-label>
         <input matInput name="image-megabytes" type="number" [value]="selectedNodeData.image.shmMegabytes.toString()" (change)="setImageMegabytes($event)">
       </mat-form-field>
     </div>
+  </mat-tab>
+
+  <mat-tab label="User Input">
+
+  </mat-tab>
+
+  <mat-tab label="Environment">
+
+  </mat-tab>
+
+  <mat-tab label="Highlight">
+
   </mat-tab>
 
 </mat-tab-group>
