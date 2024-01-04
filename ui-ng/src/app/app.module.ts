@@ -144,6 +144,9 @@ import { ProjectThumbnailComponent } from './projects-view/project-thumbnail/pro
 import { ProjectControlViewTabComponent } from './project-view/project-control-view-tab/project-control-view-tab.component';
 import { ControlViewLibraryComponent } from './project-view/project-control-view-tab/control-view-library/control-view-library.component';
 import {WorkerSettingsComponent} from "./pipeline-view/diagram-library/worker-settings/worker-settings.component";
+import {PipelineHeadSettingsComponent} from "./pipeline-view/diagram-library/pipeline-head-settings/pipeline-head-settings.component";
+import {XorSettingsComponent} from "./pipeline-view/diagram-library/xor-settings/xor-settings.component";
+import {AndSettingsComponent} from "./pipeline-view/diagram-library/and-settings/and-settings.component";
 
 @NgModule({
   declarations: [
@@ -223,6 +226,9 @@ import {WorkerSettingsComponent} from "./pipeline-view/diagram-library/worker-se
     ControlViewLibraryComponent,
     ProjectThumbnailComponent,
     WorkerSettingsComponent,
+    PipelineHeadSettingsComponent,
+    XorSettingsComponent,
+    AndSettingsComponent,
   ],
   imports: [
     SweetAlert2Module.forRoot(),
