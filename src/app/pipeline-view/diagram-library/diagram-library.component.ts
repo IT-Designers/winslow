@@ -69,7 +69,6 @@ export class DiagramLibraryComponent implements OnInit {
   }
 
   emitSave(editedNodeData: StageWorkerDefinitionInfo | PipelineDefinitionInfo | StageAndGatewayDefinitionInfo | StageXOrGatewayDefinitionInfo | undefined) {
-    console.dir(editedNodeData);
     this.selectedNodeDataEdit = editedNodeData;
     this.editNode.emit(editedNodeData);
   }
