@@ -1,32 +1,33 @@
-<mat-tab-group>
+<mat-tab-group class="worker-settings-container">
 
   <mat-tab label="General">
     <div class="tab-container">
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="reduce-formfield-height">
         <mat-label>Name</mat-label>
         <input matInput name="name" [value]="selectedNodeData.name" (change)="setName($event)">
       </mat-form-field>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="reduce-formfield-height">
         <mat-label>Description</mat-label>
         <input matInput name="description" [value]="selectedNodeData.description" (change)="setDescription($event)">
       </mat-form-field>
-    </div>
-  </mat-tab>
-
-  <mat-tab label="Requirements">
-    <div class="tab-container">
-      <mat-form-field appearance="outline">
-        <mat-label>CPUs</mat-label>
-        <input matInput type="number" name="required-cpus" [value]="selectedNodeData.requiredResources.cpus.toString()" (change)="setRequiredCPUs($event)">
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Megabytes of RAM</mat-label>
-        <input matInput type="number" name="required-ram" [value]="selectedNodeData.requiredResources.megabytesOfRam.toString()" (change)="setRequiredRAM($event)">
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>GPU Count</mat-label>
-        <input matInput type="number" name="required-gpus" [value]="selectedNodeData.requiredResources.gpu.count.toString()" (change)="setRequiredGPUs($event)">
-      </mat-form-field>
+      <div class="slide-toggle-row">
+        <mat-slide-toggle [checked]="selectedNodeData.discardable"
+                          (change)="selectedNodeData.discardable = !selectedNodeData.discardable; emitSave()">
+          Discardable
+        </mat-slide-toggle>
+      </div>
+      <div class="slide-toggle-row">
+        <mat-slide-toggle [checked]="selectedNodeData.privileged"
+                          (change)="selectedNodeData.privileged = !selectedNodeData.privileged; emitSave()">
+          Privileged
+        </mat-slide-toggle>
+      </div>
+      <div class="slide-toggle-row">
+        <mat-slide-toggle [checked]="selectedNodeData.ignoreFailuresWithinExecutionGroup"
+                          (change)="selectedNodeData.ignoreFailuresWithinExecutionGroup = !selectedNodeData.ignoreFailuresWithinExecutionGroup; emitSave()">
+          Ignore failure in Execution Group
+        </mat-slide-toggle>
+      </div>
     </div>
   </mat-tab>
 
@@ -38,7 +39,7 @@
       </mat-form-field>
       <app-argument-list [argList]="selectedNodeData.image.args" (changeEmitter)="setImageArgs($event)" argName="Image Arg">
       </app-argument-list>
-       <!-- <input matInput name="image-args" [value]="selectedNodeData.image.args.toString()" (change)="setImageArgs($event)">-->
+      <!-- <input matInput name="image-args" [value]="selectedNodeData.image.args.toString()" (change)="setImageArgs($event)">-->
 
       <mat-form-field appearance="outline" class="whitespace-separator-top">
         <mat-label>Image shmSizeMegabytes</mat-label>
@@ -47,8 +48,47 @@
     </div>
   </mat-tab>
 
-  <mat-tab label="User Input">
+  <mat-tab label="Requirements">
+    <div class="tab-container">
+      <mat-form-field appearance="outline" class="reduce-formfield-height">
+        <mat-label>CPUs</mat-label>
+        <input matInput type="number" name="required-cpus" [value]="selectedNodeData.requiredResources.cpus.toString()" (change)="setRequiredCPUs($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="reduce-formfield-height">
+        <mat-label>Megabytes of RAM</mat-label>
+        <input matInput type="number" name="required-ram" [value]="selectedNodeData.requiredResources.megabytesOfRam.toString()" (change)="setRequiredRAM($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="reduce-formfield-height">
+        <mat-label>GPU Vendor</mat-label>
+        <input matInput #gpuVendor type="text" name="required-gpu-vendor" [value]="selectedNodeData.requiredResources.gpu.vendor" (change)="selectedNodeData.requiredResources.gpu.vendor = gpuVendor.value; emitSave()">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="reduce-formfield-height">
+        <mat-label>GPU Count</mat-label>
+        <input matInput type="number" name="required-gpus" [value]="selectedNodeData.requiredResources.gpu.count.toString()" (change)="setRequiredGPUs($event)">
+      </mat-form-field>
+      <app-argument-list [argList]="selectedNodeData.requiredResources.gpu.support" argName="GPU Support" (changeEmitter)="selectedNodeData.requiredResources.gpu.support = $event; emitSave()">
 
+      </app-argument-list>
+      <app-argument-list [argList]="selectedNodeData.requiredResources.tags"
+                         argName="Tag" (changeEmitter)="selectedNodeData.requiredResources.tags = $event; emitSave()">
+
+      </app-argument-list>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="User Input">
+    <div class="tab-container">
+      <mat-form-field appearance="outline" label="Confirmation" class="reduce-formfield-height">
+        <mat-label>Confirmation</mat-label>
+        <mat-select label="Confirmation" [(value)]="selectedNodeData.userInput.confirmation">
+          <mat-option value="NEVER">NEVER</mat-option>
+          <mat-option value="ONCE">ONCE</mat-option>
+          <mat-option value="ALWAYS">ALWAYS</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <app-argument-list [argList]="selectedNodeData.userInput.requiredEnvVariables" argName="Required Environment Variable" (changeEmitter)="selectedNodeData.userInput.requiredEnvVariables = $event; emitSave()">
+      </app-argument-list>
+    </div>
   </mat-tab>
 
   <mat-tab label="Environment">
@@ -56,7 +96,12 @@
   </mat-tab>
 
   <mat-tab label="Highlight">
-
+    <div class="tab-container">
+      <app-argument-list [argList]="selectedNodeData.highlight.resources"
+                         argName="Resources"
+                         (changeEmitter)="selectedNodeData.highlight.resources = $event; emitSave()">
+      </app-argument-list>
+    </div>
   </mat-tab>
 
 </mat-tab-group>
