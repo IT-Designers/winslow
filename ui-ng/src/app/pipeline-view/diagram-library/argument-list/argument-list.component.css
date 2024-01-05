@@ -1,3 +1,17 @@
+.arglist-border {
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.arglist-header {
+  font-size: 1em;
+  margin-bottom: 0.5em;
+  color: var(--font-color);
+  font-weight: 600;
+}
+
 .arglist-container {
   max-height: 7.5em;
   padding-left: 0.5em;
@@ -10,7 +24,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  max-height: 3.5em;
+  max-height: 3.1em;
 }
 
 .input-row-input {
@@ -21,5 +35,12 @@
   display: flex;
   justify-content: center;
   text-align: center;
-  margin-top: 4px;
+}
+
+.reduce-formfield-height {
+  max-height: 3.1em;
+}
+
+.reduce-formfield-height-more {
+  max-height: 3em;
 }

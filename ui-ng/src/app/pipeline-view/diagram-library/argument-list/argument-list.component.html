@@ -1,27 +1,34 @@
-<!--<p>{{argName}}s</p>-->
-<div class="arglist-container">
-  @for (arg of argList; track arg) {
-    <div class="input-row">
-      <mat-form-field appearance="outline" class="input-row-input">
-        <mat-label>{{argName}}{{$index}}</mat-label>
-        <input matInput name="image-args" [value]="arg" readonly>
-      </mat-form-field>
-      <button mat-icon-button
-              color="warn"
-              (click)="deleteArg(arg)"
-              class="input-row-button"
-              matTooltip="Delete {{argName}}">
-        <mat-icon title="Delete this image arg">delete_outline</mat-icon>
-      </button>
-    </div>
+<div class="arglist-border">
+  <div class="arglist-header">{{argName}}s</div>
+  @if (argList) {
+    @if (argList.length > 0) {
+      <div class="arglist-container">
+        @for (arg of argList; track arg) {
+          <div class="input-row">
+            <mat-form-field appearance="outline" class="input-row-input reduce-formfield-height-more">
+              <mat-label>{{argName}}{{$index}}</mat-label>
+              <input matInput [value]="arg" readonly>
+            </mat-form-field>
+            <button mat-icon-button
+                    color="warn"
+                    (click)="deleteArg(arg)"
+                    class="input-row-button"
+                    matTooltip="Delete {{argName}}">
+              <mat-icon title="Delete this {{argName}}">delete_outline</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    }
   }
+  <div class="input-row">
+    <mat-form-field appearance="outline" class="input-row-input reduce-formfield-height">
+      <mat-label>New {{argName}}</mat-label>
+      <input matInput #newArgInput>
+    </mat-form-field>
+    <button mat-icon-button color="primary" (click)="addArg(newArgInput.value)" matTooltip="Add new {{argName}}">
+      <mat-icon title="Add new {{argName}}">add</mat-icon>
+    </button>
+  </div>
 </div>
-<div class="input-row">
-  <mat-form-field appearance="outline" class="input-row-input">
-    <mat-label>New Image Arg</mat-label>
-    <input matInput #newArgInput name="image-args">
-  </mat-form-field>
-  <button mat-icon-button color="primary" (click)="addArg(newArgInput.value)" matTooltip="Add new {{argName}}">
-    <mat-icon title="Add new Image Arg">add</mat-icon>
-  </button>
-</div>
+
