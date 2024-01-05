@@ -1,8 +1,14 @@
+.worker-settings-container {
+  height: 100%;
+  width: 100%;
+}
+
 .tab-container {
-  padding-top: 1em;
+  height: 100%;
+  padding: 1em;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: start;
 }
 
 .input-row {
@@ -16,9 +22,33 @@
   width: 90%;
 }
 
+:host ::ng-deep .mat-mdc-text-field-wrapper.mdc-text-field--outlined .mat-mdc-form-field-infix {
+  padding-top: 0.7em;
+  padding-bottom: 0.5em;
+}
+
+:host ::ng-deep .mat-mdc-form-field-infix {
+  min-height: 2.5em;
+  max-height: 2.5em;
+}
+
+:host ::ng-deep .mdc-floating-label {
+  padding-top: 0em;
+  padding-bottom: 0.6em;
+}
+
+.reduce-formfield-height {
+  max-height: 3.1em;
+}
+
 .input-row-button {
   display: flex;
   justify-content: center;
   text-align: center;
   margin-top: 4px;
 }
+
+.slide-toggle-row {
+  margin: 0.5em;
+}
+

@@ -13,6 +13,10 @@ export class WorkerSettingsComponent {
   @Input() selectedNodeData: StageWorkerDefinitionInfo = {} as StageWorkerDefinitionInfo;
   @Output() editNode = new EventEmitter();
 
+  emitSave() {
+    this.editNode.emit(this.selectedNodeData);
+  }
+
   setName(event: any) {
     /*console.dir(event.target.value);*/
     //console.dir(event.target.value);
