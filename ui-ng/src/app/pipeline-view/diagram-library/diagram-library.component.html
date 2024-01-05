@@ -7,6 +7,9 @@
       data-id="library"
   >
     <mat-icon>drag_indicator</mat-icon>
+    <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">
+      cancel
+    </mat-icon>
   </div>
   <div class="library-icons-container">
     <div class="button-container border-right">
@@ -61,12 +64,7 @@
     </div>-->
   </div>
 
-  <div class="scroll node-details">
-    <div class="selection-header">Selected Node:
-      <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">
-        cancel
-      </mat-icon>
-    </div>
+  <div class="node-details">
     <!--
       will return empty object if selectedNodeData is not a stage worker
       so any property of the return object will be undefined if of the wrong type
