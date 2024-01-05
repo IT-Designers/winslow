@@ -7,6 +7,9 @@
       data-id="library"
   >
     <mat-icon>drag_indicator</mat-icon>
+    <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">
+      cancel
+    </mat-icon>
   </div>
   <mat-icon title="Save entire Workflow" [ngClass]="{'saved-data' : savedData, 'unsaved-data' : !savedData }" (click)="onApiCall('save')">save</mat-icon>
   <mat-icon title="Go to workflow start" (click)="onApiCall('fit')">settings_overscan</mat-icon>
