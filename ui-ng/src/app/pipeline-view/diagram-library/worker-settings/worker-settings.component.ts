@@ -1,7 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import { CommonModule } from '@angular/common';
 import {StageWorkerDefinitionInfo} from "../../../api/winslow-api";
-import {MatTabsModule} from "@angular/material/tabs";
 
 @Component({
   selector: 'app-worker-settings',
@@ -35,48 +33,38 @@ export class WorkerSettingsComponent {
   }
 
   setImageName(event: any) {
-    if (this.selectedNodeData instanceof StageWorkerDefinitionInfo) {
-      if (this.selectedNodeData.image) {
-        this.selectedNodeData.image.name = event.target.value;
-        this.editNode.emit(this.selectedNodeData);
-      }
+    if (this.selectedNodeData.image) {
+      this.selectedNodeData.image.name = event.target.value;
+      this.editNode.emit(this.selectedNodeData);
     }
-  }
+}
   setImageArgs(event: any) {
     this.selectedNodeData.image.args = event
     this.editNode.emit(this.selectedNodeData);
   }
   setImageMegabytes(event: any) {
-    if (this.selectedNodeData instanceof StageWorkerDefinitionInfo) {
-      if (this.selectedNodeData.image) {
-        this.selectedNodeData.image.shmMegabytes = event.target.value;
-        this.editNode.emit(this.selectedNodeData);
-      }
+    if (this.selectedNodeData.image) {
+      this.selectedNodeData.image.shmMegabytes = event.target.value;
+      this.editNode.emit(this.selectedNodeData);
     }
   }
 
   setRequiredCPUs(event: any) {
-    if (this.selectedNodeData instanceof StageWorkerDefinitionInfo) {
-      if (this.selectedNodeData.requiredResources) {
-        this.selectedNodeData.requiredResources.cpus = event.target.value;
-        this.editNode.emit(this.selectedNodeData);
-      }
+    if (this.selectedNodeData.requiredResources) {
+      this.selectedNodeData.requiredResources.cpus = event.target.value;
+      this.editNode.emit(this.selectedNodeData);
     }
   }
   setRequiredRAM(event: any) {
-    if (this.selectedNodeData instanceof StageWorkerDefinitionInfo) {
-      if (this.selectedNodeData.requiredResources) {
-        this.selectedNodeData.requiredResources.megabytesOfRam = event.target.value;
-        this.editNode.emit(this.selectedNodeData);
-      }
+    if (this.selectedNodeData.requiredResources) {
+      this.selectedNodeData.requiredResources.megabytesOfRam = event.target.value;
+      this.editNode.emit(this.selectedNodeData);
     }
   }
   setRequiredGPUs(event: any) {
-    if (this.selectedNodeData instanceof StageWorkerDefinitionInfo) {
-      if (this.selectedNodeData.requiredResources) {
-        this.selectedNodeData.requiredResources.gpu.count = event.target.value;
-        this.editNode.emit(this.selectedNodeData);
-      }
+    if (this.selectedNodeData.requiredResources) {
+      this.selectedNodeData.requiredResources.gpu.count = event.target.value;
+      this.editNode.emit(this.selectedNodeData);
     }
   }
 }
