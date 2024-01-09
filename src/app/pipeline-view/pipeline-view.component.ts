@@ -457,7 +457,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
   ngOnChanges(changes:SimpleChanges) {
     setTimeout(() => {
       if (changes.pipelineDefinition) {
-        if(changes.pipelineDefinition.currentValue.id && changes.pipelineDefinition.previousValue.id)
+        if(changes.pipelineDefinition.currentValue && changes.pipelineDefinition.previousValue)
           if (changes.pipelineDefinition.currentValue.id !== changes.pipelineDefinition.previousValue.id) {
             this.ngOnDestroy();
             this.libraryComponent?.instance.cancelEdit();
