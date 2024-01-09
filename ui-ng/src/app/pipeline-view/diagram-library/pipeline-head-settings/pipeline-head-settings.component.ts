@@ -1,6 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {PipelineDefinitionInfo, StageWorkerDefinitionInfo} from "../../../api/winslow-api";
+import {PipelineDefinitionInfo} from "../../../api/winslow-api";
 
 @Component({
   selector: 'app-pipeline-head-settings',
