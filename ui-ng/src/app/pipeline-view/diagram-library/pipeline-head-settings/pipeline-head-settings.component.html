@@ -1,16 +1,88 @@
-<mat-tab-group>
+<mat-tab-group class="pipeline-head-settings-container">
 
   <mat-tab label="General">
     <div class="tab-container">
       <mat-form-field appearance="outline">
         <mat-label>Name</mat-label>
-        <input matInput name="name" [value]="selectedNodeData.name" (change)="setName($event)">
+        <input matInput
+               #pipelineNameInput
+               name="name"
+               [value]="selectedNodeData.name"
+               (change)="selectedNodeData.name = pipelineNameInput.value; emitSave()">
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Description</mat-label>
-        <input matInput name="description" [value]="selectedNodeData.description" (change)="setDescription($event)">
+        <input matInput
+               #pipelineDescriptionInput
+               name="description"
+               [value]="selectedNodeData.description"
+               (change)="selectedNodeData.description = pipelineDescriptionInput.value; emitSave()">
       </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Belongs to project</mat-label>
+        <input matInput
+               #belongsToProjectInput
+               name="belongsToProject"
+               [value]="selectedNodeData.belongsToProject"
+               (change)="selectedNodeData.belongsToProject = belongsToProjectInput.value; emitSave()">
+      </mat-form-field>
+      <div class="slide-toggle-row">
+        <mat-slide-toggle [checked]="selectedNodeData.publicAccess"
+                          (change)="selectedNodeData.publicAccess = !selectedNodeData.publicAccess; emitSave()">
+          Public Access
+        </mat-slide-toggle>
+      </div>
     </div>
+  </mat-tab>
+
+  <mat-tab label="Deletion Policy">
+    <div class="slide-toggle-row whitespace-separator-top">
+      <mat-slide-toggle [checked]="selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage"
+                        (change)="selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage = !selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage; emitSave()">
+        Keep workspace of failed stage
+      </mat-slide-toggle>
+    </div>
+    <mat-form-field appearance="outline" class="whitespace-separator-top">
+      <mat-label>Number of workspaces to keep after the stage succeeds</mat-label>
+      <input matInput
+             type="number"
+             #numberOfWorkspacesOfSucceededStagesToKeepInput
+             name="numberOfWorkspacesOfSucceededStagesToKeep"
+             [value]="selectedNodeData.deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep"
+             (change)="selectedNodeData.deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep = Number(numberOfWorkspacesOfSucceededStagesToKeepInput.value); emitSave()">
+    </mat-form-field>
+    <div class="slide-toggle-row">
+      <mat-slide-toggle #recentWorkspaceCheck
+                        [checked]="selectedNodeData.deletionPolicy.alwaysKeepMostRecentWorkspace ? !undefined : false"
+                        (change)="selectedNodeData. deletionPolicy.alwaysKeepMostRecentWorkspace= recentWorkspaceCheck.checked; emitSave()">
+        Always keep most recent workspace
+      </mat-slide-toggle>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="Groups">
+    TODO?
+  </mat-tab>
+
+  <mat-tab label="User Input">
+    <div class="tab-container">
+      <mat-form-field appearance="outline" label="Confirmation" class="reduce-formfield-height">
+        <mat-label>Confirmation</mat-label>
+        <mat-select label="Confirmation" [(value)]="selectedNodeData.userInput.confirmation">
+          <mat-option value="NEVER">NEVER</mat-option>
+          <mat-option value="ONCE">ONCE</mat-option>
+          <mat-option value="ALWAYS">ALWAYS</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <app-argument-list [argList]="selectedNodeData.userInput.requiredEnvVariables"
+                         argName="Required Environment Variable"
+                         (changeEmitter)="selectedNodeData.userInput.requiredEnvVariables = $event; emitSave()">
+      </app-argument-list>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="Environment">
+    {{selectedNodeData.environment}}
   </mat-tab>
 
 </mat-tab-group>
