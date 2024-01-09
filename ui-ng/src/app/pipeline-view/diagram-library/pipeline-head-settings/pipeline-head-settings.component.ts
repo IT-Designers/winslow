@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {PipelineDefinitionInfo, StageWorkerDefinitionInfo} from "../../../api/winslow-api";
 
@@ -7,24 +7,17 @@ import {PipelineDefinitionInfo, StageWorkerDefinitionInfo} from "../../../api/wi
   templateUrl: './pipeline-head-settings.component.html',
   styleUrl: './pipeline-head-settings.component.css'
 })
-export class PipelineHeadSettingsComponent {
+export class PipelineHeadSettingsComponent implements OnInit {
   @Input() selectedNodeData: PipelineDefinitionInfo = {} as PipelineDefinitionInfo;
   @Output() editNode = new EventEmitter();
 
-  setName(event: any) {
-    /*console.dir(event.target.value);*/
-    //console.dir(event.target.value);
-    if (this.selectedNodeData?.name != undefined) {
-      this.selectedNodeData.name = event.target.value;
-      //console.dir(this.selectedNodeData);
-      this.editNode.emit(this.selectedNodeData);
-    }
+  ngOnInit() {
+    console.dir(this.selectedNodeData.environment);
   }
 
-  setDescription(event: any) {
-    if (this.selectedNodeData?.description) {
-      this.selectedNodeData.description = event.target.value;
-      this.editNode.emit(this.selectedNodeData);
-    }
+  emitSave() {
+    this.editNode.emit(this.selectedNodeData);
   }
+
+  protected readonly Number = Number;
 }
