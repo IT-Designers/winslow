@@ -38,7 +38,7 @@
     "ngx-monaco-editor-v2": "^16.0.1",
     "rxjs": "^7.8.1",
     "string-argv": "^0.3.1",
-    "sweetalert2": "^11.7.32",
+    "sweetalert2": "https://github.com/kjra1707/ngx-sweetalert2.git#1a95846f285d832093c5ebb633c0e37a2334adc1",
     "tslib": "^2.0.0",
     "webpack-dev-server": "^4.15.1",
     "zone.js": "~0.14.2"
