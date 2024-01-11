@@ -13,8 +13,21 @@ Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app w
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
 ## Build
-
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+
+### Workaround for outdated dependencies
+We use [ngx-sweetalert2](https://github.com/sweetalert2/ngx-sweetalert2) which is currently not supported for Angular 17.
+<br>
+What was done to solve this problem:
+1. There is an open [pull-request](https://github.com/kjra1707/ngx-sweetalert2/tree/patch-1) which makes the project work with Angular 17.
+1. We use [git-subtree](https://www.atlassian.com/git/tutorials/git-subtree) to clone the project into the ui-ng folder.
+   * `git subtree add --prefix ui-ng/.subtree/ngx-sweetalert2 https://github.com/kjra1707/ngx-sweetalert2.git patch-1 --squash`
+1. adjust the [package.json](package.json) with a preinstall step, which will be run before `npm install` is executed
+   * `"preinstall": "cd .subtree/ngx-sweetalert2; npm install && npm run build"`
+1. at least we use the local builded `ngx-sweetalert2` as local dependency in [package.json](package.json)
+   * `@sweetalert2/ngx-sweetalert2": ".subtree/ngx-sweetalert2/dist/ngx-sweetalert2`
+> Use this approach if another outdated dependency is detected
+
 
 ## Running unit tests
 
