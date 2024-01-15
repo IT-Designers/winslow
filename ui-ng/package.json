@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "preinstall": "cd ../.subtree/ngx-sweetalert2; npm install && npm run build",
+    "preinstall": "cd .subtree/ngx-sweetalert2; npm install && npm run build",
     "start": "ng serve --proxy-config proxy.conf.json --host 0.0.0.0",
     "build": "ng build",
     "test": "ng test",
