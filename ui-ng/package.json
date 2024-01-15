@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "preinstall": "cd ../.subtree/ngx-sweetalert2; npm install && npm run build",
     "start": "ng serve --proxy-config proxy.conf.json --host 0.0.0.0",
     "build": "ng build",
     "test": "ng test",
@@ -26,7 +27,7 @@
     "@angular/router": "^17.0.2",
     "@stomp/rx-stomp": "^2.0.0",
     "@stomp/stompjs": "^7.0.0",
-    "@sweetalert2/ngx-sweetalert2": "https://github.com/kjra1707/ngx-sweetalert2.git#1a95846f285d832093c5ebb633c0e37a2334adc1",
+    "@sweetalert2/ngx-sweetalert2": ".subtree/ngx-sweetalert2/dist/ngx-sweetalert2",
     "@swimlane/ngx-charts": "^20.4.1",
     "core-js": "^3.25.0",
     "dagre": "^0.8.5",
