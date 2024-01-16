@@ -54,9 +54,9 @@ deploy:
   script:
 #    - ./build-docker-image.sh
     - ls -lah .
-    - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow-legacy/component-server
+    - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-server
     - docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
-    - docker push $DOCKER_REGISTRY_WINSLOW/winslow-legacy/component-server
+    - docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-server
   dependencies:
     - build
 
