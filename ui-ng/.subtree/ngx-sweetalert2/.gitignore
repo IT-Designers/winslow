@@ -1,0 +1,14 @@
+# compiled output
+/dist
+/tmp
+/out-tsc
+
+# caches
+/.angular/cache
+
+# dependencies
+/node_modules
+
+# misc
+npm-debug.log
+yarn-error.log
