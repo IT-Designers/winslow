@@ -36,12 +36,6 @@
   </mat-tab>
 
   <mat-tab label="Deletion Policy">
-    <div class="slide-toggle-row whitespace-separator-top">
-      <mat-slide-toggle [checked]="selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage"
-                        (change)="selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage = !selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage; emitSave()">
-        Keep workspace of failed stage
-      </mat-slide-toggle>
-    </div>
     <mat-form-field appearance="outline" class="whitespace-separator-top">
       <mat-label>Number of workspaces to keep after the stage succeeds</mat-label>
       <input matInput
@@ -51,6 +45,12 @@
              [value]="selectedNodeData.deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep"
              (change)="selectedNodeData.deletionPolicy.numberOfWorkspacesOfSucceededStagesToKeep = Number(numberOfWorkspacesOfSucceededStagesToKeepInput.value); emitSave()">
     </mat-form-field>
+    <div class="slide-toggle-row">
+      <mat-slide-toggle [checked]="selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage"
+                        (change)="selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage = !selectedNodeData.deletionPolicy.keepWorkspaceOfFailedStage; emitSave()">
+        Keep workspace of failed stage
+      </mat-slide-toggle>
+    </div>
     <div class="slide-toggle-row">
       <mat-slide-toggle #recentWorkspaceCheck
                         [checked]="selectedNodeData.deletionPolicy.alwaysKeepMostRecentWorkspace != undefined ? selectedNodeData.deletionPolicy.alwaysKeepMostRecentWorkspace : false"
@@ -81,8 +81,8 @@
     </div>
   </mat-tab>
 
-  <mat-tab label="Environment">
+  <!--<mat-tab label="Environment">
     {{selectedNodeData.environment}}
-  </mat-tab>
+  </mat-tab>-->
 
 </mat-tab-group>
