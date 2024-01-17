@@ -3,43 +3,27 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
-    "skipLibCheck": true,
     "sourceMap": true,
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "strict": true,
     "module": "es2020",
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "ES2022",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "target": "es2022",
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2018", "dom"],
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
     "paths": {
-    },
-    "useDefineForClassFields": false
+      "@sweetalert2/ngx-sweetalert2": ["dist/ngx-sweetalert2"],
+      "@sweetalert2/ngx-sweetalert2/*": ["dist/ngx-sweetalert2/*"]
+    }
   },
   "angularCompilerOptions": {
     "strictTemplates": true,
-    "fullTemplateCheck": true,
-    "strictInjectionParameters": true,
-
-    "files": [],
-    "references": [
-      {
-        "path": "./src/tsconfig.app.json"
-      },
-      {
-        "path": "./src/tsconfig.spec.json"
-      },
-      {
-        "path": "./e2e/tsconfig.e2e.json"
-      }
-    ]
+    "strictInjectionParameters": true
   }
 }

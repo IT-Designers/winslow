@@ -3,60 +3,84 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "winslow-ui-ng": {
+    "ngx-sweetalert2": {
+      "projectType": "library",
+      "root": "projects/ngx-sweetalert2",
+      "sourceRoot": "projects/ngx-sweetalert2/src",
+      "prefix": "swal",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "tsConfig": "projects/ngx-sweetalert2/tsconfig.lib.json",
+            "project": "projects/ngx-sweetalert2/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ngx-sweetalert2/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ngx-sweetalert2/src/test.ts",
+            "tsConfig": "projects/ngx-sweetalert2/tsconfig.spec.json",
+            "karmaConfig": "projects/ngx-sweetalert2/karma.conf.js"
+          },
+          "configurations": {
+            "ci": {
+              "watch": false,
+              "progress": false,
+              "browsers": "ChromeHeadlessCI"
+            }
+          }
+        }
+      }
+    },
+    "ngx-sweetalert2-demo": {
       "projectType": "application",
       "schematics": {},
-      "root": "",
-      "sourceRoot": "src",
+      "root": "projects/ngx-sweetalert2-demo",
+      "sourceRoot": "projects/ngx-sweetalert2-demo/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/winslow-ui-ng",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
-            "tsConfig": "tsconfig.app.json",
+            "outputPath": "dist/ngx-sweetalert2-demo",
+            "index": "projects/ngx-sweetalert2-demo/src/index.html",
+            "main": "projects/ngx-sweetalert2-demo/src/main.ts",
+            "polyfills": "projects/ngx-sweetalert2-demo/src/polyfills.ts",
+            "tsConfig": "projects/ngx-sweetalert2-demo/tsconfig.app.json",
+            "aot": true,
             "assets": [
-              "src/favicon.png",
-              "src/assets",
-              {
-                "glob": "**/*",
-                "input": "node_modules/monaco-editor",
-                "output": "/assets/monaco/"
-              }
+              "projects/ngx-sweetalert2-demo/src/favicon.ico",
+              "projects/ngx-sweetalert2-demo/src/assets"
             ],
             "styles": [
-              "node_modules/diagram-maker/dist/diagramMaker.css",
-              "src/styles.scss"
-            ],
-            "scripts": [
-              "node_modules/echarts/dist/echarts.min.js"
+              "projects/ngx-sweetalert2-demo/src/styles.css"
             ],
             "allowedCommonJsDependencies": [
-              "@stomp/stompjs",
-              "@stomp/rx-stomp",
-              "lodash"
-            ]
+                "sweetalert2"
+            ],
+            "scripts": []
           },
           "configurations": {
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "replace": "projects/ngx-sweetalert2-demo/src/environments/environment.ts",
+                  "with": "projects/ngx-sweetalert2-demo/src/environments/environment.prod.ts"
                 }
               ],
-              "buildOptimizer": true,
               "optimization": true,
-              "vendorChunk": false,
-              "extractLicenses": true,
+              "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
-              "outputHashing": "all",
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -69,64 +93,47 @@
                   "maximumError": "10kb"
                 }
               ]
-            },
-            "development": {
-              "buildOptimizer": false,
-              "optimization": false,
-              "vendorChunk": true,
-              "extractLicenses": false,
-              "sourceMap": true,
-              "namedChunks": true
             }
-          },
-          "defaultConfiguration": "production"
+          }
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "ngx-sweetalert2-demo:build"
+          },
           "configurations": {
             "production": {
-              "buildTarget": "winslow-ui-ng:build:production"
-            },
-            "development": {
-              "buildTarget": "winslow-ui-ng:build:development"
+              "browserTarget": "ngx-sweetalert2-demo:build:production"
             }
-          },
-          "defaultConfiguration": "development"
+          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "winslow-ui-ng:build"
+            "browserTarget": "ngx-sweetalert2-demo:build"
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
+            "main": "projects/ngx-sweetalert2-demo/src/test.ts",
+            "polyfills": "projects/ngx-sweetalert2-demo/src/polyfills.ts",
+            "tsConfig": "projects/ngx-sweetalert2-demo/tsconfig.spec.json",
+            "karmaConfig": "projects/ngx-sweetalert2-demo/karma.conf.js",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "projects/ngx-sweetalert2-demo/src/favicon.ico",
+              "projects/ngx-sweetalert2-demo/src/assets"
             ],
             "styles": [
-              "node_modules/diagram-maker/dist/diagramMaker.css",
-              "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.css"
+              "projects/ngx-sweetalert2-demo/src/styles.css"
             ],
             "scripts": []
-          }
-        },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "winslow-ui-ng:serve"
           },
           "configurations": {
-            "production": {
-              "devServerTarget": "winslow-ui-ng:serve:production"
+            "ci": {
+              "watch": false,
+              "progress": false,
+              "browsers": "ChromeHeadlessCI"
             }
           }
         }
