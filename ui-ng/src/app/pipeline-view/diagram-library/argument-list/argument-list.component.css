@@ -25,6 +25,7 @@
   flex-direction: row;
   justify-content: space-between;
   max-height: 3.1em;
+  padding-top: 0.4em;
 }
 
 .input-row-input {
