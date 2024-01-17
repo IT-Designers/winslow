@@ -1,7 +1,46 @@
 # Winslow 
 
-## Run locally
+## Prerequisite
+This Project is designed to be used for a Linux Environment.
+:warning It is not tested for a Windows Environment. :warning
 
+Software dependencies:
+* Docker
+* Java 17
+* Maven TBD
+* Angular 17
+* node 18
+* npm 9.x
+
+## Run locally
+### How to Start
+1. Checkout the master branch:
+   * `git clone <insert-url>`
+1. Create a workdir, for example in the project root
+    * `cd winslow && mkdir workdir`
+1. Build & Start the Frontend
+   * `(cd ui-ng && npm install && npm build && npm run start)`
+1. Build the Backend
+   * `mvn package`
+1. Set environment variables
+   * 
+     ```
+     export WINSLOW_DEV_ENV=true
+     export WINSLOW_DEV_ENV_IP=192.168.1.178
+     export WINSLOW_NO_GPU_USAGE=0
+     export WINSLOW_NO_STAGE_EXECUTION=0
+     export WINSLOW_WORK_DIRECTORY=<absolut-path-to-workdir-from-step-2>
+     export WINSLOW_DEV_REMOTE_USER=<local>
+     export WINSLOW_ROOT_USERS=<local>
+     ```
+1. Start the Backend
+     * `(cd application/target && java -jar winslow-application*.jar)`
+
+---
+## Setup Local Development
+
+
+---
 Winslow requires a reachable nomad instance on localhost and the work directory to be a NFS-mount (`/etc/fstab` is parsed to determine the NFS-Server-Path if `WINSLOW_STORAGE_TYPE` and `WINSLOW_STORAGE_PATH` is not set).
 
 #### Configuration
