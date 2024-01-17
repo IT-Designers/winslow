@@ -58,9 +58,13 @@
         <mat-label>Megabytes of RAM</mat-label>
         <input matInput type="number" name="required-ram" [value]="selectedNodeData.requiredResources.megabytesOfRam.toString()" (change)="setRequiredRAM($event)">
       </mat-form-field>
-      <mat-form-field appearance="outline" class="reduce-formfield-height">
+      <mat-form-field appearance="outline" label="Confirmation" class="reduce-formfield-height">
         <mat-label>GPU Vendor</mat-label>
-        <input matInput #gpuVendor type="text" name="required-gpu-vendor" [value]="selectedNodeData.requiredResources.gpu.vendor" (change)="selectedNodeData.requiredResources.gpu.vendor = gpuVendor.value; emitSave()">
+        <mat-select label="Confirmation" [(value)]="selectedNodeData.requiredResources.gpu.vendor" (selectionChange)="emitSave(); selectedNodeData.logParsers">
+          <mat-option value="nvidia">nvidia</mat-option>
+          <mat-option value="amd">amd</mat-option>
+          <mat-option value="intel">intel</mat-option>
+        </mat-select>
       </mat-form-field>
       <mat-form-field appearance="outline" class="reduce-formfield-height">
         <mat-label>GPU Count</mat-label>
@@ -80,7 +84,7 @@
     <div class="tab-container">
       <mat-form-field appearance="outline" label="Confirmation" class="reduce-formfield-height">
         <mat-label>Confirmation</mat-label>
-        <mat-select label="Confirmation" [(value)]="selectedNodeData.userInput.confirmation">
+        <mat-select label="Confirmation" [(value)]="selectedNodeData.userInput.confirmation" (selectionChange)="emitSave()">
           <mat-option value="NEVER">NEVER</mat-option>
           <mat-option value="ONCE">ONCE</mat-option>
           <mat-option value="ALWAYS">ALWAYS</mat-option>
@@ -91,14 +95,14 @@
     </div>
   </mat-tab>
 
-  <mat-tab label="Environment">
+  <!--<mat-tab label="Environment">
 
-  </mat-tab>
+  </mat-tab>-->
 
   <mat-tab label="Highlight">
     <div class="tab-container">
       <app-argument-list [argList]="selectedNodeData.highlight.resources"
-                         argName="Resources"
+                         argName="Resource"
                          (changeEmitter)="selectedNodeData.highlight.resources = $event; emitSave()">
       </app-argument-list>
     </div>
