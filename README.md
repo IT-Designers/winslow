@@ -7,10 +7,10 @@ This Project is designed to be used for a Linux Environment.
 Software dependencies:
 * Docker
 * Java 17
-* Maven TBD
+* Maven 3.6.3
 * Angular 17
-* node 18
-* npm 9.x
+* Node 18.13.0
+* npm 8.19.3
 
 ## Run locally
 ### How to Start
