@@ -14,31 +14,85 @@ Software dependencies:
 
 ## Run locally
 ### How to Start
+This is a step-by-step approach and the commands and directories are dependent on each other.
 1. Checkout the master branch:
-   * `git clone <insert-url>`
-1. Create a workdir, for example in the project root
+   * `cd $HOME; git clone https://github.com/IT-Designers/winslow.git`
+1. Create a workdir, for example in the project root:
     * `cd winslow && mkdir workdir`
-1. Build & Start the Frontend
+1. Build & Start the Frontend:
    * `(cd ui-ng && npm install && npm build && npm run start)`
-1. Build the Backend
+1. Build the Backend:
    * `mvn package`
-1. Set environment variables
+1. Set environment variables, these are example values and can be adjusted (see [workdir](README.md#required) ):
    * 
      ```
      export WINSLOW_DEV_ENV=true
      export WINSLOW_DEV_ENV_IP=192.168.1.178
      export WINSLOW_NO_GPU_USAGE=0
      export WINSLOW_NO_STAGE_EXECUTION=0
-     export WINSLOW_WORK_DIRECTORY=<absolut-path-to-workdir-from-step-2>
-     export WINSLOW_DEV_REMOTE_USER=<local>
-     export WINSLOW_ROOT_USERS=<local>
+     export WINSLOW_WORK_DIRECTORY=$HOME/winslow/workdir
+     export WINSLOW_DEV_REMOTE_USER=example
+     export WINSLOW_ROOT_USERS=example
      ```
-1. Start the Backend
+     Important: `WINSLOW_WORK_DIRECTORY` has to be an absolut path!
+1. Start the Backend:
      * `(cd application/target && java -jar winslow-application*.jar)`
 
 ---
 ## Setup Local Development
+### Intellij SetUp
+1. Open the Project with IntelliJ.
+1. Search for the `Main.java` file
+1. Click on the green play button
+   * ![green_play_button.png](docu/img/green_play_button.png)
+1. Select `Modify Run Configuration...`
+   * ![modify_run_configuration.png](docu/img/modify_run_configuration.png)
+1. Adjust `Name` to your needs, e.g. `winslow-application`
+   * ![img_3.png](docu/img/application_name.png)
+1. Select a [workdir](README.md#how-to-start) (as mentioned in the section [how to start](README.md#how-to-start))
+   * ![img_4.png](docu/img/img_4.png)
+1. Use the environment variables from the section [how to start](README.md#how-to-start)
+   * ```
+     WINSLOW_DEV_ENV=true; WINSLOW_DEV_ENV_IP=192.168.1.178; WINSLOW_NO_GPU_USAGE=0; WINSLOW_NO_STAGE_EXECUTION=0; WINSLOW_WORK_DIRECTORY=$HOME/winslow/workdir; WINSLOW_DEV_REMOTE_USER=example; WINSLOW_ROOT_USERS=example
+     ``` 
+     ![environment_variables.png](docu/img/environment_variables.png)
 
+## More Information
+### Environment Variables
+#### required
+* `WINSLOW_WORK_DIRECTORY` Absolut path to the working directory that has to be on a nfs
+  * Example `/winslow/workdirectory/that/is/on/nfs`
+#### optional
+* `WINSLOW_NO_STAGE_EXECUTION` stage execution, act as observer / web-accessor
+  * `Values`
+    * `1` disable 
+    * `0` enable stage execution, act as observer / web-accessor
+<br>
+<br>
+* `WINSLOW_DEV_ENV` auth and allows root access to all resources
+  * `Values`
+    * `true` disables
+    * `false` enables
+<br>
+<br>
+* `WINSLOW_DEV_REMOTE_USER` username to assign to (unauthorized) requests
+<br>
+<br>
+* `WINSLOW_DEV_ENV_IP` publicly visible IP of the WEB-UI
+  * Example:  192.168.1.178
+<br>
+<br>
+* `WINSLOW_NO_GPU_USAGE` access to GPUs
+  * `Values`
+    * `0` disables
+    * `1` enables
+<br>
+<br>
+* `WINSLOW_NO_WEB_API` REST/WebSocket-API (no longer starts Spring Boot)
+  * `Values`
+    * `1` disable 
+    * `0` enables
+* `WINSLOW_ROOT_USERS` users with root access
 
 ---
 Winslow requires a reachable nomad instance on localhost and the work directory to be a NFS-mount (`/etc/fstab` is parsed to determine the NFS-Server-Path if `WINSLOW_STORAGE_TYPE` and `WINSLOW_STORAGE_PATH` is not set).
