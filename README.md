@@ -12,13 +12,17 @@ Software dependencies:
 * Node 18.13.0
 * npm 8.19.3
 
-## Run locally
-### How to Start
-This is a step-by-step approach and the commands and directories are dependent on each other.
+## How to Start
+This is an universal step-by-step approach, the **commands and directories are dependent on each other**.
 1. Checkout the master branch:
-   * `cd $HOME; git clone https://github.com/IT-Designers/winslow.git`
+    * `cd $HOME; git clone https://github.com/IT-Designers/winslow.git`
 1. Create a workdir, for example in the project root:
     * `cd winslow && mkdir workdir`
+* run the project 
+  * **without** an IDE then goto [Run locally](README.md#run-locally)
+  * **with** an IDE then goto [Run with IDE](README.md#setup-local-development)
+### Run locally
+**Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 1. Build & Start the Frontend:
    * `(cd ui-ng && npm install && npm build && npm run start)`
 1. Build the Backend:
@@ -40,22 +44,26 @@ This is a step-by-step approach and the commands and directories are dependent o
 
 ---
 ## Setup Local Development
+Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
+**Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
-1. Open the Project with IntelliJ.
+#### Configure Backend
 1. Search for the `Main.java` file
 1. Click on the green play button
    * ![green_play_button.png](docu/img/green_play_button.png)
 1. Select `Modify Run Configuration...`
    * ![modify_run_configuration.png](docu/img/modify_run_configuration.png)
 1. Adjust `Name` to your needs, e.g. `winslow-application`
-   * ![img_3.png](docu/img/application_name.png)
-1. Select a [workdir](README.md#how-to-start) (as mentioned in the section [how to start](README.md#how-to-start))
-   * ![img_4.png](docu/img/img_4.png)
+   * ![application_name.png](docu/img/application_name.png)
 1. Use the environment variables from the section [how to start](README.md#how-to-start)
    * ```
      WINSLOW_DEV_ENV=true; WINSLOW_DEV_ENV_IP=192.168.1.178; WINSLOW_NO_GPU_USAGE=0; WINSLOW_NO_STAGE_EXECUTION=0; WINSLOW_WORK_DIRECTORY=$HOME/winslow/workdir; WINSLOW_DEV_REMOTE_USER=example; WINSLOW_ROOT_USERS=example
      ``` 
      ![environment_variables.png](docu/img/environment_variables.png)
+1. Save the changes
+#### Configure Frontend
+
+
 
 ## More Information
 ### Environment Variables
