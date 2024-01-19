@@ -123,7 +123,7 @@ WINSLOW_LDAP_USER_SEARCH_BASE=ou=Users,ou=...,dc=...,dc=...
 
 These environment variables can be set in the `Run/Debug Configuration` in IntelliJ.
 
-#### Nomad
+#### Nomad DEPRECATED
 
 Download nomad via https://www.nomadproject.io/downloads and run it with
 ```bash
