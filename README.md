@@ -77,12 +77,14 @@ Click here to start frontend: `start fe`
     * `0` enable stage execution, act as observer / web-accessor
 <br>
 <br>
+
 * `WINSLOW_DEV_ENV` auth and allows root access to all resources
   * `Values`
     * `true` disables
     * `false` enables
 <br>
 <br>
+
 * `WINSLOW_DEV_REMOTE_USER` username to assign to (unauthorized) requests
 <br>
 <br>
