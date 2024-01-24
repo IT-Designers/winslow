@@ -46,7 +46,6 @@ This is an universal step-by-step approach, the **commands and directories are d
 1. Start the Backend:
      * `(cd application/target && java -jar winslow-application*.jar)`
 
----
 ## Setup Local Development
 Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
