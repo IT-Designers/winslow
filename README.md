@@ -53,6 +53,7 @@ Currently only [intellij setup](README.md#intellij-setup) is documented, feel fr
 #### Project Configuration
 * Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 <br>
+ 
 ![node_npm_version.png](docu/img/node_npm_version.png)
  
 #### Start Backend
