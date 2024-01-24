@@ -56,10 +56,9 @@ If you encounter a problem, see the [troubleshooting](README.md#trubleshooting) 
 <br>
  
 ![node_npm_version.png](docu/img/node_npm_version.png)
- 
+
+
 #### Start Backend
-> Read this in the markdown preview from Intellij
- 
 Click here to start backend: `winslow-application`
 
 #### Start Frontend
@@ -133,6 +132,6 @@ sleep 5
 sudo mount nfs-mount
 ```
 
-## Trubleshooting
-### The documentation said _click here_ but there is no link
+## Troubleshooting
+### 1. The documentation said _click here_ but there is nothing to click?
 * Make sure you are reading this in the markdown preview from Intellij
