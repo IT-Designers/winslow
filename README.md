@@ -4,7 +4,7 @@
 This Project is designed to be used for a _Linux Environment_. <br>
 :warning: It is not tested for a Windows Environment. :warning:
 
-Software dependencies:
+### Software dependencies
 * Docker
 * Java 17
 * Maven 3.6.3
@@ -51,19 +51,13 @@ Currently only [intellij setup](README.md#intellij-setup) is documented, feel fr
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
 #### Project Configuration
-
+1. Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
+<br>
+![node_npm_version.png](docu/img/node_npm_version.png)
 #### Start Backend
-There are run configurations which are imported when starting intellij
-1. Select the Backend 
-* Select `winslow-application` as run configuration and start it
-<br>
-![select_backend.png](docu/img/select_backend.png)
-1. Run the Backend
-<br>
-![run_backend.png](docu/img/run_backend.png)
+Click here to start backend: `winslow-application` 
 #### Start Frontend
-1. Select the Frontend
-   * Do the same for the frontend and select `start fe` as run configuration and start it
+Click here to start frontend: `start fe`
 
 ----
 #### Visual
