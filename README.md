@@ -75,29 +75,22 @@ Click here to start frontend: `start fe`
   * `Values`
     * `1` disable 
     * `0` enable stage execution, act as observer / web-accessor
-<br>
-<br>
 
 * `WINSLOW_DEV_ENV` auth and allows root access to all resources
   * `Values`
     * `true` disables
     * `false` enables
-<br>
-<br>
 
 * `WINSLOW_DEV_REMOTE_USER` username to assign to (unauthorized) requests
-<br>
-<br>
+
 * `WINSLOW_DEV_ENV_IP` publicly visible IP of the WEB-UI
   * Example:  192.168.1.178
-<br>
-<br>
+
 * `WINSLOW_NO_GPU_USAGE` access to GPUs
   * `Values`
     * `0` disables
     * `1` enables
-<br>
-<br>
+
 * `WINSLOW_NO_WEB_API` REST/WebSocket-API (no longer starts Spring Boot)
   * `Values`
     * `1` disable 
