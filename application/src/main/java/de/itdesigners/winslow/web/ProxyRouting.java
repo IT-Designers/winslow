@@ -15,7 +15,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriUtils;
 
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
