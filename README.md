@@ -56,7 +56,7 @@ If you encounter a problem, see the [troubleshooting](README.md#troubleshooting)
 > Read this step in the markdown preview of Intellij to finish the setup.
 #### Project Configuration
 * Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
-<br>
+
 ![node_npm_version.png](docu/img/node_npm_version.png)
 
 #### Start Backend
