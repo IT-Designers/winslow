@@ -1,8 +1,8 @@
 # Winslow 
 
 ## Prerequisite
-This Project is designed to be used for a Linux Environment.
-:warning It is not tested for a Windows Environment. :warning
+This Project is designed to be used for a _Linux Environment_. <br>
+:warning: It is not tested for a Windows Environment. :warning:
 
 Software dependencies:
 * Docker
@@ -34,11 +34,14 @@ This is an universal step-by-step approach, the **commands and directories are d
      export WINSLOW_DEV_ENV_IP=192.168.1.178
      export WINSLOW_NO_GPU_USAGE=0
      export WINSLOW_NO_STAGE_EXECUTION=0
-     export WINSLOW_WORK_DIRECTORY=$HOME/winslow/workdir
      export WINSLOW_DEV_REMOTE_USER=example
      export WINSLOW_ROOT_USERS=example
      ```
-     Important: `WINSLOW_WORK_DIRECTORY` has to be an absolut path!
+     Adjust the `WINSLOW_WORK_DIRECTORY` to an absolut path which points to the workdir from [how to start](README.md#how-to-start) <br>
+       - Example: `WINSLOW_WORK_DIRECTORY=/home/itdesigners/winslow/workdir`
+     ```
+     export WINSLOW_WORK_DIRECTORY=<absolut-path-to-winslow-workdir-folder>
+     ```
 1. Start the Backend:
      * `(cd application/target && java -jar winslow-application*.jar)`
 
@@ -48,20 +51,26 @@ Currently only [intellij setup](README.md#intellij-setup) is documented, feel fr
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
 #### Configure Backend
-1. Search for the `Main.java` file
+1. Search for the `Main.java` file 
 1. Click on the green play button
    * ![green_play_button.png](docu/img/green_play_button.png)
 1. Select `Modify Run Configuration...`
    * ![modify_run_configuration.png](docu/img/modify_run_configuration.png)
 1. Adjust `Name` to your needs, e.g. `winslow-application`
    * ![application_name.png](docu/img/application_name.png)
-1. Use the environment variables from the section [how to start](README.md#how-to-start)
+1. These are the same environment variables from [how to start](README.md#how-to-start) but in a copy-paste friendly format:
    * ```
-     WINSLOW_DEV_ENV=true; WINSLOW_DEV_ENV_IP=192.168.1.178; WINSLOW_NO_GPU_USAGE=0; WINSLOW_NO_STAGE_EXECUTION=0; WINSLOW_WORK_DIRECTORY=$HOME/winslow/workdir; WINSLOW_DEV_REMOTE_USER=example; WINSLOW_ROOT_USERS=example
-     ``` 
+     WINSLOW_DEV_ENV=true; WINSLOW_DEV_ENV_IP=192.168.1.178; WINSLOW_NO_GPU_USAGE=0; WINSLOW_NO_STAGE_EXECUTION=0; WINSLOW_DEV_REMOTE_USER=example; WINSLOW_ROOT_USERS=example;
+     ```
+     Adjust the `WINSLOW_WORK_DIRECTORY` to an absolut path which points to the workdir from [how to start](README.md#how-to-start) <br>
+     - Example: `WINSLOW_WORK_DIRECTORY=/home/itdesigners/winslow/workdir`
+     ```
+     WINSLOW_WORK_DIRECTORY=<absolut-path-to-winslow-workdir-folder>
+     ```
      ![environment_variables.png](docu/img/environment_variables.png)
 1. Save the changes
 #### Configure Frontend
+1. 
 
 
 
