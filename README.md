@@ -21,13 +21,14 @@ This is an universal step-by-step approach, the **commands and directories are d
 * run the project 
   * **without** an IDE then goto [Run locally](README.md#run-locally)
   * **with** an IDE then goto [Run with IDE](README.md#setup-local-development)
-### Run locally
+## Run locally
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 1. Build & Start the Frontend:
    * `(cd ui-ng && npm install && npm build && npm run start)`
 1. Build the Backend:
    * `mvn package`
-1. Set environment variables, these are example values and can be adjusted (see [workdir](README.md#required) ):
+1. Set environment variables, these are example values and can be adjusted (see [workdir](README.md#required)):
+
    * 
      ```
      export WINSLOW_DEV_ENV=true
@@ -61,32 +62,6 @@ Click here to start backend: `winslow-application`
 
 #### Start Frontend
 Click here to start frontend: `start fe`
-
-----
-#### Visual
-#### Configure Backend
-1. Search for the `Main.java` file 
-1. Click on the green play button
-   * ![green_play_button.png](docu/img/green_play_button.png)
-1. Select `Modify Run Configuration...`
-   * ![modify_run_configuration.png](docu/img/modify_run_configuration.png)
-1. Adjust `Name` to your needs, e.g. `winslow-application`
-   * ![application_name.png](docu/img/application_name.png)
-1. These are the same environment variables from [how to start](README.md#how-to-start) but in a copy-paste friendly format:
-   * ```
-     WINSLOW_DEV_ENV=true; WINSLOW_DEV_ENV_IP=192.168.1.178; WINSLOW_NO_GPU_USAGE=0; WINSLOW_NO_STAGE_EXECUTION=0; WINSLOW_DEV_REMOTE_USER=example; WINSLOW_ROOT_USERS=example;
-     ```
-     Adjust the `WINSLOW_WORK_DIRECTORY` to an absolut path which points to the workdir from [how to start](README.md#how-to-start) <br>
-     - Example: `WINSLOW_WORK_DIRECTORY=/home/itdesigners/winslow/workdir`
-     ```
-     WINSLOW_WORK_DIRECTORY=<absolut-path-to-winslow-workdir-folder>
-     ```
-     ![environment_variables.png](docu/img/environment_variables.png)
-1. Save the changes
-#### Configure Frontend
-1. 
-
-
 
 ## More Information
 ### Environment Variables
@@ -125,6 +100,8 @@ Click here to start frontend: `start fe`
     * `0` enables
 * `WINSLOW_ROOT_USERS` users with root access
 
+---
+# OLD DELETE
 ---
 Winslow requires a reachable nomad instance on localhost and the work directory to be a NFS-mount (`/etc/fstab` is parsed to determine the NFS-Server-Path if `WINSLOW_STORAGE_TYPE` and `WINSLOW_STORAGE_PATH` is not set).
 
