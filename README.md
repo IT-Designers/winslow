@@ -48,15 +48,16 @@ This is an universal step-by-step approach, the **commands and directories are d
 
 ## Setup Local Development
 Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
-If you encounter a problem, see the [troubleshooting](README.md#trubleshooting) section.
+If you encounter a problem, see the [troubleshooting](README.md#troubleshooting) section.
+<br>
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
+> [!NOTE]
+> Read this step in the markdown preview of Intellij to finish the setup.
 #### Project Configuration
 * Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 <br>
- 
 ![node_npm_version.png](docu/img/node_npm_version.png)
-
 
 #### Start Backend
 Click here to start backend: `winslow-application`
