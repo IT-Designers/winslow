@@ -50,6 +50,23 @@ This is an universal step-by-step approach, the **commands and directories are d
 Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
+#### Project Configuration
+
+#### Start Backend
+There are run configurations which are imported when starting intellij
+1. Select the Backend 
+* Select `winslow-application` as run configuration and start it
+<br>
+![select_backend.png](docu/img/select_backend.png)
+1. Run the Backend
+<br>
+![run_backend.png](docu/img/run_backend.png)
+#### Start Frontend
+1. Select the Frontend
+   * Do the same for the frontend and select `start fe` as run configuration and start it
+
+----
+#### Visual
 #### Configure Backend
 1. Search for the `Main.java` file 
 1. Click on the green play button
