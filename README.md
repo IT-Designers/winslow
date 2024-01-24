@@ -51,11 +51,13 @@ Currently only [intellij setup](README.md#intellij-setup) is documented, feel fr
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
 #### Project Configuration
-1. Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
+* Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 <br>
 ![node_npm_version.png](docu/img/node_npm_version.png)
+ 
 #### Start Backend
 Click here to start backend: `winslow-application` 
+
 #### Start Frontend
 Click here to start frontend: `start fe`
 
