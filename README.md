@@ -48,6 +48,7 @@ This is an universal step-by-step approach, the **commands and directories are d
 
 ## Setup Local Development
 Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
+If you encounter a problem, see the [troubleshooting](README.md#trubleshooting) section.
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
 #### Project Configuration
@@ -57,7 +58,9 @@ Currently only [intellij setup](README.md#intellij-setup) is documented, feel fr
 ![node_npm_version.png](docu/img/node_npm_version.png)
  
 #### Start Backend
-Click here to start backend: `winslow-application` 
+> Read this in the markdown preview from Intellij
+ 
+Click here to start backend: `winslow-application`
 
 #### Start Frontend
 Click here to start frontend: `start fe`
@@ -129,3 +132,7 @@ sudo service nfs-kernel-server restart
 sleep 5
 sudo mount nfs-mount
 ```
+
+## Trubleshooting
+### The documentation said _click here_ but there is no link
+* Make sure you are reading this in the markdown preview from Intellij
