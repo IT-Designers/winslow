@@ -11,9 +11,9 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -139,7 +139,7 @@ public class FilesController {
                    user,
                    rawBody
                    ? request.getInputStream()
-                   : new ServletFileUpload().getItemIterator(request).next().openStream(),
+                   : new JakartaServletFileUpload().getItemIterator(request).next().getInputStream(),
                    resourceManager.getResourceDirectory().orElseThrow(),
                    decompressArchive,
                    lastModified
@@ -172,7 +172,7 @@ public class FilesController {
                    user,
                    rawBody
                    ? request.getInputStream()
-                   : new ServletFileUpload().getItemIterator(request).next().openStream(),
+                   : new JakartaServletFileUpload<>().getItemIterator(request).next().getInputStream(),
                    resourceManager.getWorkspacesDirectory().orElseThrow(),
                    decompressArchive,
                    lastModified

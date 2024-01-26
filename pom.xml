@@ -120,6 +120,7 @@
     </dependencies>
 
     <!-- Dependencies that are accessible in a module, but the version is set here? -->
+    <!-- this makes sense because so you controll the version for all child modules that they are using the same module -->
     <dependencyManagement>
         <dependencies>
             <dependency>
