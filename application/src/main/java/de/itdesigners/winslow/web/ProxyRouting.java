@@ -102,14 +102,14 @@ public class ProxyRouting {
         var mappedProxy = proxy.uri(uri).body(body);
 
         try {
-            return switch (method) {
-                case GET -> mappedProxy.get();
-                case HEAD -> mappedProxy.head();
-                case POST -> mappedProxy.post();
-                case PUT -> mappedProxy.put();
-                case PATCH -> mappedProxy.patch();
-                case DELETE -> mappedProxy.delete();
-                case OPTIONS -> mappedProxy.options();
+            return switch (method.name()) {
+                case "GET" -> mappedProxy.get();
+                case "HEAD" -> mappedProxy.head();
+                case "POST" -> mappedProxy.post();
+                case "PUT" -> mappedProxy.put();
+                case "PATCH" -> mappedProxy.patch();
+                case "DELETE" -> mappedProxy.delete();
+                case "OPTIONS" -> mappedProxy.options();
                 default -> new ResponseEntity<>(HttpStatus.OK);
             };
         } catch (ResourceAccessException rae) {
