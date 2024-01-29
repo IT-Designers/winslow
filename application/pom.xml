@@ -12,7 +12,7 @@
         <groupId>de.itdesigners.winslow</groupId>
         <artifactId>winslow</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <build>
@@ -32,7 +32,7 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>winslow-api</artifactId>
         </dependency>
-        <dependency>
+       <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
@@ -62,10 +62,15 @@
             <artifactId>spring-cloud-gateway-mvc</artifactId>
             <version>2.2.10.RELEASE</version>
         </dependency>
-        <!-- <dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.33</version>
+        </dependency>
+       <!-- <dependency>
              <groupId>org.springframework.security</groupId>
              <artifactId>spring-security-core</artifactId>
- &lt;!&ndash;            <version>5.5.1</version>&ndash;&gt;
+             <version>6.2.1</version>
              <scope>compile</scope>
          </dependency>-->
         <!-- <dependency>
@@ -73,11 +78,14 @@
              <artifactId>spring-security-web</artifactId>
  &lt;!&ndash;            <version>5.5.1</version>&ndash;&gt;
          </dependency>-->
-        <!-- <dependency>
+
+        <dependency>
              <groupId>org.springframework.security</groupId>
              <artifactId>spring-security-messaging</artifactId>
- &lt;!&ndash;            <version>5.5.1</version>&ndash;&gt;
-         </dependency>-->
+<!--
+             <version>6.2.1</version>
+-->
+         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-websocket</artifactId>
@@ -113,10 +121,10 @@
             <artifactId>toml4j</artifactId>
             <version>0.7.2</version>
         </dependency>
-        <!-- <dependency>
+       <dependency>
              <groupId>org.springframework.security</groupId>
              <artifactId>spring-security-ldap</artifactId>
-         </dependency>-->
+         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
@@ -158,7 +166,7 @@
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java-core</artifactId>
-            <version>3.2.14</version>
+            <version>3.3.4</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
@@ -172,14 +180,43 @@
         </dependency>
         <dependency>
             <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java-transport-jersey</artifactId>
-            <version>3.2.14</version>
+            <artifactId>docker-java-transport-httpclient5</artifactId>
+            <version>3.3.4</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.jaxrs</groupId>
                     <artifactId>jackson-jaxrs-json-provider</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.3.1</version>
+        </dependency>
+<!--
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-transport-jersey</artifactId>
+            <version>3.3.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                    <artifactId>jackson-jaxrs-json-provider</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+-->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ldap</groupId>
+            <artifactId>spring-ldap-core</artifactId>
+            <version>3.2.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

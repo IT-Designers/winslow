@@ -100,6 +100,7 @@ public class FilesController {
                 FileUtils.forceDelete(path.toFile());
                 return true;
             } catch (IOException e) {
+                // TODO: add logging? / spams the test cases and no option for disabling it
                 e.printStackTrace();
                 return false;
             }

@@ -123,16 +123,23 @@
     <!-- this makes sense because so you controll the version for all child modules that they are using the same module -->
     <dependencyManagement>
         <dependencies>
+           <!-- <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>-->
             <dependency>
                 <groupId>de.itdesigners.winslow</groupId>
                 <artifactId>winslow-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
+           <!-- <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
+            </dependency>-->
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jdk8</artifactId>
