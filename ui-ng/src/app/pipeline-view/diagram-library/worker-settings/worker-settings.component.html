@@ -60,7 +60,7 @@
       </mat-form-field>
       <mat-form-field appearance="outline" label="Confirmation" class="reduce-formfield-height">
         <mat-label>GPU Vendor</mat-label>
-        <mat-select label="Confirmation" [(value)]="selectedNodeData.requiredResources.gpu.vendor" (selectionChange)="emitSave(); selectedNodeData.logParsers">
+        <mat-select label="Confirmation" [(value)]="selectedNodeData.requiredResources.gpu.vendor" (selectionChange)="emitSave()">
           <mat-option value="nvidia">nvidia</mat-option>
           <mat-option value="amd">amd</mat-option>
           <mat-option value="intel">intel</mat-option>
@@ -95,17 +95,109 @@
     </div>
   </mat-tab>
 
+  <mat-tab label="LogParsers">
+    <div class="tab-container">
+      <mat-accordion>
+        <mat-expansion-panel [expanded]="selectedNodeData.logParsers.length < 1">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="bold">
+              Create new LogParser
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+            <mat-label>LogParser Matcher</mat-label>
+            <input #newLogParserMatcherInput
+                   matInput
+                   name="newLogParserMatcher">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+            <mat-label>LogParser Destination</mat-label>
+            <input #newLogParserDestinationInput
+                   matInput
+                   name="newLogParserDestination">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+            <mat-label>LogParser Formatter</mat-label>
+            <input #newLogParserFormatterInput
+                   matInput
+                   name="newLogParserFormatter">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+            <mat-label>LogParser Type</mat-label>
+            <input #newLogParserTypeInput
+                   matInput
+                   name="newLogParserType">
+          </mat-form-field>
+          <button mat-flat-button
+                  color="primary"
+                  class="wide"
+                  (click)="addNewLogParser(newLogParserMatcherInput.value, newLogParserDestinationInput.value, newLogParserFormatterInput.value, newLogParserTypeInput.value)">
+            Add as new LogParser
+          </button>
+        </mat-expansion-panel>
+      </mat-accordion>
+      @for (logParser of selectedNodeData.logParsers; track logParser) {
+        <mat-accordion>
+          <mat-expansion-panel [expanded]="selectedNodeData.logParsers.length > 0">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="bold">
+                <p>LogParser {{$index + 1}}</p>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+              <mat-label>LogParser Matcher</mat-label>
+              <input #logParserMatcherInput
+                     matInput
+                     name="logParserMatcher"
+                     [value]="logParser.matcher"
+                     (change)="logParser.matcher = logParserMatcherInput.value; emitSave()">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+              <mat-label>LogParser Destination</mat-label>
+              <input #logParserDestinationInput
+                     matInput
+                     name="logParserDestination"
+                     [value]="logParser.destination"
+                     (change)="logParser.destination = logParserDestinationInput.value; emitSave()">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+              <mat-label>LogParser Formatter</mat-label>
+              <input #logParserFormatterInput
+                     matInput
+                     name="logParserFormatter"
+                     [value]="logParser.formatter"
+                     (change)="logParser.formatter = logParserFormatterInput.value; emitSave()">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="reduce-formfield-height wide">
+              <mat-label>LogParser Type</mat-label>
+              <input #logParserTypeInput
+                     matInput
+                     name="logParserType"
+                     [value]="logParser.type"
+                     (change)="logParser.type = logParserTypeInput.value; emitSave()">
+            </mat-form-field>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+
+      }
+
+    </div>
+  </mat-tab>
+
   <!--<mat-tab label="Environment">
 
   </mat-tab>-->
 
-  <mat-tab label="Highlight">
+  <!--<mat-tab label="Highlight">
     <div class="tab-container">
       <app-argument-list [argList]="selectedNodeData.highlight.resources"
                          argName="Resource"
                          (changeEmitter)="selectedNodeData.highlight.resources = $event; emitSave()">
       </app-argument-list>
     </div>
-  </mat-tab>
+  </mat-tab>-->
+
+
 
 </mat-tab-group>

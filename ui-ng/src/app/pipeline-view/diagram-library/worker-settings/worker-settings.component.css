@@ -52,3 +52,11 @@
   margin: 0.5em;
 }
 
+.wide {
+  width: 100%;
+}
+
+.bold {
+  font-weight: bold;
+}
+
