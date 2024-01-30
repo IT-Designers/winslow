@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {StageWorkerDefinitionInfo} from "../../../api/winslow-api";
+import {LogParserInfo, StageWorkerDefinitionInfo} from "../../../api/winslow-api";
 
 @Component({
   selector: 'app-worker-settings',
@@ -16,11 +16,8 @@ export class WorkerSettingsComponent {
   }
 
   setName(event: any) {
-    /*console.dir(event.target.value);*/
-    //console.dir(event.target.value);
-    if (this.selectedNodeData?.name != undefined) {
+    if (this.selectedNodeData?.name) {
       this.selectedNodeData.name = event.target.value;
-      //console.dir(this.selectedNodeData);
       this.editNode.emit(this.selectedNodeData);
     }
   }
@@ -67,4 +64,17 @@ export class WorkerSettingsComponent {
       this.editNode.emit(this.selectedNodeData);
     }
   }
+
+  addNewLogParser(matcher: string, destination: string, formatter: string, type: string) {
+    const newLogParser = new LogParserInfo({
+      matcher: matcher,
+      destination: destination,
+      formatter: formatter,
+      type: type
+    })
+    this.selectedNodeData.logParsers.push(newLogParser);
+    this.emitSave();
+  }
+
+  protected readonly console = console;
 }
