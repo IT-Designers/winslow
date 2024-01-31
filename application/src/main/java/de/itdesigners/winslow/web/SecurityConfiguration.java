@@ -2,6 +2,10 @@ package de.itdesigners.winslow.web;
 
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +25,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -44,17 +49,23 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        configureHeaders(http);
         configureCsrfToken(http);
         configureAuthorization(http);
         configureTransport(http);
+        configureAfterFilter(http);
+
         return http.build();
     }
 
-    protected void configure(HttpSecurity http) throws Exception {
-        configureCsrfToken(http);
-        configureAuthorization(http);
-        configureTransport(http);
+    private void configureHeaders(HttpSecurity http) throws Exception {
+        http.headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
     }
+
+    private void configureAfterFilter(HttpSecurity http) {
+        http.addFilterAfter(this::invalidateSessionWhenUserIsInactive, AuthorizationFilter.class);
+    }
+
 
     private void configureTransport(HttpSecurity http) throws Exception {
         if (Env.requireSecure()) {
@@ -67,16 +78,6 @@ public class SecurityConfiguration {
     private void configureAuthorization(HttpSecurity http) throws Exception {
         if (!Env.isDevEnv() || Env.isAuthMethodSet()) {
             LOG.info("Authorization: Requiring login to access Winslow");
-            /*
-            http
-                    .authorizeRequests()
-                    .antMatchers("/**")
-                    .fullyAuthenticated()
-                    .anyRequest()
-                    .fullyAuthenticated()
-                    .and()
-                    .httpBasic()
-                    .authenticationEntryPoint(new BasicAuth());*/
             http
                     .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry
                             .requestMatchers(Env.getApiNoAuthPath() + "**")
@@ -91,30 +92,32 @@ public class SecurityConfiguration {
     }
 
     private void configureCsrfToken(HttpSecurity http) throws Exception {
-        var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        repo.setCookiePath("/");
         http
-                .csrf(httpSecurityCsrfConfigurer -> {
-                    httpSecurityCsrfConfigurer.csrfTokenRepository(repo);
-                    httpSecurityCsrfConfigurer.ignoringRequestMatchers(Env.getWebsocketPath() + "**");
+                .csrf((csrf) -> {
+                    csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                    csrf.ignoringRequestMatchers(Env.getWebsocketPath() + "**");
+                    csrf.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
+                });
+    }
 
-                })
-                .headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-                .addFilterAfter((servletRequest, servletResponse, filterChain) -> {
-                    if (servletRequest instanceof HttpServletRequest sr) {
-                        var user = Optional.of(sr).filter(r -> r.getUserPrincipal() != null && r
-                                .getUserPrincipal()
-                                .getName() != null).flatMap(r -> winslow
-                                .getUserManager()
-                                .getUser(r.getUserPrincipal().getName()));
 
-                        if (user.isPresent() && !user.get().active()) {
-                            sr.getSession().invalidate();
-                        }
-                    }
+    private void invalidateSessionWhenUserIsInactive(
+            ServletRequest servletRequest,
+            ServletResponse servletResponse,
+            FilterChain filterChain) throws IOException, ServletException {
+        if (servletRequest instanceof HttpServletRequest sr) {
+            var user = Optional.of(sr).filter(r -> r.getUserPrincipal() != null && r
+                    .getUserPrincipal()
+                    .getName() != null).flatMap(r -> winslow
+                    .getUserManager()
+                    .getUser(r.getUserPrincipal().getName()));
 
-                    filterChain.doFilter(servletRequest, servletResponse);
-                }, AuthorizationFilter.class);
+            if (user.isPresent() && !user.get().active()) {
+                sr.getSession().invalidate();
+            }
+        }
+
+        filterChain.doFilter(servletRequest, servletResponse);
     }
 
 
@@ -132,7 +135,7 @@ public class SecurityConfiguration {
                 public Authentication authenticate(Authentication authentication) throws AuthenticationException {
                     return Optional
                             .ofNullable(authentication.getCredentials())
-                            .filter(cred -> cred instanceof String)
+                            .filter(String.class::isInstance)
                             .map(Object::toString)
                             .flatMap(pw -> winslow
                                     .getUserManager()
@@ -174,4 +177,3 @@ public class SecurityConfiguration {
 
     }
 }
-
