@@ -61,6 +61,8 @@ If you encounter a problem, see the [troubleshooting](README.md#troubleshooting)
 
 #### Start Backend
 Click here to start backend: `winslow-application`
+<br>
+(There is also a visual guide to configure the backend: [Visual Guide](docu/visual_guide.md#configure-backend))
 
 #### Start Frontend
 Click here to start frontend: `start fe`
