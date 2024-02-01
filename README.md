@@ -1,275 +1,135 @@
-<p align="center">
-  <a href="https://sweetalert2.github.io">
-    <img src="ngx-sweetalert2-logo.png" alt="SweetAlert2">
-  </a>
-</p>
+# Winslow 
 
-<h1 align="center">@sweetalert2/ngx-sweetalert2</h1>
+## Prerequisite
+This Project is designed to be used for a _Linux Environment_. <br>
+:warning: It is not tested for a Windows Environment. :warning:
 
-<p align="center">
-  Official <a href="https://sweetalert2.github.io">SweetAlert2</a> integration for Angular
-</p>
+### Software dependencies
+* Docker
+* Java 17
+* Maven 3.6.3
+* Angular 17
+* Node 18.13.0
+* npm 8.19.3
 
-<p align="center">
-    <a href="https://www.npmjs.com/package/@sweetalert2/ngx-sweetalert2"><img alt="npm version" src="https://img.shields.io/npm/v/@sweetalert2/ngx-sweetalert2.svg?style=flat-square"></a>
-    <a href="https://github.com/sweetalert2/ngx-sweetalert2/actions"><img alt="Build Status" src="https://github.com/sweetalert2/ngx-sweetalert2/workflows/build/badge.svg"></a>
-    <a href="LICENSE"><img alt="license" src="https://img.shields.io/github/license/sweetalert2/ngx-sweetalert2.svg?style=flat-square"></a>
-</p>
+## How to Start
+This is an universal step-by-step approach, the **commands and directories are dependent on each other**.
+1. Checkout the master branch:
+    * `cd $HOME; git clone https://github.com/IT-Designers/winslow.git`
+1. Create a workdir, for example in the project root:
+    * `cd winslow && mkdir workdir`
+* run the project 
+  * **without** an IDE then goto [Run locally](README.md#run-locally)
+  * **with** an IDE then goto [Run with IDE](README.md#setup-local-development)
+## Run locally
+**Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
+1. Build & Start the Frontend:
+   * `(cd ui-ng && npm install && npm build && npm run start)`
+1. Build the Backend:
+   * `mvn package`
+1. Set environment variables, these are example values and can be adjusted (see [workdir](README.md#required)):
 
+   * 
+     ```
+     export WINSLOW_DEV_ENV=true
+     export WINSLOW_DEV_ENV_IP=192.168.1.178
+     export WINSLOW_NO_GPU_USAGE=0
+     export WINSLOW_NO_STAGE_EXECUTION=0
+     export WINSLOW_DEV_REMOTE_USER=example
+     export WINSLOW_ROOT_USERS=example
+     ```
+     Adjust the `WINSLOW_WORK_DIRECTORY` to an absolut path which points to the workdir from [how to start](README.md#how-to-start) <br>
+       - Example: `WINSLOW_WORK_DIRECTORY=/home/itdesigners/winslow/workdir`
+     ```
+     export WINSLOW_WORK_DIRECTORY=<absolut-path-to-winslow-workdir-folder>
+     ```
+1. Start the Backend:
+     * `(cd application/target && java -jar winslow-application*.jar)`
+
+## Setup Local Development
+Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
+If you encounter a problem, see the [troubleshooting](README.md#troubleshooting) section.
 <br>
+**Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
+### Intellij SetUp
+> [!NOTE]
+> Read this step in the markdown preview of Intellij to finish the setup.
+#### Project Configuration
+* Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 
-This is not a regular API wrapper for SweetAlert (which already works very well alone), it intends to provide Angular-esque utilities on top of it.
+![node_npm_version.png](docu/img/node_npm_version.png)
 
-:point_right: **Before posting an issue**, please check that the problem isn't on SweetAlert's side.
+#### Start Backend
+Click here to start backend: `winslow-application`
+<br>
+(There is also a visual guide to configure the backend: [Visual Guide](docu/visual_guide.md#configure-backend))
 
-----------------
+#### Start Frontend
+Click here to start frontend: `start fe`
 
-### Quick start
+## More Information
+### Environment Variables
+#### required
+* `WINSLOW_WORK_DIRECTORY` Absolut path to the working directory that has to be on a nfs
+  * Example `/winslow/workdirectory/that/is/on/nfs`
+#### optional
+* `WINSLOW_NO_STAGE_EXECUTION` stage execution, act as observer / web-accessor
+  * `Values`
+    * `1` disable 
+    * `0` enable stage execution, act as observer / web-accessor
 
- - [Installation & Usage](#package-installation--usage)
- - [`[swal]` directive](#swaldirective) — for simple, one-liner dialogs
- - [`<swal>` component](#swalcomponent) — for advanced use cases and extended Swal2 API coverage
- - [`*swalPortal` directive](#swalportaldirective) — use Angular templates in `<swal>`
+* `WINSLOW_DEV_ENV` auth and allows root access to all resources
+  * `Values`
+    * `true` disables
+    * `false` enables
 
-### Wiki recipes
+* `WINSLOW_DEV_REMOTE_USER` username to assign to (unauthorized) requests
 
- - 🔌 [All possible ways of firing a modal and controlling its visibility](https://github.com/sweetalert2/ngx-sweetalert2/wiki/All-possible-ways-of-firing-a-modal-and-controlling-its-visibility)
- - :wrench: [Setting global defaults (SweetAlert2 mixins)](https://github.com/sweetalert2/ngx-sweetalert2/wiki/Setting-global-defaults-(SweetAlert2-mixins))
- - :art: [Use a theme from @sweetalert2/themes (and or customize SCSS variables)
-](https://github.com/sweetalert2/ngx-sweetalert2/wiki/Use-a-theme-from-@sweetalert2-themes-(and-or-customize-SCSS-variables))
+* `WINSLOW_DEV_ENV_IP` publicly visible IP of the WEB-UI
+  * Example:  192.168.1.178
 
-----------------
+* `WINSLOW_NO_GPU_USAGE` access to GPUs
+  * `Values`
+    * `0` disables
+    * `1` enables
 
-## :package: Installation & Usage
+* `WINSLOW_NO_WEB_API` REST/WebSocket-API (no longer starts Spring Boot)
+  * `Values`
+    * `1` disable 
+    * `0` enables
+* `WINSLOW_ROOT_USERS` users with root access
 
-1) Install _ngx-sweetalert2_ and _sweetalert2_ via the npm registry:
+#### NFS-Server WHAT ABOUT THIS?
+Install `nfs-kernel-server`: `sudo apt install nfs-kernel-server` and update `/etc/export`:
 
-```sh
-npm install sweetalert2 @sweetalert2/ngx-sweetalert2
+```nfs
+/path/to/nfs-export *(rw,no_root_squash,all_squash,fsid=1,anonuid=0,anongid=0) 172.0.0.0/8(rw,no_root_squash,all_squash,fsid=1,anonuid=0,anongid=0)
+/path/to/nfs-export/run *(rw,no_root_squash,all_squash,fsid=2,anonuid=0,anongid=0) 172.0.0.0/8(rw,no_root_squash,all_squash,fsid=2,anonuid=0,anongid=0)
+
 ```
 
-:arrow_double_up: Always upgrade SweetAlert2 when you upgrade ngx-sweetalert2. The latter is statically linked with SweetAlert2's type definitions.
 
-## Angular and SweetAlert2 versions compatibility table
+Add to `/etc/fstab` an entry to mount the nfs directory
 
-| Angular version | Latest compatible version range                                                                                                                          | Required SweetAlert2 version range |
-|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| Angular 14+     | @sweetalert2/ngx-sweetalert2@**^12.0.0** (current)                                                                                                       | sweetalert2@**^11.0.0**            |
-| Angular 12, 13  | [@sweetalert2/ngx-sweetalert2@**^11.0.0**](https://github.com/sweetalert2/ngx-sweetalert2/tree/v11.0.0#readme)                                           | sweetalert2@**^11.0.0**            |
-| Angular 9 to 11 | [@sweetalert2/ngx-sweetalert2@**~9.0.0**](https://github.com/sweetalert2/ngx-sweetalert2/tree/v9.0.0#readme)                                             | sweetalert2@**^10.8.0**            |
-| Angular 8       | [@sweetalert2/ngx-sweetalert2@**~7.3.0**](https://github.com/sweetalert2/ngx-sweetalert2/tree/v7.3.0#readme) (:warning: NOT ~7.4.0, broken AoT metadata) | sweetalert2@**^9.7.0**             |
-| Angular 7       | [@sweetalert2/ngx-sweetalert2@**^5.1.0**](https://github.com/sweetalert2/ngx-sweetalert2/tree/v5.1.0#readme)                                             | sweetalert2@**^8.5.0**             |
-| Angular 6       | [@sweetalert2/ngx-sweetalert2@**^5.1.0**](https://github.com/sweetalert2/ngx-sweetalert2/tree/v5.1.0#readme)                                             | sweetalert2@**^8.5.0**             |
-| Angular 5       | [@sweetalert2/ngx-sweetalert2@**^5.1.0**](https://github.com/sweetalert2/ngx-sweetalert2/tree/v5.1.0#readme)                                             | sweetalert2@**^8.5.0**             |
-| Angular 4       | [@toverux/ngx-sweetalert2@**^3.4.0**](https://github.com/sweetalert2/ngx-sweetalert2/tree/v3.4.0#readme)                                                 | sweetalert2@**^7.15.1**            |
-| Angular 2       | Try Angular 4 versions requirements, or older versions like @toverux/ngsweetalert2                                                                       | unknown                            |
+```fstab
+<your-pc-name>:/path/to/nfs-export /home/<username>/path/to/nfs-mount nfs noauto 0 0
 
-2) Import the module:
-
-```typescript
-import { SweetAlert2Module } from '@sweetalert2/ngx-sweetalert2';
-
-@NgModule({
-    //=> Basic usage (forRoot can also take options, see the wiki)
-    imports: [SweetAlert2Module.forRoot()],
-
-    //=> In submodules only:
-    imports: [SweetAlert2Module],
-
-    //=> In submodules only, overriding options from your root module:
-    imports: [SweetAlert2Module.forChild({ /* options */ })]
-})
-export class AppModule {
-}
+# winslow/run store very small temporary files, making it a tmpfs makes it faster (ram-fs)
+tmpfs /path/to/nfs-export/run tmpfs size=1G,mode=760,noauto 0 0
 ```
 
-That's it! By default, SweetAlert2 will be lazy-loaded, only when needed, from your local dependency of `sweetalert2`, using the `import()` syntax under the hood.
 
-## :link: API
+Run the following script (`./start-nfs-server.sh`):
 
-### `SwalDirective`
+```bash
+#!/bin/bash
 
-Add the `[swal]` attribute to an element to show a simple modal when that element is clicked.
-
-To define the modal contents, you can pass a [`SweetAlertOptions` (provided by sweetalert2)](https://github.com/sweetalert2/sweetalert2/blob/main/sweetalert2.d.ts) object,
-or a simple array of strings, of format `[title: string, text: string (, icon: string)]`.
-
-A simple dialog:
-
-```html
-<button [swal]="['Oops!', 'This is not implemented yet :/', 'warning']">
-  Do it!
-</button>
+sudo mount nfs-export/run
+sudo service nfs-kernel-server restart
+sleep 5
+sudo mount nfs-mount
 ```
 
-More advanced, with text input, confirmation, denial and dismissal handling:
-
-```html
-<button
-  [swal]="{ title: 'Save file as...', input: 'text', showDenyButton: true, denyButtonText: 'Don\'t save', showCancelButton: true }"
-  (confirm)="saveFile($event)"
-  (deny)="handleDenial()"
-  (dismiss)="handleDismiss($event)">
-
-  Save
-</button>
-```
-
-```typescript
-export class MyComponent {
-  public saveFile(fileName: string): void {
-    // ... save file
-  }
-
-  public handleDenial(): void {
-      // ... don't save file and quit
-  }
-
-  public handleDismiss(dismissMethod: string): void {
-    // dismissMethod can be 'cancel', 'overlay', 'close', and 'timer'
-    // ... do something
-  }
-}
-```
-
-The directive can also take a reference to a [`<swal>` component](#swalcomponent) for more advanced use cases:
-
-```html
-<button [swal]="deleteSwal" (confirm)="deleteFile(file)">
-  Delete {{ file.name }}
-</button>
-
-<swal #deleteSwal title="Delete {{ file.name }}?" etc></swal>
-```
-
-### `SwalComponent`
-
-The library also provides a component, that can be useful for advanced use cases, or when you `[swal]`
-has too many options.
-
-The component also allows you to use Angular dynamic templates inside the SweetAlert (see the
-[`*swalPortal` directive](#swalportaldirective) for that).
-
-Simple example:
-
-```html
-<swal
-  #deleteSwal
-  title="Delete {{ file.name }}?"
-  text="This cannot be undone"
-  icon="question"
-  [showCancelButton]="true"
-  [focusCancel]="true"
-  (confirm)="deleteFile(file)">
-</swal>
-
-With [swal]:
-<button [swal]="deleteSwal">Delete {{ file.name }}</button>
-
-Or DIY:
-<button (click)="deleteSwal.fire()">Delete {{ file.name }}</button>
-```
-
-You can access the dialog from your TypeScript code-behind like this:
-
-```ts
-class MyComponent {
-  @ViewChild('deleteSwal')
-  public readonly deleteSwal!: SwalComponent;
-}
-```
-
-You can pass native SweetAlert2 options via the `swalOptions` input, just in the case you need that:
-
-```html
-<swal [swalOptions]="{ confirmButtonText: 'I understand' }"></swal>
-```
-
-By the way: every "special" option, like `swalOptions`, that are not native options from SweetAlert2,
-are prefixed with `swal`.
-
-You can catch other modal lifecycle events than (confirm), (deny) or (cancel):
-
-```html
-<swal
-  (willOpen)="swalWillOpen($event)"
-  (didOpen)="swalDidOpen($event)"
-  (didRender)="swalDidRender($event)"
-  (willClose)="swalWillClose($event)"
-  (didClose)="swalDidClose()"
-  (didDestroy)="swalDidDestroy()">
-</swal>
-```
-
-```typescript
-export class MyComponent {
-    public swalWillOpen(event: WillOpenEvent): void {
-      // Most events (those using $event in the example above) will let you access the modal native DOM node, like this:
-      console.log(event.modalElement);
-    }
-}
-```
-
-### `SwalPortalDirective`
-
-The `*swalPortal` structural directive lets you use Angular dynamic templates inside SweetAlerts.
-
-The name "portal" is inspired by React or Angular CDK portals.
-The directive will replace certain parts of the modal (aka. _swal targets_) with embedded Angular views.
-
-This allows you to have data binding, change detection, and use every feature of the Angular template syntax
-you want, just like if the SweetAlert was a normal Angular component (it's not at all).
-
-```html
-<swal title="SweetAlert2 Timer">
-  <div *swalPortal class="alert alert-info">
-    <strong>{{ elapsedSeconds }}</strong> seconds elapsed since the modal was opened.
-  </div>
-</swal>
-```
-
-Using a structural directives allows us to take your content as a template, instantiate it lazily when needed
-(i.e. when the modal is shown), and putting it in a native DOM element that is originally outside the scope of
-your Angular app.
-
-In this example we set the main content of the modal, where the `text` property is usually rendered when SweetAlert2
-is in charge.
-You can also target the title, the footer, or even the confirm button, and more!
-
-You just have to change the _target_ of the portal (_`content`_ is the default target).
-First, inject this little service in your component:
-
-```typescript
-import { SwalPortalTargets } from '@sweetalert2/ngx-sweetalert2';
-
-export class MyComponent {
-  public constructor(public readonly swalTargets: SwalPortalTargets) {
-  }
-}
-```
-
-Then, set the appropriate target as the value of `*swalPortal`, here using two portals, the first one
-targeting the modal's content (this is the default), and the other one targeting the confirm button text.
-
-```html
-<swal title="Fill the form, rapidly" (confirm)="sendForm(myForm.value)">
-  <!-- This form will be displayed as the alert main content
-       Targets the alert's main content zone by default -->
-  <form *swalPortal [formControl]="myForm">
-    ...
-  </form>
-
-  <!-- This targets the confirm button's inner content
-       Notice the usage of ng-container to avoid creating an useless DOM element inside the button -->
-  <ng-container *swalPortal="swalTargets.confirmButton">
-    Send ({{ secondsLeft }} seconds left)
-  </ng-container>
-</swal>
-```
-
-We have the following targets: `closeButton`, `title`, `content`, `actions`, `confirmButton`, `cancelButton`, and `footer`.
-
-These targets are mostly provided by SweetAlert2 and made available in the right format for swal portals by
-this library, but you can also make your own if you need to (take inspiration from the original service source).
-Those are just variables containing a function that returns a modal DOM element, not magic.
-The magic is inside the directive ;)
+## Troubleshooting
+### 1. The documentation said _click here_ but there is nothing to click?
+* Make sure you are reading this in the markdown preview from Intellij
