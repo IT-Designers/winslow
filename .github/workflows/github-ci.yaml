@@ -9,7 +9,20 @@ on:
       - '20**.*'
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      short_sha: ${{ steps.short_sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Get short SHA
+        id: short_sha
+        run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
+
+
   test-component-server:
+    needs: prepare
     runs-on: ubuntu-latest
     container:
       image: maven:3.8.5-openjdk-17
@@ -21,10 +34,12 @@ jobs:
           mv application/target/site/jacoco coverage-report
           awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
         env:
-          CI_COMMIT_SHORT_SHA: ${{ github.sha }}
+          CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
 
   build-component-server:
-    needs: test-component-server
+    needs:
+      - test-component-server
+      - prepare
     runs-on: ubuntu-latest
     container:
       image: maven:3.8.5-openjdk-17
@@ -34,7 +49,7 @@ jobs:
         run: |
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-          sed -i "s/external__COMMIT_HASH_SHORT/${{ github.sha[:8] }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_SHORT/${{ needs.prepare.outputs.short_sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           mvn clean test verify package
           cp application/target/winslow*.jar .
           mv application/target/site/jacoco coverage-report
@@ -46,7 +61,8 @@ jobs:
           ls -lah
         env:
           CI_COMMIT_SHA: ${{ github.sha }}
-          CI_COMMIT_SHORT_SHA: ${{ github.sha }}
+          CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
