@@ -1,3 +1,4 @@
+[![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
 # Winslow 
 
 ## Prerequisite
