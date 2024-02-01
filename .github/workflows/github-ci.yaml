@@ -23,30 +23,38 @@ jobs:
         env:
           CI_COMMIT_SHORT_SHA: ${{ github.sha }}
 
-#  build-component-server:
-#    needs: test-component-server
-#    runs-on: ubuntu-latest
-#    container:
-#      image: maven:3.8.5-openjdk-17
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Build
-#        run: |
-#          sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-#          sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-#          sed -i "s/external__COMMIT_HASH_SHORT/${{ github.sha[:8] }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-#          mvn clean test verify package
-#          cp application/target/winslow*.jar .
-#          mv application/target/site/jacoco coverage-report
-#          awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
-#          mvn -pl .,api package
-#          cp api/target/winslow*.jar .
-#          (cd api; mvn typescript-generator:generate)
-#          cp api/target/typescript-generator/winslow-api.ts .
-#          ls -lah
-#        env:
-#          CI_COMMIT_SHA: ${{ github.sha }}
-#          CI_COMMIT_SHORT_SHA: ${{ github.sha }}
+  build-component-server:
+    needs: test-component-server
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.8.5-openjdk-17
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: |
+          sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_SHORT/${{ github.sha[:8] }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          mvn clean test verify package
+          cp application/target/winslow*.jar .
+          mv application/target/site/jacoco coverage-report
+          awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
+          mvn -pl .,api package
+          cp api/target/winslow*.jar .
+          (cd api; mvn typescript-generator:generate)
+          cp api/target/typescript-generator/winslow-api.ts .
+          ls -lah
+        env:
+          CI_COMMIT_SHA: ${{ github.sha }}
+          CI_COMMIT_SHORT_SHA: ${{ github.sha }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: winslow-${{ github.sha }}
+          path: |
+            winslow*.jar
+            coverage-report
+            winslow-api.ts
 #
 #  publish-component-server-on-artifact-share:
 #    needs: build-component-server
