@@ -24,7 +24,7 @@ This is an universal step-by-step approach, the **commands and directories are d
 ## Run locally
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 1. Build & Start the Frontend:
-   * `(cd ui-ng && npm install && npm build && npm run start)`
+   * `(cd ui-ng && npm install && npm run build && npm run start)`
 1. Build the Backend:
    * `mvn package`
 1. Set environment variables, these are example values and can be adjusted (see [workdir](README.md#required)):
