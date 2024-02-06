@@ -65,6 +65,14 @@
   height: 440px;
   background-color: var(--color-background-dark);
   color: var(--font-color);
+  max-height: 100%;
+}
+
+.empty-details {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  font-style: italic;
 }
 
 .editCard {
