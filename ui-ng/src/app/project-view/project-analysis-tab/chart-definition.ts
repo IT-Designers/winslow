@@ -4,7 +4,8 @@ import {CsvFileContent, parseCsv} from './csv-parser';
 import {GlobalChartSettings} from '../../api/local-storage.service';
 import {generateColor} from './colors';
 import {CsvFile, CsvFilesService} from './csv-files.service';
-import {Raw} from "../../api/winslow-api";
+import {ChartDefinition, ChartAxisType} from "../../api/winslow-api";
+
 
 export class ChartSnapShot {
 
@@ -81,7 +82,7 @@ export class AnalysisChart {
   readonly definition$: BehaviorSubject<ChartDefinition>;
 
   constructor(service: CsvFilesService, definition?: ChartDefinition) {
-    this.definition$ = new BehaviorSubject(definition ?? ChartDefinition.default());
+    this.definition$ = new BehaviorSubject(definition ?? defaultChartDefinition());
 
     const csvFileInfos$ = this.definition$.pipe(
       switchMap(definition => service.getCsvFiles$(definition.file)),
@@ -95,42 +96,7 @@ export class AnalysisChart {
   }
 }
 
-export class ChartDefinition {
-  name: string;
-  file: string;
-  formatterFromHeaderRow: boolean;
-  customFormatter: string;
-  xVariable: string;
-  xAxisName: string;
-  xAxisMinValue?: number;
-  xAxisMaxValue?: number;
-  xAxisType: ChartAxisType = ChartAxisType.VALUE;
-  yVariable: string;
-  yAxisName: string;
-  yAxisMinValue?: number;
-  yAxisMaxValue?: number;
-  yAxisType: ChartAxisType = ChartAxisType.VALUE;
-  entryLimit?: number;
-
-  constructor(data: Raw<ChartDefinition>) {
-    this.name = data.name;
-    this.file = data.file;
-    this.formatterFromHeaderRow = data.formatterFromHeaderRow;
-    this.customFormatter = data.customFormatter;
-    this.entryLimit = data.entryLimit;
-    this.xVariable = data.xVariable;
-    this.xAxisName = data.xAxisName;
-    this.xAxisMinValue = data.xAxisMinValue;
-    this.xAxisMaxValue = data.xAxisMaxValue;
-    this.xAxisType = data.xAxisType;
-    this.yVariable = data.yVariable;
-    this.yAxisName = data.yAxisName;
-    this.yAxisMinValue = data.yAxisMinValue;
-    this.yAxisMaxValue = data.yAxisMaxValue;
-    this.yAxisType = data.yAxisType;
-  }
-
-  static default() {
+  function defaultChartDefinition() {
     return new ChartDefinition({
       customFormatter: '$TIMESTAMP,$0,$1,$2,$3,$SOURCE,$ERROR,$WINSLOW_PIPELINE_ID',
       entryLimit: undefined,
@@ -140,22 +106,16 @@ export class ChartDefinition {
       xAxisMaxValue: undefined,
       xAxisMinValue: undefined,
       xAxisName: "x-Axis",
-      xAxisType: ChartAxisType.VALUE,
+      xAxisType: 'VALUE',
       xVariable: "",
       yAxisMaxValue: 0,
       yAxisMinValue: 100,
       yAxisName: "y-Axis",
-      yAxisType: ChartAxisType.VALUE,
+      yAxisType: 'VALUE',
       yVariable: "$1"
     });
   }
-}
 
-export enum ChartAxisType {
-  VALUE = 'VALUE',
-  LOG = 'LOG',
-  TIME = 'TIME',
-}
 
 export type ChartDataSet = ChartDataPoint[];
 

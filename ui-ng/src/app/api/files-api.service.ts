@@ -26,7 +26,7 @@ export class FilesApiService {
     return lastValueFrom(
       this.client
         .options<FileInfo[]>(FilesApiService.getUrl(path) + (aggregateSizeForDirectories ? '?aggregateSizeForDirectories=true' : ''))
-    ).then(files => files.map(f => loadFileInfo(f)));
+    ).then(files => files.map(f => loadFileInfoHelper(f)));
   }
 
   createDirectory(path: string): Promise<any> {
@@ -160,10 +160,50 @@ export function humanReadableFileSize(fileSize?: number): string | undefined {
 
 export type FileInfoAttribute = 'git-branch';
 
-export function loadFileInfo(origin: FileInfo): FileInfo {
-  return new FileInfo({
-    ...origin
-  });
+export function loadFileInfoHelper(origin: FileInfo): FileInfoHelper {
+  return new FileInfoHelper(origin);
 }
 
+export class FileInfoHelper {
+  fileInfo: FileInfo;
+  fileSizeHumanReadableCached?: string;
 
+  constructor(fileInfo: FileInfo) {
+    this.fileInfo = fileInfo;
+  }
+
+  getAttribute(key: FileInfoAttribute): any {
+    return this.fileInfo.attributes != null ? this.fileInfo.attributes[key] : null;
+  }
+
+  getFileSizeHumanReadable(): string | undefined {
+    if (this.fileSizeHumanReadableCached == undefined) {
+      this.fileSizeHumanReadableCached = humanReadableFileSize(this.fileInfo.fileSize);
+    }
+    return this.fileSizeHumanReadableCached;
+  }
+
+  hasAttribute(key: FileInfoAttribute): boolean {
+    return this.fileInfo.attributes != null && this.fileInfo.attributes[key] != null;
+  }
+
+  isGitRepository(): boolean {
+    return this.hasAttribute('git-branch');
+  };
+
+  getGitBranch(): string | undefined {
+    const attr = this.getAttribute('git-branch');
+    if (typeof attr === typeof '') {
+      return attr as string;
+    } else {
+      return undefined;
+    }
+  };
+
+  setGitBranch(branch: string): void {
+    if (this.fileInfo.attributes == null) {
+      this.fileInfo.attributes = new Map<string, unknown>();
+    }
+    this.fileInfo.attributes['git-branch'] = branch;
+  };
+}

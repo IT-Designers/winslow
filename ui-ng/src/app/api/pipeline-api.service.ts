@@ -3,16 +3,13 @@ import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {loadStageDefinition} from './project-api.service';
 import {
-  GpuRequirementsInfo, HighlightInfo,
-  ImageInfo,
+  ChartDefinition,
   ParseError,
-  PipelineDefinitionInfo, Raw,
-  RequirementsInfo,
-  StageWorkerDefinitionInfo,
-  UserInputInfo
+  PipelineDefinitionInfo, RangedList, RangedValueUnion, RangeWithStepSize,
+  StageAndGatewayDefinitionInfo, StageDefinitionInfoUnion,
+  StageWorkerDefinitionInfo, StageXOrGatewayDefinitionInfo,
 } from './winslow-api';
 import {lastValueFrom} from "rxjs";
-import {ChartDefinition} from "../project-view/project-analysis-tab/chart-definition";
 
 @Injectable({
   providedIn: 'root'
@@ -69,7 +66,7 @@ export class PipelineApiService {
 
   getPipelineDefinition(pipelineId: string): Promise<PipelineDefinitionInfo> {
     return lastValueFrom(
-      this.client.get<Raw<PipelineDefinitionInfo>>(PipelineApiService.getUrl(`${pipelineId}`))
+      this.client.get<PipelineDefinitionInfo>(PipelineApiService.getUrl(`${pipelineId}`))
     ).then(info => loadPipelineDefinition(info));
   }
 
@@ -87,7 +84,7 @@ export class PipelineApiService {
 
   getPipelineDefinitions(): Promise<PipelineDefinitionInfo[]> {
     return lastValueFrom(
-      this.client.get<Raw<PipelineDefinitionInfo>[]>(PipelineApiService.getUrl())
+      this.client.get<PipelineDefinitionInfo[]>(PipelineApiService.getUrl())
     ).then(info => info.map(i => loadPipelineDefinition(i)));
   }
 
@@ -104,7 +101,7 @@ export class PipelineApiService {
   }
 }
 
-export function loadPipelineDefinition(origin: Raw<PipelineDefinitionInfo>): PipelineDefinitionInfo {
+export function loadPipelineDefinition(origin: PipelineDefinitionInfo): PipelineDefinitionInfo {
   return new PipelineDefinitionInfo({
     ...origin,
     stages: origin.stages.map(stage => loadStageDefinition(stage)),
@@ -112,39 +109,21 @@ export function loadPipelineDefinition(origin: Raw<PipelineDefinitionInfo>): Pip
   });
 }
 
-export function createStageWorkerDefinitionInfo(id: string, name: string): StageWorkerDefinitionInfo {
-  return new StageWorkerDefinitionInfo({
-    '@type': 'Worker',
-    id,
-    name,
-    description: '',
-    discardable: false,
-    environment: {},
-    highlight: new HighlightInfo({
-      resources: []
-    }),
-    ignoreFailuresWithinExecutionGroup: false,
-    image: new ImageInfo({
-      name: 'hello-world',
-      args: [],
-      shmMegabytes: 0
-    }),
-    logParsers: [],
-    nextStages: [],
-    privileged: false,
-    requiredResources: new RequirementsInfo({
-      cpus: 0,
-      gpu: new GpuRequirementsInfo({
-        count: 0,
-        vendor: '',
-        support: []
-      }),
-      megabytesOfRam: 0,
-      tags: []
-    }),
-    userInput: new UserInputInfo({
-      confirmation: 'NEVER',
-      requiredEnvVariables: []
-    })
-  });
+export function isStageWorkerDefinitionInfo(def: StageDefinitionInfoUnion): def is StageWorkerDefinitionInfo {
+  return (def as StageWorkerDefinitionInfo)["@type"] == "Worker"
+}
+
+export function isStageAndGatewayDefinitionInfo(def: StageDefinitionInfoUnion): def is StageAndGatewayDefinitionInfo {
+  return (def as StageAndGatewayDefinitionInfo)["@type"] == "AndGateway"
+}
+
+export function isStageXorGatewayDefinitionInfo(def: StageDefinitionInfoUnion): def is StageXOrGatewayDefinitionInfo {
+  return (def as StageXOrGatewayDefinitionInfo)["@type"] == "XorGateway"
+}
+export function isRangeWithStepSize(val: RangedValueUnion): val is RangeWithStepSize {
+  return (val as RangeWithStepSize)["@type"] == "DiscreteSteps"
+}
+
+export function isRangedList(val: RangedValueUnion): val is RangedList {
+  return (val as RangedList)["@type"] == "List"
 }
