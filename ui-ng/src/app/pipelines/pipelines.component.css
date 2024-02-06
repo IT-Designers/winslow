@@ -43,10 +43,6 @@
   height: 100%;
 }
 .nothing-selected {
-  width: 54em;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 10px;
   text-align: center;
   padding: 3em;
   font-style: italic;
