@@ -14,14 +14,14 @@ import {
   ConnectorPlacement,
   CreateEdgeAction,
   CreateNodeAction,
-  DeleteItemsAction,
+  DeleteItemsAction, DeselectAction,
   DiagramMaker,
   DiagramMakerActions,
   DiagramMakerConfig,
   DiagramMakerData,
   DiagramMakerNode,
   DiagramMakerPotentialNode,
-  Dispatch, DragPanelAction, Layout, WorkflowLayoutDirection,
+  Dispatch, DragPanelAction, Layout, PanelActions, PanelActionsType, ResizePanelAction, WorkflowLayoutDirection,
 } from 'diagram-maker';
 
 
@@ -128,8 +128,22 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
               }
               this.editState(editForm);
             });
-            this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
-            this.libraryComponent.instance.diagramApiCall.subscribe((event) => {   //these are calls made by the buttons in the node menu
+            this.libraryComponent.instance.resetSelectedNode.subscribe(() => {
+              this.currentNode = undefined;
+              let deselectAction: DeselectAction = {
+                type: DiagramMakerActions.WORKSPACE_DESELECT,
+              }
+              this.diagramMaker.api.dispatch(deselectAction);
+              let makeSmallAction: ResizePanelAction = {
+                type: DiagramMakerActions.PANEL_RESIZE,
+                payload: {
+                  id: this.diagramMaker.store.getState().panels.library.id,
+                  size: {width: 500, height: 60},
+                }
+              };
+              this.diagramMaker.api.dispatch(makeSmallAction);
+            });
+            this.libraryComponent.instance.diagramApiCall.subscribe((event) => {   //these are calls made by the buttons in the library panel
               switch (event.action) {
                 case 'fit':
                   this.diagramMaker.api.focusNode(Object.keys(this.diagramMaker.store.getState().nodes)[0]);
@@ -324,6 +338,16 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         let dragAction: DragPanelAction = JSON.parse(JSON.stringify(action));
         dragAction.payload.viewContainerSize.height = 5000;
         dispatch(dragAction);
+      } else if (action.type === DiagramMakerActions.NODE_SELECT) {
+        let makeBigAction: ResizePanelAction = {
+          type: DiagramMakerActions.PANEL_RESIZE,
+          payload: {
+            id: this.diagramMaker.store.getState().panels.library.id,
+            size: {width: 500, height: 500},
+          }
+        };
+        this.diagramMaker.api.dispatch(makeBigAction);
+        dispatch(action);
       } else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
       }
