@@ -71,18 +71,36 @@ jobs:
             winslow*.jar
             coverage-report
             winslow-api.ts
-#
-#  publish-component-server-on-artifact-share:
-#    needs: build-component-server
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Publish
-#        run: |
-#          echo "Publishing artifacts..."
-#          # Here, you would include commands to publish your artifacts, possibly using actions/upload-artifact or custom scripts for deployment to your servers.
-#        env:
-#          NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
-#          CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-#          CI_COMMIT_TAG: ${{ github.ref }}
-#          # Set your environment variables as needed
+
+  publish-component-server-on-artifact-share:
+    needs:
+      - build-component-server
+      - prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish
+        run: |
+          - echo $WINSLOW_API_TS_URL
+          - echo $WINSLOW_API_TS_URL_LATEST
+          - echo $WINSLOW_API_TS_URL_TAGGED
+          - export WINSLOW_API_TS_URL="$(eval echo $WINSLOW_API_TS_URL)"
+          - export WINSLOW_API_TS_URL_LATEST="$(eval echo $WINSLOW_API_TS_URL_LATEST)"
+          - export WINSLOW_API_TS_URL_TAGGED="$(eval echo $WINSLOW_API_TS_URL_TAGGED)"
+          - echo $WINSLOW_API_TS_URL
+          - echo $WINSLOW_API_TS_URL_LATEST
+          - echo $WINSLOW_API_TS_URL_TAGGED
+          - export ARCHIVE=winslow-api.ts
+          - ls -lah $ARCHIVE
+          - head -n 2 $ARCHIVE
+          - curl -i -u "$NEXUS_LOGIN" --upload-file "$ARCHIVE" "$WINSLOW_API_TS_URL"
+          - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_LATEST"; fi
+          - if [ "$CI_COMMIT_TAG" != "" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_TAGGED"; fi
+        env:
+          WINSLOW_API_TS_URL: "$NEXUS_RAW_WINSLOW_URL/api/build/winslow-api_$CI_COMMIT_SHORT_SHA.ts"
+          WINSLOW_API_TS_URL_LATEST: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
+          WINSLOW_API_TS_URL_TAGGED: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
+          NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
+          CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+          CI_COMMIT_TAG: ${{ github.ref }}
+          # Set your environment variables as needed

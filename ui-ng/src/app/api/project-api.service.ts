@@ -14,15 +14,15 @@ import {
   LogEntryInfo,
   PipelineDefinitionInfo,
   ProjectInfo,
-  RangedList,
-  RangeWithStepSize, Raw,
+  RangedList, RangedValue,
+  RangeWithStepSize,
   ResourceInfo,
   ResourceLimitation,
   StageAndGatewayDefinitionInfo,
   StageDefinitionInfoUnion,
   StageInfo,
   StageWorkerDefinitionInfo,
-  StageXOrGatewayDefinitionInfo,
+  StageXOrGatewayDefinitionInfo, State,
   StateInfo,
   StatsInfo,
   WorkspaceConfiguration,
@@ -50,7 +50,7 @@ export class ProjectApiService {
     return `${environment.apiLocation}projects${more != null ? `/${more}` : ''}`;
   }
 
-  private static fixExecutionGroupInfoArray(groups: Raw<ExecutionGroupInfo>[]): ExecutionGroupInfo[] {
+  private static fixExecutionGroupInfoArray(groups: ExecutionGroupInfoHelper[]): ExecutionGroupInfoHelper[] {
     return groups.map(origin => loadExecutionGroupInfo(origin));
   }
 
@@ -135,9 +135,9 @@ export class ProjectApiService {
   private watchProjectExecutionGroupInfo(
     projectId: string,
     specialization: string,
-    listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+    listener: (update: ExecutionGroupInfoHelper[]) => void): Subscription {
     return this.rxStompService.watch(`/projects/${projectId}/${specialization}`).subscribe((message: Message) => {
-      const events: ChangeEvent<string, ExecutionGroupInfo[]>[] = JSON.parse(message.body);
+      const events: ChangeEvent<string, ExecutionGroupInfoHelper[]>[] = JSON.parse(message.body);
       events.forEach(event => {
         if (event.identifier === projectId) {
           listener(event.value ? ProjectApiService.fixExecutionGroupInfoArray(event.value) : []);
@@ -146,15 +146,15 @@ export class ProjectApiService {
     });
   }
 
-  public watchProjectHistory(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  public watchProjectHistory(projectId: string, listener: (update: ExecutionGroupInfoHelper[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'history', listener);
   }
 
-  public watchProjectExecutions(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  public watchProjectExecutions(projectId: string, listener: (update: ExecutionGroupInfoHelper[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'executing', listener);
   }
 
-  public watchProjectEnqueued(projectId: string, listener: (update: ExecutionGroupInfo[]) => void): Subscription {
+  public watchProjectEnqueued(projectId: string, listener: (update: ExecutionGroupInfoHelper[]) => void): Subscription {
     return this.watchProjectExecutionGroupInfo(projectId, 'enqueued', groups => {
       if (groups != null) {
         for (let i = 0; i < groups.length; ++i) {
@@ -216,15 +216,15 @@ export class ProjectApiService {
     return Promise.all([...this.projectSubscriptionHandler.getCached()]);
   }
 
-  getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfo[]> {
+  getProjectPartialHistory(projectId: string, olderThanGroupId: string, count: number): Promise<ExecutionGroupInfoHelper[]> {
     return lastValueFrom(
-      this.client.get<Raw<ExecutionGroupInfo>[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
+      this.client.get<ExecutionGroupInfoHelper[]>(ProjectApiService.getUrl(`${projectId}/history/reversed/${olderThanGroupId}/${count}`))
     ).then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
-  getProjectHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
+  getProjectHistory(projectId: string): Promise<ExecutionGroupInfoHelper[]> {
     return lastValueFrom(
-      this.client.get<Raw<ExecutionGroupInfo>[]>(ProjectApiService.getUrl(`${projectId}/history`))
+      this.client.get<ExecutionGroupInfoHelper[]>(ProjectApiService.getUrl(`${projectId}/history`))
     ).then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
@@ -289,7 +289,7 @@ export class ProjectApiService {
 
   getEnvironment(projectId: string, stageIndex: number): Promise<Map<string, EnvVariable>> {
     return lastValueFrom(
-      this.client.get<Record<string, Raw<EnvVariable>>>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
+      this.client.get<Record<string, EnvVariable>>(ProjectApiService.getUrl(`${projectId}/${stageIndex}/environment`))
     ).then(response => {
       const map = new Map<string, EnvVariable>();
       for (const [key, value] of Object.entries(response)) {
@@ -387,9 +387,9 @@ export class ProjectApiService {
     );
   }
 
-  pruneHistory(projectId: string): Promise<ExecutionGroupInfo[]> {
+  pruneHistory(projectId: string): Promise<ExecutionGroupInfoHelper[]> {
     return lastValueFrom(
-      this.client.post<ExecutionGroupInfo[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
+      this.client.post<ExecutionGroupInfoHelper[]>(ProjectApiService.getUrl(`${projectId}/history/prune`), {})
     ).then(ProjectApiService.fixExecutionGroupInfoArray);
   }
 
@@ -482,7 +482,7 @@ export function loadProjectInfo(origin: ProjectInfo): ProjectInfo {
 
 
 export class ProjectGroup {
-  constructor(data: Raw<ProjectGroup>) {
+  constructor(data: ProjectGroup) {
     this.name = data.name;
     this.projects = data.projects
   }
@@ -511,11 +511,11 @@ export function createRangedList(values: string[]): RangedList {
   });
 }
 
-export function loadExecutionGroupInfo(origin: Raw<ExecutionGroupInfo>): ExecutionGroupInfo {
-  return new ExecutionGroupInfo({
-    ...origin,
-    stages: origin.stages.map(stage => loadStageInfo(stage)),
-    stageDefinition: loadStageDefinition(origin.stageDefinition)
+export function loadExecutionGroupInfo(origin: ExecutionGroupInfoHelper): ExecutionGroupInfoHelper {
+  return new ExecutionGroupInfoHelper({
+    ...origin.executionGroupInfo,
+    stages: origin.executionGroupInfo.stages.map(stage => loadStageInfo(stage)),
+    stageDefinition: loadStageDefinition(origin.executionGroupInfo.stageDefinition),
   });
 }
 
@@ -539,7 +539,7 @@ export function loadStageDefinition(stage: StageDefinitionInfoUnion): StageDefin
 }
 
 export class DeletionPolicy {
-  constructor(data: Raw<DeletionPolicy>) {
+  constructor(data: DeletionPolicy) {
     this.keepWorkspaceOfFailedStage = data.keepWorkspaceOfFailedStage;
     this.numberOfWorkspacesOfSucceededStagesToKeep = data.numberOfWorkspacesOfSucceededStagesToKeep;
     this.alwaysKeepMostRecentWorkspace = data.alwaysKeepMostRecentWorkspace;
@@ -578,4 +578,94 @@ export function similarResourceLimitation(a?: ResourceLimitation, b?: ResourceLi
   } else {
     return a == null && b == null;
   }
+}
+
+
+export class ExecutionGroupInfoHelper {
+  executionGroupInfo: ExecutionGroupInfo;
+  enqueueIndex?: number;
+
+  constructor(executionGroupInfo: ExecutionGroupInfo) {
+    this.executionGroupInfo = executionGroupInfo;
+  }
+  rangedValuesKeys(): string[] {
+    return Object.keys(this.executionGroupInfo.rangedValues);
+  };
+
+  hasStagesState(state: State): boolean {
+    for (const stage of this.executionGroupInfo.stages) {
+      if (stage.state === state) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  getMostRecentStage(): StageInfo | undefined {
+    for (const stage of [...this.executionGroupInfo.stages].reverse()) {
+      if (stage.finishTime != null) {
+        return stage;
+      } else if (stage.startTime != null) {
+        return stage;
+      }
+    }
+    return undefined;
+  };
+
+  getMostRecentStartOrFinishTime(): number | undefined {
+    const stage = this.getMostRecentStage();
+    if (stage == undefined) {
+      return undefined;
+    } else if (stage.startTime != undefined) {
+      return stage.startTime;
+    } else if (stage?.finishTime != undefined) {
+      return stage.finishTime;
+    } else {
+      return undefined;
+    }
+  };
+
+  getMostRelevantState(projectState?: State): State {
+    const states: Array<State> = ['RUNNING', 'PREPARING', 'FAILED'];
+    for (const state of states) {
+      if (this.hasStagesState(state)) {
+        return state;
+      }
+    }
+    if (this.executionGroupInfo.enqueued) {
+      return 'ENQUEUED';
+    } else if (this.executionGroupInfo.active) {
+      const alternative = projectState === 'PAUSED' ? 'PAUSED' : 'PREPARING';
+      return this.getMostRecentStage()?.state ?? alternative;
+    } else {
+      return this.getMostRecentStage()?.state ?? 'SKIPPED';
+    }
+  };
+
+  isMostRecentStateRunning(): boolean {
+    return this.getMostRelevantState() === 'RUNNING';
+  };
+
+  hasRunningStages(): boolean {
+    for (const stage of this.executionGroupInfo.stages) {
+      if (stage.state === 'RUNNING') {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  getGroupSize(): number {
+    const rvKeys = Object.keys(this.executionGroupInfo.rangedValues);
+
+    if (rvKeys.length > 0) {
+      let size = 0;
+      for (const entry of Object.entries(this.executionGroupInfo.rangedValues)) {
+        size += (entry[1] as RangedValue).stepCount;
+      }
+      return size;
+    } else {
+      return 1;
+    }
+  };
 }
