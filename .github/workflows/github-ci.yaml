@@ -28,12 +28,11 @@ jobs:
       image: maven:3.8.5-openjdk-17
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: cache m2
+        uses: actions/cache@v3
         with:
-          distribution: 'corretto'
-          java-version: '17'
-          cache: 'maven'
-          cache-dependency-path: 'pom.xml'
+          path: ~/.m2/
+          key: pom.xml-${{ hashFiles('pom.xml') }}
       - name: Test
         run: |
           mvn clean test verify
@@ -51,12 +50,11 @@ jobs:
       image: maven:3.8.5-openjdk-17
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-java@v4
+      - name: cache m2
+        uses: actions/cache/restore@v3
         with:
-          distribution: 'corretto'
-          java-version: '17'
-          cache: 'maven'
-          cache-dependency-path: 'pom.xml'
+          path: ~/.m2/
+          key: pom.xml-${{ hashFiles('pom.xml') }}
       - name: Build
         run: |
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
