@@ -60,7 +60,7 @@ jobs:
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_SHORT/${{ needs.prepare.outputs.short_sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-          mvn clean test verify package
+          mvn -X clean test verify package
           cp application/target/winslow*.jar .
           mv application/target/site/jacoco coverage-report
           awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
