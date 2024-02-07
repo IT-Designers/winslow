@@ -135,7 +135,7 @@ jobs:
       - build-component-server
     runs-on: ubuntu-latest
     container:
-      image: node:20
+      image: node:18
     steps:
       - uses: actions/checkout@v2
       - name: Use Cache
