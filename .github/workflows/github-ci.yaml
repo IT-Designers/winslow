@@ -139,8 +139,6 @@ jobs:
 
   build-component-html:
     runs-on: ubuntu-latest
-    container:
-      image: node:18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v3
@@ -151,6 +149,9 @@ jobs:
         run: |
           (cd api; mvn typescript-generator:generate)
           cp api/target/typescript-generator/winslow-api.ts ui-ng/src/app/api/winslow-api.ts
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18'
       - name: Build
         run: |
           cd ui-ng
