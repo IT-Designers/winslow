@@ -15,7 +15,7 @@ jobs:
       short_sha: ${{ steps.short_sha.outputs.sha }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Get short SHA
         id: short_sha
         run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
@@ -49,7 +49,7 @@ jobs:
     container:
       image: maven:3.8.5-openjdk-17
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: cache m2
         uses: actions/cache/restore@v4
         with:
@@ -91,7 +91,7 @@ jobs:
       - prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Publish
         run: |
           - echo $WINSLOW_API_TS_URL
@@ -146,7 +146,7 @@ jobs:
     container:
       image: node:18
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Use Cache
         uses: actions/cache/restore@v4
         with:
