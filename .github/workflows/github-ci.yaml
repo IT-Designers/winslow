@@ -31,7 +31,7 @@ jobs:
       - name: cache m2
         uses: actions/cache@v3
         with:
-          path: ~/.m2/
+          path: ~/.m2
           key: pom.xml-${{ hashFiles('pom.xml') }}
       - name: Test
         run: |
@@ -53,7 +53,7 @@ jobs:
       - name: cache m2
         uses: actions/cache/restore@v3
         with:
-          path: ~/.m2/
+          path: ~/.m2
           key: pom.xml-${{ hashFiles('pom.xml') }}
       - name: Build
         run: |
