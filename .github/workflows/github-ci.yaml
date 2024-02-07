@@ -38,8 +38,8 @@ jobs:
 
   build-component-server:
     needs:
-     - prepare
-     - test-component-server
+      - prepare
+      - test-component-server
     runs-on: ubuntu-latest
     container:
       image: maven:3.8.5-openjdk-17
@@ -48,19 +48,18 @@ jobs:
         uses: actions/checkout@v2
       - name: Build
         run: |
-          touch winslow-api.ts
-          # sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-          # sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-          # sed -i "s/external__COMMIT_HASH_SHORT/${{ needs.prepare.outputs.short_sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-          # mvn clean test verify package
-          # cp application/target/winslow*.jar .
-          # mv application/target/site/jacoco coverage-report
-          # awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
-          # mvn -pl .,api package
-          # cp api/target/winslow*.jar .
-          # (cd api; mvn typescript-generator:generate)
-          # cp api/target/typescript-generator/winslow-api.ts .
-          # ls -lah
+          sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_SHORT/${{ needs.prepare.outputs.short_sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          mvn clean test verify package
+          cp application/target/winslow*.jar .
+          mv application/target/site/jacoco coverage-report
+          awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
+          mvn -pl .,api package
+          cp api/target/winslow*.jar .
+          (cd api; mvn typescript-generator:generate)
+          cp api/target/typescript-generator/winslow-api.ts .
+          ls -lah
         env:
           CI_COMMIT_SHA: ${{ github.sha }}
           CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
