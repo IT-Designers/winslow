@@ -63,15 +63,14 @@ jobs:
         env:
           CI_COMMIT_SHA: ${{ github.sha }}
           CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+      - name: Save Cache
+        uses: actions/cache@v4
         with:
-          name: winslow-${{ github.sha }}
-          path: |
-            winslow*.jar
-            coverage-report
+          path:
             winslow-api.ts
+          key: ${{ runner.os }}-winslow-api.ts
+          restore-keys: |
+            ${{ runner.os }}-winslow-api.ts
 
   publish-component-server-on-artifact-share:
     needs:
@@ -135,6 +134,11 @@ jobs:
       image: node:20
     steps:
        - uses: actions/checkout@v2
+       - name: Use Cache
+         uses: actions/cache@v4
+         with:
+           path: winslow-api.ts
+           key: ${{ runner.os }}-winslow-api.ts
        - uses: actions/download-artifact@v2
          with:
            name: winslow-${{ github.sha }}
@@ -149,10 +153,10 @@ jobs:
             npm install
             npm run build --prod --configuration=production --baseHref=/ --deployUrl=/
             mv dist/winslow-ui-ng ../winslow-ui-ng
-       - uses: actions/upload-artifact@v2
-         with:
-          name: winslow-ui-ng_${{ github.sha }}
-          path: winslow-ui-ng
+#       - uses: actions/upload-artifact@v2
+#         with:
+#          name: winslow-ui-ng_${{ github.sha }}
+#          path: winslow-ui-ng
 
 #deploy-component-html:
 #  needs:
