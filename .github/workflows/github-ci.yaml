@@ -38,7 +38,7 @@ jobs:
 
   build-component-server:
     needs:
-      #- test-component-server
+#     - test-component-server
       - prepare
     runs-on: ubuntu-latest
     container:
