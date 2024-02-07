@@ -81,6 +81,7 @@ jobs:
   publish-component-server-on-artifact-share:
     needs:
       - build-component-server
+      - test-component-server
       - prepare
     runs-on: ubuntu-latest
     steps:
