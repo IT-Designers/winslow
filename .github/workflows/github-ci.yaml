@@ -145,7 +145,11 @@ jobs:
       - name: create winslow-api.ts
         run: |
           ls -lah
-          (cd api; mvn typescript-generator:generate)
+          cd api
+          ls -lah
+          mvn -X typescript-generator:generate
+          ls -lah
+          cd ..
           cp api/target/typescript-generator/winslow-api.ts ui-ng/src/app/api/winslow-api.ts
       - uses: actions/setup-node@v2
         with:
