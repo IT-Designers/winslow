@@ -33,6 +33,7 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           cache: 'maven'
+          cache-dependency-path: 'pom.xml'
       - name: Test
         run: |
           mvn clean test verify
@@ -55,6 +56,7 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           cache: 'maven'
+          cache-dependency-path: 'pom.xml'
       - name: Build
         run: |
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
