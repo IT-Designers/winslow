@@ -21,25 +21,25 @@ jobs:
         run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
 
 
-  #  test-component-server:
-  #    needs: prepare
-  #    runs-on: ubuntu-latest
-  #    container:
-  #      image: maven:3.8.5-openjdk-17
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #      - name: Test
-  #        run: |
-  #          mvn clean test verify
-  #          mv application/target/site/jacoco coverage-report
-  #          awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
-  #        env:
-  #          CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
+  test-component-server:
+    needs: prepare
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.8.5-openjdk-17
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
+          mvn clean test verify
+          mv application/target/site/jacoco coverage-report
+          awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
+        env:
+          CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
 
   build-component-server:
     needs:
-      prepare
-    #     - test-component-server
+     - prepare
+     - test-component-server
     runs-on: ubuntu-latest
     container:
       image: maven:3.8.5-openjdk-17
