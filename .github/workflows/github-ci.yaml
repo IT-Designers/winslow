@@ -134,6 +134,7 @@ jobs:
     container:
       image: node:20
     steps:
+       - uses: actions/checkout@v2
        - uses: actions/download-artifact@v2
          with:
            name: winslow-${{ github.sha }}
@@ -141,7 +142,6 @@ jobs:
               winslow*.jar
               coverage-report
               winslow-api.ts
-       - uses: actions/checkout@v2
        - name: Build
          run: |
             mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
