@@ -28,6 +28,13 @@ jobs:
       image: maven:3.8.5-openjdk-17
     steps:
       - uses: actions/checkout@v2
+      - name: cache m2
+        uses: actions/cache@v3
+        with:
+          path:
+            ~/.m2/repository
+          key:
+            pom.xml-${{ hashFiles('pom.xml') }}
       - name: Test
         run: |
           mvn clean test verify
@@ -44,8 +51,12 @@ jobs:
     container:
       image: maven:3.8.5-openjdk-17
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - name: restore m2 cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: pom.xml-${{ hashFiles('pom.xml') }}
       - name: Build
         run: |
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
