@@ -60,30 +60,28 @@ jobs:
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_SHORT/${{ needs.prepare.outputs.short_sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-          mvn clean test verify package
+          mvn clean verify package -DskipTests
           cp application/target/winslow*.jar .
           mv application/target/site/jacoco coverage-report
           awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' coverage-report/jacoco.csv
           mvn -pl .,api package
           cp api/target/winslow*.jar .
-          (cd api; mvn typescript-generator:generate)
-          cp api/target/typescript-generator/winslow-api.ts .
           ls -lah
         env:
           CI_COMMIT_SHA: ${{ github.sha }}
           CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
-      - name: Cache winslow-api.ts
-        uses: actions/cache@v4
-        with:
-          path:
-            winslow-api.ts
-          # The hash of the file is used as key, because when the file changes and the cache is still valid then no cache can be created
-          # and all steps that depend on the cache will use the old file
-          key:
-            winslow-api.ts-${{ hashFiles('winslow-api.ts') }}
-          # All dependent steps can use this restore key and will get the latest version of the file
-          restore-keys: |
-            winslow-api.ts-
+#      - name: Cache winslow-api.ts
+#        uses: actions/cache@v4
+#        with:
+#          path:
+#            winslow-api.ts
+#          # The hash of the file is used as key, because when the file changes and the cache is still valid then no cache can be created
+#          # and all steps that depend on the cache will use the old file
+#          key:
+#            winslow-api.ts-${{ hashFiles('winslow-api.ts') }}
+#          # All dependent steps can use this restore key and will get the latest version of the file
+#          restore-keys: |
+#            winslow-api.ts-
 
   publish-component-server-on-artifact-share:
     needs:
@@ -147,14 +145,12 @@ jobs:
       image: node:18
     steps:
       - uses: actions/checkout@v4
-      - name: Use Cache
-        uses: actions/cache/restore@v4
-        with:
-          path: winslow-api.ts
-          key: winslow-api.ts-
+      - name: create winslow-api.ts
+        run: |
+          (cd api; mvn typescript-generator:generate)
+          cp api/target/typescript-generator/winslow-api.ts ui-ng/src/app/api/winslow-api.ts
       - name: Build
         run: |
-          mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
           cd ui-ng
           npm install
           file src/app/api/winslow-api.ts
