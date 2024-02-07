@@ -157,6 +157,7 @@ jobs:
           mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
           cd ui-ng
           npm install
+          file src/app/api/winslow-api.ts
           npm run build --prod --configuration=production --baseHref=/ --deployUrl=/
           mv dist/winslow-ui-ng ../winslow-ui-ng
 #       - uses: actions/upload-artifact@v2
