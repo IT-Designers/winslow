@@ -38,8 +38,8 @@ jobs:
 
   build-component-server:
     needs:
+      prepare
 #     - test-component-server
-      - prepare
     runs-on: ubuntu-latest
     container:
       image: maven:3.8.5-openjdk-17
