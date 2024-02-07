@@ -138,8 +138,6 @@ jobs:
   #      - docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-server:$TAG
 
   build-component-html:
-    needs:
-      - build-component-server
     runs-on: ubuntu-latest
     container:
       image: node:18
