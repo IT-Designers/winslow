@@ -24,15 +24,13 @@ jobs:
   test-component-server:
     needs: prepare
     runs-on: ubuntu-latest
-    container:
-      image: maven:3.8.5-openjdk-17
     steps:
       - uses: actions/checkout@v4
-      - name: cache m2
-        uses: actions/cache@v4
+      - uses: actions/setup-java@v3
         with:
-          path: /root/.m2
-          key: pom.xml-${{ hashFiles('pom.xml') }}
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
       - name: Test
         run: |
           mvn clean test verify
@@ -46,15 +44,13 @@ jobs:
       - prepare
       - test-component-server
     runs-on: ubuntu-latest
-    container:
-      image: maven:3.8.5-openjdk-17
     steps:
       - uses: actions/checkout@v4
-      - name: cache m2
-        uses: actions/cache/restore@v4
+      - uses: actions/setup-java@v3
         with:
-          path: /root/.m2
-          key: pom.xml-${{ hashFiles('pom.xml') }}
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
       - name: Build
         run: |
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
@@ -145,8 +141,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'maven'
       - name: create winslow-api.ts
         run: |
+          ls -lah
           (cd api; mvn typescript-generator:generate)
           cp api/target/typescript-generator/winslow-api.ts ui-ng/src/app/api/winslow-api.ts
       - uses: actions/setup-node@v2
