@@ -44,8 +44,8 @@ jobs:
     container:
       image: maven:3.8.5-openjdk-17
     steps:
-      - uses: actions/checkout@v2
       - name: Build
+        uses: actions/checkout@v2
         run: |
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
@@ -78,8 +78,8 @@ jobs:
       - prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - name: Publish
+        uses: actions/checkout@v2
         run: |
           - echo $WINSLOW_API_TS_URL
           - echo $WINSLOW_API_TS_URL_LATEST
@@ -129,34 +129,31 @@ jobs:
   build-component-html:
     needs:
       - build-component-server
-      - prepare
     runs-on: ubuntu-latest
     container:
       image: node:20
     steps:
-        - uses: actions/checkout@v2
-        - name: Build
-          run: |
+       - name: Download Artifact
+         uses: actions/download-artifact@v2
+         with:
+           name: winslow-${{ github.sha }}
+           path: |
+              winslow*.jar
+              coverage-report
+              winslow-api.ts
+       - name: Build
+         uses: actions/checkout@v2
+         run: |
             mv winslow-api.ts ui-ng/src/app/api/winslow-api.ts
             cd ui-ng
             npm install
             npm run build --prod --configuration=production --baseHref=/ --deployUrl=/
             mv dist/winslow-ui-ng ../winslow-ui-ng
-          env:
-            CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
-        - name: Download Artifact
-          uses: actions/download-artifact@v2
-          with:
-            name: winslow-${{ github.sha }}
-            path: |
-              winslow*.jar
-              coverage-report
-              winslow-api.ts
-        - name: Upload Artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: winslow-ui-ng_${{ github.sha }}
-            path: winslow-ui-ng
+       - name: Upload Artifact
+         uses: actions/upload-artifact@v2
+         with:
+          name: winslow-ui-ng_${{ github.sha }}
+          path: winslow-ui-ng
 
 #deploy-component-html:
 #  needs:
