@@ -219,6 +219,7 @@ jobs:
           path: .
       - name: Publish
         run: |
+          ls -alh
           mv winslow-ui-ng ui-ng/winslow-ui-ng
           cd ui-ng
           docker build .
