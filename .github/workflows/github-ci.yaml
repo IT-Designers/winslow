@@ -191,7 +191,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Publish
         run: |
-                ls
+                ls -lah .
     #           mv winslow-ui-ng ui-ng/winslow-ui-ng
     #           cd ui-ng
     #           ls -lah .
