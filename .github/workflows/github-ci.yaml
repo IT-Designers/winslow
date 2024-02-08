@@ -64,7 +64,7 @@ jobs:
       - name: Upload jar files
         uses: actions/upload-artifact@v2
         with:
-          retention-days: 5
+          retention-days: 1
           name: jar-files-${{ github.run_id }}
           path: |
             winslow*.jar
@@ -184,7 +184,7 @@ jobs:
       - name: Upload winslow-ui-ng
         uses: actions/upload-artifact@v2
         with:
-          retention-days: 5
+          retention-days: 1
           name: winslow-ui-ng_${{ github.run_id }}
           path: winslow-ui-ng
 
@@ -213,6 +213,10 @@ jobs:
       github.ref == 'refs/tags/20**.*'
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v2
+        with:
+          name: winslow-ui-ng_${{ github.run_id }}
+          path: .
       - name: Publish
         run: |
           mv winslow-ui-ng ui-ng/winslow-ui-ng
