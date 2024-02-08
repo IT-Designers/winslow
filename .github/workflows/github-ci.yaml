@@ -88,7 +88,11 @@ jobs:
       - name: Publish
         run: |
           ls -lah .
-          docker build .
+          docker build . -t $IMAGE_NAME
+          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }} 
+          docker push $IMAGE_NAME
+        env:
+          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server:latest
 
   #- ls -lah .
   #- export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
@@ -161,7 +165,11 @@ jobs:
           ls -alh
           mv winslow-ui-ng ui-ng/winslow-ui-ng
           cd ui-ng
-          docker build .
+          docker build . -t $IMAGE_NAME
+          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }} 
+          docker push $IMAGE_NAME
+        env:
+          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-html:latest
     #           ls -lah .
     #           export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
     #           if [ "$TAG" == "master" ]; then export TAG="latest"; fi
@@ -208,7 +216,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Publish
-        run: ls
+        run: |
+          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
+          docker pull $IMAGE_NAME_HTML
+          docker pull $IMAGE_NAME_SERVER
+          docker build . -t $IMAGE_NAME
+           --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML
+           --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
+          docker push $IMAGE_NAME
+        env:
+          IMAGE_NAME_HTML: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-html:latest
+          IMAGE_NAME_SERVER: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server:latest
+          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:latest
 
 #deploy-winslow-node:
 #  needs:
