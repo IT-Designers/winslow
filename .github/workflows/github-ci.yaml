@@ -164,10 +164,11 @@ jobs:
       - name: copy winslow-api.ts to ui-ng
         run: |
           cp api/target/typescript-generator/winslow-api.ts ui-ng/src/app/api/winslow-api.ts
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: ui-ng/package-lock.json
       - name: prepare build
         run: |
           cd ui-ng
