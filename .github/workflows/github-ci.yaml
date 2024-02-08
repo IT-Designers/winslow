@@ -126,7 +126,7 @@ jobs:
       - test-component-server
     runs-on: ubuntu-latest
     steps:
-      - if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github'
+      - if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github-fail'
         run: |
           ls -lah .
 
