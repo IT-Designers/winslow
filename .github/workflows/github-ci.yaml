@@ -134,7 +134,7 @@ jobs:
     needs:
       - build-component-server
       - test-component-server
-    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github'
+    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github-failure'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
