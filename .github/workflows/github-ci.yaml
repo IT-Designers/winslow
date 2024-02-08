@@ -49,7 +49,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-      - name: Setup build information
+      - name: Setup 'Build.java' information
         run: |
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
@@ -63,15 +63,15 @@ jobs:
           cp application/target/winslow*.jar .
           cp api/target/winslow*.jar .
       - name: Upload artifacts
-        if: success() && github.ref == 'refs/heads/239-create-a-workflow-file-for-github'
         uses: actions/upload-artifact@v2
         with:
+          retention-days: 5
           name: jar-files-${{ github.run_id }}
           path: |
             winslow*.jar
         env:
-         CI_COMMIT_SHA: ${{ github.sha }}
-         CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
+          CI_COMMIT_SHA: ${{ github.sha }}
+          CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
   #      - name: Cache winslow-api.ts
   #        uses: actions/cache@v4
   #        with:
@@ -85,52 +85,54 @@ jobs:
   #          restore-keys: |
   #            winslow-api.ts-
 
-  publish-component-server-on-artifact-share:
+  #  publish-component-server-on-artifact-share:
+  #    needs:
+  #      - build-component-server
+  #      - test-component-server
+  #      - prepare
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - uses: actions/checkout@v4
+  #      - name: Publish
+  #        run: |
+  #          - echo $WINSLOW_API_TS_URL
+  #          - echo $WINSLOW_API_TS_URL_LATEST
+  #          - echo $WINSLOW_API_TS_URL_TAGGED
+  #          - export WINSLOW_API_TS_URL="$(eval echo $WINSLOW_API_TS_URL)"
+  #          - export WINSLOW_API_TS_URL_LATEST="$(eval echo $WINSLOW_API_TS_URL_LATEST)"
+  #          - export WINSLOW_API_TS_URL_TAGGED="$(eval echo $WINSLOW_API_TS_URL_TAGGED)"
+  #          - echo $WINSLOW_API_TS_URL
+  #          - echo $WINSLOW_API_TS_URL_LATEST
+  #          - echo $WINSLOW_API_TS_URL_TAGGED
+  #          - export ARCHIVE=winslow-api.ts
+  #          - ls -lah $ARCHIVE
+  #          - head -n 2 $ARCHIVE
+  #          - curl -i -u "$NEXUS_LOGIN" --upload-file "$ARCHIVE" "$WINSLOW_API_TS_URL"
+  #          - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_LATEST"; fi
+  #          - if [ "$CI_COMMIT_TAG" != "" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_TAGGED"; fi
+  #        env:
+  #          WINSLOW_API_TS_URL: "$NEXUS_RAW_WINSLOW_URL/api/build/winslow-api_$CI_COMMIT_SHORT_SHA.ts"
+  #          WINSLOW_API_TS_URL_LATEST: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
+  #          WINSLOW_API_TS_URL_TAGGED: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
+  #          NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
+  #          CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+  #          CI_COMMIT_TAG: ${{ github.ref }}
+  #          # Set your environment variables as needed
+
+
+  deployment-condition-component-server:
     needs:
       - build-component-server
       - test-component-server
-      - prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Publish
+      - if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github'
         run: |
-          - echo $WINSLOW_API_TS_URL
-          - echo $WINSLOW_API_TS_URL_LATEST
-          - echo $WINSLOW_API_TS_URL_TAGGED
-          - export WINSLOW_API_TS_URL="$(eval echo $WINSLOW_API_TS_URL)"
-          - export WINSLOW_API_TS_URL_LATEST="$(eval echo $WINSLOW_API_TS_URL_LATEST)"
-          - export WINSLOW_API_TS_URL_TAGGED="$(eval echo $WINSLOW_API_TS_URL_TAGGED)"
-          - echo $WINSLOW_API_TS_URL
-          - echo $WINSLOW_API_TS_URL_LATEST
-          - echo $WINSLOW_API_TS_URL_TAGGED
-          - export ARCHIVE=winslow-api.ts
-          - ls -lah $ARCHIVE
-          - head -n 2 $ARCHIVE
-          - curl -i -u "$NEXUS_LOGIN" --upload-file "$ARCHIVE" "$WINSLOW_API_TS_URL"
-          - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_LATEST"; fi
-          - if [ "$CI_COMMIT_TAG" != "" ]; then curl -i -u "$NEXUS_LOGIN" --upload-file $ARCHIVE "$WINSLOW_API_TS_URL_TAGGED"; fi
-        env:
-          WINSLOW_API_TS_URL: "$NEXUS_RAW_WINSLOW_URL/api/build/winslow-api_$CI_COMMIT_SHORT_SHA.ts"
-          WINSLOW_API_TS_URL_LATEST: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
-          WINSLOW_API_TS_URL_TAGGED: "$NEXUS_RAW_WINSLOW_URL/api/winslow-api.ts"
-          NEXUS_LOGIN: ${{ secrets.NEXUS_LOGIN }}
-          CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-          CI_COMMIT_TAG: ${{ github.ref }}
-          # Set your environment variables as needed
-
+          ls -lah .
 
   deploy-component-server:
     needs:
-      - build-component-server
-      - test-component-server
-    #      only:
-    #        refs:
-    #          - master
-    #          - tags
-    #          - /^20\d\d.[\d]+$/
-    #      tags:
-    #        - dockerbuilder
+      - deployment-condition-component-server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -143,14 +145,13 @@ jobs:
           ls -lah .
           docker build .
 
-
-#- ls -lah .
-#- export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
-#- if [ "$TAG" == "master" ]; then export TAG="latest"; fi
-#- echo $TAG
-#- docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-server:$TAG
-#- docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
-#- docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-server:$TAG
+  #- ls -lah .
+  #- export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
+  #- if [ "$TAG" == "master" ]; then export TAG="latest"; fi
+  #- echo $TAG
+  #- docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-server:$TAG
+  #- docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
+  #- docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-server:$TAG
 
   build-component-html:
     runs-on: ubuntu-latest
@@ -191,7 +192,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Publish
         run: |
-                ls -lah .
+          ls -lah .
     #           mv winslow-ui-ng ui-ng/winslow-ui-ng
     #           cd ui-ng
     #           ls -lah .
@@ -238,9 +239,9 @@ jobs:
     #      tags:
     #        - dockerbuilder
     steps:
-     - uses: actions/checkout@v4
-     - name: Publish
-       run: ls
+      - uses: actions/checkout@v4
+      - name: Publish
+        run: ls
 
 #deploy-winslow-node:
 #  needs:
