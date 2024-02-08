@@ -120,19 +120,21 @@ jobs:
   #          # Set your environment variables as needed
 
 
-  deployment-condition-component-server:
-    needs:
-      - build-component-server
-      - test-component-server
-    runs-on: ubuntu-latest
-    steps:
-      - if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github-fail'
-        run: |
-          ls -lah .
+#  deployment-condition-component-server:
+#    needs:
+#      - build-component-server
+#      - test-component-server
+#    runs-on: ubuntu-latest
+#    steps:
+#      - if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github'
+#        run: |
+#          exit 1
 
   deploy-component-server:
     needs:
-      - deployment-condition-component-server
+      - build-component-server
+      - test-component-server
+    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
