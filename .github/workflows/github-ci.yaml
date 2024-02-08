@@ -220,9 +220,7 @@ jobs:
           docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
           docker pull $IMAGE_NAME_HTML
           docker pull $IMAGE_NAME_SERVER
-          docker build . -t $IMAGE_NAME
-           --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML
-           --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
+          docker build . -t $IMAGE_NAME --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
           docker push $IMAGE_NAME
         env:
           IMAGE_NAME_HTML: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-html-latest
