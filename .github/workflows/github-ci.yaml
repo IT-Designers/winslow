@@ -182,9 +182,10 @@ jobs:
           cd ui-ng
           mv dist/winslow-ui-ng ../winslow-ui-ng
       - name: Upload winslow-ui-ng
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           retention-days: 1
+          compression-level: 9
           name: winslow-ui-ng_${{ github.run_id }}
           path: winslow-ui-ng
 
@@ -216,7 +217,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: winslow-ui-ng_${{ github.run_id }}
-          path: .
+          path: winslow-ui-ng
       - name: Publish
         run: |
           ls -alh
