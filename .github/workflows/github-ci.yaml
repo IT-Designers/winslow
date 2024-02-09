@@ -61,9 +61,10 @@ jobs:
           cp application/target/winslow*.jar .
           cp api/target/winslow*.jar .
       - name: Upload jar files
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           retention-days: 1
+          compression-level: 9
           name: jar-files-${{ github.run_id }}
           path: |
             winslow*.jar
