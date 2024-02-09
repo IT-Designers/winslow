@@ -10,19 +10,20 @@ on:
 
 ## TODO: refactor the usage of output
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      short_sha: ${{ steps.short_sha.outputs.sha }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Get short SHA
-        id: short_sha
-        run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
+  #  prepare:
+  #    runs-on: ubuntu-latest
+  #    outputs:
+  #      short_sha: ${{ steps.short_sha.outputs.sha }}
+  #    steps:
+  #      - name: Checkout repository
+  #        uses: actions/checkout@v4
+  #      - name: Get short SHA
+  #        id: short_sha
+  #        run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
+
+
 
   test-component-server:
-    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,12 +36,8 @@ jobs:
         run: |
           mvn clean test verify
           # TODO: Add coverage report
-        env:
-          CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
 
   build-component-server:
-    needs:
-      - prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,9 +48,11 @@ jobs:
           cache: 'maven'
       - name: Setup 'Build.java' information
         run: |
+          export COMMIT_HASH_LONG=${{ github.sha }}
+          export COMMIT_HASH_SHORT=$(git rev-parse --short=7 ${{ github.sha }})
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
-          sed -i "s/external__COMMIT_HASH_SHORT/${{ needs.prepare.outputs.short_sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_SHORT/$COMMIT_HASH_SHORT}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
       - name: Build
         run: |
           mvn clean verify package -DskipTests
@@ -69,40 +68,6 @@ jobs:
           name: jar-files-${{ github.run_id }}
           path: |
             winslow*.jar
-        env:
-          CI_COMMIT_SHA: ${{ github.sha }}
-          CI_COMMIT_SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
-
-  deploy-component-server:
-    needs:
-      - build-component-server
-      - test-component-server
-    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github' ||
-      github.ref == 'master' ||
-      github.ref == 'refs/tags/20**.*'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: jar-files-${{ github.run_id }}
-          path: .
-      - name: Publish
-        run: |
-          ls -lah .
-          docker build . -t $IMAGE_NAME
-          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }} 
-          docker push $IMAGE_NAME
-        env:
-          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server-latest
-
-  #- ls -lah .
-  #- export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
-  #- if [ "$TAG" == "master" ]; then export TAG="latest"; fi
-  #- echo $TAG
-  #- docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-server:$TAG
-  #- docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
-  #- docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-server:$TAG
 
   build-component-html:
     runs-on: ubuntu-latest
@@ -126,7 +91,7 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: ui-ng/package-lock.json
-      - name: prepare build
+      - name: Prepare build
         run: |
           cd ui-ng
           npm install
@@ -146,18 +111,41 @@ jobs:
           name: winslow-ui-ng_${{ github.run_id }}
           path: winslow-ui-ng
 
-  deploy-component-html:
-    runs-on: ubuntu-latest
+  deployment-condition-check:
     needs:
+      - build-component-server
+      - test-component-server
       - build-component-html
     if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github' ||
       github.ref == 'master' ||
       github.ref == 'refs/tags/20**.*'
+    runs-on: ubuntu-latest
+
+  deploy-component-server:
+    needs:
+      - deployment-condition-check
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: make ls after checkout
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar-files-${{ github.run_id }}
+          path: .
+      - name: Publish
         run: |
-          ls -alh
+          ls -lah .
+          docker build . -t $IMAGE_NAME
+          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }} 
+          docker push $IMAGE_NAME
+        env:
+          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server-latest
+
+  deploy-component-html:
+    runs-on: ubuntu-latest
+    needs:
+      - deployment-condition-check
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: winslow-ui-ng_${{ github.run_id }}
@@ -172,49 +160,12 @@ jobs:
           docker push $IMAGE_NAME
         env:
           IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-html-latest
-    #           ls -lah .
-    #           export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
-    #           if [ "$TAG" == "master" ]; then export TAG="latest"; fi
-    #           echo $TAG
-    #           docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-html:$TAG
-    #           docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
-    #           docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-html:$TAG
-    #deploy-component-html:
-    #  needs:
-    #    - job: build-component-html
-    #      artifacts: true
-    #  only:
-    #    refs:
-    #      - master
-    #      - tags
-    #      - /^20\d\d.[\d]+$/
-    #  tags:
-    #    - dockerbuilder
-    #  script:
-    #    - mv winslow-ui-ng ui-ng/winslow-ui-ng
-    #    - cd ui-ng
-    #    - ls -lah .
-    #    - export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
-    #    - if [ "$TAG" == "master" ]; then export TAG="latest"; fi
-    #    - echo $TAG
-    #    - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/component-html:$TAG
-    #    - docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
-    #    - docker push $DOCKER_REGISTRY_WINSLOW/winslow/component-html:$TAG
-    #
-    #
 
   deploy-winslow-node:
     runs-on: ubuntu-latest
     needs:
       - deploy-component-server
       - deploy-component-html
-    #      only:
-    #        refs:
-    #          - master
-    #          - tags
-    #          - /^20\d\d.[\d]+$/
-    #      tags:
-    #        - dockerbuilder
     steps:
       - uses: actions/checkout@v4
       - name: Publish
@@ -230,26 +181,4 @@ jobs:
           IMAGE_NAME_SERVER: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server-latest
           IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:latest
 
-#deploy-winslow-node:
-#  needs:
-#    - deploy-component-server
-#    - deploy-component-html
-#  only:
-#    refs:
-#      - master
-#      - tags
-#      - /^20\d\d.[\d]+$/
-#  tags:
-#    - dockerbuilder
-#  script:
-#    - export TAG="${CI_COMMIT_TAG:-${CI_COMMIT_REF_NAME:-latest}}"
-#    - if [ "$TAG" == "master" ]; then export TAG="latest"; fi
-#    - echo $TAG
-#    - cd node
-#    - docker pull nexus.itd-intern.de/winslow/component-html:$TAG
-#    - docker pull nexus.itd-intern.de/winslow/component-server:$TAG
-#    - docker build . -t $DOCKER_REGISTRY_WINSLOW/winslow/node:$TAG
-#      --build-arg COMPONENT_HTML=nexus.itd-intern.de/winslow/component-html:$TAG
-#      --build-arg COMPONENT_SERVER=nexus.itd-intern.de/winslow/component-server:$TAG
-#    - docker login -u $DOCKER_REGISTRY_WINSLOW_USERNAME -p $DOCKER_REGISTRY_WINSLOW_PASSWORD $DOCKER_REGISTRY_WINSLOW
-#    - docker push $DOCKER_REGISTRY_WINSLOW/winslow/node:$TAG
+
