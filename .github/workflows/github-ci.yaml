@@ -120,6 +120,10 @@ jobs:
       github.ref == 'master' ||
       github.ref == 'refs/tags/20**.*'
     runs-on: ubuntu-latest
+    steps:
+    - name: Check
+      run: |
+        echo "Deployment condition check passed" 
 
   deploy-component-server:
     needs:
