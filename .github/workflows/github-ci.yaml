@@ -207,9 +207,9 @@ jobs:
                echo $IMAGE_NAME:$TAG
                docker build . -t $IMAGE_NAME:$TAG --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
                docker push $IMAGE_NAME:$TAG
+               docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
+               docker push $IMAGE_NAME:latest
 #### TODO: when to use latest and when to use the tag name from git?
 #### each push on 2024.1 will create a tag latest and 2024.1 / the last push on 2024.1 will automatically create a tag latest
 #### when a 2025.1 branch is created then it will be latest and 2025.1 so the 2024.1 will not change and is not latest anymore
 #### or should it be like latest is the last push on master/main and the tag is the tag from git?
-               docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
-               docker push $IMAGE_NAME:latest
