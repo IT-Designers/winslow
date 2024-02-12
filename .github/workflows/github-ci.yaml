@@ -10,6 +10,8 @@ on:
       - '**'
     tags:
       - '20**.*'
+  workflow_dispatch:
+    branches: '**'
 
 jobs:
   test-component-server:
@@ -132,7 +134,7 @@ jobs:
           docker push $IMAGE_NAME
 # TODO: adjust image name to github repo. so with 2024.1 it will be the tag and not latest
 # and the master/main will go to the latest tag
-# do this for all github images
+# do this for all github images, and for tags(git tags)
 
   deploy-component-html:
     runs-on: ubuntu-latest
