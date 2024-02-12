@@ -1,5 +1,8 @@
 name: CI/CD Pipeline
-
+env:
+  IMAGE_NAME_HTML: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-html-latest
+  IMAGE_NAME_SERVER: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server-latest
+  IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:latest
 on:
   push:
     branches:
@@ -8,21 +11,7 @@ on:
     tags:
       - '20**.*'
 
-## TODO: refactor the usage of output
 jobs:
-  #  prepare:
-  #    runs-on: ubuntu-latest
-  #    outputs:
-  #      short_sha: ${{ steps.short_sha.outputs.sha }}
-  #    steps:
-  #      - name: Checkout repository
-  #        uses: actions/checkout@v4
-  #      - name: Get short SHA
-  #        id: short_sha
-  #        run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
-
-
-
   test-component-server:
     runs-on: ubuntu-latest
     steps:
@@ -124,6 +113,7 @@ jobs:
     - name: Check
       run: |
         echo "Deployment condition check passed" 
+        echo "github.ref == 'refs/heads/239-create-a-workflow-file-for-github' || github.ref == 'master' || github.ref == 'refs/tags/20**.*'"
 
   deploy-component-server:
     needs:
@@ -141,8 +131,6 @@ jobs:
           docker build . -t $IMAGE_NAME
           docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }} 
           docker push $IMAGE_NAME
-        env:
-          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server-latest
 
   deploy-component-html:
     runs-on: ubuntu-latest
@@ -162,8 +150,6 @@ jobs:
           docker build . -t $IMAGE_NAME
           docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }} 
           docker push $IMAGE_NAME
-        env:
-          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-html-latest
 
   deploy-winslow-node:
     runs-on: ubuntu-latest
@@ -180,9 +166,3 @@ jobs:
           docker pull $IMAGE_NAME_SERVER
           docker build . -t $IMAGE_NAME --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
           docker push $IMAGE_NAME
-        env:
-          IMAGE_NAME_HTML: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-html-latest
-          IMAGE_NAME_SERVER: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:component-server-latest
-          IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:latest
-
-
