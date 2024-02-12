@@ -104,58 +104,6 @@ jobs:
           name: winslow-ui-ng_${{ github.run_id }}
           path: winslow-ui-ng
 
-#  deployment-condition-check:
-#    needs:
-#      - build-component-server
-#      - test-component-server
-#      - build-component-html
-#    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github' ||
-#      github.ref == 'master' ||
-#      github.ref == 'refs/tags/20**.*'
-#    runs-on: ubuntu-latest
-#    steps:
-#    - name: Check
-#      run: |
-#        echo "Deployment condition check passed"
-#        echo "github.ref == 'refs/heads/239-create-a-workflow-file-for-github' || github.ref == 'master' || github.ref == 'refs/tags/20**.*'"
-
-#  deploy-component-server:
-#    needs:
-#      - deployment-condition-check
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: jar-files-${{ github.run_id }}
-#          path: .
-#      - name: Publish
-#        run: |
-#          docker build . -t $IMAGE_NAME
-#          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
-#          docker push $IMAGE_NAME
-# TODO: adjust image name to github repo. so with 2024.1 it will be the tag and not latest
-# and the master/main will go to the latest tag
-# do this for all github images, and for tags(git tags)
-
-#  deploy-component-html:
-#    runs-on: ubuntu-latest
-#    needs:
-#      - deployment-condition-check
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: winslow-ui-ng_${{ github.run_id }}
-#          path: ./winslow-ui-ng
-#      - name: Publish
-#        run: |
-#          mv winslow-ui-ng ui-ng/winslow-ui-ng
-#          cd ui-ng
-#          docker build . -t $IMAGE_NAME
-#          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
-#          docker push $IMAGE_NAME
-
   deploy-winslow-node:
     runs-on: ubuntu-latest
     needs:
