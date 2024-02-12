@@ -2,7 +2,6 @@ name: CI/CD Pipeline
 env:
   IMAGE_NAME_HTML: component-html
   IMAGE_NAME_SERVER: component-server
-  IMAGE_NAME: ${{ vars.DOCKER_REGISTRY_WINSLOW }}:latest
 on:
   push:
     branches:
@@ -11,7 +10,8 @@ on:
     tags:
       - '20**.*'
   workflow_dispatch:
-    branches: '**'
+    branches:
+      - '**'
 
 jobs:
   test-component-server:
@@ -102,64 +102,72 @@ jobs:
           name: winslow-ui-ng_${{ github.run_id }}
           path: winslow-ui-ng
 
-  deployment-condition-check:
+  #  deployment-condition-check:
+  #    needs:
+  #      - build-component-server
+  #      - test-component-server
+  #      - build-component-html
+  #    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github' ||
+  #      github.ref == 'master' ||
+  #      github.ref == 'refs/tags/20**.*'
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #    - name: Check
+  #      run: |
+  #        echo "Deployment condition check passed"
+  #        echo "github.ref == 'refs/heads/239-create-a-workflow-file-for-github' || github.ref == 'master' || github.ref == 'refs/tags/20**.*'"
+
+  #  deploy-component-server:
+  #    needs:
+  #      - deployment-condition-check
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - uses: actions/checkout@v4
+  #      - uses: actions/download-artifact@v4
+  #        with:
+  #          name: jar-files-${{ github.run_id }}
+  #          path: .
+  #      - name: Publish
+  #        run: |
+  #          docker build . -t $IMAGE_NAME
+  #          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
+  #          docker push $IMAGE_NAME
+  # TODO: adjust image name to github repo. so with 2024.1 it will be the tag and not latest
+  # and the master/main will go to the latest tag
+  # do this for all github images, and for tags(git tags)
+
+  #  deploy-component-html:
+  #    runs-on: ubuntu-latest
+  #    needs:
+  #      - deployment-condition-check
+  #    steps:
+  #      - uses: actions/checkout@v4
+  #      - uses: actions/download-artifact@v4
+  #        with:
+  #          name: winslow-ui-ng_${{ github.run_id }}
+  #          path: ./winslow-ui-ng
+  #      - name: Publish
+  #        run: |
+  #          mv winslow-ui-ng ui-ng/winslow-ui-ng
+  #          cd ui-ng
+  #          docker build . -t $IMAGE_NAME
+  #          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
+  #          docker push $IMAGE_NAME
+
+  deploy-winslow-node:
+    runs-on: ubuntu-latest
     needs:
       - build-component-server
       - test-component-server
       - build-component-html
     if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github' ||
       github.ref == 'master' ||
+      github.ref == 'refs/heads/20**.*' ||
       github.ref == 'refs/tags/20**.*'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Check
-      run: |
-        echo "Deployment condition check passed" 
-        echo "github.ref == 'refs/heads/239-create-a-workflow-file-for-github' || github.ref == 'master' || github.ref == 'refs/tags/20**.*'"
-
-#  deploy-component-server:
-#    needs:
-#      - deployment-condition-check
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: jar-files-${{ github.run_id }}
-#          path: .
-#      - name: Publish
-#        run: |
-#          docker build . -t $IMAGE_NAME
-#          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
-#          docker push $IMAGE_NAME
-# TODO: adjust image name to github repo. so with 2024.1 it will be the tag and not latest
-# and the master/main will go to the latest tag
-# do this for all github images, and for tags(git tags)
-
-#  deploy-component-html:
-#    runs-on: ubuntu-latest
-#    needs:
-#      - deployment-condition-check
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: winslow-ui-ng_${{ github.run_id }}
-#          path: ./winslow-ui-ng
-#      - name: Publish
-#        run: |
-#          mv winslow-ui-ng ui-ng/winslow-ui-ng
-#          cd ui-ng
-#          docker build . -t $IMAGE_NAME
-#          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
-#          docker push $IMAGE_NAME
-
-  deploy-winslow-node:
-    runs-on: ubuntu-latest
-    needs:
-      deployment-condition-check
     steps:
       - uses: actions/checkout@v4
+
+        ## BACKEND START ##
       - name: Download backend
         uses: actions/download-artifact@v4
         with:
@@ -167,8 +175,9 @@ jobs:
           path: .
       - name: Build backend image
         run: |
-          ls -lah
           docker build . -t $IMAGE_NAME_SERVER
+
+        ## FRONTEND START ##
       - name: Download frontend
         uses: actions/download-artifact@v4
         with:
@@ -176,13 +185,32 @@ jobs:
           path: ./winslow-ui-ng
       - name: Build frontend image
         run: |
-          ls -lah
           mv winslow-ui-ng ui-ng/winslow-ui-ng
           cd ui-ng
           docker build . -t $IMAGE_NAME_HTML
+
+        ## WINSLOW START
+      - name: Dockerhub login
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
+
       - name: Build final image
         run: |
           cd node
-          docker login -u ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
-          docker build . -t $IMAGE_NAME --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
-          docker push $IMAGE_NAME
+          TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/./g'))
+          echo $TAG
+          IMAGE_NAME=${{ vars.DOCKER_REGISTRY_WINSLOW }}
+          echo $IMAGE_NAME
+          echo $IMAGE_NAME:$TAG
+          docker build . -t $IMAGE_NAME:$TAG --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
+          docker push $IMAGE_NAME:$TAG
+
+       #### TODO: when to use latest and when to use the tag name from git?
+       #### each push on 2024.1 will create a tag latest and 2024.1 / the last push on 2024.1 will automatically create a tag latest
+       #### when a 2025.1 branch is created then it will be latest and 2025.1 so the 2024.1 will not change and is not latest anymore
+       #### or should it be like latest is the last push on master/main and the tag is the tag from git?
+          docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:latest
