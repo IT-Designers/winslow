@@ -163,6 +163,16 @@ jobs:
           docker push $IMAGE_NAME:$TAG
           docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
+
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
+          repository: itdesigners1/winslow
+          readme-filepath: ./node/README.md
+
+
 #### TODO: when to use latest and when to use the tag name from git?
 #### each push on 2024.1 will create a tag latest and 2024.1 / the last push on 2024.1 will automatically create a tag latest
 #### when a 2025.1 branch is created then it will be latest and 2025.1 so the 2024.1 will not change and is not latest anymore
