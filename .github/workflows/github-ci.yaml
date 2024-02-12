@@ -81,9 +81,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: |
-             ui-ng/package-lock.json
-             ui-ng/.subtree/ngx-sweetalert2/package-lock.json
+          cache-dependency-path: ui-ng/package-lock.json
       - name: Prepare build
         run: |
           cd ui-ng
@@ -110,7 +108,8 @@ jobs:
       - build-component-server
       - test-component-server
       - build-component-html
-    if: github.ref == 'master' ||
+    if: github.ref == 'refs/heads/239-**' ||
+      github.ref == 'master' ||
       github.ref == 'refs/heads/20**.*' ||
       github.ref == 'refs/tags/20**.*'
     steps:
