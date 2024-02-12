@@ -160,14 +160,12 @@ jobs:
       - build-component-server
       - test-component-server
       - build-component-html
-    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github' ||
-      github.ref == 'master' ||
+    if: github.ref == 'master' ||
       github.ref == 'refs/heads/20**.*' ||
       github.ref == 'refs/tags/20**.*'
     steps:
       - uses: actions/checkout@v4
 
-## BACKEND START ##
       - name: Download backend
         uses: actions/download-artifact@v4
         with:
@@ -177,7 +175,6 @@ jobs:
         run: |
           docker build . -t $IMAGE_NAME_SERVER
 
-## FRONTEND START ##
       - name: Download frontend
         uses: actions/download-artifact@v4
         with:
@@ -189,7 +186,6 @@ jobs:
           cd ui-ng
           docker build . -t $IMAGE_NAME_HTML
 
-## WINSLOW START
       - name: Dockerhub login
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
@@ -199,16 +195,16 @@ jobs:
 
       - name: Build final image
         run: |
-               cd node
-               TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/./g')
-               echo $TAG
-               IMAGE_NAME=${{ vars.DOCKER_REGISTRY_WINSLOW }}
-               echo $IMAGE_NAME
-               echo $IMAGE_NAME:$TAG
-               docker build . -t $IMAGE_NAME:$TAG --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
-               docker push $IMAGE_NAME:$TAG
-               docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
-               docker push $IMAGE_NAME:latest
+          cd node
+          TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/./g')
+          echo $TAG
+          IMAGE_NAME=${{ vars.DOCKER_REGISTRY_WINSLOW }}
+          echo $IMAGE_NAME
+          echo $IMAGE_NAME:$TAG
+          docker build . -t $IMAGE_NAME:$TAG --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
+          docker push $IMAGE_NAME:$TAG
+          docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:latest
 #### TODO: when to use latest and when to use the tag name from git?
 #### each push on 2024.1 will create a tag latest and 2024.1 / the last push on 2024.1 will automatically create a tag latest
 #### when a 2025.1 branch is created then it will be latest and 2025.1 so the 2024.1 will not change and is not latest anymore
