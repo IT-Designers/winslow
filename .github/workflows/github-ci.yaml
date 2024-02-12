@@ -96,7 +96,7 @@ jobs:
       - name: Build
         run: |
           cd ui-ng
-          npm run build --prod --omit=dev --baseHref=/ --deployUrl=/
+          npm run build --omit=dev --baseHref=/ --deployUrl=/
       - name: Prepare upload
         run: |
           cd ui-ng
