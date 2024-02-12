@@ -14,9 +14,6 @@ on:
       - '**'
 
 jobs:
-  concurrency:
-    group: "${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}"
-    cancel-in-progress: true
   test-component-server:
     runs-on: ubuntu-latest
     steps:
