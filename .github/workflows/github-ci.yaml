@@ -163,7 +163,6 @@ jobs:
               TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')-dev
             fi
           fi 
-          TAG=${TAG:-latest}
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build and push winslow image
