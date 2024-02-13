@@ -81,6 +81,7 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: ui-ng/package-lock.json
+      # This is only needed to speed up the ngx-sweetalert2 build process, delete if not needed
       - name: Cache ngx-sweetalert2
         uses: actions/cache@v4
         with:
@@ -150,9 +151,9 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
 
-      - name: Build final image
+      - name: Determine image tag
+        id: determine_tag
         run: |
-          cd node
           if [[ "$GITHUB_REF" == "master" ]]; then
             TAG=dev
           elif [[ "$GITHUB_REF" == *tags* ]]; then
@@ -164,10 +165,16 @@ jobs:
           else
             TAG=latest
           fi 
-          TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Build and push winslow image
+        run: |
+          TAG=${{ steps.determine_tag.outputs.TAG }}
           IMAGE_WINSLOW=${{ vars.DOCKER_REGISTRY_WINSLOW }}
+          cd node
+          echo "-------------------- BUILDING IMAGE: $IMAGE_WINSLOW:$TAG --------------------"
           docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
-          echo "Pushing $IMAGE_WINSLOW:$TAG"
+          echo "-------------------- PUSHING IMAGE: $IMAGE_WINSLOW:$TAG --------------------"
           docker push $IMAGE_WINSLOW:$TAG
 
       - name: Update Dockerhub description
